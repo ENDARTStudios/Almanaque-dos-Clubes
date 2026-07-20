@@ -5,6 +5,8 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
+import jwt from '@fastify/jwt';
+import cookie from '@fastify/cookie';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
@@ -35,6 +37,27 @@ export async function buildApp(): Promise<FastifyInstance> {
     origin: env.isProd ? ['https://almanaque.app'] : true, // dev: permite qualquer origem
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
+  });
+
+  // ---- Auth plugins (Tarefa 3.1) ----
+  // @fastify/cookie — para setar/ler cookies httpOnly com refresh token
+  await app.register(cookie, {
+    secret: env.jwtSecret, // assina cookies signed (uso futuro)
+  });
+
+  // @fastify/jwt — para sign/verify de access e refresh tokens
+  await app.register(jwt, {
+    secret: env.jwtSecret,
+    sign: {
+      expiresIn: env.jwtExpiresIn,
+    },
+    verify: {
+      algorithms: ['HS256'], // previne algorithm confusion attacks
+    },
+    cookie: {
+      cookieName: 'access_token', // permite app.jwt.verifyFromCookie() no futuro
+      signed: false, // não exige cookie signed (usamos httpOnly separado)
+    },
   });
 
   // ---- Prefixo de versão da API ----
