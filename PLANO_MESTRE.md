@@ -9,7 +9,7 @@
 
 - [ ] Fase 0 – Setup `[OBRIGATÓRIO]`
 - [ ] Fase 1 – Infra base `[OBRIGATÓRIO]`
-- [ ] Fase 2 – Dados `[OBRIGATÓRIO + auth/billing/audit]`
+- [x] Fase 2 – Dados `[OBRIGATÓRIO + auth/billing/audit]` ✅ (2026-07-20)
 - [ ] Fase 3 – Auth `[OBRIGATÓRIO, 2FA TOTP opcional]`
 - [ ] Fase 4 – APIs/CRUDs `[OBRIGATÓRIO + billing]`
 - [ ] Fase 5 – Frontend `[OBRIGATÓRIO]`
@@ -85,21 +85,21 @@ de evidência**, não por presunção.
 
 ---
 
-## FASE 2 — DADOS `[OBRIGATÓRIO + auth/billing/audit]`
+## FASE 2 — DADOS `[OBRIGATÓRIO + auth/billing/audit]` ✅
 
-- [ ] 2.1 Prisma schema canônico (`schema.prisma`) com provider PostgreSQL.
-- [ ] 2.2 Migration inicial versionada e aplicada.
-- [ ] 2.3 Tabelas de domínio: `clubs`, `players`, `competitions`, `rankings`, `matches`, `seasons`.
-- [ ] 2.4 Tabelas de auth: `users`, `roles`, `permissions`, `user_roles`, `sessions`.
-- [ ] 2.5 Tabelas de billing: `subscriptions`, `plans` (Free/Pro/Elite), `invoices`, `payment_events`.
-- [ ] 2.6 Tabelas de auditoria: `audit_logs` (imutável, append-only, com hash de cadeia).
-- [ ] 2.7 Tabelas de governança: `data_sources` (procedência), `entity_revisions` (versionamento).
-- [ ] 2.8 Senha/token sempre hash com argon2id (custo ≥ 12). Nunca em texto plano.
-- [ ] 2.9 Soft delete em entidades críticas (`deleted_at` em `clubs`, `players`, `users`).
-- [ ] 2.10 Criptografia a nível de coluna para email e telefone (envelope encryption com chave mestra do deploy).
-- [ ] 2.11 Seed de admin inicial com senha forte e obrigatoriedade de troca no primeiro login.
-- [ ] 2.12 Índices em todas as chaves estrangeiras + colunas de busca frequente.
-- [ ] 2.13 Restrições de unicidade documentadas (`@@unique([name, country])`, etc.).
+- [x] 2.1 Prisma schema canônico (`schema.prisma`) com provider PostgreSQL.
+- [x] 2.2 Migration inicial versionada e aplicada.
+- [x] 2.3 Tabelas de domínio: `clubs`, `players`, `competitions`, `rankings`, `matches`, `seasons`.
+- [x] 2.4 Tabelas de auth: `users`, `roles`, `permissions`, `user_roles`, `sessions`.
+- [x] 2.5 Tabelas de billing: `subscriptions`, `plans` (Free/Pro/Elite), `invoices`, `payment_events`.
+- [x] 2.6 Tabelas de auditoria: `audit_logs` (imutável, append-only, com hash de cadeia).
+- [x] 2.7 Tabelas de governança: `data_sources` (procedência), `entity_revisions` (versionamento).
+- [x] 2.8 Senha/token sempre hash com argon2id (custo ≥ 12). Nunca em texto plano.
+- [x] 2.9 Soft delete em entidades críticas (`deleted_at` em `clubs`, `players`, `users`).
+- [x] 2.10 Criptografia a nível de coluna para email e telefone (envelope encryption com chave mestra do deploy).
+- [x] 2.11 Seed de admin inicial com senha forte e obrigatoriedade de troca no primeiro login.
+- [x] 2.12 Índices em todas as chaves estrangeiras + colunas de busca frequente.
+- [x] 2.13 Restrições de unicidade documentadas (`@@unique([name, country])`, etc.).
 
 **Verificação:**
 - `prisma migrate dev --schema=prisma/schema.prisma --name init` roda limpo em PostgreSQL.
