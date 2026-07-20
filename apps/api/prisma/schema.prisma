@@ -62,6 +62,9 @@ model Club {
   @@index([country])
   @@index([city])
   @@index([status])
+  // Índices compostos para buscas filtradas frequentes (Tarefa 2.4)
+  @@index([country, status])
+  @@index([city, state])
   @@map("clubs")
 }
 
@@ -194,6 +197,9 @@ model User {
 
   @@index([status])
   @@index([createdAt])
+  // Índice composto: validação de login (email + status) — útil para "encontrar
+  // usuários ativos por email" sem table scan
+  @@index([email, status])
   @@map("users")
 }
 
@@ -222,6 +228,8 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
+  // Índice composto: busca de sessão ativa por usuário (tokens não revogados)
+  @@index([userId, revokedAt])
   @@map("sessions")
 }
 
@@ -332,6 +340,8 @@ model Billing {
   @@index([subscriptionId])
   @@index([userId])
   @@index([status])
+  // Índice composto: histórico de cobranças pagas por usuário (relatório financeiro)
+  @@index([userId, status, paidAt])
   @@map("billings")
 }
 

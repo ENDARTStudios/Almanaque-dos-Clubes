@@ -56,6 +56,8 @@ model Club {
   @@index([country])
   @@index([city])
   @@index([status])
+  @@index([country, status])
+  @@index([city, state])
   @@map("clubs")
 }
 
@@ -169,6 +171,7 @@ model User {
 
   @@index([status])
   @@index([createdAt])
+  @@index([email, status])
   @@map("users")
 }
 
@@ -190,6 +193,7 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
+  @@index([userId, revokedAt])
   @@map("sessions")
 }
 
@@ -286,6 +290,7 @@ model Billing {
   @@index([subscriptionId])
   @@index([userId])
   @@index([status])
+  @@index([userId, status, paidAt])
   @@map("billings")
 }
 
