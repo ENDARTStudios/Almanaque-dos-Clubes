@@ -11,6 +11,7 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -64,6 +65,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(
     async (api) => {
       await api.register(healthRoutes);
+      await api.register(authRoutes);
       await api.register(clubsRoutes);
     },
     { prefix: '/api/v1' },

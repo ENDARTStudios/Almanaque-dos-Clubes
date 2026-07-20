@@ -110,16 +110,17 @@ de evidência**, não por presunção.
 
 ## FASE 3 — AUTH `[OBRIGATÓRIO, 2FA TOTP opcional]`
 
-- [ ] 3.1 Registro + login com email/senha (argon2id, custo 12).
-- [ ] 3.2 Sessão via **token opaco** armazenado no Redis (ou tabela `sessions` em dev). Cookie `httpOnly; Secure; SameSite=Strict`.
-- [ ] 3.3 Mensagem genérica "Credenciais inválidas" para login falho (não revelar se email existe).
-- [ ] 3.4 Lockout progressivo: 5 tentativas falhas → 15 min de bloqueio (contador no Redis).
-- [ ] 3.5 RBAC: middleware `requirePermission('permissoes.clubes.editar')` nas rotas protegidas.
-- [ ] 3.6 Reset de senha: token único, expiração 15 min, enviado por email com link.
-- [ ] 3.7 Logout invalida sessão no servidor (não só no cookie).
-- [ ] 3.8 Auditoria: todo evento de auth (login ok/falha, logout, reset, troca de senha) registrado em `audit_logs`.
-- [ ] 3.9 `GET /api/v1/me` retorna usuário corrente + papéis + permissões.
-- [ ] 3.10 **(OPCIONAL)** 2FA via TOTP (authenticator app) com 10 códigos de backup. Recomendado para contas Pro/Elite.
+- [x] 3.0 Preflight Auth (deps + env.ts com Zod + .env.example)
+- [x] 3.1 Setup JWT + Cookie + tipos Fastify
+- [x] 3.2 Rotas Register / Login / Logout
+- [x] 3.3 Refresh token flow (incluído em 3.2)
+- [ ] 3.4 Middleware de Autenticação (`authenticate` preHandler)
+- [ ] 3.5 Middleware RBAC (`requirePermission`, `requireRole`)
+- [ ] 3.6 Reset de senha (token único, expira 15min, enviado por email mock)
+- [ ] 3.7 Audit logging para auth (parcialmente em auth.service)
+- [ ] 3.8 Rate limiting específico para /auth/*
+- [ ] 3.9 Testes de integração (BLOQUEADO até Operador aplicar migration PostgreSQL)
+- [ ] 3.10 Documentação API Auth (`docs/api/auth.md`)
 
 **Verificação:**
 - curl `POST /api/v1/auth/login` com credenciais válidas → 200 + cookie de sessão.

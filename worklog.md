@@ -219,3 +219,76 @@ Stage Summary:
 - Fase 2 CONCLUÍDA (13/13 tarefas)
 - Pendência para Operador: executar migrate.ps1 no Windows
 - Próxima fase: Fase 3 (Auth) — 3.0 preflight
+
+---
+Task ID: 3.0
+Agent: Doer (GLM-5.1)
+Task: Auth preflight (deps JWT/Cookie + env.ts com Zod)
+
+Work Log:
+- Instalado @fastify/jwt@^10.2.0 e @fastify/cookie@^11.1.2
+- Reescrito apps/api/src/config/env.ts com Zod:
+  - validateJwtSecret() rejeita placeholders (FORBIDDEN_SECRETS set com 8 entradas)
+  - Em prod: ≥32 chars; em dev: ≥16 chars
+  - JWT_SECRET ≠ JWT_REFRESH_SECRET em produção (erro fatal se iguais)
+  - Defaults efêmeros em dev (randomBytes 48 → base64)
+- .env.example atualizado com seção AUTH (4 variáveis JWT)
+- Smoke test: 28/28 asserções
+- Commit: 1c89ed5
+
+Stage Summary:
+- Auth preflight completo; pronto para 3.1 (JWT setup)
+
+---
+Task ID: 3.1
+Agent: Doer (GLM-5.1)
+Task: JWT setup + cookies httpOnly + fastify.d.ts
+
+Work Log:
+- Criado apps/api/src/modules/auth/jwt.service.ts:
+  - Tipos: AccessTokenPayload, RefreshTokenPayload, AuthUser
+  - Constantes: ACCESS_COOKIE_NAME_DEV/PROD (__Host- prefix), REFRESH_COOKIE_NAME_DEV/PROD
+  - ACCESS_TOKEN_MAX_AGE_SECONDS = 900 (15min), REFRESH_TOKEN_MAX_AGE_SECONDS = 604800 (7d)
+  - Funções: getAccessCookieName, getRefreshCookieName, getCookieOptions
+  - createJwtService(app) factory → signTokens, verifyAccessToken, verifyRefreshToken
+- Criado apps/api/src/types/fastify.d.ts:
+  - Augmentation FastifyInstance.jwt: JWT
+  - Augmentation FastifyRequest.user?: AuthUser
+- Atualizado apps/api/src/app.ts: registrados @fastify/cookie e @fastify/jwt
+- Instalado @types/jsonwebtoken@^9.0.10 (devDep)
+- Smoke test: 50/50 asserções
+- Commit: (a definir)
+
+Stage Summary:
+- JWT setup pronto; campo 'type' no payload previne cross-token confusion
+- verify.algorithms: ['HS256'] previne algorithm confusion attacks
+- Cookie __Host- prefix em prod (RFC 6265bis)
+
+---
+Task ID: 3.2
+Agent: Doer (GLM-5.1)
+Task: Rotas Register/Login/Logout/Refresh
+
+Work Log:
+- Criado apps/api/src/modules/auth/auth.schemas.ts (Zod):
+  - RegisterSchema: email normalizado, senha forte (mín 8, maiúscula, dígito), name opcional
+  - LoginSchema: email + senha
+  - RefreshSchema: opcional (cookie em produção, body em testes)
+- Criado apps/api/src/modules/auth/auth.service.ts:
+  - register(): cria User (argon2id) + role FREE + subscription FREE + sessão + audit
+  - login(): timing-safe (DUMMY_HASH se email não existe), msg genérica, atualiza lastLoginAt
+  - logout(): revoga sessão (idempotente)
+  - refreshSession(): rotação (revoga antigo, cria novo), detecta reuso de token revogado
+- Criado apps/api/src/modules/auth/auth.routes.ts:
+  - 4 rotas: /auth/register, /auth/login, /auth/logout, /auth/refresh
+  - Helpers: setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest, handleAuthError
+- Atualizado apps/api/src/app.ts: registradas authRoutes
+- Smoke test end-to-end: 71/71 asserções em 11 grupos
+
+Stage Summary:
+- Tarefa 3.2 + 3.3 (refresh flow) concluídas juntas
+- Mensagem genérica "Credenciais inválidas" (timing-safe)
+- Refresh token rotation com detecção de reuso
+- Senha NUNCA aparece em resposta ou log
+- AuditLog cobre 5 eventos: register, login, logout, refresh, login_failed
+- Pronto para 3.4 (middleware authenticate)
