@@ -1,18 +1,24 @@
 /**
- * Seed expandido — dados realistas brasileiros.
+ * Seed expandido — dados realistas brasileiros + RBAC.
  *
  * Cria:
  * - 10 clubes brasileiros históricos (Flamengo, Palmeiras, Santos, Corinthians,
  *   São Paulo, Cruzeiro, Grêmio, Internacional, Atlético-MG, Fluminense)
  * - 3 competições (Brasileirão Série A, Copa do Brasil, Libertadores)
  * - 2 rankings (Ranking CBF 2023, Ranking CONMEBOL 2023) com 10 entradas cada
+ * - 3 roles (admin, pro, free) + 18 permissões granulares + atribuições
  *
- * Idempotente: usa upsert (não duplica em execução repetida).
+ * Idempotente: usa upsert/findFirst+update (não duplica em execução repetida).
  *
  * Uso:
  *   pnpm --filter @almanaque/api exec tsx prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client';
+import {
+  PERMISSIONS,
+  ROLE_NAMES,
+  ROLE_PERMISSIONS,
+} from '../src/modules/auth/rbac.service.js';
 
 const prisma = new PrismaClient();
 
@@ -343,12 +349,97 @@ async function seedRankings() {
   return 2;
 }
 
+async function seedRbac() {
+  console.log('\n🌱 Criando roles e permissões (RBAC)...');
+
+  // 1. Cria todas as permissões (idempotente por name @unique)
+  let permissionsCreated = 0;
+  for (const [key, name] of Object.entries(PERMISSIONS)) {
+    const existing = await prisma.permission.findUnique({ where: { name } });
+    if (!existing) {
+      await prisma.permission.create({
+        data: {
+          name,
+          description: `Permissão: ${key.toLowerCase().replace(/_/g, ' ')}`,
+        },
+      });
+      permissionsCreated++;
+    }
+  }
+  console.log(`  Permissões: ${Object.keys(PERMISSIONS).length} (${permissionsCreated} novas)`);
+
+  // 2. Cria as 3 roles padrão (idempotente por name @unique)
+  const roleDescriptions: Record<string, string> = {
+    [ROLE_NAMES.ADMIN]: 'Administrador — acesso total ao sistema',
+    [ROLE_NAMES.PRO]: 'Plano Pro — CRUD de clubes/players + leitura geral',
+    [ROLE_NAMES.FREE]: 'Plano Free — apenas leitura de dados públicos',
+  };
+
+  let rolesCreated = 0;
+  for (const roleName of Object.values(ROLE_NAMES)) {
+    const existing = await prisma.role.findUnique({ where: { name: roleName } });
+    if (!existing) {
+      await prisma.role.create({
+        data: {
+          name: roleName,
+          description: roleDescriptions[roleName],
+        },
+      });
+      rolesCreated++;
+    }
+  }
+  console.log(`  Roles: ${Object.values(ROLE_NAMES).length} (${rolesCreated} novas)`);
+
+  // 3. Atribui permissões às roles (idempotente por PK composta [roleId, permissionId])
+  let assignmentsCreated = 0;
+  for (const [roleName, permissionNames] of Object.entries(ROLE_PERMISSIONS)) {
+    const role = await prisma.role.findUnique({ where: { name: roleName } });
+    if (!role) {
+      console.warn(`  ⚠ Role não encontrada: ${roleName}`);
+      continue;
+    }
+    for (const permName of permissionNames) {
+      const permission = await prisma.permission.findUnique({ where: { name: permName } });
+      if (!permission) {
+        console.warn(`  ⚠ Permissão não encontrada: ${permName}`);
+        continue;
+      }
+      // Upsert por PK composta [roleId, permissionId]
+      const existing = await prisma.rolePermission.findUnique({
+        where: {
+          roleId_permissionId: {
+            roleId: role.id,
+            permissionId: permission.id,
+          },
+        },
+      });
+      if (!existing) {
+        await prisma.rolePermission.create({
+          data: { roleId: role.id, permissionId: permission.id },
+        });
+        assignmentsCreated++;
+      }
+    }
+  }
+  console.log(`  Atribuições role-permissão: ${assignmentsCreated} novas`);
+
+  // 4. Verifica integridade pós-seed
+  const totalRoles = await prisma.role.count();
+  const totalPermissions = await prisma.permission.count();
+  const totalAssignments = await prisma.rolePermission.count();
+
+  if (totalRoles < 3) throw new Error(`Esperado ≥3 roles, atual ${totalRoles}`);
+  if (totalPermissions < 18) throw new Error(`Esperado ≥18 permissões, atual ${totalPermissions}`);
+  if (totalAssignments < 18) throw new Error(`Esperado ≥18 atribuições, atual ${totalAssignments}`);
+}
+
 async function main() {
   console.log('🌱 Iniciando seed expandido do Almanaque dos Clubes...\n');
 
   const clubsCount = await seedClubs();
   const competitionsCount = await seedCompetitions();
   const rankingsCount = await seedRankings();
+  await seedRbac();
 
   // Verifica integridade pós-seed
   const clubs = await prisma.club.count();
