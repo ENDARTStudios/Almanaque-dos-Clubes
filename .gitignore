@@ -17,6 +17,8 @@ build/
 *.db-journal
 prisma/dev.db
 prisma/*.db
+apps/api/prisma/dev.db
+apps/api/prisma/*.db-journal
 
 # Logs
 logs/

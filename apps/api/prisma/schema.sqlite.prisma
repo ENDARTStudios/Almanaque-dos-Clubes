@@ -22,10 +22,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// SQLite não suporta enums nativos nem Unsupported("tsvector").
+// Usamos String + validação no domínio.
+
 // -----------------------------------------------------------------------------
 // CLUBES
 // -----------------------------------------------------------------------------
-// SQLite não suporta enums nativos — usamos String + validação no domínio.
 
 model Club {
   id           String   @id @default(uuid())
@@ -34,13 +36,21 @@ model Club {
   shortName    String?
   city         String?
   state        String?
-  country      String?  // ISO 3166-1 alpha-2
+  country      String? // ISO 3166-1 alpha-2
   foundedYear  Int?
   status       String   @default("ACTIVE") // ACTIVE | INACTIVE | DISSOLVED
-  primaryColor String?  // #RRGGBB
+  primaryColor String? // #RRGGBB
   website      String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Relações
+  players       Player[]
+  rankings      RankingEntry[]
+  // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
+  // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
+  createdBy     String?
+  createdByUser User?    @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@unique([name, country])
   @@index([country])
@@ -50,7 +60,7 @@ model Club {
 }
 
 // -----------------------------------------------------------------------------
-// JOGADORES (esqueleto)
+// JOGADORES
 // -----------------------------------------------------------------------------
 
 model Player {
@@ -60,25 +70,243 @@ model Player {
   birthDate   DateTime?
   country     String?
   position    String?
+  clubId      String?
+  club        Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([country])
   @@index([birthDate])
+  @@index([clubId])
+  @@index([fullName])
   @@map("players")
 }
 
 // -----------------------------------------------------------------------------
-// COMPETIÇÕES (esqueleto)
+// COMPETIÇÕES
 // -----------------------------------------------------------------------------
 
 model Competition {
   id        String   @id @default(uuid())
   name      String
   country   String?
-  type      String?
+  type      String? // LEAGUE | CUP | TOURNAMENT | SUPER_CUP
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  rankings Ranking[]
+
+  @@index([country])
+  @@index([type])
   @@map("competitions")
+}
+
+// -----------------------------------------------------------------------------
+// RANKINGS — cabeçalho de um ranking (ex.: "Ranking CBF 2023")
+// -----------------------------------------------------------------------------
+
+model Ranking {
+  id             String   @id @default(uuid())
+  name           String
+  competitionId  String?
+  competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  season         String?
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  entries RankingEntry[]
+
+  @@index([competitionId])
+  @@index([season])
+  @@map("rankings")
+}
+
+// -----------------------------------------------------------------------------
+// RANKING ENTRY — uma posição específica em um ranking
+// -----------------------------------------------------------------------------
+
+model RankingEntry {
+  id          String   @id @default(uuid())
+  rankingId   String
+  ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  position    Int
+  points      Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([rankingId, clubId])
+  @@unique([rankingId, position])
+  @@index([rankingId])
+  @@index([clubId])
+  @@index([position])
+  @@map("ranking_entries")
+}
+
+// -----------------------------------------------------------------------------
+// USUÁRIOS
+// -----------------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String
+  status        String   @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED | PENDING
+  emailVerified DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  subscriptions Subscription[]
+  billings      Billing[]
+  userRoles     UserRole[]
+  clubsCreated  Club[]   @relation("ClubCreatedByUser")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// SESSIONS — autenticação stateless via refresh token
+// -----------------------------------------------------------------------------
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  userAgent   String?
+  ipAddress   String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("sessions")
+}
+
+// -----------------------------------------------------------------------------
+// RBAC — Role-Based Access Control
+// -----------------------------------------------------------------------------
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  assignedAt   DateTime   @default(now())
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// -----------------------------------------------------------------------------
+// SUBSCRIPTIONS / BILLING (SaaS)
+// -----------------------------------------------------------------------------
+
+model Subscription {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String    @default("FREE") // FREE | PRO | ELITE
+  status      String    @default("PENDING") // ACTIVE | INACTIVE | CANCELLED | EXPIRED | PENDING
+  startedAt   DateTime  @default(now())
+  cancelledAt DateTime?
+  currentPeriodEnd DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  billings Billing[]
+
+  @@index([plan])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Billing {
+  id             String   @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  currency       String   @default("BRL")
+  status         String   @default("PENDING") // PENDING | PAID | REFUNDED | FAILED | CANCELLED
+  paidAt         DateTime?
+  externalId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([userId])
+  @@index([status])
+  @@map("billings")
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG — append-only
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  action     String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  changes    String?  // JSON string (SQLite não tem JSONB nativo)
+  metadata   String?  // JSON string
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
