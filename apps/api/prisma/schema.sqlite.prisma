@@ -305,8 +305,9 @@ model AuditLog {
   action     String
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  changes    String?  // JSON string (SQLite não tem JSONB nativo)
-  metadata   String?  // JSON string
+  // SQLite não suporta Json? nativamente — usamos String com serialização JSON
+  changes    String?  // JSON.stringify(changes) — lido via JSON.parse na aplicação
+  metadata   String?  // JSON.stringify(metadata) — lido via JSON.parse na aplicação
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
