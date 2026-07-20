@@ -1,0 +1,87 @@
+// =============================================================================
+// Almanaque dos Clubes — Prisma Schema (POSTGRESQL — PRODUÇÃO / DOCKER)
+// =============================================================================
+// Este é o schema canônico. Use este arquivo no ambiente Windows com Docker.
+//
+// Para rodar migrations localmente:
+//   pnpm --filter @almanaque/api exec prisma migrate dev \
+//     --schema=prisma/schema.prisma --name init
+//
+// DATABASE_URL esperada:
+//   postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque?schema=public
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// CLUBES
+// -----------------------------------------------------------------------------
+
+model Club {
+  id           String     @id @default(uuid())
+  name         String
+  fullName     String?
+  shortName    String?
+  city         String?
+  state        String?
+  country      String?    @db.VarChar(2) // ISO 3166-1 alpha-2
+  foundedYear  Int?
+  status       ClubStatus @default(ACTIVE)
+  primaryColor String?    @db.Char(7) // #RRGGBB
+  website      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([name, country])
+  @@index([country])
+  @@index([city])
+  @@index([status])
+  @@map("clubs")
+}
+
+enum ClubStatus {
+  ACTIVE
+  INACTIVE
+  DISSOLVED
+}
+
+// -----------------------------------------------------------------------------
+// JOGADORES (esqueleto — será expandido em fases posteriores)
+// -----------------------------------------------------------------------------
+
+model Player {
+  id          String   @id @default(uuid())
+  fullName    String
+  shortName   String?
+  birthDate   DateTime?
+  country     String?  @db.VarChar(2)
+  position    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([country])
+  @@index([birthDate])
+  @@map("players")
+}
+
+// -----------------------------------------------------------------------------
+// COMPETIÇÕES (esqueleto)
+// -----------------------------------------------------------------------------
+
+model Competition {
+  id        String   @id @default(uuid())
+  name      String
+  country   String?  @db.VarChar(2)
+  type      String?  // league, cup, tournament
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("competitions")
+}

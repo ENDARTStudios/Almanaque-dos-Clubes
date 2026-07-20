@@ -1,0 +1,19 @@
+{
+  "name": "almanaque-dos-clubes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SaaS de pesquisa e análise histórica do futebol mundial",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @almanaque/api dev",
+    "build": "pnpm --filter @almanaque/api build",
+    "start": "pnpm --filter @almanaque/api start",
+    "db:migrate": "pnpm --filter @almanaque/api prisma:migrate",
+    "db:generate": "pnpm --filter @almanaque/api prisma:generate",
+    "db:studio": "pnpm --filter @almanaque/api prisma:studio",
+    "db:seed": "pnpm --filter @almanaque/api prisma:seed"
+  }
+}
