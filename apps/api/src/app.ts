@@ -5,10 +5,13 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
+import jwt from '@fastify/jwt';
+import cookie from '@fastify/cookie';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -37,10 +40,32 @@ export async function buildApp(): Promise<FastifyInstance> {
     credentials: true,
   });
 
+  // ---- Auth plugins (Tarefa 3.1) ----
+  // @fastify/cookie — para setar/ler cookies httpOnly com refresh token
+  await app.register(cookie, {
+    secret: env.jwtSecret, // assina cookies signed (uso futuro)
+  });
+
+  // @fastify/jwt — para sign/verify de access e refresh tokens
+  await app.register(jwt, {
+    secret: env.jwtSecret,
+    sign: {
+      expiresIn: env.jwtExpiresIn,
+    },
+    verify: {
+      algorithms: ['HS256'], // previne algorithm confusion attacks
+    },
+    cookie: {
+      cookieName: 'access_token', // permite app.jwt.verifyFromCookie() no futuro
+      signed: false, // não exige cookie signed (usamos httpOnly separado)
+    },
+  });
+
   // ---- Prefixo de versão da API ----
   await app.register(
     async (api) => {
       await api.register(healthRoutes);
+      await api.register(authRoutes);
       await api.register(clubsRoutes);
     },
     { prefix: '/api/v1' },

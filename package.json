@@ -2,7 +2,7 @@
   "name": "almanaque-dos-clubes",
   "version": "0.1.0",
   "private": true,
-  "description": "SaaS de pesquisa e análise histórica do futebol mundial",
+  "description": "SaaS de pesquisa e an\u00e1lise hist\u00f3rica do futebol mundial",
   "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": ">=20.0.0"

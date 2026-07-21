@@ -1,5 +1,5 @@
 // =============================================================================
-// Almanaque dos Clubes — Prisma Schema (POSTGRESQL — PRODUÇÃO / DOCKER)
+// Almanaque dos Clubes — Prisma Schema (POSTGRESQL — CANÔNICO)
 // =============================================================================
 // Este é o schema canônico. Use este arquivo no ambiente Windows com Docker.
 //
@@ -21,6 +21,13 @@ datasource db {
 }
 
 // -----------------------------------------------------------------------------
+// EXTENSÕES POSTGRESQL — declaradas aqui apenas como documentação.
+// A criação efetiva acontece em `prisma/extensions.sql` aplicado via migrate.ps1
+// (Prisma não suporta CREATE EXTENSION declarativamente).
+// Extensões: uuid-ossp (UUID v4), pgcrypto (hash), pg_trgm (similaridade textual).
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
 // CLUBES
 // -----------------------------------------------------------------------------
 
@@ -39,10 +46,25 @@ model Club {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  // Coluna tsvector Unsupported para busca full-text (definida via SQL raw).
+  // Ver `prisma/fulltext-indexes.sql` e evidência 2.11.
+  search_vector Unsupported("tsvector")?
+
+  // Relações
+  players       Player[]
+  rankings      RankingEntry[]
+  // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
+  // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
+  createdBy     String?
+  createdByUser User?      @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
+
   @@unique([name, country])
   @@index([country])
   @@index([city])
   @@index([status])
+  // Índices compostos para buscas filtradas frequentes (Tarefa 2.4)
+  @@index([country, status])
+  @@index([city, state])
   @@map("clubs")
 }
 
@@ -53,7 +75,7 @@ enum ClubStatus {
 }
 
 // -----------------------------------------------------------------------------
-// JOGADORES (esqueleto — será expandido em fases posteriores)
+// JOGADORES
 // -----------------------------------------------------------------------------
 
 model Player {
@@ -63,25 +85,293 @@ model Player {
   birthDate   DateTime?
   country     String?  @db.VarChar(2)
   position    String?
+  clubId      String?
+  club        Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  search_vector Unsupported("tsvector")?
+
   @@index([country])
   @@index([birthDate])
+  @@index([clubId])
+  @@index([fullName])
   @@map("players")
 }
 
 // -----------------------------------------------------------------------------
-// COMPETIÇÕES (esqueleto)
+// COMPETIÇÕES
 // -----------------------------------------------------------------------------
 
 model Competition {
   id        String   @id @default(uuid())
   name      String
   country   String?  @db.VarChar(2)
-  type      String?  // league, cup, tournament
+  type      CompetitionType?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  search_vector Unsupported("tsvector")?
+
+  // Relações
+  rankings Ranking[]
+
+  @@index([country])
+  @@index([type])
   @@map("competitions")
+}
+
+enum CompetitionType {
+  LEAGUE
+  CUP
+  TOURNAMENT
+  SUPER_CUP
+}
+
+// -----------------------------------------------------------------------------
+// RANKINGS — cabeçalho de um ranking (ex.: "Ranking CBF 2023")
+// -----------------------------------------------------------------------------
+
+model Ranking {
+  id             String   @id @default(uuid())
+  name           String
+  competitionId  String?
+  competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  season         String?  // ex.: "2023"
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  entries RankingEntry[]
+
+  @@index([competitionId])
+  @@index([season])
+  @@map("rankings")
+}
+
+// -----------------------------------------------------------------------------
+// RANKING ENTRY — uma posição específica em um ranking
+// -----------------------------------------------------------------------------
+
+model RankingEntry {
+  id          String   @id @default(uuid())
+  rankingId   String
+  ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  position    Int      // 1 = primeiro, 2 = segundo, etc.
+  points      Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([rankingId, clubId])
+  @@unique([rankingId, position])
+  @@index([rankingId])
+  @@index([clubId])
+  @@index([position])
+  @@map("ranking_entries")
+}
+
+// -----------------------------------------------------------------------------
+// USUÁRIOS
+// -----------------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String   // argon2id (ver apps/api/src/config/crypto.ts)
+  status        UserStatus @default(ACTIVE)
+  emailVerified DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relações
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  subscriptions Subscription[]
+  billings      Billing[]
+  userRoles     UserRole[]
+  clubsCreated  Club[]   @relation("ClubCreatedByUser")
+
+  @@index([status])
+  @@index([createdAt])
+  // Índice composto: validação de login (email + status) — útil para "encontrar
+  // usuários ativos por email" sem table scan
+  @@index([email, status])
+  @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+// -----------------------------------------------------------------------------
+// SESSIONS — autenticação stateless via refresh token
+// -----------------------------------------------------------------------------
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique // SHA-256 do refresh token (ver crypto.ts)
+  userAgent   String?
+  ipAddress   String?
+  expiresAt   DateTime
+  revokedAt   DateTime? // null = ativa; não-null = revogada
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  // Índice composto: busca de sessão ativa por usuário (tokens não revogados)
+  @@index([userId, revokedAt])
+  @@map("sessions")
+}
+
+// -----------------------------------------------------------------------------
+// RBAC — Role-Based Access Control
+// -----------------------------------------------------------------------------
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // admin, pro, free
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique // ex.: "clubs:read", "clubs:write", "users:manage"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  assignedAt   DateTime   @default(now())
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// -----------------------------------------------------------------------------
+// SUBSCRIPTIONS / BILLING (SaaS)
+// -----------------------------------------------------------------------------
+
+model Subscription {
+  id          String             @id @default(uuid())
+  userId      String             @unique
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        SubscriptionPlan   @default(FREE)
+  status      SubscriptionStatus @default(PENDING)
+  startedAt   DateTime           @default(now())
+  cancelledAt DateTime?
+  currentPeriodEnd DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  billings Billing[]
+
+  @@index([plan])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ELITE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+model Billing {
+  id             String             @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription       @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  currency       String             @default("BRL") @db.VarChar(3)
+  status         BillingStatus      @default(PENDING)
+  paidAt         DateTime?
+  externalId     String? // ID no provedor de pagamento
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([subscriptionId])
+  @@index([userId])
+  @@index([status])
+  // Índice composto: histórico de cobranças pagas por usuário (relatório financeiro)
+  @@index([userId, status, paidAt])
+  @@map("billings")
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+  CANCELLED
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG — append-only (somente insert). NUNCA update/delete via Prisma.
+// Rastreia mudanças em entidades críticas para conformidade e segurança.
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String   // "User", "Club", "Subscription", "Session", etc.
+  entityId   String   // ID da entidade afetada
+  action     String   // "create", "update", "delete", "login", "logout", "deny", etc.
+  userId     String?  // quem executou (null se sistema)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  changes    Json?   // {field: {old, new}, ...} — JSONB no PostgreSQL
+  metadata   Json?    // {ip, userAgent, ...} — JSONB
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

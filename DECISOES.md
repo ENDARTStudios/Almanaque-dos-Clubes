@@ -18,6 +18,33 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-07-20] Decisão: Fase 2 (Dados) concluída com 13/13 tarefas
+Motivo: Após reconstrução completa (repositório GitHub estava em estado pré-protocolo), todas as tarefas 2.3–2.13 foram implementadas com evidência real de verificação (PROTOCOLO_MESTRE.md Seção 6).
+Alternativas consideradas: (a) aceitar a conversa compartilhada como prova de trabalho — descartada após auditoria revelar que commits `482e394`, `09ff0c6`, `1dbb1ec` não existiam no repositório real; (b) reconstruir tudo do zero sobre o commit `8cb9b67` (baseline MVP) — escolhida.
+Observação: 164 asserções distribuídas em 5 scripts de smoke test (audit, crypto, session, rbac, billing) validam a implementação. Migration PostgreSQL consolidada (379 linhas, 63 CREATE statements) gerada e armazenada em `prisma/migrations-postgres/20260720000001_phase2_final/migration.sql`. Pendência: Operador executar `pwsh ./scripts/migrate.ps1` no Windows para aplicar no PostgreSQL.
+
+### [2026-07-20] Decisão: AuditLog polimórfico (entityType + entityId) em vez de FKs separadas
+Motivo: AuditLog rastreia mudanças em múltiplas entidades (User, Club, Subscription, etc.). FK explícita para cada uma geraria N colunas opcionais. Solução polimórfica com índice composto `@@index([entityType, entityId])` cobre todos os casos.
+Alternativas consideradas: (a) tabela `audit_logs` separada por entidade (audit_user_logs, audit_club_logs, ...) — descartada por explosão de tabelas; (b) JSON column com `entity` embutido — descartada por perder indexação.
+Trade-off: Perde integridade referencial ao nível do banco (FK), mas ganha flexibilidade. Aplicação garante que `entityType` seja válido.
+
+### [2026-07-20] Decisão: SHA-256 para tokens, argon2id para senhas
+Motivo: Senhas são baixa-entropia (escolhidas por humanos) — precisam de KDF memory-hard (argon2id). Tokens já são 32 bytes aleatórios (256 bits) — não precisam de KDF; SHA-256 é rápido (~1μs vs ~100ms do argon2) e adequado para hot path `/auth/refresh`.
+Alternativas consideradas: (a) argon2id para ambos — descartada por latência excessiva em refresh; (b) SHA-256 para ambos — descartada por vulnerabilidade a rainbow tables em senhas.
+
+### [2026-07-20] Decisão: Cache de permissões RBAC em memória (TTL 5 min), não Redis
+Motivo: Cache local por processo é suficiente para estágio atual (monolito modular, instância única). TTL 5 min é trade-off aceitável entre latência e consistência. Multi-instance + invalidação cross-instance via Redis pub/sub será adicionada na Fase 6.3.
+Alternativas consideradas: (a) Redis desde já — descartada por adicionar complexidade desnecessária antes do produto estar em produção; (b) sem cache (query a cada request) — descartada por latência 5-10ms em hot path.
+
+### [2026-07-20] Decisão: índices full-text via SQL raw, não declarativos no Prisma
+Motivo: Prisma 5.22 não suporta declarativamente índices GIN em colunas tsvector, índices trigram (pg_trgm), ou triggers. Solução: colunas `Unsupported("tsvector")?` no schema (Prisma Client sabe que existem) + arquivo `fulltext-indexes.sql` aplicado separadamente via `migrate.ps1`.
+Alternativas consideradas: (a) usar apenas `LIKE`/`ILIKE` — descartada por não escalar em 50k+ clubes; (b) biblioteca externa (ex.: MeiliSearch, Typesense) — descartada por adicionar infraestrutura externa (PROTOCOLO_MESTRE.md Seção 3 item 1: custo zero).
+
+### [2026-07-20] Decisão: valores monetários em centavos (int), não reais (float)
+Motivo: Float tem problema de precisão (0.1 + 0.2 = 0.30000000000000004). Centavos (int) são exatos e aceitos por todos os provedores de pagamento (Stripe, PagSeguro).
+Alternativas consideradas: (a) Decimal/numeric no PostgreSQL — descartada por não ter tipo equivalente nativo em TypeScript; (b) float com arredondamento — descartada por acumular erro.
+Aplicação: `Billing.amountCents` é `Int` (centavos de BRL). Preços: FREE=0, PRO=2900, ELITE=9900.
+
 ### [2026-07-16] Decisão: Adoção do Protocolo Mestre v2.0 e retrofit do projeto
 Motivo: O Operador publicou o PROTOCOLO_MESTRE.md v2.0 como nova lei suprema do processo. O projeto já continha código do MVP (Fastify + Prisma + SQLite/PostgreSQL) e um PLANO_MESTRE.md anterior, ambos produzidos antes do protocolo existir.
 Alternativas consideradas: (a) descartar o MVP e refazer do zero sob o protocolo — descartada por desperdício; (b) aceitar o MVP como baseline e prosseguir sob o protocolo a partir de agora — escolhida.
