@@ -6,13 +6,13 @@ CREATE TABLE "clubs" (
     "shortName" TEXT,
     "city" TEXT,
     "state" TEXT,
-    "country" TEXT,
+    "country" CHAR(2),
     "foundedYear" INTEGER,
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "primaryColor" TEXT,
+    "primaryColor" CHAR(7),
     "website" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -20,21 +20,21 @@ CREATE TABLE "players" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "fullName" TEXT NOT NULL,
     "shortName" TEXT,
-    "birthDate" DATETIME,
-    "country" TEXT,
+    "birthDate" TIMESTAMP(3),
+    "country" CHAR(2),
     "position" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "competitions" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
-    "country" TEXT,
+    "country" CHAR(2),
     "type" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateIndex
