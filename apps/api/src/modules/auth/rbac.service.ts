@@ -69,6 +69,9 @@ export const PERMISSIONS = {
 
   // Admin
   AUDIT_LOGS_READ: 'audit_logs:read',
+
+  // Export
+  EXPORT_CSV: 'export:csv',
 } as const;
 
 export type PermissionName = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -87,6 +90,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionName[]> = {
     PERMISSIONS.RANKINGS_READ,
     PERMISSIONS.USERS_READ,
     PERMISSIONS.BILLINGS_READ,
+    PERMISSIONS.EXPORT_CSV,
   ],
   [ROLE_NAMES.FREE]: [
     PERMISSIONS.CLUBS_READ,

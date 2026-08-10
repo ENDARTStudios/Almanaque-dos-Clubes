@@ -414,6 +414,27 @@ model Match {
   @@map("matches")
 }
 
+// -----------------------------------------------------------------------------
+// KNOWLEDGE GRAPH — relações entre entidades (jogador→clube→competição→título)
+// -----------------------------------------------------------------------------
+
+model KnowledgeGraph {
+  id         String   @id @default(uuid())
+  sourceId   String
+  sourceType String   // "Club", "Player", "Competition"
+  targetId   String
+  targetType String   // "Club", "Player", "Competition"
+  relation   String   // "PLAYED_FOR", "MANAGED_BY", "PART_OF", "WON", "RIVAL"
+  metadata   Json?    // {season, year, ...}
+  createdAt  DateTime @default(now())
+
+  @@index([sourceId, sourceType])
+  @@index([targetId, targetType])
+  @@index([relation])
+  @@index([sourceType, relation])
+  @@map("knowledge_graph")
+}
+
 enum BillingStatus {
   PENDING
   PAID

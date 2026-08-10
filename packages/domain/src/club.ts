@@ -19,12 +19,7 @@ export const CreateClubSchema = z.object({
   city: z.string().min(1).max(100).optional(),
   state: z.string().min(1).max(100).optional(),
   country: z.string().min(2).max(2, 'Use ISO 3166-1 alpha-2 (ex.: BR, AR, PT)').optional(),
-  foundedYear: z
-    .number()
-    .int()
-    .min(1850)
-    .max(new Date().getFullYear())
-    .optional(),
+  foundedYear: z.number().int().min(1850).max(new Date().getFullYear()).optional(),
   status: ClubStatus.default('ACTIVE'),
   primaryColor: z
     .string()

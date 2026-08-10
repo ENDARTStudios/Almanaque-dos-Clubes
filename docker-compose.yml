@@ -38,8 +38,24 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: almanaque-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - almanaque_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   almanaque_pgdata:
     name: almanaque_pgdata
   almanaque_minio:
     name: almanaque_minio
+  almanaque_redis:
+    name: almanaque_redis

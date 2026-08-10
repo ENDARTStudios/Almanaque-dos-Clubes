@@ -344,6 +344,23 @@ model Match {
   @@map("matches")
 }
 
+model KnowledgeGraph {
+  id         String   @id @default(uuid())
+  sourceId   String
+  sourceType String
+  targetId   String
+  targetType String
+  relation   String
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([sourceId, sourceType])
+  @@index([targetId, targetType])
+  @@index([relation])
+  @@index([sourceType, relation])
+  @@map("knowledge_graph")
+}
+
 model AuditLog {
   id         String   @id @default(uuid())
   entityType String

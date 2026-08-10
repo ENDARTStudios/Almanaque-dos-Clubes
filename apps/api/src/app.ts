@@ -21,6 +21,9 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { billingRoutes } from './modules/billing/routes.js';
 import { adminRoutes } from './modules/admin/routes.js';
 import { uploadRoutes } from './modules/upload/routes.js';
+import { graphRoutes } from './modules/graph/routes.js';
+import { ragRoutes } from './modules/rag/routes.js';
+import { exportRoutes } from './modules/export/routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -102,6 +105,9 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(billingRoutes);
       await api.register(adminRoutes);
       await api.register(uploadRoutes);
+      await api.register(graphRoutes);
+      await api.register(ragRoutes);
+      await api.register(exportRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
     },

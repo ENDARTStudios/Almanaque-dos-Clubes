@@ -11,4 +11,5 @@ export * from './competition.js';
 export * from './ranking.js';
 export * from './season.js';
 export * from './match.js';
+export * from './graph.js';
 export * from './errors.js';
