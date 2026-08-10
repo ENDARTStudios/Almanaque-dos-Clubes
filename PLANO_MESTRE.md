@@ -149,9 +149,9 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 - [x] 5.9 Sessão exclusivamente via cookie httpOnly (sem localStorage). ✅
 - [x] 5.11 Responsivo mobile-first (Tailwind breakpoints). ✅
 - [x] 5.12 PWA: Web App Manifest (`manifest.ts`). ✅
-- [ ] 5.5 Páginas privadas: área do usuário, assinatura, histórico.
-- [ ] 5.8 DOMPurify em HTML dinâmico.
-- [ ] 5.10 Acessibilidade WCAG 2.1 AA.
+- [x] 5.5 Páginas privadas: dashboard, subscription, history. ✅ (2026-08-10)
+- [x] 5.8 DOMPurify — `src/lib/sanitize.ts` com HTML sanitizer. ✅ (2026-08-10)
+- [x] 5.10 Acessibilidade WCAG 2.1 AA — labels, aria-labels, focus-visible, skip-nav. ✅ (2026-08-10)
 
 ---
 
@@ -165,7 +165,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 - [x] 6.6 Knowledge Graph — modelo Prisma + service + rotas CRUD. ✅
 - [x] 6.7 Feature flags — `packages/feature-flags` com plan gating. ✅
 - [x] 6.8 Exportação CSV/JSON — clubs, players, competitions, rankings. ✅
-- [ ] 6.9 WebSocket `[CONDICIONAL]` — pendente.
+- [x] 6.9 WebSocket `[CONDICIONAL]` — implementado (`/ws`, notificação por userId, server.ts). ✅ (2026-08-10)
 
 ---
 
@@ -193,8 +193,8 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 - [x] 8.5 `npm audit` no CI. ✅
 - [x] 8.6 DAST: workflow OWASP ZAP semanal. ✅
 - [x] 8.7 k6: load-test (100 users) + stress-test (1000 users). ✅ (2026-08-10)
-- [ ] 8.8 Testes de regressão de segurança — pendente.
-- [ ] 8.9 Testes do pipeline de IA — pendente.
+- [~] 8.8 Testes de regressão de segurança — CI configurado, expandir com mais cenários.
+- [~] 8.9 Testes do pipeline de IA — pendente (requer Ollama/pgvector operacional).
 
 ---
 
