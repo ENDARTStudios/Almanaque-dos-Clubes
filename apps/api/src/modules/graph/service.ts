@@ -1,10 +1,13 @@
 import { prisma } from '../../config/prisma.js';
 import type { GraphEdge } from '@almanaque/domain';
 
+const isSQLite = process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite';
+
 export const graphService = {
   async addEdge(data: { sourceId: string; sourceType: string; targetId: string; targetType: string; relation: string; metadata?: Record<string, unknown> }): Promise<GraphEdge> {
+    const metaValue = data.metadata ? (isSQLite ? JSON.stringify(data.metadata) : data.metadata) : null;
     return prisma.knowledgeGraph.create({
-      data: { ...data, metadata: data.metadata ?? undefined },
+      data: { sourceId: data.sourceId, sourceType: data.sourceType, targetId: data.targetId, targetType: data.targetType, relation: data.relation, metadata: metaValue as never },
     }) as Promise<GraphEdge>;
   },
   async getEdgesForEntity(entityId: string, entityType: string): Promise<GraphEdge[]> {
