@@ -178,4 +178,13 @@ export const env = {
   jwtRefreshSecret,
   jwtExpiresIn,
   jwtRefreshExpiresIn,
+
+  // Upload (S3-compatível)
+  s3Endpoint: process.env.S3_ENDPOINT ?? 'http://localhost:9000',
+  s3Region: process.env.S3_REGION ?? 'us-east-1',
+  s3AccessKeyId: process.env.S3_ACCESS_KEY_ID ?? 'almanaque',
+  s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? 'almanaque_dev_2025',
+  s3Bucket: process.env.S3_BUCKET ?? 'almanaque-uploads',
+  uploadMaxBytes: parseInt(process.env.UPLOAD_MAX_BYTES ?? '52428800', 10) || 52428800,
+  uploadAllowedMimes: (process.env.UPLOAD_ALLOWED_MIMES ?? 'image/jpeg,image/png,image/webp').split(','),
 } as const;

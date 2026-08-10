@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
+import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
@@ -19,6 +20,7 @@ import { matchesRoutes } from './modules/matches/routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { billingRoutes } from './modules/billing/routes.js';
 import { adminRoutes } from './modules/admin/routes.js';
+import { uploadRoutes } from './modules/upload/routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -75,6 +77,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     credentials: true,
   });
 
+  await app.register(multipart, { limits: { fileSize: env.uploadMaxBytes, files: 1 } });
+
   await app.register(cookie, { secret: env.jwtSecret });
 
   await app.register(jwt, {
@@ -97,6 +101,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(matchesRoutes);
       await api.register(billingRoutes);
       await api.register(adminRoutes);
+      await api.register(uploadRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
     },

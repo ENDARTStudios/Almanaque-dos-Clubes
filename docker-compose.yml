@@ -19,6 +19,27 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    container_name: almanaque-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: almanaque
+      MINIO_ROOT_PASSWORD: almanaque_dev_2025
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - almanaque_minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   almanaque_pgdata:
     name: almanaque_pgdata
+  almanaque_minio:
+    name: almanaque_minio
