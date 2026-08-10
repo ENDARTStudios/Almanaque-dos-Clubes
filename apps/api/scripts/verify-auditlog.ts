@@ -77,9 +77,17 @@ async function main() {
   const last = all[all.length - 1];
   const changesStr = String(last.changes ?? '');
   const metadataStr = String(last.metadata ?? '');
-  assert('senha não aparece em changes', !changesStr.includes('super-secret-password-123'), `atual: ${changesStr}`);
+  assert(
+    'senha não aparece em changes',
+    !changesStr.includes('super-secret-password-123'),
+    `atual: ${changesStr}`,
+  );
   assert('changes contém ***REDACTED***', changesStr.includes('REDACTED'));
-  assert('token mascarado em metadata', !metadataStr.includes('should-be-redacted'), `atual: ${metadataStr}`);
+  assert(
+    'token mascarado em metadata',
+    !metadataStr.includes('should-be-redacted'),
+    `atual: ${metadataStr}`,
+  );
   assert('ip preservado em metadata', metadataStr.includes('127.0.0.1'));
 
   // Test 3: listByEntity
@@ -95,9 +103,18 @@ async function main() {
 
   // Test 5: AuditLog service não tem update/delete
   console.log('\nTest 5: auditLog service não expõe update/delete');
-  assert('auditLog.update é undefined', (auditLog as unknown as { update?: unknown }).update === undefined);
-  assert('auditLog.delete é undefined', (auditLog as unknown as { delete?: unknown }).delete === undefined);
-  assert('auditLog.deleteMany é undefined', (auditLog as unknown as { deleteMany?: unknown }).deleteMany === undefined);
+  assert(
+    'auditLog.update é undefined',
+    (auditLog as unknown as { update?: unknown }).update === undefined,
+  );
+  assert(
+    'auditLog.delete é undefined',
+    (auditLog as unknown as { delete?: unknown }).delete === undefined,
+  );
+  assert(
+    'auditLog.deleteMany é undefined',
+    (auditLog as unknown as { deleteMany?: unknown }).deleteMany === undefined,
+  );
 
   // Test 6: countByAction
   console.log('\nTest 6: countByAction conta eventos por ação');

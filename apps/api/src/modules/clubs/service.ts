@@ -2,7 +2,12 @@
  * Camada de serviço — regras de negócio.
  * Não conhece Fastify; recebe e retorna entidades de domínio.
  */
-import { CreateClubSchema, ConflictError, type Club, type CreateClubInput } from '@almanaque/domain';
+import {
+  CreateClubSchema,
+  ConflictError,
+  type Club,
+  type CreateClubInput,
+} from '@almanaque/domain';
 import { clubsRepository, type ListClubsParams } from './repository.js';
 
 export const clubsService = {
@@ -32,7 +37,9 @@ export const clubsService = {
     });
   },
 
-  async list(params: ListClubsParams): Promise<{ data: Club[]; total: number; limit: number; offset: number }> {
+  async list(
+    params: ListClubsParams,
+  ): Promise<{ data: Club[]; total: number; limit: number; offset: number }> {
     const [data, total] = await Promise.all([
       clubsRepository.findMany(params),
       clubsRepository.count(params),

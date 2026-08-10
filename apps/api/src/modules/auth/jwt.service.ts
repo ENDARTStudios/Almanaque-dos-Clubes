@@ -23,17 +23,17 @@ import type { FastifyInstance } from 'fastify';
 // =============================================================================
 
 export interface AccessTokenPayload {
-  sub: string;       // userId
+  sub: string; // userId
   email: string;
-  roles: string[];   // ex.: ['admin'] ou ['pro', 'free']
-  permissions: string[];  // ex.: ['clubs:read', 'clubs:write']
+  roles: string[]; // ex.: ['admin'] ou ['pro', 'free']
+  permissions: string[]; // ex.: ['clubs:read', 'clubs:write']
   type: 'access';
   iat?: number;
   exp?: number;
 }
 
 export interface RefreshTokenPayload {
-  sub: string;       // userId
+  sub: string; // userId
   sessionId: string; // ID da Session no banco (para lookup + revoke)
   type: 'refresh';
   iat?: number;
@@ -104,7 +104,7 @@ export function getCookieOptions(isProd: boolean, maxAgeSeconds?: number): Cooki
 }
 
 // Durações em segundos (usadas para cookie maxAge)
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;       // 15 min
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 15 min
 export const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 dias
 
 // =============================================================================
@@ -124,7 +124,10 @@ export interface JwtService {
    * Gera access token (15min) + refresh token (7d).
    * Refresh token carrega sessionId para lookup futuro.
    */
-  signTokens(user: AuthUser, sessionId: string): {
+  signTokens(
+    user: AuthUser,
+    sessionId: string,
+  ): {
     accessToken: string;
     refreshToken: string;
   };

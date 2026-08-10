@@ -57,7 +57,13 @@ async function main() {
 
   // Test 3: app.jwt.verify funciona
   console.log('\nTest 3: app.jwt.verify decodifica token correto');
-  const decoded = app.jwt.verify(token) as { sub: string; email: string; type: string; iat: number; exp: number };
+  const decoded = app.jwt.verify(token) as {
+    sub: string;
+    email: string;
+    type: string;
+    iat: number;
+    exp: number;
+  };
   assert('sub corresponde', decoded.sub === 'user-123');
   assert('email corresponde', decoded.email === 'test@example.com');
   assert('type corresponde', decoded.type === 'access');
@@ -92,7 +98,10 @@ async function main() {
   assert('sub = user-456', accessPayload?.sub === 'user-456');
   assert('email = pro@example.com', accessPayload?.email === 'pro@example.com');
   assert('roles = [pro]', JSON.stringify(accessPayload?.roles) === JSON.stringify(['pro']));
-  assert('permissions = [clubs:read, clubs:write]', accessPayload?.permissions.includes('clubs:read') === true);
+  assert(
+    'permissions = [clubs:read, clubs:write]',
+    accessPayload?.permissions.includes('clubs:read') === true,
+  );
   assert('type = access', accessPayload?.type === 'access');
 
   // Test 7: verifyRefreshToken decodifica refresh token
@@ -127,8 +136,14 @@ async function main() {
   console.log('\nTest 12: nomes de cookie corretos para dev vs prod');
   assert('dev access name = "access_token"', getAccessCookieName(false) === 'access_token');
   assert('dev refresh name = "refresh_token"', getRefreshCookieName(false) === 'refresh_token');
-  assert('prod access name = "__Host-access_token"', getAccessCookieName(true) === '__Host-access_token');
-  assert('prod refresh name = "__Host-refresh_token"', getRefreshCookieName(true) === '__Host-refresh_token');
+  assert(
+    'prod access name = "__Host-access_token"',
+    getAccessCookieName(true) === '__Host-access_token',
+  );
+  assert(
+    'prod refresh name = "__Host-refresh_token"',
+    getRefreshCookieName(true) === '__Host-refresh_token',
+  );
 
   // Test 13: getCookieOptions retorna opções seguras
   console.log('\nTest 13: getCookieOptions retorna httpOnly + sameSite=strict');
@@ -152,7 +167,10 @@ async function main() {
   // Test 15: env.ts carregou JWT_SECRET/JWT_REFRESH_SECRET
   console.log('\nTest 15: env.ts carregou variáveis JWT');
   assert('env.jwtSecret definido', typeof env.jwtSecret === 'string' && env.jwtSecret.length >= 16);
-  assert('env.jwtRefreshSecret definido', typeof env.jwtRefreshSecret === 'string' && env.jwtRefreshSecret.length >= 16);
+  assert(
+    'env.jwtRefreshSecret definido',
+    typeof env.jwtRefreshSecret === 'string' && env.jwtRefreshSecret.length >= 16,
+  );
   assert('env.jwtExpiresIn = 15m', env.jwtExpiresIn === '15m');
   assert('env.jwtRefreshExpiresIn = 7d', env.jwtRefreshExpiresIn === '7d');
 
@@ -164,8 +182,7 @@ async function main() {
   }
 }
 
-main()
-  .catch((err) => {
-    console.error('❌ Erro:', err);
-    process.exit(1);
-  });
+main().catch((err) => {
+  console.error('❌ Erro:', err);
+  process.exit(1);
+});

@@ -142,8 +142,7 @@ async function main() {
   }
 }
 
-main()
-  .catch((err) => {
-    console.error('❌ Erro:', err);
-    process.exit(1);
-  });
+main().catch((err) => {
+  console.error('❌ Erro:', err);
+  process.exit(1);
+});

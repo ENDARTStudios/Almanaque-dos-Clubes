@@ -55,8 +55,8 @@ interface Billing {
 
 export const PLAN_PRICES_CENTS: Record<SubscriptionPlan, number> = {
   FREE: 0,
-  PRO: 2900,    // R$ 29,00
-  ELITE: 9900,  // R$ 99,00
+  PRO: 2900, // R$ 29,00
+  ELITE: 9900, // R$ 99,00
 };
 
 export const PLAN_CYCLE_DAYS = 30; // mensal
@@ -122,18 +122,14 @@ export async function getSubscription(userId: string): Promise<Subscription | nu
  * Não cria Billing automaticamente — isso é responsabilidade do webhook
  * do provedor de pagamento (Fase 4.6).
  */
-export async function changePlan(
-  userId: string,
-  newPlan: SubscriptionPlan,
-): Promise<Subscription> {
+export async function changePlan(userId: string, newPlan: SubscriptionPlan): Promise<Subscription> {
   if (!isValidPlan(newPlan)) {
     throw new Error(`Plano inválido: ${newPlan}`);
   }
 
   const now = new Date();
-  const currentPeriodEnd = newPlan === 'FREE'
-    ? null
-    : new Date(now.getTime() + PLAN_CYCLE_DAYS * 24 * 60 * 60 * 1000);
+  const currentPeriodEnd =
+    newPlan === 'FREE' ? null : new Date(now.getTime() + PLAN_CYCLE_DAYS * 24 * 60 * 60 * 1000);
 
   const result = await prisma.subscription.upsert({
     where: { userId },

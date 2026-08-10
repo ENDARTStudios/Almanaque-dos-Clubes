@@ -109,7 +109,7 @@ async function main() {
 
   // Test 7: múltiplas sessões + revokeAllUserSessions
   console.log('\nTest 7: revokeAllUserSessions revoga todas as sessões ativas');
-  const sessions = await Promise.all([
+  const _sessions = await Promise.all([
     createSession(user.id, { userAgent: 'browser-1' }),
     createSession(user.id, { userAgent: 'browser-2' }),
     createSession(user.id, { userAgent: 'mobile-app' }),
@@ -131,7 +131,10 @@ async function main() {
   assert('retorna 2 sessões ativas', activeList.length === 2);
   const hasTokenHash = activeList.some((s) => 'tokenHash' in s);
   assert('nenhuma entrada contém tokenHash', !hasTokenHash);
-  assert('userAgent salvo corretamente', activeList[0]?.userAgent === 'browser-B' || activeList[0]?.userAgent === 'browser-A');
+  assert(
+    'userAgent salvo corretamente',
+    activeList[0]?.userAgent === 'browser-B' || activeList[0]?.userAgent === 'browser-A',
+  );
 
   // Test 9: cleanupExpiredSessions
   console.log('\nTest 9: cleanupExpiredSessions deleta registros antigos');

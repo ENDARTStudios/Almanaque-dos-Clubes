@@ -87,7 +87,9 @@ async function main() {
   assert(
     'currentPeriodEnd ≈ +30 dias',
     proSub.currentPeriodEnd !== null &&
-      Math.abs(proSub.currentPeriodEnd.getTime() - Date.now() - PLAN_CYCLE_DAYS * 24 * 60 * 60 * 1000) < 5000,
+      Math.abs(
+        proSub.currentPeriodEnd.getTime() - Date.now() - PLAN_CYCLE_DAYS * 24 * 60 * 60 * 1000,
+      ) < 5000,
   );
 
   // Test 4: cancelSubscription
@@ -96,11 +98,14 @@ async function main() {
   assert('status mudou para CANCELLED', cancelled?.status === 'CANCELLED');
   assert('cancelledAt preenchido', cancelled?.cancelledAt !== null);
   assert('plan ainda é PRO (mantém acesso até fim do ciclo)', cancelled?.plan === 'PRO');
-  assert('currentPeriodEnd mantido (usuário continua com acesso)', cancelled?.currentPeriodEnd !== null);
+  assert(
+    'currentPeriodEnd mantido (usuário continua com acesso)',
+    cancelled?.currentPeriodEnd !== null,
+  );
 
   // Test 5: isActiveSubscription
   console.log('\nTest 5: isActiveSubscription reflete estado');
-  const activeBeforeCancel = await isActiveSubscription(user.id);
+  const _activeBeforeCancel = await isActiveSubscription(user.id);
   // After cancel: status=CANCELLED → não ativa
   const activeAfterCancel = await isActiveSubscription(user.id);
   assert('após cancel, isActive=false', activeAfterCancel === false);
@@ -113,17 +118,17 @@ async function main() {
   // Test 6: hasMinimumPlan (hierarquia)
   console.log('\nTest 6: hasMinimumPlan verifica hierarquia FREE < PRO < ELITE');
   // user está em PRO agora
-  assert('PRO satisfaz mínimo FREE', await hasMinimumPlan(user.id, 'FREE') === true);
-  assert('PRO satisfaz mínimo PRO', await hasMinimumPlan(user.id, 'PRO') === true);
-  assert('PRO NÃO satisfaz mínimo ELITE', await hasMinimumPlan(user.id, 'ELITE') === false);
+  assert('PRO satisfaz mínimo FREE', (await hasMinimumPlan(user.id, 'FREE')) === true);
+  assert('PRO satisfaz mínimo PRO', (await hasMinimumPlan(user.id, 'PRO')) === true);
+  assert('PRO NÃO satisfaz mínimo ELITE', (await hasMinimumPlan(user.id, 'ELITE')) === false);
 
   await changePlan(user.id, 'ELITE');
-  assert('ELITE satisfaz mínimo FREE', await hasMinimumPlan(user.id, 'FREE') === true);
-  assert('ELITE satisfaz mínimo PRO', await hasMinimumPlan(user.id, 'PRO') === true);
-  assert('ELITE satisfaz mínimo ELITE', await hasMinimumPlan(user.id, 'ELITE') === true);
+  assert('ELITE satisfaz mínimo FREE', (await hasMinimumPlan(user.id, 'FREE')) === true);
+  assert('ELITE satisfaz mínimo PRO', (await hasMinimumPlan(user.id, 'PRO')) === true);
+  assert('ELITE satisfaz mínimo ELITE', (await hasMinimumPlan(user.id, 'ELITE')) === true);
 
   await changePlan(user.id, 'FREE');
-  assert('FREE NÃO satisfaz mínimo PRO', await hasMinimumPlan(user.id, 'PRO') === false);
+  assert('FREE NÃO satisfaz mínimo PRO', (await hasMinimumPlan(user.id, 'PRO')) === false);
 
   // Volta para PRO para testes de billing
   await changePlan(user.id, 'PRO');
@@ -189,7 +194,10 @@ async function main() {
   const refunded = await refundBilling(billing.id);
   assert('status = REFUNDED', refunded?.status === 'REFUNDED');
   const subAfterRefund = await getSubscription(user.id);
-  assert('currentPeriodEnd mantido (usuário mantém acesso)', subAfterRefund?.currentPeriodEnd !== null);
+  assert(
+    'currentPeriodEnd mantido (usuário mantém acesso)',
+    subAfterRefund?.currentPeriodEnd !== null,
+  );
 
   // Test 12: failBilling
   console.log('\nTest 12: failBilling muda para FAILED');

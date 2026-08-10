@@ -16,17 +16,8 @@
  */
 import { prisma } from '../../config/prisma.js';
 import { hashPassword, verifyPassword } from '../../config/crypto.js';
-import {
-  createSession,
-  revokeSession,
-  type SessionMetadata,
-} from './session.service.js';
-import {
-  assignRole,
-  getUserPermissions,
-  getUserRoles,
-  ROLE_NAMES,
-} from './rbac.service.js';
+import { createSession, revokeSession, type SessionMetadata } from './session.service.js';
+import { assignRole, getUserPermissions, getUserRoles, ROLE_NAMES } from './rbac.service.js';
 import { createFreeSubscription } from '../billing/subscription.service.js';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
 import type { AuthUser } from './jwt.service.js';
@@ -207,7 +198,8 @@ export async function login(
 
   // Hash dummy para timing attack prevention
   // (se usuário não existe, ainda assim executamos verifyPassword)
-  const DUMMY_HASH = '$argon2id$v=19$m=65536,t=12,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+  const DUMMY_HASH =
+    '$argon2id$v=19$m=65536,t=12,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
   // 2. Verifica senha
   let passwordValid = false;

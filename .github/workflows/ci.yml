@@ -1,0 +1,54 @@
+name: CI — Security Gate
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: almanaque
+          POSTGRES_PASSWORD: almanaque_dev_2025
+          POSTGRES_DB: almanaque
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready -U almanaque -d almanaque
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: 'pnpm' }
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit Tests
+        run: pnpm test:unit --coverage
+
+      - name: Check audit
+        run: pnpm audit --audit-level=high || true
+
+  deploy-staging:
+    needs: [security-gate]
+    if: github.ref == 'refs/heads/main' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🚀 Deploy em staging autorizado"

@@ -72,7 +72,11 @@ async function main() {
   const freeRole = await prisma.role.findUnique({ where: { name: ROLE_NAMES.FREE } });
   if (!proRole || !freeRole) throw new Error('roles não criadas');
 
-  for (const permName of [PERMISSIONS.CLUBS_READ, PERMISSIONS.CLUBS_WRITE, PERMISSIONS.PLAYERS_READ]) {
+  for (const permName of [
+    PERMISSIONS.CLUBS_READ,
+    PERMISSIONS.CLUBS_WRITE,
+    PERMISSIONS.PLAYERS_READ,
+  ]) {
     const perm = await prisma.permission.findUnique({ where: { name: permName } });
     if (perm) {
       await prisma.rolePermission.create({
@@ -133,7 +137,11 @@ async function main() {
   console.log('\nTest 3: getUserPermissions retorna todas as permissões do admin');
   const adminPerms = await getUserPermissions(adminUser.id);
   const totalPermsCount = Object.keys(PERMISSIONS).length;
-  assert(`admin tem ${totalPermsCount} permissões`, adminPerms.size === totalPermsCount, `atual: ${adminPerms.size}`);
+  assert(
+    `admin tem ${totalPermsCount} permissões`,
+    adminPerms.size === totalPermsCount,
+    `atual: ${adminPerms.size}`,
+  );
   assert('admin tem clubs:manage', adminPerms.has(PERMISSIONS.CLUBS_MANAGE));
   assert('admin has users:manage', adminPerms.has(PERMISSIONS.USERS_MANAGE));
   assert('admin has billings:refund', adminPerms.has(PERMISSIONS.BILLINGS_REFUND));
@@ -156,20 +164,41 @@ async function main() {
 
   // Test 6: userHasPermission
   console.log('\nTest 6: userHasPermission funciona em ambos direções');
-  assert('admin tem clubs:manage', await userHasPermission(adminUser.id, PERMISSIONS.CLUBS_MANAGE) === true);
-  assert('pro NÃO tem clubs:manage', await userHasPermission(proUser.id, PERMISSIONS.CLUBS_MANAGE) === false);
-  assert('pro tem clubs:write', await userHasPermission(proUser.id, PERMISSIONS.CLUBS_WRITE) === true);
-  assert('free tem clubs:read', await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ) === true);
-  assert('free NÃO tem clubs:write', await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_WRITE) === false);
+  assert(
+    'admin tem clubs:manage',
+    (await userHasPermission(adminUser.id, PERMISSIONS.CLUBS_MANAGE)) === true,
+  );
+  assert(
+    'pro NÃO tem clubs:manage',
+    (await userHasPermission(proUser.id, PERMISSIONS.CLUBS_MANAGE)) === false,
+  );
+  assert(
+    'pro tem clubs:write',
+    (await userHasPermission(proUser.id, PERMISSIONS.CLUBS_WRITE)) === true,
+  );
+  assert(
+    'free tem clubs:read',
+    (await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ)) === true,
+  );
+  assert(
+    'free NÃO tem clubs:write',
+    (await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_WRITE)) === false,
+  );
 
   // Test 7: cache invalidation
   console.log('\nTest 7: cache é invalidado após revokeRole');
   // free tinha clubs:read
-  assert('free tem clubs:read antes do revoke', await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ) === true);
+  assert(
+    'free tem clubs:read antes do revoke',
+    (await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ)) === true,
+  );
   await revokeRole(freeUser.id, ROLE_NAMES.FREE);
   const freePermsAfterRevoke = await getUserPermissions(freeUser.id);
   assert('free tem 0 permissões após revoke', freePermsAfterRevoke.size === 0);
-  assert('free NÃO tem mais clubs:read', await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ) === false);
+  assert(
+    'free NÃO tem mais clubs:read',
+    (await userHasPermission(freeUser.id, PERMISSIONS.CLUBS_READ)) === false,
+  );
 
   // Test 8: assignRole multiple roles a um user
   console.log('\nTest 8: usuário pode ter múltiplas roles (permissões se somam)');
@@ -181,11 +210,17 @@ async function main() {
   // Test 9: listAllPermissions e listAllRoles
   console.log('\nTest 9: listAllPermissions e listAllRoles funcionam');
   const allPermissionsList = await listAllPermissions();
-  assert(`listAllPermissions retorna ${totalPermsCount}`, allPermissionsList.length === totalPermsCount);
+  assert(
+    `listAllPermissions retorna ${totalPermsCount}`,
+    allPermissionsList.length === totalPermsCount,
+  );
   const allRolesList = await listAllRoles();
   assert('listAllRoles retorna 3', allRolesList.length === 3);
   assert('listAllRoles inclui _count', '_count' in allRolesList[0]);
-  assert('admin role tem _count.userRoles', typeof allRolesList.find(r => r.name === ROLE_NAMES.ADMIN)?._count.userRoles === 'number');
+  assert(
+    'admin role tem _count.userRoles',
+    typeof allRolesList.find((r) => r.name === ROLE_NAMES.ADMIN)?._count.userRoles === 'number',
+  );
 
   // Test 10: revokeRole idempotente
   console.log('\nTest 10: revokeRole é idempotente');

@@ -102,6 +102,6 @@ function handleDomainError(err: unknown, reply: import('fastify').FastifyReply) 
 function request_log_error(err: unknown) {
   // Evita acoplamento direto; usa console apenas como fallback de log.
   // Em produção, trocar por pino injetado.
-  // eslint-disable-next-line no-console
+
   console.error('[unhandled]', err);
 }

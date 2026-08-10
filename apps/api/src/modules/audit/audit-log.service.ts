@@ -161,12 +161,18 @@ export const auditLog = {
     // que funciona em ambos: serialize para string apenas no caso SQLite.
     const isSQLiteProvider = process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite';
 
-    const changesValue = changes === undefined
-      ? null
-      : isSQLiteProvider ? JSON.stringify(changes) : (changes as never);
-    const metadataValue = metadata === undefined
-      ? null
-      : isSQLiteProvider ? JSON.stringify(metadata) : (metadata as never);
+    const changesValue =
+      changes === undefined
+        ? null
+        : isSQLiteProvider
+          ? JSON.stringify(changes)
+          : (changes as never);
+    const metadataValue =
+      metadata === undefined
+        ? null
+        : isSQLiteProvider
+          ? JSON.stringify(metadata)
+          : (metadata as never);
 
     try {
       await prisma.auditLog.create({
@@ -183,7 +189,6 @@ export const auditLog = {
       // Em produção: logar e continuar. Auditoria não pode derrubar a request.
       // Em desenvolvimento: relançar para pegar bugs cedo.
       if (process.env.NODE_ENV === 'production') {
-        // eslint-disable-next-line no-console
         console.error('[auditLog] Falha ao registrar evento de auditoria:', err);
       } else {
         throw err;

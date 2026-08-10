@@ -44,7 +44,7 @@ export interface SessionMetadata {
  */
 export interface CreateSessionResult {
   refreshToken: string; // texto plano — só existe aqui, nunca persistido
-  session: Session;    // entidade do banco (tokenHash, não o token)
+  session: Session; // entidade do banco (tokenHash, não o token)
 }
 
 /**

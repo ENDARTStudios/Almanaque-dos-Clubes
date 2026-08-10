@@ -7,7 +7,11 @@
  * Este arquivo é automaticamente carregado pelo TypeScript (declaration merging).
  */
 import type { JWT } from '@fastify/jwt';
-import type { AccessTokenPayload, RefreshTokenPayload, AuthUser } from '../modules/auth/jwt.service.js';
+import type {
+  AccessTokenPayload,
+  RefreshTokenPayload,
+  AuthUser,
+} from '../modules/auth/jwt.service.js';
 
 declare module 'fastify' {
   interface FastifyInstance {

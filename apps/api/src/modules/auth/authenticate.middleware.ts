@@ -39,12 +39,11 @@ interface ValidatedPayload {
  * - Token expirado
  * - Token type !== 'access' (confusion attack)
  */
-export async function authenticate(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<void> {
+export async function authenticate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const cookieName = env.isProd ? '__Host-access_token' : 'access_token';
-  const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[cookieName];
+  const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[
+    cookieName
+  ];
 
   if (!accessToken) {
     return reply.status(401).send({
@@ -57,7 +56,7 @@ export async function authenticate(
     // Usa app.jwt.verify() do @fastify/jwt plugin
     // O app está tipado com JWT via src/types/fastify.d.ts
     const decoded = request.server.jwt.verify(accessToken) as Record<string, unknown>;
-    
+
     // Defense in depth: rejeita tokens com type != 'access'
     if (decoded.type !== 'access') {
       payload = null;
@@ -81,7 +80,9 @@ export async function authenticate(
   }
 
   // Anexa usuário à request (Fastify tipado em src/types/fastify.d.ts)
-  (request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }).user = {
+  (
+    request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }
+  ).user = {
     id: payload.sub,
     email: payload.email,
     roles: payload.roles,
@@ -100,7 +101,9 @@ export async function authenticate(
  */
 export function requirePermission(permission: string) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    const user = (request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }).user;
+    const user = (
+      request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }
+    ).user;
 
     if (!user) {
       return reply.status(401).send({
@@ -127,7 +130,9 @@ export function requirePermission(permission: string) {
  */
 export function requireRole(role: string) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    const user = (request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }).user;
+    const user = (
+      request as { user?: { id: string; email: string; roles: string[]; permissions: string[] } }
+    ).user;
 
     if (!user) {
       return reply.status(401).send({

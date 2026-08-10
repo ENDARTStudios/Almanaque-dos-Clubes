@@ -13,7 +13,7 @@
  * - Rate limiting no endpoint (Tarefa 3.8)
  */
 import { prisma } from '../../config/prisma.js';
-import { generateToken, hashToken, hashPassword, verifyToken } from '../../config/crypto.js';
+import { generateToken, hashToken, hashPassword } from '../../config/crypto.js';
 
 // Duração do token de reset: 15 minutos
 const RESET_TOKEN_EXPIRES_MS = 15 * 60 * 1000;
@@ -33,11 +33,15 @@ export async function createPasswordResetToken(email: string): Promise<ResetToke
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return null; // Não revela se email existe
 
-  // Revoga tokens anteriores
-  await prisma.passwordResetToken.updateMany({
-    where: { userId: user.id },
-    data: { usedAt: new Date() }, // Marca como usado
-  });
+  // Revoga tokens anteriores (quando tabela password_reset_tokens existir no schema)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pwdReset = (prisma as any).passwordResetToken;
+  if (pwdReset?.updateMany) {
+    await pwdReset.updateMany({
+      where: { userId: user.id },
+      data: { usedAt: new Date() },
+    });
+  }
 
   const token = generateToken();
   const tokenHash = hashToken(token);
@@ -54,9 +58,7 @@ export async function createPasswordResetToken(email: string): Promise<ResetToke
  * Valida e consome um token de reset.
  * Retorna o userId se válido, null se inválido/expirado/usado.
  */
-export async function consumePasswordResetToken(token: string): Promise<string | null> {
-  const tokenHash = hashToken(token);
-  
+export async function consumePasswordResetToken(_token: string): Promise<string | null> {
   // TODO: Implementar quando tabela password_reset_tokens existir
   return null;
 }

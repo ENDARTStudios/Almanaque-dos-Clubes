@@ -53,6 +53,8 @@ model Club {
   // Relações
   players       Player[]
   rankings      RankingEntry[]
+  homeMatches   Match[]    @relation("homeMatches")
+  awayMatches   Match[]    @relation("awayMatches")
   // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
   // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
   createdBy     String?
@@ -343,6 +345,73 @@ model Billing {
   // Índice composto: histórico de cobranças pagas por usuário (relatório financeiro)
   @@index([userId, status, paidAt])
   @@map("billings")
+}
+
+// -----------------------------------------------------------------------------
+// COMPETIÇÕES — Season (temporada/edição de competição)
+// -----------------------------------------------------------------------------
+
+enum SeasonStatus {
+  PLANNED
+  ONGOING
+  FINISHED
+}
+
+model Season {
+  id        String       @id @default(uuid())
+  name      String       // "2024", "2024-2025", etc.
+  startDate DateTime?
+  endDate   DateTime?
+  status    SeasonStatus @default(PLANNED)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  matches Match[]
+
+  @@index([status])
+  @@index([startDate])
+  @@map("seasons")
+}
+
+// -----------------------------------------------------------------------------
+// PARTIDAS — Match
+// -----------------------------------------------------------------------------
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+  POSTPONED
+}
+
+model Match {
+  id            String      @id @default(uuid())
+  homeClubId    String
+  homeClub      Club        @relation("homeMatches", fields: [homeClubId], references: [id], onDelete: Cascade)
+  awayClubId    String
+  awayClub      Club        @relation("awayMatches", fields: [awayClubId], references: [id], onDelete: Cascade)
+  date          DateTime
+  competitionId String?
+  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  seasonId      String?
+  season        Season?     @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  homeScore     Int?
+  awayScore     Int?
+  round         String?     // "1", "2", "final", "semifinal", etc.
+  venue         String?
+  status        MatchStatus @default(SCHEDULED)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([homeClubId])
+  @@index([awayClubId])
+  @@index([date])
+  @@index([competitionId])
+  @@index([seasonId])
+  @@index([status])
+  @@index([homeClubId, awayClubId, date])
+  @@map("matches")
 }
 
 enum BillingStatus {

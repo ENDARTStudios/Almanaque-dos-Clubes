@@ -22,11 +22,7 @@ import {
   ConflictAuthError,
   ValidationAuthError,
 } from './auth.service.js';
-import {
-  RegisterSchema,
-  LoginSchema,
-  RefreshSchema,
-} from './auth.schemas.js';
+import { RegisterSchema, LoginSchema, RefreshSchema } from './auth.schemas.js';
 import {
   createJwtService,
   getAccessCookieName,
@@ -72,7 +68,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   function getRefreshTokenFromRequest(request: FastifyRequest): string | undefined {
     const isProd = env.isProd;
     const cookieName = getRefreshCookieName(isProd);
-    const fromCookie = (request.cookies as Record<string, string | undefined> | undefined)?.[cookieName];
+    const fromCookie = (request.cookies as Record<string, string | undefined> | undefined)?.[
+      cookieName
+    ];
     if (fromCookie) return fromCookie;
     // Fallback: body (para testes)
     const body = request.body as { refreshToken?: string } | undefined;
@@ -116,7 +114,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     // Erro inesperado — não vazar stack trace em produção
-    // eslint-disable-next-line no-console
+
     console.error('[auth] Erro inesperado:', err);
     reply.status(500).send({
       error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor' },

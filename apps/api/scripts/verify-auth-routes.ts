@@ -20,8 +20,7 @@
  */
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/config/prisma.js';
-import { hashPassword } from '../src/config/crypto.js';
-import { auditLog, AuditAction, EntityType } from '../src/modules/audit/audit-log.service.js';
+import { auditLog, AuditAction } from '../src/modules/audit/audit-log.service.js';
 
 let pass = 0;
 let fail = 0;
@@ -77,11 +76,23 @@ async function main() {
   });
   assert('status 201', registerRes.statusCode === 201, registerRes.statusCode);
   assert('tem data.user', registerRes.json().data?.user !== undefined);
-  assert('user.email = test-user@example.com', registerRes.json().data?.user?.email === 'test-user@example.com');
+  assert(
+    'user.email = test-user@example.com',
+    registerRes.json().data?.user?.email === 'test-user@example.com',
+  );
   assert('user.id é UUID', typeof registerRes.json().data?.user?.id === 'string');
-  assert('user.roles = [free]', JSON.stringify(registerRes.json().data?.user?.roles) === JSON.stringify(['free']));
-  assert('NÃO tem passwordHash na resposta', JSON.stringify(registerRes.json()).includes('passwordHash') === false);
-  assert('NÃO tem password na resposta', JSON.stringify(registerRes.json()).includes('"password"') === false);
+  assert(
+    'user.roles = [free]',
+    JSON.stringify(registerRes.json().data?.user?.roles) === JSON.stringify(['free']),
+  );
+  assert(
+    'NÃO tem passwordHash na resposta',
+    JSON.stringify(registerRes.json()).includes('passwordHash') === false,
+  );
+  assert(
+    'NÃO tem password na resposta',
+    JSON.stringify(registerRes.json()).includes('"password"') === false,
+  );
 
   // Cookies
   const regCookies = parseCookies(registerRes.headers['set-cookie']);
@@ -116,7 +127,10 @@ async function main() {
     payload: { email: 'test-user@example.com', password: 'AnotherPass123' },
   });
   assert('status 409', dupRes.statusCode === 409, dupRes.statusCode);
-  assert('error.code = EMAIL_ALREADY_REGISTERED', dupRes.json().error?.code === 'EMAIL_ALREADY_REGISTERED');
+  assert(
+    'error.code = EMAIL_ALREADY_REGISTERED',
+    dupRes.json().error?.code === 'EMAIL_ALREADY_REGISTERED',
+  );
 
   // -----------------------------------------------------------------
   // Test 3: POST /auth/register — senha fraca (validação)
@@ -158,14 +172,19 @@ async function main() {
   assert('status 200', loginRes.statusCode === 200, loginRes.statusCode);
   assert('retorna user', loginRes.json().data?.user !== undefined);
   assert('user.email correto', loginRes.json().data?.user?.email === 'test-user@example.com');
-  assert('NÃO tem passwordHash na resposta', JSON.stringify(loginRes.json()).includes('passwordHash') === false);
+  assert(
+    'NÃO tem passwordHash na resposta',
+    JSON.stringify(loginRes.json()).includes('passwordHash') === false,
+  );
 
   const loginCookies = parseCookies(loginRes.headers['set-cookie']);
   assert('cookie access_token setado', 'access_token' in loginCookies);
   assert('cookie refresh_token setado', 'refresh_token' in loginCookies);
 
   // lastLoginAt atualizado
-  const userAfterLogin = await prisma.user.findUnique({ where: { email: 'test-user@example.com' } });
+  const userAfterLogin = await prisma.user.findUnique({
+    where: { email: 'test-user@example.com' },
+  });
   assert('lastLoginAt preenchido após login', userAfterLogin?.lastLoginAt !== null);
 
   // AuditLog registrou login
@@ -184,9 +203,18 @@ async function main() {
     payload: { email: 'test-user@example.com', password: 'WrongPassword123' },
   });
   assert('status 401', wrongPassRes.statusCode === 401, wrongPassRes.statusCode);
-  assert('error.code = INVALID_CREDENTIALS', wrongPassRes.json().error?.code === 'INVALID_CREDENTIALS');
-  assert('mensagem genérica "Credenciais inválidas"', wrongPassRes.json().error?.message === 'Credenciais inválidas');
-  assert('NÃO revela "usuário não existe"', !wrongPassRes.json().error?.message?.includes('não existe'));
+  assert(
+    'error.code = INVALID_CREDENTIALS',
+    wrongPassRes.json().error?.code === 'INVALID_CREDENTIALS',
+  );
+  assert(
+    'mensagem genérica "Credenciais inválidas"',
+    wrongPassRes.json().error?.message === 'Credenciais inválidas',
+  );
+  assert(
+    'NÃO revela "usuário não existe"',
+    !wrongPassRes.json().error?.message?.includes('não existe'),
+  );
 
   // -----------------------------------------------------------------
   // Test 6: POST /auth/login — email inexistente (timing-safe)
@@ -198,8 +226,14 @@ async function main() {
     payload: { email: 'nonexistent@example.com', password: 'AnyPassword123' },
   });
   assert('status 401', noEmailRes.statusCode === 401, noEmailRes.statusCode);
-  assert('error.code = INVALID_CREDENTIALS (igual ao caso senha errada)', noEmailRes.json().error?.code === 'INVALID_CREDENTIALS');
-  assert('mensagem idêntica à de senha errada', noEmailRes.json().error?.message === wrongPassRes.json().error?.message);
+  assert(
+    'error.code = INVALID_CREDENTIALS (igual ao caso senha errada)',
+    noEmailRes.json().error?.code === 'INVALID_CREDENTIALS',
+  );
+  assert(
+    'mensagem idêntica à de senha errada',
+    noEmailRes.json().error?.message === wrongPassRes.json().error?.message,
+  );
 
   // -----------------------------------------------------------------
   // Test 7: POST /auth/logout — sucesso
@@ -219,10 +253,15 @@ async function main() {
   // Cookies limpos (set-cookie com Max-Age=0 ou similar)
   const logoutSetCookie = logoutRes.headers['set-cookie'];
   if (Array.isArray(logoutSetCookie)) {
-    const allCleared = logoutSetCookie.every((c) => c.includes('Max-Age=0') || c.includes('expires=Thu, 01 Jan 1970'));
+    const allCleared = logoutSetCookie.every(
+      (c) => c.includes('Max-Age=0') || c.includes('expires=Thu, 01 Jan 1970'),
+    );
     assert('cookies marcados para expiração', allCleared);
   } else if (typeof logoutSetCookie === 'string') {
-    assert('cookie marcado para expiração', logoutSetCookie.includes('Max-Age=0') || logoutSetCookie.includes('1970'));
+    assert(
+      'cookie marcado para expiração',
+      logoutSetCookie.includes('Max-Age=0') || logoutSetCookie.includes('1970'),
+    );
   }
 
   // Session revogada no banco
@@ -266,7 +305,10 @@ async function main() {
   assert('retorna user', refreshRes.json().data?.user !== undefined);
 
   const refreshCookies = parseCookies(refreshRes.headers['set-cookie']);
-  assert('novos cookies setados', 'access_token' in refreshCookies && 'refresh_token' in refreshCookies);
+  assert(
+    'novos cookies setados',
+    'access_token' in refreshCookies && 'refresh_token' in refreshCookies,
+  );
   assert('refresh_token novo ≠ antigo', refreshCookies['refresh_token'] !== oldRefresh);
 
   // Session antiga foi revogada (rotação)
@@ -276,7 +318,11 @@ async function main() {
     url: '/api/v1/auth/refresh',
     cookies: { refresh_token: oldRefresh },
   });
-  assert('refresh token antigo rejeitado após rotação', reuseRes.statusCode === 401, reuseRes.statusCode);
+  assert(
+    'refresh token antigo rejeitado após rotação',
+    reuseRes.statusCode === 401,
+    reuseRes.statusCode,
+  );
 
   // -----------------------------------------------------------------
   // Test 9: POST /auth/refresh sem cookie
@@ -313,17 +359,36 @@ async function main() {
   // -----------------------------------------------------------------
   console.log('\nTest 11: AuditLog cobriu eventos auth');
   const auditCounts = {
-    register: await auditLog.countByAction(AuditAction.USER_REGISTER, new Date(Date.now() - 60 * 60 * 1000)),
-    login: await auditLog.countByAction(AuditAction.USER_LOGIN, new Date(Date.now() - 60 * 60 * 1000)),
-    logout: await auditLog.countByAction(AuditAction.USER_LOGOUT, new Date(Date.now() - 60 * 60 * 1000)),
-    refresh: await auditLog.countByAction(AuditAction.USER_REFRESH, new Date(Date.now() - 60 * 60 * 1000)),
-    login_failed: await auditLog.countByAction(AuditAction.USER_LOGIN_FAILED, new Date(Date.now() - 60 * 60 * 1000)),
+    register: await auditLog.countByAction(
+      AuditAction.USER_REGISTER,
+      new Date(Date.now() - 60 * 60 * 1000),
+    ),
+    login: await auditLog.countByAction(
+      AuditAction.USER_LOGIN,
+      new Date(Date.now() - 60 * 60 * 1000),
+    ),
+    logout: await auditLog.countByAction(
+      AuditAction.USER_LOGOUT,
+      new Date(Date.now() - 60 * 60 * 1000),
+    ),
+    refresh: await auditLog.countByAction(
+      AuditAction.USER_REFRESH,
+      new Date(Date.now() - 60 * 60 * 1000),
+    ),
+    login_failed: await auditLog.countByAction(
+      AuditAction.USER_LOGIN_FAILED,
+      new Date(Date.now() - 60 * 60 * 1000),
+    ),
   };
   assert('≥1 user.register', auditCounts.register >= 1, auditCounts);
   assert('≥1 user.login', auditCounts.login >= 1, auditCounts);
   assert('≥1 user.logout', auditCounts.logout >= 1, auditCounts);
   assert('≥1 user.refresh', auditCounts.refresh >= 1, auditCounts);
-  assert('≥2 user.login_failed (senha errada + email inexistente)', auditCounts.login_failed >= 2, auditCounts);
+  assert(
+    '≥2 user.login_failed (senha errada + email inexistente)',
+    auditCounts.login_failed >= 2,
+    auditCounts,
+  );
 
   // Nenhum audit log contém senha em texto
   const allLogs = await prisma.auditLog.findMany();

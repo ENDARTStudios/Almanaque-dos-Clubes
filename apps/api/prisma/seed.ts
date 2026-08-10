@@ -14,11 +14,7 @@
  *   pnpm --filter @almanaque/api exec tsx prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client';
-import {
-  PERMISSIONS,
-  ROLE_NAMES,
-  ROLE_PERMISSIONS,
-} from '../src/modules/auth/rbac.service.js';
+import { PERMISSIONS, ROLE_NAMES, ROLE_PERMISSIONS } from '../src/modules/auth/rbac.service.js';
 
 const prisma = new PrismaClient();
 
@@ -436,9 +432,9 @@ async function seedRbac() {
 async function main() {
   console.log('🌱 Iniciando seed expandido do Almanaque dos Clubes...\n');
 
-  const clubsCount = await seedClubs();
-  const competitionsCount = await seedCompetitions();
-  const rankingsCount = await seedRankings();
+  const _clubsCount = await seedClubs();
+  const _competitionsCount = await seedCompetitions();
+  const _rankingsCount = await seedRankings();
   await seedRbac();
 
   // Verifica integridade pós-seed

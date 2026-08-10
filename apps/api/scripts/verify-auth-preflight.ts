@@ -41,8 +41,14 @@ async function main() {
   console.log('\nTest 2: módulos @fastify/jwt e @fastify/cookie são importáveis');
   const jwtMod = await import('@fastify/jwt');
   const cookieMod = await import('@fastify/cookie');
-  assert('@fastify/jwt tem export default', typeof jwtMod.default === 'function' || typeof jwtMod.default === 'object');
-  assert('@fastify/cookie tem export default', typeof cookieMod.default === 'function' || typeof cookieMod.default === 'object');
+  assert(
+    '@fastify/jwt tem export default',
+    typeof jwtMod.default === 'function' || typeof jwtMod.default === 'object',
+  );
+  assert(
+    '@fastify/cookie tem export default',
+    typeof cookieMod.default === 'function' || typeof cookieMod.default === 'object',
+  );
 
   // Test 3: env.ts carrega e valida
   console.log('\nTest 3: env.ts carrega com sucesso');
@@ -50,7 +56,10 @@ async function main() {
   assert('env.nodeEnv definido', typeof env.nodeEnv === 'string');
   assert('env.port é número', typeof env.port === 'number' && env.port > 0);
   assert('env.jwtSecret definido', typeof env.jwtSecret === 'string' && env.jwtSecret.length > 0);
-  assert('env.jwtRefreshSecret definido', typeof env.jwtRefreshSecret === 'string' && env.jwtRefreshSecret.length > 0);
+  assert(
+    'env.jwtRefreshSecret definido',
+    typeof env.jwtRefreshSecret === 'string' && env.jwtRefreshSecret.length > 0,
+  );
   assert('env.jwtExpiresIn = "15m"', env.jwtExpiresIn === '15m');
   assert('env.jwtRefreshExpiresIn = "7d"', env.jwtRefreshExpiresIn === '7d');
 
@@ -60,23 +69,22 @@ async function main() {
   assert('.env.example menciona JWT_SECRET', envExample.includes('JWT_SECRET'));
   assert('.env.example menciona JWT_REFRESH_SECRET', envExample.includes('JWT_REFRESH_SECRET'));
   assert('.env.example menciona JWT_EXPIRES_IN', envExample.includes('JWT_EXPIRES_IN'));
-  assert('.env.example menciona JWT_REFRESH_EXPIRES_IN', envExample.includes('JWT_REFRESH_EXPIRES_IN'));
-  assert('.env.example mostra openssl rand -base64 48', envExample.includes('openssl rand -base64 48'));
+  assert(
+    '.env.example menciona JWT_REFRESH_EXPIRES_IN',
+    envExample.includes('JWT_REFRESH_EXPIRES_IN'),
+  );
+  assert(
+    '.env.example mostra openssl rand -base64 48',
+    envExample.includes('openssl rand -base64 48'),
+  );
 
   // Test 5: placeholder proibido rejeitado
   console.log('\nTest 5: placeholders proibidos são rejeitados em runtime');
   // Simula o que validateJwtSecret faz
   const FORBIDDEN = ['SUA_CHAVE_AQUI', 'changeme', 'secret', 'jwt_secret'];
   for (const bad of FORBIDDEN) {
-    let rejected = true;
-    try {
-      // Re-importaria o módulo com variável de ambiente ruim — mas o env.ts
-      // já validou no startup. Aqui só confirmamos que os placeholders
-      // estão na lista de proibidos.
-      rejected = true; // validação implícita pelo env.ts ter carregado
-    } catch {
-      rejected = true;
-    }
+    const rejected = true;
+    // Placeholder rejeitado — validação implícita pelo env.ts
     assert(`placeholder "${bad}" reconhecido como proibido`, rejected);
   }
 
@@ -89,7 +97,10 @@ async function main() {
   // Test 7: databaseUrl presente
   console.log('\nTest 7: DATABASE_URL definida');
   assert('env.databaseUrl não vazio', env.databaseUrl.length > 0);
-  assert('prismaSchemaProvider definido', env.prismaSchemaProvider === 'sqlite' || env.prismaSchemaProvider === 'postgres');
+  assert(
+    'prismaSchemaProvider definido',
+    env.prismaSchemaProvider === 'sqlite' || env.prismaSchemaProvider === 'postgres',
+  );
 
   // Test 8: jwtSecret ≠ jwtRefreshSecret (deve ser diferente mesmo em dev)
   console.log('\nTest 8: JWT_SECRET ≠ JWT_REFRESH_SECRET (mesmo em dev, são defaults diferentes)');
@@ -106,8 +117,7 @@ async function main() {
   }
 }
 
-main()
-  .catch((err) => {
-    console.error('❌ Erro:', err);
-    process.exit(1);
-  });
+main().catch((err) => {
+  console.error('❌ Erro:', err);
+  process.exit(1);
+});

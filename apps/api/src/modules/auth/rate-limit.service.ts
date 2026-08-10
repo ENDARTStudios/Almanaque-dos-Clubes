@@ -43,10 +43,10 @@ export async function checkAuthRateLimit(
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
   const config = LOGIN_RATE_LIMIT[key];
   const now = Date.now();
-  
+
   // Fallback em memória
   const stored = memoryStore.get(`${key}:${identifier}`);
-  
+
   if (!stored || stored.resetAt < now) {
     memoryStore.set(`${key}:${identifier}`, {
       count: 1,
@@ -62,7 +62,7 @@ export async function checkAuthRateLimit(
 
   stored.count++;
   memoryStore.set(`${key}:${identifier}`, stored);
-  
+
   return { allowed: true };
 }
 

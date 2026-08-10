@@ -71,7 +71,10 @@ function validateJwtSecret(value: unknown, fieldName: string, isProd: boolean): 
  */
 const durationSchema = z
   .string()
-  .regex(/^\d+\s*(ms|s|m|h|d|w|y)$/, 'Formato inválido. Exemplos válidos: "15m", "7d", "1h", "30ms"');
+  .regex(
+    /^\d+\s*(ms|s|m|h|d|w|y)$/,
+    'Formato inválido. Exemplos válidos: "15m", "7d", "1h", "30ms"',
+  );
 
 // =============================================================================
 // NODE_ENV

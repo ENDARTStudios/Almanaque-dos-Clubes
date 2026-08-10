@@ -1,77 +1,108 @@
-/**
- * App Fastify — configuração central.
- * Importado por server.ts (modo dev) e por testes.
- */
 import Fastify, { type FastifyInstance } from 'fastify';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
+import { metricsRoutes } from './routes/metrics.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
+import { playersRoutes } from './modules/players/routes.js';
+import { competitionsRoutes } from './modules/competitions/routes.js';
+import { rankingsRoutes } from './modules/rankings/routes.js';
+import { seasonsRoutes } from './modules/seasons/routes.js';
+import { matchesRoutes } from './modules/matches/routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { billingRoutes } from './modules/billing/routes.js';
+import { adminRoutes } from './modules/admin/routes.js';
+import { idempotencyMiddleware } from './middleware/idempotency.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: false, // usamos pino separado para ter controle fino
+    logger: false,
     trustProxy: true,
-    bodyLimit: 1024 * 1024, // 1 MiB
+    bodyLimit: 1024 * 1024,
   });
 
-  // ---- Plugins de segurança ----
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (request: { ip: string }) => request.ip,
+    errorResponseBuilder: (_request: unknown, context: { max: number; after: string }) => ({
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Muitas requisições. Limite de ${context.max} a cada ${context.after}`,
+        retryAfter: context.after,
+      },
+    }),
+  });
+
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'Almanaque dos Clubes API',
+        description: 'API de pesquisa e análise histórica do futebol mundial',
+        version: '0.1.0',
+      },
+      servers: [{ url: `http://localhost:${env.port}`, description: 'Desenvolvimento' }],
+      components: {
+        securitySchemes: {
+          cookieAccess: { type: 'apiKey', in: 'cookie', name: 'access_token' },
+        },
+      },
+    },
+  });
+
+  await app.register(swaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: { docExpansion: 'list', deepLinking: true },
+  });
+
   await app.register(helmet, {
     contentSecurityPolicy: env.isProd
-      ? {
-          directives: {
-            defaultSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            scriptSrc: ["'self'"],
-          },
-        }
+      ? { directives: { defaultSrc: ["'self'"], objectSrc: ["'none'"], scriptSrc: ["'self'"] } }
       : false,
     hsts: env.isProd ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
   });
 
   await app.register(cors, {
-    origin: env.isProd ? ['https://almanaque.app'] : true, // dev: permite qualquer origem
+    origin: env.isProd ? ['https://almanaque.app'] : true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
 
-  // ---- Auth plugins (Tarefa 3.1) ----
-  // @fastify/cookie — para setar/ler cookies httpOnly com refresh token
-  await app.register(cookie, {
-    secret: env.jwtSecret, // assina cookies signed (uso futuro)
-  });
+  await app.register(cookie, { secret: env.jwtSecret });
 
-  // @fastify/jwt — para sign/verify de access e refresh tokens
   await app.register(jwt, {
     secret: env.jwtSecret,
-    sign: {
-      expiresIn: env.jwtExpiresIn,
-    },
-    verify: {
-      algorithms: ['HS256'], // previne algorithm confusion attacks
-    },
-    cookie: {
-      cookieName: 'access_token', // permite app.jwt.verifyFromCookie() no futuro
-      signed: false, // não exige cookie signed (usamos httpOnly separado)
-    },
+    sign: { expiresIn: env.jwtExpiresIn },
+    verify: { algorithms: ['HS256'] },
+    cookie: { cookieName: 'access_token', signed: false },
   });
 
-  // ---- Prefixo de versão da API ----
+  await app.addHook('onRequest', idempotencyMiddleware);
+
   await app.register(
     async (api) => {
       await api.register(healthRoutes);
+      await api.register(metricsRoutes);
+      await api.register(playersRoutes);
+      await api.register(competitionsRoutes);
+      await api.register(rankingsRoutes);
+      await api.register(seasonsRoutes);
+      await api.register(matchesRoutes);
+      await api.register(billingRoutes);
+      await api.register(adminRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
     },
     { prefix: '/api/v1' },
   );
 
-  // ---- Handler global de erros ----
   app.setErrorHandler((err, _request, reply) => {
     logger.error({ err }, 'Unhandled error');
     const statusCode = (err as { statusCode?: number }).statusCode ?? 500;
@@ -82,9 +113,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         : err instanceof Error
           ? err.message
           : 'Erro desconhecido';
-    return reply.status(statusCode).send({
-      error: { code, message },
-    });
+    return reply.status(statusCode).send({ error: { code, message } });
   });
 
   return app;

@@ -1,0 +1,18 @@
+name: DAST — OWASP ZAP
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'  # Domingo 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  zap-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP Scan
+        uses: zaproxy/action-full-scan@v0.12
+        with:
+          target: 'https://staging.almanaque.app'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j'

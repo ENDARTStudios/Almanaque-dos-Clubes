@@ -2,7 +2,7 @@
   "name": "almanaque-dos-clubes",
   "version": "0.1.0",
   "private": true,
-  "description": "SaaS de pesquisa e an\u00e1lise hist\u00f3rica do futebol mundial",
+  "description": "SaaS de pesquisa e análise histórica do futebol mundial",
   "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": ">=20.0.0"
@@ -11,9 +11,37 @@
     "dev": "pnpm --filter @almanaque/api dev",
     "build": "pnpm --filter @almanaque/api build",
     "start": "pnpm --filter @almanaque/api start",
+    "lint": "eslint apps/**/*.ts packages/**/*.ts",
+    "lint:fix": "eslint apps/**/*.ts packages/**/*.ts --fix",
+    "format": "prettier --write '**/*.{ts,js,json,yaml,yml}'",
+    "format:check": "prettier --check '**/*.{ts,js,json,yaml,yml}'",
+    "typecheck": "pnpm --filter @almanaque/api typecheck && pnpm --filter @almanaque/domain typecheck",
+    "test:unit": "pnpm --recursive test",
+    "test:coverage": "pnpm --filter @almanaque/api test --coverage",
+    "test": "pnpm test:unit",
     "db:migrate": "pnpm --filter @almanaque/api prisma:migrate",
     "db:generate": "pnpm --filter @almanaque/api prisma:generate",
     "db:studio": "pnpm --filter @almanaque/api prisma:studio",
     "db:seed": "pnpm --filter @almanaque/api prisma:seed"
+  },
+  "onlyBuiltDependencies": [
+    "argon2",
+    "@prisma/client",
+    "@prisma/engines",
+    "esbuild",
+    "prisma"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-security": "^4.0.1",
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6",
+    "vitest": "^4.1.10"
   }
 }

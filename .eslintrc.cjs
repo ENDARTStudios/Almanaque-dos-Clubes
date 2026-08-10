@@ -1,0 +1,38 @@
+module.exports = {
+  root: true,
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint', 'security', 'prettier'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:security/recommended-legacy',
+    'plugin:prettier/recommended',
+  ],
+  env: {
+    node: true,
+    es2022: true,
+  },
+  rules: {
+    'prettier/prettier': 'error',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'no-console': 'warn',
+    'security/detect-object-injection': 'warn',
+    'security/detect-non-literal-fs-filename': 'warn',
+    'security/detect-unsafe-regex': 'warn',
+    'security/detect-buffer-noassert': 'error',
+    'security/detect-child-process': 'warn',
+    'security/detect-disable-mustache-escape': 'error',
+    'security/detect-eval-with-expression': 'error',
+    'security/detect-no-csrf-before-method-override': 'error',
+    'security/detect-non-literal-regexp': 'warn',
+    'security/detect-possible-timing-attacks': 'error',
+    'security/detect-pseudoRandomBytes': 'warn',
+  },
+  ignorePatterns: ['dist/', 'node_modules/', '*.js', '*.mjs'],
+};

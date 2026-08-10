@@ -41,10 +41,7 @@ export const LoginSchema = z.object({
     .string()
     .email('Email inválido')
     .transform((v) => v.toLowerCase().trim()),
-  password: z
-    .string()
-    .min(1, 'Senha é obrigatória')
-    .max(128, 'Senha muito longa'),
+  password: z.string().min(1, 'Senha é obrigatória').max(128, 'Senha muito longa'),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
