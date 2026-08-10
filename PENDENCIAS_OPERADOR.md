@@ -23,9 +23,8 @@ Depois de feito: responda "feito o item Nº X"
 
 ## Fila de pendências
 
-> Nenhuma pendência bloqueia o desenvolvimento **agora**. O item abaixo é
-> uma pendência futura — só precisa ser resolvido quando formos entrar
-> em produção com domínio próprio (Fase 7).
+> **ATENÇÃO:** As pendências abaixo **bloqueiam** a entrada em produção.
+> Prioritárias para a Fase 10 (Go to Production).
 
 ### [1] Escolher e registrar domínio oficial do Almanaque dos Clubes
 Por quê: A Fase 7 (DNSSEC/CAA/HSTS preload) só pode ser aplicada com domínio próprio. Sem isso, deploy usará subdomínio gratuito (Fly.io/Railway) sem HSTS preload.
