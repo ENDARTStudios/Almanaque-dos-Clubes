@@ -117,6 +117,7 @@ model Competition {
 
   // Relações
   rankings Ranking[]
+  matches  Match[]
 
   @@index([country])
   @@index([type])
