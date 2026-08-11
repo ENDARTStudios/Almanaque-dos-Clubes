@@ -18,7 +18,23 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
-### [2026-07-20] Decisão: Fase 2 (Dados) concluída com 13/13 tarefas
+### [2026-08-11] Decisão: Reconciliar PLANO_MESTRE.md com evidência executável (T001)
+Motivo: PLANO_MESTRE.md afirmava `[x]` e verificações "passando" sem que comandos reais tivessem sido executados nesta sessão. A Seção 6 do Protocolo exige evidência executável antes de `[x]`.
+Alternativas consideradas: (a) aceitar o documento como estava — descartada por violar o protocolo; (b) rodar todos os comandos de verificação e corrigir o documento com base no resultado — escolhida.
+Evidência coletada (2026-08-11, Node 24 / pnpm 11.13.1):
+- `pnpm install --frozen-lockfile` — ✅ passa.
+- `pnpm --filter @almanaque/api test` + `pnpm --filter @almanaque/domain test` — ✅ 21/21 (API 17 + Domain 4).
+- `pnpm test` (recursivo) — ❌ falha em `@almanaque/feature-flags` (packages/feature-flags não tem arquivos de teste; vitest sai com exit 1).
+- `pnpm lint` — ❌ inicialmente 91 erros (87 Prettier auto-fixáveis via `--fix`); restam 4 erros @typescript-eslint/no-unused-vars (`apps/api/src/modules/auth/rate-limit.service.ts`, `apps/api/src/middleware/csrf.ts`) + 13 warnings security/detect-object-injection (`packages/feature-flags/src/index.ts`).
+- `pnpm typecheck` — ❌ 10 erros em @almanaque/api: `csrf.ts:7` (userId não usado), `rate-limit.service.ts` (ioredis import não-construtível, vars não usadas), `cache.ts:3` (ioredis), `websocket.ts` (módulo `ws` indisponível/indisponível tipagem, params implicit any), mais TS6196/7006. `@almanaque/domain` não alcançado (API falha antes).
+- `prisma migrate status` — não executável sem `.env`/DATABASE_URL (arquivo é gitignored e não está configurado local).
+Gaps registrados no PLANO_MESTRE.md:
+1. Fase 2 itens 2.7 (`data_sources`, `entity_revisions`) e 2.10 (criptografia na coluna) estavam `[x]` com texto "pendente" — demovidos para `[ ]`; tabelas realmente não existem no schema.
+2. Fase 8: SAST/E2E/k6 marcavam `[x]` sem execução — demovidos para `[~]`.
+3. Fase 9.1.1/9.1.6: security gate não passaria hoje — `[~]`.
+Observação: Nenhum código de produto foi alterado (restrição T001). Estes gaps viram pendências do Doer para a próxima tarefa de correção (lint + typecheck).
+
+
 Motivo: Após reconstrução completa (repositório GitHub estava em estado pré-protocolo), todas as tarefas 2.3–2.13 foram implementadas com evidência real de verificação (PROTOCOLO_MESTRE.md Seção 6).
 Alternativas consideradas: (a) aceitar a conversa compartilhada como prova de trabalho — descartada após auditoria revelar que commits `482e394`, `09ff0c6`, `1dbb1ec` não existiam no repositório real; (b) reconstruir tudo do zero sobre o commit `8cb9b67` (baseline MVP) — escolhida.
 Observação: 164 asserções distribuídas em 5 scripts de smoke test (audit, crypto, session, rbac, billing) validam a implementação. Migration PostgreSQL consolidada (379 linhas, 63 CREATE statements) gerada e armazenada em `prisma/migrations-postgres/20260720000001_phase2_final/migration.sql`. Pendência: Operador executar `pwsh ./scripts/migrate.ps1` no Windows para aplicar no PostgreSQL.

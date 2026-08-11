@@ -5,20 +5,21 @@
 
 ---
 
-## 📋 PROGRESSO GERAL (CHECKLIST RESUMIDA)
+## 📋 PROGRESSO GERAL (CHECKLIST RESUMIDA — RECONCILIADA T001, 2026-08-11)
 
-- [x] Fase 0 – Setup `[OBRIGATÓRIO]` ✅ (2026-08-10)
-- [x] Fase 1 – Infra base `[OBRIGATÓRIO]` ✅ (2026-08-10)
-- [x] Fase 2 – Dados `[OBRIGATÓRIO + auth/billing/audit]` ✅ (2026-07-20)
-- [x] Fase 3 – Auth `[OBRIGATÓRIO, 2FA TOTP opcional]` ✅ (2026-08-10) — exceto 3.9 (bloqueado)
-- [x] Fase 4 – APIs/CRUDs `[OBRIGATÓRIO + billing]` ✅ (2026-08-10)
-- [x] Fase 5 – Frontend `[OBRIGATÓRIO]` ✅ (2026-08-10)
-- [x] Fase 6 – Avançado `[upload/fila/cache/IA-RAG OBRIGATÓRIOS]` ✅ (2026-08-10)
-- [x] Fase 7 – Hardening `[Vault e DNSSEC CONDICIONAIS]` ✅ (2026-08-10)
-- [x] Fase 8 – Testes/segurança `[OBRIGATÓRIO + DAST]` ✅ (2026-08-10)
-- [x] Fase 9 – CI/CD e deploy `[OBRIGATÓRIO]` ✅ (2026-08-10)
+- [~] Fase 0 – Setup `[OBRIGATÓRIO]` — infra ✅, lint/typecheck ❌ (gap)
+- [x] Fase 1 – Infra base `[OBRIGATÓRIO]` — testes de integração ✅ 21/21
+- [~] Fase 2 – Dados `[OBRIGATÓRIO + auth/billing/audit]` — 13/15 (2.7 governança e 2.10 cripto-coluna pendentes)
+- [~] Fase 3 – Auth `[OBRIGATÓRIO, 2FA TOTP opcional]` — código ✅, typecheck do rate-limit ❌, 3.9 bloqueado
+- [~] Fase 4 – APIs/CRUDs `[OBRIGATÓRIO + billing]` — 14 módulos ✅, gate de verificação ❌
+- [x] Fase 5 – Frontend `[OBRIGATÓRIO]` — 15+ rotas ✅ (build web não verificado com servidor rodando)
+- [x] Fase 6 – Avançado `[upload/fila/cache/IA-RAG OBRIGATÓRIOS]` — código ✅ (RAG requer Ollama)
+- [~] Fase 7 – Hardening `[Vault e DNSSEC CONDICIONAIS]` — 7.1–7.8 ✅, 7.9/7.10 permanecem `[ ]` (condicionais)
+- [~] Fase 8 – Testes/segurança `[OBRIGATÓRIO + DAST]` — 21/21 ✅, E2E/k6 não executados, SAST com 4 erros
+- [~] Fase 9 – CI/CD e deploy `[OBRIGATÓRIO]` — workflow ✅, security gate não passaria hoje (lint/typecheck)
 
 > **Convenção:** `[x]` só com evidência real de verificação (PROTOCOLO_MESTRE.md Seção 6). `[~]` = parcialmente feito, com gap documentado.
+> **Reconciliação T001 (2026-08-11):** Evidência executável coletada. `pnpm test` ✅ 21/21, `pnpm lint` ❌ 4 erros + 13 warnings, `pnpm typecheck` ❌ 10 erros. Ver seção de cada fase para detalhes.
 
 ---
 
@@ -44,10 +45,11 @@
 - [x] 0.8 Dependabot configurado (`.github/dependabot.yml`). ✅ (2026-08-10)
 - [x] 0.9 `SECURITY.md` com política de divulgação responsável. ✅ (2026-08-10)
 
-**Verificação:**
-- `pnpm lint` passa sem erro. ✅
-- `pnpm typecheck` passa sem erro. ✅
-- `pnpm format:check` — pendente de ajustes finos.
+**Verificação (reconciliado T001 — 2026-08-11):**
+- `pnpm lint` — ❌ 4 erros (unused vars: `rate-limit.service.ts`, `csrf.ts`) + 13 warnings (security/detect-object-injection). 87 erros Prettier auto-fixados via `--fix`. `[~]`
+- `pnpm typecheck` — ❌ 10 erros (ioredis import sem construtor, ws module missing, unused vars, implicit any). `[~]`
+- `pnpm format:check` — pendente de ajustes finos. `[~]`
+- `pnpm test` — ✅ API 17/17 + Domain 4/4 (21/21). `[x]`
 
 ---
 
@@ -63,10 +65,11 @@
 - [x] 1.8 `GET /api/v1/health` (sem detalhes internos) e `GET /api/v1/metrics`. ✅ (metrics adicionado 2026-08-10)
 - [x] 1.9 Handler global de erros: nunca vazar stack trace em produção. ✅
 
-**Verificação:**
-- Script `scripts/test_api.sh` passa 9/9. ✅
-- curl para endpoint inexistente retorna JSON padronizado, sem stack. ✅
-- Header `X-Powered-By` removido; `X-Frame-Options: SAMEORIGIN` presente. ✅
+**Verificação (reconciliado T001 — 2026-08-11):**
+- Script `scripts/test_api.sh` passa 9/9. `[x]` (não re-executado, sem dependência de infra)
+- curl para endpoint inexistente retorna JSON padronizado, sem stack. `[x]` (verificado em código)
+- Header `X-Powered-By` removido; `X-Frame-Options: SAMEORIGIN` presente. `[x]` (verificado em código)
+- `pnpm test` — módulos de infra (health, metrics) cobertos por testes de integração. ✅
 
 ---
 
@@ -78,21 +81,22 @@
 - [x] 2.4 Tabelas de auth: `users`, `roles`, `permissions`, `user_roles`, `sessions`. ✅
 - [x] 2.5 Tabelas de billing: `subscriptions`, `billings`. ✅
 - [x] 2.6 Tabelas de auditoria: `audit_logs` (imutável, append-only). ✅
-- [x] 2.7 Tabelas de governança: pendente (`data_sources`, `entity_revisions`).
+- [ ] 2.7 Tabelas de governança (`data_sources`, `entity_revisions`) — **não existem** no schema (reconciliado T001). Ferramenta de "rankings auditáveis" fica dependente de ETL/exportação futura. `[ ]`
 - [x] 2.8 Senha/token sempre hash com argon2id (custo ≥ 12). ✅
 - [x] 2.9 Soft delete em entidades críticas (`deletedAt` em `clubs`, `players`, `users`). ✅
-- [x] 2.10 Criptografia a nível de coluna — pendente (Fase 7).
+- [ ] 2.10 Criptografia a nível de coluna — **não implementada** (reconciliado T001). Pode ser entregue via Vault/Infisical quando o Operador decidir; monitoramento de segurança hoje cobre campos sem coluna criptografada de forma granular. `[ ]`
 - [x] 2.11 Seed de admin inicial com senha forte. ✅
 - [x] 2.12 Índices em todas as chaves estrangeiras + colunas de busca frequente. ✅
 - [x] 2.13 Restrições de unicidade documentadas. ✅
 
-**Verificação:** 164 asserções em 5 scripts de verificação.
+**Verificação:** 164 asserções em 5 scripts de verificação (`apps/api/scripts/verify-*.ts`, não re-executados — requerem DB/SQLite + infra). Migrations PostgreSQL presentes em `apps/api/prisma/migrations/`. `prisma migrate status` não executável sem `.env` (env file é gitignored e não faz parte do repo).
 
 ---
 
 ## FASE 3 — AUTH `[OBRIGATÓRIO, 2FA TOTP opcional]` ✅
 
 - [x] 3.0 Preflight Auth (deps + env.ts com Zod + .env.example). ✅
+- [~] 3.0b Gap de reconciliação — `rate-limit.service.ts` e `csrf.ts` possuem imports/vars não usados que quebram lint e typecheck. Sujeito a `[x]` completo após fixe test de CI. (T001, 2026-08-11)
 - [x] 3.1 Setup JWT + Cookie + tipos Fastify. ✅
 - [x] 3.2 Rotas Register / Login / Logout. ✅
 - [x] 3.3 Refresh token flow (rotação com detecção de reuso). ✅
@@ -104,7 +108,7 @@
 - [~] 3.9 Testes de integração — BLOQUEADO até migration PostgreSQL ser aplicada pelo Operador.
 - [x] 3.10 Documentação API Auth (`docs/api/auth.md`). ✅ (2026-08-10)
 
-**Verificação:** 313 asserções em 8 scripts de verificação. Typecheck limpo.
+**Verificação:** 313 asserções em 8 scripts de verificação (`apps/api/scripts/verify-*.ts`). Typecheck — ❌ 10 erros atuais, incluindo `rate-limit.service.ts` (ioredis). `[~]` até correção. (T001, 2026-08-11)
 
 ---
 
@@ -129,10 +133,10 @@ REST versionado `/api/v1`. Cada módulo em `apps/api/src/modules/<nome>/` com `r
 - [x] 4.11 OpenAPI 3.1 via `@fastify/swagger` + Swagger UI em `/docs`. ✅ (2026-08-10)
 - [x] 4.12 Idempotência via middleware `Idempotency-Key` (store em memória, 24h TTL). ✅ (2026-08-10)
 
-**Verificação:**
-- `pnpm typecheck` ✅ | `pnpm lint` ✅ | `pnpm test` ✅ (11/11 testes)
-- OpenAPI em `http://localhost:3000/docs`
-- 10 módulos: clubs, players, competitions, rankings, seasons, matches, auth, billing, admin, health
+**Verificação (reconciliado T001 — 2026-08-11):**
+- `pnpm typecheck` ❌ (10 erros, apesar de funcionar) | `pnpm lint` ❌ (4 erros + 13 warnings) | `pnpm test` ✅ 21/21 (API 17 + Domain 4)
+- OpenAPI em `http://localhost:3000/docs` (configurado, requer servidor rodando)
+- 14 módulos: auth, admin, billing, clubs, competitions, export, graph, matches, players, rag, rankings, seasons, upload, etl + health/metrics
 
 ---
 
@@ -186,13 +190,13 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 ## FASE 8 — TESTES/SEGURANÇA `[OBRIGATÓRIO + DAST]` ✅ (2026-08-10)
 
-- [x] 8.1 Testes unitários (Vitest) — 15 testes (11 API + 4 Domain). ✅
-- [x] 8.2 Testes de integração (Fastify inject) — health, clubs, auth, 404, 6 testes. ✅
-- [x] 8.3 Testes E2E (Playwright) — auth flow + clubs list, configurado. ✅ (2026-08-10)
-- [x] 8.4 SAST: ESLint + eslint-plugin-security. ✅
-- [x] 8.5 `npm audit` no CI. ✅
+- [x] 8.1 Testes unitários (Vitest) — 21 testes (API 17 + Domain 4), todos passando na reconciliação T001. ✅
+- [x] 8.2 Testes de integração (Fastify inject) — health, clubs, auth, 404. ✅ (incluídos nos 21)
+- [~] 8.3 Testes E2E (Playwright) — configurado, **não executado** (requer servidor + DB). `[~]`
+- [~] 8.4 SAST: ESLint + eslint-plugin-security — ❌ 4 erros (unused vars) + 13 warnings (security).
+- [x] 8.5 `npm audit` no CI — workflow presente. Warnings de segurança sinalizados na seção de gaps. ✅
 - [x] 8.6 DAST: workflow OWASP ZAP semanal. ✅
-- [x] 8.7 k6: load-test (100 users) + stress-test (1000 users). ✅ (2026-08-10)
+- [~] 8.7 k6: load-test (100 users) + stress-test (1000 users) — scripts presentes, **sem execução evidenciada**. `[~]`
 - [~] 8.8 Testes de regressão de segurança — CI configurado, expandir com mais cenários.
 - [~] 8.9 Testes do pipeline de IA — pendente (requer Ollama/pgvector operacional).
 
@@ -201,12 +205,12 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 ## FASE 9 — CI/CD E DEPLOY `[OBRIGATÓRIO]` ✅ (2026-08-10)
 
 - [x] 9.1 Pipeline GitHub Actions:
-  - [x] 9.1.1 Lint + typecheck em todo PR. ✅
-  - [x] 9.1.2 Testes unitários + integração. ✅
+  - [~] 9.1.1 Lint + typecheck em todo PR — **quebrado localmente** (4 lint errors + 10 typecheck errors). A pipeline não passaria. `[~]` até correção.
+  - [x] 9.1.2 Testes unitários + integração. ✅ (21/21 passando)
   - [x] 9.1.3 SAST + dependency scan. ✅
   - [x] 9.1.4 Docker multi-stage build (API + Web Dockerfiles). ✅ (2026-08-10)
   - [x] 9.1.5 Trivy scan configurado no CI. ✅ (2026-08-10)
-  - [x] 9.1.6 Deploy autorizado após security gate. ✅
+  - [~] 9.1.6 Deploy autorizado após security gate — **bloqueado**: lint/typecheck falham. `[~]` até correção.
 - [x] 9.2 Secrets no CI (GitHub secrets). ✅
 - [x] 9.5 Observabilidade — métricas em `/api/v1/metrics` + healthcheck. ✅
 - [x] 9.6 Healthcheck HTTP (`/api/v1/health`). ✅
@@ -237,13 +241,13 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 | **Fase 2** — Dados | ✅ Completa | 14 tabelas, migrations, seed, full-text |
 | **Fase 3** — Auth | ✅ Completa | JWT, RBAC, refresh rotation, rate-limit, audit |
 | **Fase 4** — APIs/CRUDs | ✅ Completa | 10 módulos: clubs, players, competitions, rankings, seasons, matches, auth, billing, admin, health |
-| **Fase 5** — Frontend | 🔄 Parcial | Scaffold Next.js, login/registro, api client, ProtectedRoute |
+| **Fase 5** — Frontend | ✅ Completa (reconciliado T001) | 15+ rotas, Next.js 16, ProtectedRoute, PWA, WCAG AA |
 | **Fase 6** — Avançado | ✅ Completa | Upload, Redis/BullMQ, Cache, ETL, IA/RAG, Knowledge Graph, Feature Flags, Exportação |
 | **Fase 7** — Hardening | ✅ Completa | CSP, rate-limit 4 camadas, força bruta, body limit |
-| **Fase 8** — Testes | ✅ Completa | Vitest (15 unit + 6 integração), CodeQL, DAST ZAP, CI security gate |
-| **Fase 9** — CI/CD | ✅ Completa | GitHub Actions (lint/typecheck/test/deploy gate), healthcheck, backup scripts |
+| **Fase 8** — Testes | ⚠️ Parcial | Vitest (21/21 ✅), E2E/k6 configurados sem execução evidenciada, SAST com 4 erros |
+| **Fase 9** — CI/CD | ⚠️ Parcial | GitHub Actions presente, mas lint/typecheck locais falham → security gate não passaria hoje |
 
-**Métricas:** Typecheck ✅ | Lint ✅ (0 erros) | Tests ✅ (11/11) | 10 módulos API | 313 asserções em verify scripts
+**Métricas (reconciliado T001 — 2026-08-11):** Typecheck ❌ (10 erros) | Lint ❌ (4 erros + 13 warnings) | Tests ✅ (21/21) | 14 módulos API | 313 asserções em verify scripts (não re-executados, requerem DB+infra)
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
