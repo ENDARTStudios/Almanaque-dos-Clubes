@@ -9,6 +9,14 @@ import {
   type CreateClubInput,
 } from '@almanaque/domain';
 import { clubsRepository, type ListClubsParams } from './repository.js';
+import { cache } from '../../services/cache.js';
+
+const CLUBS_LIST_TTL_SECONDS = 60;
+const CLUBS_BY_ID_TTL_SECONDS = 300;
+
+function listCacheKey(params: ListClubsParams): string {
+  return `clubs:list:${JSON.stringify(params)}`;
+}
 
 export const clubsService = {
   async create(input: unknown): Promise<Club> {
@@ -23,7 +31,7 @@ export const clubsService = {
     }
 
     // 3. Persistência
-    return clubsRepository.create({
+    const club = await clubsRepository.create({
       name: parsed.name,
       fullName: parsed.fullName ?? null,
       shortName: parsed.shortName ?? null,
@@ -35,25 +43,33 @@ export const clubsService = {
       primaryColor: parsed.primaryColor ?? null,
       website: parsed.website ?? null,
     });
+
+    // 4. Invalida cache de listagens (escrita invalida — item 6.3)
+    await cache.invalidate('clubs:list:*');
+    return club;
   },
 
   async list(
     params: ListClubsParams,
   ): Promise<{ data: Club[]; total: number; limit: number; offset: number }> {
-    const [data, total] = await Promise.all([
-      clubsRepository.findMany(params),
-      clubsRepository.count(params),
-    ]);
-    return {
-      data,
-      total,
-      limit: params.limit ?? 50,
-      offset: params.offset ?? 0,
-    };
+    return cache.remember(listCacheKey(params), CLUBS_LIST_TTL_SECONDS, async () => {
+      const [data, total] = await Promise.all([
+        clubsRepository.findMany(params),
+        clubsRepository.count(params),
+      ]);
+      return {
+        data,
+        total,
+        limit: params.limit ?? 50,
+        offset: params.offset ?? 0,
+      };
+    });
   },
 
   async getById(id: string): Promise<Club | null> {
-    return clubsRepository.findById(id);
+    return cache.remember(`clubs:byId:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
+      clubsRepository.findById(id),
+    );
   },
 };
 

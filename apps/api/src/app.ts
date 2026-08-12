@@ -25,6 +25,7 @@ import { graphRoutes } from './modules/graph/routes.js';
 import { ragRoutes } from './modules/rag/routes.js';
 import { exportRoutes } from './modules/export/routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -92,6 +93,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.addHook('onRequest', idempotencyMiddleware);
+  await app.addHook('onRequest', csrfMiddleware);
 
   await app.register(
     async (api) => {

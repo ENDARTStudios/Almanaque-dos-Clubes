@@ -11,7 +11,10 @@ export interface FbrefMatchData {
   season: string;
 }
 
-export async function fetchFbrefMatches(competition: string, season: string): Promise<FbrefMatchData[]> {
+export async function fetchFbrefMatches(
+  competition: string,
+  season: string,
+): Promise<FbrefMatchData[]> {
   // TODO: Implement FBref scraper/parser
   // FBref organiza partidas em tabelas HTML por competição/temporada
   console.log(`[FBref] Fetching matches for ${competition} ${season}...`);

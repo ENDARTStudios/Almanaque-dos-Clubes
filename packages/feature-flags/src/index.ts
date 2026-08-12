@@ -38,5 +38,7 @@ const FEATURE_PLAN_MAP: Partial<Record<FeatureFlagName, 'FREE' | 'PRO' | 'ELITE'
 };
 
 export function getMinimumPlanForFeature(name: FeatureFlagName): string {
+  // `name` é restrito a FeatureFlagName (união de literais) — acesso a Record tipado é seguro.
+  // eslint-disable-next-line security/detect-object-injection
   return FEATURE_PLAN_MAP[name] ?? 'FREE';
 }

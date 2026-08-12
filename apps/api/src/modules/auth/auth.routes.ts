@@ -24,6 +24,12 @@ import {
 } from './auth.service.js';
 import { RegisterSchema, LoginSchema, RefreshSchema } from './auth.schemas.js';
 import {
+  checkLoginAttempt,
+  registerLoginFailure,
+  registerLoginSuccess,
+  loginRateLimitKey,
+} from './rate-limit.service.js';
+import {
   createJwtService,
   getAccessCookieName,
   getRefreshCookieName,
@@ -32,9 +38,20 @@ import {
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
+import { generateCsrfToken } from '../../middleware/csrf.js';
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const jwt = createJwtService(app);
+
+  /**
+   * GET /auth/csrf-token — emite token CSRF de uso único (24h).
+   * Cliente deve enviá-lo no header `x-csrf-token` em rotas de escrita.
+   */
+  app.get('/auth/csrf-token', async (request, reply) => {
+    const userId = (request.user as { sub?: string } | undefined)?.sub ?? 'anonymous';
+    const token = generateCsrfToken(userId);
+    return reply.status(200).send({ data: { csrfToken: token } });
+  });
 
   /**
    * Helper: setar cookies httpOnly com access e refresh tokens.
@@ -160,20 +177,42 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       const input = LoginSchema.parse(request.body);
       const metadata = extractMetadata(request);
 
-      const result = await login(input, metadata);
-
-      const { accessToken } = jwt.signTokens(result.user, result.sessionId);
-      setAuthCookies(reply, accessToken, result.refreshToken);
-
-      return reply.status(200).send({
-        data: {
-          user: {
-            id: result.user.id,
-            email: result.user.email,
-            roles: result.user.roles,
+      // Proteção contra força bruta (item 3.8): 5 tentativas/15min, lockout 1h
+      const rlKey = loginRateLimitKey(metadata.ipAddress ?? request.ip, input.email);
+      const check = await checkLoginAttempt(rlKey);
+      if (!check.allowed) {
+        return reply.status(429).send({
+          error: {
+            code: 'RATE_LIMIT_LOCKOUT',
+            message: 'Muitas tentativas de login. Conta temporariamente bloqueada.',
+            lockedUntil: check.lockedUntil?.toISOString(),
           },
-        },
-      });
+        });
+      }
+
+      try {
+        const result = await login(input, metadata);
+        await registerLoginSuccess(rlKey);
+
+        const { accessToken } = jwt.signTokens(result.user, result.sessionId);
+        setAuthCookies(reply, accessToken, result.refreshToken);
+
+        return reply.status(200).send({
+          data: {
+            user: {
+              id: result.user.id,
+              email: result.user.email,
+              roles: result.user.roles,
+            },
+          },
+        });
+      } catch (loginErr) {
+        // Só conta falha de credencial (AuthError 401); erros de validação não contam
+        if (loginErr instanceof AuthError && loginErr.statusCode === 401) {
+          await registerLoginFailure(rlKey);
+        }
+        throw loginErr;
+      }
     } catch (err) {
       handleAuthError(err, reply);
     }

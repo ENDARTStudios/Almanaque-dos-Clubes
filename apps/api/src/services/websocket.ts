@@ -1,14 +1,16 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, type WebSocket } from 'ws';
+import type { IncomingMessage } from 'node:http';
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
-const connections = new Map<string, Set<import('ws').WebSocket>>();
+const connections = new Map<string, Set<WebSocket>>();
 
 export function setupWebSocket(app: FastifyInstance): void {
   const wss = new WebSocketServer({ server: app.server, path: '/ws' });
 
-  wss.on('connection', (ws, req) => {
-    const userId = new URL(req.url || '/', 'http://localhost').searchParams.get('userId') || randomUUID();
+  wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    const userId =
+      new URL(req.url || '/', 'http://localhost').searchParams.get('userId') || randomUUID();
     if (!connections.has(userId)) connections.set(userId, new Set());
     connections.get(userId)!.add(ws);
 

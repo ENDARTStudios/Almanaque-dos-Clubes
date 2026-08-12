@@ -18,6 +18,20 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-11] Decisão: T002 — Correção de gaps de qualidade (lint + typecheck + testes)
+Motivo: A reconciliação T001 identificou que lint (4 erros), typecheck (10 erros) e `pnpm test` recursivo (exit 1 em feature-flags) falhavam, bloqueando o security gate do CI/CD.
+Alternativas consideradas: (a) deletar código morto — descartada por perder trabalho já feito e contrariar o plano; (b) corrigir e registrar os serviços (CSRF, WebSocket, cache, rate-limit) — escolhida, transforma código morto em funcionalidade real.
+Mudanças realizadas:
+1. **Deps:** ioredis 6.0.0 → 5.11.1 (v6 incompatível com `moduleResolution: NodeNext` — barrels sem extensão `.js`; alinha com BullMQ que usa 5.x transitivo). Adicionados `ws` + `@types/ws` (websocket.ts importava pacote inexistente).
+2. **ioredis import:** `import Redis from` → `import { Redis } from` (named import contorna o barrel quebrado).
+3. **rate-limit.service.ts:** stub órfão → serviço real de brute-force (5 tentativas/15min, lockout 1h, Redis com fallback memória), integrado em `POST /auth/login` — implementa item 3.8/7.5.
+4. **csrf.ts:** registrado como hook global `onRequest` em app.ts, com exceções para `/auth/login|register|refresh|logout` e health/metrics. Novo endpoint `GET /api/v1/auth/csrf-token`.
+5. **websocket.ts:** tipos explícitos (`WebSocket`, `IncomingMessage`), `setupWebSocket(app)` registrado em server.ts após `listen`.
+6. **cache.ts:** integrado em clubs.service — `remember()` em list (TTL 60s) e getById (TTL 300s), invalidação `clubs:list:*` no create — implementa item 6.3 conforme declarado.
+7. **feature-flags:** 6 testes Vitest criados; eslint-disable justificado no FP de `security/detect-object-injection` (Record com chaves de união de literais).
+Evidência pós-correção: `pnpm lint` → 0 erros (12 warnings FP documentados) | `pnpm typecheck` → 0 erros | `pnpm test` → 27/27 (API 17 + Domain 4 + FeatureFlags 6).
+Observação: 87 erros Prettier auto-fixados via `lint:fix` — mudança puramente cosmética (formatação), zero alteração de lógica.
+
 ### [2026-08-11] Decisão: Reconciliar PLANO_MESTRE.md com evidência executável (T001)
 Motivo: PLANO_MESTRE.md afirmava `[x]` e verificações "passando" sem que comandos reais tivessem sido executados nesta sessão. A Seção 6 do Protocolo exige evidência executável antes de `[x]`.
 Alternativas consideradas: (a) aceitar o documento como estava — descartada por violar o protocolo; (b) rodar todos os comandos de verificação e corrigir o documento com base no resultado — escolhida.

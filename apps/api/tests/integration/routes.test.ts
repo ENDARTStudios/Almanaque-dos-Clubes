@@ -4,8 +4,13 @@ import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
 
-beforeAll(async () => { app = await buildApp(); await app.ready(); });
-afterAll(async () => { await app.close(); });
+beforeAll(async () => {
+  app = await buildApp();
+  await app.ready();
+});
+afterAll(async () => {
+  await app.close();
+});
 
 describe('GET /api/v1/health', () => {
   it('retorna 200 com status ok', async () => {
@@ -41,7 +46,8 @@ describe('Auth endpoints', () => {
 
   it('POST /api/v1/auth/login retorna 401 para credenciais inválidas', async () => {
     const res = await app.inject({
-      method: 'POST', url: '/api/v1/auth/login',
+      method: 'POST',
+      url: '/api/v1/auth/login',
       payload: { email: 'nonexistent@test.com', password: 'wrongpass' },
     });
     expect(res.statusCode).toBe(401);

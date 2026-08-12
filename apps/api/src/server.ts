@@ -5,6 +5,7 @@ import { buildApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { prisma } from './config/prisma.js';
+import { setupWebSocket } from './services/websocket.js';
 
 async function main() {
   const app = await buildApp();
@@ -15,7 +16,9 @@ async function main() {
     logger.info('✅ Conectado ao banco de dados');
 
     await app.listen({ port: env.port, host: env.host });
+    setupWebSocket(app);
     logger.info(`🚀 Servidor ouvindo em http://${env.host}:${env.port}/api/v1`);
+    logger.info(`   WebSocket disponível em ws://${env.host}:${env.port}/ws`);
     logger.info(`   Ambiente: ${env.nodeEnv}`);
   } catch (err) {
     logger.fatal({ err }, 'Falha ao iniciar servidor');
