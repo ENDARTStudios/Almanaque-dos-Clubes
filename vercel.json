@@ -1,6 +1,6 @@
 {
-  "rootDirectory": "apps/web",
   "framework": "nextjs",
   "installCommand": "corepack enable && corepack prepare pnpm@11 --activate && pnpm install --frozen-lockfile",
-  "outputDirectory": ".next"
+  "buildCommand": "cd apps/web && next build",
+  "outputDirectory": "apps/web/.next"
 }
