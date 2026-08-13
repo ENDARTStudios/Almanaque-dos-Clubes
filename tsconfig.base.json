@@ -17,10 +17,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "paths": {
-      "@almanaque/domain": ["./packages/domain/src/index.ts"],
-      "@almanaque/domain/*": ["./packages/domain/src/*"]
-    }
+    "paths": {}
   },
   "exclude": ["node_modules", "dist"]
 }
