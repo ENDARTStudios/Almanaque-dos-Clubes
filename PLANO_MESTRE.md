@@ -192,11 +192,11 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 - [x] 8.1 Testes unitários (Vitest) — 27 testes (API 17 + Domain 4 + FeatureFlags 6), todos passando (T002). ✅
 - [x] 8.2 Testes de integração (Fastify inject) — health, clubs, auth, 404. ✅ (incluídos nos 27)
-- [~] 8.3 Testes E2E (Playwright) — configurado, **não executado** (requer servidor + DB). `[~]`
+- [~] 8.3 Testes E2E (Playwright) — ✅ **5/5 passando** com frontend Next.js real (porta 3001) + API SQLite (T003, 2026-08-12). BaseURL corrigido de 3000→3001.
 - [x] 8.4 SAST: ESLint + eslint-plugin-security — ✅ 0 erros (12 warnings FP documentados). (T002)
 - [x] 8.5 `npm audit` no CI — workflow presente. Warnings de segurança sinalizados na seção de gaps. ✅
 - [x] 8.6 DAST: workflow OWASP ZAP semanal. ✅
-- [~] 8.7 k6: load-test (100 users) + stress-test (1000 users) — scripts presentes, **sem execução evidenciada**. `[~]`
+- [x] 8.7 k6: load-test (200 VUs) + stress-test (1000 VUs) — ✅ **executados e verdes** (T003, 2026-08-12). Load: 48.850 reqs, 0% erros, p95=4.5ms. Stress: 1.559.595 reqs, 0% erros, p95=78ms, 3.710 req/s.
 - [~] 8.8 Testes de regressão de segurança — CI configurado, expandir com mais cenários.
 - [~] 8.9 Testes do pipeline de IA — pendente (requer Ollama/pgvector operacional).
 

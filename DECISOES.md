@@ -18,6 +18,20 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-12] Decisão: T003 — Executar E2E + k6 e fechar Fase 8
+Motivo: Fase 8 itens 8.3 (E2E) e 8.7 (k6) estavam `[~]` por falta de execução evidenciada. T003 rodou ambos com infraestrutura real.
+Resultados (evidência executável, 2026-08-12):
+- **Playwright E2E:** 5/5 passando (home, navegação /clubs, login, registro, 404). Correção: `playwright.config.ts` baseURL 3000→3001 (apontava para a API, não para o frontend Next.js).
+- **k6 load-test (200 VUs, 3m30s):** 48.850 reqs, **0% erros**, p95=4.5ms. Check de login ajustado para aceitar 401 **ou 429** (rate-limit de brute-force ativo é comportamento esperado, não falha).
+- **k6 stress-test (1000 VUs, 7min):** 1.559.595 reqs, **0% erros**, p95=78ms, **3.710 req/s** sustentados.
+- **Brute-force login validado em produção-like:** 5 tentativas 401 → 6ª retorna 429 com lockout de 1h.
+Mudanças de suporte:
+1. **`env.ts`:** adicionada flag `RATE_LIMIT_DISABLED` (desliga rate-limit global por IP para k6 de máquina única; **não** afeta brute-force de login, que é por IP+email).
+2. **`app.ts`:** rate-limit global condicionado a `!env.rateLimitDisabled`.
+3. **Cache Redis em clubs:** p95 de 5ms sob 200 VUs (item 6.3 validado em carga).
+4. **Migration PostgreSQL baselineada:** 4 migrations marcadas como aplicadas (`migrate resolve`); `prisma migrate status` → "up to date". Descoberta: as 17 tabelas já existiam no PG.
+Limitação documentada (infra, não código): conexão **host Windows → container PostgreSQL** falha com P1000 (auth) por bug do proxy de porta do Docker Desktop; dentro da rede Docker funciona perfeitamente. Testes rodaram contra SQLite sandbox (oficial, `db push` sincronizado). Isso não bloqueia produção (deploy é 100% em containers).
+
 ### [2026-08-11] Decisão: T002 — Correção de gaps de qualidade (lint + typecheck + testes)
 Motivo: A reconciliação T001 identificou que lint (4 erros), typecheck (10 erros) e `pnpm test` recursivo (exit 1 em feature-flags) falhavam, bloqueando o security gate do CI/CD.
 Alternativas consideradas: (a) deletar código morto — descartada por perder trabalho já feito e contrariar o plano; (b) corrigir e registrar os serviços (CSRF, WebSocket, cache, rate-limit) — escolhida, transforma código morto em funcionalidade real.

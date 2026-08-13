@@ -34,18 +34,22 @@ export async function buildApp(): Promise<FastifyInstance> {
     bodyLimit: 1024 * 1024,
   });
 
-  await app.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-    keyGenerator: (request: { ip: string }) => request.ip,
-    errorResponseBuilder: (_request: unknown, context: { max: number; after: string }) => ({
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Muitas requisições. Limite de ${context.max} a cada ${context.after}`,
-        retryAfter: context.after,
-      },
-    }),
-  });
+  // Rate-limit global por IP (item 1.3/7.3). Desabilitável via RATE_LIMIT_DISABLED
+  // para testes de carga k6 de máquina única. NÃO afeta o brute-force de /auth/login.
+  if (!env.rateLimitDisabled) {
+    await app.register(rateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+      keyGenerator: (request: { ip: string }) => request.ip,
+      errorResponseBuilder: (_request: unknown, context: { max: number; after: string }) => ({
+        error: {
+          code: 'RATE_LIMIT_EXCEEDED',
+          message: `Muitas requisições. Limite de ${context.max} a cada ${context.after}`,
+          retryAfter: context.after,
+        },
+      }),
+    });
+  }
 
   await app.register(swagger, {
     openapi: {

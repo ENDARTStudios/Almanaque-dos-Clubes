@@ -144,6 +144,12 @@ const envSchema = z.object({
   logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   databaseUrl: z.string().min(1, 'DATABASE_URL não definida'),
   prismaSchemaProvider: z.enum(['sqlite', 'postgres']).default('sqlite'),
+  // Desabilita o rate-limit GLOBAL por IP (testes de carga k6 de máquina única).
+  // NÃO afeta o brute-force de /auth/login (rate-limit.service.ts), que é por IP+email.
+  rateLimitDisabled: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
 });
 
 const parsed = envSchema.parse({
@@ -153,6 +159,7 @@ const parsed = envSchema.parse({
   logLevel: process.env.LOG_LEVEL,
   databaseUrl: process.env.DATABASE_URL,
   prismaSchemaProvider: process.env.PRISMA_SCHEMA_PROVIDER,
+  rateLimitDisabled: process.env.RATE_LIMIT_DISABLED,
 });
 
 // =============================================================================
@@ -172,6 +179,7 @@ export const env = {
   // Banco
   databaseUrl: parsed.databaseUrl,
   prismaSchemaProvider: parsed.prismaSchemaProvider,
+  rateLimitDisabled: parsed.rateLimitDisabled,
 
   // JWT
   jwtSecret,
