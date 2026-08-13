@@ -6,7 +6,7 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/tsconfig.json ./apps/api/
 COPY packages/domain/package.json packages/domain/tsconfig.json ./packages/domain/
 
@@ -30,7 +30,7 @@ RUN corepack enable && corepack prepare pnpm@11 --activate
 
 ENV NODE_ENV=production
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/tsconfig.json ./apps/api/
 COPY packages/domain/package.json packages/domain/tsconfig.json ./packages/domain/
 
