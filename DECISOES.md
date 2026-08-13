@@ -18,6 +18,15 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-12] Decisão: Instalar @fastify/compress (gzip + brotli) — Fase 13.1
+Motivo: Redução de ~70% no payload de respostas JSON, melhora LCP e tempo de carregamento. Marcado como 🔴 no ROADMAP.md, esforço 1h.
+Alternativas consideradas: (a) proxy reverso (Cloudflare) — descartada por só funcionar em produção e pós-domínio; (b) compressão nativa do Node — descartada por não ter negociação de encoding automática.
+Evidência:
+- `@fastify/compress@9.2.0` instalado, registrado `{ global: true, threshold: 1024, encodings: ['gzip', 'deflate', 'br'] }`
+- Teste real: resposta /clubs?limit=20 de **3.542 bytes → 996 bytes** (-72%)
+- Typecheck ✅ | Sem alteração de lógica de negócio
+Observação: `threshold: 1024` evita comprimir respostas muito pequenas (health, errors), onde o overhead de compressão não compensa.
+
 ### [2026-08-12] Decisão: T003 — Executar E2E + k6 e fechar Fase 8
 Motivo: Fase 8 itens 8.3 (E2E) e 8.7 (k6) estavam `[~]` por falta de execução evidenciada. T003 rodou ambos com infraestrutura real.
 Resultados (evidência executável, 2026-08-12):

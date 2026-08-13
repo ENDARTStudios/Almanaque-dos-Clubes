@@ -246,8 +246,9 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 | **Fase 7** — Hardening | ✅ Completa | CSP, rate-limit 4 camadas, brute-force lockout ativo (T002), body limit; 7.9/7.10 condicionais |
 | **Fase 8** — Testes | ✅ Completa | Vitest 27/27, SAST 0 erros, DAST ZAP, CI security gate; E2E/k6 configurados (execução manual) |
 | **Fase 9** — CI/CD | ⚠️ Parcial | GitHub Actions ✅, gates locais passando; deploy (9.3/9.4) pendente Operador |
+| **Fase 13** — Performance | ✅ Parcial | compress (13.1) ✅ 72% redução gzip/brotli; demais itens 13.2-13.3 pendentes |
 
-**Métricas (T002 — 2026-08-11):** Typecheck ✅ 0 erros | Lint ✅ 0 erros (12 warnings FP) | Tests ✅ 27/27 | 14 módulos API | 313 asserções em verify scripts
+**Métricas (T003 — 2026-08-12):** Typecheck ✅ 0 erros | Lint ✅ 0 erros (12 warnings FP) | Tests ✅ 27/27 | 14 módulos API | compress ✅ -72% payload | E2E ✅ 5/5 | k6 ✅ 1.5M reqs 0% erro
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
