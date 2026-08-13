@@ -1,7 +1,0 @@
-{
-  "framework": "nextjs",
-  "rootDirectory": "apps/web",
-  "installCommand": "cd ../.. && corepack enable && corepack prepare pnpm@11 --activate && pnpm install --frozen-lockfile",
-  "outputDirectory": ".next",
-  "crons": []
-}
