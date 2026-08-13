@@ -16,7 +16,7 @@ export interface ListClubsParams {
 
 export const clubsRepository = {
   async create(data: Omit<Club, 'id' | 'createdAt' | 'updatedAt'>): Promise<Club> {
-    return prisma.club.create({ data }) as Promise<Club>;
+    return prisma.club.create({ data: data as any }) as Promise<Club>;
   },
 
   async findMany(params: ListClubsParams = {}): Promise<Club[]> {
@@ -27,7 +27,7 @@ export const clubsRepository = {
         AND: [
           country ? { country } : {},
           city ? { city } : {},
-          status ? { status } : {},
+          status ? { status: status as never } : {},
           search
             ? {
                 OR: [
@@ -52,7 +52,7 @@ export const clubsRepository = {
         AND: [
           country ? { country } : {},
           city ? { city } : {},
-          status ? { status } : {},
+          status ? { status: status as never } : {},
           search
             ? {
                 OR: [

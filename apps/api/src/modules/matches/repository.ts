@@ -15,7 +15,7 @@ export interface ListMatchesParams {
 
 export const matchesRepository = {
   async create(data: Omit<Match, 'id' | 'createdAt' | 'updatedAt'>): Promise<Match> {
-    return prisma.match.create({ data }) as Promise<Match>;
+    return prisma.match.create({ data: data as any }) as Promise<Match>;
   },
   async findMany(params: ListMatchesParams = {}): Promise<Match[]> {
     const {
@@ -34,7 +34,7 @@ export const matchesRepository = {
           awayClubId ? { awayClubId } : {},
           competitionId ? { competitionId } : {},
           seasonId ? { seasonId } : {},
-          status ? { status } : {},
+          status ? { status: status as any } : {},
         ].filter(Boolean),
       },
       orderBy: { date: 'desc' },
@@ -51,7 +51,7 @@ export const matchesRepository = {
           awayClubId ? { awayClubId } : {},
           competitionId ? { competitionId } : {},
           seasonId ? { seasonId } : {},
-          status ? { status } : {},
+          status ? { status: status as any } : {},
         ].filter(Boolean),
       },
     });
@@ -63,7 +63,7 @@ export const matchesRepository = {
     id: string,
     data: Partial<Omit<Match, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Match> {
-    return prisma.match.update({ where: { id }, data }) as Promise<Match>;
+    return prisma.match.update({ where: { id }, data: data as any }) as Promise<Match>;
   },
   async remove(id: string): Promise<void> {
     await prisma.match.delete({ where: { id } });

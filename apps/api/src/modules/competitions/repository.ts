@@ -11,7 +11,7 @@ export interface ListCompetitionsParams {
 
 export const competitionsRepository = {
   async create(data: Omit<Competition, 'id' | 'createdAt' | 'updatedAt'>): Promise<Competition> {
-    return prisma.competition.create({ data }) as Promise<Competition>;
+    return prisma.competition.create({ data: data as any }) as Promise<Competition>;
   },
 
   async findMany(params: ListCompetitionsParams = {}): Promise<Competition[]> {
@@ -20,7 +20,7 @@ export const competitionsRepository = {
       where: {
         AND: [
           country ? { country } : {},
-          type ? { type } : {},
+          type ? { type: type as any } : {},
           search ? { name: { contains: search } } : {},
         ],
       },
@@ -36,7 +36,7 @@ export const competitionsRepository = {
       where: {
         AND: [
           country ? { country } : {},
-          type ? { type } : {},
+          type ? { type: type as any } : {},
           search ? { name: { contains: search } } : {},
         ],
       },
@@ -51,7 +51,7 @@ export const competitionsRepository = {
     id: string,
     data: Partial<Omit<Competition, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Competition> {
-    return prisma.competition.update({ where: { id }, data }) as Promise<Competition>;
+    return prisma.competition.update({ where: { id }, data: data as any }) as Promise<Competition>;
   },
 
   async remove(id: string): Promise<void> {
