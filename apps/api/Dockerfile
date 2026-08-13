@@ -12,8 +12,8 @@ COPY packages/domain/package.json packages/domain/tsconfig.json ./packages/domai
 
 RUN pnpm install --frozen-lockfile --filter @almanaque/api --filter @almanaque/domain 2>&1
 
-COPY apps/api/prisma/schema.prisma ./apps/api/prisma/
-RUN npx prisma generate --schema=apps/api/prisma/schema.prisma 2>&1
+COPY apps/api/prisma/ ./apps/api/prisma/
+RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.prisma 2>&1
 
 COPY apps/api/src ./apps/api/src/
 COPY packages/domain/src ./packages/domain/src/
@@ -36,8 +36,9 @@ COPY packages/domain/package.json packages/domain/tsconfig.json ./packages/domai
 
 RUN pnpm install --frozen-lockfile --filter @almanaque/api --filter @almanaque/domain --prod 2>&1
 
-COPY apps/api/prisma/schema.prisma ./apps/api/prisma/
-RUN npx prisma generate --schema=apps/api/prisma/schema.prisma 2>&1
+# Copia o Prisma Client gerado no builder (prisma é devDep, não está no --prod)
+COPY --from=builder /app/apps/api/prisma/ ./apps/api/prisma/
+COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist/
 COPY --from=builder /app/packages/domain/dist ./packages/domain/dist/
