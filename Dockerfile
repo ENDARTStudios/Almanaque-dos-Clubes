@@ -1,6 +1,7 @@
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
@@ -17,9 +18,10 @@ COPY packages/domain/src ./packages/domain/src/
 
 RUN pnpm --filter @almanaque/domain build 2>&1 && pnpm --filter @almanaque/api build 2>&1
 
-FROM node:22-alpine
+FROM node:22-slim
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
 ENV NODE_ENV=production
