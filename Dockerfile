@@ -15,7 +15,7 @@ RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.pri
 COPY apps/api/src ./apps/api/src/
 COPY packages/domain/src ./packages/domain/src/
 
-RUN pnpm --filter @almanaque/api build 2>&1
+RUN pnpm --filter @almanaque/domain build 2>&1 && pnpm --filter @almanaque/api build 2>&1
 
 FROM node:22-alpine
 WORKDIR /app
