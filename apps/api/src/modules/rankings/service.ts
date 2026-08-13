@@ -9,31 +9,48 @@ import {
   type RankingEntry,
 } from '@almanaque/domain';
 import { rankingsRepository, type ListRankingsParams } from './repository.js';
+import { cache } from '../../services/cache.js';
+
+const RANKING_TTL_SECONDS = 60 * 60; // 1h (rankings publicados são imutáveis)
+
+function rankCacheKey(id: string): string {
+  return `rankings:id:${id}`;
+}
+
+function listCacheKey(params: ListRankingsParams): string {
+  return `rankings:list:${JSON.stringify(params)}`;
+}
 
 export const rankingsService = {
   async create(input: unknown): Promise<Ranking> {
     const parsed = CreateRankingSchema.parse(input);
-    return rankingsRepository.create({
+    const ranking = await rankingsRepository.create({
       name: parsed.name,
       competitionId: parsed.competitionId ?? null,
       season: parsed.season ?? null,
     });
+    await cache.invalidate('rankings:list:*');
+    return ranking;
   },
 
   async list(
     params: ListRankingsParams,
   ): Promise<{ data: Ranking[]; total: number; limit: number; offset: number }> {
-    const [data, total] = await Promise.all([
-      rankingsRepository.findMany(params),
-      rankingsRepository.count(params),
-    ]);
-    return { data, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
+    return cache.remember(listCacheKey(params), RANKING_TTL_SECONDS, async () => {
+      const [data, total] = await Promise.all([
+        rankingsRepository.findMany(params),
+        rankingsRepository.count(params),
+      ]);
+      return { data, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
+    });
   },
 
   async getById(id: string): Promise<Ranking> {
-    const ranking = await rankingsRepository.findById(id);
-    if (!ranking) throw new NotFoundError('Ranking', id);
-    return ranking;
+    return cache.remember(rankCacheKey(id), RANKING_TTL_SECONDS, async () => {
+      const ranking = await rankingsRepository.findById(id);
+      if (!ranking) throw new NotFoundError('Ranking', id);
+      return ranking;
+    });
   },
 
   async update(id: string, input: unknown): Promise<Ranking> {
@@ -41,11 +58,14 @@ export const rankingsService = {
     if (!ranking) throw new NotFoundError('Ranking', id);
     if (ranking.publishedAt) throw new ConflictError('Ranking já publicado — não pode ser editado');
     const parsed = UpdateRankingSchema.parse(input);
-    return rankingsRepository.update(id, {
+    const updated = await rankingsRepository.update(id, {
       name: parsed.name ?? ranking.name,
       competitionId: parsed.competitionId ?? ranking.competitionId,
       season: parsed.season ?? ranking.season,
     });
+    await cache.invalidate(rankCacheKey(id));
+    await cache.invalidate('rankings:list:*');
+    return updated;
   },
 
   async remove(id: string): Promise<void> {
@@ -54,13 +74,18 @@ export const rankingsService = {
     if (ranking.publishedAt)
       throw new ConflictError('Ranking já publicado — não pode ser removido');
     await rankingsRepository.remove(id);
+    await cache.invalidate(rankCacheKey(id));
+    await cache.invalidate('rankings:list:*');
   },
 
   async publish(id: string): Promise<Ranking> {
     const ranking = await rankingsRepository.findById(id);
     if (!ranking) throw new NotFoundError('Ranking', id);
     if (ranking.publishedAt) throw new ConflictError('Ranking já está publicado');
-    return rankingsRepository.publish(id);
+    const published = await rankingsRepository.publish(id);
+    await cache.invalidate(rankCacheKey(id));
+    await cache.invalidate('rankings:list:*');
+    return published;
   },
 
   async getEntries(rankingId: string): Promise<RankingEntry[]> {

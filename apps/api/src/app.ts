@@ -73,7 +73,11 @@ export async function buildApp(): Promise<FastifyInstance> {
     uiConfig: { docExpansion: 'list', deepLinking: true },
   });
 
-  await app.register(compress, { global: true, threshold: 1024, encodings: ['gzip', 'deflate', 'br'] });
+  await app.register(compress, {
+    global: true,
+    threshold: 1024,
+    encodings: ['gzip', 'deflate', 'br'],
+  });
 
   await app.register(helmet, {
     contentSecurityPolicy: env.isProd

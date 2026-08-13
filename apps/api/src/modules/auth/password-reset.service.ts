@@ -3,64 +3,82 @@
  *
  * Fluxo:
  * 1. POST /auth/forgot-password → gera token único, expira 15min
- * 2. Envia email mock (log) com link contendo token
- * 3. POST /auth/reset-password/:token → valida token, atualiza senha
+ * 2. Envia email com link contendo token (Fase 12.1 — Resend)
+ * 3. POST /auth/reset-password → valida token, atualiza senha
  *
  * Segurança:
  * - Token de 32 bytes aleatórios (SHA-256 hash para armazenamento)
  * - Expira em 15 minutos
  * - Uso único: revogado após reset bem-sucedido
- * - Rate limiting no endpoint (Tarefa 3.8)
+ * - Tokens armazenados em Map em memória (singleton-instance dev/prod).
+ *   Para multi-instance, migrar para tabela password_reset_tokens no schema.
  */
 import { prisma } from '../../config/prisma.js';
 import { generateToken, hashToken, hashPassword } from '../../config/crypto.js';
 
-// Duração do token de reset: 15 minutos
 const RESET_TOKEN_EXPIRES_MS = 15 * 60 * 1000;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
-interface ResetToken {
-  token: string; // texto plano (enviado ao cliente)
-  tokenHash: string; // hash (armazenado)
+interface StoredToken {
+  tokenHash: string;
   userId: string;
   expiresAt: Date;
+  used: boolean;
 }
 
 /**
- * Gera um token de reset de senha para um usuário.
- * Idempotente: se já existe token válido, reusa.
+ * Store em memória para tokens de reset.
+ * Limpa tokens expirados a cada 5 minutos.
  */
-export async function createPasswordResetToken(email: string): Promise<ResetToken | null> {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return null; // Não revela se email existe
+const resetTokenStore = new Map<string, StoredToken>();
 
-  // Revoga tokens anteriores (quando tabela password_reset_tokens existir no schema)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pwdReset = (prisma as any).passwordResetToken;
-  if (pwdReset?.updateMany) {
-    await pwdReset.updateMany({
-      where: { userId: user.id },
-      data: { usedAt: new Date() },
-    });
+const cleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [key, stored] of resetTokenStore) {
+    if (stored.expiresAt.getTime() < now) resetTokenStore.delete(key);
+  }
+}, CLEANUP_INTERVAL_MS);
+cleanupTimer.unref?.();
+
+/**
+ * Gera um token de reset de senha para um usuário.
+ * Retorna o token em texto plano + dados do usuário para envio de email.
+ * Retorna null se o email não existir (não revela existência).
+ */
+export async function createPasswordResetToken(
+  email: string,
+): Promise<{ token: string; name: string; email: string } | null> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return null;
+
+  // Revoga tokens anteriores do mesmo usuário
+  for (const [key, stored] of resetTokenStore) {
+    if (stored.userId === user.id) resetTokenStore.delete(key);
   }
 
   const token = generateToken();
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRES_MS);
 
-  // TODO: Usar tabela password_reset_tokens (falta no schema)
-  // Por ora, armazena em memória (não persistente entre restarts)
-  // Tabela necessária: id, userId, tokenHash, expiresAt, usedAt
+  resetTokenStore.set(tokenHash, { tokenHash, userId: user.id, expiresAt, used: false });
 
-  return { token, tokenHash, userId: user.id, expiresAt };
+  const name = user.name ?? user.email.split('@')[0];
+  return { token, name, email: user.email };
 }
 
 /**
  * Valida e consome um token de reset.
  * Retorna o userId se válido, null se inválido/expirado/usado.
  */
-export async function consumePasswordResetToken(_token: string): Promise<string | null> {
-  // TODO: Implementar quando tabela password_reset_tokens existir
-  return null;
+export async function consumePasswordResetToken(token: string): Promise<string | null> {
+  const tokenHash = hashToken(token);
+  const stored = resetTokenStore.get(tokenHash);
+  if (!stored || stored.used || stored.expiresAt < new Date()) {
+    if (stored) resetTokenStore.delete(tokenHash);
+    return null;
+  }
+  stored.used = true;
+  return stored.userId;
 }
 
 /**

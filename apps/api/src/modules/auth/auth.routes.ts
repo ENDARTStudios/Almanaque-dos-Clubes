@@ -22,7 +22,13 @@ import {
   ConflictAuthError,
   ValidationAuthError,
 } from './auth.service.js';
-import { RegisterSchema, LoginSchema, RefreshSchema } from './auth.schemas.js';
+import {
+  RegisterSchema,
+  LoginSchema,
+  RefreshSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
+} from './auth.schemas.js';
 import {
   checkLoginAttempt,
   registerLoginFailure,
@@ -39,6 +45,12 @@ import {
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
 import { generateCsrfToken } from '../../middleware/csrf.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../../services/email.js';
+import {
+  createPasswordResetToken,
+  consumePasswordResetToken,
+  resetPassword as resetPasswordService,
+} from './password-reset.service.js';
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const jwt = createJwtService(app);
@@ -147,6 +159,11 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       const metadata = extractMetadata(request);
 
       const result = await register(input, metadata);
+
+      // Enfileira email de boas-vindas (não bloqueia resposta)
+      sendWelcomeEmail(result.user.email, result.user.email.split('@')[0]).catch(() => {
+        /* falha de email não quebra registro */
+      });
 
       // Gera access token (15min)
       const { accessToken } = jwt.signTokens(result.user, result.sessionId);
@@ -262,6 +279,48 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
             roles: result.user.roles,
           },
         },
+      });
+    } catch (err) {
+      handleAuthError(err, reply);
+    }
+  });
+
+  // -----------------------------------------------------------------
+  // POST /auth/forgot-password
+  // -----------------------------------------------------------------
+  app.post('/auth/forgot-password', async (request, reply) => {
+    try {
+      const { email } = ForgotPasswordSchema.parse(request.body);
+      const result = await createPasswordResetToken(email);
+
+      if (result) {
+        sendPasswordResetEmail(result.email, result.name, result.token).catch(() => {
+          /* falha de email não quebra o fluxo */
+        });
+      }
+
+      // Sempre retorna 200 (não revela se email existe)
+      return reply.status(200).send({
+        data: { message: 'Se o email existir, você receberá um link de redefinição.' },
+      });
+    } catch (err) {
+      handleAuthError(err, reply);
+    }
+  });
+
+  // -----------------------------------------------------------------
+  // POST /auth/reset-password
+  // -----------------------------------------------------------------
+  app.post('/auth/reset-password', async (request, reply) => {
+    try {
+      const { token, password } = ResetPasswordSchema.parse(request.body);
+      const userId = await consumePasswordResetToken(token);
+      if (!userId) {
+        throw new AuthError('Token inválido ou expirado');
+      }
+      await resetPasswordService(userId, password);
+      return reply.status(200).send({
+        data: { message: 'Senha redefinida com sucesso.' },
       });
     } catch (err) {
       handleAuthError(err, reply);

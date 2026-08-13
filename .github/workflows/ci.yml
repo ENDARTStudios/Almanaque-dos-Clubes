@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  DATABASE_URL: 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque'
+  NODE_ENV: test
+
 jobs:
   security-gate:
     runs-on: ubuntu-latest
@@ -34,21 +38,52 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client (PostgreSQL)
+        run: cd apps/api && npx prisma generate --schema=prisma/schema.prisma
+
+      - name: Run Migrations
+        run: cd apps/api && npx prisma migrate deploy --schema=prisma/schema.prisma
+
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Lint
         run: pnpm lint
 
-      - name: Unit Tests
+      - name: Unit & Integration Tests
         run: pnpm test:unit --coverage
+        env:
+          # Sobrescreve env do workflow para apontar ao service container
+          DATABASE_URL: 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque'
 
       - name: Check audit
         run: pnpm audit --audit-level=high || true
 
-  deploy-staging:
+  deploy-vercel-frontend:
     needs: [security-gate]
     if: github.ref == 'refs/heads/main' && success()
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🚀 Deploy em staging autorizado"
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy to Vercel
+        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        working-directory: apps/web
+
+  deploy-docker-api:
+    needs: [security-gate]
+    if: github.ref == 'refs/heads/main' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t almanaque-api:${{ github.sha }} -f apps/api/Dockerfile .
+          # Tag e push para registry (Fly.io ou Docker Hub)
+          # docker tag almanaque-api:${{ github.sha }} registry.fly.io/almanaque-api:${{ github.sha }}
+          # docker push registry.fly.io/almanaque-api:${{ github.sha }}
+          echo "📦 Imagem almanaque-api:${{ github.sha }} construída"

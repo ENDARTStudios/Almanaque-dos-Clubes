@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm install --frozen-lockfile && next build",
+  "outputDirectory": ".next",
+  "installCommand": null,
+  "crons": []
+}
