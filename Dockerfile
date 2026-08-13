@@ -28,10 +28,13 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/tsconfig.json ./apps/api/
 COPY packages/domain/package.json packages/domain/tsconfig.json ./packages/domain/
 
-RUN pnpm install --frozen-lockfile --filter @almanaque/api --filter @almanaque/domain --prod 2>&1
+# Instala com devDeps (precisamos do prisma para generate)
+RUN pnpm install --frozen-lockfile --filter @almanaque/api --filter @almanaque/domain 2>&1
 
-COPY --from=builder /app/apps/api/prisma/ ./apps/api/prisma/
-COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
+# Gera o Prisma Client no stage de produção (schema está em apps/api/prisma/)
+COPY apps/api/prisma/ ./apps/api/prisma/
+RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.prisma 2>&1
+
 COPY --from=builder /app/apps/api/dist ./apps/api/dist/
 COPY --from=builder /app/packages/domain/dist ./packages/domain/dist/
 
