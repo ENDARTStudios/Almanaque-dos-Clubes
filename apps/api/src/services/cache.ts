@@ -1,22 +1,35 @@
 import { Redis } from 'ioredis';
 import { logger } from '../config/logger.js';
 
-let redis: Redis | null = null;
-try {
-  redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
-    maxRetriesPerRequest: 3,
-    lazyConnect: true,
-    enableOfflineQueue: false,
-  });
-  redis.on('error', () => {
-    /* fallback silencioso */
-  });
-} catch {
-  redis = null;
-  logger.warn('[cache] Redis indisponível — cache desabilitado');
+function createRedisClient() {
+  const url = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
+  if (url) {
+    try {
+      const client = new Redis(url, { maxRetriesPerRequest: 3, lazyConnect: true, enableOfflineQueue: false });
+      client.on('error', () => { /* fallback silencioso */ });
+      return client;
+    } catch {
+      logger.warn('[cache] REDIS_URL inválida — cache desabilitado');
+      return null;
+    }
+  }
+  try {
+    const client = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+    });
+    client.on('error', () => { /* fallback silencioso */ });
+    return client;
+  } catch {
+    logger.warn('[cache] Redis indisponível — cache desabilitado');
+    return null;
+  }
 }
+
+let redis: Redis | null = createRedisClient();
 
 const DEFAULT_TTL_SECONDS = 300;
 

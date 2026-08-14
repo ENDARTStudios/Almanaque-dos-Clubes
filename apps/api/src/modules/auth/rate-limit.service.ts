@@ -44,22 +44,35 @@ const cleanupTimer = setInterval(() => {
 }, CLEANUP_INTERVAL_MS);
 cleanupTimer.unref?.();
 
-let redis: Redis | null = null;
-try {
-  redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
-    maxRetriesPerRequest: 1,
-    enableOfflineQueue: false,
-    lazyConnect: true,
-  });
-  redis.on('error', () => {
-    /* fallback silencioso para memória */
-  });
-} catch {
-  redis = null;
-  logger.warn('[rate-limit] Redis indisponível — usando store em memória');
+function createRedisClient() {
+  const url = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
+  if (url) {
+    try {
+      const client = new Redis(url, { maxRetriesPerRequest: 1, enableOfflineQueue: false, lazyConnect: true });
+      client.on('error', () => { /* fallback silencioso */ });
+      return client;
+    } catch {
+      logger.warn('[rate-limit] REDIS_URL inválida — usando store em memória');
+      return null;
+    }
+  }
+  try {
+    const client = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+      maxRetriesPerRequest: 1,
+      enableOfflineQueue: false,
+      lazyConnect: true,
+    });
+    client.on('error', () => { /* fallback silencioso */ });
+    return client;
+  } catch {
+    logger.warn('[rate-limit] Redis indisponível — usando store em memória');
+    return null;
+  }
 }
+
+let redis: Redis | null = createRedisClient();
 
 const REDIS_PREFIX = 'rl:auth:';
 
