@@ -43,6 +43,9 @@ model Club {
   status       ClubStatus @default(ACTIVE)
   primaryColor String?    @db.Char(7) // #RRGGBB
   website      String?
+  qid          String?    @unique // Wikidata Q-identifier (ex: Q12345)
+  importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -55,6 +58,7 @@ model Club {
   rankings      RankingEntry[]
   homeMatches   Match[]    @relation("homeMatches")
   awayMatches   Match[]    @relation("awayMatches")
+  stadiums      Stadium[]  // Um clube pode ter vários estádios ao longo da história
   // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
   // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
   createdBy     String?
@@ -64,6 +68,7 @@ model Club {
   @@index([country])
   @@index([city])
   @@index([status])
+  @@index([qid])
   // Índices compostos para buscas filtradas frequentes (Tarefa 2.4)
   @@index([country, status])
   @@index([city, state])
@@ -81,16 +86,19 @@ enum ClubStatus {
 // -----------------------------------------------------------------------------
 
 model Player {
-  id          String   @id @default(uuid())
-  fullName    String
-  shortName   String?
-  birthDate   DateTime?
-  country     String?  @db.VarChar(2)
-  position    String?
-  clubId      String?
-  club        Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(uuid())
+  fullName     String
+  shortName    String?
+  birthDate    DateTime?
+  country      String?   @db.VarChar(2)
+  position     String?
+  clubId       String?
+  club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  qid          String?   @unique // Wikidata Q-identifier
+  importedFrom String?   // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   search_vector Unsupported("tsvector")?
 
@@ -98,6 +106,7 @@ model Player {
   @@index([birthDate])
   @@index([clubId])
   @@index([fullName])
+  @@index([qid])
   @@map("players")
 }
 
@@ -106,12 +115,15 @@ model Player {
 // -----------------------------------------------------------------------------
 
 model Competition {
-  id        String   @id @default(uuid())
-  name      String
-  country   String?  @db.VarChar(2)
-  type      CompetitionType?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  country      String?  @db.VarChar(2)
+  type         CompetitionType?
+  qid          String?  @unique // Wikidata Q-identifier
+  importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   search_vector Unsupported("tsvector")?
 
@@ -121,6 +133,7 @@ model Competition {
 
   @@index([country])
   @@index([type])
+  @@index([qid])
   @@map("competitions")
 }
 
@@ -375,6 +388,36 @@ model Season {
 }
 
 // -----------------------------------------------------------------------------
+// ESTÁDIOS — Stadium (dados do OpenStreetMap + Wikidata)
+// -----------------------------------------------------------------------------
+
+model Stadium {
+  id           String   @id @default(uuid())
+  name         String
+  city         String?
+  state        String?
+  country      String?  @db.VarChar(2)
+  latitude     Float?
+  longitude    Float?
+  capacity     Int?
+  surface      String?  // grass, artificial, hybrid
+  qid          String?  @unique // Wikidata Q-identifier
+  clubId       String?  // clube mandante principal
+  club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  importedFrom String?  // "wikidata", "openstreetmap", "manual"
+  importedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  matches Match[]
+
+  @@index([clubId])
+  @@index([country])
+  @@index([qid])
+  @@map("stadiums")
+}
+
+// -----------------------------------------------------------------------------
 // PARTIDAS — Match
 // -----------------------------------------------------------------------------
 
@@ -400,7 +443,9 @@ model Match {
   homeScore     Int?
   awayScore     Int?
   round         String?     // "1", "2", "final", "semifinal", etc.
-  venue         String?
+  venue         String?     // nome do estádio (texto livre)
+  stadiumId     String?
+  stadium       Stadium?    @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
   status        MatchStatus @default(SCHEDULED)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -411,6 +456,7 @@ model Match {
   @@index([competitionId])
   @@index([seasonId])
   @@index([status])
+  @@index([stadiumId])
   @@index([homeClubId, awayClubId, date])
   @@map("matches")
 }

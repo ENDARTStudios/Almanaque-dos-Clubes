@@ -216,7 +216,7 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 | Camada | Implementação |
 |--------|---------------|
 | Headers HTTP | `@fastify/helmet` (CSP, X-Frame-Options, X-Content-Type-Options, HSTS em prod) |
-| CORS | Restrito a `https://almanaque.app` em produção; permissivo em dev |
+| CORS | Restrito a `https://almanaquedosclubes.com` e `https://www.almanaquedosclubes.com` em produção; permissivo em dev |
 | Body size | Limite de 1 MiB |
 | Validação de entrada | Zod em todos os endpoints POST |
 | Sanitização de saída | Erros não vazam stack trace em produção |

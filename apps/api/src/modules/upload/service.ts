@@ -3,6 +3,13 @@ import { randomUUID } from 'node:crypto';
 import { s3Client } from '../../config/s3.js';
 import { env } from '../../config/env.js';
 
+function buildPublicUrl(key: string): string {
+  if (env.s3PublicUrl) {
+    return `${env.s3PublicUrl.replace(/\/$/, '')}/${key}`;
+  }
+  return `${env.s3Endpoint.replace(/\/$/, '')}/${env.s3Bucket}/${key}`;
+}
+
 const MIME_MAGIC_BYTES: Record<string, Uint8Array[]> = {
   'image/jpeg': [new Uint8Array([0xff, 0xd8, 0xff])],
   'image/png': [new Uint8Array([0x89, 0x50, 0x4e, 0x47])],
@@ -59,6 +66,6 @@ export async function uploadFile(
       ContentType: mimeType,
     }),
   );
-  const url = `${env.s3Endpoint}/${env.s3Bucket}/${key}`;
+  const url = buildPublicUrl(key);
   return { key, url, mimeType, sizeBytes: buffer.length };
 }

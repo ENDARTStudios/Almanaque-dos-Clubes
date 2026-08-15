@@ -48,8 +48,14 @@ function createRedisClient() {
   const url = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
   if (url) {
     try {
-      const client = new Redis(url, { maxRetriesPerRequest: 1, enableOfflineQueue: false, lazyConnect: true });
-      client.on('error', () => { /* fallback silencioso */ });
+      const client = new Redis(url, {
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
+        lazyConnect: true,
+      });
+      client.on('error', () => {
+        /* fallback silencioso */
+      });
       return client;
     } catch {
       logger.warn('[rate-limit] REDIS_URL inválida — usando store em memória');
@@ -64,7 +70,9 @@ function createRedisClient() {
       enableOfflineQueue: false,
       lazyConnect: true,
     });
-    client.on('error', () => { /* fallback silencioso */ });
+    client.on('error', () => {
+      /* fallback silencioso */
+    });
     return client;
   } catch {
     logger.warn('[rate-limit] Redis indisponível — usando store em memória');

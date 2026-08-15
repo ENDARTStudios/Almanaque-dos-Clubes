@@ -4,8 +4,8 @@ import { welcomeEmailHtml, welcomeEmailText } from './templates/welcome.js';
 import { passwordResetEmailHtml, passwordResetEmailText } from './templates/password-reset.js';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.EMAIL_FROM ?? 'noreply@almanaque.app';
-const APP_URL = process.env.APP_URL ?? 'https://almanaque.app';
+const FROM_EMAIL = process.env.EMAIL_FROM ?? 'noreply@almanaquedosclubes.com';
+const APP_URL = process.env.APP_URL ?? 'https://almanaquedosclubes.com';
 
 if (!RESEND_API_KEY) {
   console.warn(

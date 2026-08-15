@@ -42,6 +42,9 @@ export const clubsService = {
       status: parsed.status,
       primaryColor: parsed.primaryColor ?? null,
       website: parsed.website ?? null,
+      qid: parsed.qid ?? null,
+      importedFrom: parsed.importedFrom ?? null,
+      importedAt: null,
     });
 
     // 4. Invalida cache de listagens (escrita invalida — item 6.3)

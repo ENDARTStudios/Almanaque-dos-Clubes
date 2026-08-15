@@ -19,6 +19,9 @@ export const competitionsService = {
       name: parsed.name,
       country: parsed.country ?? null,
       type: parsed.type ?? null,
+      qid: parsed.qid ?? null,
+      importedFrom: parsed.importedFrom ?? null,
+      importedAt: null,
     });
     await cache.invalidate('competitions:list:*');
     return competition;

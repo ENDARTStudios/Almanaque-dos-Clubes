@@ -26,14 +26,11 @@ Depois de feito: responda "feito o item Nº X"
 > **ATENÇÃO:** As pendências abaixo **bloqueiam** a entrada em produção.
 > Prioritárias para a Fase 10 (Go to Production).
 
-### [1] Escolher e registrar domínio oficial do Almanaque dos Clubes
-Por quê: A Fase 7 (DNSSEC/CAA/HSTS preload) só pode ser aplicada com domínio próprio. Sem isso, deploy usará subdomínio gratuito (Fly.io/Railway) sem HSTS preload.
-Onde: Em qualquer registrador de domínios (ex.: Registro.br para `.br`, Namecheap/Cloudflare para TLDs genéricos).
-Passo a passo:
-1. Escolher o domínio (sugestões: `almanaquedosclubes.com.br`, `almanaque.club`, `adclubes.com`).
-2. Registrar no registrador escolhido.
-3. Configurar DNS apontando para o serviço de deploy (instruções serão fornecidas na Fase 9).
-Como saber que deu certo: Ao acessar o domínio pelo navegador, carregar a página do Almanaque dos Clubes (em produção).
-Depois de feito: responda "feito o item Nº 1"
+### [1] ~~Escolher e registrar domínio oficial do Almanaque dos Clubes~~ ✅ FEITO
+Domínio registrado: `almanaquedosclubes.com` na Vercel (14/08/2026), expira 14/08/2027.
+- Frontend: Vercel (projeto `almanaque-dos-clubes`) → `almanaquedosclubes.com` + `www.almanaquedosclubes.com`
+- Backend API: Railway (serviço `Almanaque-dos-Clubes`) → `api.almanaquedosclubes.com`
+- DNS: Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`)
+- CORS da API atualizado para aceitar o novo domínio.
 
 <!-- Novas pendências são adicionadas abaixo, com numeração sequencial. -->

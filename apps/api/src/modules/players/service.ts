@@ -11,6 +11,9 @@ export const playersService = {
       country: parsed.country ?? null,
       position: parsed.position ?? null,
       clubId: parsed.clubId ?? null,
+      qid: parsed.qid ?? null,
+      importedFrom: parsed.importedFrom ?? null,
+      importedAt: null,
     });
   },
 

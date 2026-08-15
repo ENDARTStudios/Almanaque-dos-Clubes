@@ -1,17 +1,8 @@
 import { z } from 'zod';
 
-/**
- * Tipos primitivos do domínio de Clubes.
- * Estes tipos refletem exatamente o que está no Prisma schema.
- */
-
 export const ClubStatus = z.enum(['ACTIVE', 'INACTIVE', 'DISSOLVED']);
 export type ClubStatus = z.infer<typeof ClubStatus>;
 
-/**
- * Schema de validação para criação de um clube.
- * Usado tanto no controller Fastify quanto em testes.
- */
 export const CreateClubSchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres').max(200),
   fullName: z.string().min(2).max(300).optional(),
@@ -26,13 +17,15 @@ export const CreateClubSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/, 'Cor deve estar no formato #RRGGBB')
     .optional(),
   website: z.string().url().optional(),
+  qid: z
+    .string()
+    .regex(/^Q\d+$/, 'QID deve começar com Q seguido de números')
+    .optional(),
+  importedFrom: z.string().optional(),
 });
 
 export type CreateClubInput = z.infer<typeof CreateClubSchema>;
 
-/**
- * Tipo canônico de um Clube (espelha o modelo Prisma).
- */
 export interface Club {
   id: string;
   name: string;
@@ -45,6 +38,9 @@ export interface Club {
   status: ClubStatus;
   primaryColor: string | null;
   website: string | null;
+  qid: string | null;
+  importedFrom: string | null;
+  importedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

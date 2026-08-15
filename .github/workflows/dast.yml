@@ -13,6 +13,6 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.12
         with:
-          target: 'https://staging.almanaque.app'
+          target: 'https://staging.almanaquedosclubes.com'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a -j'

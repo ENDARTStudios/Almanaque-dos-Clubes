@@ -15,6 +15,11 @@ export const CreatePlayerSchema = z.object({
   country: z.string().min(2).max(2, 'Use ISO 3166-1 alpha-2').optional(),
   position: PlayerPosition.optional(),
   clubId: z.string().uuid().optional(),
+  qid: z
+    .string()
+    .regex(/^Q\d+$/, 'QID deve começar com Q seguido de números')
+    .optional(),
+  importedFrom: z.string().optional(),
 });
 export type CreatePlayerInput = z.infer<typeof CreatePlayerSchema>;
 
@@ -26,6 +31,9 @@ export interface Player {
   country: string | null;
   position: string | null;
   clubId: string | null;
+  qid: string | null;
+  importedFrom: string | null;
+  importedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

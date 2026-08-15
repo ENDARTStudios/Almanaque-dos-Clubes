@@ -141,8 +141,8 @@ Motivo (impacto no plano):
 Motivo: Permite não pular etapas de segurança (Seção 3 item 3 — nada fecha sem evidência). Remove pressão de "lançar antes do seguro". Fases 7 (hardening) e 8 (testes/DAST) podem ser feitas com calma.
 
 ### [2026-07-16] Decisão: Marca e domínio (Discovery Q6)
-**Resposta:** Nome "Almanaque dos Clubes" definido. Marca definida. Domínio ainda não.
-Motivo: Fase 7 (DNSSEC/CAA/HSTS preload) fica `[CONDICIONAL: domínio próprio em produção]` — só entra quando o Operador registrar o domínio. Até lá, deploy pode usar subdomínio gratuito (ex.: Railway/Fly.io) sem HSTS preload. Adicionado item futuro em PENDENCIAS_OPERADOR.md: "escolher e registrar domínio".
+**Resposta:** Nome "Almanaque dos Clubes" definido. Marca definida. Domínio registrado: `almanaquedosclubes.com` (14/08/2026), comprado na Vercel.
+Motivo: Fase 7 (DNSSEC/CAA/HSTS preload) agora pode prosseguir com domínio próprio em produção. Frontend na Vercel, API no Railway (`api.almanaquedosclubes.com`).
 
 ### [2026-07-16] Decisão: Definição de "pronto" (Discovery Q7)
 **Resposta:** Pronto = usuário consegue: pesquisar entidades do futebol mundial, navegar histórico, comparar informações, usar IA com citações — com infraestrutura de ETL, governança e operação funcionando em segundo plano. Planos Free/Pro/Elite ativos.

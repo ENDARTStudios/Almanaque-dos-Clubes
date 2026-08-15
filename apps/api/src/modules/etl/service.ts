@@ -1,12 +1,19 @@
 import { addJob } from '../../services/queue.js';
 
-export const ETL_SOURCES = ['rsssf', 'fbref', 'wikipedia'] as const;
+export const ETL_SOURCES = [
+  'wikidata',
+  'rsssf',
+  'fbref',
+  'football-data',
+  'openstreetmap',
+  'wikimedia-commons',
+  'thesportsdb',
+  'full-sync',
+] as const;
 export type ETLSource = (typeof ETL_SOURCES)[number];
 
 export async function triggerFullIngest(): Promise<void> {
-  for (const source of ETL_SOURCES) {
-    await addJob('etl', 'full-ingest', { source });
-  }
+  await addJob('etl', 'full-sync', { source: 'full-sync' });
 }
 
 export async function triggerSourceIngest(source: ETLSource): Promise<void> {

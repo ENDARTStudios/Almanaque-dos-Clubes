@@ -14,7 +14,7 @@ export function welcomeEmailHtml(data: WelcomeEmailData): string {
     <p style="color:#333;line-height:1.6">Seja bem-vindo ao Almanaque dos Clubes! Sua conta foi criada com sucesso.</p>
     <p style="color:#333;line-height:1.6">Agora você pode pesquisar clubes, jogadores, competições e rankings históricos do futebol mundial.</p>
     <div style="text-align:center;margin:24px 0">
-      <a href="https://almanaque.app/dashboard" style="background:#DC2626;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">Ir para o Dashboard</a>
+      <a href="https://almanaquedosclubes.com/dashboard" style="background:#DC2626;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">Ir para o Dashboard</a>
     </div>
     <p style="color:#888;font-size:12px;border-top:1px solid #eee;padding-top:12px">Se você não criou esta conta, ignore este email.</p>
   </div>
@@ -26,7 +26,7 @@ export function welcomeEmailText(data: WelcomeEmailData): string {
 
 Bem-vindo ao Almanaque dos Clubes! Sua conta foi criada com sucesso.
 
-Acesse: https://almanaque.app/dashboard
+Acesse: https://almanaquedosclubes.com/dashboard
 
 Se você não criou esta conta, ignore este email.`;
 }

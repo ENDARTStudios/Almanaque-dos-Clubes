@@ -5,8 +5,14 @@ function createRedisClient() {
   const url = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
   if (url) {
     try {
-      const client = new Redis(url, { maxRetriesPerRequest: 3, lazyConnect: true, enableOfflineQueue: false });
-      client.on('error', () => { /* fallback silencioso */ });
+      const client = new Redis(url, {
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+        enableOfflineQueue: false,
+      });
+      client.on('error', () => {
+        /* fallback silencioso */
+      });
       return client;
     } catch {
       logger.warn('[cache] REDIS_URL inválida — cache desabilitado');
@@ -21,7 +27,9 @@ function createRedisClient() {
       lazyConnect: true,
       enableOfflineQueue: false,
     });
-    client.on('error', () => { /* fallback silencioso */ });
+    client.on('error', () => {
+      /* fallback silencioso */
+    });
     return client;
   } catch {
     logger.warn('[cache] Redis indisponível — cache desabilitado');

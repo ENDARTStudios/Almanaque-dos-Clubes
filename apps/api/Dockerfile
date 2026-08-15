@@ -43,5 +43,9 @@ COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/clie
 COPY --from=builder /app/apps/api/dist ./apps/api/dist/
 COPY --from=builder /app/packages/domain/dist ./packages/domain/dist/
 
+# Entrypoint: executa migrations antes de iniciar o servidor
+COPY apps/api/entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
+
 EXPOSE 3000
-CMD ["node", "apps/api/dist/server.js"]
+ENTRYPOINT ["./entrypoint.sh"]

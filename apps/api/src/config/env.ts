@@ -193,8 +193,11 @@ export const env = {
   s3AccessKeyId: process.env.S3_ACCESS_KEY_ID ?? 'almanaque',
   s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? 'almanaque_dev_2025',
   s3Bucket: process.env.S3_BUCKET ?? 'almanaque-uploads',
+  s3PublicUrl: process.env.S3_PUBLIC_URL ?? '',
   uploadMaxBytes: parseInt(process.env.UPLOAD_MAX_BYTES ?? '52428800', 10) || 52428800,
   uploadAllowedMimes: (process.env.UPLOAD_ALLOWED_MIMES ?? 'image/jpeg,image/png,image/webp').split(
     ',',
   ),
 } as const;
+
+export type Env = typeof env;

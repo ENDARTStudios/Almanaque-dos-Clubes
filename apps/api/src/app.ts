@@ -25,6 +25,7 @@ import { uploadRoutes } from './modules/upload/routes.js';
 import { graphRoutes } from './modules/graph/routes.js';
 import { ragRoutes } from './modules/rag/routes.js';
 import { exportRoutes } from './modules/export/routes.js';
+import { etlRoutes } from './modules/etl/routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 
@@ -87,7 +88,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(cors, {
-    origin: env.isProd ? ['https://almanaque.app'] : true,
+    origin: env.isProd
+      ? ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com']
+      : true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
@@ -121,6 +124,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(graphRoutes);
       await api.register(ragRoutes);
       await api.register(exportRoutes);
+      await api.register(etlRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
     },

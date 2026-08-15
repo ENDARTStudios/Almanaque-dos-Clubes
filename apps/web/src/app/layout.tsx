@@ -3,7 +3,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-const siteUrl = 'https://almanaque.app';
+const siteUrl = 'https://almanaquedosclubes.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

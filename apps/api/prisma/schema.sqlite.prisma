@@ -41,6 +41,9 @@ model Club {
   status       String   @default("ACTIVE") // ACTIVE | INACTIVE | DISSOLVED
   primaryColor String? // #RRGGBB
   website      String?
+  qid          String?  @unique // Wikidata Q-identifier
+  importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -49,6 +52,7 @@ model Club {
   rankings      RankingEntry[]
   homeMatches   Match[]    @relation("homeMatches")
   awayMatches   Match[]    @relation("awayMatches")
+  stadiums      Stadium[]  // Um clube pode ter vários estádios ao longo da história
   // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
   // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
   createdBy     String?
@@ -58,52 +62,55 @@ model Club {
   @@index([country])
   @@index([city])
   @@index([status])
+  @@index([qid])
   @@index([country, status])
   @@index([city, state])
   @@map("clubs")
 }
 
-// -----------------------------------------------------------------------------
-// JOGADORES
-// -----------------------------------------------------------------------------
-
 model Player {
-  id          String   @id @default(uuid())
-  fullName    String
-  shortName   String?
-  birthDate   DateTime?
-  country     String?
-  position    String?
-  clubId      String?
-  club        Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  fullName     String
+  shortName    String?
+  birthDate    DateTime?
+  country      String?
+  position     String?
+  clubId       String?
+  club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  qid          String?  @unique // Wikidata Q-identifier
+  importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([country])
   @@index([birthDate])
   @@index([clubId])
   @@index([fullName])
+  @@index([qid])
   @@map("players")
 }
 
-// -----------------------------------------------------------------------------
-// COMPETIÇÕES
-// -----------------------------------------------------------------------------
-
 model Competition {
-  id        String   @id @default(uuid())
-  name      String
-  country   String?
-  type      String? // LEAGUE | CUP | TOURNAMENT | SUPER_CUP
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  country      String?
+  type         String? // LEAGUE | CUP | TOURNAMENT | SUPER_CUP
+  qid          String?  @unique // Wikidata Q-identifier
+  importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   rankings Ranking[]
 
   @@index([country])
   @@index([type])
+  @@index([qid])
   @@map("competitions")
 }
+
+// (Player, Competition definidos acima no bloco Club)
 
 // -----------------------------------------------------------------------------
 // RANKINGS — cabeçalho de um ranking (ex.: "Ranking CBF 2023")
@@ -316,6 +323,32 @@ model Season {
   @@map("seasons")
 }
 
+model Stadium {
+  id           String   @id @default(uuid())
+  name         String
+  city         String?
+  state        String?
+  country      String?
+  latitude     Float?
+  longitude    Float?
+  capacity     Int?
+  surface      String?
+  qid          String?  @unique // Wikidata Q-identifier
+  clubId       String?
+  club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  importedFrom String?
+  importedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  matches Match[]
+
+  @@index([clubId])
+  @@index([country])
+  @@index([qid])
+  @@map("stadiums")
+}
+
 model Match {
   id            String   @id @default(uuid())
   homeClubId    String
@@ -330,6 +363,8 @@ model Match {
   awayScore     Int?
   round         String?
   venue         String?
+  stadiumId     String?
+  stadium       Stadium? @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
   status        String   @default("SCHEDULED")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -340,6 +375,7 @@ model Match {
   @@index([competitionId])
   @@index([seasonId])
   @@index([status])
+  @@index([stadiumId])
   @@index([homeClubId, awayClubId, date])
   @@map("matches")
 }
