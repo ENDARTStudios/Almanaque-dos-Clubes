@@ -87,3 +87,13 @@ export const ResetPasswordSchema = z.object({
 });
 
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+
+/**
+ * Schema para POST /auth/verify-email (T342).
+ * Token single-use emitido no registro.
+ */
+export const VerifyEmailSchema = z.object({
+  token: z.string().min(1, 'Token é obrigatório'),
+});
+
+export type VerifyEmailInput = z.infer<typeof VerifyEmailSchema>;

@@ -28,6 +28,7 @@ import {
   RefreshSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
+  VerifyEmailSchema,
 } from './auth.schemas.js';
 import {
   checkLoginAttempt,
@@ -45,12 +46,17 @@ import {
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
 import { generateCsrfToken } from '../../middleware/csrf.js';
-import { sendWelcomeEmail, sendPasswordResetEmail } from '../../services/email.js';
+import { sendWelcomeEmail } from '../../services/email.js';
+import { mailerService } from '../mailer/mailer.service.js';
 import {
   createPasswordResetToken,
   consumePasswordResetToken,
   resetPassword as resetPasswordService,
 } from './password-reset.service.js';
+import {
+  createEmailVerificationToken,
+  consumeEmailVerificationToken,
+} from './email-verification.service.js';
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const jwt = createJwtService(app);
@@ -164,6 +170,20 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       sendWelcomeEmail(result.user.email, result.user.email.split('@')[0]).catch(() => {
         /* falha de email não quebra registro */
       });
+
+      // Emite token de verificação e envia email (T342) — não bloqueia resposta
+      const verificationToken = await createEmailVerificationToken(result.user.id);
+      if (verificationToken) {
+        mailerService
+          .sendVerificationEmail(
+            result.user.email,
+            result.user.email.split('@')[0],
+            verificationToken,
+          )
+          .catch(() => {
+            /* falha de email não quebra registro */
+          });
+      }
 
       // Gera access token (15min)
       const { accessToken } = jwt.signTokens(result.user, result.sessionId);
@@ -294,7 +314,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       const result = await createPasswordResetToken(email);
 
       if (result) {
-        sendPasswordResetEmail(result.email, result.name, result.token).catch(() => {
+        mailerService.sendPasswordResetEmail(result.email, result.name, result.token).catch(() => {
           /* falha de email não quebra o fluxo */
         });
       }
@@ -321,6 +341,24 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       await resetPasswordService(userId, password);
       return reply.status(200).send({
         data: { message: 'Senha redefinida com sucesso.' },
+      });
+    } catch (err) {
+      handleAuthError(err, reply);
+    }
+  });
+
+  // -----------------------------------------------------------------
+  // POST /auth/verify-email
+  // -----------------------------------------------------------------
+  app.post('/auth/verify-email', async (request, reply) => {
+    try {
+      const { token } = VerifyEmailSchema.parse(request.body);
+      const userId = await consumeEmailVerificationToken(token);
+      if (!userId) {
+        throw new AuthError('Token inválido ou expirado');
+      }
+      return reply.status(200).send({
+        data: { message: 'Email verificado com sucesso.' },
       });
     } catch (err) {
       handleAuthError(err, reply);

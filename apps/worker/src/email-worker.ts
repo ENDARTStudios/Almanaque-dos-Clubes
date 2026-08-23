@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { createWorker } from '../../api/src/services/queue.js';
 import { welcomeEmailHtml, welcomeEmailText } from './templates/welcome.js';
 import { passwordResetEmailHtml, passwordResetEmailText } from './templates/password-reset.js';
+import { verifyEmailHtml, verifyEmailText } from './templates/verify-email.js';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.EMAIL_FROM ?? 'noreply@almanaquedosclubes.com';
@@ -57,6 +58,18 @@ createWorker('email', async (job) => {
         'Redefinição de Senha — Almanaque dos Clubes',
         passwordResetEmailHtml({ name, email, resetLink }),
         passwordResetEmailText({ name, email, resetLink }),
+      );
+      break;
+    }
+
+    case 'verify-email': {
+      const { name, email, token } = job.data as { name: string; email: string; token: string };
+      const verifyLink = `${APP_URL}/auth/verify-email/${token}`;
+      await sendEmail(
+        email,
+        'Verifique seu email — Almanaque dos Clubes',
+        verifyEmailHtml({ name, email, verifyLink }),
+        verifyEmailText({ name, email, verifyLink }),
       );
       break;
     }
