@@ -18,6 +18,19 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-22] Decisão: T347 — Reconciliação documental ancorada no HEAD 7a50d99; uml.ts e rbac-matrix.ts declarados contaminados
+Motivo: O estado do protocolo divergia do repositório real (evidências citavam commit `f0b5c87`, inexistente no git). Auditoria localizou em `packages/domain/src/uml.ts` e `packages/domain/src/rbac-matrix.ts` entidades de outro projeto (Album, AlbumItem, Streak, Favorite, ApiKey, PipelineRun; permissões `favorites:*`, `album:*`, `collection:streak:*`), exportadas pelo barrel mas sem consumidores em `apps/` e sem correspondência em `schema.prisma`, no Discovery ou no `rbac.service.ts` real.
+Alternativas consideradas: (a) adotar o UML contaminado como fonte de verdade — descartada por incorporar produto estranho ao escopo; (b) remover os arquivos imediatamente — descartada por ser mudança de código fora do escopo docs-only e depender de aprovação de quarentena; (c) documentar com fontes reais e declarar a contaminação — escolhida.
+Evidência:
+- `git cat-file -t f0b5c87` → inválido; HEAD real `7a50d99` (árvore limpa).
+- Glob `**/*UML*.md` → vazio (`UML.md` não existe no repo).
+- Grep: entidades estrangeiras aparecem apenas em `packages/domain` (uml.ts, rbac-matrix.ts).
+- `rbac.service.ts` real: roles `admin/pro/free`, 19 permissões; `rbac-matrix.ts` contradiz com permissões de álbum/streak/favoritos.
+Observações:
+- Criados `docs/PRD.md`, `docs/UML-DIAGRAMS.md`, `docs/RBAC-MATRIX.md`, `docs/RLS-POLICIES.md`, `docs/ARCHITECTURE-CATALOG.md`; `docs/CRITERIOS_DESENVOLVIMENTO.md` permaneceu inalterado (não foi criado `docs/DEV-CRITERIA.md` paralelo).
+- RLS documentada como SPEC PENDENTE (T344/T345 bloqueadas por ambiente PostgreSQL de teste).
+- Quarentena/remoção dos exports contaminados será tarefa de código futura, após resposta do Operador ao ESCALATE e execução de T348-v2 (gap analysis do UML com fontes autorizadas).
+
 ### [2026-08-12] Decisão: Instalar @fastify/compress (gzip + brotli) — Fase 13.1
 Motivo: Redução de ~70% no payload de respostas JSON, melhora LCP e tempo de carregamento. Marcado como 🔴 no ROADMAP.md, esforço 1h.
 Alternativas consideradas: (a) proxy reverso (Cloudflare) — descartada por só funcionar em produção e pós-domínio; (b) compressão nativa do Node — descartada por não ter negociação de encoding automática.
