@@ -18,6 +18,18 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-22] Decisão: T348-v2 — Gap analysis do UML e lista de quarentena de símbolos contaminados
+Motivo: Destravar a fase F12 com uma análise ancorada nas fontes autorizadas (PRD.md consolidado em T347, schema.prisma, rbac.service.ts), classificando cada símbolo de `packages/domain/src/uml.ts` e `packages/domain/src/rbac-matrix.ts` em EXISTENTE / PARCIAL / FALTANTE-ESCOPO / FORA-ESCOPO / CONTAMINANTE.
+Alternativas consideradas: (a) adoção incremental dos arquivos — descartada por 100% do conteúdo ser contaminante, conflitante ou sem consumidor; (b) remoção imediata nesta tarefa — descartada por violar o escopo docs-only; (c) gap analysis + lista de quarentena para remoção em tarefa futura de código — escolhida.
+Evidência:
+- Grep de consumidores: nenhum import em `apps/` usa símbolos de `uml.ts`/`rbac-matrix.ts`; barrel `packages/domain/src/index.ts:16-17` é a única superfície exposta.
+- Classificação: 9 EXISTENTE, 28 PARCIAL, 8 FALTANTE-ESCOPO, 5 FORA-ESCOPO, 24 CONTAMINANTE (ver `docs/UML-GAP-ANALYSIS.md` §7).
+- Quarentena especificada com caminho+linha+motivo+prioridade em `docs/UML-QUARANTINE-LIST.md`.
+Observações:
+- Recomendação global: remover `uml.ts` e `rbac-matrix.ts` inteiros + 2 linhas de export do barrel, em tarefa futura de código com verificação `pnpm typecheck` + `pnpm test` + grep de imports.
+- Gaps legítimos (FALTANTE-ESCOPO) viram backlog futuro via migration aditiva, nunca por importação dos arquivos contaminados.
+- Execução da remoção permanece pendente da confirmação formal do Operador ao ESCALATE (quarentena).
+
 ### [2026-08-22] Decisão: T347 — Reconciliação documental ancorada no HEAD 7a50d99; uml.ts e rbac-matrix.ts declarados contaminados
 Motivo: O estado do protocolo divergia do repositório real (evidências citavam commit `f0b5c87`, inexistente no git). Auditoria localizou em `packages/domain/src/uml.ts` e `packages/domain/src/rbac-matrix.ts` entidades de outro projeto (Album, AlbumItem, Streak, Favorite, ApiKey, PipelineRun; permissões `favorites:*`, `album:*`, `collection:streak:*`), exportadas pelo barrel mas sem consumidores em `apps/` e sem correspondência em `schema.prisma`, no Discovery ou no `rbac.service.ts` real.
 Alternativas consideradas: (a) adotar o UML contaminado como fonte de verdade — descartada por incorporar produto estranho ao escopo; (b) remover os arquivos imediatamente — descartada por ser mudança de código fora do escopo docs-only e depender de aprovação de quarentena; (c) documentar com fontes reais e declarar a contaminação — escolhida.
