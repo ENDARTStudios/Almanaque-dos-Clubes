@@ -18,6 +18,14 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-23] Decisão: Marco de produção ratificado pelo Operador (D-2026-08-23-marco-ratificado-operador)
+Motivo: Fechar o drift de produção e registrar o estado real do ambiente após os deploys.
+Evidência (ratificada com capturas do Operador):
+- Vercel Production **Ready** para os commits `0a7a1d7`/`8d52bcb`; `https://almanaquedosclubes.com` → 200 servindo o HEAD novo.
+- Railway: `https://api.almanaquedosclubes.com/api/v1/health` → **200** (uptime coerente com o deploy T367), serviço `Almanaque-dos-Clubes`.
+- Branch protection aplicada em `main` (T363): `security-gate` required + PR com 1 aprovação + `enforce_admins` + sem force push/delete.
+Observação: a partir de T363, **push direto em main deixa de existir**; o fluxo vira branch + PR aprovado + CI verde. O token usado em T363 deve ser rotacionado após o handoff (foi exposto em texto claro no chat).
+
 ### [2026-08-23] Decisão: Cancelar linhagem de reparo de órfãos (D-2026-08-23-cancela-linhagem-orfaos)
 Motivo: A linhagem de reparo de órfãos (T322/T358/T360) não tem alvo legítimo no repositório real: `watchlist_entry` e `usuario_midia_interacao` são domínio estrangeiro (mesma contaminação tratada em T349) e as entidades reais (`Session`, `RankingEntry`) usam `onDelete: Cascade`, tornando órfãos de banco impossíveis.
 Alternativas consideradas: (a) re-especificar contra tabelas inexistentes — descartada por fabricar escopo estrangeiro; (b) implementar auditoria de integridade sem pedido de produto — descartada por escopo novo sem aprovação; (c) cancelar e limpar artefatos — escolhida.

@@ -19,10 +19,11 @@
 - **Resultado:** deployment `n9rf54jdw` → **READY** (27s), commit `8d52bcb`;
   `https://almanaquedosclubes.com` responde **200** servindo o HEAD novo.
 
-## 2. Branch protection (T352) ⚠️ PENDENTE (401)
+## 2. Branch protection (T363) ✅ APLICADO
 
-A tentativa automática falhou (GITHUB_TOKEN 401). Aplicar manualmente —
-instruções completas em `docs/BRANCH-PROTECTION.md`.
+Proteção ativa em `main`: status check `security-gate` (strict), PR com 1
+aprovação, `enforce_admins`, sem force push e sem delete. Detalhes em
+`docs/BRANCH-PROTECTION.md`. Fluxo de merge passa a ser branch + PR + CI verde.
 
 ## 3. Deploys via Railway (T356)
 

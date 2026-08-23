@@ -1,9 +1,15 @@
 # Branch Protection — Almanaque dos Clubes
 
-> Referência determinística para o Operador aplicar proteção na branch `main`.
-> Tarefa T352 (fase F13). Registro: a tentativa automática via API retornou
-> **401 Unauthorized** com o `GITHUB_TOKEN` do ambiente (inválido/expirado) —
-> ação manual necessária.
+> **✅ APLICADO (T363, 2026-08-23)** via GitHub API. Configuração ativa:
+>
+> - `required_status_checks`: `security-gate` (strict = up-to-date)
+> - `enforce_admins`: **true**
+> - `required_pull_request_reviews`: 1 aprovação
+> - `allow_force_pushes`: **false** · `allow_deletions`: **false**
+>
+> Consequência: **push direto em `main` deixa de existir.** Fluxo passa a ser
+> branch + PR aprovado + CI verde (`security-gate`). Referência manual abaixo
+> para auditoria/rollback.
 
 ## Objetivo
 
