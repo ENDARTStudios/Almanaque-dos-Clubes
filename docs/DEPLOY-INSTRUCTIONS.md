@@ -16,6 +16,8 @@
   auto-detecta Next.js em `apps/web` e usa saída `.next` relativa. Build
   anterior falhou com `NEXT_OUTPUT_DIR_MISSING` por caminho duplicado
   (`apps/web/apps/web/.next`), corrigido por esta remoção.
+- **Resultado:** deployment `n9rf54jdw` → **READY** (27s), commit `8d52bcb`;
+  `https://almanaquedosclubes.com` responde **200** servindo o HEAD novo.
 
 ## 2. Branch protection (T352) ⚠️ PENDENTE (401)
 
@@ -36,6 +38,10 @@ overridável via `RAILWAY_SERVICE`).
 > T341 e T342 já estão no HEAD de `main`; ambos os deploys equivalem a
 > `railway up --service Almanaque-dos-Clubes --detach` do commit atual. A
 > distinção é apenas de rastreabilidade.
+
+**Resultado T367:** deploy `2bf5aed9-f186-496b-a9f0-1f68a8b365e9` concluído;
+`https://api.almanaquedosclubes.com/api/v1/health` → **200**
+(`{"status":"ok","uptime":~64s}` confirmando o deploy novo).
 
 ## 4. Migration `trial_used_at` (T359) ✅ CRIADA — pendente validação em Postgres
 
