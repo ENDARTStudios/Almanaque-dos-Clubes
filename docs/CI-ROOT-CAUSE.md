@@ -97,3 +97,36 @@ Se confirmado quota/billing, o Operador resolve em 1 clique/verificação:
 `Settings → Billing and plans` (ou `Actions → Billing`) para conferir o consumo
 de minutos e o plano. O token atual não tem escopo `billing`/`actions: read`
 para leitura programática.
+
+## 6. Oracle externo (T375) — beacons para a API própria
+
+### 6.1 Achado de viabilidade (bloqueador corrigido)
+
+A API **não logava requests** (`app.ts:34` → `logger: false`; `/health` e
+`/metrics` silenciosos; único log é startup em `server.ts`). Portanto os beacons
+seriam invisíveis no `railway logs`. Correção mínima aplicada: `health.ts` agora
+escreve `[ci-beacon] m=<m> st=<st> ts=<ts>` em stdout **apenas** quando o query
+param `m` está presente (strings fixas, sem PII/segredo). Exige redeploy no
+Railway para valer.
+
+### 6.2 Instrumentação
+
+`ci-diag.yml` ganhou beacons:
+- `m=start` (primeiro step, antes do checkout)
+- `m=checkout` (após checkout)
+- `m=node` (após `node --version`)
+- `m=final&st=<job.status>` (`if: always()`)
+
+### 6.3 Árvore de decisão
+
+| Observado | Classificação |
+|---|---|
+| Nenhum beacon em 10 min | Falha **pré-runner** (account-level) |
+| Só `m=start` | Falha no checkout/runner |
+| `m=start`+`m=checkout`, sem `m=node` | Falha no step `node` |
+| `m=final&st=failure` | Run chegou ao fim e falhou — ver step anterior |
+
+### 6.4 Observação (a preencher após o push)
+
+Resultado do `railway logs` (comandos e hits com timestamps) será registrado
+abaixo após o push do `ci-diag` instrumentado e o redeploy da API.

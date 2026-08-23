@@ -1,8 +1,9 @@
-name: CI — Diagnóstico (T374)
+name: CI — Diagnóstico (T374/T375)
 
-# Workflow mínimo para classificar a falha de 3s: account-level (quota/billing)
-# vs workflow. Sem services, sem secrets, sem gates. Se ESTE workflow também
-# falhar em ~3s, a causa é account-level, independente do conteúdo.
+# Workflow mínimo com beacons HTTPS para a API própria (Railway), para
+# classificar a falha de 3s sem depender de escopo do GitHub.
+# Sem services, sem secrets, sem gates. Beacons são GET idempotentes para o
+# próprio domínio (m=start|checkout|node, final com if:always() e st=status).
 on:
   push:
     branches: [fix/ci-security-gate]
@@ -12,8 +13,15 @@ jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
+      - name: Beacon start
+        run: curl -s -m 5 "https://api.almanaquedosclubes.com/api/v1/health?m=start" >/dev/null 2>&1 || true
       - uses: actions/checkout@v4
-      - name: Echo diagnóstico
-        run: echo "diag-ok"
+      - name: Beacon checkout
+        run: curl -s -m 5 "https://api.almanaquedosclubes.com/api/v1/health?m=checkout" >/dev/null 2>&1 || true
       - name: Versão do Node
         run: node --version
+      - name: Beacon node
+        run: curl -s -m 5 "https://api.almanaquedosclubes.com/api/v1/health?m=node" >/dev/null 2>&1 || true
+      - name: Beacon final
+        if: always()
+        run: curl -s -m 5 "https://api.almanaquedosclubes.com/api/v1/health?m=final&st=${{ job.status }}" >/dev/null 2>&1 || true
