@@ -126,7 +126,17 @@ Railway para valer.
 | `m=start`+`m=checkout`, sem `m=node` | Falha no step `node` |
 | `m=final&st=failure` | Run chegou ao fim e falhou — ver step anterior |
 
-### 6.4 Observação (a preencher após o push)
+### 6.4 Observação (resultado real)
 
-Resultado do `railway logs` (comandos e hits com timestamps) será registrado
-abaixo após o push do `ci-diag` instrumentado e o redeploy da API.
+- `curl ...?m=oracle-test` → 200 e `[ci-beacon] m=oracle-test st=-` apareceu nos
+  logs do Railway → **oracle funcional**, logging ativo após o redeploy.
+- Push do `ci-diag` instrumentado em `fix/ci-security-gate` (commit `64b1ddf`).
+- Após ~8 min: **ZERO beacons** do CI (`m=start/checkout/node/final`) nos logs.
+- `workflow_dispatch` via API → 403 (token sem `actions: write`).
+
+**Classificação final: falha pré-runner / account-level.** O runner do GitHub
+Actions não executa sequer o primeiro step (`m=start`), em qualquer workflow,
+apesar de `actions/enabled=true` no repo. Consistente com quota/billing de
+Actions bloqueado no nível da conta e com o padrão "3-6s em todos os workflows
+desde ~17/Ago" + billing "Next payment due: –". Resolução é do Operador
+(custo/account-owner).
