@@ -7,7 +7,16 @@ const connection = {
 
 export const queues = {
   etl: new Queue('etl', { connection }),
-  email: new Queue('email', { connection }),
+  // T342: jobs de email carregam tokens (verificação/reset) em texto plano
+  // apenas enquanto o worker monta o link. Jobs concluídos são removidos do
+  // Redis imediatamente para não persistir tokens (revisão T342).
+  email: new Queue('email', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: { count: 0 },
+      removeOnFail: { count: 100 },
+    },
+  }),
   export: new Queue('export', { connection }),
 } as const;
 
