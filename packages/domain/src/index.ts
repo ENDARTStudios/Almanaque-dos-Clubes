@@ -13,6 +13,4 @@ export * from './season.js';
 export * from './match.js';
 export * from './graph.js';
 export * from './stadium.js';
-export * from './rbac-matrix.js';
-export * from './uml.js';
 export * from './errors.js';

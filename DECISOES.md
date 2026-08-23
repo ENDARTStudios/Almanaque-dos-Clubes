@@ -18,6 +18,15 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-23] Decisão: T349 — Executar quarentena (remoção de uml.ts e rbac-matrix.ts)
+Motivo: Aprovação implícita da exclusão já consolidada no PRD.md §9 e na lista de quarentena aprovada em T348-v2. Os dois arquivos contaminados (domínio de outro projeto: Album/Streak/Favorite/ApiKey/PipelineRun e permissões album/favorites/streak) estavam exportados pelo barrel sem consumidores.
+Alternativas consideradas: (a) manter os arquivos marcados como "não-fonte" — descartada por deixar superfície pública contaminada e risco de colisão de nomes (`Subscription`/`Billing`); (b) remover apenas exports do barrel — descartada por deixar os arquivos órfãos; (c) remover arquivos + exports — escolhida.
+Evidência:
+- `git rm` de `packages/domain/src/uml.ts` e `packages/domain/src/rbac-matrix.ts`; removidos os `export *` das linhas 16-17 de `packages/domain/src/index.ts`.
+- Grep de imports contaminados (Uml*/Album/Streak/Favorite/PipelineRun/ApiKey/rbac-matrix/uml) em apps/ e packages/: zero (as ocorrências de `isApiKeyMissing` em workers são checks de conectores externos, não o tipo `ApiKey`).
+- `pnpm typecheck` exit 0; domain 4/4; api unit 22/22.
+Observação: Nenhuma alteração em apps/api ou apps/web. A documentação de referência (`docs/UML-GAP-ANALYSIS.md`, `docs/UML-QUARANTINE-LIST.md`) permanece para consulta futura.
+
 ### [2026-08-22] Decisão: T348-v2 — Gap analysis do UML e lista de quarentena de símbolos contaminados
 Motivo: Destravar a fase F12 com uma análise ancorada nas fontes autorizadas (PRD.md consolidado em T347, schema.prisma, rbac.service.ts), classificando cada símbolo de `packages/domain/src/uml.ts` e `packages/domain/src/rbac-matrix.ts` em EXISTENTE / PARCIAL / FALTANTE-ESCOPO / FORA-ESCOPO / CONTAMINANTE.
 Alternativas consideradas: (a) adoção incremental dos arquivos — descartada por 100% do conteúdo ser contaminante, conflitante ou sem consumidor; (b) remoção imediata nesta tarefa — descartada por violar o escopo docs-only; (c) gap analysis + lista de quarentena para remoção em tarefa futura de código — escolhida.
