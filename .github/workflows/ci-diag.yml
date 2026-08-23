@@ -1,0 +1,19 @@
+name: CI — Diagnóstico (T374)
+
+# Workflow mínimo para classificar a falha de 3s: account-level (quota/billing)
+# vs workflow. Sem services, sem secrets, sem gates. Se ESTE workflow também
+# falhar em ~3s, a causa é account-level, independente do conteúdo.
+on:
+  push:
+    branches: [fix/ci-security-gate]
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Echo diagnóstico
+        run: echo "diag-ok"
+      - name: Versão do Node
+        run: node --version

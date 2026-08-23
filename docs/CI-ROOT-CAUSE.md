@@ -50,3 +50,50 @@ porta 6379, healthcheck `redis-cli ping`), espelhando o `docker-compose.yml`.
    de setup (3-6s), ela só será visível no log do run após o push do fix.
 3. Verificação local do YAML após a correção: `python3 -c "import yaml;
    yaml.safe_load(open('.github/workflows/ci.yml'))"`.
+
+## 5. Forense round-2 (T374) — classificação da falha de 3s
+
+### 5.1 Tentativas de API (códigos HTTP reais, sem tokens)
+
+| Endpoint | Resultado |
+|---|---|
+| `GET /repos/{repo}/actions/runs` | **403** (sem `actions: read`) |
+| `GET /repos/{repo}/actions/permissions` | **200** → `enabled=true`, `allowed_actions=all` |
+| `GET /users/ENDARTStudios/settings/billing/actions` | **403** (sem `billing` scope) |
+| `GET /orgs/ENDARTStudios/settings/billing/actions` | **404** (não é org) |
+| `GET /users/ENDARTStudios` | **200** → `type=User`, `plan` vazio |
+
+### 5.2 Evidência de padrão
+
+- Falha em 3-6s em **todos** os workflows (CI, DAST agendado, dependabot) e
+  **todos** os atores/branches desde ~17/Ago — **independente de conteúdo**
+  (DAST e dependabot nunca rodam os testes de integração).
+- `actions/enabled=true` no repo → não é desabilitação de Actions no repo.
+- Conta é `User` (pessoal), não org → quota de minutos é por conta.
+- Produção (Vercel/Railway) verde e independente do Actions.
+
+### 5.3 Classificação
+
+**Hipótese única restante: account-level — quota/billing de GitHub Actions
+esgotada (plano gratuito em repo privado).** É a única causa que explica falha
+instantânea, content-independent, em todos os workflows, não reproduzível
+localmente. O comportamento "run falha em segundos quando os minutos acabam"
+é o sintoma clássico.
+
+### 5.4 Experimento (`.github/workflows/ci-diag.yml`)
+
+Workflow mínimo (`checkout` + `echo` + `node --version`), sem services/segredos,
+pushado em `fix/ci-security-gate` + `workflow_dispatch`.
+
+- Se `ci-diag` **falhar em ~3s** → confirma account-level (quota/billing).
+- Se `ci-diag` **passar** → a causa é de workflow e reabre a investigação.
+
+O resultado do run só é visível na aba Actions (a API `actions/runs` retorna
+403 com o token atual).
+
+### 5.5 Escalonamento (custo/account-owner — autoridade do Operador)
+
+Se confirmado quota/billing, o Operador resolve em 1 clique/verificação:
+`Settings → Billing and plans` (ou `Actions → Billing`) para conferir o consumo
+de minutos e o plano. O token atual não tem escopo `billing`/`actions: read`
+para leitura programática.
