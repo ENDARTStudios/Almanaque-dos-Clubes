@@ -44,3 +44,7 @@ uploads/
 pgdata/
 .vercel
 .env*
+
+# Artefatos de ambiente externo (T350)
+mnt/
+/1
