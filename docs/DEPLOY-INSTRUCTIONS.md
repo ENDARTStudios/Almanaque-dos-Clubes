@@ -39,28 +39,24 @@ ao projeto. Serviço: `api` (overridável via `RAILWAY_SERVICE`).
 |---|---|
 | `scripts/deploy-t341.sh` | Deploy do mailer transacional (fila email + worker + templates) |
 | `scripts/deploy-t342.sh` | Deploy do mailer auth (verificação de email + reset) |
-| `scripts/deploy-t322.sh` | Reparo de órfãos — **guarda: falha até o entrypoint existir** |
 
 > T341 e T342 já estão no HEAD de `main`; ambos os deploys equivalem a
 > `railway up --service api --detach` do commit atual. A distinção é apenas
 > de rastreabilidade.
+>
+> ⚠️ Serviço Railway vinculado é `Almanaque-dos-Clubes` (`railway status`),
+> não `api`. Executar com `RAILWAY_SERVICE=Almanaque-dos-Clubes`.
 
-## 4. Migration `trial_used_at` (T355) ⚠️ BLOQUEADA (AMBIGUOUS_SPEC)
+## 4. Migration `trial_used_at` (T359) ✅ CRIADA — pendente validação em Postgres
 
-A migration `20260815_trial_used_at` **não existe no repositório** e o
-`schema.prisma` não tem a coluna `trial_used_at`. Migrations presentes em
-`apps/api/prisma/migrations/`:
+A migration `20260823_trial_used_at` foi criada em T359 (`ALTER TABLE
+"subscriptions" ADD COLUMN "trial_used_at" TIMESTAMP(3);`) e o modelo
+`Subscription` ganhou `trial_used_at DateTime?` (schema canônico + sqlite).
+`prisma validate` e `typecheck` verdes.
 
-- `20260716154544_init`
-- `20260720000001_phase2_final`
-- `20260720202741_init_almanaque_v2`
-- `20260720202940_add_composite_indexes`
-- `20260814_add_qid_and_stadium`
-
-**Ação:** antes de qualquer `migrate deploy` de `trial_used_at`, o Doer deve
-criar a migration a partir do schema (se a feature for de fato necessária) em
-tarefa própria, com revisão. `prisma migrate deploy` em produção só depois
-disso.
+**Ação restante:** validar com `prisma migrate deploy` em Postgres de teste
+(T365) antes de aplicar em produção. A migration foi escrita manualmente
+(ENV_MISMATCH) e deve ser confirmada em banco vivo.
 
 ## 5. Postgres de teste (T354) ⚠️ BLOQUEADA (ENV_MISMATCH)
 
@@ -74,18 +70,10 @@ O Docker daemon não está acessível neste ambiente
 - Após disponível, desbloquear T344/T345 (RLS). Não expor a porta fora de
   localhost.
 
-## 6. Reparo de órfãos (T322) ⚠️ PENDENTE DE CÓDIGO
-
-O entrypoint de reparo de órfãos não existe no repositório (nenhum script
-`db:reparo:orfaos` em `apps/api/package.json`, nenhum módulo de reparo).
-`scripts/deploy-t322.sh` falha rápido até isso ser implementado. Tarefa de
-código futura, fora do escopo F13.
-
-## 7. Ordem recomendada de execução (Operador)
+## 6. Ordem recomendada de execução (Operador)
 
 1. Redeploy Vercel (confirmar build verde + domínio servindo `887fcb7`).
 2. Aplicar branch protection em `main`.
-3. `bash scripts/deploy-t342.sh` (Railway) — cobre T341+T342 do HEAD.
-4. Criar migration `trial_used_at` (tarefa) → `migrate deploy` em produção.
+3. `RAILWAY_SERVICE=Almanaque-dos-Clubes bash scripts/deploy-t342.sh` (Railway) — cobre T341+T342 do HEAD.
+4. `migrate deploy` da migration `trial_used_at` em Postgres de teste, depois em produção.
 5. Subir Postgres de teste → T344/T345.
-6. Implementar e rodar reparo de órfãos (T322).

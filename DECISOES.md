@@ -18,6 +18,17 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-23] Decisão: Cancelar linhagem de reparo de órfãos (D-2026-08-23-cancela-linhagem-orfaos)
+Motivo: A linhagem de reparo de órfãos (T322/T358/T360) não tem alvo legítimo no repositório real: `watchlist_entry` e `usuario_midia_interacao` são domínio estrangeiro (mesma contaminação tratada em T349) e as entidades reais (`Session`, `RankingEntry`) usam `onDelete: Cascade`, tornando órfãos de banco impossíveis.
+Alternativas consideradas: (a) re-especificar contra tabelas inexistentes — descartada por fabricar escopo estrangeiro; (b) implementar auditoria de integridade sem pedido de produto — descartada por escopo novo sem aprovação; (c) cancelar e limpar artefatos — escolhida.
+Evidência: `schema.prisma`/`schema.sqlite.prisma` sem `watchlist_entry`/`usuario_midia_interacao`; `Session.userId` e `RankingEntry.rankingId` com `onDelete: Cascade`. `scripts/deploy-t322.sh` removido; referências limpas em `docs/DEPLOY-INSTRUCTIONS.md`.
+Observação: **Não existe run de produção de reparo de órfãos a executar.** Auditoria de integridade lógica (soft delete/stale refs) só como feature futura, se o Operador solicitar explicitamente.
+
+### [2026-08-23] Decisão: Auditoria de integridade lógica — NÃO implementar (D-2026-08-23-auditoria-integridade-nao)
+Motivo: O item 2 da ESCALATE pedia decisão sobre auditoria de integridade lógica como feature futura; o padrão declarado era "não".
+Alternativas consideradas: (a) implementar agora — descartada por escopo novo sem pedido de produto; (b) aplicar padrão "não" e registrar — escolhida.
+Observação: Reabrir apenas por solicitação explícita do Operador no futuro.
+
 ### [2026-08-23] Decisão: T349 — Executar quarentena (remoção de uml.ts e rbac-matrix.ts)
 Motivo: Aprovação implícita da exclusão já consolidada no PRD.md §9 e na lista de quarentena aprovada em T348-v2. Os dois arquivos contaminados (domínio de outro projeto: Album/Streak/Favorite/ApiKey/PipelineRun e permissões album/favorites/streak) estavam exportados pelo barrel sem consumidores.
 Alternativas consideradas: (a) manter os arquivos marcados como "não-fonte" — descartada por deixar superfície pública contaminada e risco de colisão de nomes (`Subscription`/`Billing`); (b) remover apenas exports do barrel — descartada por deixar os arquivos órfãos; (c) remover arquivos + exports — escolhida.
