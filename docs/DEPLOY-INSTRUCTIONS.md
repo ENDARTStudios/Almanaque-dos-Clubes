@@ -6,24 +6,21 @@
 
 ---
 
-## 1. Vercel — Root Directory (T351) ✅ CONFIGURADO
+## 1. Vercel — Root Directory (T351) ✅ + push (T366) ✅ + build ⚠️ CI_FAILURE
 
-O `rootDirectory` do projeto Vercel foi configurado para `apps/web` via API
-(projeto `almanaque-dos-clubes`, org `ENDARTStudios`).
+- **T351:** `rootDirectory` configurado para `apps/web` via API (antes vazio).
+- **T366:** `git push origin main` fast-forward — `origin/main` agora em `7378494`
+  (5 commits: `59c56e3`, `84e73d7`, `c5c3a4a`, `8cbd8ed`, `7378494`).
+- **Build git-triggered:** deployment `dpl_Ds3qLRrYoNHxq9Ew6cheTWJBRRBx`
+  (`d3td176qq`) → **ERROR**, `errorCode: NEXT_OUTPUT_DIR_MISSING`.
+  Causa-raiz: o `vercel.json` da raiz ainda tem
+  `outputDirectory: "apps/web/.next"`, que com `rootDirectory=apps/web` é
+  resolvido para `/vercel/path0/apps/web/apps/web/.next` (caminho duplicado).
 
-- **Antes:** `rootDirectory` vazio → builder `@vercel/next` não detectava o
-  framework no diretório-raiz do monorepo → build git-triggered falhava com
-  `No Next.js version detected` (~23s).
-- **Ação restante (Operador):** na dashboard do Vercel, disparar um redeploy da
-  branch `main` e confirmar build verde. Depois validar que
-  `almanaquedosclubes.com` serve a versão `887fcb7` (não o deploy manual
-  antigo `7ND1bQJCg`).
-- O `vercel.json` da raiz deixa de ser usado pelo build web (o Vercel procura
-  `vercel.json` dentro do Root Directory). Se o build web exigir ajustes,
-  criar `apps/web/vercel.json` — não editar o da raiz até confirmação.
-
-Verificação local de config: `vercel whoami` (autenticado) + API:
-`GET /v9/projects/{projectId}?teamId={teamId}` → `rootDirectory == "apps/web"`.
+**Correção necessária (tarefa futura, não retry cego):** remover o
+`vercel.json` da raiz (o hack de "commands da raiz" já foi declarado falho em
+DECISAO) ou criar `apps/web/vercel.json` com `outputDirectory: ".next"`
+relativo ao Root Directory. Após corrigir, novo push dispara build limpo.
 
 ## 2. Branch protection (T352) ⚠️ PENDENTE (401)
 
