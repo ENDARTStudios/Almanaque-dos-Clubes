@@ -6,21 +6,16 @@
 
 ---
 
-## 1. Vercel — Root Directory (T351) ✅ + push (T366) ✅ + build ⚠️ CI_FAILURE
+## 1. Vercel — Root Directory (T351) ✅ + push (T366) ✅ + vercel.json raiz removido (T368)
 
 - **T351:** `rootDirectory` configurado para `apps/web` via API (antes vazio).
-- **T366:** `git push origin main` fast-forward — `origin/main` agora em `7378494`
+- **T366:** `git push origin main` fast-forward — `origin/main` em `7378494`
   (5 commits: `59c56e3`, `84e73d7`, `c5c3a4a`, `8cbd8ed`, `7378494`).
-- **Build git-triggered:** deployment `dpl_Ds3qLRrYoNHxq9Ew6cheTWJBRRBx`
-  (`d3td176qq`) → **ERROR**, `errorCode: NEXT_OUTPUT_DIR_MISSING`.
-  Causa-raiz: o `vercel.json` da raiz ainda tem
-  `outputDirectory: "apps/web/.next"`, que com `rootDirectory=apps/web` é
-  resolvido para `/vercel/path0/apps/web/apps/web/.next` (caminho duplicado).
-
-**Correção necessária (tarefa futura, não retry cego):** remover o
-`vercel.json` da raiz (o hack de "commands da raiz" já foi declarado falho em
-DECISAO) ou criar `apps/web/vercel.json` com `outputDirectory: ".next"`
-relativo ao Root Directory. Após corrigir, novo push dispara build limpo.
+- **T368:** `vercel.json` da raiz removido (o hack de "commands da raiz" já
+  declarado falho em DECISAO). Com `rootDirectory=apps/web`, o Vercel
+  auto-detecta Next.js em `apps/web` e usa saída `.next` relativa. Build
+  anterior falhou com `NEXT_OUTPUT_DIR_MISSING` por caminho duplicado
+  (`apps/web/apps/web/.next`), corrigido por esta remoção.
 
 ## 2. Branch protection (T352) ⚠️ PENDENTE (401)
 
@@ -30,7 +25,8 @@ instruções completas em `docs/BRANCH-PROTECTION.md`.
 ## 3. Deploys via Railway (T356)
 
 Pré-requisitos: CLI `railway` autenticada (`railway login`), conta com acesso
-ao projeto. Serviço: `api` (overridável via `RAILWAY_SERVICE`).
+ao projeto. Serviço vinculado: `Almanaque-dos-Clubes` (default nos scripts,
+overridável via `RAILWAY_SERVICE`).
 
 | Script | Objetivo |
 |---|---|
@@ -38,11 +34,8 @@ ao projeto. Serviço: `api` (overridável via `RAILWAY_SERVICE`).
 | `scripts/deploy-t342.sh` | Deploy do mailer auth (verificação de email + reset) |
 
 > T341 e T342 já estão no HEAD de `main`; ambos os deploys equivalem a
-> `railway up --service api --detach` do commit atual. A distinção é apenas
-> de rastreabilidade.
->
-> ⚠️ Serviço Railway vinculado é `Almanaque-dos-Clubes` (`railway status`),
-> não `api`. Executar com `RAILWAY_SERVICE=Almanaque-dos-Clubes`.
+> `railway up --service Almanaque-dos-Clubes --detach` do commit atual. A
+> distinção é apenas de rastreabilidade.
 
 ## 4. Migration `trial_used_at` (T359) ✅ CRIADA — pendente validação em Postgres
 

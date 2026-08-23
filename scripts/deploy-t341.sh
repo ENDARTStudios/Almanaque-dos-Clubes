@@ -3,7 +3,7 @@
 # Idempotente: `railway up` implanta o HEAD atual do serviço.
 set -euo pipefail
 
-SERVICE="${RAILWAY_SERVICE:-api}"
+SERVICE="${RAILWAY_SERVICE:-Almanaque-dos-Clubes}"
 
 if ! command -v railway >/dev/null 2>&1; then
   echo "ERRO: CLI 'railway' não encontrada. Instale: npm i -g @railway/cli" >&2
