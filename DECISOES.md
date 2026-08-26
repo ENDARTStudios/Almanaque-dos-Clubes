@@ -18,6 +18,16 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-27] Decisão: T380 — Caminho B (2ª exceção) executado: merge de 4 branches sem Actions
+Motivo: Operador ordenou prosseguir sem o GitHub Actions (bloqueio account-level persiste). Segunda exceção governada nos moldes de `D-2026-08-24-caminho-b-aprovado-operador`.
+Alternativas consideradas: (a) aguardar Caminho A — descartada por ordem do Operador; (b) merge sem restauração — descartada por enfraquecer o regime; (c) exceção com escopo fechado e restauração imediata — escolhida.
+Evidência:
+- Proteção BEFORE: `security-gate` (strict), `approvals=0`, `enforce_admins=true`, sem force/delete.
+- Merges (git local, janela de relaxamento): `docs/manual-operador` ff (`c435050`); `feat/ci-hardening` no-ff (`0f85430`); `feat/rls-sessions-policies` no-ff (`1538be3`); `feat/rls-bulk-adoption` no-ff (`bbc5e8d`). `origin/main = bbc5e8d`.
+- Proteção AFTER: idêntica à BEFORE (restaurada na mesma sessão).
+- Produção: Vercel Ready (`8ux78y2as`, commit novo) + API health 200 (`uptime` fresco = deploy novo do Railway).
+Observações: **nenhuma migration RLS aplicada em produção** (FORCE RLS OFF, gateado por `D-2026-08-24-rls-enforcement-exige-app-user`). Regime PR-only restaurado para branches futuras. Revogação do token e Caminho A seguem pendências do Operador.
+
 ### [2026-08-26] Decisão: T376 — Caminho B executado (merges #28/#27/#26 via exceção governada)
 Motivo: GitHub Actions bloqueado no nível da conta (falha pré-runner confirmada em T375); Operador autorizou o Caminho B para destravar a cadeia congelada.
 Alternativas consideradas: (a) Caminho A (resolver billing) — não escolhido agora; (b) Caminho B (exceção documentada, escopo fechado) — escolhido.

@@ -172,3 +172,19 @@ Adicionados ao `ci.yml` os gates desenhados no bootstrap, sem tocar em
 Nota: o `dependency-audit` inicia não-bloqueante para dar visibilidade aos
 achados existentes sem recongelar o pipeline; a virada para gate bloqueante é
 decisão posterior. YAML validado (`YAML_OK`). Branch `feat/ci-hardening`.
+
+## 9. Caminho B (2ª exceção, T380) — merge de 4 branches
+
+| Estado | Configuração |
+|---|---|
+| **Before** | `security-gate` (strict), `approvals=0`, `enforce_admins=true`, sem force/delete |
+| **Relaxado** | sem required checks/reviews; `enforce_admins=true`, sem force/delete |
+| **After** | `security-gate` (strict), `approvals=0`, `enforce_admins=true`, sem force/delete |
+
+Merges (ordem): `docs/manual-operador` (ff `c435050`) → `feat/ci-hardening`
+(no-ff `0f85430`) → `feat/rls-sessions-policies` (no-ff `1538be3`) →
+`feat/rls-bulk-adoption` (no-ff `bbc5e8d`). `origin/main = bbc5e8d`.
+
+Produção pós-merge: Vercel **Ready** (`8ux78y2as`); API health **200**
+(`uptime` fresco = deploy novo do Railway via git integration). Nenhuma
+migration RLS em produção (FORCE RLS OFF).
