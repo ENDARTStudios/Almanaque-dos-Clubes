@@ -12,14 +12,19 @@
  * - Session tem expiresAt (7 dias) — sessões expiradas são inválidas
  * - Session tem revokedAt (null = ativa) — sessões revogadas são inválidas
  *
+ * RLS (T371): cada operação usa `withRlsContext` com o contexto correto:
+ * - createSession → owner (userId) [INSERT owner]
+ * - verifySession/findSessionByToken → posse (tokenHash) [SELECT by token]
+ * - revoke/update owner → owner (userId) [UPDATE owner]
+ * - cleanupExpiredSessions → SERVICE [DELETE service]
+ *
  * Segurança:
  * - Refresh token rotação: cada refresh invalida a sessão atual e cria nova
- *   (implementado em auth.routes.ts, não aqui)
- * - Limpeza: job agendado deve deletar sessions com expiresAt < now - 30d
- *   (Tarefa 7.x ou 9.x)
+ *   (implementado em auth.routes.ts / auth.service.ts)
+ * - tokenHash nunca é o token cru; o GUC recebe apenas o hash SHA-256.
  */
-import { prisma } from '../../config/prisma.js';
 import { generateToken, hashToken } from '../../config/crypto.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import type { Session } from '@prisma/client';
 
 /**
@@ -48,15 +53,7 @@ export interface CreateSessionResult {
 }
 
 /**
- * Cria uma nova sessão para um usuário.
- *
- * @example
- *   const { refreshToken, session } = await createSession(user.id, {
- *     userAgent: request.headers['user-agent'],
- *     ipAddress: request.ip,
- *   });
- *   // setar cookie httpOnly com refreshToken
- *   // persistir session.id para futura verificação
+ * Cria uma nova sessão para um usuário (contexto owner).
  */
 export async function createSession(
   userId: string,
@@ -66,52 +63,42 @@ export async function createSession(
   const tokenHash = hashToken(refreshToken);
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_MS);
 
-  const session = await prisma.session.create({
-    data: {
-      userId,
-      tokenHash,
-      userAgent: metadata.userAgent ?? null,
-      ipAddress: metadata.ipAddress ?? null,
-      expiresAt,
-      revokedAt: null,
-    },
-  });
+  const session = await withRlsContext({ userId }, (tx) =>
+    tx.session.create({
+      data: {
+        userId,
+        tokenHash,
+        userAgent: metadata.userAgent ?? null,
+        ipAddress: metadata.ipAddress ?? null,
+        expiresAt,
+        revokedAt: null,
+      },
+    }),
+  );
 
   return { refreshToken, session };
 }
 
 /**
  * Verifica se um refresh token corresponde a uma sessão ativa.
+ * Contexto de posse (tokenHash): a busca pré-auth autoriza apenas a linha do
+ * próprio token apresentado.
  *
  * @returns A sessão ativa, ou `null` se:
  *   - Token não corresponde a nenhuma sessão (tokenHash inexistente)
  *   - Sessão está revogada (revokedAt != null)
  *   - Sessão está expirada (expiresAt < now)
- *
- * @example
- *   const session = await verifySession(refreshToken);
- *   if (!session) {
- *     // 401 — credenciais inválidas (não revelar motivo)
- *   }
  */
 export async function verifySession(refreshToken: string): Promise<Session | null> {
   if (!refreshToken) return null;
 
-  // Busca por hash (não expõe o token em query)
-  // Mas primeiro precisamos saber QUAL hash buscar — não sabemos sem computar.
-  // Solução: hashToken(refreshToken) e buscar por tokenHash.
   const tokenHash = hashToken(refreshToken);
-
-  const session = await prisma.session.findUnique({
-    where: { tokenHash },
-  });
+  const session = await withRlsContext({ tokenHash }, (tx) =>
+    tx.session.findUnique({ where: { tokenHash } }),
+  );
 
   if (!session) return null;
-
-  // Sessão revogada (logout explícito)
   if (session.revokedAt !== null) return null;
-
-  // Sessão expirada
   if (session.expiresAt < new Date()) return null;
 
   return session;
@@ -119,53 +106,44 @@ export async function verifySession(refreshToken: string): Promise<Session | nul
 
 /**
  * Verifica se um refresh token corresponde a UMA sessão (ativa ou não).
- *
- * Útil para rotação: mesmo se a sessão foi revogada, queremos saber se o token
- * já existia (detectar reuso de token revogado = possível ataque).
- *
- * @example
- *   const session = await findSessionByToken(refreshToken);
- *   if (session && session.revokedAt !== null) {
- *     // ALERTA: refresh token revogado foi usado novamente.
- *     // Possível roubo de token — revogar TODAS as sessões do usuário.
- *     await revokeAllUserSessions(session.userId);
- *   }
+ * Útil para rotação: mesmo revogada, queremos saber se o token já existia
+ * (detectar reuso de token revogado = possível ataque).
  */
 export async function findSessionByToken(refreshToken: string): Promise<Session | null> {
   if (!refreshToken) return null;
   const tokenHash = hashToken(refreshToken);
-  return prisma.session.findUnique({ where: { tokenHash } });
+  return withRlsContext({ tokenHash }, (tx) => tx.session.findUnique({ where: { tokenHash } }));
 }
 
 /**
  * Revoga uma sessão (logout).
  *
- * Não deleta o registro — apenas marca revokedAt = now. Isso:
- * 1. Preserva auditoria (sabemos quando a sessão foi revogada)
- * 2. Permite detectar reuso de token revogado
- * 3. Mantém índice `revokedAt` utilizável para queries "sessões ativas"
+ * Dois passos sob RLS:
+ * 1. Acha a sessão por posse (tokenHash) para obter o userId;
+ * 2. Revoga por owner (userId).
  *
- * Idempotente: revogar sessão já revogada não causa erro.
- *
- * @returns true se a sessão foi encontrada (e revogada), false caso contrário
+ * Idempotente: revogar sessão já revogada (ou inexistente) não causa erro.
  */
 export async function revokeSession(refreshToken: string): Promise<boolean> {
   if (!refreshToken) return false;
   const tokenHash = hashToken(refreshToken);
 
-  try {
-    await prisma.session.updateMany({
+  const session = await withRlsContext({ tokenHash }, (tx) =>
+    tx.session.findUnique({ where: { tokenHash } }),
+  );
+  if (!session) return true; // idempotente: nada a revogar
+
+  await withRlsContext({ userId: session.userId }, (tx) =>
+    tx.session.updateMany({
       where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
-    });
-    return true;
-  } catch {
-    return false;
-  }
+    }),
+  );
+  return true;
 }
 
 /**
- * Revoga todas as sessões ativas de um usuário.
+ * Revoga todas as sessões ativas de um usuário (contexto owner).
  *
  * Uso:
  * - Password reset (invalida todas as sessões antigas)
@@ -175,59 +153,65 @@ export async function revokeSession(refreshToken: string): Promise<boolean> {
  * @returns Número de sessões revogadas
  */
 export async function revokeAllUserSessions(userId: string): Promise<number> {
-  const result = await prisma.session.updateMany({
-    where: { userId, revokedAt: null },
-    data: { revokedAt: new Date() },
-  });
+  const result = await withRlsContext({ userId }, (tx) =>
+    tx.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  );
   return result.count;
 }
 
 /**
- * Conta sessões ativas de um usuário.
- * Útil para dashboard "você tem N sessões ativas".
+ * Conta sessões ativas de um usuário (contexto owner).
  */
 export async function countActiveUserSessions(userId: string): Promise<number> {
-  return prisma.session.count({
-    where: {
-      userId,
-      revokedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-  });
+  return withRlsContext({ userId }, (tx) =>
+    tx.session.count({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+    }),
+  );
 }
 
 /**
- * Lista sessões ativas de um usuário (para dashboard "gerenciar sessões").
+ * Lista sessões ativas de um usuário (contexto owner) — para "gerenciar sessões".
  * NÃO retorna tokenHash — apenas metadata (userAgent, ipAddress, expiresAt, createdAt).
  */
 export async function listActiveUserSessions(userId: string) {
-  return prisma.session.findMany({
-    where: {
-      userId,
-      revokedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-    select: {
-      id: true,
-      userAgent: true,
-      ipAddress: true,
-      expiresAt: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  return withRlsContext({ userId }, (tx) =>
+    tx.session.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        userAgent: true,
+        ipAddress: true,
+        expiresAt: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  );
 }
 
 /**
- * Deleta sessões expiradas há mais de 30 dias.
- * Job de manutenção — chamar 1x/dia (cron, Fase 9).
+ * Deleta sessões expiradas há mais de 30 dias (contexto SERVICE — job de manutenção).
  *
  * @returns Número de registros deletados
  */
 export async function cleanupExpiredSessions(retentionDays = 30): Promise<number> {
   const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
-  const result = await prisma.session.deleteMany({
-    where: { expiresAt: { lt: cutoff } },
-  });
+  const result = await withRlsContext({ role: 'SERVICE' }, (tx) =>
+    tx.session.deleteMany({
+      where: { expiresAt: { lt: cutoff } },
+    }),
+  );
   return result.count;
 }

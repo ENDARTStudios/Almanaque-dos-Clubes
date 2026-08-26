@@ -65,6 +65,21 @@ Matriz validada (psql, role `app_user` não-superusuário, banco de teste):
 > deferido — `D-2026-08-24-rls-sessions-pre-auth-design`). FORCE RLS segue OFF
 > em produção até a adoção de `withRlsContext` (T371) + staging validation.
 
+### Adoção `withRlsContext` (T371) — código pronto, merge deferido
+
+`session.service.ts` usa `withRlsContext` fluxo a fluxo:
+`createSession` → owner (`userId`); `verifySession`/`findSessionByToken` →
+posse (`tokenHash`, pré-auth); `revokeSession` → posse→owner;
+`revokeAllUserSessions`/`count`/`list` → owner; `cleanupExpiredSessions` →
+`SERVICE`. O contexto `tokenHash` foi adicionado a `withRlsContext` (recebe o
+hash SHA-256, nunca o token cru).
+
+> Depende da migration `20260825_rls_sessions_complete` (T377, branch
+> `feat/rls-sessions-policies`) para as policies de posse/escrita. Enquanto
+> FORCE RLS está OFF e a aplicação conecta como superuser, `withRlsContext` é
+> inócuo; o enforcement real depende da conexão como role não-superusuária
+> (`app_user`) — auditoria de contexto futura.
+
 ### Demais tabelas — SPEC PENDENTE
 
 | Tabela | SELECT | INSERT | UPDATE | DELETE |

@@ -26,6 +26,8 @@ export type RlsRole = 'USER' | 'SERVICE';
 export interface RlsContext {
   userId?: string;
   role?: RlsRole;
+  /** Hash SHA-256 do refresh token (posse pré-auth). Nunca o token cru. */
+  tokenHash?: string;
 }
 
 /**
@@ -42,6 +44,12 @@ export async function withRlsContext<T>(
     }
     if (ctx.role) {
       await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_role', $1, true)`, ctx.role);
+    }
+    if (ctx.tokenHash) {
+      await tx.$executeRawUnsafe(
+        `SELECT set_config('app.current_token_hash', $1, true)`,
+        ctx.tokenHash,
+      );
     }
     return fn(tx);
   });
