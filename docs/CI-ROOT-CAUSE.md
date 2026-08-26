@@ -158,3 +158,17 @@ Merges (git local durante o relaxamento):
 - `chore/t363-branch-protection-docs` → conteúdo `7f9a7a1` já em `feat`, PR #26
 
 `origin/main = ccab894`.
+
+## 8. Hardening do CI (T378)
+
+Adicionados ao `ci.yml` os gates desenhados no bootstrap, sem tocar em
+`security-gate` nem nos jobs de deploy:
+
+| Job | Condição | Bloqueante? |
+|---|---|---|
+| `gitleaks` | `gitleaks/gitleaks-action@v2`, `fetch-depth: 0`, `GITHUB_TOKEN` nativo | sim (falha se achar segredo) |
+| `dependency-audit` | `pnpm audit --audit-level=high`, condicional a `pnpm-lock.yaml` | **não** (`continue-on-error: true`) — tornar bloqueante após sanar achados |
+
+Nota: o `dependency-audit` inicia não-bloqueante para dar visibilidade aos
+achados existentes sem recongelar o pipeline; a virada para gate bloqueante é
+decisão posterior. YAML validado (`YAML_OK`). Branch `feat/ci-hardening`.
