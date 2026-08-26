@@ -140,3 +140,21 @@ apesar de `actions/enabled=true` no repo. Consistente com quota/billing de
 Actions bloqueado no nível da conta e com o padrão "3-6s em todos os workflows
 desde ~17/Ago" + billing "Next payment due: –". Resolução é do Operador
 (custo/account-owner).
+
+## 7. Caminho B (T376) — exceção governada de merge
+
+Registro before/after da proteção de `main` e dos merges da exceção.
+
+| Estado | Configuração |
+|---|---|
+| **Before** | `security-gate` (strict), `approvals=1`, `enforce_admins=true`, sem force/delete |
+| **Relaxado** | sem required checks/reviews; `enforce_admins=true`, sem force/delete |
+| **After** | `security-gate` (strict), `approvals=0`, `enforce_admins=true`, sem force/delete |
+
+Merges (git local durante o relaxamento):
+
+- `fix/ci-security-gate` → ff (`0a7a1d7..b5db076`), PR #28
+- `feat/rls-sessions` → no-ff (merge commit `ccab894`), PR #27
+- `chore/t363-branch-protection-docs` → conteúdo `7f9a7a1` já em `feat`, PR #26
+
+`origin/main = ccab894`.

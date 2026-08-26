@@ -18,6 +18,17 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-26] Decisão: T376 — Caminho B executado (merges #28/#27/#26 via exceção governada)
+Motivo: GitHub Actions bloqueado no nível da conta (falha pré-runner confirmada em T375); Operador autorizou o Caminho B para destravar a cadeia congelada.
+Alternativas consideradas: (a) Caminho A (resolver billing) — não escolhido agora; (b) Caminho B (exceção documentada, escopo fechado) — escolhido.
+Evidência:
+- Proteção BEFORE: `security-gate` (strict), `approvals=1`, `enforce_admins=true`, sem force push/deletion.
+- Relaxamento: removidos required checks e reviews; `enforce_admins=true` mantido.
+- Merges (git local, durante o relaxamento): `fix/ci-security-gate` ff (`0a7a1d7..b5db076`); `feat/rls-sessions` no-ff (merge commit `ccab894`).
+- `origin/main = ccab894` contém: #28 (fix CI Redis + diag + oracle), #27 (T344/T345/T370 + T363 docs), #26 (T363 docs via `7f9a7a1`).
+- Proteção AFTER: `security-gate` (strict), `approvals=0` (repo single-contributor), `enforce_admins=true`, sem force push/deletion.
+Observações: revogação do token antigo permanece pendência do Operador. PRs futuros aguardam CI verde ou novo Caminho B/A. Ajuste estrutural: `approvals=0` porque 1 aprovação humana é insatisfatível com um único contribuidor.
+
 ### [2026-08-23] Decisão: Marco de produção ratificado pelo Operador (D-2026-08-23-marco-ratificado-operador)
 Motivo: Fechar o drift de produção e registrar o estado real do ambiente após os deploys.
 Evidência (ratificada com capturas do Operador):
