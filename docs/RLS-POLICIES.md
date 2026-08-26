@@ -1,13 +1,12 @@
 # RLS-POLICIES.md — Almanaque dos Clubes
 
-> **STATUS GLOBAL: SPEC PENDENTE**
+> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE**
 >
-> Nenhuma política Row-Level Security está aplicada no banco neste momento.
-> Este documento é especificação para implementação futura, ancorada no HEAD
-> `7a50d99` (tarefa T347, fase F10-docs-reconciliacao).
->
-> Implementação bloqueada por: T344 (migration RLS) e T345 (teste de
-> isolamento A≠B), ambas pendentes de ambiente PostgreSQL de teste válido.
+> A migration `20260824_rls_sessions` aplicou `ENABLE`+`FORCE ROW LEVEL
+> SECURITY` em `sessions` com policy owner-only de leitura e exceção `SERVICE`,
+> validada **apenas em banco de teste** (Postgres do docker-compose). Deploy em
+> produção **adiado** até auditoria do mecanismo de contexto da aplicação
+> (`app.current_user_id`/`app.current_user_role`).
 
 ---
 
@@ -16,7 +15,7 @@
 - Banco: PostgreSQL (provider `postgresql` em `apps/api/prisma/schema.prisma`).
 - RLS protege linhas no nível do banco, independente da camada de aplicação
   (RBAC em `rbac.service.ts` continua sendo a primeira linha).
-- `FORCE ROW LEVEL SECURITY` **não** está ativado em nenhuma tabela.
+- `FORCE ROW LEVEL SECURITY` está ativado **apenas** em `sessions` (teste).
 - Em migrations Prisma, RLS é criada via SQL raw aditivo (migration dedicada),
   nunca via alteração destrutiva de tabela existente.
 
@@ -31,14 +30,35 @@
 4. **App role vs owner:** definir role de aplicação (`app_user`) com privilégios
    mínimos; owner/migration role não usada em runtime.
 
-## 3. Políticas propostas por tabela
+## 3. Políticas por tabela
 
 Legenda: `self` = linha cujo `id`/`userId` pertence ao usuário autenticado.
+
+### `sessions` — APLICADA-TESTE (migration `20260824_rls_sessions`)
+
+| Policy | Comando | Condição |
+|---|---|---|
+| `sessions_owner_select` | SELECT | `"userId" = current_setting('app.current_user_id', true)` |
+| `sessions_service_select` | SELECT | `current_setting('app.current_user_role', true) = 'SERVICE'` |
+
+Prova A≠B (psql, role `app_user` não-superusuário):
+
+| Cenário | Resultado |
+|---|---|
+| `app.current_user_id` = A | vê apenas `rlstest-token-a` (B invisível) |
+| `app.current_user_role` = SERVICE | vê 2 (ambas) |
+| sem contexto | 0 (deny-by-default) |
+
+> Gap registrado: o mecanismo `rls-context.ts` (que definiria
+> `app.current_user_id`/`app.current_user_role` por request na aplicação)
+> **não existe** no repositório. Sem ele, ativar FORCE RLS em produção
+> bloquearia leitura/escrita de `sessions`. Por isso o deploy é adiado.
+
+### Demais tabelas — SPEC PENDENTE
 
 | Tabela | SELECT | INSERT | UPDATE | DELETE |
 |---|---|---|---|---|
 | `users` | self ou admin | auth (registro) | self (perfil) ou admin | admin |
-| `sessions` | self | auth | self | self ou admin |
 | `subscriptions` | self ou admin | sistema/billing | sistema/billing | sistema |
 | `billings` | self ou admin | webhook/sistema | webhook/sistema | admin |
 | `roles` / `permissions` / `user_roles` / `role_permissions` | admin | admin | admin | admin |
@@ -46,18 +66,18 @@ Legenda: `self` = linha cujo `id`/`userId` pertence ao usuário autenticado.
 | `knowledge_graph` | autenticado | admin | admin | admin |
 | `audit_logs` | admin (`audit_logs:read`) | aplicação (append) | **nunca** | **nunca** |
 
-## 4. Roteiro mínimo de implementação (futuro, fora de T347)
+## 4. Roteiro de implementação
 
-1. **T344** — migration aditiva com `CREATE POLICY` por tabela + `ALTER TABLE ... FORCE ROW LEVEL SECURITY`, aplicada via `prisma migrate deploy` em ambiente de teste.
-2. **T345** — teste de integração de isolamento: criar usuários A e B, verificar que A não acessa linhas de B (e vice-versa) em `users`, `sessions`, `subscriptions`, `billings`.
-3. **Rollback** — migration espelhada que remove políticas e `FORCE` antes de qualquer rollback de schema.
+1. **T344 ✅** — migration `20260824_rls_sessions` aplicada em banco de teste; `relforcerowsecurity=true`; prova A≠B registrada.
+2. **T345** — teste de integração de isolamento A≠B (vitest) — escrito; execução bloqueada pelo bug de port-proxy do Docker Desktop (P1000) no host.
+3. **Produção** — somente após implementar o mecanismo de contexto (`rls-context.ts`) e auditoria do app; senão, FORCE RLS quebra a aplicação.
 
 ## 5. Pendências conhecidas
 
 | Item | Estado |
 |---|---|
-| Ambiente PostgreSQL de teste | Pendente do Operador (risco `ENV_MISMATCH`) |
-| `prisma migrate deploy` das migrations pendentes | Pendente do Operador |
-| T344 (migration RLS) | Bloqueada |
-| T345 (teste A≠B) | Bloqueada |
-| Decisão sobre role de aplicação (`app_user`) e mecanismo de contexto (`app.setting` vs JWT claim) | Aberta — registrar em DECISOES.md na implementação |
+| Ambiente PostgreSQL de teste | ✅ disponível (container `almanaque-postgres`) |
+| `prisma migrate deploy` | ✅ aplicado em teste (6 migrations, incluindo `trial_used_at` e `rls_sessions`) |
+| T344 (migration RLS) | ✅ DONE (teste) |
+| T345 (teste A≠B) | ⏳ escrito; execução bloqueada por port-proxy (P1000) |
+| Mecanismo de contexto da aplicação (`rls-context.ts`) | ❌ não existe — pré-requisito para produção |

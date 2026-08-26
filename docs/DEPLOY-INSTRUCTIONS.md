@@ -19,10 +19,11 @@
 - **Resultado:** deployment `n9rf54jdw` → **READY** (27s), commit `8d52bcb`;
   `https://almanaquedosclubes.com` responde **200** servindo o HEAD novo.
 
-## 2. Branch protection (T352) ⚠️ PENDENTE (401)
+## 2. Branch protection (T363) ✅ APLICADO
 
-A tentativa automática falhou (GITHUB_TOKEN 401). Aplicar manualmente —
-instruções completas em `docs/BRANCH-PROTECTION.md`.
+Proteção ativa em `main`: status check `security-gate` (strict), PR com 1
+aprovação, `enforce_admins`, sem force push e sem delete. Detalhes em
+`docs/BRANCH-PROTECTION.md`. Fluxo de merge passa a ser branch + PR + CI verde.
 
 ## 3. Deploys via Railway (T356)
 
@@ -43,28 +44,31 @@ overridável via `RAILWAY_SERVICE`).
 `https://api.almanaquedosclubes.com/api/v1/health` → **200**
 (`{"status":"ok","uptime":~64s}` confirmando o deploy novo).
 
-## 4. Migration `trial_used_at` (T359) ✅ CRIADA — pendente validação em Postgres
+## 4. Migration `trial_used_at` (T359) ✅ VALIDADA em teste (T365)
 
-A migration `20260823_trial_used_at` foi criada em T359 (`ALTER TABLE
-"subscriptions" ADD COLUMN "trial_used_at" TIMESTAMP(3);`) e o modelo
-`Subscription` ganhou `trial_used_at DateTime?` (schema canônico + sqlite).
-`prisma validate` e `typecheck` verdes.
+A migration `20260823_trial_used_at` foi aplicada e validada em Postgres de
+teste vivo: `prisma migrate deploy` aplicou as 6 migrations (incluindo
+`20260823_trial_used_at`) e `migrate status` reportou "Database schema is up
+to date!". **Deploy em produção** (`prisma migrate deploy` no Railway) segue
+como ação do Operador quando decidir ativar a feature de trial.
 
-**Ação restante:** validar com `prisma migrate deploy` em Postgres de teste
-(T365) antes de aplicar em produção. A migration foi escrita manualmente
-(ENV_MISMATCH) e deve ser confirmada em banco vivo.
+## 5. Postgres de teste (T365) ✅ DISPONÍVEL — via rede interna
 
-## 5. Postgres de teste (T354) ⚠️ BLOQUEADA (ENV_MISMATCH)
+Container `almanaque-postgres` (Postgres 16) em execução. **Importante:** o
+port-proxy do Docker Desktop no Windows falha com P1000/P1001 a partir do host
+(bug documentado em DECISOES). Contorno para `prisma migrate`:
 
-O Docker daemon não está acessível neste ambiente
-(`failed to connect ... npipe:////./pipe/dockerDesktopLinuxEngine`).
+```bash
+docker run --rm --network almanaquedosclubes_default \
+  -v "${PWD}/apps/api:/repo" -w /repo \
+  -e DATABASE_URL="postgresql://almanaque:almanaque_dev_2025@almanaque-postgres:5432/almanaque?schema=public" \
+  node:22 sh -c "npx prisma@5.22.0 migrate deploy --schema prisma/schema.prisma"
+```
 
-- **Local (Operador):** iniciar Docker Desktop e rodar
-  `docker compose up -d postgres`. Serviço: `postgres`, porta `5432`, user/senha
-  de teste `almanaque`/`almanaque_dev_2025` (não são credenciais de produção).
-- **Verificação:** `psql postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque -c 'SELECT 1'`.
-- Após disponível, desbloquear T344/T345 (RLS). Não expor a porta fora de
-  localhost.
+- **RLS (T344):** `20260824_rls_sessions` aplicada em teste; `relforcerowsecurity=true`;
+  prova A≠B capturada via psql (owner vê só a própria sessão; SERVICE vê ambas;
+  sem contexto = 0). Deploy em produção **adiado** até implementar o mecanismo de
+  contexto (`rls-context.ts`), que **não existe** no repositório.
 
 ## 6. Ordem recomendada de execução (Operador)
 
