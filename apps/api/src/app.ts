@@ -9,6 +9,7 @@ import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
+import { helmetOptions } from './config/security.js';
 import { logger } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.js';
@@ -80,12 +81,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     encodings: ['gzip', 'deflate', 'br'],
   });
 
-  await app.register(helmet, {
-    contentSecurityPolicy: env.isProd
-      ? { directives: { defaultSrc: ["'self'"], objectSrc: ["'none'"], scriptSrc: ["'self'"] } }
-      : false,
-    hsts: env.isProd ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
-  });
+  await app.register(helmet, helmetOptions(env.isProd));
 
   await app.register(cors, {
     origin: env.isProd
