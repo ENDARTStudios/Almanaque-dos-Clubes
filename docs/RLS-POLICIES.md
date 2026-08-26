@@ -34,25 +34,36 @@
 
 Legenda: `self` = linha cujo `id`/`userId` pertence ao usuário autenticado.
 
-### `sessions` — APLICADA-TESTE (migration `20260824_rls_sessions`)
+### `sessions` — APLICADA-TESTE (migrations `20260824_rls_sessions` + `20260825_rls_sessions_complete`)
 
 | Policy | Comando | Condição |
 |---|---|---|
 | `sessions_owner_select` | SELECT | `"userId" = current_setting('app.current_user_id', true)` |
 | `sessions_service_select` | SELECT | `current_setting('app.current_user_role', true) = 'SERVICE'` |
+| `sessions_select_by_token` | SELECT | `"tokenHash" = NULLIF(current_setting('app.current_token_hash', true), '')` |
+| `sessions_insert_owner` | INSERT | `"userId" = app.current_user_id OR role = 'SERVICE'` |
+| `sessions_update_owner` | UPDATE | `"userId" = app.current_user_id` (USING + CHECK) |
+| `sessions_update_service` | UPDATE | `role = 'SERVICE'` (USING + CHECK) |
+| `sessions_delete_service` | DELETE | `role = 'SERVICE'` |
 
-Prova A≠B (psql, role `app_user` não-superusuário):
+Matriz validada (psql, role `app_user` não-superusuário, banco de teste):
 
 | Cenário | Resultado |
 |---|---|
-| `app.current_user_id` = A | vê apenas `rlstest-token-a` (B invisível) |
-| `app.current_user_role` = SERVICE | vê 2 (ambas) |
-| sem contexto | 0 (deny-by-default) |
+| SELECT owner (A) | 1 (apenas a própria) |
+| SELECT por `tokenHash` (posse) | 1 (sessão do hash) |
+| SELECT sem contexto | 0 (deny) |
+| SELECT cross-user | 0 (deny) |
+| SELECT `tokenHash` vazio | 0 (deny) |
+| INSERT owner | ok |
+| INSERT sem contexto | negado |
+| UPDATE owner / SERVICE | ok |
+| DELETE SERVICE | ok |
 
-> Gap registrado: o mecanismo `rls-context.ts` (que definiria
-> `app.current_user_id`/`app.current_user_role` por request na aplicação)
-> **não existe** no repositório. Sem ele, ativar FORCE RLS em produção
-> bloquearia leitura/escrita de `sessions`. Por isso o deploy é adiado.
+> O caminho pré-auth usa **posse** do hash (`app.current_token_hash`), nunca
+> identidade fornecida pelo cliente. `users` permanece sem RLS (design próprio
+> deferido — `D-2026-08-24-rls-sessions-pre-auth-design`). FORCE RLS segue OFF
+> em produção até a adoção de `withRlsContext` (T371) + staging validation.
 
 ### Demais tabelas — SPEC PENDENTE
 
