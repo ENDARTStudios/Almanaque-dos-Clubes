@@ -18,6 +18,18 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-08-27] Decisão: T381 — Reconciliação do PLANO_MESTRE com o estado real
+Motivo: Com a fila técnica de T3xx zerada, reconciliar o `PLANO_MESTRE.md` com a realidade para dar visibilidade real de progresso ao Operador.
+Metodologia: cada item cruzado com (a) T3xx executadas, (b) arquivos reais, (c) evidência. `[x]` só com evidência; `[~]` com gap; `[ ]` sem evidência.
+Achados principais:
+- Estado real: **111 `[x]`, 7 `[~]`, 6 `[ ]`** (o handoff citava "~80 `[ ]`" — premissa incorreta).
+- `9.4 Plataforma de deploy` marcada `[x]` (Railway + Vercel em produção, T366–T380).
+- `9.9 MANUAL_DO_OPERADOR.md` reescrito (v2.0, T379).
+- Seção "Próximas tarefas" do plano marcada como obsoleta (todos os itens já concluídos).
+- Gaps reais consolidados em `docs/RECONCILIATION-REPORT.md` §6 (2.7, 2.10, 7.9, 7.10, 9.3, 8.8/8.9, Caminho A, FORCE RLS).
+Evidência: contagem de checkboxes e leitura integral do plano; commits T341–T380 no histórico.
+Observação: o projeto está funcionalmente completo para os marcos Beta/Open Beta; as pendências restantes são decisões do Operador, não implementação.
+
 ### [2026-08-27] Decisão: T380 — Caminho B (2ª exceção) executado: merge de 4 branches sem Actions
 Motivo: Operador ordenou prosseguir sem o GitHub Actions (bloqueio account-level persiste). Segunda exceção governada nos moldes de `D-2026-08-24-caminho-b-aprovado-operador`.
 Alternativas consideradas: (a) aguardar Caminho A — descartada por ordem do Operador; (b) merge sem restauração — descartada por enfraquecer o regime; (c) exceção com escopo fechado e restauração imediata — escolhida.

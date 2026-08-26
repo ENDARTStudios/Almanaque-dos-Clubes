@@ -216,9 +216,9 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 - [x] 9.6 Healthcheck HTTP (`/api/v1/health`). ✅
 - [x] 9.7 Backup — script `scripts/backup-db.sh`. ✅ (2026-08-10)
 - [x] 9.8 Plano de resposta a incidentes (`docs/INCIDENT_RESPONSE.md`). ✅ (2026-08-10)
-- [x] 9.9 `MANUAL_DO_OPERADOR.md` entregue. ✅ (2026-08-10)
+- [x] 9.9 `MANUAL_DO_OPERADOR.md` entregue. ✅ (reescrito v2.0 em T379, 2026-08-27)
 - [ ] 9.3 Deploy blue-green ou rolling (zero downtime).
-- [ ] 9.4 Plataforma de deploy (Fly.io/Railway — decidir).
+- [x] 9.4 Plataforma de deploy — **DECIDIDA**: Railway (API, serviço `Almanaque-dos-Clubes`) + Vercel (web, Root Directory `apps/web`). Em produção desde T366–T380. ✅ (reconciliado T381)
 
 ---
 
@@ -306,6 +306,11 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 ---
 
 ## Próximas tarefas (priorizadas)
+
+> ⚠️ **Obsoleto (reconciliado T381, 2026-08-27):** todos os itens abaixo já
+> foram concluídos nas Fases correspondentes (marcados `[x]` acima). Mantido
+> apenas como histórico. As pendências reais estão em
+> `docs/RECONCILIATION-REPORT.md` §6.
 
 1. **Fase 6.1** — Upload seguro (MinIO + ClamAV + validação MIME)
 2. **Fase 6.2** — Fila assíncrona BullMQ + Redis
