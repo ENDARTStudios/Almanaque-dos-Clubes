@@ -96,3 +96,24 @@ jobs:
           # docker tag almanaque-api:${{ github.sha }} registry.fly.io/almanaque-api:${{ github.sha }}
           # docker push registry.fly.io/almanaque-api:${{ github.sha }}
           echo "📦 Imagem almanaque-api:${{ github.sha }} construída"
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    if: hashFiles('pnpm-lock.yaml') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - name: Audit de dependências
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
