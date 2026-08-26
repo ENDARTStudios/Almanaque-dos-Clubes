@@ -1,334 +1,92 @@
 # MANUAL_DO_OPERADOR.md
 
-> Instruções completas para operar o Almanaque dos Clubes em produção.
-> Versão: 1.0 | Data: 2026-08-10
+> Guia operacional do Almanaque dos Clubes, atualizado para refletir a
+> realidade de 2026-08-26 (fase F13-operador-delegacao).
+> Versão: 2.0 | Fonte: commits, `DECISOES.md` e `docs/`.
+> **Não contém segredos.** Para credenciais, use o secret manager.
 
----
+## 1. Produção atual
 
-## Índice
-
-1. [Stack e Dependências](#1-stack-e-dependências)
-2. [Ambientes](#2-ambientes)
-3. [Deploy](#3-deploy)
-4. [Banco de Dados](#4-banco-de-dados)
-5. [Monitoramento](#5-monitoramento)
-6. [Backup](#6-backup)
-7. [Segredos](#7-segredos)
-8. [Troubleshooting](#8-troubleshooting)
-9. [Checklist Diário / Semanal](#9-checklist-diário--semanal)
-
----
-
-## 1. Stack e Dependências
-
-| Componente | Tecnologia | Versão | Porta |
-|---|---|---|---|
-| API | Node.js + Fastify | 24.x / 5.x | 3000 |
-| Frontend | Next.js | 16.x | 3001 |
-| Banco | PostgreSQL | 16 | 5432 |
-| Cache/Fila | Redis | 7 | 6379 |
-| Storage | MinIO (S3) | latest | 9000 |
-| Worker | BullMQ | 5.x | — |
-| Proxy | Caddy / Nginx | — | 443 |
-
-### Docker Compose (desenvolvimento local)
-
-```bash
-docker compose up -d
-```
-
-Serviços iniciados: PostgreSQL + MinIO + Redis.
-
-### Scripts Úteis
-
-```bash
-# Desenvolvimento
-pnpm dev              # Inicia API + Frontend em paralelo
-pnpm db:migrate       # Roda migrations Prisma
-pnpm db:seed          # Popula banco com dados iniciais
-
-# Verificação
-pnpm typecheck        # TypeScript strict check
-pnpm lint             # ESLint + Prettier
-pnpm test             # Todos os testes (unit + integração)
-
-# Workers (em terminais separados)
-pnpm --filter @almanaque/worker dev:etl
-pnpm --filter @almanaque/worker dev:email
-```
-
----
-
-## 2. Ambientes
-
-### Desenvolvimento (local)
-
-| Variável | Arquivo | Valor |
+| Frente | Onde | Como verificar |
 |---|---|---|
-| `NODE_ENV` | `.env` | `development` |
-| `DATABASE_URL` | `.env` | PostgreSQL local |
-| `S3_ENDPOINT` | `.env` | `http://localhost:9000` |
+| Frontend | Vercel — `https://almanaquedosclubes.com` | `curl -sI https://almanaquedosclubes.com` → `HTTP/1.1 200 OK` |
+| API | Railway — serviço `Almanaque-dos-Clubes` — `https://api.almanaquedosclubes.com` | `curl -s https://api.almanaquedosclubes.com/api/v1/health` → `{"status":"ok",...}` |
 
-### Staging (Fly.io / Railway)
+- Root Directory do projeto Vercel = `apps/web` (corrigido em T351).
+- `main` protegida: check `security-gate` obrigatório, `approvals=0` (repo de
+  um único contribuidor), `enforce_admins`, sem force push/delete.
+- Produção é **independente** do GitHub Actions: Vercel e Railway não caem se o
+  CI estiver vermelho.
 
-| Config | Ação |
-|---|---|
-| Deploy automático | Push em `main` → CI roda → Deploy staging |
-| URL staging | `https://staging.almanaque.app` |
-| Banco staging | PostgreSQL gerenciado (Fly.io/Railway) |
+## 2. Fila de branches e ordem de merge
 
-### Produção
+Tudo entra em `main` por **PR** (push direto bloqueado). Branches aguardando:
 
-| Config | Ação |
-|---|---|
-| Deploy manual | Operador aprova promoção staging→produção |
-| URL produção | `https://almanaque.app` |
-| Domínio | Pendente (PENDENCIAS_OPERADOR.md item 1) |
-
----
-
-## 3. Deploy
-
-### Pipeline CI/CD
-
-O repositório possui GitHub Actions configurados em `.github/workflows/`:
-
-| Workflow | Trigger | Ações |
+| Ordem | Branch | Conteúdo |
 |---|---|---|
-| `ci.yml` | Push/PR em `main` | Lint → Typecheck → Testes → Security Gate |
-| `dast.yml` | Semanal (domingo) | OWASP ZAP scan no staging |
-
-### Deploy Manual (produção)
-
-```bash
-# 1. Build da API
-pnpm --filter @almanaque/api build
-
-# 2. Build do Frontend
-pnpm --filter web build
-
-# 3. Docker build (opcional)
-docker build -t almanaque-api:latest -f apps/api/Dockerfile .
-docker build -t almanaque-web:latest -f apps/web/Dockerfile .
-
-# 4. Push para registro
-docker push registry.fly.io/almanaque-api:latest
-
-# 5. Deploy
-fly deploy
-```
-
-### Healthcheck
-
-```
-GET /api/v1/health
-→ 200 { "status": "ok", "timestamp": "2026-08-10T..." }
-```
-
----
-
-## 4. Banco de Dados
-
-### Migrations
-
-```bash
-# PostgreSQL (produção/Docker)
-prisma migrate deploy --schema=prisma/schema.prisma
-
-# SQLite (sandbox/dev)
-prisma migrate dev --schema=prisma/schema.sqlite.prisma
-```
-
-### Migration PostgreSQL (Windows)
-
-```powershell
-pwsh ./scripts/migrate.ps1
-```
-
-Este script executa em sequência:
-1. Cria extensões (uuid-ossp, pgcrypto, pg_trgm)
-2. Aplica migrations Prisma
-3. Gera Prisma Client
-4. Popula seed data
-5. Cria índices full-text
-
-### Seed
-
-```bash
-pnpm db:seed
-```
-
-Dados inseridos: 10 clubes brasileiros, 3 competições, 2 rankings, 3 roles (admin/pro/free), 18 permissões.
-
-### Reset do Banco (desenvolvimento)
-
-```bash
-npx prisma migrate reset --schema=prisma/schema.sqlite.prisma
-pnpm db:seed
-```
-
----
-
-## 5. Monitoramento
-
-### Endpoints
-
-| Rota | Descrição |
-|---|---|
-| `GET /api/v1/health` | Healthcheck básico |
-| `GET /api/v1/metrics` | Métricas de processo (memória, CPU, uptime) |
-| `GET /api/v1/clubs` | Smoke test de dados (lista paginada) |
-
-### Logs
-
-A API usa **Pino** como logger estruturado. Níveis:
-
-| Nível | Uso |
-|---|---|
-| `fatal` | Falha ao iniciar servidor |
-| `error` | Erros não tratados, auditoria falha |
-| `warn` | Rate-limit excedido, refresh token reuso |
-| `info` | Login, registro, operações CRUD |
-| `debug` | Queries Prisma (dev apenas) |
-
-### Alertas (recomendados para produção)
-
-| Condição | Canal | Ação |
-|---|---|---|
-| 5xx > 1% em 5 min | Email/Slack | Investigar erro no servidor |
-| Auth failures > 50 em 1 min | Email/Slack | Possível ataque de força bruta |
-| Uptime check falhou | SMS/Pager | Servidor pode estar offline |
-| Disk usage > 80% | Email | Aumentar armazenamento |
-| SSL expirando em < 30 dias | Email | Renovar certificado |
-
----
-
-## 6. Backup
-
-### PostgreSQL
-
-```bash
-# Backup manual
-pg_dump -U almanaque -h localhost almanaque > backup-$(date +%Y-%m-%d).sql
-
-# Restore
-psql -U almanaque -h localhost almanaque < backup-2026-08-10.sql
-```
-
-### MinIO (uploads)
-
-```bash
-# Backup de bucket
-mc cp --recursive local/almanaque-uploads/ backups/uploads-$(date +%Y-%m-%d)/
-```
-
-### Retenção
-
-| Tipo | Frequência | Retenção |
-|---|---|---|
-| Banco completo | Diária | 30 dias |
-| WAL arquive | Contínua | 7 dias |
-| Uploads | Semanal | 90 dias |
-
----
-
-## 7. Segredos
-
-### Variáveis de Ambiente Obrigatórias
-
-| Variável | Onde obter | Rotação |
-|---|---|---|
-| `JWT_SECRET` | `openssl rand -base64 48` | 90 dias |
-| `JWT_REFRESH_SECRET` | `openssl rand -base64 48` (diferente do acima) | 90 dias |
-| `DATABASE_URL` | Painel do provedor de banco | — |
-| `S3_ACCESS_KEY_ID` | MinIO console / Cloudflare R2 | 180 dias |
-| `S3_SECRET_ACCESS_KEY` | MinIO console / Cloudflare R2 | 180 dias |
-
-### Provedores Recomendados
-
-| Serviço | Gratuito? | Plano |
-|---|---|---|
-| **Fly.io** | ✅ $5/mês crédito | Postgres + Redis + 3 apps |
-| **Railway** | ✅ $5/mês | Postgres + Redis |
-| **Cloudflare R2** | ✅ 10GB | Armazenamento S3 |
-| **Better Stack** | ✅ | Uptime + Logs |
-| **UptimeRobot** | ✅ 50 monitores | Healthcheck |
-
----
-
-## 8. Troubleshooting
-
-### Problema: API não inicia
-
-```bash
-# Verificar logs
-pnpm --filter @almanaque/api dev
-# Erro comum: DATABASE_URL inválida ou PostgreSQL não está rodando
-docker compose ps
-```
-
-### Problema: Migration falha
-
-```bash
-# Verificar se PostgreSQL está acessível
-psql -U almanaque -h localhost -d almanaque -c "SELECT 1"
-
-# Resetar migration (apenas dev!)
-npx prisma migrate reset --schema=prisma/schema.prisma
-```
-
-### Problema: Upload falha
-
-```bash
-# Verificar se MinIO está rodando
-curl http://localhost:9000/minio/health/live
-
-# Verificar credenciais S3
-mc alias set local http://localhost:9000 almanaque almanaque_dev_2025
-mc ls local/almanaque-uploads/
-```
-
-### Problema: Redis indisponível
-
-A aplicação **não quebra** sem Redis — cache e fila operam em modo degradado:
-- Cache: sempre miss (busca direto no banco)
-- Fila: jobs falham silenciosamente
-
-Para restaurar:
-```bash
-docker compose up -d redis
-```
-
----
-
-## 9. Checklist Diário / Semanal
-
-### ☐ Diário
-
-- [ ] Healthcheck responde `200` (`curl https://api.almanaque.app/api/v1/health`)
-- [ ] Nenhum erro 5xx nas últimas 24h
-- [ ] Backup do banco foi executado (`ls -la backups/`)
-- [ ] Workers ETL estão rodando
-
-### ☐ Semanal
-
-- [ ] Revisar logs de erro do Pino
-- [ ] Verificar espaço em disco (`df -h`)
-- [ ] Atualizar dependências (`pnpm audit`)
-- [ ] Verificar certificado SSL (`openssl s_client -connect almanaque.app:443`)
-- [ ] Rodar OWASP ZAP scan (automático via GitHub Actions)
-
-### ☐ Mensal
-
-- [ ] Revisar e rodar nova migration Prisma se houver
-- [ ] Renovar segredos JWT (se > 80 dias desde última rotação)
-- [ ] Testar restore de backup
-- [ ] Revisar custos de infraestrutura
-- [ ] Atualizar SECURITY.md se necessário
-
-### ☐ Trimestral
-
-- [ ] Auditoria de segurança completa
-- [ ] Teste de penetração (pentest)
-- [ ] Revisão de dependências obsoletas
-- [ ] Atualizar documentação do operador
+| — | `feat/ci-hardening` | T378 — gates gitleaks (bloqueante) + dependency-audit (não-bloqueante) |
+| 1º | `feat/rls-sessions-policies` | T377 — policies RLS completas de `sessions` |
+| 2º | `feat/rls-bulk-adoption` | T371 — adoção de `withRlsContext` nos fluxos de sessão |
+
+A ordem **T377 → T371** é obrigatória (a adoção depende das policies). O merge
+só acontece com `security-gate` verde (ver §3) ou por Caminho B explícito.
+
+## 3. CI `security-gate` vermelho (o que fazer)
+
+**Causa conhecida:** falha **pré-runner / account-level** — o GitHub Actions não
+executa nem o primeiro step, em qualquer workflow (confirmado por oracle T375,
+com zero beacons chegando à API própria). Não é problema de código.
+
+Duas saídas (ambas documentadas em `DECISOES.md`):
+
+- **Caminho A (recomendado):** abrir `Settings → Actions → Billing` e verificar
+  minutos usados vs. incluídos e o estado do pagamento. Corrigir o billing
+  reativa o CI e destrava todos os merges.
+- **Caminho B (exceção governada):** relaxar temporariamente a proteção de
+  `main`, mergear os PRs aprovados e restaurar a proteção em seguida — como em
+  T376. Exige aprovação explícita do Operador e registro before/after.
+
+## 4. RLS (Row-Level Security)
+
+- **Status: FORCE RLS está OFF em produção.**
+- Policies de `sessions` já **validadas em banco de teste** (T344 + T377):
+  SELECT por dono/posse/SERVICE, INSERT por dono, UPDATE por dono/SERVICE,
+  DELETE por SERVICE. Acesso cross-user é negado (deny-by-default).
+- `users` **não** tem RLS (design deferido).
+- **Enablement em produção exige, cumulativamente**
+  (`D-2026-08-24-rls-enforcement-exige-app-user`):
+  1. a aplicação conectar como role **não-superusuária** (`app_user`), com o
+     segredo no secret manager;
+  2. ciclo completo de auth **verde em staging** sob FORCE RLS;
+  3. decisão explícita do Operador.
+
+Não habilite FORCE RLS antes disso — quebraria o fluxo de auth (escritas sem
+policy e busca pré-auth).
+
+## 5. Segredos e rotação de token
+
+- **Rotacionar o token GitHub antigo** (usado em handoffs anteriores; ainda
+  ativo). A revogação é pendência do Operador — ação de UI que o token não faz
+  sobre si mesmo.
+- Regras: tokens nunca em código, commits ou documentação; sempre via ambiente
+  ou secret manager; nunca ecoar tokens em logs.
+- Gitleaks (bloqueante, via T378) passa a detectar segredos no CI quando o
+  Actions voltar.
+
+## 6. Resposta a incidentes
+
+Siga `docs/INCIDENT_RESPONSE.md`. Pontos rápidos:
+
+- Produção (Vercel/Railway) é independente do CI; um `security-gate` vermelho
+  **não** derruba o site nem a API.
+- Rollback de frontend = redeploy do commit anterior no Vercel; rollback de API
+  = `railway up` do commit anterior (scripts em `scripts/deploy-*.sh`).
+
+## 7. Pendências atuais do Operador
+
+1. **Caminho A** — resolver Actions/billing para reativar o CI e destravar os
+   merges das 3 branches (§2).
+2. **Revogar o token GitHub antigo** (§5).
+3. (Opcional) quando o CI voltar, decidir a virada do `dependency-audit` para
+   gate bloqueante, após sanar os achados existentes.
+4. (Futuro) decidir o enablement de FORCE RLS em produção conforme §4.
