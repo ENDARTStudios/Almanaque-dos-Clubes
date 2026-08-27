@@ -15,6 +15,7 @@
 import { config } from 'dotenv';
 import { z } from 'zod';
 import { randomBytes } from 'node:crypto';
+import { assertRateLimitGuard } from './http-hardening.js';
 
 // Carrega .env a partir da raiz do monorepo (3 níveis acima de apps/api/src/config/)
 // ou do diretório atual (fallback).
@@ -161,6 +162,10 @@ const parsed = envSchema.parse({
   prismaSchemaProvider: process.env.PRISMA_SCHEMA_PROVIDER,
   rateLimitDisabled: process.env.RATE_LIMIT_DISABLED,
 });
+
+// Guarda de produção (T385): RATE_LIMIT_DISABLED é escape hatch de dev/teste
+// e não pode existir com NODE_ENV=production — falha o boot com erro claro.
+assertRateLimitGuard(parsed.nodeEnv, parsed.rateLimitDisabled);
 
 // =============================================================================
 // EXPORT
