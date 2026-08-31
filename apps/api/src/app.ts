@@ -5,6 +5,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
+import { rateLimitByUserOrIp, AUTH_WINDOW } from './config/rate-limit.js';
 import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -51,6 +52,16 @@ export async function buildApp(): Promise<FastifyInstance> {
           retryAfter: context.after,
         },
       }),
+    });
+  }
+
+  // Rate limiting avançado (7.3): janela deslizante por usuário+IP em /auth/*
+  // (complementa o brute-force por IP+email do login — rate-limit.service.ts).
+  if (!env.rateLimitDisabled) {
+    app.addHook('onRequest', async (request, reply) => {
+      const url = request.raw.url ?? '';
+      if (!url.startsWith('/api/v1/auth/')) return;
+      await rateLimitByUserOrIp(AUTH_WINDOW)(request, reply);
     });
   }
 
