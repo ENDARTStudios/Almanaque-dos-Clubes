@@ -2,16 +2,18 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGsapFadeIn } from '@/hooks/useGsap';
+import { useI18n } from '@/i18n/Provider';
 
-export default function SearchBar({ placeholder = 'Buscar clubes, jogadores, competições...' }) {
+export default function SearchBar({ placeholderKey = 'pages.search.placeholder' }: { placeholderKey?: string }) {
   const [query, setQuery] = useState('');
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
   useGsapFadeIn(ref);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (query.trim()) router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    if (query.trim()) router.push('/search?q=' + encodeURIComponent(query.trim()));
   }
 
   return (
@@ -27,7 +29,7 @@ export default function SearchBar({ placeholder = 'Buscar clubes, jogadores, com
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={placeholder}
+            placeholder={t(placeholderKey)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-border rounded-xl text-foreground placeholder:text-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none"
           />
         </div>

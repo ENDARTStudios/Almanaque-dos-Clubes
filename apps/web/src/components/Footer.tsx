@@ -1,39 +1,109 @@
+'use client';
 import Link from 'next/link';
-
-const footerSections = [
-  { title: 'Plataforma', links: [{ href: '/clubs', label: 'Clubes' }, { href: '/players', label: 'Jogadores' }, { href: '/rankings', label: 'Rankings' }, { href: '/search', label: 'Busca Avançada' }] },
-  { title: 'Sobre', links: [{ href: '#', label: 'Sobre nós' }, { href: '#', label: 'Planos' }, { href: '#', label: 'API' }, { href: '#', label: 'Blog' }] },
-  { title: 'Legal', links: [{ href: '#', label: 'Privacidade' }, { href: '#', label: 'Termos' }, { href: '#', label: 'Segurança' }] },
-];
+import { useI18n } from '@/i18n/Provider';
+import { LOCALE_FLAGS, type Locale } from '@/i18n/config';
+import { Mail, Send } from 'lucide-react';
 
 export default function Footer() {
+  const { t, locale, setLocale } = useI18n();
+
+  const platformLinks = [
+    { href: '/clubs', label: t('footer.platformClubs') },
+    { href: '/players', label: t('footer.platformPlayers') },
+    { href: '/rankings', label: t('footer.platformRankings') },
+    { href: '/search', label: t('footer.platformSearch') },
+  ];
+
+  const aboutLinks = [
+    { href: '#', label: t('footer.aboutUs') },
+    { href: '#', label: t('footer.plans') },
+    { href: '#', label: t('footer.api') },
+    { href: '#', label: t('footer.blog') },
+  ];
+
+  const legalLinks = [
+    { href: '/privacidade', label: t('footer.privacy') },
+    { href: '/termos', label: t('footer.terms') },
+    { href: '/privacidade#seguranca', label: t('footer.security') },
+  ];
+
   return (
     <footer className="bg-foreground text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <span className="text-2xl font-heading font-bold text-primary">ALMANAQUE</span>
-            <p className="mt-2 text-sm text-white/60 max-w-xs">
-              A história completa do futebol mundial ao seu alcance. Clubes, jogadores, competições e rankings auditáveis.
-            </p>
+            <p className="mt-2 text-sm text-white/60 max-w-xs">{t('footer.tagline')}</p>
           </div>
-          {footerSections.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-sm font-semibold text-white/80 mb-3">{section.title}</h3>
-              <ul className="space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.platformTitle')}</h3>
+            <ul className="space-y-2">
+              {platformLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.aboutTitle')}</h3>
+            <ul className="space-y-2">
+              {aboutLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <a href="mailto:endart.studios@gmail.com" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200">
+                  <Mail className="w-3.5 h-3.5" /> {t('footer.contact')}
+                </a>
+              </li>
+              <li>
+                <a href="https://t.me/AlmanaqueDosClubes" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200">
+                  <Send className="w-3.5 h-3.5" /> {t('footer.telegram')}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.legalTitle')}</h3>
+            <ul className="space-y-2">
+              {legalLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex items-center gap-2">
+              {(['pt-br', 'en-us', 'es-es'] as Locale[]).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLocale(l)}
+                  aria-label={l}
+                  className={`text-lg leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
+                  title={l}
+                >
+                  {LOCALE_FLAGS[l]}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-white/40">
-          © {new Date().getFullYear()} Almanaque dos Clubes. Todos os direitos reservados.
+
+        <div className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-white/40">
+          <span>{t('footer.copyright')}</span>
+          <span className="text-center sm:text-right">
+            END ART Studios · CNPJ 45.370.930/0001-75 · Osasco, SP — Brasil
+          </span>
         </div>
       </div>
     </footer>

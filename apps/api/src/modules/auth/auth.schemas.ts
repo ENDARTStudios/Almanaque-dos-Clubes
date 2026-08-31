@@ -28,6 +28,12 @@ export const RegisterSchema = z.object({
     .min(2, 'Nome deve ter no mínimo 2 caracteres')
     .max(100, 'Nome muito longo (máx 100)')
     .optional(),
+  acceptedTerms: z
+    .boolean()
+    .refine((v) => v === true, 'É necessário aceitar os Termos de Uso e Serviço'),
+  acceptedPrivacy: z
+    .boolean()
+    .refine((v) => v === true, 'É necessário aceitar a Política de Privacidade (LGPD)'),
 });
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;

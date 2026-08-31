@@ -3,31 +3,26 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { BookOpen, Trophy, Search, Brain, BarChart3, Globe } from 'lucide-react';
 import { useGsapFadeIn, useGsapStagger } from '@/hooks/useGsap';
+import { useI18n } from '@/i18n/Provider';
 
-const stats = [
-  { value: '50k+', label: 'Clubes cadastrados' },
-  { value: '200k+', label: 'Jogadores registrados' },
-  { value: '10k+', label: 'Competições históricas' },
-  { value: '1M+', label: 'Partidas catalogadas' },
-] as const;
-
-const features = [
-  { title: 'História Completa', desc: 'Acesse o acervo completo de clubes, jogadores e competições desde o século XIX.', icon: BookOpen },
-  { title: 'Rankings Auditáveis', desc: 'Rankings históricos com fontes verificadas e data de publicação.', icon: Trophy },
-  { title: 'Busca Inteligente', desc: 'Busca textual avançada com índices full-text e fuzzy search.', icon: Search },
-  { title: 'IA com Citações', desc: 'Pergunte sobre futebol e receba respostas com fontes verificáveis.', icon: Brain },
-  { title: 'Dados Estruturados', desc: 'API REST com dados normalizados e paginação cursor-based.', icon: BarChart3 },
-  { title: 'Multi-idioma', desc: 'Suporte a clubes e competições de todos os países e federações.', icon: Globe },
-] as const;
+const featureIcons = [BookOpen, Trophy, Search, Brain, BarChart3, Globe];
 
 export default function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
+  const { t, dict } = useI18n();
 
   useGsapFadeIn(heroRef);
   useGsapStagger(statsRef, '.stat-item');
   useGsapStagger(featuresRef, '.feature-card');
+
+  const stats = [
+    { value: '50k+', label: t('home.stats.clubs') },
+    { value: '200k+', label: t('home.stats.players') },
+    { value: '10k+', label: t('home.stats.competitions') },
+    { value: '1M+', label: t('home.stats.matches') },
+  ];
 
   return (
     <>
@@ -36,19 +31,19 @@ export default function HeroSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-foreground text-balance leading-tight">
-              A História do Futebol<br />
-              <span className="text-primary">num Só Lugar</span>
+              {t('home.heroTitle')}
+              <br />
+              <span className="text-primary">{t('home.heroTitleAccent')}</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-foreground/70 max-w-2xl mx-auto text-balance">
-              O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores,
-              competições e rankings com inteligência artificial e fontes verificadas.
+              {t('home.heroSubtitle')}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/search" className="bg-primary text-on-primary px-8 py-3 rounded-lg text-base font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg">
-                Começar Pesquisa
+                {t('home.ctaSearch')}
               </Link>
               <Link href="/auth/register" className="border-2 border-primary text-primary px-8 py-3 rounded-lg text-base font-semibold hover:bg-primary/5 transition-all duration-200 cursor-pointer">
-                Criar Conta Gratuita
+                {t('home.ctaRegister')}
               </Link>
             </div>
           </div>
@@ -69,19 +64,16 @@ export default function HeroSection() {
       <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-foreground mb-4">
-            Tudo sobre o Futebol Mundial
+            {t('home.featuresTitle')}
           </h2>
           <p className="text-center text-foreground/60 max-w-xl mx-auto mb-12">
-            Dados históricos completos com ferramentas modernas de busca e análise.
+            {t('home.featuresSubtitle')}
           </p>
           <div ref={featuresRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feat) => {
-              const Icon = feat.icon;
+            {dict.home.features.map((feat, index) => {
+              const Icon = featureIcons[index % featureIcons.length];
               return (
-                <div
-                  key={feat.title}
-                  className="feature-card bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border border-border/50"
-                >
+                <div key={index} className="feature-card bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border border-border/50">
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
                     <Icon className="w-6 h-6" />
                   </div>
