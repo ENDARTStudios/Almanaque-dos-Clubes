@@ -98,6 +98,36 @@ const es: Dictionary = {
     players: { title: 'Jugadores', subtitle: 'Busca jugadores de fútbol de todas las épocas y lugares.', placeholder: 'Buscar jugadores por nombre, país o posición...' },
     rankings: { title: 'Rankings', subtitle: 'Rankings históricos con fuentes verificadas y fecha de publicación.' },
     search: { title: 'Búsqueda Avanzada', subtitle: 'Busca clubes, jugadores, competiciones y estadísticas con filtros avanzados.', placeholder: 'Escribe un término para buscar...' },
+    sobre: {
+      title: 'Sobre nosotros',
+      intro: 'Almanaque dos Clubes es una plataforma digital dedicada a la investigación y organización de información histórica sobre fútbol. Reunimos datos sobre clubes, jugadores, competiciones, partidos y rankings, con herramientas de búsqueda y funciones asistidas por inteligencia artificial.',
+      sections: [
+        { title: 'Nuestro compromiso', body: ['Nuestro compromiso es ofrecer una experiencia útil, transparente y responsable. La información puede recopilarse de fuentes públicas, bases licenciadas, contribuciones de usuarios y procesos internos de revisión. La existencia de una fuente o cita no implica que el Almanaque respalde todo su contenido ni que cada registro esté libre de errores.', 'La fecha de actualización y, cuando esté disponible, la fuente de cada información deben consultarse en la propia página del registro.'] },
+        { title: 'No somos un organismo oficial', body: ['El Almanaque no es un organismo oficial de ninguna federación, club, liga, atleta o competición, salvo indicación expresa. Los nombres, marcas, escudos, imágenes y otros signos pertenecientes a terceros permanecen en manos de sus respectivos titulares.', 'El uso nominativo o informativo no implica patrocinio, afiliación ni autorización, y el material protegido solo debe utilizarse con licencia, autorización, base legal o finalidad permitida.'] },
+        { title: 'Operación e identificación', body: ['La operación y la prestación de los servicios son realizadas por END ART Studios — CNPJ 45.370.930/0001-75, Osasco, SP — Brasil. Para soporte, contenido, privacidad o seguridad, utilice los canales del pie de página y de las páginas correspondientes.'] },
+      ],
+    },
+    planos: {
+      title: 'Planes',
+      intro: 'Almanaque dos Clubes ofrece planes gratuitos y de pago. Los valores y condiciones siguientes están sujetos a confirmación y deben leerse antes de cualquier contratación.',
+      sections: [
+        { title: 'Free — R$ 0,00', body: ['Funciones gratuitas indicadas en la página, sujetas a límites técnicos razonables informados previamente.'] },
+        { title: 'Pro — R$ 4,90', body: ['Cobro [mensual/anual], solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
+        { title: 'Elite — R$ 9,90', body: ['Cobro [mensual/anual], solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
+        { title: 'Contratación transparente', body: ['La suscripción solo se completará tras ver un resumen con plan, precio total, periodicidad, renovación, forma de pago, limitaciones relevantes y política de cancelación.', 'El consumidor puede cancelar la renovación por los mismos medios utilizados para contratar, sin necesidad de justificación. Se respetará el derecho legal de desistimiento.', 'No habrá aumento de precio, reducción sustancial de funciones ni cambio de periodicidad sin aviso previo claro. Free no debe convertirse automáticamente en plan de pago.'] },
+      ],
+      note: 'Los valores, la periodicidad, los impuestos y los límites de los planes deben confirmarse y publicarse en la página de Planes antes de cualquier cobro.',
+    },
+    seguranca: {
+      title: 'Seguridad y Vulnerabilidades',
+      intro: 'La seguridad es una responsabilidad compartida. Esta página describe los controles adoptados y el canal para informar vulnerabilidades.',
+      sections: [
+        { title: 'Controles adoptados', body: ['Adoptamos controles proporcionales al riesgo: autenticación segura, contraseñas con hash fuerte y sal, protección de sesión, TLS, gestión de secretos fuera del código, principio de mínimo privilegio, registros protegidos, copias de seguridad probadas, parches y dependencias actualizadas, revisión de permisos, segregación de entornos, monitoreo, limitación de tasa y plan de continuidad.'] },
+        { title: 'Reporte de vulnerabilidades', body: ['Las vulnerabilidades pueden reportarse en security@almanaquedosclubes.com. Indique el activo afectado, pasos reproducibles, impacto, evidencia mínima y contacto.', 'No acceda, altere, elimine ni exfiltre datos más allá de lo necesario para demostrar el problema, ni provoque caídas, ingeniería social o pruebas contra terceros.'] },
+        { title: 'Respuesta y divulgación', body: ['Acusaremos recibo, investigaremos, preservaremos evidencia, corregiremos o mitigaremos e informaremos el estado en un plazo razonable. Se prefiere la divulgación coordinada.'] },
+        { title: 'Incidentes con datos personales', body: ['Ante un incidente con datos personales, clasificamos el riesgo, contenemos el evento, preservamos registros, restablecemos credenciales, evaluamos a los titulares afectados, registramos decisiones y cumplimos los deberes de comunicación de la LGPD y la ANPD.'] },
+      ],
+    },
   },
   langSelector: { label: 'Idioma', current: 'Idioma actual' },
   legal: {

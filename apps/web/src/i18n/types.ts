@@ -88,6 +88,9 @@ export interface Dictionary {
     players: { title: string; subtitle: string; placeholder: string };
     rankings: { title: string; subtitle: string };
     search: { title: string; subtitle: string; placeholder: string };
+    sobre: { title: string; intro: string; sections: LegalSection[] };
+    planos: { title: string; intro: string; sections: LegalSection[]; note: string };
+    seguranca: { title: string; intro: string; sections: LegalSection[] };
   };
   legal: {
     updatedLabel: string;

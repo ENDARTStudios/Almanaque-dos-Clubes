@@ -98,6 +98,36 @@ const en: Dictionary = {
     players: { title: 'Players', subtitle: 'Search football players from all eras and places.', placeholder: 'Search players by name, country or position...' },
     rankings: { title: 'Rankings', subtitle: 'Historical rankings with verified sources and publication dates.' },
     search: { title: 'Advanced Search', subtitle: 'Search clubs, players, competitions and statistics with advanced filters.', placeholder: 'Type a term to search...' },
+    sobre: {
+      title: 'About us',
+      intro: 'Almanaque dos Clubes is a digital platform dedicated to researching and organising historical football information. We collect data on clubs, players, competitions, matches and rankings, with search tools and AI-assisted features.',
+      sections: [
+        { title: 'Our commitment', body: ['Our commitment is to offer a useful, transparent and responsible experience. Information may be compiled from public sources, licensed databases, user contributions and internal review processes. The existence of a source or citation does not mean Almanaque endorses all of its content, nor that every record is free of error.', 'The update date and, when available, the source of each piece of information should be consulted on the record page itself.'] },
+        { title: 'Not an official body', body: ['Almanaque is not an official body of any federation, club, league, athlete or competition, unless expressly stated. Names, brands, crests, images and other signs belonging to third parties remain with their respective owners.', 'Nominative or informational use does not imply sponsorship, affiliation or authorisation, and protected material should only be used under licence, authorisation, legal basis or permitted purpose.'] },
+        { title: 'Operation and identification', body: ['The operation and provision of the services are carried out by END ART Studios — CNPJ 45.370.930/0001-75, Osasco, SP — Brazil. For support, content, privacy or security matters, use the channels shown in the footer and on the relevant pages.'] },
+      ],
+    },
+    planos: {
+      title: 'Plans',
+      intro: 'Almanaque dos Clubes offers free and paid plans. The values and conditions below are subject to confirmation and must be read before any purchase.',
+      sections: [
+        { title: 'Free — R$ 0.00', body: ['Free features shown on the page, subject to reasonable technical limits notified in advance.'] },
+        { title: 'Pro — R$ 4.90', body: ['Billing [monthly/yearly], only after the consumer expressly confirms; features and limits described before payment.'] },
+        { title: 'Elite — R$ 9.90', body: ['Billing [monthly/yearly], only after the consumer expressly confirms; features and limits described before payment.'] },
+        { title: 'Transparent contracting', body: ['A subscription is only completed after the consumer sees a summary with plan, total price, frequency, renewal, payment method, relevant limitations and cancellation policy.', 'The consumer may cancel renewal through the same means used to subscribe, without justification. The statutory right of withdrawal will be respected.', 'There will be no price increase, substantial feature reduction or change in frequency without clear prior notice. Free must not be automatically converted into a paid plan.'] },
+      ],
+      note: 'Plan values, frequency, taxes and limits must be confirmed and published on the Plans page before any charge.',
+    },
+    seguranca: {
+      title: 'Security and Vulnerabilities',
+      intro: 'Security is a shared responsibility. This page describes the controls in place and the channel for reporting vulnerabilities.',
+      sections: [
+        { title: 'Controls in place', body: ['We adopt controls proportionate to risk: secure authentication, passwords with strong salted hashing, session protection, TLS, secret management outside code, principle of least privilege, protected logs, tested backups, patches and updated dependencies, permission review, environment separation, monitoring, rate limiting and a continuity plan.'] },
+        { title: 'Reporting vulnerabilities', body: ['Vulnerabilities may be reported at security@almanaquedosclubes.com. Include the affected asset, reproducible steps, impact, minimum evidence and contact details.', 'Do not access, alter, delete or exfiltrate data beyond what is necessary to demonstrate the issue, nor cause outages, social engineering or tests on third parties.'] },
+        { title: 'Response and disclosure', body: ['We will acknowledge receipt, investigate, preserve evidence, fix or mitigate and report the status within a reasonable time. Coordinated disclosure is preferred.'] },
+        { title: 'Personal data incidents', body: ['In the event of a personal data incident, we classify the risk, contain the event, preserve logs, reset credentials, assess affected data subjects, record decisions and comply with the LGPD and ANPD communication duties.'] },
+      ],
+    },
   },
   langSelector: { label: 'Language', current: 'Current language' },
   legal: {

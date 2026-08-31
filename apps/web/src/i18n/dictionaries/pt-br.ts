@@ -98,6 +98,48 @@ const pt: Dictionary = {
     players: { title: 'Jogadores', subtitle: 'Pesquise jogadores de futebol de todos os tempos e lugares.', placeholder: 'Buscar jogadores por nome, país ou posição...' },
     rankings: { title: 'Rankings', subtitle: 'Rankings históricos com fontes verificadas e data de publicação.' },
     search: { title: 'Busca Avançada', subtitle: 'Pesquise clubes, jogadores, competições e estatísticas com filtros avançados.', placeholder: 'Digite um termo para buscar...' },
+    sobre: {
+      title: 'Sobre nós',
+      intro: 'O Almanaque dos Clubes é uma plataforma digital dedicada à pesquisa e organização de informações históricas sobre futebol. Reunimos dados sobre clubes, jogadores, competições, partidas e rankings, com ferramentas de busca e recursos assistidos por inteligência artificial.',
+      sections: [
+        { title: 'Nosso compromisso', body: [
+          'Nosso compromisso é oferecer uma experiência útil, transparente e responsável. As informações podem ser compiladas de fontes públicas, bases licenciadas, contribuições de usuários e processos internos de revisão. A existência de uma fonte ou citação não significa que o Almanaque endosse todos os seus conteúdos, nem que cada registro esteja livre de erro.',
+          'A data de atualização e, quando disponível, a fonte de cada informação devem ser consultadas na própria página do registro.',
+        ]},
+        { title: 'Não somos órgão oficial', body: [
+          'O Almanaque não é órgão oficial de federação, clube, liga, atleta ou competição, salvo indicação expressa. Nomes, marcas, escudos, imagens e outros sinais pertencentes a terceiros permanecem de seus respectivos titulares.',
+          'O uso nominativo ou informativo não implica patrocínio, afiliação ou autorização, e os materiais protegidos devem ser utilizados somente com licença, autorização, base legal ou finalidade permitida.',
+        ]},
+        { title: 'Operação e identificação', body: [
+          'A operação e o fornecimento dos serviços são realizados por END ART Studios — CNPJ 45.370.930/0001-75, Osasco, SP — Brasil. Para questões de atendimento, conteúdo, privacidade ou segurança, utilize os canais indicados no rodapé e nas páginas correspondentes.',
+        ]},
+      ],
+    },
+    planos: {
+      title: 'Planos',
+      intro: 'O Almanaque dos Clubes oferece planos gratuitos e pagos. Os valores e condições abaixo estão sujeitos à confirmação e devem ser lidos antes de qualquer contratação.',
+      sections: [
+        { title: 'Free — R$ 0,00', body: ['Recursos gratuitos indicados na página, sujeitos a limites técnicos razoáveis informados previamente.'] },
+        { title: 'Pro — R$ 4,90', body: ['Cobrança [mensal/anual], somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
+        { title: 'Elite — R$ 9,90', body: ['Cobrança [mensal/anual], somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
+        { title: 'Contratação transparente', body: [
+          'A assinatura somente será concluída após o consumidor visualizar um resumo com plano, preço total, periodicidade, renovação, forma de pagamento, limitações relevantes e política de cancelamento.',
+          'O consumidor pode cancelar a renovação pelos mesmos meios usados para contratar, sem necessidade de justificativa. O direito de arrependimento legal será respeitado.',
+          'Não haverá aumento de preço, redução substancial de recursos ou mudança de periodicidade sem aviso prévio claro. O Free não deve ser convertido automaticamente em plano pago.',
+        ]},
+      ],
+      note: 'Valores, periodicidade, tributos e limites dos planos devem ser confirmados e publicados na página de Planos antes de qualquer cobrança.',
+    },
+    seguranca: {
+      title: 'Segurança e Vulnerabilidades',
+      intro: 'A segurança é responsabilidade compartilhada. Esta página descreve os controles adotados e o canal para reporte de vulnerabilidades.',
+      sections: [
+        { title: 'Controles adotados', body: ['Adotamos controles proporcionais ao risco: autenticação segura, senhas com hash forte e sal, proteção de sessão, TLS, gestão de segredos fora do código, princípio do menor privilégio, logs protegidos, backups testados, correções e dependências atualizadas, revisão de permissões, segregação de ambientes, monitoramento, rate limiting e plano de continuidade.'] },
+        { title: 'Reporte de vulnerabilidades', body: ['Vulnerabilidades podem ser reportadas em security@almanaquedosclubes.com. Informe o ativo afetado, passos reprodutíveis, impacto, evidências mínimas e contato.', 'Não acesse, altere, exclua ou exfiltre dados além do indispensável à demonstração, nem realize indisponibilidade, engenharia social ou testes em terceiros.'] },
+        { title: 'Resposta e divulgação', body: ['Responderemos ao recebimento, investigaremos, preservaremos evidências, corrigiremos ou mitigaremos e comunicaremos o status em prazo razoável. A divulgação coordenada é preferida.'] },
+        { title: 'Incidentes com dados pessoais', body: ['Em caso de incidente com dados pessoais, classificamos o risco, contemos o evento, preservamos logs, redefinimos credenciais, avaliamos titulares afetados, registramos decisões e cumprimos os deveres de comunicação da LGPD e da ANPD.'] },
+      ],
+    },
   },
   langSelector: { label: 'Idioma', current: 'Idioma atual' },
   legal: {

@@ -15,16 +15,14 @@ export default function Footer() {
   ];
 
   const aboutLinks = [
-    { href: '#', label: t('footer.aboutUs') },
-    { href: '#', label: t('footer.plans') },
-    { href: '#', label: t('footer.api') },
-    { href: '#', label: t('footer.blog') },
+    { href: '/sobre', label: t('footer.aboutUs') },
+    { href: '/planos', label: t('footer.plans') },
   ];
 
   const legalLinks = [
     { href: '/privacidade', label: t('footer.privacy') },
     { href: '/termos', label: t('footer.terms') },
-    { href: '/privacidade#seguranca', label: t('footer.security') },
+    { href: '/seguranca', label: t('footer.security') },
   ];
 
   return (
