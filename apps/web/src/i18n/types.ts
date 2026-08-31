@@ -49,6 +49,8 @@ export interface Dictionary {
     comingSoonDesc: string;
     resultsFor: string;
     resultsNote: string;
+    notFoundTitle: string;
+    notFoundDesc: string;
   };
   home: {
     heroTitle: string;

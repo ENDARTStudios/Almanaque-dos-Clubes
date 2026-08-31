@@ -46,6 +46,8 @@ const es: Dictionary = {
     comingSoonDesc: 'Próximamente: contenido completo de este módulo.',
     resultsFor: 'Resultados para:',
     resultsNote: 'La búsqueda full-text se implementará con PostgreSQL tsvector + pg_trgm para ofrecer resultados rápidos incluso con grandes volúmenes de datos.',
+    notFoundTitle: 'Página no encontrada',
+    notFoundDesc: 'El contenido que buscas no existe o ha sido movido.',
   },
   home: {
     heroTitle: 'La Historia del Fútbol',
