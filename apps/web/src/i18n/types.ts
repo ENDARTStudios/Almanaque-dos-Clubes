@@ -91,6 +91,9 @@ export interface Dictionary {
     sobre: { title: string; intro: string; sections: LegalSection[] };
     planos: { title: string; intro: string; sections: LegalSection[]; note: string };
     seguranca: { title: string; intro: string; sections: LegalSection[] };
+    cookiePolicy: { title: string; intro: string; sections: LegalSection[]; note?: string };
+    ia: { title: string; intro: string; sections: LegalSection[]; note?: string };
+    termosAssinatura: { title: string; intro: string; sections: LegalSection[]; note?: string };
   };
   legal: {
     updatedLabel: string;

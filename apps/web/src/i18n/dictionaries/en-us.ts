@@ -128,6 +128,43 @@ const en: Dictionary = {
         { title: 'Personal data incidents', body: ['In the event of a personal data incident, we classify the risk, contain the event, preserve logs, reset credentials, assess affected data subjects, record decisions and comply with the LGPD and ANPD communication duties.'] },
       ],
     },
+    cookiePolicy: {
+      title: 'Cookie Policy',
+      intro: 'This Cookie Policy explains how END ART Studios uses cookies and similar technologies on Almanaque dos Clubes. The final inventory must reflect the cookies, providers and technologies actually installed; this draft uses [Confirm] where the real operation still needs to be confirmed.',
+      sections: [
+        { title: 'What are cookies', body: ['Cookies are small files or identifiers stored in the browser to enable functionality, security, preferences and metrics. Similar technologies (pixels, SDKs, local storage) are treated equivalently when they can recognise or track the user.'] },
+        { title: 'Categories', body: ['Necessary: session, login, security, fraud prevention and essential preferences — minimised and always active where indispensable.', 'Preferences: language, theme and interface choices — consent where not essential.', 'Analytics: audience, error and performance measurement — granular consent; legitimate interest only where assessed and without intrusive tracking.', 'Marketing/advertising: campaigns, attribution and remarketing — specific and revocable consent.'] },
+        { title: 'Choice, withdrawal and proof', body: ['Users may accept, reject or select categories. Withdrawal must be as easy as granting consent. We keep proof of the choice only with the necessary data. Refusing optional cookies does not prevent use of essential functions.'] },
+        { title: 'Third parties and transfers', body: ['Hosting, authentication, payment, analytics, support, AI and security providers may receive identifiers according to the purpose, always minimised and contractually bound. Where there is an international transfer, the LGPD and (if applicable) GDPR must be observed.'] },
+        { title: 'Privacy contact', body: ['Questions, preference withdrawal and data-subject rights: privacy@almanaquedosclubes.com [Confirm dedicated mailbox]. The current support channel is endart.studios@gmail.com.'] },
+      ],
+      note: 'Classification and inventory must follow the real function of each cookie, not the vendor commercial name.',
+    },
+    ia: {
+      title: 'How we use AI',
+      intro: 'Almanaque dos Clubes may use artificial intelligence as an auxiliary tool for research, synthesis, classification and presentation of information. This page explains how it works, its limitations and your rights.',
+      sections: [
+        { title: 'Function', body: ['AI supports research, summarisation, classification and answer generation. It is a support tool and does not replace independent verification, an official source, professional advice or human decision-making.'] },
+        { title: 'Limitations', body: ['Answers may contain errors, omissions, improper inferences or incomplete citations. Results may vary and may not reflect the most recent information. The presence of citations does not guarantee endorsement or completeness.'] },
+        { title: 'Sources and methodology', body: ['We indicate, where available, the source and the update date. Rankings and historical data reflect the methodology, sources and timing shown on the page. Almanaque is not an official body of clubs, leagues or federations unless expressly stated.'] },
+        { title: 'Data and providers', body: ['Questions may be processed to generate the answer and for security. The AI provider, processing country, retention and training use [Confirm] must be stated in the Privacy Policy.'] },
+        { title: 'Your rights and contesting', body: ['You may request content correction, review of an automated decision, a complaint and exercise of LGPD rights via privacy@almanaquedosclubes.com [Confirm] or endart.studios@gmail.com.'] },
+      ],
+      note: 'Do not enter passwords, sensitive data, trade secrets or third-party data without authorisation. AI can be wrong; check the sources before reusing information.',
+    },
+    termosAssinatura: {
+      title: 'Subscription Terms — Pro and Elite',
+      intro: 'These Terms govern the subscription to the Pro and Elite plans of Almanaque dos Clubes. They are subject to legal review and confirmation of the contracting data before publication. In conflict, the mandatory rule and the condition most favourable to the consumer prevail.',
+      sections: [
+        { title: 'Subject, plans and price', body: ['Pro costs R$ 4.90 per [month/year] and Elite R$ 9.90 per [month/year]. The frequency, taxes, renewal, limits and features must be shown at checkout and on the receipt. No free plan is automatically converted to paid; payment requires an affirmative consumer action.'] },
+        { title: 'Renewal and changes', body: ['Automatic renewal only occurs if informed and authorised before purchase, with prior notice. A change in price, frequency or substantial feature reduction will be communicated before taking effect; when it materially changes the contract, the consumer may cancel without disproportionate penalty.'] },
+        { title: 'Use and AI limitations', body: ['AI tools are auxiliary and can be wrong. It is forbidden to use the platform for fraud, malware, harassment, rights infringement, relevant automated decision without review, mass extraction, reverse engineering, bypassing limits or training a competing model without written licence.'] },
+        { title: 'Cancellation and withdrawal', body: ['Consumers may cancel renewal through the dashboard or the same channel used to subscribe, without justification. Under Art. 49 of the CDC, they may exercise withdrawal within 7 days, without barriers, with refund of amounts paid as per law. Ordinary cancellation after the period does not automatically imply a proportional refund, except for service failure, undue charge or breach of the offer.'] },
+        { title: 'Liability and data protection', body: ['END ART answers under the CDC, LGPD and applicable law for failures attributable to it. No clause excludes non-waivable legal liability. Data processing follows the Privacy Policy; the consumer may exercise rights via privacy@almanaquedosclubes.com [Confirm]. Marketing is optional and does not condition the purchase.'] },
+        { title: 'Law and jurisdiction', body: ['Brazilian law applies. In consumer relations, the consumer domicile forum and any other legally favourable forum are preserved, without prejudice to consumer protection bodies.'] },
+      ],
+      note: 'Draft contract — mandatory legal review before publication. Replace the [Confirm] fields and confirm legal name, CNPJ, address, gateway, frequency and the features of each plan.',
+    },
   },
   langSelector: { label: 'Language', current: 'Current language' },
   legal: {

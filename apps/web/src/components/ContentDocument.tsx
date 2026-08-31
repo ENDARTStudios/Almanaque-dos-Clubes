@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
 
-export default function ContentDocument({ namespace }: { namespace: 'sobre' | 'planos' | 'seguranca' }) {
+export type DocNamespace = 'sobre' | 'planos' | 'seguranca' | 'cookiePolicy' | 'ia' | 'termosAssinatura';
+
+export default function ContentDocument({ namespace }: { namespace: DocNamespace }) {
   const { t, dict, locale, setLocale } = useI18n();
   const doc = dict.pages[namespace];
   return (

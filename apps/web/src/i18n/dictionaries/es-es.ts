@@ -128,6 +128,43 @@ const es: Dictionary = {
         { title: 'Incidentes con datos personales', body: ['Ante un incidente con datos personales, clasificamos el riesgo, contenemos el evento, preservamos registros, restablecemos credenciales, evaluamos a los titulares afectados, registramos decisiones y cumplimos los deberes de comunicación de la LGPD y la ANPD.'] },
       ],
     },
+    cookiePolicy: {
+      title: 'Política de Cookies',
+      intro: 'Esta Política de Cookies explica cómo END ART Studios utiliza cookies y tecnologías similares en Almanaque dos Clubes. El inventario final debe reflejar las cookies, proveedores y tecnologías realmente instaladas; esta minuta usa [Confirmar] donde la operación real aún debe confirmarse.',
+      sections: [
+        { title: 'Qué son las cookies', body: ['Las cookies son pequeños archivos o identificadores almacenados en el navegador para permitir funcionamiento, seguridad, preferencias y métricas. Las tecnologías similares (píxeles, SDKs, local storage) se tratan de forma equivalente cuando pueden reconocer o seguir al usuario.'] },
+        { title: 'Categorías', body: ['Necesarias: sesión, inicio de sesión, seguridad, prevención de fraude y preferencias esenciales — minimizadas y siempre activas cuando son indispensables.', 'Preferencias: idioma, tema y elecciones de interfaz — consentimiento cuando no son esenciales.', 'Analítica: medición de audiencia, errores y rendimiento — consentimiento granular; interés legítimo solo cuando se evalúa y sin rastreo intrusivo.', 'Marketing/publicidad: campañas, atribución y remarketing — consentimiento específico y revocable.'] },
+        { title: 'Elección, retirada y prueba', body: ['El usuario puede aceptar, rechazar o seleccionar categorías. La retirada debe ser tan fácil como la concesión. Guardamos prueba de la elección solo con los datos necesarios. Rechazar cookies opcionales no impide el uso de las funciones esenciales.'] },
+        { title: 'Terceros y transferencias', body: ['Los proveedores de alojamiento, autenticación, pago, analítica, soporte, IA y seguridad pueden recibir identificadores según la finalidad, siempre minimizados y vinculados contractualmente. Cuando haya transferencia internacional, deben observarse la LGPD y (si aplica) el GDPR.'] },
+        { title: 'Contacto de privacidad', body: ['Dudas, retirada de preferencias y ejercicio de derechos: privacy@almanaquedosclubes.com [Confirmar buzón dedicado]. El canal actual de soporte es endart.studios@gmail.com.'] },
+      ],
+      note: 'La clasificación y el inventario deben seguir la función real de cada cookie, no el nombre comercial del proveedor.',
+    },
+    ia: {
+      title: 'Cómo usamos la IA',
+      intro: 'Almanaque dos Clubes puede usar inteligencia artificial como herramienta auxiliar de investigación, síntesis, clasificación y presentación de información. Esta página explica su funcionamiento, limitaciones y tus derechos.',
+      sections: [
+        { title: 'Función', body: ['La IA apoya la investigación, el resumen, la clasificación y la generación de respuestas. Es una herramienta de apoyo y no sustituye la verificación independiente, una fuente oficial, el asesoramiento profesional ni la decisión humana.'] },
+        { title: 'Limitaciones', body: ['Las respuestas pueden contener errores, omisiones, inferencias indebidas o citas incompletas. Los resultados pueden variar y no reflejar la información más reciente. La presencia de citas no garantiza respaldo ni completitud.'] },
+        { title: 'Fuentes y metodología', body: ['Indicamos, cuando está disponible, la fuente y la fecha de actualización. Los rankings y datos históricos reflejan la metodología, las fuentes y el momento de actualización mostrados en la página. El Almanaque no es un organismo oficial de clubes, ligas o federaciones, salvo indicación expresa.'] },
+        { title: 'Datos y proveedores', body: ['Las preguntas pueden procesarse para generar la respuesta y por seguridad. El proveedor de IA, el país de procesamiento, la retención y el uso para entrenamiento [Confirmar] deben constar en la Política de Privacidad.'] },
+        { title: 'Tus derechos y contestación', body: ['Puedes solicitar corrección de contenido, revisión de una decisión automatizada, una reclamación y el ejercicio de los derechos de la LGPD en privacy@almanaquedosclubes.com [Confirmar] o endart.studios@gmail.com.'] },
+      ],
+      note: 'No introduzcas contraseñas, datos sensibles, secretos comerciales ni datos de terceros sin autorización. La IA puede equivocarse; verifica las fuentes antes de reutilizar la información.',
+    },
+    termosAssinatura: {
+      title: 'Términos de Suscripción — Pro y Elite',
+      intro: 'Estos Términos regulan la suscripción a los planes Pro y Elite de Almanaque dos Clubes. Están sujetos a revisión jurídica y confirmación de los datos de contratación antes de su publicación. En conflicto, prevalecen la norma cogente y la condición más favorable al consumidor.',
+      sections: [
+        { title: 'Objeto, planes y precio', body: ['Pro cuesta R$ 4,90 por [mes/año] y Elite R$ 9,90 por [mes/año]. La periodicidad, impuestos, renovación, límites y funciones deben constar en el checkout y en el recibo. Ningún plan gratuito se convierte automáticamente en pago; el pago exige una acción afirmativa del consumidor.'] },
+        { title: 'Renovación y cambios', body: ['La renovación automática solo ocurre si se informa y autoriza antes de la contratación, con aviso previo. Un cambio de precio, periodicidad o reducción sustancial de funciones se comunicará antes de producir efectos; cuando modifique materialmente el contrato, el consumidor podrá cancelar sin penalidad desproporcionada.'] },
+        { title: 'Uso y limitaciones de la IA', body: ['Las herramientas de IA son auxiliares y pueden equivocarse. Está prohibido usar la plataforma para fraude, malware, acoso, vulneración de derechos, decisión automatizada relevante sin revisión, extracción masiva, ingeniería inversa, elusión de límites o entrenamiento de un modelo competidor sin licencia escrita.'] },
+        { title: 'Cancelación y desistimiento', body: ['El consumidor puede cancelar la renovación desde el panel o por el mismo medio usado para contratar, sin justificación. Bajo el art. 49 del CDC, puede ejercer el desistimiento en 7 días, sin barreras, con devolución de los importes pagados según la ley. La cancelación ordinaria tras el plazo no implica reembolso proporcional automático, salvo fallo del servicio, cobro indebido o incumplimiento de la oferta.'] },
+        { title: 'Responsabilidad y protección de datos', body: ['END ART responde conforme al CDC, la LGPD y la ley aplicable por fallos que le sean imputables. Ninguna cláusula excluye responsabilidad legal inderogable. El tratamiento de datos sigue la Política de Privacidad; el consumidor puede ejercer sus derechos en privacy@almanaquedosclubes.com [Confirmar]. El marketing es opcional y no condiciona la contratación.'] },
+        { title: 'Ley y foro', body: ['Se aplica la legislación brasileña. En las relaciones de consumo, se preserva el foro del domicilio del consumidor y cualquier otro foro legalmente favorable, sin perjuicio de los órganos de defensa del consumidor.'] },
+      ],
+      note: 'Contrato minuta — revisión jurídica obligatoria antes de su publicación. Sustituir los campos [Confirmar] y confirmar razón social, CNPJ, dirección, gateway, periodicidad y funciones de cada plan.',
+    },
   },
   langSelector: { label: 'Idioma', current: 'Idioma actual' },
   legal: {
