@@ -1,28 +1,19 @@
 /**
- * T382 — regressão de headers de segurança (item 8.8).
+ * T382/T383 — regressão de headers de segurança (item 8.8 + 7.2).
  *
- * Testa o comportamento real do @fastify/helmet na configuração usada pelo
- * app (CSP/HSTS apenas em produção; defaults do helmet sempre ativos).
- * App Fastify mínimo, sem banco — roda localmente sem Postgres.
- *
- * Observação de reconciliação: o item 7.2 do PLANO_MESTRE alega
- * "X-Frame-Options: DENY", mas o app não configura `xFrameOptions` (usa o
- * default do helmet: SAMEORIGIN). SAMEORIGIN ainda mitiga clickjacking
- * cross-origin; DENY é apenas mais estrito. Registrado como gap, não como
- * vulnerabilidade.
+ * Usa a CONFIG REAL exportada (`helmetOptions` de config/security.ts), nunca
+ * uma réplica — evita drift entre o app e o teste. Sem banco.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
 import helmet from '@fastify/helmet';
+import { helmetOptions } from '../../src/config/security.js';
 
 let app: FastifyInstance;
 
 beforeAll(async () => {
   app = Fastify();
-  await app.register(helmet, {
-    contentSecurityPolicy: false,
-    hsts: false,
-  });
+  await app.register(helmet, helmetOptions(false));
   app.get('/test', async () => ({ ok: true }));
   await app.ready();
 });
@@ -31,10 +22,10 @@ afterAll(async () => {
   await app.close();
 });
 
-describe('Security headers (8.8)', () => {
-  it('X-Frame-Options presente (SAMEORIGIN, default helmet)', async () => {
+describe('Security headers (8.8 + 7.2)', () => {
+  it('X-Frame-Options: DENY (item 7.2)', async () => {
     const res = await app.inject({ method: 'GET', url: '/test' });
-    expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+    expect(res.headers['x-frame-options']).toBe('DENY');
   });
 
   it('X-Content-Type-Options: nosniff', async () => {
