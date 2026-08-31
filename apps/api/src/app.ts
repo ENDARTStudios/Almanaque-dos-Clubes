@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import compress from '@fastify/compress';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
@@ -6,6 +6,11 @@ import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { rateLimitByUserOrIp, AUTH_WINDOW } from './config/rate-limit.js';
+import {
+  DEFAULT_BODY_LIMIT_BYTES,
+  PAYLOAD_TOO_LARGE_ERROR,
+  httpMethodGate,
+} from './config/http-hardening.js';
 import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -32,11 +37,39 @@ import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
+  // Handler de erro único, registrado ANTES das rotas em cada escopo: o Fastify
+  // captura o errorHandler da instância no momento do registro de cada rota (e
+  // instâncias filhas não herdam o handler do pai).
+  const errorHandler = (err: unknown, _request: FastifyRequest, reply: FastifyReply) => {
+    const statusCode = (err as { statusCode?: number }).statusCode ?? 500;
+    // 413 padronizado (T385, item 7.7): sem stack trace, sem detalhes internos.
+    if (statusCode === 413) {
+      logger.warn({ message: err instanceof Error ? err.message : 'payload too large' }, '413');
+      return reply.status(413).send({ error: PAYLOAD_TOO_LARGE_ERROR });
+    }
+    logger.error({ err }, 'Unhandled error');
+    const code = (err as { code?: string }).code ?? 'INTERNAL_ERROR';
+    const message =
+      statusCode >= 500 && env.isProd
+        ? 'Erro interno do servidor'
+        : err instanceof Error
+          ? err.message
+          : 'Erro desconhecido';
+    return reply.status(statusCode).send({ error: { code, message } });
+  };
+
   const app = Fastify({
     logger: false,
     trustProxy: true,
-    bodyLimit: 1024 * 1024,
+    bodyLimit: DEFAULT_BODY_LIMIT_BYTES,
   });
+
+  // Escopo root (swagger /docs): erro padronizado também fora do prefixo /api/v1.
+  app.setErrorHandler(errorHandler);
+
+  // Hardening de superfície (T385, item 7.6): 405 padronizado para métodos fora
+  // do conjunto usado. Primeiro onRequest — rejeita antes de qualquer plugin.
+  await app.addHook('onRequest', httpMethodGate);
 
   // Rate-limit global por IP (item 1.3/7.3). Desabilitável via RATE_LIMIT_DISABLED
   // para testes de carga k6 de máquina única. NÃO afeta o brute-force de /auth/login.
@@ -118,6 +151,10 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(
     async (api) => {
+      // Escopo /api/v1: TODAS as rotas da API capturam este handler no registro
+      // (instâncias filhas não herdam o do root — ver buildErrorHandler do Fastify).
+      api.setErrorHandler(errorHandler);
+
       await api.register(healthRoutes);
       await api.register(metricsRoutes);
       await api.register(playersRoutes);
@@ -137,19 +174,6 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
     { prefix: '/api/v1' },
   );
-
-  app.setErrorHandler((err, _request, reply) => {
-    logger.error({ err }, 'Unhandled error');
-    const statusCode = (err as { statusCode?: number }).statusCode ?? 500;
-    const code = (err as { code?: string }).code ?? 'INTERNAL_ERROR';
-    const message =
-      statusCode >= 500 && env.isProd
-        ? 'Erro interno do servidor'
-        : err instanceof Error
-          ? err.message
-          : 'Erro desconhecido';
-    return reply.status(statusCode).send({ error: { code, message } });
-  });
 
   return app;
 }

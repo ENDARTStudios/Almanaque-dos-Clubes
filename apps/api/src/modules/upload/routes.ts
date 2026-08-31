@@ -2,11 +2,16 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { uploadFile } from './service.js';
+import { UPLOAD_BODY_LIMIT_BYTES } from '../../config/http-hardening.js';
 
 export const uploadRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.post(
     '/upload',
-    { preHandler: [authenticate, requirePermission(PERMISSIONS.CLUBS_WRITE)] },
+    {
+      // 7.7 — override por rota: uploads aceitam até 50 MiB (padrão global: 1 MiB).
+      bodyLimit: UPLOAD_BODY_LIMIT_BYTES,
+      preHandler: [authenticate, requirePermission(PERMISSIONS.CLUBS_WRITE)],
+    },
     async (request, reply) => {
       const data = await request.file();
       if (!data) {
@@ -22,7 +27,11 @@ export const uploadRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
 
   app.post(
     '/upload/csv',
-    { preHandler: [authenticate, requirePermission(PERMISSIONS.CLUBS_MANAGE)] },
+    {
+      // 7.7 — importação CSV também usa o limite de upload (50 MiB por rota).
+      bodyLimit: UPLOAD_BODY_LIMIT_BYTES,
+      preHandler: [authenticate, requirePermission(PERMISSIONS.CLUBS_MANAGE)],
+    },
     async (request, reply) => {
       const data = await request.file();
       if (!data) {
