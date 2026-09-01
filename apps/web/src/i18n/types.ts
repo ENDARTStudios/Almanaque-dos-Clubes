@@ -51,6 +51,21 @@ export interface Dictionary {
     resultsNote: string;
     notFoundTitle: string;
     notFoundDesc: string;
+    cookieBanner: {
+      title: string;
+      body: string;
+      accept: string;
+      reject: string;
+      manage: string;
+      save: string;
+      necessary: string;
+      necessaryAlways: string;
+      preferences: string;
+      analytics: string;
+      personalization: string;
+      marketing: string;
+      footerManage: string;
+    };
   };
   home: {
     heroTitle: string;

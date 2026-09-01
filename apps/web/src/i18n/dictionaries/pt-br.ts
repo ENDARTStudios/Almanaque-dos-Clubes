@@ -47,7 +47,8 @@ const pt: Dictionary = {
     resultsFor: 'Resultados para:',
     resultsNote: 'A busca full-text será implementada com PostgreSQL tsvector + pg_trgm para fornecer resultados rápidos mesmo com grandes volumes de dados.',
     notFoundTitle: 'Página não encontrada',
-    notFoundDesc: 'O conteúdo que você procura não existe ou foi movido.',
+    cookieBanner: { title: 'Sua privacidade importa', body: 'Usamos cookies necessários para autenticação, segurança e funcionamento. Com sua autorização, também podemos usar cookies opcionais para medir audiência, melhorar o serviço e, quando aplicável, realizar marketing. Você pode aceitar, rejeitar ou escolher por categoria; a recusa não impede as funções essenciais.', accept: 'Aceitar opcionais', reject: 'Rejeitar opcionais', manage: 'Gerenciar preferências', save: 'Salvar preferências', necessary: 'Cookies necessários — sempre ativos', necessaryAlways: 'Sempre ativos: indispensáveis para funcionamento e segurança', preferences: 'Cookies de preferências', analytics: 'Cookies de analytics', personalization: 'Cookies de personalização', marketing: 'Cookies de marketing/publicidade', footerManage: 'Gerenciar cookies' },
+notFoundDesc: 'O conteúdo que você procura não existe ou foi movido.',
   },
   home: {
     heroTitle: 'A História do Futebol',

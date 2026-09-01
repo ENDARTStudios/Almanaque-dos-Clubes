@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { I18nProvider } from '@/i18n/Provider';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Navbar />
           <main className="flex-1 pt-16">{children}</main>
           <Footer />
+          <CookieConsentBanner />
         </I18nProvider>
       </body>
     </html>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_FLAGS, type Locale } from '@/i18n/config';
 import { Mail, Send } from 'lucide-react';
+import { openCookieConsent } from '@/components/CookieConsentBanner';
 
 export default function Footer() {
   const { t, locale, setLocale } = useI18n();
@@ -81,6 +82,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+            <button onClick={openCookieConsent} className="mt-4 text-xs text-white/40 underline hover:text-white transition-colors duration-200 cursor-pointer">{t('common.cookieBanner.footerManage')}</button>
             <div className="mt-6 flex items-center gap-2">
               {(['pt-br', 'en-us', 'es-es'] as Locale[]).map((l) => (
                 <button

@@ -47,7 +47,8 @@ const en: Dictionary = {
     resultsFor: 'Results for:',
     resultsNote: 'Full-text search will be implemented with PostgreSQL tsvector + pg_trgm to provide fast results even with large data volumes.',
     notFoundTitle: 'Page not found',
-    notFoundDesc: 'The content you are looking for does not exist or has been moved.',
+    cookieBanner: { title: 'Your privacy matters', body: 'We use necessary cookies for authentication, security and core functionality. With your authorisation, we may also use optional cookies to measure audience, improve the service and, where applicable, run marketing. You can accept, reject or choose by category; refusing optional cookies does not block essential functions.', accept: 'Accept optional', reject: 'Reject optional', manage: 'Manage preferences', save: 'Save preferences', necessary: 'Necessary cookies — always active', necessaryAlways: 'Always active: essential for functionality and security', preferences: 'Preference cookies', analytics: 'Analytics cookies', personalization: 'Personalisation cookies', marketing: 'Marketing/advertising cookies', footerManage: 'Manage cookies' },
+notFoundDesc: 'The content you are looking for does not exist or has been moved.',
   },
   home: {
     heroTitle: 'The History of Football',
