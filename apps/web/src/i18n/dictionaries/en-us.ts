@@ -1,4 +1,4 @@
-﻿import type { Dictionary } from '../types';
+import type { Dictionary } from '../types';
 
 const en: Dictionary = {
   site: {
@@ -110,14 +110,14 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
     },
     planos: {
       title: 'Plans',
-      intro: 'Almanaque dos Clubes offers free and paid plans. Prices in effect as of 01/09/2026; currency is set by the country of registration origin (Latin America: R$; dollar countries: $; euro countries: €).',
+      intro: 'Almanaque dos Clubes offers free and paid plans. Prices in effect as of 01/09/2026; currency is set by the real location of the visitor (South and Central America: R$; dollar countries: $; Europe: €).',
       sections: [
-        { title: 'Free — R$ 0.00', body: ['Free features shown on the page, subject to reasonable technical limits notified in advance.'] },
-        { title: 'Pro — $ 4.90', body: ['$ 4.90/month; annual 15% off. Paid via Stripe, only after the consumer expressly confirms; features and limits described before payment.'] },
-        { title: 'Elite — $ 9.90', body: ['$ 9.90/month; annual 15% off. Paid via Stripe, only after the consumer expressly confirms; features and limits described before payment.'] },
+        { title: 'Free — {free}', body: ['Free features shown on the page, subject to reasonable technical limits notified in advance.'] },
+        { title: 'Pro — {proMonthly}', body: ['{proMonthly}/month; annual 15% off. Paid via Stripe, only after the consumer expressly confirms; features and limits described before payment.'] },
+        { title: 'Elite — {eliteMonthly}', body: ['{eliteMonthly}/month; annual 15% off. Paid via Stripe, only after the consumer expressly confirms; features and limits described before payment.'] },
         { title: 'Transparent contracting', body: ['A subscription is only completed after the consumer sees a summary with plan, total price, frequency, renewal, payment method, relevant limitations and cancellation policy.', 'The consumer may cancel renewal through the same means used to subscribe, without justification. The statutory right of withdrawal will be respected.', 'There will be no price increase, substantial feature reduction or change in frequency without clear prior notice. Free must not be automatically converted into a paid plan.'] },
       ],
-      note: 'Monthly: Pro $ 4.90 · Elite $ 9.90. Annual: 15% off. Paid via Stripe. Currency per registration origin.',
+      note: 'Monthly: Pro {proMonthly} · Elite {eliteMonthly}. Annual: 15% off. Paid via Stripe. Currency per the real location of the visitor.',
     },
     seguranca: {
       title: 'Security and Vulnerabilities',
@@ -157,7 +157,7 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
       title: 'Subscription Terms — Pro and Elite',
       intro: 'These Terms govern the subscription to the Pro and Elite plans of Almanaque dos Clubes, provided by END ART Studios (CNPJ 45.370.930/0001-75), Osasco, SP - Brazil. Effective: 01/09/2026. In conflict, the mandatory rule and the condition most favourable to the consumer prevail.',
       sections: [
-        { title: 'Subject, plans and price', body: ['Pro: $ 4.90/month (annual 15% off). Elite: $ 9.90/month (annual 15% off). Currency follows registration origin: Latin America in reais (R$), dollar countries in dollars ($), euro countries in euros (€). Paid via Stripe. The frequency, taxes, renewal, limits and features are shown at checkout and on the receipt. No free plan is automatically converted to paid; payment requires an affirmative consumer action.'] },
+        { title: 'Subject, plans and price', body: ['Pro: {proMonthly}/month (annual 15% off). Elite: {eliteMonthly}/month (annual 15% off). Currency follows the real location of the consumer: South and Central America in reais (R$), dollar countries in dollars ($), Europe in euros (€). Paid via Stripe. The frequency, taxes, renewal, limits and features are shown at checkout and on the receipt. No free plan is automatically converted to paid; payment requires an affirmative consumer action.'] },
         { title: 'Renewal and changes', body: ['Automatic renewal only occurs if informed and authorised before purchase, with prior notice. A change in price, frequency or substantial feature reduction will be communicated before taking effect; when it materially changes the contract, the consumer may cancel without disproportionate penalty.'] },
         { title: 'Use and AI limitations', body: ['AI tools are auxiliary and can be wrong. It is forbidden to use the platform for fraud, malware, harassment, rights infringement, relevant automated decision without review, mass extraction, reverse engineering, bypassing limits or training a competing model without written licence.'] },
         { title: 'Cancellation and withdrawal', body: ['Consumers may cancel renewal through the dashboard or the same channel used to subscribe, without justification. Under Art. 49 of the CDC, they may exercise withdrawal within 7 days, without barriers, with refund of amounts paid as per law. Ordinary cancellation after the period does not automatically imply a proportional refund, except for service failure, undue charge or breach of the offer.'] },

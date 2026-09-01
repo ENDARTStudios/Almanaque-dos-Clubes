@@ -1,4 +1,4 @@
-﻿import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { z, ZodError } from 'zod';
 import { DomainError, NotFoundError } from '@almanaque/domain';
 import {
@@ -18,13 +18,16 @@ import {
   refundStripeSubscription,
 } from './stripe.service.js';
 import { isStripeConfigured, getStripe, STRIPE_WEBHOOK_SECRET } from '../../config/stripe.js';
+import { mapCountryToCurrency } from '@almanaque/domain';
+import { resolveCountryForIp } from './geo.js';
 import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 
 const CheckoutSchema = z.object({
+  // A moeda é definida pela localização real do usuário (request.ip → país).
+  // O cliente NÃO envia a moeda e NUNCA a escolhe. Campos extras são ignorados.
   plan: z.enum(['PRO', 'ELITE']),
   interval: z.enum(['month', 'year']),
-  currency: z.enum(['BRL', 'USD', 'EUR']).optional(),
 });
 
 export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
@@ -104,7 +107,10 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
           },
         });
       }
-      const { plan, interval, currency } = CheckoutSchema.parse(request.body);
+      const { plan, interval } = CheckoutSchema.parse(request.body);
+      // Moeda pela localização real (país do IP) — NUNCA por idioma/usuário.
+      const country = await resolveCountryForIp(request.ip);
+      const currency = mapCountryToCurrency(country);
       const base = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3001';
       const result = await createCheckoutSession({
         userId: request.user!.id,
