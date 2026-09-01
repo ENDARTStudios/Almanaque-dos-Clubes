@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Subscription service — gerência de assinaturas SaaS e billing.
  *
  * Modelos:
@@ -11,10 +11,10 @@
  *   - status: PENDING | PAID | REFUNDED | FAILED | CANCELLED
  *   - externalId: ID no provedor (Stripe, PagSeguro, etc.) — null se manual
  *
- * Preços (em centavos de BRL):
+ * Preços (em centavos de BRL; o valor cobrado vem do Stripe por moeda/origem):
  * - FREE: 0 (gratuito)
- * - PRO: 2.900 (= R$ 29,00/mês)
- * - ELITE: 9.900 (= R$ 99,00/mês)
+ * - PRO: 490 (= R$ 4,90/mês; 15% off na anuidade)
+ * - ELITE: 990 (= R$ 9,90/mês; 15% off na anuidade)
  *
  * Ciclo: mensal. currentPeriodEnd = data de fim do ciclo atual.
  */
@@ -55,11 +55,14 @@ interface Billing {
 
 export const PLAN_PRICES_CENTS: Record<SubscriptionPlan, number> = {
   FREE: 0,
-  PRO: 2900, // R$ 29,00
-  ELITE: 9900, // R$ 99,00
+  PRO: 490, // R$ 4,90 (Stripe para refletir valor real; 15% off anual)
+  ELITE: 990, // R$ 9,90 (Stripe para refletir valor real; 15% off anual)
 };
 
 export const PLAN_CYCLE_DAYS = 30; // mensal
+
+// Anuidade com 15% de desconto (aplicado via preço anual no Stripe)
+export const PLAN_ANNUAL_DISCOUNT_PCT = 15;
 
 /**
  * Hierarquia de planos: FREE < PRO < ELITE.
