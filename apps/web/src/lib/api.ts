@@ -38,7 +38,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const body = (await res
       .json()
       .catch(() => ({ error: { code: 'UNKNOWN', message: 'Erro desconhecido' } }))) as ApiError;
-    throw new Error(body.error.message);
+    // Se a API devolver erros de validação em "details", mostramos as mensagens
+    // específicas (ex.: "Senha deve conter ao menos 1 letra maiúscula").
+    const details =
+      Array.isArray((body.error as { details?: unknown })?.details) === true
+        ? ((body.error as { details?: Array<{ message?: string }> }).details ?? [])
+            .map((d) => d?.message)
+            .filter(Boolean)
+            .slice(0, 3)
+        : [];
+    throw new Error(details.length ? details.join('; ') : body.error.message);
   }
   return res.json() as Promise<T>;
 }

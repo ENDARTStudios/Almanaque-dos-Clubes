@@ -59,6 +59,7 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.password')}</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required minLength={8} />
+          <p className="text-xs text-foreground/50 mt-1">{t('auth.passwordHelp')}</p>
         </div>
 
         <div className="space-y-3 mb-6">
