@@ -18,6 +18,16 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-02] Decisão: D-2026-09-02-path-b-5-executada — T391 — Caminho B (5ª exceção): merge da branch consolidada chore/redis-localhost-forense
+
+Motivo: Operador autorizou merge imediato (Caminho B #5) — manter o bug da fila Redis ativo em produção (emails de recuperação quebrados) era pior que o merge; instrução permanente "Prossiga" + 4 precedentes + R388 aprovado. Merge via PR #47 (squash) → commit `b180bc8` em main.
+
+Before (proteção de main): GET /branches/main/protection → required_status_checks=[security-gate] strict=true; required_approving_review_count=0; enforce_admins=true; allow_force_pushes=false; allow_deletions=false (JSON em docs/protection-before.json).
+Execução: status check `security-gate` ausente do PR (CI ainda não publica o check-run no PR) → exceção Caminho B #5: relaxou APENAS required_status_checks (mantendo enforce_admins=true), merge, restauração imediata (security-gate strict, approvals=0, enforce_admins=true), sem force push/deletion.
+After: proteção restaurada na mesma sessão (idêntica ao before).
+Verificação pós-deploy: railway health 200; web 200; /clubs 200; POST /api/v1/auth/forgot-password → 200 (sem erro CSRF); boot fresco sem ECONNREFUSED 127.0.0.1:6379 (BullMQ agora usa REDIS_URL); Vercel Ready.
+Nenhuma migration aplicada. RLS permanece INERTE (T390 pendente Operador). chore/t387-verify-hardening superseded.
+
 ### [2026-09-02] Decisão: D-2026-09-02-v5c-rls-inerte — V5 fechado como RLS instalada mas INERTE em produção (V5-C)
 
 Motivo: A forense (T389) provou que a pré-condição (a) do caminho V5-A é falsa: não existe role `app_user` e a API conecta como `postgres` (superusuário). Como o PostgreSQL dispensa RLS para superusuário, a RLS instalada (`sessions` com `relrowsecurity=true` + `relforcerowsecurity=true`) está **INERTE** em produção. A regra de decisão autorizada era "V5-A se app_user verificável; V5-C se não" — logo, aplicar V5-C é executar a regra já autorizada, não uma decisão nova.

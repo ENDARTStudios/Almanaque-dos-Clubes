@@ -346,3 +346,23 @@ migration RLS em produção (FORCE RLS OFF).
 - Nenhuma migration aplicada em produção (diff sem `prisma/migrations`); FORCE RLS permanece OFF.
 
 
+
+---
+
+## 11. Caminho B (5ª exceção, T391) — merge da branch consolidada chore/redis-localhost-forense
+
+### 11.1 Before (proteção de main)
+- GET /branches/main/protection: required_status_checks=[security-gate] strict=true; required_pull_request_reviews required_approving_review_count=0; enforce_admins=true; allow_force_pushes=false; allow_deletions=false. JSON completo salvo em docs/protection-before.json.
+
+### 11.2 Branch a mergear
+- chore/redis-localhost-forense (HEAD c8befc9): T387 (evidência V1-V7) + T386 (registro) + T389 (V5-C RLS inerte) + T388 (queue.ts REDIS_URL + fail-fast) + fix CSRF client-side.
+
+### 11.3 Execução (Caminho B #5)
+- PR #47 (squash) → merge commit b180bc8. Status check `security-gate` ausente do PR (CI ainda não publica o check-run no PR) → exceção: relaxou APENAS required_status_checks (mantendo enforce_admins=true), merge, e restauração imediata.
+
+### 11.4 Pós-deploy (verificação T391)
+- Railway health 200; web 200; /clubs 200; POST /api/v1/auth/forgot-password → 200 (sem erro CSRF); boot fresco (deployment 7a50a926) sem ECONNREFUSED 127.0.0.1:6379 (BullMQ conecta em redis.railway.internal); Vercel Ready.
+
+### 11.5 Notas
+- Proteção restaurada (security-gate strict, approvals=0, enforce_admins=true); sem force push/deletion.
+- Nenhuma migration aplicada. RLS permanece INERTE (T390 pendente Operador). Nenhuma credencial alterada. chore/t387-verify-hardening declarada superseded.
