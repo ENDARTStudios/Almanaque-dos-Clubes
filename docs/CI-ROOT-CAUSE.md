@@ -386,3 +386,22 @@ migration RLS em produção (FORCE RLS OFF).
 ### 12.4 Notas
 - Jobs `security-gate`, `gitleaks`, `dependency-audit` preservados. Nenhum segredo novo. Gate passa a ser verificável via PR (Caminho A padrão).
 - `test:unit --coverage` local exige DB migrado (o CI roda `prisma migrate deploy` antes); falha local por DB de teste não migrado é env, não código.
+
+---
+
+## 13. Ajuste de contrato do workflow CI (T393) — auditoria + equivalência de testes
+
+### 13.1 Auditoria do contrato (ci.yml)
+- Trigger: `pull_request: branches: [main]` PRESENTE; `push: branches: [main, staging]`.
+- Job `security-gate`: SEM `if` de skip (roda em PR e push); `runs-on: ubuntu-latest`; services postgres/redis.
+- ID do job = `security-gate` — corresponde ao context exigido pela proteção de main.
+- YAML: válido (parser local `yaml.safe_load` OK). Nenhuma condição que pule o job em PR.
+- **Conclusão: contrato do workflow CORRETO.** A falha 0-jobs NÃO é erro de YAML/contrato — indica bloqueio no nível da conta/Settings (Actions General ou workflow desabilitado após reativação de billing). Disso depende o texto do run no dashboard (Operador).
+
+### 13.2 Equivalência de testes (CI local)
+- Intenção: docker-compose postgres -> `prisma migrate deploy` -> `pnpm test:unit --coverage`.
+- **Bloqueio de ambiente:** daemon do Docker Desktop inacessível (`npipe:////./pipe/dockerDesktopLinuxEngine` não encontrado — bug P1000 conhecido). Postgres local (x64-17/18) rodando na 5432, mas credenciais/DB `almanaque` indisponíveis (conectividade falhou para compose/default).
+- **Equivalência por raciocínio:** em produção (DB migrado) o login com credencial inválida retorna **401** (comportamento esperado pelo teste). A falha local anterior ("500 vs 401") deve-se ao **DB de teste não migrado** no host. No CI, `prisma migrate deploy` roda antes dos testes -> DB do service container migrado -> testes devem passar. Variável de testes **reduzida a env**, não a código.
+
+### 13.3 Pendência (Operador)
+- Texto do erro do run 0-jobs (dashboard Actions) — último dado para a correção cirúrgica final.
