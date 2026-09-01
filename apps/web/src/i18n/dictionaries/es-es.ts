@@ -1,4 +1,4 @@
-import type { Dictionary } from '../types';
+﻿import type { Dictionary } from '../types';
 
 const es: Dictionary = {
   site: {
@@ -109,34 +109,34 @@ const es: Dictionary = {
     },
     planos: {
       title: 'Planes',
-      intro: 'Almanaque dos Clubes ofrece planes gratuitos y de pago. Los valores y condiciones siguientes están sujetos a confirmación y deben leerse antes de cualquier contratación.',
+      intro: 'Almanaque dos Clubes ofrece planes gratuitos y de pago. Precios vigentes desde el 01/09/2026; la moneda depende del país de origen del registro (América Latina: R$; países que usan dólar: $; países que usan euro: €).',
       sections: [
         { title: 'Free — R$ 0,00', body: ['Funciones gratuitas indicadas en la página, sujetas a límites técnicos razonables informados previamente.'] },
-        { title: 'Pro — R$ 4,90', body: ['Cobro [mensual/anual], solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
-        { title: 'Elite — R$ 9,90', body: ['Cobro [mensual/anual], solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
+        { title: 'Pro — € 4,90', body: ['€ 4,90/mes; anual 15% de descuento. Pago vía Stripe, solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
+        { title: 'Elite — € 9,90', body: ['€ 9,90/mes; anual 15% de descuento. Pago vía Stripe, solo tras la confirmación expresa del consumidor; funciones y límites descritos antes del pago.'] },
         { title: 'Contratación transparente', body: ['La suscripción solo se completará tras ver un resumen con plan, precio total, periodicidad, renovación, forma de pago, limitaciones relevantes y política de cancelación.', 'El consumidor puede cancelar la renovación por los mismos medios utilizados para contratar, sin necesidad de justificación. Se respetará el derecho legal de desistimiento.', 'No habrá aumento de precio, reducción sustancial de funciones ni cambio de periodicidad sin aviso previo claro. Free no debe convertirse automáticamente en plan de pago.'] },
       ],
-      note: 'Los valores, la periodicidad, los impuestos y los límites de los planes deben confirmarse y publicarse en la página de Planes antes de cualquier cobro.',
+      note: 'Mes: Pro € 4,90 · Elite € 9,90. Año: 15% de descuento. Pago vía Stripe. Moneda según origen del registro.',
     },
     seguranca: {
       title: 'Seguridad y Vulnerabilidades',
       intro: 'La seguridad es una responsabilidad compartida. Esta página describe los controles adoptados y el canal para informar vulnerabilidades.',
       sections: [
         { title: 'Controles adoptados', body: ['Adoptamos controles proporcionales al riesgo: autenticación segura, contraseñas con hash fuerte y sal, protección de sesión, TLS, gestión de secretos fuera del código, principio de mínimo privilegio, registros protegidos, copias de seguridad probadas, parches y dependencias actualizadas, revisión de permisos, segregación de entornos, monitoreo, limitación de tasa y plan de continuidad.'] },
-        { title: 'Reporte de vulnerabilidades', body: ['Las vulnerabilidades pueden reportarse en security@almanaquedosclubes.com. Indique el activo afectado, pasos reproducibles, impacto, evidencia mínima y contacto.', 'No acceda, altere, elimine ni exfiltre datos más allá de lo necesario para demostrar el problema, ni provoque caídas, ingeniería social o pruebas contra terceros.'] },
+        { title: 'Reporte de vulnerabilidades', body: ['Las vulnerabilidades pueden reportarse en endart.studios@gmail.com. Indique el activo afectado, pasos reproducibles, impacto, evidencia mínima y contacto.', 'No acceda, altere, elimine ni exfiltre datos más allá de lo necesario para demostrar el problema, ni provoque caídas, ingeniería social o pruebas contra terceros.'] },
         { title: 'Respuesta y divulgación', body: ['Acusaremos recibo, investigaremos, preservaremos evidencia, corregiremos o mitigaremos e informaremos el estado en un plazo razonable. Se prefiere la divulgación coordinada.'] },
         { title: 'Incidentes con datos personales', body: ['Ante un incidente con datos personales, clasificamos el riesgo, contenemos el evento, preservamos registros, restablecemos credenciales, evaluamos a los titulares afectados, registramos decisiones y cumplimos los deberes de comunicación de la LGPD y la ANPD.'] },
       ],
     },
     cookiePolicy: {
       title: 'Política de Cookies',
-      intro: 'Esta Política de Cookies explica cómo END ART Studios utiliza cookies y tecnologías similares en Almanaque dos Clubes. El inventario final debe reflejar las cookies, proveedores y tecnologías realmente instaladas; esta minuta usa [Confirmar] donde la operación real aún debe confirmarse.',
+      intro: 'Esta Política de Cookies explica cómo END ART Studios (CNPJ 45.370.930/0001-75) utiliza cookies y tecnologías similares en Almanaque dos Clubes. El inventario se actualizará según las cookies, proveedores y tecnologías realmente instaladas.',
       sections: [
         { title: 'Qué son las cookies', body: ['Las cookies son pequeños archivos o identificadores almacenados en el navegador para permitir funcionamiento, seguridad, preferencias y métricas. Las tecnologías similares (píxeles, SDKs, local storage) se tratan de forma equivalente cuando pueden reconocer o seguir al usuario.'] },
         { title: 'Categorías', body: ['Necesarias: sesión, inicio de sesión, seguridad, prevención de fraude y preferencias esenciales — minimizadas y siempre activas cuando son indispensables.', 'Preferencias: idioma, tema y elecciones de interfaz — consentimiento cuando no son esenciales.', 'Analítica: medición de audiencia, errores y rendimiento — consentimiento granular; interés legítimo solo cuando se evalúa y sin rastreo intrusivo.', 'Marketing/publicidad: campañas, atribución y remarketing — consentimiento específico y revocable.'] },
         { title: 'Elección, retirada y prueba', body: ['El usuario puede aceptar, rechazar o seleccionar categorías. La retirada debe ser tan fácil como la concesión. Guardamos prueba de la elección solo con los datos necesarios. Rechazar cookies opcionales no impide el uso de las funciones esenciales.'] },
         { title: 'Terceros y transferencias', body: ['Los proveedores de alojamiento, autenticación, pago, analítica, soporte, IA y seguridad pueden recibir identificadores según la finalidad, siempre minimizados y vinculados contractualmente. Cuando haya transferencia internacional, deben observarse la LGPD y (si aplica) el GDPR.'] },
-        { title: 'Contacto de privacidad', body: ['Dudas, retirada de preferencias y ejercicio de derechos: privacy@almanaquedosclubes.com [Confirmar buzón dedicado]. El canal actual de soporte es endart.studios@gmail.com.'] },
+        { title: 'Contacto de privacidad', body: ['Dudas, retirada de preferencias y ejercicio de derechos: endart.studios@gmail.com. El canal actual de soporte es endart.studios@gmail.com.'] },
       ],
       note: 'La clasificación y el inventario deben seguir la función real de cada cookie, no el nombre comercial del proveedor.',
     },
@@ -147,23 +147,23 @@ const es: Dictionary = {
         { title: 'Función', body: ['La IA apoya la investigación, el resumen, la clasificación y la generación de respuestas. Es una herramienta de apoyo y no sustituye la verificación independiente, una fuente oficial, el asesoramiento profesional ni la decisión humana.'] },
         { title: 'Limitaciones', body: ['Las respuestas pueden contener errores, omisiones, inferencias indebidas o citas incompletas. Los resultados pueden variar y no reflejar la información más reciente. La presencia de citas no garantiza respaldo ni completitud.'] },
         { title: 'Fuentes y metodología', body: ['Indicamos, cuando está disponible, la fuente y la fecha de actualización. Los rankings y datos históricos reflejan la metodología, las fuentes y el momento de actualización mostrados en la página. El Almanaque no es un organismo oficial de clubes, ligas o federaciones, salvo indicación expresa.'] },
-        { title: 'Datos y proveedores', body: ['Las preguntas pueden procesarse para generar la respuesta y por seguridad. El proveedor de IA, el país de procesamiento, la retención y el uso para entrenamiento [Confirmar] deben constar en la Política de Privacidad.'] },
-        { title: 'Tus derechos y contestación', body: ['Puedes solicitar corrección de contenido, revisión de una decisión automatizada, una reclamación y el ejercicio de los derechos de la LGPD en privacy@almanaquedosclubes.com [Confirmar] o endart.studios@gmail.com.'] },
+        { title: 'Datos y proveedores', body: ['Las preguntas pueden procesarse para generar la respuesta y por seguridad. El proveedor de IA, el país de procesamiento, la retención y el uso para entrenamiento constarán en la Política de Privacidad; se están evaluando alternativas gratuitas a largo plazo.'] },
+        { title: 'Tus derechos y contestación', body: ['Puedes solicitar corrección de contenido, revisión de una decisión automatizada, una reclamación y el ejercicio de los derechos de la LGPD en endart.studios@gmail.com.'] },
       ],
       note: 'No introduzcas contraseñas, datos sensibles, secretos comerciales ni datos de terceros sin autorización. La IA puede equivocarse; verifica las fuentes antes de reutilizar la información.',
     },
     termosAssinatura: {
       title: 'Términos de Suscripción — Pro y Elite',
-      intro: 'Estos Términos regulan la suscripción a los planes Pro y Elite de Almanaque dos Clubes. Están sujetos a revisión jurídica y confirmación de los datos de contratación antes de su publicación. En conflicto, prevalecen la norma cogente y la condición más favorable al consumidor.',
+      intro: 'Estos Términos regulan la suscripción a los planes Pro y Elite de Almanaque dos Clubes, prestados por END ART Studios (CNPJ 45.370.930/0001-75), Osasco, SP - Brasil. Vigencia: 01/09/2026. En conflicto, prevalecen la norma cogente y la condición más favorable al consumidor.',
       sections: [
-        { title: 'Objeto, planes y precio', body: ['Pro cuesta R$ 4,90 por [mes/año] y Elite R$ 9,90 por [mes/año]. La periodicidad, impuestos, renovación, límites y funciones deben constar en el checkout y en el recibo. Ningún plan gratuito se convierte automáticamente en pago; el pago exige una acción afirmativa del consumidor.'] },
+        { title: 'Objeto, planes y precio', body: ['Pro: € 4,90/mes (anual 15% de descuento). Elite: € 9,90/mes (anual 15% de descuento). La moneda sigue el origen del registro: América Latina en reales (R$), países que usan dólar en dólares ($), países que usan euro en euros (€). Pago vía Stripe. La periodicidad, impuestos, renovación, límites y funciones constan en el checkout y en el recibo. Ningún plan gratuito se convierte automáticamente en pago; el pago exige una acción afirmativa del consumidor.'] },
         { title: 'Renovación y cambios', body: ['La renovación automática solo ocurre si se informa y autoriza antes de la contratación, con aviso previo. Un cambio de precio, periodicidad o reducción sustancial de funciones se comunicará antes de producir efectos; cuando modifique materialmente el contrato, el consumidor podrá cancelar sin penalidad desproporcionada.'] },
         { title: 'Uso y limitaciones de la IA', body: ['Las herramientas de IA son auxiliares y pueden equivocarse. Está prohibido usar la plataforma para fraude, malware, acoso, vulneración de derechos, decisión automatizada relevante sin revisión, extracción masiva, ingeniería inversa, elusión de límites o entrenamiento de un modelo competidor sin licencia escrita.'] },
         { title: 'Cancelación y desistimiento', body: ['El consumidor puede cancelar la renovación desde el panel o por el mismo medio usado para contratar, sin justificación. Bajo el art. 49 del CDC, puede ejercer el desistimiento en 7 días, sin barreras, con devolución de los importes pagados según la ley. La cancelación ordinaria tras el plazo no implica reembolso proporcional automático, salvo fallo del servicio, cobro indebido o incumplimiento de la oferta.'] },
-        { title: 'Responsabilidad y protección de datos', body: ['END ART responde conforme al CDC, la LGPD y la ley aplicable por fallos que le sean imputables. Ninguna cláusula excluye responsabilidad legal inderogable. El tratamiento de datos sigue la Política de Privacidad; el consumidor puede ejercer sus derechos en privacy@almanaquedosclubes.com [Confirmar]. El marketing es opcional y no condiciona la contratación.'] },
+        { title: 'Responsabilidad y protección de datos', body: ['END ART responde conforme al CDC, la LGPD y la ley aplicable por fallos que le sean imputables. Ninguna cláusula excluye responsabilidad legal inderogable. El tratamiento de datos sigue la Política de Privacidad; el consumidor puede ejercer sus derechos en endart.studios@gmail.com. El marketing es opcional y no condiciona la contratación.'] },
         { title: 'Ley y foro', body: ['Se aplica la legislación brasileña. En las relaciones de consumo, se preserva el foro del domicilio del consumidor y cualquier otro foro legalmente favorable, sin perjuicio de los órganos de defensa del consumidor.'] },
       ],
-      note: 'Contrato minuta — revisión jurídica obligatoria antes de su publicación. Sustituir los campos [Confirmar] y confirmar razón social, CNPJ, dirección, gateway, periodicidad y funciones de cada plan.',
+      note: 'Proveedor: END ART Studios — CNPJ 45.370.930/0001-75, Osasco, SP — Brasil. Gateway: Stripe. Vigencia: 01/09/2026.',
     },
   },
   langSelector: { label: 'Idioma', current: 'Idioma actual' },
