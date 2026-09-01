@@ -256,6 +256,10 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
           'Privacy requests and exercise of rights: endart.studios@gmail.com.',
           'END ART Studios is the controller of the data processed on the platform.',
         ]},
+        { title: '11. Location, geolocation and currency', body: [
+          'To display and charge the price in the correct currency, we determine the country of the user from the IP address (approximate location). For this, the IP may be processed by geolocation providers (e.g., ipwho.is) and by our hosting provider (e.g., Vercel, Railway), strictly to identify the country and set the currency (South/Central America: reais; dollar countries: dollars; Europe: euros).',
+          'Legal basis: contract performance and legitimate interest. Location is not used for advertising, profiling or automated decisions outside pricing, and is processed in a minimised way only to set the currency.',
+        ]},
       ],
     },
   },
