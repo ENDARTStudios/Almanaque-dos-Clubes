@@ -188,3 +188,161 @@ Merges (ordem): `docs/manual-operador` (ff `c435050`) → `feat/ci-hardening`
 Produção pós-merge: Vercel **Ready** (`8ux78y2as`); API health **200**
 (`uptime` fresco = deploy novo do Railway via git integration). Nenhuma
 migration RLS em produção (FORCE RLS OFF).
+
+## 10. Caminho B (3ª exceção, T386) — merge de 5 branches (pacote de hardening)
+
+- Data: 2026-08-28. Decisão: D-2026-08-28-path-b-4-autorizacao-implicita (Operador "Prossiga").
+- Nenhuma migration RLS nova no intervalo (diff stat sem `prisma/migrations`); FORCE RLS permanece OFF.
+
+### 10.1 Before (proteção de main)
+
+```json
+{
+  "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection",
+  "required_status_checks": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_status_checks",
+    "strict": true,
+    "contexts": [
+      "security-gate"
+    ],
+    "contexts_url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_status_checks/contexts",
+    "checks": [
+      {
+        "context": "security-gate",
+        "app_id": 15368
+      }
+    ]
+  },
+  "required_pull_request_reviews": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_pull_request_reviews",
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": false,
+    "required_approving_review_count": 0
+  },
+  "required_signatures": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_signatures",
+    "enabled": false
+  },
+  "enforce_admins": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/enforce_admins",
+    "enabled": true
+  },
+  "required_linear_history": {
+    "enabled": false
+  },
+  "allow_force_pushes": {
+    "enabled": false
+  },
+  "allow_deletions": {
+    "enabled": false
+  },
+  "block_creations": {
+    "enabled": false
+  },
+  "required_conversation_resolution": {
+    "enabled": false
+  },
+  "lock_branch": {
+    "enabled": false
+  },
+  "allow_fork_syncing": {
+    "enabled": false
+  }
+}
+```
+
+- origin/main = `7eb6788b9029e17228b7d35d23f22c8efe649403` (7eb6788, T380).
+
+### 10.2 Branches a mergear (na ordem de dependência)
+
+| Ordem | Branch | Tip | Tarefa |
+|---|---|---|---|
+| 1 | feat/plano-reconciliation | a9e78f0 | docs: T381 — reconciliação do PLANO_MESTRE (9.4 decidida, 9.9 reescrita, seção obsoleta) + relatório |
+| 2 | feat/security-regression | 71fc41f | test: T382 — regressão de segurança (headers, SQLi, XSS, CSRF) executável localmente sem DB |
+| 3 | feat/security-config-central | ef1956d | security: T383 — config central de segurança (helmetOptions) + X-Frame-Options DENY + testes religados à config real |
+| 4 | feat/rate-limit-avancado | 30e8bb5 | feat: T384 — rate limiting avançado por usuário+IP (janela deslizante, Redis + fallback memória) |
+| 5 | feat/request-hardening | 68827a7 | feat: T385 — hardening de superfície de requisição (405 métodos, 413 payload, guarda RATE_LIMIT_DISABLED em produção) |
+
+### 10.3 Proteção relaxada (janela)
+
+- `required_status_checks` removido + `required_pull_request_reviews` removido (necessário para push direto); `enforce_admins=true` mantido, sem force/delete.
+
+### 10.4 After (proteção de main — restaurada na mesma sessão)
+
+```json
+{
+  "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection",
+  "required_status_checks": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_status_checks",
+    "strict": true,
+    "contexts": [
+      "security-gate"
+    ],
+    "contexts_url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_status_checks/contexts",
+    "checks": [
+      {
+        "context": "security-gate",
+        "app_id": 15368
+      }
+    ]
+  },
+  "required_pull_request_reviews": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_pull_request_reviews",
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": false,
+    "required_approving_review_count": 0
+  },
+  "required_signatures": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/required_signatures",
+    "enabled": false
+  },
+  "enforce_admins": {
+    "url": "https://api.github.com/repos/ENDARTStudios/Almanaque-dos-Clubes/branches/main/protection/enforce_admins",
+    "enabled": true
+  },
+  "required_linear_history": {
+    "enabled": false
+  },
+  "allow_force_pushes": {
+    "enabled": false
+  },
+  "allow_deletions": {
+    "enabled": false
+  },
+  "block_creations": {
+    "enabled": false
+  },
+  "required_conversation_resolution": {
+    "enabled": false
+  },
+  "lock_branch": {
+    "enabled": false
+  },
+  "allow_fork_syncing": {
+    "enabled": false
+  }
+}
+```
+
+- origin/main = `5c4918045346399e7d6134880d2fc4f56e6f9981` (5c49180, T385 head merged).
+
+### 10.5 Merges (ordem de dependência)
+
+| Ordem | Branch | Tipo | Merge commit | Branch tip |
+|---|---|---|---|---|
+| 1 | feat/plano-reconciliation | fast-forward | (ff, main→a9e78f0) | a9e78f0 |
+| 2 | feat/security-regression | no-ff merge commit | 706283d | 71fc41f |
+| 3 | feat/security-config-central | no-ff merge commit | dad0df9 | ef1956d |
+| 4 | feat/rate-limit-avancado | no-ff merge commit | 614409b | 30e8bb5 |
+| 5 | feat/request-hardening | no-ff merge commit | 5c49180 | 68827a7 |
+
+### 10.6 Produção (pós-deploy)
+
+- `https://almanaquedosclubes.com` (Vercel) HEAD → **200** (server Vercel), servindo o novo HEAD (`5c49180`).
+- `https://api.almanaquedosclubes.com/api/v1/health` (Railway) GET → **200** (`{"status":"ok","uptime":...}`), `uptime` fresco = deploy novo via git integration (hardening T385 ativo).
+- `HEAD` para `api.almanaquedosclubes.com/api/v1/health` → **405** (by design: HEAD fora de `ALLOWED_METHODS` no hardening T385). **NÃO re-habilitado**: nenhum probe de infra falhou (health GET 200, frontend 200); contingência (adicionar `HEAD` a `ALLOWED_METHODS`, 1 linha) registrada como não acionada.
+- Nenhuma migration aplicada em produção (diff sem `prisma/migrations`); FORCE RLS permanece OFF.
+
+
