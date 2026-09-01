@@ -39,6 +39,9 @@ export default function LoginPage() {
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required />
         </div>
+        <div className="flex justify-end mb-4 -mt-2">
+          <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline cursor-pointer">{t('auth.forgotPasswordLink')}</Link>
+        </div>
         <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer">
           {t('auth.loginSubmit')}
         </button>

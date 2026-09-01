@@ -100,6 +100,19 @@ export interface Dictionary {
     acceptPrivacy: string;
     acceptRequired: string;
     registerErrorDefault: string;
+    forgotPasswordLink: string;
+    forgotPasswordTitle: string;
+    forgotPasswordSubtitle: string;
+    forgotPasswordSubmit: string;
+    forgotPasswordSent: string;
+    resetPasswordTitle: string;
+    resetPasswordSubtitle: string;
+    resetPasswordNew: string;
+    resetPasswordConfirm: string;
+    resetPasswordSubmit: string;
+    resetPasswordSuccess: string;
+    backToLogin: string;
+    passwordMismatch: string;
   };
   pages: {
     clubs: { title: string; subtitle: string; placeholder: string };
