@@ -33,7 +33,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = await readCsrfToken();
     if (token) headers['x-csrf-token'] = token;
   }
-  const res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+  let res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+  // Se um write falhar por CSRF stale, invalida o cache, refaz o token e tenta uma vez.
+  if (!res.ok && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    const probe = (await res.json().catch(() => null)) as { error?: { code?: string } } | null;
+    if (probe?.error?.code === 'CSRF_INVALID') {
+      csrfToken = null;
+      const fresh = await readCsrfToken();
+      if (fresh) headers['x-csrf-token'] = fresh;
+      res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+    }
+  }
   if (!res.ok) {
     const body = (await res
       .json()

@@ -1,9 +1,35 @@
 import { Queue, Worker, type Job } from 'bullmq';
 
-const connection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: Number(process.env.REDIS_PORT) || 6379,
-};
+// T388: BullMQ usava apenas REDIS_HOST/REDIS_PORT (fallback localhost:6379),
+// ignorando REDIS_URL — em produção a fila caía em 127.0.0.1:6379 (ECONNREFUSED).
+// Agora usa REDIS_URL/REDIS_PRIVATE_URL quando presentes (produção aponta para
+// redis.railway.internal). Fail-fast em produção: sem Redis configurado a fila
+// não deve tentar localhost silenciosamente.
+const redisUrl = (process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL || '').trim();
+if (process.env.NODE_ENV === 'production' && !redisUrl && !process.env.REDIS_HOST) {
+  throw new Error(
+    'Redis não configurado em produção (REDIS_URL ausente). Configure REDIS_URL para habilitar as filas (BullMQ).',
+  );
+}
+function redisConnectionFromUrl(url: string): {
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+} {
+  const u = new URL(url);
+  const username = u.username ? decodeURIComponent(u.username) : undefined;
+  const password = u.password ? decodeURIComponent(u.password) : undefined;
+  return {
+    host: u.hostname,
+    port: Number(u.port) || 6379,
+    ...(username ? { username } : {}),
+    ...(password ? { password } : {}),
+  };
+}
+const connection = redisUrl
+  ? redisConnectionFromUrl(redisUrl)
+  : { host: process.env.REDIS_HOST || 'localhost', port: Number(process.env.REDIS_PORT) || 6379 };
 
 export const queues = {
   etl: new Queue('etl', { connection }),
