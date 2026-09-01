@@ -14,6 +14,7 @@ export interface Dictionary {
   nav: {
     clubs: string;
     players: string;
+    competitions: string;
     rankings: string;
     search: string;
     login: string;
@@ -101,6 +102,7 @@ export interface Dictionary {
   pages: {
     clubs: { title: string; subtitle: string; placeholder: string };
     players: { title: string; subtitle: string; placeholder: string };
+    competitions: { title: string; subtitle: string; empty: string };
     rankings: { title: string; subtitle: string };
     search: { title: string; subtitle: string; placeholder: string };
     sobre: { title: string; intro: string; sections: LegalSection[] };

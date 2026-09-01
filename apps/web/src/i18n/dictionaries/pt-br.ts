@@ -10,6 +10,7 @@ const pt: Dictionary = {
   nav: {
     clubs: 'Clubes',
     players: 'Jogadores',
+    competitions: 'Competições',
     rankings: 'Rankings',
     search: 'Busca',
     login: 'Entrar',
@@ -97,6 +98,7 @@ notFoundDesc: 'O conteúdo que você procura não existe ou foi movido.',
   pages: {
     clubs: { title: 'Clubes', subtitle: 'Explore {n} clubes de futebol cadastrados.', placeholder: 'Buscar clubes por nome, país ou cidade...' },
     players: { title: 'Jogadores', subtitle: 'Pesquise jogadores de futebol de todos os tempos e lugares.', placeholder: 'Buscar jogadores por nome, país ou posição...' },
+    competitions: { title: 'Competições', subtitle: 'Explore {n} competições de futebol cadastradas.', empty: 'Nenhuma competição encontrada.' },
     rankings: { title: 'Rankings', subtitle: 'Rankings históricos com fontes verificadas e data de publicação.' },
     search: { title: 'Busca Avançada', subtitle: 'Pesquise clubes, jogadores, competições e estatísticas com filtros avançados.', placeholder: 'Digite um termo para buscar...' },
     sobre: {
