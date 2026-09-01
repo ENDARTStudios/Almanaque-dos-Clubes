@@ -85,6 +85,7 @@ export interface Dictionary {
     loginSubtitle: string;
     email: string;
     password: string;
+    passwordHelp: string;
     name: string;
     loginSubmit: string;
     loginErrorDefault: string;

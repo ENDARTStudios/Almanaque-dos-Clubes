@@ -81,6 +81,7 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
     loginSubtitle: 'Access your Almanaque dos Clubes account',
     email: 'Email',
     password: 'Password',
+    passwordHelp: 'Min. 8 characters, with uppercase, lowercase and a number.',
     name: 'Name',
     loginSubmit: 'Log in',
     loginErrorDefault: 'Error logging in',

@@ -9,11 +9,9 @@ type Choice = Record<Category, boolean>;
 const STORAGE_KEY = 'almanaque_cookie_consent';
 const OPEN_EVENT = 'almanaque:open-cookie-consent';
 
-function readChoice(): Choice | null {
-  if (typeof window === 'undefined') return null;
+function parseConsent(raw: string | null): Choice | null {
+  if (!raw) return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       return {
@@ -23,6 +21,20 @@ function readChoice(): Choice | null {
         marketing: !!parsed.marketing,
       };
     }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function readChoice(): Choice | null {
+  if (typeof window === 'undefined') return null;
+  // Tenta localStorage; fallback para o cookie (persiste mesmo se o storage falhar).
+  const fromStorage = parseConsent(window.localStorage.getItem(STORAGE_KEY));
+  if (fromStorage) return fromStorage;
+  try {
+    const m = document.cookie.split('; ').find((c) => c.startsWith('almanaque_consent='));
+    if (m) return parseConsent(decodeURIComponent(m.slice('almanaque_consent='.length)));
   } catch {
     /* ignore */
   }
