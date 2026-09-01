@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Subscription service — gerência de assinaturas SaaS e billing.
  *
  * Modelos:
@@ -329,4 +329,33 @@ export async function listUserBillings(
 export async function findBillingByExternalId(externalId: string): Promise<Billing | null> {
   const result = await prisma.billing.findFirst({ where: { externalId } });
   return result as unknown as Billing | null;
+}
+
+/**
+ * Arrependimento (art. 49 CDC, 7 dias): cancela a assinatura, volta ao FREE e
+ * marca as cobranças pagas como REFUNDED. O reembolso físico via Stripe é
+ * disparado no route (refundStripeSubscription), best-effort.
+ */
+export async function withdrawSubscription(userId: string): Promise<Subscription | null> {
+  const sub = await prisma.subscription.findUnique({ where: { userId } });
+  if (!sub || sub.plan === 'FREE') {
+    throw new Error('Nenhuma assinatura paga para arrependimento.');
+  }
+  const now = new Date();
+  const within =
+    sub.startedAt && now.getTime() - sub.startedAt.getTime() <= 7 * 24 * 60 * 60 * 1000;
+  if (!within) {
+    throw new Error('Fora do prazo de arrependimento (7 dias).');
+  }
+  await prisma.$transaction(async (tx) => {
+    await tx.billing.updateMany({
+      where: { subscriptionId: sub.id, status: 'PAID' },
+      data: { status: 'REFUNDED' },
+    });
+    await tx.subscription.update({
+      where: { id: sub.id },
+      data: { status: 'CANCELLED', cancelledAt: now, currentPeriodEnd: null, plan: 'FREE' },
+    });
+  });
+  return getSubscription(userId);
 }
