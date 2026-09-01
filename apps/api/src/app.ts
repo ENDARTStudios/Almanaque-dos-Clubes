@@ -128,9 +128,19 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(helmet, helmetOptions(env.isProd));
 
   await app.register(cors, {
-    origin: env.isProd
-      ? ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com']
-      : true,
+    origin: async (origin: string | undefined) => {
+      if (!origin) return true; // server-to-server (ex.: webhook Stripe)
+      const prod = ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com'];
+      const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
+      if (
+        prod.includes(origin) ||
+        isVercelPreview ||
+        origin === 'http://localhost:3000' ||
+        origin === 'http://localhost:3001'
+      )
+        return true;
+      throw new Error('Not allowed by CORS');
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
