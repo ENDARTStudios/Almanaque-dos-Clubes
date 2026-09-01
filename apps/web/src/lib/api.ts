@@ -4,14 +4,36 @@ interface ApiError {
   error: { code: string; message: string; details?: unknown };
 }
 
+let csrfToken: string | null = null;
+
+async function readCsrfToken(): Promise<string | null> {
+  if (csrfToken) return csrfToken;
+  try {
+    const res = await fetch(API_BASE + '/auth/csrf-token', { credentials: 'include' });
+    if (res.ok) {
+      const j = (await res.json()) as Record<string, unknown>;
+      const d = (j.data ?? j) as Record<string, unknown>;
+      csrfToken = (d.csrfToken as string) ?? (d.token as string) ?? null;
+    }
+  } catch {
+    /* sem token determinável */
+  }
+  return csrfToken;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options.headers as Record<string, string> },
-    ...options,
-  });
+  const method = (options.method ?? 'GET').toUpperCase();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    const token = await readCsrfToken();
+    if (token) headers['x-csrf-token'] = token;
+  }
+  const res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: { code: 'UNKNOWN', message: 'Erro desconhecido' } })) as ApiError;
+    const body = (await res.json().catch(() => ({ error: { code: 'UNKNOWN', message: 'Erro desconhecido' } }))) as ApiError;
     throw new Error(body.error.message);
   }
   return res.json() as Promise<T>;

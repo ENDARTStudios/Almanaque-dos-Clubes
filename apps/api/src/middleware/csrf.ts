@@ -46,6 +46,7 @@ const CSRF_EXEMPT_PREFIXES = [
   '/api/v1/auth/logout',
   '/api/v1/health',
   '/api/v1/metrics',
+  '/api/v1/billing/webhook',
 ];
 
 export async function csrfMiddleware(request: FastifyRequest, reply: FastifyReply): Promise<void> {
