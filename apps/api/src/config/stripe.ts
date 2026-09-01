@@ -36,18 +36,25 @@ export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? '';
 
 export type PlanKey = 'PRO' | 'ELITE';
 export type IntervalKey = 'month' | 'year';
+export type Currency = 'BRL' | 'USD' | 'EUR';
 
-export function resolvePriceId(plan: PlanKey, interval: IntervalKey): string {
-  const key = plan.toLowerCase() + (interval === 'year' ? 'Year' : 'Month');
-  const id = STRIPE_PRICES[key as keyof typeof STRIPE_PRICES];
-  if (!id) {
-    throw new Error(
-      'Price ID não configurado: STRIPE_PRICE_' +
-        plan +
-        '_' +
-        (interval === 'year' ? 'YEAR' : 'MONTH') +
-        '. Crie o preço de recorrência no painel Stripe e defina a env.',
-    );
+export function resolvePriceId(plan: PlanKey, interval: IntervalKey, currency?: Currency): string {
+  const i = interval === 'year' ? 'YEAR' : 'MONTH';
+  // Cobrança por origem: STRIPE_PRICE_<PLAN>_<INTERVAL>_<CURRENCY>
+  if (currency) {
+    const perCurrency = process.env['STRIPE_PRICE_' + plan + '_' + i + '_' + currency];
+    if (perCurrency) return perCurrency;
   }
-  return id;
+  const fallback =
+    STRIPE_PRICES[
+      (plan.toLowerCase() + (interval === 'year' ? 'Year' : 'Month')) as keyof typeof STRIPE_PRICES
+    ];
+  if (fallback) return fallback;
+  throw new Error(
+    'Price ID não configurado: ' +
+      (currency
+        ? 'STRIPE_PRICE_' + plan + '_' + i + '_' + currency
+        : 'STRIPE_PRICE_' + plan + '_' + i) +
+      '. Crie o preço de recorrência no painel Stripe e defina a env.',
+  );
 }

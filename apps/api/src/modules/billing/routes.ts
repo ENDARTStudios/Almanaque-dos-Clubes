@@ -19,6 +19,7 @@ import { PERMISSIONS } from '../auth/rbac.service.js';
 const CheckoutSchema = z.object({
   plan: z.enum(['PRO', 'ELITE']),
   interval: z.enum(['month', 'year']),
+  currency: z.enum(['BRL', 'USD', 'EUR']).optional(),
 });
 
 export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
@@ -78,12 +79,13 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
           },
         });
       }
-      const { plan, interval } = CheckoutSchema.parse(request.body);
+      const { plan, interval, currency } = CheckoutSchema.parse(request.body);
       const base = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3001';
       const result = await createCheckoutSession({
         userId: request.user!.id,
         plan,
         interval,
+        currency,
         successUrl: base + '/dashboard/subscription?checkout=success',
         cancelUrl: base + '/planos?checkout=canceled',
         customerEmail: (request.user as unknown as { email?: string }).email ?? null,

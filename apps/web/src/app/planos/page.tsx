@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ContentDocument from '@/components/ContentDocument';
+import CheckoutButton from '@/components/CheckoutButton';
 
 export const metadata: Metadata = {
   title: 'Planos | Almanaque dos Clubes',
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function PlanosPage() {
-  return <ContentDocument namespace="planos" />;
+  return (
+    <>
+      <ContentDocument namespace="planos" />
+      <CheckoutButton />
+    </>
+  );
 }

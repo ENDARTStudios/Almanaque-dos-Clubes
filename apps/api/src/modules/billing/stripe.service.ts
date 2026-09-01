@@ -6,6 +6,7 @@ import {
   STRIPE_WEBHOOK_SECRET,
   type PlanKey,
   type IntervalKey,
+  type Currency,
 } from '../../config/stripe.js';
 import {
   createBilling,
@@ -18,12 +19,13 @@ export async function createCheckoutSession(input: {
   userId: string;
   plan: PlanKey;
   interval: IntervalKey;
+  currency?: Currency;
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string | null;
 }) {
   const stripe = getStripe();
-  const price = resolvePriceId(input.plan, input.interval);
+  const price = resolvePriceId(input.plan, input.interval, input.currency);
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price, quantity: 1 }],
@@ -31,7 +33,12 @@ export async function createCheckoutSession(input: {
     cancel_url: input.cancelUrl,
     client_reference_id: input.userId,
     customer_email: input.customerEmail || undefined,
-    metadata: { userId: input.userId, plan: input.plan, interval: input.interval },
+    metadata: {
+      userId: input.userId,
+      plan: input.plan,
+      interval: input.interval,
+      currency: input.currency || '',
+    },
   });
   return { url: session.url };
 }
