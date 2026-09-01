@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import ClubGrid from '@/components/ClubCard';
 import SearchBar from '@/components/SearchBar';
 import PageHeading from '@/components/PageHeading';
+import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
   title: 'Clubes',
@@ -18,7 +19,7 @@ async function getClubs(searchParams: { [key: string]: string | undefined }) {
   });
   params.set('limit', '50');
   try {
-    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+    const base = getApiBase();
     const res = await fetch(base + '/clubs?' + params.toString(), { cache: 'no-store' });
     if (!res.ok) return { data: [], total: 0 };
     return await res.json();
