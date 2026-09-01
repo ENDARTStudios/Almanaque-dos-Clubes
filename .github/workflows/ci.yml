@@ -62,6 +62,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Build @almanaque/domain
+        run: pnpm --filter @almanaque/domain build
+
       - name: Unit & Integration Tests
         run: pnpm test:unit --coverage
         env:
