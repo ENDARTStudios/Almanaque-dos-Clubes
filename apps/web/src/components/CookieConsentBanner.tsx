@@ -51,9 +51,19 @@ function writeChoice(choice: Choice) {
 export default function CookieConsentBanner() {
   const { dict, t } = useI18n();
   const b = dict.common.cookieBanner;
-  const [open, setOpen] = useState<boolean>(() => !readChoice());
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(true);
   const [managing, setManaging] = useState(false);
   const [choice, setChoice] = useState<Choice>({ preferences: false, analytics: false, personalization: false, marketing: false });
+
+  // Hidratação segura: lemos a preferência (localStorage/cookie) somente após o mount,
+  // evitando hydration mismatch (o servidor não tem localStorage) — assim os botões respondem.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setMounted(true);
+    if (readChoice()) setOpen(false);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const onOpen = () => setManaging(true);
@@ -72,6 +82,7 @@ export default function CookieConsentBanner() {
     setManaging(false);
   }
 
+  if (!mounted) return null; // evita SSR divergente
   if (!open && !managing) return null;
   if (!managing) {
     return (
