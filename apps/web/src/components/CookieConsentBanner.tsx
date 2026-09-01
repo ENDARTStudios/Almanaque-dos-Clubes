@@ -51,7 +51,11 @@ export default function CookieConsentBanner() {
 
   function apply(next: Choice) {
     setChoice(next);
-    writeChoice(next);
+    try {
+      writeChoice(next);
+    } catch {
+      /* mesmo que o armazenamento falhe, o banner deve ser dispensado */
+    }
     setOpen(false);
     setManaging(false);
   }

@@ -1,8 +1,24 @@
+const PROD_API_URL = 'https://api.almanaquedosclubes.com/api/v1';
+const DEV_API_URL = 'http://localhost:3000/api/v1';
+
+function isTrustedApiBase(value: string): boolean {
+  try {
+    const host = new URL(value).hostname;
+    return host === 'api.almanaquedosclubes.com' || host.endsWith('.almanaquedosclubes.com');
+  } catch {
+    return false;
+  }
+}
+
+const configuredApi = (process.env.NEXT_PUBLIC_API_URL ?? '').trim();
+// Em produção, confiamos apenas em uma base da família almanaquedosclubes.com.
+// Ignora URLs de staging/railway/localhost configuradas por engano no ambiente.
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://api.almanaquedosclubes.com/api/v1'
-    : 'http://localhost:3000/api/v1');
+  process.env.NODE_ENV === 'production'
+    ? configuredApi && isTrustedApiBase(configuredApi)
+      ? configuredApi
+      : PROD_API_URL
+    : configuredApi || DEV_API_URL;
 
 interface ApiError {
   error: { code: string; message: string; details?: unknown };

@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.almanaquedosclubes.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.almanaquedosclubes.com https://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },
