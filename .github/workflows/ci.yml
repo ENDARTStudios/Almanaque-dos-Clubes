@@ -109,7 +109,6 @@ jobs:
 
   dependency-audit:
     runs-on: ubuntu-latest
-    if: hashFiles('pnpm-lock.yaml') != ''
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
