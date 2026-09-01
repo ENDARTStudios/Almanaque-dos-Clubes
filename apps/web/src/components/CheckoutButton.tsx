@@ -3,12 +3,8 @@ import { useState } from 'react';
 import { useI18n } from '@/i18n/Provider';
 import { api } from '@/lib/api';
 
-const CURRENCY_BY_LOCALE: Record<string, 'BRL' | 'USD' | 'EUR'> = {
-  'pt-br': 'BRL',
-  'en-us': 'USD',
-  'es-es': 'EUR',
-};
-
+// A moeda NÃO é determinada aqui. A API deriva a moeda da localização real do
+// usuário (país do IP) e NUNCA aceita a moeda vinda do cliente ou do idioma.
 const LABELS: Record<string, { subscribe: string; monthly: string; yearly: string; pro: string; elite: string; error: string }> = {
   'pt-br': { subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite', error: 'Não foi possível iniciar o pagamento.' },
   'en-us': { subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite', error: 'Could not start checkout.' },
@@ -17,7 +13,6 @@ const LABELS: Record<string, { subscribe: string; monthly: string; yearly: strin
 
 export default function CheckoutButton() {
   const { locale } = useI18n();
-  const currency = CURRENCY_BY_LOCALE[locale] ?? 'BRL';
   const l = LABELS[locale] ?? LABELS['pt-br'];
   const [interval, setInterval] = useState<'month' | 'year'>('month');
   const [loading, setLoading] = useState<string | null>(null);
@@ -27,7 +22,8 @@ export default function CheckoutButton() {
     setLoading(plan);
     setError('');
     try {
-      const res = await api.post<{ data: { url: string } }>('/billing/checkout', { plan, interval, currency });
+      // A moeda é resolvida no servidor pela localização real; não a enviamos.
+      const res = await api.post<{ data: { url: string } }>('/billing/checkout', { plan, interval });
       window.location.href = res.data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : l.error);

@@ -1,4 +1,4 @@
-﻿import type { Dictionary } from '../types';
+import type { Dictionary } from '../types';
 
 const pt: Dictionary = {
   site: {
@@ -118,18 +118,18 @@ notFoundDesc: 'O conteúdo que você procura não existe ou foi movido.',
     },
     planos: {
       title: 'Planos',
-      intro: 'O Almanaque dos Clubes oferece planos gratuitos e pagos. Valores vigentes a partir de 01/09/2026; a moeda vem do país de origem do cadastro (América Latina: R$; países que usam dólar: $; países que usam euro: €).',
+      intro: 'O Almanaque dos Clubes oferece planos gratuitos e pagos. Valores vigentes a partir de 01/09/2026; a moeda é definida pela localização real do visitante (América do Sul e Central: R$; países que usam dólar: $; Europa: €).',
       sections: [
-        { title: 'Free — R$ 0,00', body: ['Recursos gratuitos indicados na página, sujeitos a limites técnicos razoáveis informados previamente.'] },
-        { title: 'Pro — R$ 4,90', body: ['R$ 4,90/mês; anual com 15% de desconto. Pagamento via Stripe, somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
-        { title: 'Elite — R$ 9,90', body: ['R$ 9,90/mês; anual com 15% de desconto. Pagamento via Stripe, somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
+        { title: 'Free — {free}', body: ['Recursos gratuitos indicados na página, sujeitos a limites técnicos razoáveis informados previamente.'] },
+        { title: 'Pro — {proMonthly}', body: ['{proMonthly}/mês; anual com 15% de desconto. Pagamento via Stripe, somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
+        { title: 'Elite — {eliteMonthly}', body: ['{eliteMonthly}/mês; anual com 15% de desconto. Pagamento via Stripe, somente após confirmação expressa do consumidor; recursos e limites descritos antes do pagamento.'] },
         { title: 'Contratação transparente', body: [
           'A assinatura somente será concluída após o consumidor visualizar um resumo com plano, preço total, periodicidade, renovação, forma de pagamento, limitações relevantes e política de cancelamento.',
           'O consumidor pode cancelar a renovação pelos mesmos meios usados para contratar, sem necessidade de justificativa. O direito de arrependimento legal será respeitado.',
           'Não haverá aumento de preço, redução substancial de recursos ou mudança de periodicidade sem aviso prévio claro. O Free não deve ser convertido automaticamente em plano pago.',
         ]},
       ],
-      note: 'Mês: Pro R$ 4,90 · Elite R$ 9,90. Ano: 15% de desconto. Pagamento via Stripe. Moeda conforme a origem do cadastro.',
+      note: 'Mês: Pro {proMonthly} · Elite {eliteMonthly}. Ano: 15% de desconto. Pagamento via Stripe. Moeda conforme a localização real.',
     },
     seguranca: {
       title: 'Segurança e Vulnerabilidades',
@@ -169,7 +169,7 @@ notFoundDesc: 'O conteúdo que você procura não existe ou foi movido.',
       title: 'Termos de Assinatura — Pro e Elite',
       intro: 'Estes Termos disciplinam a assinatura dos planos Pro e Elite do Almanaque dos Clubes, fornecidos por END ART Studios (CNPJ 45.370.930/0001-75), Osasco, SP - Brasil. Vigência: 01/09/2026. Em conflito, prevalece a norma cogente e a condição mais favorável ao consumidor.',
       sections: [
-        { title: 'Objeto, planos e preço', body: ['Pro: R$ 4,90/mês (anual com 15% de desconto). Elite: R$ 9,90/mês (anual com 15% de desconto). A moeda segue a origem do cadastro: América Latina em reais (R$), países que usam dólar em dólar ($) e países que usam euro em euro (€). Pagamento via Stripe. A periodicidade, tributos, renovação, limites e recursos constam do checkout e do recibo. Nenhum plano gratuito é convertido automaticamente em pago; o pagamento exige ação afirmativa do consumidor.'] },
+        { title: 'Objeto, planos e preço', body: ['Pro: {proMonthly}/mês (anual com 15% de desconto). Elite: {eliteMonthly}/mês (anual com 15% de desconto). A moeda segue a localização real do consumidor: América do Sul e Central em reais (R$), países que usam dólar em dólar ($) e Europa em euro (€). Pagamento via Stripe. A periodicidade, tributos, renovação, limites e recursos constam do checkout e do recibo. Nenhum plano gratuito é convertido automaticamente em pago; o pagamento exige ação afirmativa do consumidor.'] },
         { title: 'Renovação e alterações', body: ['A renovação automática somente ocorre se informada e autorizada antes da contratação, com aviso prévio. Alteração de preço, periodicidade ou redução substancial de recursos será comunicada antes de produzir efeitos; quando modificar materialmente o contrato, o consumidor poderá cancelar sem penalidade desproporcional.'] },
         { title: 'Uso e limitações da IA', body: ['As ferramentas de IA são auxiliares e podem errar. É proibido usar a plataforma para fraude, malware, assédio, violação de direitos, decisão automatizada relevante sem revisão, extração em massa, engenharia reversa, burla de limites ou treinamento de modelo concorrente sem licença escrita.'] },
         { title: 'Cancelamento e arrependimento', body: ['O consumidor pode cancelar a renovação pelo painel ou pelo mesmo meio da contratação, sem justificativa. Nas hipóteses do art. 49 do CDC, pode exercer o arrependimento em até 7 dias, sem barreiras, com restituição dos valores pagos conforme a lei. O cancelamento ordinário após o prazo não implica reembolso proporcional automático, salvo falha do serviço, cobrança indevida ou descumprimento da oferta.'] },
