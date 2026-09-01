@@ -11,7 +11,7 @@
     "dev": "pnpm --filter @almanaque/api dev",
     "build": "pnpm --filter @almanaque/api build",
     "start": "pnpm --filter @almanaque/api start",
-    "lint": "eslint apps/**/*.ts packages/**/*.ts",
+    "lint": "eslint apps/api/**/*.ts apps/worker/**/*.ts packages/**/*.ts",
     "lint:fix": "eslint apps/**/*.ts packages/**/*.ts --fix",
     "format": "prettier --write '**/*.{ts,js,json,yaml,yml}'",
     "format:check": "prettier --check '**/*.{ts,js,json,yaml,yml}'",
