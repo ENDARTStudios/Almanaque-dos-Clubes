@@ -1,6 +1,6 @@
 # RLS-POLICIES.md — Almanaque dos Clubes
 
-> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE**
+> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE · PRODUÇÃO: INERTE (2026-09-02, D-2026-09-02-v5c-rls-inerte)**
 >
 > A migration `20260824_rls_sessions` aplicou `ENABLE`+`FORCE ROW LEVEL
 > SECURITY` em `sessions` com policy owner-only de leitura e exceção `SERVICE`,
@@ -15,7 +15,7 @@
 - Banco: PostgreSQL (provider `postgresql` em `apps/api/prisma/schema.prisma`).
 - RLS protege linhas no nível do banco, independente da camada de aplicação
   (RBAC em `rbac.service.ts` continua sendo a primeira linha).
-- `FORCE ROW LEVEL SECURITY` está ativado **apenas** em `sessions` (teste).
+- `FORCE ROW LEVEL SECURITY` ativado em `sessions` (teste + produção via migration manual). **Em produção está INERTE** (a API conecta como `postgres` superusuário, e o PostgreSQL dispensa RLS para superusuário).
 - Em migrations Prisma, RLS é criada via SQL raw aditivo (migration dedicada),
   nunca via alteração destrutiva de tabela existente.
 
@@ -34,7 +34,7 @@
 
 Legenda: `self` = linha cujo `id`/`userId` pertence ao usuário autenticado.
 
-### `sessions` — APLICADA-TESTE (migrations `20260824_rls_sessions` + `20260825_rls_sessions_complete`)
+### `sessions` — APLICADA-TESTE (migrations `20260824_rls_sessions` + `20260825_rls_sessions_complete`) · **PRODUÇÃO: INERTE (superuser)**
 
 | Policy | Comando | Condição |
 |---|---|---|
@@ -62,8 +62,10 @@ Matriz validada (psql, role `app_user` não-superusuário, banco de teste):
 
 > O caminho pré-auth usa **posse** do hash (`app.current_token_hash`), nunca
 > identidade fornecida pelo cliente. `users` permanece sem RLS (design próprio
-> deferido — `D-2026-08-24-rls-sessions-pre-auth-design`). FORCE RLS segue OFF
-> em produção até a adoção de `withRlsContext` (T371) + staging validation.
+> deferido — `D-2026-08-24-rls-sessions-pre-auth-design`). **Produção (2026-09-02):**
+> `FORCE RLS` foi aplicado (migration manual) mas está **INERTE** — a aplicação conecta
+> como superuser, que dispensa RLS; o enforcement real depende de `app_user` (T390,
+> pendente do Operador).
 
 ### Adoção `withRlsContext` (T371) — código pronto, merge deferido
 
@@ -75,10 +77,11 @@ posse (`tokenHash`, pré-auth); `revokeSession` → posse→owner;
 hash SHA-256, nunca o token cru).
 
 > Depende da migration `20260825_rls_sessions_complete` (T377, branch
-> `feat/rls-sessions-policies`) para as policies de posse/escrita. Enquanto
-> FORCE RLS está OFF e a aplicação conecta como superuser, `withRlsContext` é
-> inócuo; o enforcement real depende da conexão como role não-superusuária
-> (`app_user`) — auditoria de contexto futura.
+> `feat/rls-sessions-policies`) para as policies de posse/escrita. **Produção (2026-09-02):**
+> as migrações foram aplicadas manualmente (D-2026-09-02-v5c-rls-inerte), `FORCE RLS` está ON
+> em `sessions`, mas a aplicação conecta como **superuser** → a RLS está **INERTE** (superuser
+> dispensa RLS). `withRlsContext` é inócuo enquanto a conexão for superuser; o enforcement real
+> depende da conexão como role não-superusuária (`app_user`) — T390, pendente do Operador.
 
 ### Demais tabelas — SPEC PENDENTE
 

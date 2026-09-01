@@ -18,6 +18,27 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-02] Decisão: D-2026-09-02-v5c-rls-inerte — V5 fechado como RLS instalada mas INERTE em produção (V5-C)
+
+Motivo: A forense (T389) provou que a pré-condição (a) do caminho V5-A é falsa: não existe role `app_user` e a API conecta como `postgres` (superusuário). Como o PostgreSQL dispensa RLS para superusuário, a RLS instalada (`sessions` com `relrowsecurity=true` + `relforcerowsecurity=true`) está **INERTE** em produção. A regra de decisão autorizada era "V5-A se app_user verificável; V5-C se não" — logo, aplicar V5-C é executar a regra já autorizada, não uma decisão nova.
+
+Forense (produção, 2026-09-02):
+- `pg_roles`: apenas `postgres` (rolsuper=true) + roles padrão `pg_*`; **sem `app_user`**.
+- `current_user`/et `session_user` = `postgres`.
+- `sessions` (pg_class): owner=`postgres`, `relrowsecurity=true`, `relforcerowsecurity=true` (migrações `20260824/25` aplicadas manualmente).
+- `role_table_grants` (sessions): somente `postgres` (SELECT/INSERT/UPDATE/DELETE/etc).
+
+Conclusões:
+1. Gate **D-2026-08-24-rls-enforcement-exige-app-user NÃO aberto**.
+2. RLS de produção = **instalada mas INERTE** (conexão superusuária dispensa RLS). A defesa em profundidade não está ativa; o isolamento efetivo atual é o da camada de aplicação (`withRlsContext` + validações RBAC), validado em T387.
+3. **Risco operacional**: qualquer troca futura de conexão para role não-superusuária exige validação prévia em banco de teste (matriz A≠B), sob pena de quebrar auth.
+4. **T390 (app_user + switch de conexão)** fica **pendente de autorização explícita do Operador** — é mudança de credencial de produção (CREATE ROLE + grants + `DATABASE_URL` + redeploy).
+
+Alternativas consideradas:
+- Registrar V5-A como cumprido sem app_user (rejeitada: falsa sensação de segurança; viola "nenhuma conclusão sem evidência real").
+- Construir app_user agora sem nova autorização (rejeitada: credencial de produção + grants + redeploy = autoridade do Operador).
+- Aplicar V5-C (registro honesto) e escalonar app_user como T390 (escolhida).
+
 ### [2026-08-28] Decisão: D-2026-08-28-path-b-4-executada — T386 — Caminho B (3ª exceção) executado: merge do pacote de hardening (5 branches) sem Actions
 
 Motivo: Operador instruiu "Prossiga com os próximos passos do projeto" (D-2026-08-28-path-b-4-autorizacao-implicita) após ESCALATE entre Caminho A e Caminho B #3. Terceira exceção governada nos moldes de D-2026-08-24 e D-2026-08-27 (T380), para entregar em produção o pacote de hardening T382–T385.

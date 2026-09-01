@@ -54,11 +54,15 @@
 
 ---
 
-## V5 — RLS
+## V5 — RLS (instalada mas INERTE em produção)
+
+> **Classificação: NÃO EFETIVA.** A RLS está instalada e `FORCE` em `sessions`, mas está **INERTE** em produção porque a API conecta como `postgres` (superusuário), e o PostgreSQL dispensa RLS para superusuário. Ver D-2026-09-02-v5c-rls-inerte.
 
 - **Migrations de RLS** (`20260824_rls_sessions`, `20260825_rls_sessions_complete`) e `20260823_trial_used_at` estão no histórico canônico (`prisma/migrations`, provider postgresql). O **deploy (Dockerfile) não roda `migrate deploy`** (apenas `prisma generate`).
-- **Achado (observação):** as migrations de RLS foram aplicadas **manualmente** durante a correção do cadastro (T-registro do cadastro 500 — `trial_used_at`), alinhando o DB ao schema canônico. O app usa `withRlsContext` (`apps/api/src/config/rls-context.ts`) definindo `app.current_user_id`/`app.current_user_role`/`app.current_token_hash` — compatível com RLS.
-- **Nenhuma migration nova criada** neste fluxo. `prisma migrate status` (via túnel) confirmou que as 3 migrations foram aplicadas; as demais 5 já estavam.
+- **Forense (produção, 2026-09-02):** `pg_roles` apenas `postgres` (rolsuper=true) + roles `pg_*`; `current_user`/`session_user` = `postgres`; `sessions` com `relrowsecurity=true` + `relforcerowsecurity=true`; `role_table_grants` só para `postgres`. **Sem `app_user`.**
+- **Conclusão:** as migrations de RLS foram aplicadas manualmente (na correção do cadastro 500 — `trial_used_at`), alinhando o DB ao schema canônico. Porém, como a conexão é superusuária, as policies (owner-only/SERVICE/by-token) **não disparam**; o `withRlsContext` (`apps/api/src/config/rls-context.ts`) é inócuo enquanto a conexão for superuser. **Gate D-2026-08-24-rls-enforcement-exige-app-user NÃO aberto.**
+- **Nenhuma migration nova criada** neste fluxo; `prisma migrate status` confirmou as 3 migrations aplicadas; as demais 5 já estavam.
+- **Próximo passo (T390, pendente Operador):** criar `app_user` + grants + trocar `DATABASE_URL` + redeploy, para a RLS passar a valer.
 
 ---
 
