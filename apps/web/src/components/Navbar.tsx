@@ -15,6 +15,7 @@ export default function Navbar() {
     { href: '/players', label: t('nav.players') },
     { href: '/rankings', label: t('nav.rankings') },
     { href: '/search', label: t('nav.search') },
+    { href: '/planos', label: t('footer.plans') },
   ];
 
   return (
