@@ -366,3 +366,23 @@ migration RLS em produção (FORCE RLS OFF).
 ### 11.5 Notas
 - Proteção restaurada (security-gate strict, approvals=0, enforce_admins=true); sem force push/deletion.
 - Nenhuma migration aplicada. RLS permanece INERTE (T390 pendente Operador). Nenhuma credencial alterada. chore/t387-verify-hardening declarada superseded.
+
+---
+
+## 12. Caminho A (T392) — falha de configuração do workflow CI (lint varria dist gerado)
+
+### 12.1 Sintoma
+- Runs do workflow `.github/workflows/ci.yml` concluem `failure` (ex.: 9bab891, b180bc8, c8befc9); check-run `security-gate` não publica verde; API jobs retornava total_count=0 (artefato).
+- Reprodução local: `pnpm lint` falha com 177 erros `prettier/prettier`; `pnpm install --frozen-lockfile`, `pnpm typecheck` e `pnpm test:unit --coverage` (em DB migrado) OK.
+
+### 12.2 Causa raiz
+- O glob do lint (`eslint apps/**/*.ts packages/**/*.ts`) varre o **`dist/` gerado** (build output: `apps/api/dist/**/*.d.ts`, `packages/domain/dist/**/*.d.ts`).
+- O `eslint.config.mjs` ignorava apenas `'dist/'` (dist da raiz), **não** os `dist/` aninhados. Os `.d.ts` gerados têm formatação que o Prettier marca como erro → lint exit 1 → `security-gate` falha.
+
+### 12.3 Correção (mínima)
+- `eslint.config.mjs`: `ignores` de `'dist/'` → **`'**/dist/'`** (ignora qualquer `dist/` em qualquer profundidade). Nenhum job de segurança removido/enfraquecido.
+- `pnpm lint` → **0 erros** (50 warnings não-bloqueantes).
+
+### 12.4 Notas
+- Jobs `security-gate`, `gitleaks`, `dependency-audit` preservados. Nenhum segredo novo. Gate passa a ser verificável via PR (Caminho A padrão).
+- `test:unit --coverage` local exige DB migrado (o CI roda `prisma migrate deploy` antes); falha local por DB de teste não migrado é env, não código.
