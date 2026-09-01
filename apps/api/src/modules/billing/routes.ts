@@ -10,8 +10,13 @@ import {
   markBillingPaid,
   refundBilling,
   failBilling,
+  withdrawSubscription,
 } from './subscription.service.js';
-import { createCheckoutSession, handleStripeEvent } from './stripe.service.js';
+import {
+  createCheckoutSession,
+  handleStripeEvent,
+  refundStripeSubscription,
+} from './stripe.service.js';
 import { isStripeConfigured, getStripe, STRIPE_WEBHOOK_SECRET } from '../../config/stripe.js';
 import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
@@ -52,6 +57,26 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
   app.post('/billing/cancel', { preHandler: [authenticate] }, async (request, reply) => {
     const sub = await cancelSubscription(request.user!.id);
     return reply.send({ data: sub });
+  });
+
+  app.post('/billing/withdraw', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user!.id;
+      const paid = (await listUserBillings(userId, { status: 'PAID', limit: 1 }))[0];
+      if (paid?.externalId) await refundStripeSubscription(paid.externalId);
+      const sub = await withdrawSubscription(userId);
+      return reply.send({ data: sub });
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.message.includes('prazo') || err.message.includes('assinatura paga'))
+      ) {
+        return reply
+          .status(400)
+          .send({ error: { code: 'WITHDRAW_NOT_ELIGIBLE', message: err.message } });
+      }
+      return handleDomainError(err, reply);
+    }
   });
 
   app.get('/billing/active', { preHandler: [authenticate] }, async (request, reply) => {

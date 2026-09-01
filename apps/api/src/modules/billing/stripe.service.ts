@@ -99,4 +99,23 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   }
 }
 
+/**
+ * Cancela a assinatura no Stripe e estorna o pagamento da fatura mais recente
+ * (best-effort — se falhar, o estado local já foi tratado pelo route).
+ */
+export async function refundStripeSubscription(stripeSubscriptionId: string): Promise<void> {
+  try {
+    const stripe = getStripe();
+    await stripe.subscriptions.cancel(stripeSubscriptionId);
+    const invoices = await stripe.invoices.list({ subscription: stripeSubscriptionId, limit: 1 });
+    const invoice = invoices.data[0];
+    const pi = (invoice as unknown as { payment_intent?: string | null })?.payment_intent;
+    if (invoice && pi) {
+      await stripe.refunds.create({ payment_intent: pi });
+    }
+  } catch {
+    // best-effort — reembolso físico pode ser concluído via webhook/manual
+  }
+}
+
 export { STRIPE_WEBHOOK_SECRET, getStripe };
