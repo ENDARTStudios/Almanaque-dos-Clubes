@@ -10,6 +10,7 @@ const en: Dictionary = {
   nav: {
     clubs: 'Clubs',
     players: 'Players',
+    competitions: 'Competitions',
     rankings: 'Rankings',
     search: 'Search',
     login: 'Log in',
@@ -97,6 +98,7 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
   pages: {
     clubs: { title: 'Clubs', subtitle: 'Explore {n} football clubs registered.', placeholder: 'Search clubs by name, country or city...' },
     players: { title: 'Players', subtitle: 'Search football players from all eras and places.', placeholder: 'Search players by name, country or position...' },
+    competitions: { title: 'Competitions', subtitle: 'Explore {n} football competitions.', empty: 'No competitions found.' },
     rankings: { title: 'Rankings', subtitle: 'Historical rankings with verified sources and publication dates.' },
     search: { title: 'Advanced Search', subtitle: 'Search clubs, players, competitions and statistics with advanced filters.', placeholder: 'Type a term to search...' },
     sobre: {
