@@ -11,6 +11,7 @@ export default function Footer() {
   const platformLinks = [
     { href: '/clubs', label: t('footer.platformClubs') },
     { href: '/players', label: t('footer.platformPlayers') },
+    { href: '/competitions', label: t('footer.platformCompetitions') },
     { href: '/rankings', label: t('footer.platformRankings') },
     { href: '/search', label: t('footer.platformSearch') },
   ];
