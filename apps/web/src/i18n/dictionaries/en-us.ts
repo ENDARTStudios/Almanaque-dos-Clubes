@@ -23,6 +23,7 @@ const en: Dictionary = {
     platformTitle: 'Platform',
     platformClubs: 'Clubs',
     platformPlayers: 'Players',
+    platformCompetitions: 'Competitions',
     platformRankings: 'Rankings',
     platformSearch: 'Advanced Search',
     aboutTitle: 'About',

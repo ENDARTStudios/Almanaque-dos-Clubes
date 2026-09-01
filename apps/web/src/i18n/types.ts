@@ -26,6 +26,7 @@ export interface Dictionary {
     platformTitle: string;
     platformClubs: string;
     platformPlayers: string;
+    platformCompetitions: string;
     platformRankings: string;
     platformSearch: string;
     aboutTitle: string;
