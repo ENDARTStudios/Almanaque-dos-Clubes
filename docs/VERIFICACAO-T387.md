@@ -107,3 +107,24 @@ Pacote **T382–T385 confirmado funcional em produção** (V1–V4, V6). Dois ac
 2. **V7:** conexão Redis a `127.0.0.1:6379` em logs — a investigar se é cliente de runtime ou fallback; não fatal para os fluxos testados.
 
 Nenhuma regressão bloqueante. **F09 pronta para fechamento** com evidência; branch `chore/t387-verify-hardening` pronta para merge via Caminho A ou novo Caminho B (regime PR-only; CI bloqueado no nível da conta).
+
+---
+
+## V7-update — Forense Redis (T388)
+
+**Achado (V7 original):** logs recorrentes `ECONNREFUSED 127.0.0.1:6379`.
+
+**Forense (T388):** clientes Redis em `apps/api/src`:
+
+| Arquivo | Uso | Classificação |
+|---|---|---|
+| `config/rate-limit.ts` | `REDIS_URL||REDIS_PRIVATE_URL` -> `new Redis(url)`; fallback host/port | (b) fallback; OK em producao (URL setada) |
+| `config/rate-limit.service.ts` | idem + warn "store em memoria" | (b) fallback, com aviso |
+| `config/cache.ts` | idem + warn "cache desabilitado" | (b) fallback, com aviso |
+| `services/queue.ts` (BullMQ) | **usava apenas `REDIS_HOST||\'localhost\'` / `REDIS_PORT||6379`** — nao lia `REDIS_URL` | **(c) hardcoded/fallback localhost -> CAUSA** |
+
+**Causa raiz:** BullMQ montava a conexao so com `REDIS_HOST`/`REDIS_PORT` (default `localhost:6379`). Em producao so existe `REDIS_URL` (`redis.railway.internal`), entao a fila (etl/email/export) tentava `127.0.0.1:6379` -> ECONNREFUSED.
+
+**Correcao (T388):** `services/queue.ts` usa `REDIS_URL`/`REDIS_PRIVATE_URL` quando presentes (parse de URL -> `{host, port, username, password}`) e **fail-fast em producao** (`NODE_ENV=production` sem `REDIS_URL`/`REDIS_HOST` -> `throw`). Fallback `host/port` permanece fora de producao.
+
+**Impacto:** filas BullMQ (etl, email — incl. envio do email de recuperacao de senha —, export) passam a usar `redis.railway.internal`. Rate limit/cache ja usavam a URL correta. **Sem credenciais no codigo** (URL via env). Registrado em `DECISOES.md` (D-2026-09-02-t388-redis-url).

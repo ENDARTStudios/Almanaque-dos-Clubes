@@ -39,6 +39,12 @@ Alternativas consideradas:
 - Construir app_user agora sem nova autorização (rejeitada: credencial de produção + grants + redeploy = autoridade do Operador).
 - Aplicar V5-C (registro honesto) e escalonar app_user como T390 (escolhida).
 
+### [2026-09-02] Decisão: D-2026-09-02-t388-redis-url — T388: BullMQ passa a usar REDIS_URL (fail-fast em produção)
+
+Motivo: forense (T388) mostrou que `apps/api/src/services/queue.ts` (BullMQ) montava a conexão apenas com `REDIS_HOST`/`REDIS_PORT` (default `localhost:6379`), ignorando `REDIS_URL` — em produção a fila caía em `127.0.0.1:6379` (ECONNREFUSED), afetando as filas etl/email/export (incl. envio do email de recuperação de senha).
+
+Correção: usar `REDIS_URL`/`REDIS_PRIVATE_URL` (parse de URL → `{host, port, username, password}`) quando presentes + **fail-fast em produção** (`NODE_ENV=production` sem `REDIS_URL`/`REDIS_HOST` → `throw`). Fallback `host/port` apenas fora de produção. Sem credenciais no código (URL via env).
+
 ### [2026-08-28] Decisão: D-2026-08-28-path-b-4-executada — T386 — Caminho B (3ª exceção) executado: merge do pacote de hardening (5 branches) sem Actions
 
 Motivo: Operador instruiu "Prossiga com os próximos passos do projeto" (D-2026-08-28-path-b-4-autorizacao-implicita) após ESCALATE entre Caminho A e Caminho B #3. Terceira exceção governada nos moldes de D-2026-08-24 e D-2026-08-27 (T380), para entregar em produção o pacote de hardening T382–T385.
