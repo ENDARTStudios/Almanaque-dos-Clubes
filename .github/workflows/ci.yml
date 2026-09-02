@@ -88,20 +88,6 @@ jobs:
         run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
         working-directory: apps/web
 
-  deploy-docker-api:
-    needs: [security-gate]
-    if: github.ref == 'refs/heads/main' && success()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build & Push Docker Image
-        run: |
-          docker build -t almanaque-api:${{ github.sha }} -f apps/api/Dockerfile .
-          # Tag e push para registry (Fly.io ou Docker Hub)
-          # docker tag almanaque-api:${{ github.sha }} registry.fly.io/almanaque-api:${{ github.sha }}
-          # docker push registry.fly.io/almanaque-api:${{ github.sha }}
-          echo "📦 Imagem almanaque-api:${{ github.sha }} construída"
-
   gitleaks:
     runs-on: ubuntu-latest
     steps:

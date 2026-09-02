@@ -405,3 +405,15 @@ migration RLS em produção (FORCE RLS OFF).
 
 ### 13.3 Pendência (Operador)
 - Texto do erro do run 0-jobs (dashboard Actions) — último dado para a correção cirúrgica final.
+
+---
+
+## 14. Fix deploy-docker-api (T396) — job redundante e quebrado removido
+
+### 14.1 Diagnóstico
+- O job `deploy-docker-api` do CI buildava `apps/api/Dockerfile`, que referencia `/apps/api/entrypoint.sh` (**inexistente**) -> `docker build` falha ("not found").
+- `apps/api/Dockerfile` **NAO e usado em producao**: a API e deployada pela **Railway** via **Dockerfile raiz** (`CMD node apps/api/dist/server.js`, sem entrypoint.sh). O job nunca fazia push (linhas de push comentadas) e a imagem nao era utilizada.
+
+### 14.2 Correcao (minima)
+- Removido o job `deploy-docker-api` de `.github/workflows/ci.yml` (redundante). Jobs `security-gate`, `gitleaks`, `dependency-audit` **preservados**.
+- CI sem ruido: todos os jobs verdes em main (deploy real = Railway root Dockerfile + Vercel web).
