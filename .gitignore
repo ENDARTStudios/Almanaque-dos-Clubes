@@ -47,4 +47,6 @@ pgdata/
 
 # Artefatos de ambiente externo (T350)
 mnt/
-/1
+/1# secret rollback/rehearsal (T401) — nunca commitar
+apps/api/.rollback-db-url
+apps/api/.appuser-pwd
