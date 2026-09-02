@@ -1,0 +1,40 @@
+name: Graft Init (linux)
+
+# Executa 'graft init' num runner Linux (prebuilds linux-x64). Grava o wiring de
+# Claude Code (.claude/ + AGENTS.md) na branch atual e faz push (branch de feature,
+# s/ protecao). O grafo 'graft/' e cache local gitignored/regeneravel.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: graft-init
+  cancel-in-progress: false
+
+jobs:
+  graft-init:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - name: Install Graft CLI
+        run: npm install -g @nanonets/graft
+      - name: Graft init (Claude Code)
+        run: cd "$GITHUB_WORKSPACE" && graft init --agents claude --yes
+      - name: Commit wiring (.claude/ + AGENTS.md) and push
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "graft-init[bot]"
+          git config user.email "graft-init[bot]@users.noreply.github.com"
+          grep -q '^graft/' .gitignore 2>/dev/null || printf '\ngraft/\n' >> .gitignore
+          git add .claude AGENTS.md .gitignore
+          if git diff --cached --quiet; then
+            echo "No wiring changes to commit"
+          else
+            git commit -m "graft: wire Claude Code via graft init (linux) — .claude/ + AGENTS.md"
+            git push origin HEAD
+          fi
