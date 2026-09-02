@@ -64,6 +64,7 @@ notFoundDesc: 'The content you are looking for does not exist or has been moved.
       players: 'Registered players',
       competitions: 'Historical competitions',
       matches: 'Catalogued matches',
+      rankings: 'Published rankings',
     },
     featuresTitle: 'All About World Football',
     featuresSubtitle: 'Complete historical data with modern search and analysis tools.',
