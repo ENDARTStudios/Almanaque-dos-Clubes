@@ -28,6 +28,22 @@ After: proteção restaurada na mesma sessão (idêntica ao before).
 Verificação pós-deploy: railway health 200; web 200; /clubs 200; POST /api/v1/auth/forgot-password → 200 (sem erro CSRF); boot fresco sem ECONNREFUSED 127.0.0.1:6379 (BullMQ agora usa REDIS_URL); Vercel Ready.
 Nenhuma migration aplicada. RLS permanece INERTE (T390 pendente Operador). chore/t387-verify-hardening superseded.
 
+### [2026-09-02] Decisão: D-2026-09-02-f09-f15-encerramento — F09 (CI/CD) e F15 (gaps de produto) fechadas
+
+Motivo: estado consolidado (D-2026-09-02-f09-f15-estado-consolidado + D-2026-09-02-regime-padrao-efetivo).
+
+Estado:
+- **F09 (CI/CD) fechada quanto aos gates de segurança**: `security-gate`/`gitleaks`/`dependency-audit` verdes; regime padrão (branch → PR → CI verde → merge) operacional (D-2026-09-02-regime-padrao-efetivo). Pendência de job `deploy-docker-api` (redundante/quebrado) tratada em T396.
+- **F15 (gaps de produto) fechada**: hero com números reais/auditáveis (T394); contas de teste identificadas + script de soft-disable (T395).
+
+Pendências do Operador:
+1. Executar o cleanup das 2 contas de teste (T395 `--apply`).
+2. Decisão CTA/linha "em crescimento" no hero.
+3. T390 (app_user + RLS efetiva).
+4. Revogação do token antigo.
+
+Próximo marco: depende de autorização do Operador.
+
 ### [2026-09-02] Decisão: D-2026-09-02-v5c-rls-inerte — V5 fechado como RLS instalada mas INERTE em produção (V5-C)
 
 Motivo: A forense (T389) provou que a pré-condição (a) do caminho V5-A é falsa: não existe role `app_user` e a API conecta como `postgres` (superusuário). Como o PostgreSQL dispensa RLS para superusuário, a RLS instalada (`sessions` com `relrowsecurity=true` + `relforcerowsecurity=true`) está **INERTE** em produção. A regra de decisão autorizada era "V5-A se app_user verificável; V5-C se não" — logo, aplicar V5-C é executar a regra já autorizada, não uma decisão nova.
