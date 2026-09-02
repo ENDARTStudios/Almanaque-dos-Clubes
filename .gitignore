@@ -50,3 +50,8 @@ mnt/
 /1# secret rollback/rehearsal (T401) — nunca commitar
 apps/api/.rollback-db-url
 apps/api/.appuser-pwd
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+graft/
