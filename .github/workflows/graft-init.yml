@@ -28,7 +28,7 @@ jobs:
           git config user.name "graft-init[bot]"
           git config user.email "graft-init[bot]@users.noreply.github.com"
           git checkout -b graft-wiring
-          git add .claude AGENTS.md .gitignore
+          git add .claude .gitignore
           if git diff --cached --quiet; then
             echo "No wiring changes"
           else
