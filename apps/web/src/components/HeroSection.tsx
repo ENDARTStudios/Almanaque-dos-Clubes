@@ -59,6 +59,7 @@ export default function HeroSection() {
             </div>
           ))}
         </div>
+        <p className="mt-6 text-center text-sm text-foreground/60">{t('home.stats.growing')}</p>
       </section>
 
       <section className="py-16 sm:py-24">
