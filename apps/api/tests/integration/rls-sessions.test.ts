@@ -14,8 +14,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { prisma } from '../../src/config/prisma.js';
 
-const USER_A = 'aaaaaaaa-0000-0000-0000-000000000001';
-const USER_B = 'aaaaaaaa-0000-0000-0000-000000000002';
+const USER_A = 'bbbbbbbb-0000-0000-0000-000000000001';
+const USER_B = 'bbbbbbbb-0000-0000-0000-000000000002';
 const FILTER = `"tokenHash" IN ('rlstest-token-a','rlstest-token-b')`;
 
 async function visibleTokens(tx: {
@@ -49,8 +49,8 @@ describe('RLS em sessions — isolamento A≠B (T345)', () => {
 
   it('owner A vê apenas a própria sessão (B invisível)', async () => {
     const tokens = await prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe('SET ROLE app_user');
-      await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', $1, false)`, USER_A);
+      await tx.$executeRawUnsafe('SET LOCAL ROLE app_user');
+      await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', $1, true)`, USER_A);
       return visibleTokens(tx);
     });
     expect(tokens).toEqual(['rlstest-token-a']);
@@ -58,8 +58,8 @@ describe('RLS em sessions — isolamento A≠B (T345)', () => {
 
   it('role SERVICE vê ambas as sessões', async () => {
     const tokens = await prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe('SET ROLE app_user');
-      await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_role', 'SERVICE', false)`);
+      await tx.$executeRawUnsafe('SET LOCAL ROLE app_user');
+      await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_role', 'SERVICE', true)`);
       return visibleTokens(tx);
     });
     expect(tokens).toEqual(['rlstest-token-a', 'rlstest-token-b']);
@@ -67,7 +67,7 @@ describe('RLS em sessions — isolamento A≠B (T345)', () => {
 
   it('sem contexto é deny-by-default (0 linhas)', async () => {
     const tokens = await prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe('SET ROLE app_user');
+      await tx.$executeRawUnsafe('SET LOCAL ROLE app_user');
       return visibleTokens(tx);
     });
     expect(tokens).toEqual([]);
