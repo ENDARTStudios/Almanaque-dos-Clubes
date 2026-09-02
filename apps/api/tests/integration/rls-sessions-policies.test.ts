@@ -23,7 +23,7 @@ async function asAppUser<T>(
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
 ): Promise<T> {
   return prisma.$transaction(async (tx) => {
-    await tx.$executeRawUnsafe('SET ROLE app_user');
+    await tx.$executeRawUnsafe('SET LOCAL ROLE app_user');
     if (ctx.userId) {
       await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', $1, true)`, ctx.userId);
     }

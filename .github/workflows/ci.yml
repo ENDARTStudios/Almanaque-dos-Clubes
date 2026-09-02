@@ -55,6 +55,11 @@ jobs:
 
       - name: Sync schema (test DB)
         run: cd apps/api && npx prisma db push --schema=prisma/schema.prisma
+      - name: Apply RLS + app_user (test DB)
+        run: |
+          cd apps/api
+          npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_sessions_setup.sql
+          npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/create_app_user.sql
 
       - name: Typecheck
         run: pnpm typecheck

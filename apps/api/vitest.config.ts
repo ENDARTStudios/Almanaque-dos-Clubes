@@ -10,9 +10,7 @@ export default defineConfig({
       '**/dist/**',
       '**/coverage/**',
       '**/.git/**',
-      // RLS integration tests testam uma feature INERTE (D-2026-09-02-v5c, T390) — reativar quando a RLS for efetiva.
-      'tests/integration/rls-sessions-policies.test.ts',
-      'tests/integration/rls-sessions.test.ts',
+      // RLS reativado: RLS FORCE + role app_user aplicadas no test DB (T400).
     ],
     coverage: {
       provider: 'v8',
