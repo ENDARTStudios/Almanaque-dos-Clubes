@@ -22,6 +22,8 @@ export const CreateClubSchema = z.object({
     .regex(/^Q\d+$/, 'QID deve começar com Q seguido de números')
     .optional(),
   importedFrom: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 export type CreateClubInput = z.infer<typeof CreateClubSchema>;
@@ -41,6 +43,8 @@ export interface Club {
   qid: string | null;
   importedFrom: string | null;
   importedAt: Date | null;
+  latitude: number | null;
+  longitude: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

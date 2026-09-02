@@ -44,6 +44,8 @@ model Club {
   primaryColor String?    @db.Char(7) // #RRGGBB
   website      String?
   qid          String?    @unique // Wikidata Q-identifier (ex: Q12345)
+  latitude     Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
+  longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
   createdAt    DateTime   @default(now())

@@ -44,6 +44,8 @@ export const clubsService = {
       website: parsed.website ?? null,
       qid: parsed.qid ?? null,
       importedFrom: parsed.importedFrom ?? null,
+      latitude: parsed.latitude ?? null,
+      longitude: parsed.longitude ?? null,
       importedAt: null,
     });
 

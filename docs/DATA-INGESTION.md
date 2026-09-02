@@ -48,3 +48,15 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 **Resultado (2026-09-02):** 892 competições importadas; produção com **895** no total. Idempotente e reversível.
 
 **Observação:** nomes de competições sem rótulo en (`label` = QID) são ignorados; países históricos podem aparecer com código não-atual (ex.: `DD` — Alemanha Oriental).
+
+
+## 8. Coordenadas dos clubes (WS-C, 2026-09-02) — base do mapa-múndi
+
+**Campos novos em `clubs`:** `latitude`/`longitude` (Float?) vindas do Wikidata `P625` (coordinate location).
+
+`pnpm --filter @almanaque/api exec tsx scripts/enrich-club-coords.ts [--apply]`
+
+**Resultado (2026-09-02):** 113 clubes com coordenadas (de 1.879 com `qid`).
+
+**Limitação:** muitos clubes não têm `P625` no item do clube no Wikidata (a coordenada costuma estar no item do
+estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer via estádio (WS-D/geo) num round futuro.
