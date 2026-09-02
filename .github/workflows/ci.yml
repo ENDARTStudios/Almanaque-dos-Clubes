@@ -90,8 +90,7 @@ jobs:
         with: { node-version: 22, cache: 'pnpm' }
       - run: pnpm install --frozen-lockfile
       - name: Deploy to Vercel
-        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        working-directory: apps/web
+        run: npx vercel deploy --prod --project almanaque-dos-clubes --token=${{ secrets.VERCEL_TOKEN }} --yes
 
   gitleaks:
     runs-on: ubuntu-latest
