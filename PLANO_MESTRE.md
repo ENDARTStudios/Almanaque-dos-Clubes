@@ -491,7 +491,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Métricas** (Prometheus + Grafana)
 - [ ] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min)
 - [ ] **Uptime check externo** (UptimeRobot)
-- [ ] **Backup automático** do PostgreSQL (diário, retenção 30 dias)
+- [~] **Backup automático** do PostgreSQL — **scripts backup/restore prontos e verificados** (round-trip, retenção 30d; `docs/BACKUP-RESTORE.md`). **Cron diário** a configurar no Railway (scheduled job); Railway tem backups nativos (snapshots/PITR) como camada extra
 
 ### 📊 Resumo Executivo
 
