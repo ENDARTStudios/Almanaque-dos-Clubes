@@ -35,3 +35,16 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 ## 6. Qual a fronteira do que está pronto (M1 parcial)
 - WS-D (seed clubes real, com proveniência): **lançado**.
 - Ainda faltam para M1 (Beta Fechada): mapa-múndi, busca global, perfis, cookie banner, políticas.
+
+
+## 7. Competições via Wikidata (WS-D, 2026-09-02)
+
+**Fonte:** Wikidata (CC0) — classe `Q15991303` (association football league) e subclasses, via SPARQL.
+
+**Campos populados em `competitions`:** `name` (label en) · `country` (ISO via `P297`) · `qid` (**unique**) · `importedFrom='wikidata'` · `importedAt`. `type` fica `null` por ora (refinar LEAGUE/CUP/TOURNAMENT num round de enriquecimento).
+
+`pnpm --filter @almanaque/api exec tsx scripts/ingest-competitions-wikidata.ts [--apply]`
+
+**Resultado (2026-09-02):** 892 competições importadas; produção com **895** no total. Idempotente e reversível.
+
+**Observação:** nomes de competições sem rótulo en (`label` = QID) são ignorados; países históricos podem aparecer com código não-atual (ex.: `DD` — Alemanha Oriental).
