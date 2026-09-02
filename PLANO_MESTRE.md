@@ -461,7 +461,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Feature flags** com UI
 
 #### 📊 Produto — Dados Reais
-- [ ] **Seed de dados** (hoje só 10 clubes / 3 competições / 2 rankings)
+- [~] **Seed de dados** — **1.889 clubes** no total (1.879 via Wikidata, WS-D/2026-09-02, `docs/DATA-INGESTION.md`); jogadores/sem competições ainda pendentes
 - [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
 - [ ] **Ingestão RSSSF** (arquivo histórico global)
 - [ ] **Ingestão de federações** (divisões inferiores, futebol feminino, amador)
