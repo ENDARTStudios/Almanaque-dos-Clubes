@@ -327,3 +327,27 @@ Motivo: Estabelece o critério de aceitação global do projeto (Seção 9 do Pr
 | 7 – Hardening | VAULT CONDICIONAL (deploy nativo basta); DNSSEC/HSTS CONDICIONAL (sem domínio ainda) | Q6 |
 | 8 – Testes/segurança | OBRIGATÓRIO + DAST OBRIGATÓRIO (superfície pública grande) | sempre + Q2 |
 | 9 – CI/CD e deploy | OBRIGATÓRIO | sempre |
+
+
+---
+
+### [2026-09-02] Decisão: D-2026-09-02-t401-rls-efetiva-abre-gate — RLS ativa em produção (T401) ✅
+
+**Estado:** Gate **D-2026-08-24-rls-enforcement-exige-app-user ABERTO** (evidência real em produção).
+
+**Motivo:** T390/T400/T401 executadas na ordem Regime Padrão (T400 aprovado por CI verde na PR #56 antes do switch T401).
+A role `app_user` (não-superusuária) foi criada em produção e a conexão da API foi trocada para ela — com isso o
+`FORCE ROW LEVEL SECURITY` em `sessions` passa a valer (superuser dispensa RLS; `app_user` não).
+
+**Evidência de produção (2026-09-02):**
+- `app_user` criada: `CREATE ROLE app_user NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS` + `LOGIN` + grants DML nas 18 tabelas da API + `USAGE` esquema/sequences (via `apps/api/scripts/sql/create_app_user.sql` + `ALTER ROLE`).
+- Segredo **`DATABASE_URL_APP`** no Railway (user=app_user, mesmo host/DB) — nunca commitado (+ `.gitignore` para `.rollback-db-url`/`.appuser-pwd`).
+- Código: `apps/api/src/config/prisma.ts` conecta com `process.env.DATABASE_URL_APP ?? process.env.DATABASE_URL` (fallback) — merge `39c95ae`.
+- Smoke (pós-deploy): `GET /api/v1/health` → **200**; register → **201**; login → **200**; refresh → **200**; logout → **200**.
+- Verificação RLS como `app_user` (banco de produção):`current_user=app_user`; `SELECT count(*) FROM sessions` sem contexto → **0** (deny-by-default); com contexto owner → ≥1 (vê a própria); contexto de outro user lendo sessões do smoke-user → **0** (cross-user deny).
+- `pg_stat_activity`: API conectada como **`app_user`** (sem `postgres` da aplicação).
+
+**Rollback (pronto):** `railway variable unset DATABASE_URL_APP` OU restaurar `DATABASE_URL_APP` para a URL `postgres` (a `DATABASE_URL` postgres permanece intacta como fallback) + redeploy (< 5 min). A role `app_user` permanece (DROP ROLE se desejado).
+
+**Pós-estado:** RLS **efetiva** em produção (defesa em profundidade ativa em `sessions`); gate **D-2026-08-24 aberto**;
+`D-2026-08-24-v5c-rls-inerte` superado. Conta de teste do smoke (`smoke.t401.*@example.com`) soft-desabilitada (INACTIVE).
