@@ -14,6 +14,7 @@ export default function Navbar() {
     { href: '/clubs', label: t('nav.clubs') },
     { href: '/players', label: t('nav.players') },
     { href: '/competitions', label: t('nav.competitions') },
+    { href: '/map', label: t('nav.map') },
     { href: '/rankings', label: t('nav.rankings') },
     { href: '/search', label: t('nav.search') },
     { href: '/planos', label: t('footer.plans') },

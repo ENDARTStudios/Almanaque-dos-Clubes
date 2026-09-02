@@ -11,6 +11,7 @@ const pt: Dictionary = {
     clubs: 'Clubes',
     players: 'Jogadores',
     competitions: 'Competições',
+    map: 'Mapa',
     rankings: 'Rankings',
     search: 'Busca',
     login: 'Entrar',

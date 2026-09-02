@@ -7,6 +7,7 @@ import type { Club } from '@almanaque/domain';
 
 export interface ListClubsParams {
   country?: string;
+  hasCoordinates?: boolean;
   city?: string;
   status?: string;
   search?: string;
@@ -20,7 +21,7 @@ export const clubsRepository = {
   },
 
   async findMany(params: ListClubsParams = {}): Promise<Club[]> {
-    const { country, city, status, search, limit = 50, offset = 0 } = params;
+    const { country, city, status, search, hasCoordinates, limit = 50, offset = 0 } = params;
 
     return prisma.club.findMany({
       where: {
@@ -28,6 +29,7 @@ export const clubsRepository = {
           country ? { country } : {},
           city ? { city } : {},
           status ? { status: status as never } : {},
+          hasCoordinates ? { latitude: { not: null } } : {},
           search
             ? {
                 OR: [
@@ -46,13 +48,14 @@ export const clubsRepository = {
   },
 
   async count(params: ListClubsParams = {}): Promise<number> {
-    const { country, city, status, search } = params;
+    const { country, city, status, search, hasCoordinates } = params;
     return prisma.club.count({
       where: {
         AND: [
           country ? { country } : {},
           city ? { city } : {},
           status ? { status: status as never } : {},
+          hasCoordinates ? { latitude: { not: null } } : {},
           search
             ? {
                 OR: [
