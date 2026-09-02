@@ -7,6 +7,8 @@
 
 ## 📋 PROGRESSO GERAL (CHECKLIST RESUMIDA — T002, 2026-08-11)
 
+> **Reconciliação 2026-09-02:** status consolidado atualizado em "STATUS CONSOLIDADO — 2026-09-02" (final do arquivo). Este checklist por fase reflete o estado por Fase; aquele reflete o estado por domínio com o backlog completo.
+
 - [x] Fase 0 – Setup `[OBRIGATÓRIO]` ✅ (T002: lint 0 erros, typecheck 0 erros)
 - [x] Fase 1 – Infra base `[OBRIGATÓRIO]` ✅ (testes de integração 17/17)
 - [~] Fase 2 – Dados `[OBRIGATÓRIO + auth/billing/audit]` — 13/15 (2.7 governança e 2.10 cripto-coluna pendentes)
@@ -19,6 +21,7 @@
 - [~] Fase 9 – CI/CD e deploy `[OBRIGATÓRIO]` — pipeline ✅ + gates locais passando; 9.3/9.4 (deploy) pendentes
 
 > **Convenção:** `[x]` só com evidência real de verificação (PROTOCOLO_MESTRE.md Seção 6). `[~]` = parcialmente feito, com gap documentado.
+> **Reconciliação 2026-09-02:** base técnica (infra+segurança+auth+CI) em nível produção; ver resumo e backlog no fim do arquivo.
 > **Reconciliação T001 (2026-08-11):** Evidência executável coletada. Gaps corrigidos em T002 (2026-08-11): `pnpm lint` ✅ 0 erros | `pnpm typecheck` ✅ 0 erros | `pnpm test` ✅ 27/27.
 
 ---
@@ -232,23 +235,26 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 ---
 
-## Estado Final do Projeto (atualizado T002 — 2026-08-11)
+## Estado Final do Projeto (reconciliado 2026-09-02)
 
-| Fase | Status | Detalhes |
+> Sobreposição/resumo executivo da base técnica concluída. O detalhamento por domínio e o backlog completo estão em
+> **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `docs/RECONCILIATION-REPORT.md`.
+
+| Dimensão | Status | % estimado |
 |---|---|---|
-| **Fase 0** — Setup | ✅ Completa | ESLint 0 erros, Prettier, Dependabot, SECURITY.md |
-| **Fase 1** — Infra base | ✅ Completa | Helmet, CORS, rate-limit, Pino, Zod, metrics |
-| **Fase 2** — Dados | ⚠️ 13/15 | 14 tabelas, migrations, seed, full-text; 2.7 (governança) e 2.10 (cripto-coluna) pendentes |
-| **Fase 3** — Auth | ✅ Completa | JWT, RBAC, refresh rotation, rate-limit brute-force real (T002), audit |
-| **Fase 4** — APIs/CRUDs | ✅ Completa | 14 módulos: auth, admin, billing, clubs, competitions, export, graph, matches, players, rag, rankings, seasons, upload, etl |
-| **Fase 5** — Frontend | ✅ Completa | 15+ rotas, Next.js 16, ProtectedRoute, PWA, WCAG AA, CSRF registrado na API (T002) |
-| **Fase 6** — Avançado | ✅ Completa | Upload, Redis/BullMQ, Cache integrado em clubs (T002), ETL, IA/RAG, Knowledge Graph, Feature Flags (com testes — T002), Exportação, WebSocket registrado (T002) |
-| **Fase 7** — Hardening | ✅ Completa | CSP, rate-limit 4 camadas, brute-force lockout ativo (T002), body limit; 7.9/7.10 condicionais |
-| **Fase 8** — Testes | ✅ Completa | Vitest 27/27, SAST 0 erros, DAST ZAP, CI security gate; E2E/k6 configurados (execução manual) |
-| **Fase 9** — CI/CD | ⚠️ Parcial | GitHub Actions ✅, gates locais passando; deploy (9.3/9.4) pendente Operador |
-| **Fase 13** — Performance | ✅ Parcial | compress (13.1) ✅ 72% redução gzip/brotli; demais itens 13.2-13.3 pendentes |
+| Infraestrutura & DevOps | 🟢 Concluída | 95% |
+| Segurança & Hardening | 🟢 Concluída | 90% |
+| Autenticação & Sessão (RLS efetiva) | 🟢 Concluída | 95% |
+| Schema & Migrations | 🟢 Concluído | 85% |
+| Compliance Legal | 🔴 Crítico | 10% |
+| Features Core (produto) | 🔴 Crítico | 5% |
+| Dados reais (conteúdo) | 🔴 Crítico | 1% |
+| Frontend UX | 🟡 Parcial | 30% |
+| IA/ETL/Knowledge Graph | 🔴 Crítico | 5% |
+| Testes avançados | 🟡 Parcial | 40% |
+| Observabilidade | 🟡 Parcial | 30% |
 
-**Métricas (T003 — 2026-08-12):** Typecheck ✅ 0 erros | Lint ✅ 0 erros (12 warnings FP) | Tests ✅ 27/27 | 14 módulos API | compress ✅ -72% payload | E2E ✅ 5/5 | k6 ✅ 1.5M reqs 0% erro
+**Conclusão honesta:** base técnica (infra + segurança + auth + CI) sólida em nível produção empresarial; ainda **não é o produto Almanaque** — faltam conteúdo (ingestão), experiência (mapa/rankings/favoritos/360º) e legalidade (cookies/termos/privacidade/gateway/CNPJ).
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
@@ -323,3 +329,215 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 9. **Fase 6.6** — Knowledge Graph
 10. **Fase 8.3** — Testes E2E (Playwright)
 11. **Fase 9.7** — Backup automático PostgreSQL
+
+
+---
+
+## 📊 STATUS CONSOLIDADO — 2026-09-02 (Relatório de Status)
+
+> **Data:** 02/09/2026 · **Branch main:** `50af90c` · **Regime:** padrão operacional (CI verde).
+> Fonte: Relatório de Status do Projeto (02/09/2026) + governança SIMBIOTICO (T274–T401).
+
+### ✅ CONCLUÍDO (com evidência real)
+
+#### Infraestrutura & DevOps
+| Item | Evidência |
+|---|---|
+| Monorepo pnpm (apps/api + apps/web + packages/domain) | main |
+| Fastify 5 + Prisma + TypeScript estrito | main |
+| GitHub Actions verde (security-gate + gitleaks + dependency-audit) | T393 |
+| Deploy automático Vercel (web) + Railway (API) | T380/T391 |
+| Proteção de main (enforce_admins, PR-only, check obrigatório) | D-2026-08-24 |
+| Regime padrão de merges restaurado | D-2026-09-02 |
+| MANUAL_DO_OPERADOR.md v2.0 | T379 |
+| CI-ROOT-CAUSE.md com forense completa | T374–T393 |
+| INCIDENT_RESPONSE.md | T363 |
+
+#### Segurança & Hardening (Fase 7 — alta cobertura)
+| Item | Evidência |
+|---|---|
+| Helmet + CSP + HSTS (prod) + X-Frame-Options: DENY | T383 |
+| Rate limit por IP + usuário (janela deslizante, Redis + fallback memória) | T384 |
+| Rejeição de métodos não usados (TRACE/HEAD/CONNECT → 405) | T385 |
+| Limite de payload (1 MiB padrão, 50 MiB upload → 413) | T385 |
+| Guarda de boot (RATE_LIMIT_DISABLED + NODE_ENV=production → falha startup) | T385 |
+| Regressão de segurança (headers, SQLi, XSS, CSRF) | T382 |
+| CSRF client-side corrigido (forgot-password) | T388 |
+| Dependabot ativo + gitleaks no CI | T378 |
+| Higiene de segredos (token antigo revogado) | Operador |
+
+#### Autenticação & Sessão (Fase 3)
+| Item | Evidência |
+|---|---|
+| Register / Login / Logout / Refresh / Forgot-password | main |
+| JWT + cookie httpOnly + SameSite | main |
+| RLS efetiva em produção (app_user, cross-user deny confirmado) | T401 |
+| withRlsContext em todos os fluxos de sessão | T371 |
+| Policies completas de sessions (SELECT por tokenHash, INSERT/UPDATE/DELETE owner+SERVICE) | T377 |
+| Rate limit específico em /auth/* | T384 |
+
+#### Dados & Schema (Fase 2)
+| Item | Evidência |
+|---|---|
+| Schema Prisma canônico (PostgreSQL) | main |
+| Migrations versionadas | main |
+| Tabelas de domínio (clubs, players, competitions, rankings, matches, seasons) | Fase 2 |
+| Tabelas de auth (users, sessions, roles) | Fase 2 + T344 |
+| Tabelas de billing (subscriptions, bills) | Fase 2 |
+| Tabelas de auditoria (audit_logs imutável) | Fase 2 |
+| Senha hash argon2id | Fase 2 |
+| Soft delete em entidades críticas | Fase 2 |
+| Índices em FKs | Fase 2 |
+| Contas de teste removidas (soft-disable) | T398 |
+
+#### Qualidade & Governança
+| Item | Evidência |
+|---|---|
+| PLANO_MESTRE reconciliado (112 [x] / 7 [~] / 5 [ ]) | T381 |
+| DECISOES.md com histórico completo | main |
+| RECONCILIATION-REPORT.md | T381 |
+| Hero com números reais (10 clubes / 3 competições / 2 rankings) | T394 |
+| Linha "em crescimento" no hero (pt/en/es) | T399 |
+| ESLint + Prettier (sem varrer dist/) | T392 |
+
+### ⚠️ PARCIALMENTE FEITO (gaps documentados)
+| Item | Status | Gap |
+|---|---|---|
+| RLS em `users` | [~] | Schema suporta, policies não aplicadas (deferido por D-2026-08-24-rls-sessions-pre-auth-design) |
+| Tabelas de governança (2.7) | [~] | `data_sources` e `entity_revisions` existem no schema mas não são populadas |
+| Criptografia de coluna (2.10) | [~] | Infra pronta, não aplicada a email/telefone |
+| Testes E2E (Playwright) | [~] | Estrutura existe, cobertura baixa |
+| Testes de carga (k6) | [ ] | Não executado |
+| DAST (OWASP ZAP) | [ ] | Job existe, sem cron semanal ativo |
+| CodeQL (SAST) | [~] | Configurado, sem análise regular |
+| Feature flags | [ ] | Tabela existe, sem UI de administração |
+| DNSSEC + CAA + HSTS preload | [ ] | Depende de domínio próprio (pendência Operador) |
+| Vault/Infisical | [~] | Railway tem secret manager nativo (usado), mas sem rotação automática de 90 dias |
+
+### ❌ FALTA FAZER (por domínio)
+
+#### 🏛️ Compliance & Legal (pacote de publicação)
+**Bloqueante para ir ao ar publicamente:**
+
+- [ ] **Banner de cookies** (LGPD/GDPR) — 1ª camada + centro de preferências + prova de consentimento
+- [ ] **Política de Privacidade** publicada (minuta pronta no pacote)
+- [ ] **Termos de Uso** publicados (minuta pronta no pacote)
+- [ ] **Política de Cookies** publicada
+- [ ] **Política de Segurança** publicada
+- [ ] **Razão social + CNPJ + endereço** da END ART Studios (pendência Operador)
+- [ ] **Encarregado/DPO** nomeado e publicado
+- [ ] **E-mails oficiais** configurados (contato@, suporte@, privacidade@, security@, reembolso@, direitos@)
+- [ ] **Processo de direitos do titular** (LGPD art. 18)
+- [ ] **Processo de reclamação de direitos autorais** (DMCA/análogo)
+- [ ] **Gateway de pagamento** (Stripe, PagSeguro ou Pix direto) — decisão pendente
+- [ ] **Webhook de pagamento** assinado (HMAC) e idempotente
+
+#### 🗺️ Produto — Features Core (Escopo 1/2)
+**O que define o Almanaque como produto, não como plataforma:**
+
+- [ ] **Mapa-múndi interativo** (Leaflet + GeoJSON/TopoJSON, transição fluida continente→país→estado→cidade)
+- [ ] **Barra de pesquisa global** preditiva (Meilisearch ou OpenSearch)
+- [ ] **Ranking 0-100** com normalização MinMax (script Python/Node em cron)
+- [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
+- [ ] **Futebol feminino integrado** (normalização independente)
+- [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
+- [ ] **Painel de favoritos em tempo real** (Supabase Realtime ou SSE)
+- [ ] **Carrossel de campeões** (mundial, continental, nacional, estadual, municipal)
+- [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
+- [ ] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico)
+- [ ] **Linha do tempo** de clubes e jogadores
+- [ ] **Comparações** (clube×clube, jogador×jogador, com gráficos)
+- [ ] **Uniformes históricos** por temporada (titular/reserva/alternativo)
+
+#### 🔧 Produto — Infra Avançada (Fase 6)
+- [ ] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia)
+- [ ] **Web scrapers** (Python/BeautifulSoup para federações locais)
+- [ ] **IA RAG** com citações verificáveis (pgvector + LLM open-source)
+- [ ] **Knowledge Graph** (jogador→clube→competição→título)
+- [ ] **Upload antivírus** (ClamAV em container)
+- [ ] **Cache Redis** read-through em listas frequentes
+- [ ] **Fila BullMQ** completa (ETL, emails, reprocessamento de rankings)
+- [ ] **Exportação de dados** com rate limit + paginação
+- [ ] **Feature flags** com UI
+
+#### 📊 Produto — Dados Reais
+- [ ] **Seed de dados** (hoje só 10 clubes / 3 competições / 2 rankings)
+- [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
+- [ ] **Ingestão RSSSF** (arquivo histórico global)
+- [ ] **Ingestão de federações** (divisões inferiores, futebol feminino, amador)
+- [ ] **Dados de estádios** (coordenadas PostGIS, curiosidades)
+- [ ] **Dados de hinos** (Wikimedia Commons)
+- [ ] **Dados de uniformes** (imagens históricas)
+
+#### 🎨 Frontend (Fase 5)
+- [ ] **Páginas públicas:** clube, jogador, competição, partida, ranking
+- [ ] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos
+- [ ] **Páginas legais:** privacidade, termos, cookies, segurança, contato
+- [ ] **Checkout** (preço, periodicidade, renovação, limites visíveis antes do pagamento)
+- [ ] **Acessibilidade WCAG 2.1 AA** (labels, ARIA, contraste, teclado)
+- [ ] **Lighthouse > 90** em performance/acessibilidade/SEO
+- [ ] **PWA** (offline-first opcional)
+- [ ] **DOMPurify** em HTML dinâmico
+
+#### 🧪 Testes (Fase 8)
+- [ ] **Cobertura ≥ 80%** em services
+- [ ] **Testes E2E** (login → pesquisa → detalhes → favoritos)
+- [ ] **Testes de carga** (1.000 usuários concorrentes, p95 < 500ms)
+- [ ] **DAST** (OWASP ZAP semanal em staging)
+- [ ] **Testes do pipeline de IA** (citações verificáveis)
+
+#### 🔭 Observabilidade (Fase 9)
+- [ ] **Logs centralizados** (Loki ou Better Stack)
+- [ ] **Métricas** (Prometheus + Grafana)
+- [ ] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min)
+- [ ] **Uptime check externo** (UptimeRobot)
+- [ ] **Backup automático** do PostgreSQL (diário, retenção 30 dias)
+
+### 📊 Resumo Executivo
+
+| Dimensão | Status | % estimado |
+|---|---|---|
+| **Infraestrutura & DevOps** | 🟢 Concluída | 95% |
+| **Segurança & Hardening** | 🟢 Concluída | 90% |
+| **Autenticação & Sessão** | 🟢 Concluída | 95% |
+| **Schema & Migrations** | 🟢 Concluído | 85% |
+| **Compliance Legal** | 🔴 Crítico | 10% |
+| **Features Core (produto)** | 🔴 Crítico | 5% |
+| **Dados reais (conteúdo)** | 🔴 Crítico | 1% |
+| **Frontend UX** | 🟡 Parcial | 30% |
+| **IA/ETL/Knowledge Graph** | 🔴 Crítico | 5% |
+| **Testes avançados** | 🟡 Parcial | 40% |
+| **Observabilidade** | 🟡 Parcial | 30% |
+
+### 🎯 Conclusão honesta
+
+**O projeto tem uma base técnica (infra + segurança + auth + CI) excepcionalmente sólida — nível produção empresarial.**
+Mas ainda **não é o produto Almanaque dos Clubes** descrito no Escopo 1/2. É uma plataforma pronta para hospedar o
+Almanaque, mas faltam:
+
+1. **O conteúdo** (99% dos clubes, competições e jogadores do planeta ainda não foram ingeridos)
+2. **A experiência** (mapa-múndi, rankings, favoritos, 360º, comparações)
+3. **A legalidade** (banner cookies, termos, privacidade, gateway, CNPJ)
+
+### 🎲 Próximos marcos sugeridos
+
+**Para ir ao ar como Beta Fechada (100 usuários):**
+1. Compliance legal completo (pacote de publicação)
+2. Gateway de pagamento integrado
+3. Mapa-múndi interativo básico
+4. Seed de dados real (pelo menos 1.000 clubes via Wikidata)
+5. Perfis de clube/jogador navegáveis
+
+**Para Open Beta (1.000 usuários):**
+6. Rankings 0-100 rodando em cron
+7. Futebol feminino integrado
+8. Painel de favoritos
+9. ETL automático (Wikidata + RSSSF)
+10. IA RAG com citações
+
+**Para v1.0 público:**
+11. Knowledge Graph
+12. Visualizador 360º
+13. DAST + carga + observabilidade completos
+14. Domínio próprio + DNSSEC
+
