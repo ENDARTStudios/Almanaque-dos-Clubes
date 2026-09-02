@@ -37,7 +37,9 @@ async function main(): Promise<void> {
   for (const u of candidates) console.log(`  ${u.id}  ${u.email}  [${u.status}]`);
 
   if (!APPLY) {
-    console.log('\nDRY-RUN — nada aplicado. Rode com --apply para desabilitar (requer autorização do Operador).');
+    console.log(
+      '\nDRY-RUN — nada aplicado. Rode com --apply para desabilitar (requer autorização do Operador).',
+    );
     return;
   }
 
