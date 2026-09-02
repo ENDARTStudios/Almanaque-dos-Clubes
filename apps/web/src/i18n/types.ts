@@ -15,6 +15,7 @@ export interface Dictionary {
     clubs: string;
     players: string;
     competitions: string;
+    map: string;
     rankings: string;
     search: string;
     login: string;

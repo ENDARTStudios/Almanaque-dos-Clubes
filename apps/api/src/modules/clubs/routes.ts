@@ -39,6 +39,7 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       city: query.city,
       status: query.status,
       search: query.search,
+      hasCoordinates: query.hasCoordinates === 'true',
       limit,
       offset,
     });
