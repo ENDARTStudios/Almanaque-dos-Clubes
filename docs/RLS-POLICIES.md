@@ -1,6 +1,6 @@
 # RLS-POLICIES.md — Almanaque dos Clubes
 
-> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE · PRODUÇÃO: INERTE (2026-09-02, D-2026-09-02-v5c-rls-inerte)**
+> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE · PRODUÇÃO: INERTE (2026-09-02, D-2026-09-02-v5c-rls-inerte) · T400: role app_user criada/validada em banco de teste; enforcement só após T401**
 >
 > A migration `20260824_rls_sessions` aplicou `ENABLE`+`FORCE ROW LEVEL
 > SECURITY` em `sessions` com policy owner-only de leitura e exceção `SERVICE`,
@@ -110,3 +110,39 @@ hash SHA-256, nunca o token cru).
 | T344 (migration RLS) | ✅ DONE (teste) |
 | T345 (teste A≠B) | ⏳ escrito; execução bloqueada por port-proxy (P1000) |
 | Mecanismo de contexto da aplicação (`rls-context.ts`) | ❌ não existe — pré-requisito para produção |
+
+
+---
+
+## T400 (2026-09-02) — role `app_user` criada + matriz revalidada (banco de teste real)
+
+Após D-2026-09-02-operador-decisoes-finais (RLS efetiva autorizada), foi preparado e **validado** o mecanismo que
+torna a RLS efetiva: uma role de aplicação **não-superusuária** (`app_user`), sobre a qual o `FORCE RLS` atua. Como a
+aplicação conecta como **superuser**, a RLS fica INERTE (superuser dispensa RLS) — por isso a conexão precisa passar
+a ser `app_user` (T401).
+
+### Artefatos versionados
+- `apps/api/scripts/sql/create_app_user.sql` — cria `app_user NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS` (idempotente) + grants mínimos em `sessions` + USAGE em sequences.
+- `apps/api/scripts/sql/rls_sessions_setup.sql` — aplica `ENABLE`+`FORCE RLS` e as 7 policies de `sessions` (consolidação idempotente das migrations 20260824/20260825).
+- `apps/api/vitest.config.ts` — RLS tests **reativados** (removidos os excludes).
+- `.github/workflows/ci.yml` — passo **Apply RLS + app_user (test DB)** após `prisma db push`, para que o Postgres 16 do service container do CI tenha a RLS FORCE + role `app_user` antes dos testes.
+
+### Validação (matriz como app_user, banco de teste real — Postgres Railway 18)
+Script independente (`scripts/_tmp_validate_rls.ts`, descartado após a corrida) reproduzindo os cenários T345/T377
+via `SET ROLE app_user` + GUCs. **Resultado: 11 PASS / 0 FAIL**, cobrindo:
+
+| Cenário | Resultado |
+|---|---|
+| owner A vê apenas a própria sessão | PASS |
+| SERVICE vê ambas as sessões | PASS |
+| sem contexto → deny-by-default (0) | PASS |
+| SELECT por tokenHash (posse) | PASS |
+| cross-user → deny (0) | PASS |
+| tokenHash vazio → deny (0) | PASS |
+| INSERT owner | PASS |
+| INSERT sem contexto → negado | PASS |
+| UPDATE owner / UPDATE SERVICE / DELETE SERVICE | PASS |
+
+> **Conclusão (T400):** a role `app_user` + policies RLS produzem o isolamento esperado no banco. O passo seguinte é
+> **T401** — aplicar `create_app_user.sql` no banco de **produção** e trocar a conexão da API para `app_user`
+> (DATABASE_URL_APP no Railway), com rollback documentado e smoke pós-deploy. Enquanto isso, produção continua INERTE.
