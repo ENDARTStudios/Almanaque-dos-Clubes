@@ -60,3 +60,20 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 
 **Limitação:** muitos clubes não têm `P625` no item do clube no Wikidata (a coordenada costuma estar no item do
 estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer via estádio (WS-D/geo) num round futuro.
+
+
+## 9. Jogadores via Wikidata (WS-D, 2026-09-02)
+
+**Fonte:** Wikidata (CC0) — ocupação `P106 = Q937857` (association football player), filtrado a **notáveis** (têm artigo na en-wiki).
+
+**Estratégia em 2 passos (evita timeout do SPARQL):**
+1. SPARQL (sem o pesado serviço de label do player) → QID + país (ISO via `P297`) + nascimento (`P569`) + posição (`P413`), em batches de 1000.
+2. Nomes via API `wbgetentities` (labels en, 50 por chamada).
+
+**Campos populados em `players`:** `fullName` · `country` · `birthDate` · `position` · `qid` (**unique**) · `importedFrom='wikidata'` · `importedAt`. `clubId` fica `null` (elencos/clubes-link, a fazer).
+
+`pnpm --filter @almanaque/api exec tsx scripts/ingest-players-wikidata.ts [--apply]`
+
+**Resultado (2026-09-02):** 2.396 jogadores. Idempotente (re-run 0 novos) e reversível.
+
+**Limitação:** conjunto amplo de jogadores notáveis (não limitado aos clubes do acervo); ligação clube↔jogador (elencos) fica para round de enriquecimento (`P54`/ETL).
