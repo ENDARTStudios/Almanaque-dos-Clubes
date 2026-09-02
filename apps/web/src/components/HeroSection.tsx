@@ -17,11 +17,11 @@ export default function HeroSection() {
   useGsapStagger(statsRef, '.stat-item');
   useGsapStagger(featuresRef, '.feature-card');
 
+  // Números reais e auditáveis do acervo (ver docs/HERO-NUMEROS.md) — evita publicidade enganosa (CDC art. 37 §1º).
   const stats = [
-    { value: '50k+', label: t('home.stats.clubs') },
-    { value: '200k+', label: t('home.stats.players') },
-    { value: '10k+', label: t('home.stats.competitions') },
-    { value: '1M+', label: t('home.stats.matches') },
+    { value: '10', label: t('home.stats.clubs') },
+    { value: '3', label: t('home.stats.competitions') },
+    { value: '2', label: t('home.stats.rankings') },
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function HeroSection() {
       </section>
 
       <section className="py-12 bg-white border-y border-border">
-        <div ref={statsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div ref={statsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-3 gap-8">
           {stats.map((stat) => (
             <div key={stat.label} className="stat-item text-center">
               <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">{stat.value}</div>

@@ -75,7 +75,7 @@ export interface Dictionary {
     heroSubtitle: string;
     ctaSearch: string;
     ctaRegister: string;
-    stats: { clubs: string; players: string; competitions: string; matches: string };
+    stats: { clubs: string; players: string; competitions: string; matches: string; rankings: string };
     featuresTitle: string;
     featuresSubtitle: string;
     features: { title: string; desc: string }[];
