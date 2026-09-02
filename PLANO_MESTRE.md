@@ -435,7 +435,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 #### 🗺️ Produto — Features Core (Escopo 1/2)
 **O que define o Almanaque como produto, não como plataforma:**
 
-- [ ] **Mapa-múndi interativo** (Leaflet + GeoJSON/TopoJSON, transição fluida continente→país→estado→cidade)
+- [~] **Mapa-múndi interativo** — **código pronto** (`/map` Leaflet, círculos por clube, popup; 113 clubes com coords; T65). **Live deploy web bloqueado por Vercel build-rate-limit (externo)**; transições fluídas continente→país ainda são milestone WS-C
 - [ ] **Barra de pesquisa global** preditiva (Meilisearch ou OpenSearch)
 - [ ] **Ranking 0-100** com normalização MinMax (script Python/Node em cron)
 - [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
