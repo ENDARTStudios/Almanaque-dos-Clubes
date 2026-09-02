@@ -1,6 +1,6 @@
 # RLS-POLICIES.md — Almanaque dos Clubes
 
-> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE · PRODUÇÃO: INERTE (2026-09-02, D-2026-09-02-v5c-rls-inerte) · T400: role app_user criada/validada em banco de teste; enforcement só após T401**
+> **STATUS: `sessions` APLICADA-TESTE (T344, 2026-08-23); demais tabelas SPEC PENDENTE · PRODUÇÃO: **EFETIVA (2026-09-02, D-2026-09-02-t401-rls-efetiva-abre-gate)** — API conecta como app_user (não-superusuária)**
 >
 > A migration `20260824_rls_sessions` aplicou `ENABLE`+`FORCE ROW LEVEL
 > SECURITY` em `sessions` com policy owner-only de leitura e exceção `SERVICE`,
@@ -34,7 +34,7 @@
 
 Legenda: `self` = linha cujo `id`/`userId` pertence ao usuário autenticado.
 
-### `sessions` — APLICADA-TESTE (migrations `20260824_rls_sessions` + `20260825_rls_sessions_complete`) · **PRODUÇÃO: INERTE (superuser)**
+### `sessions` — APLICADA-TESTE (migrations `20260824_rls_sessions` + `20260825_rls_sessions_complete`) · **PRODUÇÃO: EFETIVA (app_user)**
 
 | Policy | Comando | Condição |
 |---|---|---|
@@ -145,4 +145,4 @@ via `SET ROLE app_user` + GUCs. **Resultado: 11 PASS / 0 FAIL**, cobrindo:
 
 > **Conclusão (T400):** a role `app_user` + policies RLS produzem o isolamento esperado no banco. O passo seguinte é
 > **T401** — aplicar `create_app_user.sql` no banco de **produção** e trocar a conexão da API para `app_user`
-> (DATABASE_URL_APP no Railway), com rollback documentado e smoke pós-deploy. Enquanto isso, produção continua INERTE.
+> (DATABASE_URL_APP no Railway), com rollback documentado e smoke pós-deploy. **T401 executado — produção agora EFETIVA** (ver gate D-2026-09-02-t401-rls-efetiva-abre-gate).
