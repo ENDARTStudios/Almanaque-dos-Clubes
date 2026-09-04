@@ -192,7 +192,6 @@ integração sem rede/banco (mock `globalThis.fetch` + repositório em memória)
   o total real depende da interseção elenco↔acervo.
 - O valor alvo `≥10.000` é **reporte** (não trava) — o seed não fabrica contagem.
 - Metadata `year`/`season` são normalizados (sem trimestre/mês); temporadas que cruzam anos são
-  representadas pelo ano de início (P580).
 
 ---
 
@@ -247,10 +246,6 @@ repositório em memória.
 pnpm --filter @almanaque/api exec tsx scripts/seed-stadiums.ts
 # APPLY — grava no banco (teste/CI): resolve clube por QID, dedup QID, PostGIS location
 pnpm --filter @almanaque/api exec tsx scripts/seed-stadiums.ts --apply
-```
-
-**Reversibilidade (Postgres):**
-```sql
 DELETE FROM stadiums WHERE "importedFrom"='wikidata';
 ```
 
@@ -280,3 +275,84 @@ proveniência. Sem escrita em produção.
 - Correção importante: quando há `VALUES ?club`, o vínculo `?stadium wdt:P466 ?club` é **obrigatório**
   (fora do `OPTIONAL`). Deixá-lo no `OPTIONAL` faz o `VALUES` casar com estádios **sem** P466,
   gerando associação espúria de clube (bug já corrigido no `buildStadiumsQuery`).
+
+---
+
+## 14. Futebol feminino (Wikidata) — WS-D / T424
+
+> Sem coluna de gênero no schema (evita conflito com a tarefa paralela que altera o schema). O feminino
+> é representado por **convenção documentada**.
+
+**Fonte:** Wikidata (CC0), via SPARQL `query.wikidata.org`.
+
+**ATENÇÃO — QIDs corrigidos (verificados no Wikidata, não fabricados):** o enunciado citava
+`Q461753 = women's association football`, mas na verdade **`Q461753` é "Jean Duvieusart"** (político
+belga) e **`Q104548798` é "Samuel Frankfurter"** (pessoa). Os QIDs corretos usados aqui são:
+
+| Semântica | QID | Nota |
+|---|---|---|
+| women's association football (raiz do esporte) | **Q606060** | substitui Q461753 |
+| women's association football league (competição) | **Q135641755** | ligas femininas |
+| women's sports competition (classe ampla) | **Q61983760** | registro documentado |
+| women's association football team (clube) | **Q28140340** | substitui Q104548798 |
+| women's association football club (clube) | **Q51481377** | clube com elenco feminino |
+| association football player (ocupação P106) | **Q937857** | ok (enunciado correto) |
+| female (sexo/gênero P21) | **Q6581072** | ok (enunciado correto) |
+
+### ⚠️ Convenção de gênero (SEM novo schema)
+
+O schema Prisma **não tem coluna de gênero** (e não deve ganhar nesta tarefa). O feminino é
+representado por convenção:
+
+1. **Toda entidade/vínculo** criado por este connector grava `metadata.gender = 'women'` no
+   `knowledge_graph` (constante `WOMENS_GENDER_VALUE`).
+2. **Registro documentado `WOMENS_COMPETITION_QIDS`** no connector: lista os QIDs que marcam uma
+   competição como feminina (`Q606060`, `Q135641755`, `Q61983760`). É o contrato que a normalização
+   isolada por gênero do Ranking (**T425**) usará para derivar o gênero, sem coluna nova.
+
+### Mapeamento fonte → acervo
+
+| Fonte (Wikidata) | Tabela/coluna | Valor |
+|---|---|---|
+| QID da competição (classe Q135641755) | `competition.qid` + `name` + `country` | label en + ISO via P297 |
+| QID do clube (Q28140340/Q51481377) | `club.qid` + `name` + `country` | label en + ISO via P297 |
+| QID da jogadora (P106=Q937857 + P21=Q6581072) | `player.qid` + `fullName` + `country` + `position` | label en + ISO + P413 |
+| P54 jogadora→clube + P580 (ano) | `knowledge_graph` (`sourceType='Player'`, `targetType='Club'`) | `relation='PLAYED_FOR'` |
+| — | `metadata.gender='women'`, `dataSource='wikidata'`, `sourceUrl`, `license='CC0'` | proveniência |
+
+**Dedup por QID:** entidades usam o **QID** como chave estável (`qid` é `unique` em
+competition/club/player). Vínculos P54 usam `playerQid|clubQid|year` (função `womensEdgeDedupKey`).
+Reexecução **não duplica** (idempotente).
+
+**Anti-órfão (obrigatória):** `knowledge_graph` **não tem FK**. O connector resolve jogadora/clube por
+QID contra `player.qid`/`club.qid`; não-casados vão para a **fila de revisão** (report), **jamais**
+para o banco. No `--apply`, os vínculos são buscados já limitados aos clubes do acervo feminino
+(`VALUES ?club`), reduzindo órfãos.
+
+**Comando:**
+```bash
+pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts           # DRY-RUN (default)
+pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts --apply   # grava (teste/CI)
+```
+DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'gender'='women';
+```
+Entidades criadas são idempotentes (re-run → `skipped`, 0 novos). Para remover as entidades do seed,
+apague pelos QIDs do conjunto ingerido (registro exposto pelo connector).
+
+**Qualidade (TDD, sem rede/banco no teste):** validação **Zod** de todo payload externo (QID
+`^Q\\d+$`, país ISO alpha-2, ano int ≥ 1900); connector **puro**; teste com mock de
+`globalThis.fetch` + repositório em memória cobre parse, dedup QID, idempotência 2×, anti-órfão,
+proveniência e **isolamento por gênero** (registro separado `womensQids`).
+
+**Limitações (honesto, não fabricado):**
+- **Competições:** a classe Q135641755 (liga feminina) retorna **~12** competições no Wikidata. O
+  caminho `P31/P279* → Q606060` descoberto retorna clubes/overviews (não competições), e a interseção
+  com `Q15991303` (liga de futebol, usada no §7) retornou **0**. A meta de **≥200 competições** não é
+  alcançável de forma auditável com uma única classe; **não fabricamos** contagem.
+- **Clubes:** Q28140340/Q51481377 retornam **~800+** clubes femininos (real).
+- **Jogadoras:** P106=Q937857 + P21=Q6581072 retornam milhares; o `--apply` amostra por
+  `WOMENS_PLAYER_MAX_PAGES` (default 8 páginas de 1000) para não estourar o label service.
+- **Vínculos P54:** só entram vínculos com **P580** (ano determinável); sem P580 são descartados.
+- **País:** P297 dá a ISO do país soberano (Inglaterra/Gales/Escócia → GB), como no §5.
+- **Gênero:** não há coluna única; T425 deriva o gênero do registro `WOMENS_COMPETITION_QIDS` +
+  `metadata.gender`.
