@@ -450,6 +450,12 @@ model Match {
   stadiumId     String?
   stadium       Stadium?    @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
   status        MatchStatus @default(SCHEDULED)
+  qid           String?     @unique  // Wikidata match QID (raro; quando houver item de partida)
+  importedFrom  String?     // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt    DateTime?
+  sourceUrl     String?     // URL pública de origem da partida
+  license       String?     // licença/uso da fonte (ex.: "CC0", "RSSSF") — proveniência
+  dedupKey      String?     @unique  // chave estável: competicao|temporada|dataISO|homeClubId|awayClubId
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
