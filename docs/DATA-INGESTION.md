@@ -77,3 +77,11 @@ estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer vi
 **Resultado (2026-09-02):** 2.396 jogadores. Idempotente (re-run 0 novos) e reversível.
 
 **Limitação:** conjunto amplo de jogadores notáveis (não limitado aos clubes do acervo); ligação clube↔jogador (elencos) fica para round de enriquecimento (`P54`/ETL).
+
+## 10. Tipo de competição (WS-D, 2026-09-02)
+
+**Fonte:** classe Wikidata `Q15991303` (association football league). As competições ingeridas vêm desta classe (`P31/P279*`), então o `type` é mapeado pela **CLASSE** (não pelo nome — ex.: "KNVB Women's Cup" é classe league → LEAGUE).
+
+`pnpm --filter @almanaque/api exec tsx scripts/enrich-competition-type.ts [--apply]`
+
+**Resultado:** 892 competições com `type='LEAGUE'` (total: 893 LEAGUE / 1 TOURNAMENT / 1 CUP). Idempotente e reversível (`type=NULL`).
