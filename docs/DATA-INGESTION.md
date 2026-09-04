@@ -85,3 +85,65 @@ estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer vi
 `pnpm --filter @almanaque/api exec tsx scripts/enrich-competition-type.ts [--apply]`
 
 **Resultado:** 892 competições com `type='LEAGUE'` (total: 893 LEAGUE / 1 TOURNAMENT / 1 CUP). Idempotente e reversível (`type=NULL`).
+---
+
+## 12. Elencos clube↔jogador (P54) — WS-D / T421
+
+**Fonte:** Wikidata (CC0). Propriedade **P54** ("member of sports team") liga o jogador ao clube
+(`?player p:P54 ?stmt` / `?stmt ps:P54 ?club`); o qualificador **P580** (start time) dá a
+temporada/ano (`?stmt pq:P580 ?start`), com `FILTER(YEAR(?start) >= 1900)`.
+
+**Mapeamento P54 → tabela `knowledge_graph` (já existente — NÃO alterado):**
+
+| P54/P580 (Wikidata) | Tabela/coluna | Valor |
+|---|---|---|
+| `?player` (item do jogador) | `knowledge_graph.sourceId` + `sourceType='Player'` | `player.id` (resolvido por `Player.qid`) |
+| `?club` (item do clube) | `knowledge_graph.targetId` + `targetType='Club'` | `club.id` (resolvido por `Club.qid`) |
+| relação | `knowledge_graph.relation` | `'PLAYED_FOR'` |
+| `P580` (ano) | `metadata.year` / `metadata.season` | `2023` / `"2023"` |
+| proveniência | `metadata.dataSource` / `sourceUrl` / `license` | `'wikidata'` / `https://www.wikidata.org/wiki/<playerQid>` / `'CC0'` |
+
+**Dedup key:** `playerQid|clubQid|year` (função `squadsDedupKey` no connector). É a identidade
+natural do vínculo (mesma pessoa + mesmo clube + mesma temporada); é a base da idempotência.
+
+**Regra anti-órfão (obrigatória):** `knowledge_graph` **não tem FK** (sourceId/targetId são strings).
+Por isso o seed **nunca** cria um vínculo cujo jogador/clube não exista no acervo: ele resolve por QID
+contra `Player.qid`/`Club.qid`; não-casados vão para a **fila de revisão** (report/log), jamais para o
+banco — o grafo nunca fica com ponta solta.
+
+**Comando:**
+```bash
+pnpm --filter @almanaque/api exec tsx scripts/seed-squads.ts           # DRY-RUN (default) — baixa+parse+reporta, não grava
+pnpm --filter @almanaque/api exec tsx scripts/seed-squads.ts --apply   # grava no banco (teste/CI)
+```
+
+**Comportamento:**
+- **DRY-RUN (default):** não abre banco. Baixa uma amostra, valida via Zod e reporta (leituras + dedup
+  key únicas + amostra). Nada é escrito.
+- **APPLY (`--apply`):** abre banco, resolve jogador/clube por QID, aplica dedup + idempotência
+  (rodar 2× não duplica) e grava com proveniência obrigatória em `metadata`. Reporta
+  criados / já-existiam / órfãos.
+
+**Reversibilidade (Postgres):**
+```sql
+DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'dataSource'='wikidata';
+```
+
+**Variáveis de ambiente (com defaults):** `SQUADS_MIN_YEAR=1900` · `SQUADS_LIMIT=1000` ·
+`SQUADS_MAX_PAGES` (2 dry-run / 20 apply) · `SQUADS_PLAYER_CHUNK=400` · `SQUADS_TARGET_MIN=10000`.
+
+**Qualidade:** validação **Zod** de todo payload externo (`SquadsEntrySchema`: `playerQid`/`clubQid`
+`^Q\d+$` e `year` int ≥ 1900); connector é **puro** (sem rede/Prisma) e coberto por teste de
+integração sem rede/banco (mock `globalThis.fetch` + repositório em memória). Sem escrita em produção.
+
+**Limitações:**
+- Só entra vínculo com **P580** (ano determinável). Vínculos P54 **sem** P580 não têm ano → são
+  descartados (o Wikidata tem poucos vínculos P54 com P580, então o conjunto é menor do que "todos
+  os elencos do mundo").
+- O filtro `VALUES ?player {...}` / `VALUES ?club {...}` limita a consulta aos QIDs do acervo para
+  alcançar a meta de `≥10.000` vínculos sem varrer todos os P54 do mundo; o acervo é reduzido, então
+  o total real depende da interseção elenco↔acervo.
+- O valor alvo `≥10.000` é **reporte** (não trava) — o seed não fabrica contagem.
+- Metadata `year`/`season` são normalizados (sem trimestre/mês); temporadas que cruzam anos são
+  representadas pelo ano de início (P580).
+
