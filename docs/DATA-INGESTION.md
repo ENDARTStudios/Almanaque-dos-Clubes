@@ -85,3 +85,48 @@ estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer vi
 `pnpm --filter @almanaque/api exec tsx scripts/enrich-competition-type.ts [--apply]`
 
 **Resultado:** 892 competições com `type='LEAGUE'` (total: 893 LEAGUE / 1 TOURNAMENT / 1 CUP). Idempotente e reversível (`type=NULL`).
+## 11. Resultados de partidas (RSSSF) + títulos (Wikidata) — T420
+
+**Fontes abertas (sem scraping que viole Termos; User-Agent identificado):**
+- **RSSSF** (Rec.Sport.Soccer Statistics Foundation) — tabelas de resultados em texto/HTML públicos.
+- **Wikidata** (CC0) — campeões de liga via `P3450` (sports season of the league) + `P1346` (winner).
+
+**Campos novos em `matches` (proveniência + dedup):** `qid` (único) · `importedFrom` · `importedAt` ·
+`sourceUrl` · `license` · `dedupKey` (**unique**). A `dedupKey` é a chave estável
+`competicao|temporada|dataISO|homeClubId|awayClubId` — garante que reexecutar o seed **não duplica**.
+
+**Mapeamento fonte → campo:**
+| Origem | Campo em `matches` |
+|---|---|
+| linha `<data>` | `date` (ISO `YYYY-MM-DD`) |
+| `<casa> - <fora>` | `homeClubId` / `awayClubId` (resolvidos contra o acervo por QID/nome normalizado) |
+| placar `n-n` ou `n:n` | `homeScore` / `awayScore` (inteiros ≥ 0) |
+| `(Rodada N)/(Round N)` | `round` |
+| competição | `competitionId` (resolvida por QID/nome) |
+| temporada | `seasonId` (find-or-create `Season`) |
+| URL da fonte / licença | `sourceUrl` / `license` |
+| — | `importedFrom='rsssf'`, `importedAt` |
+
+**Regra anti-órfão:** se clube/competição não for resolvido, a partida **não** é criada — vai para `rejected`
+(motivo), nunca para o acervo. Títulos (`wikidata-titles`) usam a mesma regra (vínculo por QID).
+
+**Comando:**
+```
+pnpm --filter @almanaque/api exec tsx scripts/seed-matches.ts --url=<rsssf_url> --competition=<nome> --season=<ano>            # DRY-RUN (não escreve)
+pnpm --filter @almanaque/api exec tsx scripts/seed-matches.ts --url=<rsssf_url> --competition=<nome> --season=<ano> --apply  # grava
+```
+
+**Contratos testados (TDD, HTTP/banco mockados):** parse + normalização (data/placar) · validação Zod
+(placar ≥ 0, data ISO) · `dedupKey` determinística · ingestão idempotente (2ª execução → `alreadyExists`) ·
+não-criação de órfãos. Teste: `apps/api/tests/integration/matches-ingestion.test.ts`.
+
+**Limitações conhecidas (honesto, não fabricado):**
+- **Formato canônico:** o parser cobre um subconjunto documentado de layouts RSSSF (data ISO `YYYY-MM-DD` /
+  `DD/MM/YYYY` / `[DD.MM.YY]`, separador ` - `/` vs `, placar `n-n`/`n:n`). Linhas fora do contrato vão
+  para `skipped` (com motivo), nunca são descartadas em silêncio.
+- **RSSSF Brasil mudou de domínio** (`rsssfbrasil.com`, antes `rsssf.org/tablesb`); as páginas têm layout
+  variável e formato HTML/tabela, exigindo extração HTML→texto por fonte — **extensão futura**.
+- **Meta ≥ 5.000 partidas** no banco de teste e verificação amostral manual de 10 partidas **não** foram alegadas
+  nesta entrega: exigem uma fonte vigente + extração por layout. O Ranking 0-100 permanece **adiado** até que
+  exista base de resultados auditável (regra: nunca publicar métrica sem dado).
+- **Reversível:** `DELETE FROM matches WHERE "importedFrom"='rsssf';`

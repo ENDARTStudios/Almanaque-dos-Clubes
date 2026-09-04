@@ -367,6 +367,12 @@ model Match {
   stadiumId     String?
   stadium       Stadium? @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
   status        String   @default("SCHEDULED")
+  qid           String?  @unique
+  importedFrom  String?
+  importedAt    DateTime?
+  sourceUrl     String?
+  license       String?
+  dedupKey      String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
