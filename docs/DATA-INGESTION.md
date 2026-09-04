@@ -192,7 +192,89 @@ integração sem rede/banco (mock `globalThis.fetch` + repositório em memória)
   o total real depende da interseção elenco↔acervo.
 - O valor alvo `≥10.000` é **reporte** (não trava) — o seed não fabrica contagem.
 - Metadata `year`/`season` são normalizados (sem trimestre/mês); temporadas que cruzam anos são
-representadas pelo ano de início (P580).
+
+---
+
+## 13. Estádios via Wikidata + PostGIS — WS-D / T423
+
+**Fonte:** Wikidata (CC0). Itens de estádio (classe **Q483110**) via
+`wdt:P31/wdt:P279* wd:Q483110` (estádio ou subtipo). Propriedades extraídas:
+
+| Propriedade (Wikidata) | Campo `stadiums` | Observação |
+|---|---|---|
+| item (`?stadium`) | `qid` (unique) | dedup key / idempotência |
+| `rdfs:label` (`pt,en`) | `name` | via `wikibase:label` |
+| `P1083` (capacity) | `capacity` | int ≥ 0 |
+| `P625` (coordinate) | `latitude` / `longitude` (+ coluna PostGIS `location`) | `POINT(lon lat)` |
+| `P131` (ADM entity -> label) | `city` | entidade administrativa (município) |
+| `P17` -> `P297` (ISO 3166-1) | `country` | alpha-2 |
+| `P466` (occupant) | `clubId` (via `Club.qid`) | clube mandante/ocupante |
+| — | `surface` | **sempre null** (Wikidata não tem propriedade estável de piso; backlog) |
+| — | `state` | **sempre null** (não derivável de forma confiável na consulta atual) |
+
+**PostGIS / migration:** o `schema.prisma` (model `Stadium`) ganhou a coluna
+`location Unsupported("geometry(Point,4326)")?`. A migration
+`apps/api/prisma/migrations/20260905_stadiums_postgis/migration.sql` cria a extensão
+(`CREATE EXTENSION IF NOT EXISTS postgis;`) e a coluna
+(`ALTER TABLE stadiums ADD COLUMN IF NOT EXISTS location geometry(Point,4326);`).
+Como o CI usa **`prisma db push`** (não `migrate deploy`), o workflow
+`.github/workflows/ci.yml` foi alterado para usar a imagem **`postgis/postgis:16-3.4`**
+no service container e rodar `apps/api/scripts/sql/create_postgis.sql`
+(`CREATE EXTENSION IF NOT EXISTS postgis;`) **antes** do `db push`, para que o tipo
+`geometry` exista quando a coluna for criada. Há ainda um índice espacial
+(`GIST (location)`). A extensão é **não-destrutiva** (`IF NOT EXISTS`).
+
+**Mapeamento/gravação:** o seed grava `latitude`/`longitude` (Float, para leitura) **e** seta a
+coluna geográfica via SQL crua no repositório Prisma:
+`UPDATE stadiums SET location = ST_SetSRID(ST_MakePoint(lon, lat), 4326) WHERE id = ?`
+(Prisma não grava tipo `Unsupported` pelo cliente tipado). Proveniência: `importedFrom='wikidata'`
+e `importedAt` (a URL de origem é derivável de `https://www.wikidata.org/wiki/<qid>`).
+
+**Dedup key:** `qid` (função `stadiumsDedupKey` no connector). A idempotência é garantida:
+rodar o seed 2× não duplica (checa `stadiums.qid` antes de criar).
+
+**Regra anti-órfão (obrigatória):** o estádio **só** é persistido com `clubId` se o clube
+associado (via `P466`) resolver para um `Club.qid` **existente no acervo**. Estádio **sem**
+clube associado é gravado com `clubId = null`. Estádio **com** clube não-casado **nunca é
+persistido** — vai para a **fila de revisão** (report/envio ao log), garantindo que `clubId`
+nunca aponte para uma entidade inexistente. O connector é **puro** (sem rede/Prisma), testado com
+repositório em memória.
+
+**Comando:**
+```bash
+# DRY-RUN (default) — baixa amostra via Wikidata, valida e reporta; NÃO abre banco
+pnpm --filter @almanaque/api exec tsx scripts/seed-stadiums.ts
+# APPLY — grava no banco (teste/CI): resolve clube por QID, dedup QID, PostGIS location
+pnpm --filter @almanaque/api exec tsx scripts/seed-stadiums.ts --apply
+DELETE FROM stadiums WHERE "importedFrom"='wikidata';
+```
+
+**Variáveis de ambiente (com defaults):** `STADIUMS_LIMIT=500` · `STADIUMS_MAX_PAGES`
+(2 dry-run / 20 apply) · `STADIUMS_CLUB_CHUNK=400` · `STADIUMS_TARGET_MIN=500` (apenas reporte) ·
+`STADIUMS_RETRIES=3` · `STADIUMS_BACKOFF_MS=10000` (retry/backoff para os 504 transitórios do endpoint).
+
+**Qualidade:** validação **Zod** de todo payload externo (`StadiumEntrySchema`): `qid`
+`^Q\d+$`, `name` min-length, `latitude ∈ [-90,90]`, `longitude ∈ [-180,180]`,
+`capacity` int ≥ 0, `country` ISO alpha-2. Coberto por teste de integração sem rede/banco
+(mock `globalThis.fetch` + repositório em memória): dedup por QID, idempotência, anti-órfão,
+proveniência. Sem escrita em produção.
+
+**Limitações:**
+- **O Wikidata tem muitos estádios sem `P625` (coordenadas) e/ou sem `P1083` (capacidade).** A
+  meta de `≥ 500` refere-se ao total **persistido**; a quantidade **com** coordenadas/capacidade é
+  tipicamente bem menor. O seed **reporta** os números reais (com P625 / com P1083) e **nunca
+  fabrica** contagem.
+- `surface` e `state` ficam `null` (sem propriedade confiável na consulta atual) — backlog.
+- `city` vem do label de `P131` (entidade administrativa imediata), que pode ser município ou
+  entidade de nível superior (estado) conforme o item.
+- Só estádios com **`P466`** ligando a um clube do acervo entram com `clubId`; estádios sem
+  `P466` ficam com `clubId=null` (não são "órfãos" — são estádios genéricos).
+- A consulta genérica (sem `VALUES ?club`) é cara; o dry-run usa amostragem sem
+  DISTINCT/ORDER BY e o seed usa retry+backoff (`STADIUMS_RETRIES`/`STADIUMS_BACKOFF_MS`), pois
+  o Wikidata retorna **HTTP 504** em consultas pesadas na primeira execução (cache frio).
+- Correção importante: quando há `VALUES ?club`, o vínculo `?stadium wdt:P466 ?club` é **obrigatório**
+  (fora do `OPTIONAL`). Deixá-lo no `OPTIONAL` faz o `VALUES` casar com estádios **sem** P466,
+  gerando associação espúria de clube (bug já corrigido no `buildStadiumsQuery`).
 
 ---
 
@@ -252,9 +334,6 @@ para o banco. No `--apply`, os vínculos são buscados já limitados aos clubes 
 pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts           # DRY-RUN (default)
 pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts --apply   # grava (teste/CI)
 ```
-
-**Reversibilidade (Postgres):**
-```sql
 DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'gender'='women';
 ```
 Entidades criadas são idempotentes (re-run → `skipped`, 0 novos). Para remover as entidades do seed,
@@ -277,4 +356,3 @@ proveniência e **isolamento por gênero** (registro separado `womensQids`).
 - **País:** P297 dá a ISO do país soberano (Inglaterra/Gales/Escócia → GB), como no §5.
 - **Gênero:** não há coluna única; T425 deriva o gênero do registro `WOMENS_COMPETITION_QIDS` +
   `metadata.gender`.
-

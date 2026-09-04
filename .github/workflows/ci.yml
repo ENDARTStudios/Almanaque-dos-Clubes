@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        # T423 — PostGIS: `prisma db push` cria a coluna `location geometry(Point,4326)`,
+        # que exige o tipo `geometry` (extensão postgis) presente ANTES do push.
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_USER: almanaque
           POSTGRES_PASSWORD: almanaque_dev_2025
@@ -52,6 +54,11 @@ jobs:
 
       - name: Generate Prisma Client (PostgreSQL)
         run: cd apps/api && npx prisma generate --schema=prisma/schema.prisma
+
+      - name: Create PostGIS extension (test DB)
+        # O tipo `geometry` precisa existir antes de `prisma db push` criar/alterar
+        # a coluna `location` (T423). A imagem do service container é postgis/postgis.
+        run: cd apps/api && npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/create_postgis.sql
 
       - name: Sync schema (test DB)
         run: cd apps/api && npx prisma db push --schema=prisma/schema.prisma

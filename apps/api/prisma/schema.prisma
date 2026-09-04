@@ -404,6 +404,9 @@ model Stadium {
   longitude    Float?
   capacity     Int?
   surface      String?  // grass, artificial, hybrid
+  // Coordenada PostGIS (EWKT: SRID=4326) — coluna geometry(Point,4326). Ver migration
+  // 20260905_stadiums_postgis e docs/DATA-INGESTION.md §13.
+  location     Unsupported("geometry(Point,4326)")?
   qid          String?  @unique // Wikidata Q-identifier
   clubId       String?  // clube mandante principal
   club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
