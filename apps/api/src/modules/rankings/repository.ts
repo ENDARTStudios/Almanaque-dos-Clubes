@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js';
+import type { Prisma } from '@prisma/client';
 import type { Ranking, RankingEntry } from '@almanaque/domain';
 
 export interface ListRankingsParams {
@@ -79,15 +80,13 @@ export const rankingsRepository = {
     }) as Promise<RankingEntry[]>;
   },
 
-  async addEntry(
-    data: Omit<RankingEntry, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<RankingEntry> {
+  async addEntry(data: Prisma.RankingEntryUncheckedCreateInput): Promise<RankingEntry> {
     return prisma.rankingEntry.create({ data }) as Promise<RankingEntry>;
   },
 
   async updateEntry(
     id: string,
-    data: Partial<Omit<RankingEntry, 'id' | 'rankingId' | 'createdAt' | 'updatedAt'>>,
+    data: Prisma.RankingEntryUncheckedUpdateInput,
   ): Promise<RankingEntry> {
     return prisma.rankingEntry.update({ where: { id }, data }) as Promise<RankingEntry>;
   },
