@@ -71,6 +71,59 @@ services:
       timeout: 5s
       retries: 10
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: almanaque-prometheus
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./.observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./.observability/alerting.yml:/etc/prometheus/alerting.yml:ro
+      - almanaque_prometheus:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: almanaque-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=almanaque_dev_2025
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - almanaque_grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:latest
+    container_name: almanaque-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./.observability/loki-config.yml:/etc/loki/config.yml:ro
+      - almanaque_loki:/loki
+    ports:
+      - "3100:3100"
+
+  healthchecks:
+    image: healthchecks/healthchecks:latest
+    container_name: almanaque-healthchecks
+    restart: unless-stopped
+    environment:
+      - SITE_ROOT=http://localhost:8005
+      - DEFAULT_FROM_EMAIL=healthchecks@localhost
+      - SECRET_KEY=dev_secret_key_minimum_32_chars_long_for_hc
+      - DB=sqlite
+    ports:
+      - "8005:8000"
+    volumes:
+      - almanaque_hc:/data
+
 volumes:
   almanaque_pgdata:
     name: almanaque_pgdata
@@ -78,3 +131,11 @@ volumes:
     name: almanaque_minio
   almanaque_redis:
     name: almanaque_redis
+  almanaque_prometheus:
+    name: almanaque_prometheus
+  almanaque_grafana:
+    name: almanaque_grafana
+  almanaque_loki:
+    name: almanaque_loki
+  almanaque_hc:
+    name: almanaque_hc

@@ -1,0 +1,15 @@
+groups:
+  - name: almanaque-alerts
+    rules:
+      - alert: High5xxRate
+        expr: sum(rate(http_5xx_total[5m])) / sum(rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: Taxa de respostas 5xx acima de 1%
+      - alert: AuthFailureBurst
+        expr: increase(auth_failures_total[1m]) > 50
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: Falhas de autenticacao acima de 50 por minuto

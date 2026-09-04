@@ -17,6 +17,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { helmetOptions } from './config/security.js';
 import { logger } from './config/logger.js';
+import { metrics } from './modules/observability/metrics.js';
 import { healthRoutes } from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
@@ -164,6 +165,16 @@ export async function buildApp(): Promise<FastifyInstance> {
       // Escopo /api/v1: TODAS as rotas da API capturam este handler no registro
       // (instâncias filhas não herdam o do root — ver buildErrorHandler do Fastify).
       api.setErrorHandler(errorHandler);
+
+      // T422: observabilidade — contagem de requisicoes/5xx/auth em todas as rotas /api/v1.
+      api.addHook('onResponse', async (request, reply) => {
+        const status = reply.statusCode;
+        const rawUrl = request.raw.url ?? '';
+        metrics.inc('http_requests_total', { method: request.method, status: String(status) });
+        if (status >= 500) metrics.inc('http_5xx_total', {});
+        if ((status === 401 || status === 403) && rawUrl.includes('/auth/'))
+          metrics.inc('auth_failures_total', {});
+      });
 
       await api.register(healthRoutes);
       await api.register(metricsRoutes);
