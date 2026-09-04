@@ -37,8 +37,15 @@ export interface RankingEntry {
   id: string;
   rankingId: string;
   clubId: string;
-  position: number;
+  // position NULL = registro sem posição publicada (dados insuficientes) — T425
+  position: number | null;
   points: number | null;
+  // Base auditável do ranking (T425) — a UI exibe "com base em N partidas / T títulos".
+  baseMatches: number | null;
+  baseTitles: number | null;
+  dataSourceIds: string[] | null;
+  reason: string | null;
+  gender: 'men' | 'women' | null;
   createdAt: Date;
   updatedAt: Date;
 }

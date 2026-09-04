@@ -172,21 +172,29 @@ model Ranking {
 // -----------------------------------------------------------------------------
 
 model RankingEntry {
-  id          String   @id @default(uuid())
-  rankingId   String
-  ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
-  clubId      String
-  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  position    Int      // 1 = primeiro, 2 = segundo, etc.
-  points      Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  rankingId     String
+  ranking       Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  clubId        String
+  club          Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  // position NULL = registro sem posição publicada (dados insuficientes) — T425
+  position      Int?     // 1 = primeiro, 2 = segundo, etc.; NULL = não ranqueado
+  points        Int?     // 0-100 normalizado por gênero; NULL se dados insuficientes
+  // Base auditável do ranking (T425) — a UI exibe "com base em N partidas / T títulos".
+  baseMatches   Int?     // nº de partidas que compõem a base do clube-ano
+  baseTitles    Int?     // nº de títulos auditáveis que compõem a base
+  dataSourceIds Json?    // proveniência (ex.: ["rsssf","wikidata"]) — JSONB
+  reason        String?  // NULL ou motivo de não-publicação (ex.: "dados insuficientes")
+  gender        String?  // "men" | "women" — isolamento por gênero (T425)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([rankingId, clubId])
   @@unique([rankingId, position])
   @@index([rankingId])
   @@index([clubId])
   @@index([position])
+  @@index([gender])
   @@map("ranking_entries")
 }
 

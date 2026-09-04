@@ -44,6 +44,8 @@ export const queues = {
     },
   }),
   export: new Queue('export', { connection }),
+  // T425 — fila do Ranking 0-100 (job diário 03:00 UTC, idempotente por ano+escopo).
+  ranking: new Queue('ranking', { connection }),
 } as const;
 
 export type QueueName = keyof typeof queues;
