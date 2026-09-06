@@ -48,6 +48,7 @@ model Club {
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?    // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -99,6 +100,7 @@ model Player {
   qid          String?   @unique // Wikidata Q-identifier
   importedFrom String?   // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?   // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -124,6 +126,7 @@ model Competition {
   qid          String?  @unique // Wikidata Q-identifier
   importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -420,6 +423,7 @@ model Stadium {
   club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
   importedFrom String?  // "wikidata", "openstreetmap", "manual"
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

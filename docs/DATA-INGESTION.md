@@ -356,3 +356,34 @@ proveniência e **isolamento por gênero** (registro separado `womensQids`).
 - **País:** P297 dá a ISO do país soberano (Inglaterra/Gales/Escócia → GB), como no §5.
 - **Gênero:** não há coluna única; T425 deriva o gênero do registro `WOMENS_COMPETITION_QIDS` +
   `metadata.gender`.
+
+## 15. Execução e monitoramento (T426)
+
+**Comandos (sempre DRY-RUN primeiro):**
+```bash
+pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts          # DRY-RUN
+pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  # grava
+pnpm --filter @almanaque/api exec tsx scripts/enrich-club-coords.ts --apply     # P625 → lat/lon
+```
+
+**Rate limit e retry policy (T426):** retry com backoff exponencial (3 tentativas:
+1s, 2s, 4s) em HTTP não-200, timeout de 30s por request (AbortController),
+sleep de 2s entre batches do seed e throttle de 200ms entre chamadas SPARQL
+do worker (máx 5 req/s). Falhas logadas em Pino (`warn` com offset/tentativa)
+sem vazar segredos; User-Agent identificado em todos os fetches.
+
+**Como ler os logs:** `qid collision — kept first occurrence` = mesmo QID com
+nomes distintos no mesmo lote (1ª ocorrência vence, nada é sobrescrito às
+cegas); `sync concluído { candidatos, novos, atualizados, colisoes }` = resumo
+do `--apply`; órfãos (ex.: `club_missing`) vão para a fila de revisão, jamais
+para o banco.
+
+**Counts reais (banco de teste, T426 — publicar atualização a cada seed):**
+*total com qid / total com coordenada / % com sourceUrl — ver corpo do PR.*
+Qualquer número abaixo do esperado é dado, não defeito (princípio 1.3).
+
+**Amostragem não-determinística (achado T426):** a query SPARQL não tem
+`ORDER BY`, então cada rodada retorna uma amostra diferente da classe
+(rodadas reais: 1901, 1626 e 1626 distintos). Re-rodar acumula cobertura;
+para seed determinístico futuro, adicionar `ORDER BY ?club` (custa tempo
+de ordenação no endpoint — avaliar).
