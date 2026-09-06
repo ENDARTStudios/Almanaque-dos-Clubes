@@ -129,7 +129,10 @@ async function sparqlThrottle(): Promise<void> {
   lastSparqlAt = Date.now();
 }
 
-async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
+/** Headers da requisição — tipo estrutural local (evita global DOM no lint Node). */
+type FetchInit = { headers: Record<string, string> };
+
+async function fetchWithTimeout(url: string, init: FetchInit, ms: number): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
   try {
