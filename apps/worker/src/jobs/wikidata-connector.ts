@@ -1,5 +1,11 @@
 // Wikidata SPARQL connector — fetches football entities from Wikidata
 // Endpoint: https://query.wikidata.org/sparql
+//
+// T428 — resiliência HTTP (retry/backoff/timeout) centralizada no helper
+// compartilhado da API (scripts/lib/http-resilience.ts); aqui ficam apenas
+// o throttle (máx 5 req/s) e o contrato "falha → []" dos consumers.
+
+import { fetchWithTimeout } from '../../../api/scripts/lib/http-resilience.js';
 
 export interface WikidataClub {
   qid: string;
@@ -105,6 +111,23 @@ function mapCountryToIso(countryUri?: string): string | undefined {
   return COUNTRY_QID_MAP[extractQid(countryUri)];
 }
 
+// Mapa reverso ISO → QID (T428/3.5): derivado de COUNTRY_QID_MAP, sem duplicar tabela.
+const ISO_TO_QID_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(COUNTRY_QID_MAP).map(([qid, iso]) => [iso, qid]),
+);
+
+/**
+ * T428/3.5 — resolve o filtro-país para QID da Wikidata.
+ * Aceita QID pronto ("Q155") ou ISO 3166-1 alpha-2 ("BR"). Antes do fix,
+ * "BR" virava "QBR" (QID inexistente) e a query retornava 0 em silêncio.
+ * ISO não mapeado → null (chamador não filtra por país em vez de quebrar).
+ */
+export function countryToQid(country: string): string | null {
+  const c = country.trim().toUpperCase();
+  if (/^Q\d+$/.test(c)) return c;
+  return ISO_TO_QID_MAP[c] ?? null;
+}
+
 function bindingValue(binding: { type: string; value: string } | undefined): string | undefined {
   return binding?.value;
 }
@@ -112,10 +135,10 @@ function bindingValue(binding: { type: string; value: string } | undefined): str
 type SparqlBinding = { type: string; value: string };
 type SparqlRow = Record<string, SparqlBinding>;
 
-// T426 — política de robustez: retry com backoff exponencial (3 tentativas:
-// 1s, 2s, 4s), timeout de 30s por request e throttle de 200ms entre chamadas
-// (máx 5 req/s no endpoint SPARQL). Em falha definitiva retorna [] (contrato
-// preservado: os consumidores iteram sobre o resultado).
+// T426 — política de robustez: timeout de 30s por request e throttle de
+// 200ms entre chamadas (máx 5 req/s no endpoint SPARQL). Retry/backoff vem
+// do helper compartilhado (http-resilience.ts). Em falha definitiva
+// retorna [] (contrato preservado: os consumidores iteram sobre o resultado).
 const SPARQL_TIMEOUT_MS = 30_000;
 const SPARQL_RETRY_DELAYS_MS = [1000, 2000, 4000];
 const SPARQL_MIN_INTERVAL_MS = 200;
@@ -127,19 +150,6 @@ async function sparqlThrottle(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, SPARQL_MIN_INTERVAL_MS - elapsed));
   }
   lastSparqlAt = Date.now();
-}
-
-/** Headers da requisição — tipo estrutural local (evita global DOM no lint Node). */
-type FetchInit = { headers: Record<string, string> };
-
-async function fetchWithTimeout(url: string, init: FetchInit, ms: number): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function sparqlQuery(query: string): Promise<SparqlRow[]> {
@@ -172,9 +182,9 @@ async function sparqlQuery(query: string): Promise<SparqlRow[]> {
 }
 
 export async function fetchWikidataClubs(country?: string): Promise<WikidataClub[]> {
-  const countryFilter = country
-    ? `?club wdt:P17 wd:${country.toUpperCase().startsWith('Q') ? country.toUpperCase() : `Q${country}`}.`
-    : '';
+  // T428/3.5 — aceita ISO ("BR") ou QID ("Q155"); ISO não mapeado não filtra.
+  const countryQid = country ? countryToQid(country) : null;
+  const countryFilter = countryQid ? `?club wdt:P17 wd:${countryQid}.` : '';
 
   const query = `
     SELECT ?club ?clubLabel ?officialName ?shortName ?city ?cityLabel ?country ?foundedYear ?website WHERE {
@@ -267,9 +277,9 @@ export async function fetchWikidataCompetitions(): Promise<WikidataCompetition[]
 }
 
 export async function fetchWikidataStadiums(country?: string): Promise<WikidataStadium[]> {
-  const countryFilter = country
-    ? `?stadium wdt:P17 wd:${country.toUpperCase().startsWith('Q') ? country.toUpperCase() : `Q${country}`}.`
-    : '';
+  // T428/3.5 — mesmo fix de fetchWikidataClubs: ISO ou QID, sem "QBR".
+  const countryQid = country ? countryToQid(country) : null;
+  const countryFilter = countryQid ? `?stadium wdt:P17 wd:${countryQid}.` : '';
 
   const query = `
     SELECT ?stadium ?stadiumLabel ?city ?cityLabel ?country ?lat ?lon ?capacity ?surface ?surfaceLabel WHERE {

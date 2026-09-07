@@ -17,32 +17,19 @@
  */
 import { PrismaClient } from '@prisma/client';
 import pino from 'pino';
+import { fetchWithRetry } from './lib/http-resilience.js';
 
 const APPLY = process.argv.includes('--apply');
 
 const log = pino({ name: 'ingest-clubs-wikidata' });
 
-// T426 — política de robustez: retry com backoff exponencial (3 tentativas:
-// 1s, 2s, 4s), timeout de 30s por request, sleep de 2s entre batches
-// (rate limit conservador do endpoint SPARQL da Wikidata).
+// T426 — política de robustez (agora no helper compartilhado ./lib/http-resilience):
+// retry com backoff exponencial (1s, 2s, 4s), timeout de 30s por request,
+// sleep de 2s entre batches (rate limit conservador do endpoint SPARQL).
 const REQUEST_TIMEOUT_MS = 30_000;
-const RETRY_DELAYS_MS = [1000, 2000, 4000];
 const BATCH_SLEEP_MS = 2000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** Headers da requisição — tipo estrutural local (evita global DOM no lint Node). */
-type FetchInit = { headers: Record<string, string> };
-
-async function fetchWithTimeout(url: string, init: FetchInit, ms: number): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 export function wikidataItemUrl(qid: string): string {
   return `https://www.wikidata.org/wiki/${qid}`;
@@ -54,7 +41,9 @@ const TARGET_MIN = 1000; // mínimo de clubes distintos desejados
 const BATCH = 1000; // linhas por consulta SPARQL
 const MAX_BATCHES = 4; // limite de segurança de rodada
 
-const SPARQL = `
+// T428 — ORDER BY ?club garante rodada reprodutível (sem ORDER, rodadas
+// trazem sub-conjuntos diferentes da classe Q476028 — ver DATA-INGESTION §15).
+export const SPARQL = `
 SELECT DISTINCT ?club ?clubLabel ?iso ?cityLabel ?inception WHERE {
   ?club wdt:P31/wdt:P279* wd:Q476028 .
   ?club wdt:P17 ?country .
@@ -63,6 +52,7 @@ SELECT DISTINCT ?club ?clubLabel ?iso ?cityLabel ?inception WHERE {
   OPTIONAL { ?club wdt:P571 ?inception . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
+ORDER BY ?club
 `;
 
 export interface ClubRow {
@@ -198,39 +188,30 @@ export function yearFrom(inception?: string): number | null {
 export async function fetchBatch(offset: number): Promise<ClubRow[]> {
   const q = SPARQL + ' LIMIT ' + BATCH + ' OFFSET ' + offset;
   const url = 'https://query.wikidata.org/sparql?query=' + encodeURIComponent(q) + '&format=json';
-  let lastError: unknown = null;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      const res = await fetchWithTimeout(
-        url,
-        {
-          headers: { 'user-agent': USER_AGENT, Accept: 'application/sparql-results+json' },
-        },
-        REQUEST_TIMEOUT_MS,
-      );
-      if (!res.ok) throw new Error('SPARQL HTTP ' + res.status);
-      const j = (await res.json()) as {
-        results?: { bindings?: Array<Record<string, { value: string }>> };
-      };
-      return (j.results?.bindings ?? []).map((b) => ({
-        qid: qidFrom(b.club?.value ?? ''),
-        name: b.clubLabel?.value ?? '',
-        country: b.iso?.value ? b.iso.value.toUpperCase() : null,
-        city: b.cityLabel?.value ?? null,
-        foundedYear: yearFrom(b.inception?.value),
-      }));
-    } catch (err) {
-      lastError = err;
-      if (attempt === RETRY_DELAYS_MS.length) break;
-      const delay = RETRY_DELAYS_MS[attempt];
-      log.warn(
-        { offset, attempt: attempt + 1, delayMs: delay, err: (err as Error).message },
-        'SPARQL batch failed — retrying',
-      );
-      await sleep(delay);
-    }
+  try {
+    const res = await fetchWithRetry(
+      url,
+      {
+        headers: { 'user-agent': USER_AGENT, Accept: 'application/sparql-results+json' },
+      },
+      { timeoutMs: REQUEST_TIMEOUT_MS, logContext: { offset }, label: 'ingest-clubs' },
+    );
+    const j = (await res.json()) as {
+      results?: { bindings?: Array<Record<string, { value: string }>> };
+    };
+    return (j.results?.bindings ?? []).map((b) => ({
+      qid: qidFrom(b.club?.value ?? ''),
+      name: b.clubLabel?.value ?? '',
+      country: b.iso?.value ? b.iso.value.toUpperCase() : null,
+      city: b.cityLabel?.value ?? null,
+      foundedYear: yearFrom(b.inception?.value),
+    }));
+  } catch (err) {
+    // Contrato preservado do T426: mensagem de erro com o prefixo SPARQL,
+    // preservando a causa original (lint preserve-caught-error).
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message.startsWith('SPARQL') ? message : 'SPARQL ' + message, { cause: err });
   }
-  throw lastError instanceof Error ? lastError : new Error('SPARQL fetch failed');
 }
 
 async function main(): Promise<void> {

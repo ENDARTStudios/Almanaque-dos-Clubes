@@ -49,6 +49,7 @@
 - [x] 0.9 `SECURITY.md` com política de divulgação responsável. ✅ (2026-08-10)
 
 **Verificação (T002 — 2026-08-11):**
+
 - `pnpm lint` — ✅ 0 erros (12 warnings `security/detect-object-injection`, falsos positivos documentados em DECISOES.md)
 - `pnpm typecheck` — ✅ 0 erros
 - `pnpm test` — ✅ 27/27 (API 17 + Domain 4 + FeatureFlags 6)
@@ -69,6 +70,7 @@
 - [x] 1.9 Handler global de erros: nunca vazar stack trace em produção. ✅
 
 **Verificação (reconciliado T001 — 2026-08-11):**
+
 - Script `scripts/test_api.sh` passa 9/9. `[x]` (não re-executado, sem dependência de infra)
 - curl para endpoint inexistente retorna JSON padronizado, sem stack. `[x]` (verificado em código)
 - Header `X-Powered-By` removido; `X-Frame-Options: SAMEORIGIN` presente. `[x]` (verificado em código)
@@ -137,6 +139,7 @@ REST versionado `/api/v1`. Cada módulo em `apps/api/src/modules/<nome>/` com `r
 - [x] 4.12 Idempotência via middleware `Idempotency-Key` (store em memória, 24h TTL). ✅ (2026-08-10)
 
 **Verificação (T002 — 2026-08-11):**
+
 - `pnpm typecheck` ✅ 0 erros | `pnpm lint` ✅ 0 erros | `pnpm test` ✅ 27/27 (API 17 + Domain 4 + FeatureFlags 6)
 - OpenAPI em `http://localhost:3000/docs` (configurado, requer servidor rodando)
 - 14 módulos: auth, admin, billing, clubs, competitions, export, graph, matches, players, rag, rankings, seasons, upload, etl + health/metrics
@@ -227,11 +230,11 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 ## Marcos de Lançamento
 
-| Marco | Critério | Fases exigidas |
-|---|---|---|
-| **Beta Fechada** (100 usuários) | Pesquisa de clubes/jogadores + login + área do usuário | Fases 0–5 (parcial), 6.1–6.3 |
-| **Open Beta** (1.000 usuários) | + rankings + billing Free/Pro/Elite + observabilidade | Fases 0–8 (parcial), 9.1–9.6 |
-| **v1.0** (público) | + IA RAG com citações + ETL automático + DAST + hardening | Todas as fases |
+| Marco                           | Critério                                                  | Fases exigidas               |
+| ------------------------------- | --------------------------------------------------------- | ---------------------------- |
+| **Beta Fechada** (100 usuários) | Pesquisa de clubes/jogadores + login + área do usuário    | Fases 0–5 (parcial), 6.1–6.3 |
+| **Open Beta** (1.000 usuários)  | + rankings + billing Free/Pro/Elite + observabilidade     | Fases 0–8 (parcial), 9.1–9.6 |
+| **v1.0** (público)              | + IA RAG com citações + ETL automático + DAST + hardening | Todas as fases               |
 
 ---
 
@@ -240,61 +243,63 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 > Sobreposição/resumo executivo da base técnica concluída. O detalhamento por domínio e o backlog completo estão em
 > **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `docs/RECONCILIATION-REPORT.md`.
 
-| Dimensão | Status | % estimado |
-|---|---|---|
-| Infraestrutura & DevOps | 🟢 Concluída | 95% |
-| Segurança & Hardening | 🟢 Concluída | 90% |
-| Autenticação & Sessão (RLS efetiva) | 🟢 Concluída | 95% |
-| Schema & Migrations | 🟢 Concluído | 85% |
-| Compliance Legal | 🔴 Crítico | 10% |
-| Features Core (produto) | 🔴 Crítico | 5% |
-| Dados reais (conteúdo) | 🔴 Crítico | 1% |
-| Frontend UX | 🟡 Parcial | 30% |
-| IA/ETL/Knowledge Graph | 🔴 Crítico | 5% |
-| Testes avançados | 🟡 Parcial | 40% |
-| Observabilidade | 🟡 Parcial | 30% |
+| Dimensão                            | Status          | % estimado                         |
+| ----------------------------------- | --------------- | ---------------------------------- |
+| Infraestrutura & DevOps             | 🟢 Concluída    | 95%                                |
+| Segurança & Hardening               | 🟢 Concluída    | 90%                                |
+| Autenticação & Sessão (RLS efetiva) | 🟢 Concluída    | 95%                                |
+| Schema & Migrations                 | 🟢 Concluído    | 85%                                |
+| Compliance Legal                    | 🔴 Crítico      | 10%                                |
+| Features Core (produto)             | 🔴 Crítico      | 5%                                 |
+| Dados reais (conteúdo)              | 🟡 Em progresso | T426–T428 (seed banco de teste OK) |
+| Frontend UX                         | 🟡 Parcial      | 30%                                |
+| IA/ETL/Knowledge Graph              | 🔴 Crítico      | 5%                                 |
+| Testes avançados                    | 🟡 Parcial      | 40%                                |
+| Observabilidade                     | 🟡 Parcial      | 30%                                |
 
-**Conclusão honesta:** base técnica (infra + segurança + auth + CI) sólida em nível produção empresarial; ainda **não é o produto Almanaque** — faltam conteúdo (ingestão), experiência (mapa/rankings/favoritos/360º) e legalidade (cookies/termos/privacidade/gateway/CNPJ).
+**Conclusão honesta:** base técnica (infra + segurança + auth + CI) sólida em nível produção empresarial; ainda **não é o produto Almanaque** — faltam conteúdo (seed prod + ETL automático), experiência (drill-down do mapa, perfis, rankings, favoritos, 360º) e legalidade (cookies/termos/privacidade/gateway/CNPJ).
+
+**Seed de TESTE (T428) — counts reais auditáveis:** 1.626 clubes · 892 competições · 2.458 jogadores, todos com proveniência completa (qid + importedFrom + importedAt + sourceUrl, **100%**); 113 clubes com coordenada P625 em produção (vs 1.889 totais em produção pós-rodada pré-#84 — o número cresce com T429); idempotência 2× provada por script com `novos=0` na segunda execução; bug 1.3 do `/map` corrigido (count 113 de 1.889 auditável em runtime, não assado no build). **M1 (Beta Fechada) ainda NÃO declarado** — faltam T429 (seed prod, operacional), WS-C restante (drill-down/perfis/busca), WS-L 1ª camada. Próximo: T429 (rodar `ingest-*-wikidata.ts --apply` contra produção com rollback por proveniência + smoke pós).
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
-| Arquivo | Tipo | Fase |
-|---|---|---|
-| `.eslintrc.cjs` | ✅ Novo | 0.7 |
-| `.prettierrc` | ✅ Novo | 0.7 |
-| `.github/dependabot.yml` | ✅ Novo | 0.8 |
-| `SECURITY.md` | ✅ Novo | 0.9 |
-| `docs/CRITERIOS_DESENVOLVIMENTO.md` | ✅ Novo | Documentação |
-| `docs/api/auth.md` | ✅ Novo | 3.10 |
-| `apps/api/src/routes/metrics.ts` | ✅ Novo | 1.8 |
-| `apps/api/src/modules/players/*.ts` | ✅ Novo (3 arquivos) | 4.2 |
-| `apps/api/src/modules/competitions/*.ts` | ✅ Novo (3 arquivos) | 4.3 |
-| `packages/domain/src/player.ts` | ✅ Novo | 4.2 |
-| `packages/domain/src/competition.ts` | ✅ Novo | 4.3 |
-| `apps/api/src/app.ts` | 🔄 Modificado | 1.3, 4.2, 4.3 |
-| `packages/domain/src/index.ts` | 🔄 Modificado | 4.2, 4.3 |
-| `apps/api/src/modules/auth/password-reset.service.ts` | 🔄 Modificado | 3.6 |
-| `package.json` | 🔄 Modificado | 0.7 |
-| `.env` | Pré-existente | — |
-| `.env.example` | Pré-existente | — |
-| `PENDENCIAS_OPERADOR.md` | Pré-existente | — |
-| `DECISOES.md` | Pré-existente | — |
-| `apps/web/*` | ✅ Frontend Next.js 16 | 5.1–5.12 |
-| `apps/web/src/hooks/useGsap.ts` | ✅ Novo (GSAP hooks) | 5.0 |
-| `apps/web/src/components/` | ✅ 6 componentes | 5.0 |
-| `docs/seo-aeo-aio-geo-strategy.md` | ✅ Novo (estratégia completa) | 5.0 |
-| `packages/feature-flags/*` | ✅ Novo (3 arquivos) | 6.7 |
-| `.github/workflows/ci.yml` | ✅ Novo | 9.1 |
-| `.github/workflows/dast.yml` | ✅ Novo | 8.6 |
-| `apps/api/vitest.config.ts` | ✅ Novo | 8.1 |
-| `apps/api/tests/` | ✅ Novo (2 suites, 11 testes) | 8.1 |
-| `packages/domain/tests/` | ✅ Novo (1 suite, 4 testes) | 8.1 |
-| `apps/api/src/modules/matches/` | ✅ Novo (3 arquivos) | 4.5 |
-| `apps/api/src/modules/seasons/` | ✅ Novo (3 arquivos) | 4.5 |
-| `apps/api/src/modules/rankings/` | ✅ Novo (arquivos atualizados) | 4.4 |
-| `apps/api/src/modules/billing/routes.ts` | ✅ Novo (webhook + rotas) | 4.6 |
-| `apps/api/src/modules/admin/routes.ts` | ✅ Novo (CRUD users + roles) | 4.7 |
-| `apps/api/src/middleware/idempotency.ts` | ✅ Novo | 4.12 |
+| Arquivo                                               | Tipo                           | Fase          |
+| ----------------------------------------------------- | ------------------------------ | ------------- |
+| `.eslintrc.cjs`                                       | ✅ Novo                        | 0.7           |
+| `.prettierrc`                                         | ✅ Novo                        | 0.7           |
+| `.github/dependabot.yml`                              | ✅ Novo                        | 0.8           |
+| `SECURITY.md`                                         | ✅ Novo                        | 0.9           |
+| `docs/CRITERIOS_DESENVOLVIMENTO.md`                   | ✅ Novo                        | Documentação  |
+| `docs/api/auth.md`                                    | ✅ Novo                        | 3.10          |
+| `apps/api/src/routes/metrics.ts`                      | ✅ Novo                        | 1.8           |
+| `apps/api/src/modules/players/*.ts`                   | ✅ Novo (3 arquivos)           | 4.2           |
+| `apps/api/src/modules/competitions/*.ts`              | ✅ Novo (3 arquivos)           | 4.3           |
+| `packages/domain/src/player.ts`                       | ✅ Novo                        | 4.2           |
+| `packages/domain/src/competition.ts`                  | ✅ Novo                        | 4.3           |
+| `apps/api/src/app.ts`                                 | 🔄 Modificado                  | 1.3, 4.2, 4.3 |
+| `packages/domain/src/index.ts`                        | 🔄 Modificado                  | 4.2, 4.3      |
+| `apps/api/src/modules/auth/password-reset.service.ts` | 🔄 Modificado                  | 3.6           |
+| `package.json`                                        | 🔄 Modificado                  | 0.7           |
+| `.env`                                                | Pré-existente                  | —             |
+| `.env.example`                                        | Pré-existente                  | —             |
+| `PENDENCIAS_OPERADOR.md`                              | Pré-existente                  | —             |
+| `DECISOES.md`                                         | Pré-existente                  | —             |
+| `apps/web/*`                                          | ✅ Frontend Next.js 16         | 5.1–5.12      |
+| `apps/web/src/hooks/useGsap.ts`                       | ✅ Novo (GSAP hooks)           | 5.0           |
+| `apps/web/src/components/`                            | ✅ 6 componentes               | 5.0           |
+| `docs/seo-aeo-aio-geo-strategy.md`                    | ✅ Novo (estratégia completa)  | 5.0           |
+| `packages/feature-flags/*`                            | ✅ Novo (3 arquivos)           | 6.7           |
+| `.github/workflows/ci.yml`                            | ✅ Novo                        | 9.1           |
+| `.github/workflows/dast.yml`                          | ✅ Novo                        | 8.6           |
+| `apps/api/vitest.config.ts`                           | ✅ Novo                        | 8.1           |
+| `apps/api/tests/`                                     | ✅ Novo (2 suites, 11 testes)  | 8.1           |
+| `packages/domain/tests/`                              | ✅ Novo (1 suite, 4 testes)    | 8.1           |
+| `apps/api/src/modules/matches/`                       | ✅ Novo (3 arquivos)           | 4.5           |
+| `apps/api/src/modules/seasons/`                       | ✅ Novo (3 arquivos)           | 4.5           |
+| `apps/api/src/modules/rankings/`                      | ✅ Novo (arquivos atualizados) | 4.4           |
+| `apps/api/src/modules/billing/routes.ts`              | ✅ Novo (webhook + rotas)      | 4.6           |
+| `apps/api/src/modules/admin/routes.ts`                | ✅ Novo (CRUD users + roles)   | 4.7           |
+| `apps/api/src/middleware/idempotency.ts`              | ✅ Novo                        | 4.12          |
 
 ---
 
@@ -330,7 +335,6 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 10. **Fase 8.3** — Testes E2E (Playwright)
 11. **Fase 9.7** — Backup automático PostgreSQL
 
-
 ---
 
 ## 📊 STATUS CONSOLIDADO — 2026-09-02 (Relatório de Status)
@@ -341,82 +345,89 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 ### ✅ CONCLUÍDO (com evidência real)
 
 #### Infraestrutura & DevOps
-| Item | Evidência |
-|---|---|
-| Monorepo pnpm (apps/api + apps/web + packages/domain) | main |
-| Fastify 5 + Prisma + TypeScript estrito | main |
-| GitHub Actions verde (security-gate + gitleaks + dependency-audit) | T393 |
-| Deploy automático Vercel (web) + Railway (API) | T380/T391 |
-| Proteção de main (enforce_admins, PR-only, check obrigatório) | D-2026-08-24 |
-| Regime padrão de merges restaurado | D-2026-09-02 |
-| MANUAL_DO_OPERADOR.md v2.0 | T379 |
-| CI-ROOT-CAUSE.md com forense completa | T374–T393 |
-| INCIDENT_RESPONSE.md | T363 |
+
+| Item                                                               | Evidência    |
+| ------------------------------------------------------------------ | ------------ |
+| Monorepo pnpm (apps/api + apps/web + packages/domain)              | main         |
+| Fastify 5 + Prisma + TypeScript estrito                            | main         |
+| GitHub Actions verde (security-gate + gitleaks + dependency-audit) | T393         |
+| Deploy automático Vercel (web) + Railway (API)                     | T380/T391    |
+| Proteção de main (enforce_admins, PR-only, check obrigatório)      | D-2026-08-24 |
+| Regime padrão de merges restaurado                                 | D-2026-09-02 |
+| MANUAL_DO_OPERADOR.md v2.0                                         | T379         |
+| CI-ROOT-CAUSE.md com forense completa                              | T374–T393    |
+| INCIDENT_RESPONSE.md                                               | T363         |
 
 #### Segurança & Hardening (Fase 7 — alta cobertura)
-| Item | Evidência |
-|---|---|
-| Helmet + CSP + HSTS (prod) + X-Frame-Options: DENY | T383 |
-| Rate limit por IP + usuário (janela deslizante, Redis + fallback memória) | T384 |
-| Rejeição de métodos não usados (TRACE/HEAD/CONNECT → 405) | T385 |
-| Limite de payload (1 MiB padrão, 50 MiB upload → 413) | T385 |
-| Guarda de boot (RATE_LIMIT_DISABLED + NODE_ENV=production → falha startup) | T385 |
-| Regressão de segurança (headers, SQLi, XSS, CSRF) | T382 |
-| CSRF client-side corrigido (forgot-password) | T388 |
-| Dependabot ativo + gitleaks no CI | T378 |
-| Higiene de segredos (token antigo revogado) | Operador |
+
+| Item                                                                       | Evidência |
+| -------------------------------------------------------------------------- | --------- |
+| Helmet + CSP + HSTS (prod) + X-Frame-Options: DENY                         | T383      |
+| Rate limit por IP + usuário (janela deslizante, Redis + fallback memória)  | T384      |
+| Rejeição de métodos não usados (TRACE/HEAD/CONNECT → 405)                  | T385      |
+| Limite de payload (1 MiB padrão, 50 MiB upload → 413)                      | T385      |
+| Guarda de boot (RATE_LIMIT_DISABLED + NODE_ENV=production → falha startup) | T385      |
+| Regressão de segurança (headers, SQLi, XSS, CSRF)                          | T382      |
+| CSRF client-side corrigido (forgot-password)                               | T388      |
+| Dependabot ativo + gitleaks no CI                                          | T378      |
+| Higiene de segredos (token antigo revogado)                                | Operador  |
 
 #### Autenticação & Sessão (Fase 3)
-| Item | Evidência |
-|---|---|
-| Register / Login / Logout / Refresh / Forgot-password | main |
-| JWT + cookie httpOnly + SameSite | main |
-| RLS efetiva em produção (app_user, cross-user deny confirmado) | T401 |
-| withRlsContext em todos os fluxos de sessão | T371 |
-| Policies completas de sessions (SELECT por tokenHash, INSERT/UPDATE/DELETE owner+SERVICE) | T377 |
-| Rate limit específico em /auth/* | T384 |
+
+| Item                                                                                      | Evidência |
+| ----------------------------------------------------------------------------------------- | --------- |
+| Register / Login / Logout / Refresh / Forgot-password                                     | main      |
+| JWT + cookie httpOnly + SameSite                                                          | main      |
+| RLS efetiva em produção (app_user, cross-user deny confirmado)                            | T401      |
+| withRlsContext em todos os fluxos de sessão                                               | T371      |
+| Policies completas de sessions (SELECT por tokenHash, INSERT/UPDATE/DELETE owner+SERVICE) | T377      |
+| Rate limit específico em /auth/*                                                          | T384      |
 
 #### Dados & Schema (Fase 2)
-| Item | Evidência |
-|---|---|
-| Schema Prisma canônico (PostgreSQL) | main |
-| Migrations versionadas | main |
-| Tabelas de domínio (clubs, players, competitions, rankings, matches, seasons) | Fase 2 |
-| Tabelas de auth (users, sessions, roles) | Fase 2 + T344 |
-| Tabelas de billing (subscriptions, bills) | Fase 2 |
-| Tabelas de auditoria (audit_logs imutável) | Fase 2 |
-| Senha hash argon2id | Fase 2 |
-| Soft delete em entidades críticas | Fase 2 |
-| Índices em FKs | Fase 2 |
-| Contas de teste removidas (soft-disable) | T398 |
+
+| Item                                                                          | Evidência     |
+| ----------------------------------------------------------------------------- | ------------- |
+| Schema Prisma canônico (PostgreSQL)                                           | main          |
+| Migrations versionadas                                                        | main          |
+| Tabelas de domínio (clubs, players, competitions, rankings, matches, seasons) | Fase 2        |
+| Tabelas de auth (users, sessions, roles)                                      | Fase 2 + T344 |
+| Tabelas de billing (subscriptions, bills)                                     | Fase 2        |
+| Tabelas de auditoria (audit_logs imutável)                                    | Fase 2        |
+| Senha hash argon2id                                                           | Fase 2        |
+| Soft delete em entidades críticas                                             | Fase 2        |
+| Índices em FKs                                                                | Fase 2        |
+| Contas de teste removidas (soft-disable)                                      | T398          |
 
 #### Qualidade & Governança
-| Item | Evidência |
-|---|---|
-| PLANO_MESTRE reconciliado (112 [x] / 7 [~] / 5 [ ]) | T381 |
-| DECISOES.md com histórico completo | main |
-| RECONCILIATION-REPORT.md | T381 |
-| Hero com números reais (10 clubes / 3 competições / 2 rankings) | T394 |
-| Linha "em crescimento" no hero (pt/en/es) | T399 |
-| ESLint + Prettier (sem varrer dist/) | T392 |
+
+| Item                                                            | Evidência |
+| --------------------------------------------------------------- | --------- |
+| PLANO_MESTRE reconciliado (112 [x] / 7 [~] / 5 [ ])             | T381      |
+| DECISOES.md com histórico completo                              | main      |
+| RECONCILIATION-REPORT.md                                        | T381      |
+| Hero com números reais (10 clubes / 3 competições / 2 rankings) | T394      |
+| Linha "em crescimento" no hero (pt/en/es)                       | T399      |
+| ESLint + Prettier (sem varrer dist/)                            | T392      |
 
 ### ⚠️ PARCIALMENTE FEITO (gaps documentados)
-| Item | Status | Gap |
-|---|---|---|
-| RLS em `users` | [~] | Schema suporta, policies não aplicadas (deferido por D-2026-08-24-rls-sessions-pre-auth-design) |
-| Governança de proveniência (2.7) | [x] | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas |
-| Criptografia de coluna (2.10) | [~] | Infra pronta, não aplicada a email/telefone |
-| Testes E2E (Playwright) | [~] | Estrutura existe, cobertura baixa |
-| Testes de carga (k6) | [ ] | Não executado |
-| DAST (OWASP ZAP) | [ ] | Job existe, sem cron semanal ativo |
-| CodeQL (SAST) | [~] | Configurado, sem análise regular |
-| Feature flags | [ ] | Tabela existe, sem UI de administração |
-| DNSSEC + CAA + HSTS preload | [ ] | Depende de domínio próprio (pendência Operador) |
-| Vault/Infisical | [~] | Railway tem secret manager nativo (usado), mas sem rotação automática de 90 dias |
+
+| Item                             | Status | Gap                                                                                                                                                                                    |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RLS em `users`                   | [~]    | Schema suporta, policies não aplicadas (deferido por D-2026-08-24-rls-sessions-pre-auth-design)                                                                                        |
+| Governança de proveniência (2.7) | [x]    | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas |
+| Criptografia de coluna (2.10)    | [~]    | Infra pronta, não aplicada a email/telefone                                                                                                                                            |
+| Testes E2E (Playwright)          | [~]    | Estrutura existe, cobertura baixa                                                                                                                                                      |
+| Testes de carga (k6)             | [ ]    | Não executado                                                                                                                                                                          |
+| DAST (OWASP ZAP)                 | [ ]    | Job existe, sem cron semanal ativo                                                                                                                                                     |
+| CodeQL (SAST)                    | [~]    | Configurado, sem análise regular                                                                                                                                                       |
+| Feature flags                    | [ ]    | Tabela existe, sem UI de administração                                                                                                                                                 |
+| DNSSEC + CAA + HSTS preload      | [ ]    | Depende de domínio próprio (pendência Operador)                                                                                                                                        |
+| Vault/Infisical                  | [~]    | Railway tem secret manager nativo (usado), mas sem rotação automática de 90 dias                                                                                                       |
 
 ### ❌ FALTA FAZER (por domínio)
 
 #### 🏛️ Compliance & Legal (pacote de publicação)
+
 **Bloqueante para ir ao ar publicamente:**
 
 - [ ] **Banner de cookies** (LGPD/GDPR) — 1ª camada + centro de preferências + prova de consentimento
@@ -433,6 +444,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Webhook de pagamento** assinado (HMAC) e idempotente
 
 #### 🗺️ Produto — Features Core (Escopo 1/2)
+
 **O que define o Almanaque como produto, não como plataforma:**
 
 - [~] **Mapa-múndi interativo** — **código pronto** (`/map` Leaflet, círculos por clube, popup; 113 clubes com coords; T65). **Live deploy web bloqueado por Vercel build-rate-limit (externo)**; transições fluídas continente→país ainda são milestone WS-C
@@ -450,6 +462,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Uniformes históricos** por temporada (titular/reserva/alternativo)
 
 #### 🔧 Produto — Infra Avançada (Fase 6)
+
 - [ ] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia)
 - [ ] **Web scrapers** (Python/BeautifulSoup para federações locais)
 - [ ] **IA RAG** com citações verificáveis (pgvector + LLM open-source)
@@ -461,6 +474,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Feature flags** com UI
 
 #### 📊 Produto — Dados Reais
+
 - [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `docs/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
 - [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
 - [ ] **Ingestão RSSSF** (arquivo histórico global)
@@ -470,6 +484,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Dados de uniformes** (imagens históricas)
 
 #### 🎨 Frontend (Fase 5)
+
 - [ ] **Páginas públicas:** clube, jogador, competição, partida, ranking
 - [ ] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos
 - [ ] **Páginas legais:** privacidade, termos, cookies, segurança, contato
@@ -480,6 +495,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **DOMPurify** em HTML dinâmico
 
 #### 🧪 Testes (Fase 8)
+
 - [ ] **Cobertura ≥ 80%** em services
 - [ ] **Testes E2E** (login → pesquisa → detalhes → favoritos)
 - [ ] **Testes de carga** (1.000 usuários concorrentes, p95 < 500ms)
@@ -487,6 +503,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Testes do pipeline de IA** (citações verificáveis)
 
 #### 🔭 Observabilidade (Fase 9)
+
 - [ ] **Logs centralizados** (Loki ou Better Stack)
 - [ ] **Métricas** (Prometheus + Grafana)
 - [ ] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min)
@@ -495,19 +512,19 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 ### 📊 Resumo Executivo
 
-| Dimensão | Status | % estimado |
-|---|---|---|
-| **Infraestrutura & DevOps** | 🟢 Concluída | 95% |
-| **Segurança & Hardening** | 🟢 Concluída | 90% |
-| **Autenticação & Sessão** | 🟢 Concluída | 95% |
-| **Schema & Migrations** | 🟢 Concluído | 85% |
-| **Compliance Legal** | 🔴 Crítico | 10% |
-| **Features Core (produto)** | 🔴 Crítico | 5% |
-| **Dados reais (conteúdo)** | 🔴 Crítico | 1% |
-| **Frontend UX** | 🟡 Parcial | 30% |
-| **IA/ETL/Knowledge Graph** | 🔴 Crítico | 5% |
-| **Testes avançados** | 🟡 Parcial | 40% |
-| **Observabilidade** | 🟡 Parcial | 30% |
+| Dimensão                    | Status       | % estimado |
+| --------------------------- | ------------ | ---------- |
+| **Infraestrutura & DevOps** | 🟢 Concluída | 95%        |
+| **Segurança & Hardening**   | 🟢 Concluída | 90%        |
+| **Autenticação & Sessão**   | 🟢 Concluída | 95%        |
+| **Schema & Migrations**     | 🟢 Concluído | 85%        |
+| **Compliance Legal**        | 🔴 Crítico   | 10%        |
+| **Features Core (produto)** | 🔴 Crítico   | 5%         |
+| **Dados reais (conteúdo)**  | 🔴 Crítico   | 1%         |
+| **Frontend UX**             | 🟡 Parcial   | 30%        |
+| **IA/ETL/Knowledge Graph**  | 🔴 Crítico   | 5%         |
+| **Testes avançados**        | 🟡 Parcial   | 40%        |
+| **Observabilidade**         | 🟡 Parcial   | 30%        |
 
 ### 🎯 Conclusão honesta
 
@@ -522,22 +539,13 @@ Almanaque, mas faltam:
 ### 🎲 Próximos marcos sugeridos
 
 **Para ir ao ar como Beta Fechada (100 usuários):**
+
 1. Compliance legal completo (pacote de publicação)
 2. Gateway de pagamento integrado
 3. Mapa-múndi interativo básico
 4. Seed de dados real (pelo menos 1.000 clubes via Wikidata)
 5. Perfis de clube/jogador navegáveis
 
-**Para Open Beta (1.000 usuários):**
-6. Rankings 0-100 rodando em cron
-7. Futebol feminino integrado
-8. Painel de favoritos
-9. ETL automático (Wikidata + RSSSF)
-10. IA RAG com citações
+**Para Open Beta (1.000 usuários):** 6. Rankings 0-100 rodando em cron 7. Futebol feminino integrado 8. Painel de favoritos 9. ETL automático (Wikidata + RSSSF) 10. IA RAG com citações
 
-**Para v1.0 público:**
-11. Knowledge Graph
-12. Visualizador 360º
-13. DAST + carga + observabilidade completos
-14. Domínio próprio + DNSSEC
-
+**Para v1.0 público:** 11. Knowledge Graph 12. Visualizador 360º 13. DAST + carga + observabilidade completos 14. Domínio próprio + DNSSEC

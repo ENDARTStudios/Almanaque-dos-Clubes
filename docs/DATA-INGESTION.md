@@ -12,8 +12,8 @@
 
 ## 2. Comando
 
-pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts            # DRY-RUN (não escreve)
-pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply    # grava no banco
+pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts # DRY-RUN (não escreve)
+pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply # grava no banco
 
 ## 3. Garantias
 
@@ -23,19 +23,21 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 - **Sem duplicação:** 0 duplicados por `(name, country)` e 0 `qid` nulo no resultado de 2026-09-02.
 
 ## 4. Resultado (2026-09-02)
+
 - 1.879 clubes importados do Wikidata; produção com **1.889** clubes no total.
 - Distribuição top de país: DE 276 · GB 239 · ES 81 · IT 77 · FR 55 · BR 49 · …
 
 ## 5. Limitações conhecidas (backlog)
+
 - **País = soberano:** `P17/P297` dá a ISO do país soberano. Logo Inglaterra/Gales/Escócia mapeiam para `GB`.
   Refinar com sub-região/federação (ex.: `P495`/federação nacional) num round futuro de WS-C/WS-D.
 - **Sem coordenadas/estádio/logo em `clubs`:** o mapa-múndi (WS-C) exigirá adicionar `latitude`/`longitude` (PostGIS) e uma tabela de estádios — tarefas futuras.
 - **Governança `data_sources`/`entity_revisions`:** **não existem** como tabelas (o relatório 02/09 dizia existirem — não). Criar em round futuro de refinamento de governança.
 
 ## 6. Qual a fronteira do que está pronto (M1 parcial)
+
 - WS-D (seed clubes real, com proveniência): **lançado**.
 - Ainda faltam para M1 (Beta Fechada): mapa-múndi, busca global, perfis, cookie banner, políticas.
-
 
 ## 7. Competições via Wikidata (WS-D, 2026-09-02)
 
@@ -49,7 +51,6 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 
 **Observação:** nomes de competições sem rótulo en (`label` = QID) são ignorados; países históricos podem aparecer com código não-atual (ex.: `DD` — Alemanha Oriental).
 
-
 ## 8. Coordenadas dos clubes (WS-C, 2026-09-02) — base do mapa-múndi
 
 **Campos novos em `clubs`:** `latitude`/`longitude` (Float?) vindas do Wikidata `P625` (coordinate location).
@@ -61,12 +62,12 @@ pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  
 **Limitação:** muitos clubes não têm `P625` no item do clube no Wikidata (a coordenada costuma estar no item do
 estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer via estádio (WS-D/geo) num round futuro.
 
-
 ## 9. Jogadores via Wikidata (WS-D, 2026-09-02)
 
 **Fonte:** Wikidata (CC0) — ocupação `P106 = Q937857` (association football player), filtrado a **notáveis** (têm artigo na en-wiki).
 
 **Estratégia em 2 passos (evita timeout do SPARQL):**
+
 1. SPARQL (sem o pesado serviço de label do player) → QID + país (ISO via `P297`) + nascimento (`P569`) + posição (`P413`), em batches de 1000.
 2. Nomes via API `wbgetentities` (labels en, 50 por chamada).
 
@@ -89,6 +90,7 @@ estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer vi
 ## 11. Resultados de partidas (RSSSF) + títulos (Wikidata) — T420
 
 **Fontes abertas (sem scraping que viole Termos; User-Agent identificado):**
+
 - **RSSSF** (Rec.Sport.Soccer Statistics Foundation) — tabelas de resultados em texto/HTML públicos.
 - **Wikidata** (CC0) — campeões de liga via `P3450` (sports season of the league) + `P1346` (winner).
 
@@ -97,21 +99,23 @@ estádio, não no do clube). Mapa mostra os clubes com coordenada; enriquecer vi
 `competicao|temporada|dataISO|homeClubId|awayClubId` — garante que reexecutar o seed **não duplica**.
 
 **Mapeamento fonte → campo:**
-| Origem | Campo em `matches` |
-|---|---|
-| linha `<data>` | `date` (ISO `YYYY-MM-DD`) |
-| `<casa> - <fora>` | `homeClubId` / `awayClubId` (resolvidos contra o acervo por QID/nome normalizado) |
-| placar `n-n` ou `n:n` | `homeScore` / `awayScore` (inteiros ≥ 0) |
-| `(Rodada N)/(Round N)` | `round` |
-| competição | `competitionId` (resolvida por QID/nome) |
-| temporada | `seasonId` (find-or-create `Season`) |
-| URL da fonte / licença | `sourceUrl` / `license` |
-| — | `importedFrom='rsssf'`, `importedAt` |
+
+| Origem                 | Campo em `matches`                                                                |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| linha `<data>`         | `date` (ISO `YYYY-MM-DD`)                                                         |
+| `<casa> - <fora>`      | `homeClubId` / `awayClubId` (resolvidos contra o acervo por QID/nome normalizado) |
+| placar `n-n` ou `n:n`  | `homeScore` / `awayScore` (inteiros ≥ 0)                                          |
+| `(Rodada N)/(Round N)` | `round`                                                                           |
+| competição             | `competitionId` (resolvida por QID/nome)                                          |
+| temporada              | `seasonId` (find-or-create `Season`)                                              |
+| URL da fonte / licença | `sourceUrl` / `license`                                                           |
+| —                      | `importedFrom='rsssf'`, `importedAt`                                              |
 
 **Regra anti-órfão:** se clube/competição não for resolvido, a partida **não** é criada — vai para `rejected`
 (motivo), nunca para o acervo. Títulos (`wikidata-titles`) usam a mesma regra (vínculo por QID).
 
 **Comando:**
+
 ```
 pnpm --filter @almanaque/api exec tsx scripts/seed-matches.ts --url=<rsssf_url> --competition=<nome> --season=<ano>            # DRY-RUN (não escreve)
 pnpm --filter @almanaque/api exec tsx scripts/seed-matches.ts --url=<rsssf_url> --competition=<nome> --season=<ano> --apply  # grava
@@ -122,8 +126,9 @@ pnpm --filter @almanaque/api exec tsx scripts/seed-matches.ts --url=<rsssf_url> 
 não-criação de órfãos. Teste: `apps/api/tests/integration/matches-ingestion.test.ts`.
 
 **Limitações conhecidas (honesto, não fabricado):**
+
 - **Formato canônico:** o parser cobre um subconjunto documentado de layouts RSSSF (data ISO `YYYY-MM-DD` /
-  `DD/MM/YYYY` / `[DD.MM.YY]`, separador ` - `/` vs `, placar `n-n`/`n:n`). Linhas fora do contrato vão
+  `DD/MM/YYYY` / `[DD.MM.YY]`, separador `-`/`vs`, placar `n-n`/`n:n`). Linhas fora do contrato vão
   para `skipped` (com motivo), nunca são descartadas em silêncio.
 - **RSSSF Brasil mudou de domínio** (`rsssfbrasil.com`, antes `rsssf.org/tablesb`); as páginas têm layout
   variável e formato HTML/tabela, exigindo extração HTML→texto por fonte — **extensão futura**.
@@ -142,13 +147,13 @@ temporada/ano (`?stmt pq:P580 ?start`), com `FILTER(YEAR(?start) >= 1900)`.
 
 **Mapeamento P54 → tabela `knowledge_graph` (já existente — NÃO alterado):**
 
-| P54/P580 (Wikidata) | Tabela/coluna | Valor |
-|---|---|---|
-| `?player` (item do jogador) | `knowledge_graph.sourceId` + `sourceType='Player'` | `player.id` (resolvido por `Player.qid`) |
-| `?club` (item do clube) | `knowledge_graph.targetId` + `targetType='Club'` | `club.id` (resolvido por `Club.qid`) |
-| relação | `knowledge_graph.relation` | `'PLAYED_FOR'` |
-| `P580` (ano) | `metadata.year` / `metadata.season` | `2023` / `"2023"` |
-| proveniência | `metadata.dataSource` / `sourceUrl` / `license` | `'wikidata'` / `https://www.wikidata.org/wiki/<playerQid>` / `'CC0'` |
+| P54/P580 (Wikidata)         | Tabela/coluna                                      | Valor                                                                |
+| --------------------------- | -------------------------------------------------- | -------------------------------------------------------------------- |
+| `?player` (item do jogador) | `knowledge_graph.sourceId` + `sourceType='Player'` | `player.id` (resolvido por `Player.qid`)                             |
+| `?club` (item do clube)     | `knowledge_graph.targetId` + `targetType='Club'`   | `club.id` (resolvido por `Club.qid`)                                 |
+| relação                     | `knowledge_graph.relation`                         | `'PLAYED_FOR'`                                                       |
+| `P580` (ano)                | `metadata.year` / `metadata.season`                | `2023` / `"2023"`                                                    |
+| proveniência                | `metadata.dataSource` / `sourceUrl` / `license`    | `'wikidata'` / `https://www.wikidata.org/wiki/<playerQid>` / `'CC0'` |
 
 **Dedup key:** `playerQid|clubQid|year` (função `squadsDedupKey` no connector). É a identidade
 natural do vínculo (mesma pessoa + mesmo clube + mesma temporada); é a base da idempotência.
@@ -159,12 +164,14 @@ contra `Player.qid`/`Club.qid`; não-casados vão para a **fila de revisão** (r
 banco — o grafo nunca fica com ponta solta.
 
 **Comando:**
+
 ```bash
 pnpm --filter @almanaque/api exec tsx scripts/seed-squads.ts           # DRY-RUN (default) — baixa+parse+reporta, não grava
 pnpm --filter @almanaque/api exec tsx scripts/seed-squads.ts --apply   # grava no banco (teste/CI)
 ```
 
 **Comportamento:**
+
 - **DRY-RUN (default):** não abre banco. Baixa uma amostra, valida via Zod e reporta (leituras + dedup
   key únicas + amostra). Nada é escrito.
 - **APPLY (`--apply`):** abre banco, resolve jogador/clube por QID, aplica dedup + idempotência
@@ -172,6 +179,7 @@ pnpm --filter @almanaque/api exec tsx scripts/seed-squads.ts --apply   # grava n
   criados / já-existiam / órfãos.
 
 **Reversibilidade (Postgres):**
+
 ```sql
 DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'dataSource'='wikidata';
 ```
@@ -184,6 +192,7 @@ DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'data
 integração sem rede/banco (mock `globalThis.fetch` + repositório em memória). Sem escrita em produção.
 
 **Limitações:**
+
 - Só entra vínculo com **P580** (ano determinável). Vínculos P54 **sem** P580 não têm ano → são
   descartados (o Wikidata tem poucos vínculos P54 com P580, então o conjunto é menor do que "todos
   os elencos do mundo").
@@ -200,17 +209,17 @@ integração sem rede/banco (mock `globalThis.fetch` + repositório em memória)
 **Fonte:** Wikidata (CC0). Itens de estádio (classe **Q483110**) via
 `wdt:P31/wdt:P279* wd:Q483110` (estádio ou subtipo). Propriedades extraídas:
 
-| Propriedade (Wikidata) | Campo `stadiums` | Observação |
-|---|---|---|
-| item (`?stadium`) | `qid` (unique) | dedup key / idempotência |
-| `rdfs:label` (`pt,en`) | `name` | via `wikibase:label` |
-| `P1083` (capacity) | `capacity` | int ≥ 0 |
-| `P625` (coordinate) | `latitude` / `longitude` (+ coluna PostGIS `location`) | `POINT(lon lat)` |
-| `P131` (ADM entity -> label) | `city` | entidade administrativa (município) |
-| `P17` -> `P297` (ISO 3166-1) | `country` | alpha-2 |
-| `P466` (occupant) | `clubId` (via `Club.qid`) | clube mandante/ocupante |
-| — | `surface` | **sempre null** (Wikidata não tem propriedade estável de piso; backlog) |
-| — | `state` | **sempre null** (não derivável de forma confiável na consulta atual) |
+| Propriedade (Wikidata)       | Campo `stadiums`                                       | Observação                                                              |
+| ---------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| item (`?stadium`)            | `qid` (unique)                                         | dedup key / idempotência                                                |
+| `rdfs:label` (`pt,en`)       | `name`                                                 | via `wikibase:label`                                                    |
+| `P1083` (capacity)           | `capacity`                                             | int ≥ 0                                                                 |
+| `P625` (coordinate)          | `latitude` / `longitude` (+ coluna PostGIS `location`) | `POINT(lon lat)`                                                        |
+| `P131` (ADM entity -> label) | `city`                                                 | entidade administrativa (município)                                     |
+| `P17` -> `P297` (ISO 3166-1) | `country`                                              | alpha-2                                                                 |
+| `P466` (occupant)            | `clubId` (via `Club.qid`)                              | clube mandante/ocupante                                                 |
+| —                            | `surface`                                              | **sempre null** (Wikidata não tem propriedade estável de piso; backlog) |
+| —                            | `state`                                                | **sempre null** (não derivável de forma confiável na consulta atual)    |
 
 **PostGIS / migration:** o `schema.prisma` (model `Stadium`) ganhou a coluna
 `location Unsupported("geometry(Point,4326)")?`. A migration
@@ -241,6 +250,7 @@ nunca aponte para uma entidade inexistente. O connector é **puro** (sem rede/Pr
 repositório em memória.
 
 **Comando:**
+
 ```bash
 # DRY-RUN (default) — baixa amostra via Wikidata, valida e reporta; NÃO abre banco
 pnpm --filter @almanaque/api exec tsx scripts/seed-stadiums.ts
@@ -260,6 +270,7 @@ DELETE FROM stadiums WHERE "importedFrom"='wikidata';
 proveniência. Sem escrita em produção.
 
 **Limitações:**
+
 - **O Wikidata tem muitos estádios sem `P625` (coordenadas) e/ou sem `P1083` (capacidade).** A
   meta de `≥ 500` refere-se ao total **persistido**; a quantidade **com** coordenadas/capacidade é
   tipicamente bem menor. O seed **reporta** os números reais (com P625 / com P1083) e **nunca
@@ -289,15 +300,15 @@ proveniência. Sem escrita em produção.
 `Q461753 = women's association football`, mas na verdade **`Q461753` é "Jean Duvieusart"** (político
 belga) e **`Q104548798` é "Samuel Frankfurter"** (pessoa). Os QIDs corretos usados aqui são:
 
-| Semântica | QID | Nota |
-|---|---|---|
-| women's association football (raiz do esporte) | **Q606060** | substitui Q461753 |
-| women's association football league (competição) | **Q135641755** | ligas femininas |
-| women's sports competition (classe ampla) | **Q61983760** | registro documentado |
-| women's association football team (clube) | **Q28140340** | substitui Q104548798 |
-| women's association football club (clube) | **Q51481377** | clube com elenco feminino |
-| association football player (ocupação P106) | **Q937857** | ok (enunciado correto) |
-| female (sexo/gênero P21) | **Q6581072** | ok (enunciado correto) |
+| Semântica                                        | QID            | Nota                      |
+| ------------------------------------------------ | -------------- | ------------------------- |
+| women's association football (raiz do esporte)   | **Q606060**    | substitui Q461753         |
+| women's association football league (competição) | **Q135641755** | ligas femininas           |
+| women's sports competition (classe ampla)        | **Q61983760**  | registro documentado      |
+| women's association football team (clube)        | **Q28140340**  | substitui Q104548798      |
+| women's association football club (clube)        | **Q51481377**  | clube com elenco feminino |
+| association football player (ocupação P106)      | **Q937857**    | ok (enunciado correto)    |
+| female (sexo/gênero P21)                         | **Q6581072**   | ok (enunciado correto)    |
 
 ### ⚠️ Convenção de gênero (SEM novo schema)
 
@@ -312,13 +323,13 @@ representado por convenção:
 
 ### Mapeamento fonte → acervo
 
-| Fonte (Wikidata) | Tabela/coluna | Valor |
-|---|---|---|
-| QID da competição (classe Q135641755) | `competition.qid` + `name` + `country` | label en + ISO via P297 |
-| QID do clube (Q28140340/Q51481377) | `club.qid` + `name` + `country` | label en + ISO via P297 |
-| QID da jogadora (P106=Q937857 + P21=Q6581072) | `player.qid` + `fullName` + `country` + `position` | label en + ISO + P413 |
-| P54 jogadora→clube + P580 (ano) | `knowledge_graph` (`sourceType='Player'`, `targetType='Club'`) | `relation='PLAYED_FOR'` |
-| — | `metadata.gender='women'`, `dataSource='wikidata'`, `sourceUrl`, `license='CC0'` | proveniência |
+| Fonte (Wikidata)                              | Tabela/coluna                                                                    | Valor                   |
+| --------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------- |
+| QID da competição (classe Q135641755)         | `competition.qid` + `name` + `country`                                           | label en + ISO via P297 |
+| QID do clube (Q28140340/Q51481377)            | `club.qid` + `name` + `country`                                                  | label en + ISO via P297 |
+| QID da jogadora (P106=Q937857 + P21=Q6581072) | `player.qid` + `fullName` + `country` + `position`                               | label en + ISO + P413   |
+| P54 jogadora→clube + P580 (ano)               | `knowledge_graph` (`sourceType='Player'`, `targetType='Club'`)                   | `relation='PLAYED_FOR'` |
+| —                                             | `metadata.gender='women'`, `dataSource='wikidata'`, `sourceUrl`, `license='CC0'` | proveniência            |
 
 **Dedup por QID:** entidades usam o **QID** como chave estável (`qid` é `unique` em
 competition/club/player). Vínculos P54 usam `playerQid|clubQid|year` (função `womensEdgeDedupKey`).
@@ -330,12 +341,15 @@ para o banco. No `--apply`, os vínculos são buscados já limitados aos clubes 
 (`VALUES ?club`), reduzindo órfãos.
 
 **Comando:**
+
 ```bash
 pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts           # DRY-RUN (default)
 pnpm --filter @almanaque/api exec tsx scripts/seed-womens-football.ts --apply   # grava (teste/CI)
 ```
+
 DELETE FROM knowledge_graph WHERE "relation"='PLAYED_FOR' AND "metadata"->>'gender'='women';
-```
+
+````
 Entidades criadas são idempotentes (re-run → `skipped`, 0 novos). Para remover as entidades do seed,
 apague pelos QIDs do conjunto ingerido (registro exposto pelo connector).
 
@@ -364,7 +378,7 @@ proveniência e **isolamento por gênero** (registro separado `womensQids`).
 pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts          # DRY-RUN
 pnpm --filter @almanaque/api exec tsx scripts/ingest-clubs-wikidata.ts --apply  # grava
 pnpm --filter @almanaque/api exec tsx scripts/enrich-club-coords.ts --apply     # P625 → lat/lon
-```
+````
 
 **Rate limit e retry policy (T426):** retry com backoff exponencial (3 tentativas:
 1s, 2s, 4s) em HTTP não-200, timeout de 30s por request (AbortController),
@@ -379,8 +393,34 @@ do `--apply`; órfãos (ex.: `club_missing`) vão para a fila de revisão, jamai
 para o banco.
 
 **Counts reais (banco de teste, T426 — publicar atualização a cada seed):**
-*total com qid / total com coordenada / % com sourceUrl — ver corpo do PR.*
+_total com qid / total com coordenada / % com sourceUrl — ver corpo do PR._
 Qualquer número abaixo do esperado é dado, não defeito (princípio 1.3).
+
+**Determinismo (T428 FASE 4):** os 3 templates SPARQL (`ingest-clubs`,
+`ingest-competitions`, `ingest-players`) terminam com `ORDER BY ?{entity}`
+para garantir **rodada reprodutível** (sem ORDER, o SPARQL retornava
+amostras diferentes da mesma classe — histórico T426: 1901/1626/1626
+clubes em rodadas consecutivas). Teste: `tests/unit/ingest/etl-query-shape.test.ts`
+assertiona a presença do `ORDER BY` no template E no payload URL-encoded
+enviado a `query.wikidata.org`.
+
+**Filtro geográfico do worker (T428 3.5):** `countryToQid` (exportado em
+`apps/worker/src/jobs/wikidata-connector.ts`) resolve o filtro-país
+para QID da Wikidata. Aceita QID pronto (`Q155`) ou ISO 3166-1 alpha-2
+(`BR`) via mapa reverso derivado de `COUNTRY_QID_MAP` (sem tabela
+duplicada). Comportamento **graceful** intencional:
+
+- QID malformado (ex.: `QBR`, sem dígitos) → `null` (não valida
+  existência — quem monta é o mapa);
+- ISO não mapeado no `COUNTRY_QID_MAP` → `null` → a chamada prossegue
+  **sem filtro geográfico (full-scan silencioso)**, por escolha de
+  graceful degradation. Chamadores que exigem filtro obrigatório
+  devem validar o retorno antes de invocar o `fetchWikidata*`.
+
+Encarar isso como "bug" seria endurecer o contrato de API pública do
+worker (`etl-worker.ts:72,111` passam ISO e se beneficiam do mapa).
+Decisão de enrijecer (throw em ISO não mapeado) é follow-up; o teste
+`countryToQid` (`siblings-wikidata.test.ts`) documenta o contrato atual.
 
 **Amostragem não-determinística (achado T426):** a query SPARQL não tem
 `ORDER BY`, então cada rodada retorna uma amostra diferente da classe

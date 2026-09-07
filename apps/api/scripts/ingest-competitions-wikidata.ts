@@ -2,9 +2,10 @@
  * WS-D / M1 — Ingestão de competições de futebol via Wikidata (fonte aberta).
  *
  * Popula `competitions` com nome, país (ISO via P297), ano de início/fim opcionais,
- * marcando proveniência (`qid` + `importedFrom='wikidata'` + `importedAt`). Idempotente
- * (dedup por `qid` unique; `createMany ... skipDuplicates`). type fica null por ora
- * (refinar LEAGUE/CUP/TOURNAMENT num round de enriquecimento).
+ * marcando proveniência (`qid` + `importedFrom='wikidata'` + `importedAt` +
+ * `sourceUrl`). Idempotente por dedup contra qids existentes (o helper de
+ * resiliência HTTP cuida de retry/backoff/timeout — T428). type fica null
+ * por ora (refinar LEAGUE/CUP/TOURNAMENT num round de enriquecimento).
  *
  * Uso:
  *   pnpm --filter @almanaque/api exec tsx scripts/ingest-competitions-wikidata.ts          # DRY-RUN
@@ -14,6 +15,7 @@
  * Classe-alvo (Q15991303, "association football league" + subclasses).
  */
 import { PrismaClient } from '@prisma/client';
+import { fetchWithRetry } from './lib/http-resilience.js';
 
 const APPLY = process.argv.includes('--apply');
 
@@ -23,7 +25,9 @@ const TARGET_MIN = 500;
 const BATCH = 1000;
 const MAX_BATCHES = 4;
 
-const SPARQL = `
+// T428 — ORDER BY ?comp garante rodada reprodutível (cobre o viés de
+// amostragem documentado em DATA-INGESTION §15).
+export const SPARQL = `
 SELECT DISTINCT ?comp ?compLabel ?iso ?start ?end WHERE {
   ?comp wdt:P31/wdt:P279* wd:Q15991303 .
   OPTIONAL { ?comp wdt:P17 ?country . ?country wdt:P297 ?iso . }
@@ -31,6 +35,7 @@ SELECT DISTINCT ?comp ?compLabel ?iso ?start ?end WHERE {
   OPTIONAL { ?comp wdt:P582 ?end . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
+ORDER BY ?comp
 `;
 
 interface CompRow {
@@ -41,38 +46,50 @@ interface CompRow {
   endYear: number | null;
 }
 
-function qidFrom(uri: string): string {
+export function qidFrom(uri: string): string {
   const parts = uri.split('/');
   return parts[parts.length - 1].replace(/^Q/, 'Q');
 }
-function yearFrom(v?: string): number | null {
+export function yearFrom(v?: string): number | null {
   if (!v) return null;
   const y = parseInt(v.slice(0, 4), 10);
   return Number.isFinite(y) ? y : null;
 }
-function isQidLabel(l: string): boolean {
+export function isQidLabel(l: string): boolean {
   return /^Q\d+$/.test(l);
 }
 
-async function fetchBatch(offset: number): Promise<CompRow[]> {
+export function wikidataItemUrl(qid: string): string {
+  return `https://www.wikidata.org/wiki/${qid}`;
+}
+
+export async function fetchBatch(offset: number): Promise<CompRow[]> {
   const q = SPARQL + ' LIMIT ' + BATCH + ' OFFSET ' + offset;
   const url = 'https://query.wikidata.org/sparql?query=' + encodeURIComponent(q) + '&format=json';
-  const res = await fetch(url, {
-    headers: { 'user-agent': USER_AGENT, Accept: 'application/sparql-results+json' },
-  });
-  if (!res.ok) throw new Error('SPARQL HTTP ' + res.status);
-  const j = (await res.json()) as {
-    results?: { bindings?: Array<Record<string, { value: string }>> };
-  };
-  return (j.results?.bindings ?? [])
-    .filter((b) => b.comp?.value && b.compLabel?.value && !isQidLabel(b.compLabel.value))
-    .map((b) => ({
-      qid: qidFrom(b.comp.value),
-      name: b.compLabel.value,
-      country: b.iso?.value ? b.iso.value.toUpperCase() : null,
-      startYear: yearFrom(b.start?.value),
-      endYear: yearFrom(b.end?.value),
-    }));
+  try {
+    const res = await fetchWithRetry(
+      url,
+      {
+        headers: { 'user-agent': USER_AGENT, Accept: 'application/sparql-results+json' },
+      },
+      { logContext: { offset }, label: 'ingest-competitions' },
+    );
+    const j = (await res.json()) as {
+      results?: { bindings?: Array<Record<string, { value: string }>> };
+    };
+    return (j.results?.bindings ?? [])
+      .filter((b) => b.comp?.value && b.compLabel?.value && !isQidLabel(b.compLabel.value))
+      .map((b) => ({
+        qid: qidFrom(b.comp.value),
+        name: b.compLabel.value,
+        country: b.iso?.value ? b.iso.value.toUpperCase() : null,
+        startYear: yearFrom(b.start?.value),
+        endYear: yearFrom(b.end?.value),
+      }));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message.startsWith('SPARQL') ? message : 'SPARQL ' + message, { cause: err });
+  }
 }
 
 async function main(): Promise<void> {
@@ -105,15 +122,17 @@ async function main(): Promise<void> {
   const existingSet = new Set(existing.map((e) => e.qid));
   const toInsert = comps.filter((c) => !existingSet.has(c.qid));
 
+  // Insert sem skipDuplicates (opção inexistente no SQLite — T426 achado 1):
+  // a idempotência vem do dedup prévio contra qids existentes.
   const res = await prisma.competition.createMany({
     data: toInsert.map((c) => ({
       name: c.name,
       country: c.country,
       qid: c.qid,
+      sourceUrl: wikidataItemUrl(c.qid),
       importedFrom: 'wikidata',
       importedAt: new Date(),
     })),
-    skipDuplicates: true,
   });
 
   const total = await prisma.competition.count();
@@ -130,7 +149,13 @@ async function main(): Promise<void> {
   await prisma.$disconnect();
 }
 
-main().catch((err) => {
-  console.error('Erro:', (err as Error).message);
-  process.exit(1);
-});
+// Guarda de importação: em testes (vitest) o módulo é importado sem executar.
+const invokedAsScript = (process.argv[1] ?? '')
+  .replace(/\\/g, '/')
+  .endsWith('scripts/ingest-competitions-wikidata.ts');
+if (invokedAsScript) {
+  main().catch((err) => {
+    console.error('Erro:', (err as Error).message);
+    process.exit(1);
+  });
+}
