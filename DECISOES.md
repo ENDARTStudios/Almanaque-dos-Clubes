@@ -18,6 +18,14 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-06] Decisão: D-2026-09-06-image-hardening — Hardening defensivo de Image Optimization + CSP libera tiles OSM
+
+Motivo: auditoria do código real (via graft + leitura direta) provou que `apps/web` tem **zero `<Image>`** — ClubCard/herói/perfil usam iniciais CSS e ícones lucide; tiles do mapa são `<img>` puro do Leaflet (bypassam o otimizador por construção); k6 mira só `/api/v1` (nunca toca `/_next/image`); sem config ZAP no repo. Logo, eventual consumo Vercel de Image Optimization **vem de fora deste código** (outro projeto/deploy/stale) — passo do Operador identificar a origem no dashboard antes de qualquer "mitigação" de produto. Fase 3 do plano (sharp/ETL) adiada como prematura; AlmanaqueImage adiado (sem imagem real para justificar).
+Mudanças (reversíveis, `apps/web/next.config.ts` apenas): bloco `images` defensivo — `minimumCacheTTL` 30d, `deviceSizes [640,1080,1920]`, `imageSizes [64,128,256]`, `formats avif/webp`, `remotePatterns` whitelist mínima (`upload.wikimedia.org` — fecha o otimizador como proxy aberto), `unoptimized` via `DISABLE_IMAGE_OPTIMIZATION=1`; CSP `img-src` passa a incluir `https://a|b|c.tile.openstreetmap.org` (hosts explícitos, sem wildcard — Leaflet usa `{s}.tile.openstreetmap.org` com subdomínios default abc, cf. `WorldMap.tsx:21`; tile layer é `<img>`, sem fetch → `connect-src` inalterado). Sem esse fix o mapa quebrava em produção (CSP anterior só permitia `self/data:/blob:`).
+Alternativas consideradas: (a) wildcard `*.tile.openstreetmap.org` — descartada por abrir subdomínio arbitrário; hosts explícitos cobrem os 3 usados; (b) mexer no ETL/criar AlmanaqueImage agora — descartado como prematuro.
+Evidência: `tsc --noEmit` exit 0; `pnpm lint` 0 erros (3 warnings pré-existentes em arquivos não tocados); `prettier --check` ok; boot `next dev` ok; `GET /_next/image?url=https://malicious.example/...` → **400** (proxy fechado); header CSP ao vivo contém os 3 hosts OSM; boot com `DISABLE_IMAGE_OPTIMIZATION=1` ok.
+Aprendizado metodológico: hipóteses de consumo/custo devem partir da **auditoria do código real**, não do produto descrito no Escopo — o PLANO_MESTRE já marcava o produto como "ainda não é o Almanaque" (5% features core). Assumir escudos/carrossel/home densa sem verificar violou "nunca assumir que uma solução existente é a melhor" e o DoD do menor teste relevante.
+
 ### [2026-09-02] Decisão: D-2026-09-02-path-b-5-executada — T391 — Caminho B (5ª exceção): merge da branch consolidada chore/redis-localhost-forense
 
 Motivo: Operador autorizou merge imediato (Caminho B #5) — manter o bug da fila Redis ativo em produção (emails de recuperação quebrados) era pior que o merge; instrução permanente "Prossiga" + 4 precedentes + R388 aprovado. Merge via PR #47 (squash) → commit `b180bc8` em main.
