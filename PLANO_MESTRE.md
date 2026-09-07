@@ -251,7 +251,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 | Schema & Migrations                 | 🟢 Concluído    | 85%                                |
 | Compliance Legal                    | 🔴 Crítico      | 10%                                |
 | Features Core (produto)             | 🔴 Crítico      | 5%                                 |
-| Dados reais (conteúdo)              | 🟡 Em progresso | T426–T428 (seed banco de teste OK) |
+| Dados reais (conteúdo)              | 🟡 Quase — T429 fechado | Seed prod + teste OK; sourceUrl 100% |
 | Frontend UX                         | 🟡 Parcial      | 30%                                |
 | IA/ETL/Knowledge Graph              | 🔴 Crítico      | 5%                                 |
 | Testes avançados                    | 🟡 Parcial      | 40%                                |
@@ -260,6 +260,8 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 **Conclusão honesta:** base técnica (infra + segurança + auth + CI) sólida em nível produção empresarial; ainda **não é o produto Almanaque** — faltam conteúdo (seed prod + ETL automático), experiência (drill-down do mapa, perfis, rankings, favoritos, 360º) e legalidade (cookies/termos/privacidade/gateway/CNPJ).
 
 **Seed de TESTE (T428) — counts reais auditáveis:** 1.626 clubes · 892 competições · 2.458 jogadores, todos com proveniência completa (qid + importedFrom + importedAt + sourceUrl, **100%**); 113 clubes com coordenada P625 em produção (vs 1.889 totais em produção pós-rodada pré-#84 — o número cresce com T429); idempotência 2× provada por script com `novos=0` na segunda execução; bug 1.3 do `/map` corrigido (count 113 de 1.889 auditável em runtime, não assado no build). **M1 (Beta Fechada) ainda NÃO declarado** — faltam T429 (seed prod, operacional), WS-C restante (drill-down/perfis/busca), WS-L 1ª camada. Próximo: T429 (rodar `ingest-*-wikidata.ts --apply` contra produção com rollback por proveniência + smoke pós).
+
+**Seed de PRODUÇÃO (T429, fechado 2026-09-08) — counts reais auditáveis:** clubs 1889 → 3857 total (1968 novos + 10 backfilled), `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 sem qid); competitions 895 → 1263 total (368 novos + 334 backfilled), `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid); players 2396 total, `sourceUrl` 0 → 2396 (100%, via backfill SQL determinístico — SPARQL da Wikidata instável na janela com 502/429/timeout, retry/backoff comportou-se conforme o contrato). API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway. **M1 segue NÃO declarado** (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
