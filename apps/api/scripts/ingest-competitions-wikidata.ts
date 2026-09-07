@@ -117,7 +117,7 @@ async function main(): Promise<void> {
   const qids = comps.map((c) => c.qid);
   const existing = await prisma.competition.findMany({
     where: { qid: { in: qids } },
-    select: { qid: true },
+    select: { qid: true, sourceUrl: true },
   });
   const existingSet = new Set(existing.map((e) => e.qid));
   const toInsert = comps.filter((c) => !existingSet.has(c.qid));
@@ -135,6 +135,17 @@ async function main(): Promise<void> {
     })),
   });
 
+  // Backfill de sourceUrl onde ele ainda é NULL (T429: prod tem 0% — auto-reparo).
+  let backfilled = 0;
+  for (const e of existing) {
+    if (e.sourceUrl) continue;
+    await prisma.competition.update({
+      where: { qid: e.qid as string },
+      data: { sourceUrl: wikidataItemUrl(e.qid as string) },
+    });
+    backfilled++;
+  }
+
   const total = await prisma.competition.count();
   const wd = await prisma.competition.count({ where: { importedFrom: 'wikidata' } });
   console.log(
@@ -142,8 +153,10 @@ async function main(): Promise<void> {
       comps.length +
       ' | novos=' +
       res.count +
+      ' | backfilled-url=' +
+      backfilled +
       ' | ja-existentes=' +
-      (comps.length - res.count),
+      (comps.length - res.count - backfilled),
   );
   console.log('COMPETITIONS total=' + total + ' | wikidata=' + wd);
   await prisma.$disconnect();

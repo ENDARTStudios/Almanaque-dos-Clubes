@@ -157,7 +157,7 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient();
   const existing = await prisma.player.findMany({
     where: { qid: { in: qids } },
-    select: { qid: true },
+    select: { qid: true, sourceUrl: true },
   });
   const existingSet = new Set(existing.map((e) => e.qid));
   const toInsert = players.filter((p) => !existingSet.has(p.qid));
@@ -177,6 +177,17 @@ async function main(): Promise<void> {
     })),
   });
 
+  // Backfill de sourceUrl onde ele ainda é NULL (T429: prod tem 0% — auto-reparo).
+  let backfilled = 0;
+  for (const e of existing) {
+    if (e.sourceUrl) continue;
+    await prisma.player.update({
+      where: { qid: e.qid as string },
+      data: { sourceUrl: wikidataItemUrl(e.qid as string) },
+    });
+    backfilled++;
+  }
+
   const total = await prisma.player.count();
   const wd = await prisma.player.count({ where: { importedFrom: 'wikidata' } });
   console.log(
@@ -184,8 +195,10 @@ async function main(): Promise<void> {
       players.length +
       ' | novos=' +
       res.count +
+      ' | backfilled-url=' +
+      backfilled +
       ' | ja-existentes=' +
-      (players.length - res.count),
+      (players.length - res.count - backfilled),
   );
   console.log('PLAYERS total=' + total + ' | wikidata=' + wd);
   await prisma.$disconnect();
