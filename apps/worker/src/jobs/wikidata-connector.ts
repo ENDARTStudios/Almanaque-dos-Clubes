@@ -112,22 +112,63 @@ function bindingValue(binding: { type: string; value: string } | undefined): str
 type SparqlBinding = { type: string; value: string };
 type SparqlRow = Record<string, SparqlBinding>;
 
+// T426 — política de robustez: retry com backoff exponencial (3 tentativas:
+// 1s, 2s, 4s), timeout de 30s por request e throttle de 200ms entre chamadas
+// (máx 5 req/s no endpoint SPARQL). Em falha definitiva retorna [] (contrato
+// preservado: os consumidores iteram sobre o resultado).
+const SPARQL_TIMEOUT_MS = 30_000;
+const SPARQL_RETRY_DELAYS_MS = [1000, 2000, 4000];
+const SPARQL_MIN_INTERVAL_MS = 200;
+let lastSparqlAt = 0;
+
+async function sparqlThrottle(): Promise<void> {
+  const elapsed = Date.now() - lastSparqlAt;
+  if (elapsed < SPARQL_MIN_INTERVAL_MS) {
+    await new Promise((resolve) => setTimeout(resolve, SPARQL_MIN_INTERVAL_MS - elapsed));
+  }
+  lastSparqlAt = Date.now();
+}
+
+/** Headers da requisição — tipo estrutural local (evita global DOM no lint Node). */
+type FetchInit = { headers: Record<string, string> };
+
+async function fetchWithTimeout(url: string, init: FetchInit, ms: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function sparqlQuery(query: string): Promise<SparqlRow[]> {
   const url = `${WIKIDATA_ENDPOINT}?format=json&query=${encodeURIComponent(query)}`;
-  try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'AlmanaqueDosClubes/1.0 (ETL worker)' },
-    });
-    if (!response.ok) {
-      console.error(`[Wikidata] SPARQL query failed: HTTP ${response.status}`);
-      return [];
+  await sparqlThrottle();
+  for (let attempt = 0; attempt <= SPARQL_RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const response = await fetchWithTimeout(
+        url,
+        { headers: { 'User-Agent': 'AlmanaqueDosClubes/1.0 (ETL worker)' } },
+        SPARQL_TIMEOUT_MS,
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as { results?: { bindings?: SparqlRow[] } };
+      return data?.results?.bindings ?? [];
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (attempt === SPARQL_RETRY_DELAYS_MS.length) {
+        console.error(`[Wikidata] SPARQL query failed after ${attempt + 1} attempts: ${message}`);
+        return [];
+      }
+      const delay = SPARQL_RETRY_DELAYS_MS[attempt];
+      console.warn(
+        `[Wikidata] SPARQL attempt ${attempt + 1} failed (${message}) — retrying in ${delay}ms`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    const data = (await response.json()) as { results?: { bindings?: SparqlRow[] } };
-    return data?.results?.bindings ?? [];
-  } catch (error) {
-    console.error('[Wikidata] SPARQL query error:', error instanceof Error ? error.message : error);
-    return [];
   }
+  return [];
 }
 
 export async function fetchWikidataClubs(country?: string): Promise<WikidataClub[]> {

@@ -84,7 +84,7 @@
 - [x] 2.4 Tabelas de auth: `users`, `roles`, `permissions`, `user_roles`, `sessions`. ✅
 - [x] 2.5 Tabelas de billing: `subscriptions`, `billings`. ✅
 - [x] 2.6 Tabelas de auditoria: `audit_logs` (imutável, append-only). ✅
-- [ ] 2.7 Tabelas de governança (`data_sources`, `entity_revisions`) — **não existem** no schema (reconciliado T001). Ferramenta de "rankings auditáveis" fica dependente de ETL/exportação futura. `[ ]`
+- [x] 2.7 Governança de proveniência — **convenção vigente oficializada** (D-2026-09-07-proveniencia-convencional, T426): `qid` unique + `importedFrom` + `importedAt` + `sourceUrl` canônico em clubs/players/competitions/stadiums/matches. Tabelas `data_sources`/`entity_revisions` **não existem** no schema e foram **deliberadamente não criadas** (YAGNI). `[x]`
 - [x] 2.8 Senha/token sempre hash com argon2id (custo ≥ 12). ✅
 - [x] 2.9 Soft delete em entidades críticas (`deletedAt` em `clubs`, `players`, `users`). ✅
 - [ ] 2.10 Criptografia a nível de coluna — **não implementada** (reconciliado T001). Pode ser entregue via Vault/Infisical quando o Operador decidir; monitoramento de segurança hoje cobre campos sem coluna criptografada de forma granular. `[ ]`
@@ -404,7 +404,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 | Item | Status | Gap |
 |---|---|---|
 | RLS em `users` | [~] | Schema suporta, policies não aplicadas (deferido por D-2026-08-24-rls-sessions-pre-auth-design) |
-| Tabelas de governança (2.7) | [~] | `data_sources` e `entity_revisions` existem no schema mas não são populadas |
+| Governança de proveniência (2.7) | [x] | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas |
 | Criptografia de coluna (2.10) | [~] | Infra pronta, não aplicada a email/telefone |
 | Testes E2E (Playwright) | [~] | Estrutura existe, cobertura baixa |
 | Testes de carga (k6) | [ ] | Não executado |
