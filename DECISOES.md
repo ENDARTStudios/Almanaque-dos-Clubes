@@ -18,6 +18,18 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-08] Decisão: D-2026-09-08-t429-fechamento — T429 fechado: sourceUrl 100% em produção (Doer-first)
+
+Motivo: baseline prod mostrava `sourceUrl = 0%` em clubs (1889), competitions (895) e players (2396). Execução integralmente pelo Doer sob a diretriz D-2026-09-08-atribuicao-doer-first (zero ações do Operador no round): merge do #87 via `gh`, scripts rodados em prod via `railway ssh` no container da API, smoke via `curl` + SQL.
+Evidência (antes → depois, banco de produção Railway):
+- clubs: 1889 → 3857 total (1968 novos via --apply + 10 backfilled); `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 linhas sem qid, impossíveis de preencher — dado honesto)
+- competitions: 895 → 1263 total (368 novos + 334 backfilled); `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid)
+- players: 2396 total, `sourceUrl` 0 → 2396 (100%; SPARQL da Wikidata instável na janela — 502/429/timeout — então o backfill SQL determinístico cobriu as linhas existentes; ETL cobre linhas novas em round futuro)
+- API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway durante os jobs
+Método híbrido (documentado, não improvisado): (1) scripts `--apply` para linhas novas + backfill das linhas na janela do fetch; (2) `UPDATE ... SET "sourceUrl" = base || "qid" WHERE "qid" IS NOT NULL AND "sourceUrl" IS NULL` para o resíduo fora da janela (valor byte-idêntico ao que o script escreve; contagem antes/depois auditada por tabela). Rollback pré-documentado e não acionado: `UPDATE ... SET "sourceUrl"=NULL WHERE "importedFrom"='wikidata'`.
+Nota operacional: queries ad-hoc em psql via `railway ssh` exigem escape `\"` para identificadores case-sensitive (ver D-railway-ssh-quotes); sem escape o Postgres folda para minúsculo e a query falha ou mira a coluna errada.
+M1 segue NÃO declarado (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
+
 ### [2026-09-06] Decisão: D-2026-09-06-image-hardening — Hardening defensivo de Image Optimization + CSP libera tiles OSM
 
 Motivo: auditoria do código real (via graft + leitura direta) provou que `apps/web` tem **zero `<Image>`** — ClubCard/herói/perfil usam iniciais CSS e ícones lucide; tiles do mapa são `<img>` puro do Leaflet (bypassam o otimizador por construção); k6 mira só `/api/v1` (nunca toca `/_next/image`); sem config ZAP no repo. Logo, eventual consumo Vercel de Image Optimization **vem de fora deste código** (outro projeto/deploy/stale) — passo do Operador identificar a origem no dashboard antes de qualquer "mitigação" de produto. Fase 3 do plano (sharp/ETL) adiada como prematura; AlmanaqueImage adiado (sem imagem real para justificar).
