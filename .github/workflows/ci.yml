@@ -99,6 +99,63 @@ jobs:
       - name: Deploy to Vercel
         run: npx vercel deploy --prod --project almanaque-dos-clubes --token=${{ secrets.VERCEL_TOKEN }} --yes
 
+  migration-drift:
+    # T430 — detecta a classe P2022 (coluna no schema.prisma sem migration que
+    # a crie). Procedimento = espelho do upgrade real de produção: baseline dump
+    # + resolve pinado + deploy; o diff final compara esse estado contra o schema.
+    # RLS/fulltext/extensions vivem fora de migrations/ por design e são
+    # invisíveis ao datamodel diff — sem falso-positivo estrutural.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: almanaque
+          POSTGRES_PASSWORD: almanaque_dev_2025
+          POSTGRES_DB: almanaque
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U almanaque -d almanaque"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DRIFT_URL: 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/driftcheck'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: 'pnpm' }
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Provision scratch DB from prod baseline dump
+        run: |
+          psql 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque' -c 'CREATE DATABASE driftcheck'
+          psql "$DRIFT_URL" -f apps/api/prisma/baseline/prod-structure-2026-09-09.sql
+
+      - name: Mark historically hand-resolved migrations as applied (pinned mirror of prod _prisma_migrations)
+        # Lista PINADA = espelho exato do histórico de produção. NÃO acrescentar
+        # novas migrations aqui: o deploy abaixo aplica as pendentes.
+        run: |
+          cd apps/api
+          export DATABASE_URL="$DRIFT_URL"
+          for m in 20260716154544_init 20260720000001_phase2_final 20260720202741_init_almanaque_v2 20260720202940_add_composite_indexes 20260814_add_qid_and_stadium 20260823_trial_used_at 20260824_rls_sessions 20260825_rls_sessions_complete; do
+            npx prisma migrate resolve --applied "$m" --schema=prisma/schema.prisma
+          done
+
+      - name: Deploy pending (exactly what the prod entrypoint runs)
+        run: |
+          cd apps/api
+          DATABASE_URL="$DRIFT_URL" npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: Fail if schema drifted from baseline+migrations (P2022 class)
+        run: |
+          cd apps/api
+          npx prisma migrate diff --from-url "$DRIFT_URL" --to-schema-datamodel prisma/schema.prisma --script --exit-code
+
   gitleaks:
     runs-on: ubuntu-latest
     steps:
