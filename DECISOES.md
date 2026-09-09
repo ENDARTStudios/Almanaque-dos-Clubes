@@ -18,6 +18,18 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-09] Decisão: D-2026-09-09-t430-fechamento — T430 fechado: migration automation + drift check + job-runnability
+
+Motivo: o incidente P2022 (coluna no schema sem migration em prod, ~30min de `/clubs` 500) exigia automação, não disciplina manual. Entregas: entrypoint com `migrate deploy` fail-fast (D2: `set -e`, SKIP_MIGRATIONS só-incidente, forward-only, advisory lock notado); job `migration-drift` no CI (baseline dump + resolve pinado + deploy + diff, com 1 exceção documentada); job-runnability (scripts na imagem + dry-run in-container sem upload).
+Evidência: baseline md5 idêntica origem→repo; scratch validou resolve 8 + deploy das 4 + colunas; entrypoint real executado (migrate limpo + boot até EADDRINUSE esperado); drift job verde no CI + teste negativo vermelho-proposital (PR #90, `driftProbe`, fechado sem merge); deploy prod com entrypoint: `_prisma_migrations` 15 linhas, API health/clubs/rankings/matches 200, zero 5xx.
+Notas registradas nesta entrada: (1) advisory lock do Prisma guarda deploy concorrente (1 réplica hoje — revisitar ao replicar); (2) revert de código não reverte migrations aditivas (colunas órfãs seguras); (3) SKIP_MIGRATIONS=true exige registro em DECISOES quando usado; (4) `apps/api/Dockerfile` morto removido (referenciava entrypoint inexistente; Railway usa `./Dockerfile`); (5) devDeps no stage prod (prisma/tsx em runtime) é smell registrado, não mexido.
+Próximo: T431 (janela players/stadiums) → WS-C restante → WS-L 1ª camada → triagem Dependabot.
+
+### [2026-09-09] Decisão: D-2026-09-08-migration-history-debt — Histórico de migrations indeployável do zero (dívida documentada)
+
+Motivo: T430 FASE 1 provou que `20260720000001_phase2_final` foi gerada como baseline completo e conflita com `20260716154544_init` (`relation "clubs" already exists`, P3018/P3006 em banco vazio) — por isso o projeto sempre usou `db push` + SQL manual + `resolve`. Decidido (Q2): DEIXAR COMO ESTÁ. Squash/re-baseline tocaria checksums com linhas `t` (applied) em produção e faria o deploy recusar tudo — risco alto, benefício estético.
+Caminho canônico de provisionamento: baseline dump (`apps/api/prisma/baseline/`, imutável por convenção) + `resolve --applied` pinado + `deploy`. Migrations aplicadas são imutáveis (checksum é feature). Exceção registrada uma única vez: guarda `DO $$` em `20260905_stadiums_postgis` (nunca aplicada via deploy em nenhum ambiente — só `db push` em CI e SQL manual em prod); sem ela, o entrypoint fail-fast impediria o boot em bancos sem PostGIS.
+
 ### [2026-09-08] Decisão: D-2026-09-08-t429-fechamento — T429 fechado: sourceUrl 100% em produção (Doer-first)
 
 Motivo: baseline prod mostrava `sourceUrl = 0%` em clubs (1889), competitions (895) e players (2396). Execução integralmente pelo Doer sob a diretriz D-2026-09-08-atribuicao-doer-first (zero ações do Operador no round): merge do #87 via `gh`, scripts rodados em prod via `railway ssh` no container da API, smoke via `curl` + SQL.
@@ -28,6 +40,7 @@ Evidência (antes → depois, banco de produção Railway):
 - API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway durante os jobs
 Método híbrido (documentado, não improvisado): (1) scripts `--apply` para linhas novas + backfill das linhas na janela do fetch; (2) `UPDATE ... SET "sourceUrl" = base || "qid" WHERE "qid" IS NOT NULL AND "sourceUrl" IS NULL` para o resíduo fora da janela (valor byte-idêntico ao que o script escreve; contagem antes/depois auditada por tabela). Rollback pré-documentado e não acionado: `UPDATE ... SET "sourceUrl"=NULL WHERE "importedFrom"='wikidata'`.
 Nota operacional: queries ad-hoc em psql via `railway ssh` exigem escape `\"` para identificadores case-sensitive (ver D-railway-ssh-quotes); sem escape o Postgres folda para minúsculo e a query falha ou mira a coluna errada.
+Addendum N1 (T430, condição de registro do review T429): (a) decisão do SQL direto + motivo — SPARQL de players instável na janela (502/429/timeout sustained ~20min) bloqueava o `--apply`; o UPDATE determinístico cobre exatamente as linhas existentes com `qid` sem tocar em mais nada; (b) transporte base64 dos 4 scripts (3 ingest + lib) para o container com validação byte-a-byte (md5 origem == destino em todos); (c) regen do Prisma Client in-container com backup prévio em `/tmp/prisma-client-backup` (client da imagem estava stale, sem `sourceUrl` — sem o regen, os `createMany`/`update` com o campo falhariam em validação client-side).
 M1 segue NÃO declarado (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
 ### [2026-09-06] Decisão: D-2026-09-06-image-hardening — Hardening defensivo de Image Optimization + CSP libera tiles OSM
