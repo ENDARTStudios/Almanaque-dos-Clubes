@@ -40,5 +40,14 @@ RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.pri
 COPY --from=builder /app/apps/api/dist ./apps/api/dist/
 COPY --from=builder /app/packages/domain/dist ./packages/domain/dist/
 
+# T430 — job-runnability: scripts de ETL/seeds executáveis em produção
+# (COPY explícito = allowlist; nenhum .env/segredo entra — não há .dockerignore
+# porque nada além das linhas COPY acima entra na imagem).
+COPY apps/api/scripts/ ./apps/api/scripts/
+
+# T430 — entrypoint aplica `migrate deploy` (fail-fast) antes do servidor.
+COPY apps/api/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
 EXPOSE 3000
-CMD ["node", "apps/api/dist/server.js"]
+ENTRYPOINT ["./entrypoint.sh"]
