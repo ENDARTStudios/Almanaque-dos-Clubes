@@ -49,6 +49,7 @@ model Club {
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
   sourceUrl    String?    // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  driftProbe   String?    // T430-TESTE-NEGATIVO: coluna sem migration (deve deixar migration-drift VERMELHO)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
