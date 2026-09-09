@@ -482,6 +482,12 @@ model Match {
   @@index([status])
   @@index([stadiumId])
   @@index([homeClubId, awayClubId, date])
+  // T430 — declarados porque as migrations os criam de verdade
+  // (20260905_deep_data_match_provenance); sem isso o drift check
+  // os reportaria como DROP. dedupKey já é @unique (índice próprio);
+  // este @@index espelha o índice nominal criado pela migration.
+  @@index([importedFrom])
+  @@index([dedupKey])
   @@map("matches")
 }
 

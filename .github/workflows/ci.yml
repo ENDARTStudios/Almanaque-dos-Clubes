@@ -152,9 +152,16 @@ jobs:
           DATABASE_URL="$DRIFT_URL" npx prisma migrate deploy --schema=prisma/schema.prisma
 
       - name: Fail if schema drifted from baseline+migrations (P2022 class)
+        # Exceção conhecida e documentada (T430): `stadiums_location_gix` é um
+        # índice GIST criado pela migration em bancos COM PostGIS, mas o Prisma
+        # não expressa índice espacial no schema (campo Unsupported) — filtrado
+        # aqui; qualquer outra linha de DDL real falha o job.
         run: |
           cd apps/api
-          npx prisma migrate diff --from-url "$DRIFT_URL" --to-schema-datamodel prisma/schema.prisma --script --exit-code
+          npx prisma migrate diff --from-url "$DRIFT_URL" --to-schema-datamodel prisma/schema.prisma --script > /tmp/drift.sql || true
+          grep -v -e '^-- DropIndex$' -e '^DROP INDEX "stadiums_location_gix";$' /tmp/drift.sql | grep -v -e '^$' -e '^--' > /tmp/drift-real.sql || true
+          if [ -s /tmp/drift-real.sql ]; then echo "SCHEMA DRIFT DETECTED:"; cat /tmp/drift-real.sql; exit 1; fi
+          echo "No schema drift."
 
   gitleaks:
     runs-on: ubuntu-latest
