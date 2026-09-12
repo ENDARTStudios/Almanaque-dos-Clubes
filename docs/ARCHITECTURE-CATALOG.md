@@ -4,6 +4,11 @@
 > executados na tarefa T347, HEAD `7a50d99`). Estrutura pnpm monorepo:
 > `apps/api`, `apps/web`, `apps/worker`, `packages/domain`,
 > `packages/feature-flags`.
+>
+> Diagrama de deployment (zonas Vercel/Railway/externo, fluxos runtime +
+> ETL): [`diagrams/deployment.svg`](diagrams/deployment.svg) — SVG
+> autocontido, verificado contra `Dockerfile`, `railway.json`, `ci.yml`
+> e `docker-compose.yml`; sem Mermaid, sem build.
 
 ---
 
