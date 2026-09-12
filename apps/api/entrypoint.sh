@@ -17,13 +17,13 @@
 set -e
 
 if [ "$SKIP_MIGRATIONS" = "true" ]; then
-  echo "WARNING: SKIP_MIGRATIONS=true — pulando prisma migrate deploy." >&2
-  echo "WARNING: usar somente em recuperação de incidente; registrar em DECISOES." >&2
+  echo "WARNING: SKIP_MIGRATIONS=true — pulando prisma migrate deploy. Documente em DECISOES.md se usado em produção." >&2
 else
-  echo "Applying pending database migrations..."
-  # Caminho explícito (verificado na imagem): o binário do Prisma vive no
-  # node_modules do pacote, não no .bin da raiz do workspace.
-  ./apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+  echo "Applying pending migrations (T430 entrypoint)..."
+  if ! ./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma; then
+    echo "FATAL: Migration failed — container will not start (fail-fast policy)." >&2
+    exit 1
+  fi
   echo "Migrations up to date."
 fi
 
