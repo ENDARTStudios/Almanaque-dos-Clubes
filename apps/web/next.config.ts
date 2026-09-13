@@ -24,8 +24,12 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Content-Security-Policy',
+            // T-vis-01: style-src inclui fonts.googleapis.com e font-src inclui
+            // fonts.gstatic.com — sem isso o CSP bloqueia as fontes Barlow/
+            // Barlow Condensed e o site cai para fonte de sistema (console:
+            // "Loading the stylesheet ... violates CSP" em todas as páginas).
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' https://api.almanaquedosclubes.com https://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com https://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },

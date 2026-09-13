@@ -263,6 +263,8 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 **Seed de PRODUÇÃO (T429, fechado 2026-09-08) — counts reais auditáveis:** clubs 1889 → 3857 total (1968 novos + 10 backfilled), `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 sem qid); competitions 895 → 1263 total (368 novos + 334 backfilled), `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid); players 2396 total, `sourceUrl` 0 → 2396 (100%, via backfill SQL determinístico — SPARQL da Wikidata instável na janela com 502/429/timeout, retry/backoff comportou-se conforme o contrato). API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway. **M1 segue NÃO declarado** (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
+**Migration automation (T430, fechado 2026-09-09) — fim da classe P2022:** entrypoint com `migrate deploy` fail-fast no boot da API (SKIP_MIGRATIONS só-incidente); job `migration-drift` no CI (baseline dump + resolve pinado + deploy + diff, com 1 exceção documentada para o índice GIST); job-runnability (scripts na imagem + dry-run in-container validado); `_prisma_migrations` de produção com 15 linhas (11 históricas + 4 do T430 aplicadas no primeiro boot). Validação: scratch Railway com baseline+resolve+deploy limpos; entrypoint real executado (migrate + boot até EADDRINUSE esperado); drift verde no CI + teste negativo vermelho-proposital (coluna sem migration → job falha com o DDL exato no log).
+
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
 | Arquivo                                               | Tipo                           | Fase          |
