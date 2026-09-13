@@ -12,6 +12,7 @@ interface Player {
   position?: string | null;
   qid?: string | null;
   importedFrom?: string | null;
+  sourceUrl?: string | null;
 }
 
 async function getPlayer(id: string) {
@@ -69,6 +70,11 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
           {birthYear && <InfoItem label="Nascimento" value={birthYear} />}
           {p.qid && <InfoItem label="Wikidata" value={p.qid} />}
           {p.importedFrom && <InfoItem label="Origem" value={p.importedFrom} />}
+          {p.sourceUrl && (
+            <InfoItem label="Fonte (Wikidata)" value={
+              <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">Ver no Wikidata</a>
+            } />
+          )}
         </div>
       </div>
     </div>
