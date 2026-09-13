@@ -18,6 +18,15 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-13] Decisão: D-2026-09-13-t432-higiene — T432: working tree limpa (graft-tools commitado, notas descartadas com justificativa)
+
+Motivo: ao fechar o T430 restaram 5 itens não-commitados violando "working tree limpa". Destino decidido por conteúdo, não por inércia:
+- `scripts/graft-tools/` (graft-dead.mjs, graft-impact.mjs, README.md) → **COMMITADO**: ferramentas reais, testadas localmente (dead:1 verdadeiro + 3 dead-files verificados via grep; impact com blast radius exato em mudança sintética). Origem: ideias do codebase-memory-mcp adaptadas aos dados do `graft/` (decisão consciente de não instalar segundo indexador).
+- `T430-CLOSING-NOTES.md` → **DELETADO**: checklist integralmente resolvido (PR #91 merged, entrada T430 em DECISOES, deploy com entrypoint verificado). Registrar checklist morto seria ruído.
+- `T430-POST-MERGE-ACTIONS.md` → **DELETADO**: item 2 (CSP) resolvido via PR #92 merged; item 3 (scaffold vago) sem conteúdo acionável; item 1 (hero stats hardcoded) permanece vivo e é carregado adiante como follow-up T-vis-01 (não se perde nada: está rastreado na auditoria visual).
+Evidência: re-run `graft-dead --json` idêntico ao baseline validado (dead:1, suspect:206, sameFileRef:38, methodRef:124, deadFiles:3); `graft-impact` funcional; tsc/lint/prettier verdes; CI do PR como gate.
+Carry-forward explícito: **hero stats hardcoded na home** (`HeroSection` 10/3/2 vs 3857/895/2396) continua aberto — candidato a fast-follow (padrão T428-FASE 1, meia hora).
+
 ### [2026-09-09] Decisão: D-2026-09-09-t430-fechamento — T430 fechado: migration automation + drift check + job-runnability
 
 Motivo: o incidente P2022 (coluna no schema sem migration em prod, ~30min de `/clubs` 500) exigia automação, não disciplina manual. Entregas: entrypoint com `migrate deploy` fail-fast (D2: `set -e`, SKIP_MIGRATIONS só-incidente, forward-only, advisory lock notado); job `migration-drift` no CI (baseline dump + resolve pinado + deploy + diff, com 1 exceção documentada); job-runnability (scripts na imagem + dry-run in-container sem upload).
