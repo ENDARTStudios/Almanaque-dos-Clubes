@@ -17,6 +17,9 @@
 import { z } from 'zod';
 
 export const STADIUMS_DATASOURCE = 'wikidata' as const;
+
+/** Base canônica da URL de proveniência (T428: campo sourceUrl obrigatório). */
+export const WIKIDATA_ITEM_URL_BASE = 'https://www.wikidata.org/wiki/' as const;
 export const STADIUMS_LICENSE = 'CC0' as const;
 export const STADIUM_CLASS_QID = 'Q483110' as const;
 export const WIKIDATA_SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql' as const;
@@ -311,6 +314,8 @@ export interface StadiumCreateInput {
   clubId?: string | null;
   importedFrom: string;
   importedAt: Date;
+  /** URL canônica do item na fonte (T428: proveniência auditável). */
+  sourceUrl?: string | null;
 }
 
 export interface StadiumsRepository {
@@ -363,6 +368,7 @@ export async function syncStadiums(
   opts: StadiumsSyncOptions = {},
 ): Promise<StadiumsSyncResult> {
   const importedFrom = opts.importedFrom ?? STADIUMS_DATASOURCE;
+  const sourceUrlBase = opts.sourceUrlBase ?? WIKIDATA_ITEM_URL_BASE;
   const now = opts.now ?? (() => new Date());
 
   const seen = new Set<string>();
@@ -407,6 +413,7 @@ export async function syncStadiums(
       clubId,
       importedFrom,
       importedAt: now(),
+      sourceUrl: sourceUrlBase + entry.qid,
     });
     persisted.push({ ...entry, stadiumId: created.id });
   }

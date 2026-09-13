@@ -113,6 +113,7 @@ function createPrismaStadiumsRepository(prisma: PrismaClient): StadiumsRepositor
           clubId: args.clubId ?? null,
           importedFrom: args.importedFrom,
           importedAt: args.importedAt,
+          sourceUrl: args.sourceUrl ?? null,
         },
         select: { id: true },
       });
@@ -239,7 +240,13 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error('Erro:', (err as Error).message);
-  process.exit(1);
-});
+// Guarda de importação: em testes (vitest) o módulo é importado sem executar.
+const invokedAsScript = (process.argv[1] ?? '')
+  .replace(/\\/g, '/')
+  .endsWith('scripts/seed-stadiums.ts');
+if (invokedAsScript) {
+  main().catch((err) => {
+    console.error('Erro:', (err as Error).message);
+    process.exit(1);
+  });
+}
