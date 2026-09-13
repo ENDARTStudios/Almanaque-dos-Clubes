@@ -18,6 +18,13 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-13] Decisão: D-2026-09-13-t431-fechamento — T431 parcial: stadiums entregue (#95), players adiado por instabilidade Wikidata
+
+Motivo: FASE 3 (stadiums) executável offline-first foi entregue e merged (#95): assessment SPARQL contou **3.606 estádios com P625** (> 100 threshold); em vez de criar script duplicado, o `seed-stadiums.ts` (T423) foi elevado ao padrão dos irmãos (`sourceUrl` via `WIKIDATA_ITEM_URL_BASE` + override `sourceUrlBase` antes morto, guard de importação, 6 testes com repo fake: sourceUrl/dedup/anti-órfão/idempotência). ORDER BY deliberadamente NÃO aplicado no seed (documentado no código: transitiva Q483110 + ORDER BY = HTTP 504; amostragem + dedup QID resolve).
+FASE 1 (players DRY-RUN) **adiada por causa externa**: endpoint SPARQL pesado (DISTINCT + label service, 1000 linhas) retornou 502/429/timeout em 4 janelas distintas (~1h); retry/backoff comportou-se conforme o contrato em todas (throw limpo, zero escrita parcial). Endpoint trivial responde 200 — é carga da query, não queda do serviço. Decisão: não queimar mais quota nem mascarar com timeout maior; players novos entram em janela futura (idempotente, sem risco).
+Evidência: vitest 34/34; tsc 0 (cliente PG); lint 0; prettier ok; CI do #95 verde incl. migration-drift; PR #95 merged.
+Fora do escopo (inalterado): enrich-coords, competições, migrations, WS-C/WS-L. Próximo: WS-C restante (drill-down/perfis/busca) — players novos viram janela FASE 1 quando o endpoint estabilizar.
+
 ### [2026-09-13] Decisão: D-2026-09-13-t432-higiene — T432: working tree limpa (graft-tools commitado, notas descartadas com justificativa)
 
 Motivo: ao fechar o T430 restaram 5 itens não-commitados violando "working tree limpa". Destino decidido por conteúdo, não por inércia:
