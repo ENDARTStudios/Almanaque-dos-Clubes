@@ -63,4 +63,58 @@ test.describe('Almanaque dos Clubes — E2E', () => {
     // O texto deve vir da API mockada (50 de 1889), não de valor assado (100).
     await expect(subtitle).toContainText('50 de 1889 clubes com coordenadas conhecidas');
   });
+
+  test('mapa: marcador leva ao perfil do clube (T435 FASE 4)', async ({ page }) => {
+    const clubId = '11111111-1111-4111-8111-111111111111';
+    await page.route('**/api/v1/clubs?*', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.searchParams.get('hasCoordinates') === 'true') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: [
+              { id: clubId, name: 'Clube E2E', country: 'BR', latitude: -23.5, longitude: -46.6 },
+            ],
+            total: 1,
+            limit: 100,
+            offset: 0,
+          }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], total: 1889, limit: 1, offset: 0 }),
+      });
+    });
+    // Perfil: mock direto por id (evita depender de seed).
+    await page.route(`**/api/v1/clubs/${clubId}`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: {
+            id: clubId,
+            name: 'Clube E2E',
+            country: 'BR',
+            city: 'São Paulo',
+            foundedYear: 1900,
+            status: 'ACTIVE',
+            sourceUrl: 'https://www.wikidata.org/wiki/Q1',
+          },
+        }),
+      });
+    });
+
+    await page.goto('/map');
+    await page.locator('.leaflet-marker-icon').first().click();
+    const popupLink = page.locator('.leaflet-popup-content a');
+    await expect(popupLink).toContainText('Ver perfil');
+    await popupLink.click();
+    await expect(page).toHaveURL(new RegExp(`/clubs/${clubId}`));
+    await expect(page.locator('h1')).toContainText('Clube E2E');
+    await expect(page.locator('a[href="https://www.wikidata.org/wiki/Q1"]')).toBeVisible();
+  });
 });

@@ -9,14 +9,23 @@ async function getClub(id: string) {
     if (!res.ok) return null;
     const json = await res.json();
     return json.data;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const club = await getClub(id);
   if (!club) return { title: 'Clube não encontrado' };
-  return { title: club.name, description: `${club.name} — ${club.city ? `${club.city}, ` : ''}${club.country ?? ''}` };
+  return {
+    title: club.name,
+    description: `${club.name} — ${club.city ? `${club.city}, ` : ''}${club.country ?? ''}`,
+  };
 }
 
 export default async function ClubDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,15 +44,25 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Link href="/clubs" className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer">&larr; Voltar para Clubes</Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Link
+        href="/clubs"
+        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+      >
+        &larr; Voltar para Clubes
+      </Link>
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
           <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
             {club.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{club.name}</h1>
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
+              {club.name}
+            </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
             {club.shortName && <p className="text-sm text-foreground/40">({club.shortName})</p>}
           </div>
@@ -57,7 +76,29 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           {club.website && (
             <div>
               <p className="text-xs text-foreground/40 uppercase tracking-wider">Site</p>
-              <a href={club.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline cursor-pointer">{club.website}</a>
+              <a
+                href={club.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline cursor-pointer"
+              >
+                {club.website}
+              </a>
+            </div>
+          )}
+          {club.sourceUrl && (
+            <div>
+              <p className="text-xs text-foreground/40 uppercase tracking-wider">
+                Fonte (Wikidata)
+              </p>
+              <a
+                href={club.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline cursor-pointer"
+              >
+                Ver no Wikidata
+              </a>
             </div>
           )}
         </div>

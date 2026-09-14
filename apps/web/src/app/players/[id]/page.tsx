@@ -27,7 +27,11 @@ async function getPlayer(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const p = await getPlayer(id);
   if (!p) return { title: 'Jogador não encontrado' };
@@ -51,8 +55,14 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Link href="/players" className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Link
+        href="/players"
+        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+      >
         &larr; Voltar para Jogadores
       </Link>
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
@@ -61,7 +71,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             {p.fullName.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{p.fullName}</h1>
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
+              {p.fullName}
+            </h1>
             {p.shortName && <p className="text-sm text-foreground/40">({p.shortName})</p>}
           </div>
         </div>
@@ -72,9 +84,19 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
           {p.qid && <InfoItem label="Wikidata" value={p.qid} />}
           {p.importedFrom && <InfoItem label="Origem" value={p.importedFrom} />}
           {p.sourceUrl && (
-            <InfoItem label="Fonte (Wikidata)" value={
-              <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">Ver no Wikidata</a>
-            } />
+            <InfoItem
+              label="Fonte (Wikidata)"
+              value={
+                <a
+                  href={p.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Ver no Wikidata
+                </a>
+              }
+            />
           )}
         </div>
       </div>
