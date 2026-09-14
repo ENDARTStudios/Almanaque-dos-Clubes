@@ -17,7 +17,10 @@ export default function WorldMap({ clubs }: { clubs: MapPoint[] }) {
 
   useEffect(() => {
     if (!ref.current) return;
-    const map = L.map(ref.current, { worldCopyJump: true, scrollWheelZoom: false }).setView([20, 0], 2);
+    const map = L.map(ref.current, { worldCopyJump: true, scrollWheelZoom: false }).setView(
+      [20, 0],
+      2,
+    );
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 18,
@@ -35,7 +38,9 @@ export default function WorldMap({ clubs }: { clubs: MapPoint[] }) {
           fillOpacity: 0.7,
           weight: 1,
         })
-          .bindPopup(`<b>${c.name}</b>${c.country ? '<br/>' + c.country : ''}`)
+          .bindPopup(
+            `<b>${c.name}</b>${c.country ? '<br/>' + c.country : ''}<br/><a href="/clubs/${c.id}">Ver perfil &rarr;</a>`,
+          )
           .addTo(map);
       }
     }
@@ -45,5 +50,10 @@ export default function WorldMap({ clubs }: { clubs: MapPoint[] }) {
     };
   }, [clubs]);
 
-  return <div ref={ref} className="h-[70vh] w-full rounded-2xl border border-border/50 overflow-hidden" />;
+  return (
+    <div
+      ref={ref}
+      className="h-[70vh] w-full rounded-2xl border border-border/50 overflow-hidden"
+    />
+  );
 }

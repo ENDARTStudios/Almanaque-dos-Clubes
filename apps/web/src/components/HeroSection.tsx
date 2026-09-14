@@ -7,7 +7,15 @@ import { useI18n } from '@/i18n/Provider';
 
 const featureIcons = [BookOpen, Trophy, Search, Brain, BarChart3, Globe];
 
-export default function HeroSection() {
+// T435-D — totals vindos do Server Component (page.tsx), buscados na API com
+// revalidate. null = API indisponível -> fallback "em crescimento" (nunca inventar).
+export interface HeroTotals {
+  clubs: number | null;
+  competitions: number | null;
+  rankings: number | null;
+}
+
+export default function HeroSection({ initialTotals }: { initialTotals?: HeroTotals }) {
   const heroRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -18,10 +26,21 @@ export default function HeroSection() {
   useGsapStagger(featuresRef, '.feature-card');
 
   // Números reais e auditáveis do acervo (ver docs/HERO-NUMEROS.md) — evita publicidade enganosa (CDC art. 37 §1º).
+  // T435-D: valores vêm da API via Server Component; null = fallback honesto.
+  const growing = t('home.stats.growing');
   const stats = [
-    { value: '10', label: t('home.stats.clubs') },
-    { value: '3', label: t('home.stats.competitions') },
-    { value: '2', label: t('home.stats.rankings') },
+    {
+      value: initialTotals?.clubs != null ? String(initialTotals.clubs) : growing,
+      label: t('home.stats.clubs'),
+    },
+    {
+      value: initialTotals?.competitions != null ? String(initialTotals.competitions) : growing,
+      label: t('home.stats.competitions'),
+    },
+    {
+      value: initialTotals?.rankings != null ? String(initialTotals.rankings) : growing,
+      label: t('home.stats.rankings'),
+    },
   ];
 
   return (
@@ -39,10 +58,16 @@ export default function HeroSection() {
               {t('home.heroSubtitle')}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/search" className="bg-primary text-on-primary px-8 py-3 rounded-lg text-base font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg">
+              <Link
+                href="/search"
+                className="bg-primary text-on-primary px-8 py-3 rounded-lg text-base font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg"
+              >
                 {t('home.ctaSearch')}
               </Link>
-              <Link href="/auth/register" className="border-2 border-primary text-primary px-8 py-3 rounded-lg text-base font-semibold hover:bg-primary/5 transition-all duration-200 cursor-pointer">
+              <Link
+                href="/auth/register"
+                className="border-2 border-primary text-primary px-8 py-3 rounded-lg text-base font-semibold hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+              >
                 {t('home.ctaRegister')}
               </Link>
             </div>
@@ -51,10 +76,15 @@ export default function HeroSection() {
       </section>
 
       <section className="py-12 bg-white border-y border-border">
-        <div ref={statsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-3 gap-8">
+        <div
+          ref={statsRef}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-3 gap-8"
+        >
           {stats.map((stat) => (
             <div key={stat.label} className="stat-item text-center">
-              <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">{stat.value}</div>
+              <div className="text-3xl sm:text-4xl font-heading font-bold text-primary">
+                {stat.value}
+              </div>
               <div className="text-sm text-foreground/60 mt-1">{stat.label}</div>
             </div>
           ))}
@@ -74,11 +104,16 @@ export default function HeroSection() {
             {dict.home.features.map((feat, index) => {
               const Icon = featureIcons[index % featureIcons.length];
               return (
-                <div key={index} className="feature-card bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border border-border/50">
+                <div
+                  key={index}
+                  className="feature-card bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border border-border/50"
+                >
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-heading font-semibold text-foreground mb-2">{feat.title}</h3>
+                  <h3 className="text-lg font-heading font-semibold text-foreground mb-2">
+                    {feat.title}
+                  </h3>
                   <p className="text-sm text-foreground/60 leading-relaxed">{feat.desc}</p>
                 </div>
               );
