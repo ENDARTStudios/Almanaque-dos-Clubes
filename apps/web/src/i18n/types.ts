@@ -5,6 +5,15 @@ export interface LegalSection {
   body: string[];
 }
 
+// Inventário real de cookies da Política de Cookies (/cookies) — T436.
+export interface CookieInventoryRow {
+  name: string;
+  purpose: string;
+  category: string;
+  duration: string;
+  form: string;
+}
+
 export interface Dictionary {
   site: {
     name: string;
@@ -133,7 +142,15 @@ export interface Dictionary {
     sobre: { title: string; intro: string; sections: LegalSection[] };
     planos: { title: string; intro: string; sections: LegalSection[]; note: string };
     seguranca: { title: string; intro: string; sections: LegalSection[] };
-    cookiePolicy: { title: string; intro: string; sections: LegalSection[]; note?: string };
+    cookiePolicy: {
+      title: string;
+      intro: string;
+      sections: LegalSection[];
+      note?: string;
+      inventoryTitle?: string;
+      inventoryHeaders?: string[];
+      inventory?: CookieInventoryRow[];
+    };
     ia: { title: string; intro: string; sections: LegalSection[]; note?: string };
     termosAssinatura: { title: string; intro: string; sections: LegalSection[]; note?: string };
   };

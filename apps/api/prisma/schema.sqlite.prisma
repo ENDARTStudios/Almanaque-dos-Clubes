@@ -410,6 +410,35 @@ model KnowledgeGraph {
   @@map("knowledge_graph")
 }
 
+// WS-L 1ª CAMADA — Consentimento de cookies (LGPD) — T436
+// Espelho SQLite do modelo em schema.prisma (Json → String serializado).
+model CookieConsent {
+  id          String   @id @default(uuid())
+  visitorId   String
+  version     String
+  categories  String // JSON.stringify({ necessary, preferences, analytics, personalization, marketing })
+  consentedAt DateTime @default(now())
+  userAgent   String?
+  ipHash      String?
+  revokedAt   DateTime?
+  metadata    String? // JSON.stringify({ source, ... })
+
+  @@index([visitorId])
+  @@index([version])
+  @@index([consentedAt])
+  @@map("cookie_consents")
+}
+
+model CookiePolicyVersion {
+  id          String   @id @default(uuid())
+  version     String   @unique
+  effectiveAt DateTime @default(now())
+  checksum    String?
+  createdAt   DateTime @default(now())
+
+  @@map("cookie_policy_versions")
+}
+
 model AuditLog {
   id         String   @id @default(uuid())
   entityType String

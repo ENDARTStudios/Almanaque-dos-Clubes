@@ -276,7 +276,7 @@ const es: Dictionary = {
         {
           title: 'Controles adoptados',
           body: [
-            'Adoptamos controles proporcionales al riesgo: autenticación segura, contraseñas con hash fuerte y sal, protección de sesión, TLS, gestión de secretos fuera del código, principio de mínimo privilegio, registros protegidos, copias de seguridad probadas, parches y dependencias actualizadas, revisión de permisos, segregación de entornos, monitoreo, limitación de tasa y plan de continuidad.',
+            'Controles técnicos en producción: Content Security Policy (CSP) y cabeceras de seguridad vía Helmet; contraseñas con hash argon2id; cookies de sesión httpOnly + SameSite con refresh token rotativo; protección CSRF de uso único en todas las operaciones de escritura; limitación de tasa en capas (límite global por IP, anti-fuerza bruta en el login por IP+email, ventana deslizante por usuario+IP en rutas de autenticación); Row-Level Security (RLS) en PostgreSQL para sesiones; audit log append-only para entidades críticas; hardening HTTP (gate de métodos, límite de payload, idempotencia); integración continua con gitleaks, pnpm audit, security-gate y detección de drift de migrations; procedimiento de backup y restauración documentado; mínimo privilegio (usuario de aplicación distinto del propietario de la base); secretos fuera del código; segregación de entornos; y monitoreo de peticiones, 5xx y fallos de autenticación.',
           ],
         },
         {
@@ -314,10 +314,10 @@ const es: Dictionary = {
         {
           title: 'Categorías',
           body: [
-            'Necesarias: sesión, inicio de sesión, seguridad, prevención de fraude y preferencias esenciales — minimizadas y siempre activas cuando son indispensables.',
+            'Necesarias: sesión, inicio de sesión, seguridad (CSRF), prevención de fraude, registro de la elección de consentimiento y preferencia de idioma — minimizadas y siempre activas cuando son indispensables. El rechazo no aplica a esta categoría.',
             'Preferencias: idioma, tema y elecciones de interfaz — consentimiento cuando no son esenciales.',
-            'Analítica: medición de audiencia, errores y rendimiento — consentimiento granular; interés legítimo solo cuando se evalúa y sin rastreo intrusivo.',
-            'Marketing/publicidad: campañas, atribución y remarketing — consentimiento específico y revocable.',
+            'Analítica: medición de audiencia, errores y rendimiento — NO utilizadas actualmente. Si se contrata un proveedor en el futuro (ej.: PostHog, Plausible), será listado en el inventario siguiente y solo se cargará tras consentimiento granular.',
+            'Marketing/publicidad: campañas, atribución y remarketing — NO utilizadas actualmente; si se contratan, exigirán consentimiento específico y revocable.',
           ],
         },
         {
@@ -329,7 +329,7 @@ const es: Dictionary = {
         {
           title: 'Terceros y transferencias',
           body: [
-            'Los proveedores de alojamiento, autenticación, pago, analítica, soporte, IA y seguridad pueden recibir identificadores según la finalidad, siempre minimizados y vinculados contractualmente. Cuando haya transferencia internacional, deben observarse la LGPD y (si aplica) el GDPR.',
+            'Proveedores actuales: Vercel (frontend), Railway (API y base PostgreSQL), Cloudflare (DNS/red) y Google Fonts (fuentes); pagos vía Stripe. Los proveedores de alojamiento, autenticación, pago, analítica, soporte, IA y seguridad pueden recibir identificadores según la finalidad, siempre minimizados y vinculados contractualmente. Cuando haya transferencia internacional, deben observarse la LGPD y (si aplica) el GDPR.',
           ],
         },
         {
@@ -339,7 +339,47 @@ const es: Dictionary = {
           ],
         },
       ],
-      note: 'La clasificación y el inventario deben seguir la función real de cada cookie, no el nombre comercial del proveedor.',
+      inventoryTitle: 'Inventario de cookies en uso',
+      inventoryHeaders: ['Cookie', 'Finalidad', 'Categoría', 'Duración', 'Forma'],
+      inventory: [
+        {
+          name: 'access_token',
+          purpose: 'Autenticación (sesión del usuario)',
+          category: 'Necesaria',
+          duration: '≈ 15 minutos',
+          form: 'Cookie httpOnly, primera parte',
+        },
+        {
+          name: 'refresh_token',
+          purpose: 'Renovación segura de la sesión (token rotativo)',
+          category: 'Necesaria',
+          duration: '7 días',
+          form: 'Cookie httpOnly, primera parte',
+        },
+        {
+          name: 'almanaque_locale',
+          purpose: 'Preferencia de idioma de la interfaz',
+          category: 'Necesaria (funcional)',
+          duration: '1 año',
+          form: 'Cookie primera parte',
+        },
+        {
+          name: 'consent_v',
+          purpose: 'Guarda su elección de consentimiento (para no volver a mostrar el banner)',
+          category: 'Necesaria (prueba de consentimiento)',
+          duration: '1 año',
+          form: 'localStorage + cookie primera parte',
+        },
+        {
+          name: '— (x-csrf-token)',
+          purpose:
+            'Protección CSRF de las escrituras — vía cabecera HTTP y almacenamiento en el servidor; NO usa cookie',
+          category: 'Necesaria',
+          duration: '24 h (uso único)',
+          form: 'Cabecera HTTP',
+        },
+      ],
+      note: 'La clasificación y el inventario siguen la función real de cada cookie, no el nombre comercial del proveedor. Hoy no hay cookies de analítica ni de publicidad instaladas; esta tabla se actualiza a cada cambio de inventario (última revisión: 15/09/2026 — versión 1.0 de la política).',
     },
     ia: {
       title: 'Cómo usamos la IA',
@@ -474,8 +514,8 @@ const es: Dictionary = {
         {
           title: '4. Planes, precio y características de la oferta',
           body: [
-            'La Plataforma ofrece el plan Free y los planes de pago Pro y Elite. En Brasil: Free R$ 0,00; Pro R$ 4,90/mes o R$ 49,98/año (15% de descuento sobre 12 mensualidades); Elite R$ 9,90/mes o R$ 100,98/año (15% de descuento).',
-            'Los valores anuales corresponden a 12 × el precio mensual con un 15% de descuento, redondeado a céntimos. El checkout mostrará, antes de la confirmación, el precio total del periodo, la periodicidad, el descuento, impuestos aplicables, forma de pago, fecha de la siguiente cobro y limitaciones relevantes.',
+            'La Plataforma ofrece el plan Free y los planes de pago Pro y Elite, con periodicidad mensual o anual (el ciclo anual aplica descuento sobre 12 mensualidades). Los valores vigentes de cada plan, las monedas por región y los recursos incluidos son los descritos en la página /planos, que integra estos Términos para todos los efectos, conforme descrito en /planos.',
+            'El checkout mostrará, antes de la confirmación, el precio total del periodo, la periodicidad, el descuento, impuestos aplicables, forma de pago, fecha de la siguiente cobro y limitaciones relevantes.',
             'El plan Free permite usar los recursos gratuitos identificados en la Plataforma, sin conversión automática a plan de pago. Pro y Elite permiten los recursos de pago descritos en el checkout, incluyendo, cuando se indique, búsqueda ampliada, IA asistida con citaciones, límites técnicos y, para Elite, API o exportación cuando se incluya expresamente.',
             'END ART no asumirá que API, exportación, créditos ilimitados de IA, acceso irrestricto o soporte prioritario están incluidos si no se describen expresamente en el resumen. Los límites vigentes de consultas, créditos, solicitudes, exportaciones, almacenamiento y rate limit se mostrarán antes del pago y en el panel del suscriptor.',
           ],
@@ -618,6 +658,7 @@ const es: Dictionary = {
           title: '4. Compartición',
           body: [
             'No vendemos datos personales. Los datos pueden compartirse con proveedores de infraestructura y pagos, estrictamente necesarios para la operación, y con las autoridades cuando la ley lo exija.',
+            'Proveedores actuales del entorno: Vercel (alojamiento del frontend), Railway (alojamiento de la API y de la base PostgreSQL), Cloudflare (DNS y protección de red) y Google Fonts (fuentes tipográficas). Los pagos son procesados por Stripe, que actúa como controlador independiente de los datos de pago ante el titular. Esta lista se actualiza cada vez que se contrata o sustituye un proveedor.',
           ],
         },
         {
@@ -630,7 +671,7 @@ const es: Dictionary = {
         {
           title: '6. Cookies',
           body: [
-            'Utilizamos cookies y tecnologías similares para el funcionamiento, la autenticación y las preferencias (como el idioma). El usuario puede gestionar las cookies en su navegador.',
+            'Utilizamos cookies necesarias para la autenticación, la seguridad y las preferencias (como el idioma) y guardamos prueba de su elección de consentimiento. Las cookies opcionales (analítica/marketing) solo se activan con consentimiento y pueden revocarse en cualquier momento por el pie de página ("Gestionar cookies"). Inventario completo: Política de Cookies (/cookies).',
           ],
         },
         {

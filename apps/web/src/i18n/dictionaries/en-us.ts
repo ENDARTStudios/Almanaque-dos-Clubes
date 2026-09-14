@@ -274,7 +274,7 @@ const en: Dictionary = {
         {
           title: 'Controls in place',
           body: [
-            'We adopt controls proportionate to risk: secure authentication, passwords with strong salted hashing, session protection, TLS, secret management outside code, principle of least privilege, protected logs, tested backups, patches and updated dependencies, permission review, environment separation, monitoring, rate limiting and a continuity plan.',
+            'Technical controls in production: Content Security Policy (CSP) and security headers via Helmet; passwords hashed with argon2id; httpOnly + SameSite session cookies with rotating refresh token; single-use CSRF protection on all write operations; layered rate limiting (global per-IP limit, login brute-force protection per IP+email, sliding window per user+IP on auth routes); Row-Level Security (RLS) on PostgreSQL for sessions; append-only audit log for critical entities; HTTP hardening (method gate, payload limit, idempotency); continuous integration with gitleaks, pnpm audit, security-gate and migration drift detection; documented backup and restore procedure; least privilege (application user distinct from the database owner); secrets kept out of code; environment separation; and monitoring of requests, 5xx and authentication failures.',
           ],
         },
         {
@@ -312,10 +312,10 @@ const en: Dictionary = {
         {
           title: 'Categories',
           body: [
-            'Necessary: session, login, security, fraud prevention and essential preferences — minimised and always active where indispensable.',
+            'Necessary: session, login, security (CSRF), fraud prevention, consent-choice record and language preference — minimised and always active where indispensable. Refusal does not apply to this category.',
             'Preferences: language, theme and interface choices — consent where not essential.',
-            'Analytics: audience, error and performance measurement — granular consent; legitimate interest only where assessed and without intrusive tracking.',
-            'Marketing/advertising: campaigns, attribution and remarketing — specific and revocable consent.',
+            'Analytics: audience, error and performance measurement — NOT currently used. If a vendor is contracted in the future (e.g., PostHog, Plausible), it will be listed in the inventory below and will only load after granular consent.',
+            'Marketing/advertising: campaigns, attribution and remarketing — NOT currently used; if contracted, they will require specific and revocable consent.',
           ],
         },
         {
@@ -327,7 +327,7 @@ const en: Dictionary = {
         {
           title: 'Third parties and transfers',
           body: [
-            'Hosting, authentication, payment, analytics, support, AI and security providers may receive identifiers according to the purpose, always minimised and contractually bound. Where there is an international transfer, the LGPD and (if applicable) GDPR must be observed.',
+            'Current providers: Vercel (frontend), Railway (API and PostgreSQL database), Cloudflare (DNS/network) and Google Fonts (fonts); payments via Stripe. Hosting, authentication, payment, analytics, support, AI and security providers may receive identifiers according to the purpose, always minimised and contractually bound. Where there is an international transfer, the LGPD and (if applicable) GDPR must be observed.',
           ],
         },
         {
@@ -337,7 +337,47 @@ const en: Dictionary = {
           ],
         },
       ],
-      note: 'Classification and inventory must follow the real function of each cookie, not the vendor commercial name.',
+      inventoryTitle: 'Cookie inventory in use',
+      inventoryHeaders: ['Cookie', 'Purpose', 'Category', 'Duration', 'Form'],
+      inventory: [
+        {
+          name: 'access_token',
+          purpose: 'Authentication (user session)',
+          category: 'Necessary',
+          duration: '≈ 15 minutes',
+          form: 'httpOnly cookie, first party',
+        },
+        {
+          name: 'refresh_token',
+          purpose: 'Secure session renewal (rotating token)',
+          category: 'Necessary',
+          duration: '7 days',
+          form: 'httpOnly cookie, first party',
+        },
+        {
+          name: 'almanaque_locale',
+          purpose: 'Interface language preference',
+          category: 'Necessary (functional)',
+          duration: '1 year',
+          form: 'First-party cookie',
+        },
+        {
+          name: 'consent_v',
+          purpose: "Stores your consent choice (so the banner isn't shown again)",
+          category: 'Necessary (consent proof)',
+          duration: '1 year',
+          form: 'localStorage + first-party cookie',
+        },
+        {
+          name: '— (x-csrf-token)',
+          purpose:
+            'CSRF protection for writes — via HTTP header and server-side storage; uses NO cookie',
+          category: 'Necessary',
+          duration: '24 h (single use)',
+          form: 'HTTP header',
+        },
+      ],
+      note: 'Classification and inventory follow the real function of each cookie, not the vendor commercial name. No analytics or advertising cookies are installed today; this table is updated on every inventory change (last reviewed: 2026-09-15 — policy version 1.0).',
     },
     ia: {
       title: 'How we use AI',
@@ -472,8 +512,8 @@ const en: Dictionary = {
         {
           title: '4. Plans, price and offer characteristics',
           body: [
-            'The Platform offers the Free plan and the paid Pro and Elite plans. In Brazil: Free R$ 0.00; Pro R$ 4.90/month or R$ 49.98/year (15% off 12 monthly payments); Elite R$ 9.90/month or R$ 100.98/year (15% off).',
-            'Annual values correspond to 12 × the monthly price with a 15% discount, rounded to cents. The checkout will show, before confirmation, the total price of the period, billing period, discount, any applicable taxes, payment method, next charge date and relevant limitations.',
+            'The Platform offers the Free plan and the paid Pro and Elite plans, billed monthly or annually (the annual cycle applies a discount over 12 monthly payments). The current prices of each plan, currencies per region and included features are those described on the /planos page, which is an integral part of these Terms, as described at /planos.',
+            'The checkout will show, before confirmation, the total price of the period, billing period, discount, any applicable taxes, payment method, next charge date and relevant limitations.',
             'The Free plan allows use of the free features identified on the Platform, with no automatic conversion to a paid plan. Pro and Elite allow the paid features described at checkout, including, when indicated, expanded search, AI-assisted features with citations, technical limits and, for Elite, API or export when expressly included.',
             'END ART will not assume that API, export, unlimited AI credits, unrestricted access or priority support are included unless expressly described in the summary. The current limits of queries, credits, requests, exports, storage and rate limits will be shown before payment and in the subscriber panel.',
           ],
@@ -616,6 +656,7 @@ const en: Dictionary = {
           title: '4. Sharing',
           body: [
             'We do not sell personal data. Data may be shared with infrastructure and payment providers, strictly necessary for operation, and with authorities when required by law.',
+            'Current environment providers: Vercel (frontend hosting), Railway (API and PostgreSQL database hosting), Cloudflare (DNS and network protection) and Google Fonts (typographic fonts). Payments are processed by Stripe, which acts as an independent controller of payment data towards the data subject. This list is updated whenever a provider is contracted or replaced.',
           ],
         },
         {
@@ -628,7 +669,7 @@ const en: Dictionary = {
         {
           title: '6. Cookies',
           body: [
-            'We use cookies and similar technologies for operation, authentication and preferences (such as language). Users can manage cookies in their browser.',
+            'We use necessary cookies for authentication, security and preferences (such as language) and keep proof of your consent choice. Optional cookies (analytics/marketing) are only activated with consent and can be withdrawn at any time via the footer ("Manage cookies"). Full inventory: Cookie Policy (/cookies).',
           ],
         },
         {

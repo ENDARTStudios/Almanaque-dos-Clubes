@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import LegalDocument from '@/components/LegalDocument';
+import { notFound } from 'next/navigation';
+import { legalPagesEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade | Almanaque dos Clubes',
@@ -8,5 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacidadePage() {
+  if (!legalPagesEnabled()) notFound();
   return <LegalDocument kind="privacy" />;
 }
