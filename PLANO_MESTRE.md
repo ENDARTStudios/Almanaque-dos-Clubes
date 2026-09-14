@@ -410,6 +410,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 | DECISOES.md com histórico completo                              | main      |
 | RECONCILIATION-REPORT.md                                        | T381      |
 | Hero com números reais (10 clubes / 3 competições / 2 rankings) | T394      |
+| Hero dinâmico com totals reais no HTML (T435: Server Component, revalidate 3600; 3857/1263/2 em prod) | T435      |
 | Linha "em crescimento" no hero (pt/en/es)                       | T399      |
 | ESLint + Prettier (sem varrer dist/)                            | T392      |
 
