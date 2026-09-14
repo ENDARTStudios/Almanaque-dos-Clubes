@@ -80,3 +80,53 @@ documentados. As pendências restantes são: 2 itens de dados/segurança
 condicionais (2.7/2.10), 2 condicionais de hardening (7.9/7.10), 1 de deploy
 avançado (9.3), e a reativação do CI (account-level) — todas decisões do
 Operador, não trabalho de implementação.
+
+---
+
+## 8. Snapshot T436 — WS-L 1ª camada (2026-09-15)
+
+Atualização do snapshot M1 após o fechamento do T436 (cookie banner +
+consentimento + páginas legais), referente a
+`D-2026-09-15-t436-fechamento`.
+
+### Critérios técnicos do M1 — 6/6 atendidos
+
+| Critério | Status |
+|---|---|
+| Seed ≥ 1.000 clubes | ✅ 3.857 em produção (T429) |
+| Mapa-múndi read-only | ✅ |
+| Perfis clube/jogador | ✅ |
+| Busca global | ✅ |
+| Hero dinâmico (1.3) | ✅ (T435) |
+| Cookie banner + consentimento publicado | ✅ estrutura completa (T436) — ver pendência de ativação abaixo |
+
+### Pendência única (externa, decisão do Operador)
+
+A ativação em produção segue gateada por
+`D-2026-09-14-ws-l-gated-by-operator`: as feature flags
+`LEGAL_PAGES_ENABLED`/`COOKIE_BANNER_ENABLED` (default OFF, comportamento
+default verificado em build de produção — páginas legais 404 e sem banner) só
+são ligadas em produção **após o merge**, via runbook do Operador
+(`vercel env add ... production true` + redeploy + smoke). O escopo **preview**
+já recebeu as flags (envs de preview) para aceitação; produção está intocada.
+
+**Consequência:** M1 permanece formalmente NÃO declarado até o smoke da
+ativação chegar verde. Nenhum trabalho de implementação pendente para o
+critério de cookie banner/páginas legais.
+
+### Evidências (docs/evidence/t436/)
+
+- `banner-home.png` / `banner-search.png` — banner com 3 botões de mesmo
+  destaque (same-visual-weight também assegurado por teste E2E de computed
+  styles).
+- `banner-preferences.png` — centro de preferências granular (sem checkbox de
+  categoria necessária).
+- `page-privacidade.png` / `page-termos.png` / `page-cookies.png` /
+  `page-seguranca.png` — páginas legais com dados reais (fornecedores,
+  inventário de cookies, referência a /planos, medidas de segurança) em pt-br
+  (en-us/es-es via seletor de idioma).
+- `consent-loader-tests.txt` — 4/4 testes unitários do script loader
+  (analytics/marketing bloqueados sem consentimento; necessários sempre).
+- `flags-off-default.txt` — comportamento default em build de produção.
+- Testes: integração API 8/8 (`POST/GET /consent`, CSRF, IP como hash);
+  E2E 11/11 (banner → gerenciar → salvar → prova; persistência; páginas 200).
