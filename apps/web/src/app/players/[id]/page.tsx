@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
@@ -81,7 +82,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <p className="text-xs text-foreground/40 uppercase tracking-wider">{label}</p>
