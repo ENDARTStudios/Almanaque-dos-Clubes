@@ -9,6 +9,8 @@ END $$;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "audit_logs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "billings" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_consents" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_policy_versions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "competitions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
