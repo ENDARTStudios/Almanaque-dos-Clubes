@@ -40,11 +40,13 @@ export interface Dictionary {
     legalTitle: string;
     privacy: string;
     terms: string;
+    cookies: string;
     security: string;
     copyright: string;
   };
   common: {
     loading: string;
+    back: string;
     backHome: string;
     viewAll: string;
     learnMore: string;
@@ -76,7 +78,14 @@ export interface Dictionary {
     heroSubtitle: string;
     ctaSearch: string;
     ctaRegister: string;
-    stats: { clubs: string; players: string; competitions: string; matches: string; rankings: string; growing: string };
+    stats: {
+      clubs: string;
+      players: string;
+      competitions: string;
+      matches: string;
+      rankings: string;
+      growing: string;
+    };
     featuresTitle: string;
     featuresSubtitle: string;
     features: { title: string; desc: string }[];

@@ -2,66 +2,34 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
+import { useConsent } from '@/hooks/useConsent';
+import { choiceAllOptional, type ConsentChoice } from '@/lib/consent';
 
-type Category = 'preferences' | 'analytics' | 'personalization' | 'marketing';
-type Choice = Record<Category, boolean>;
-
-const STORAGE_KEY = 'almanaque_cookie_consent';
 const OPEN_EVENT = 'almanaque:open-cookie-consent';
 
-function parseConsent(raw: string | null): Choice | null {
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      return {
-        preferences: !!parsed.preferences,
-        analytics: !!parsed.analytics,
-        personalization: !!parsed.personalization,
-        marketing: !!parsed.marketing,
-      };
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
+// Botões com MESMO destaque visual (sem dark pattern): as 3 ações do banner —
+// aceitar, rejeitar e gerenciar — compartilham classes idênticas. O teste E2E
+// de same-visual-weight (tests/e2e/consent.spec.ts) compara os estilos
+// computados e falha se qualquer botão se destacar dos demais.
+const BUTTON_CLASS =
+  'bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity';
 
-function readChoice(): Choice | null {
-  if (typeof window === 'undefined') return null;
-  // Tenta localStorage; fallback para o cookie (persiste mesmo se o storage falhar).
-  const fromStorage = parseConsent(window.localStorage.getItem(STORAGE_KEY));
-  if (fromStorage) return fromStorage;
-  try {
-    const m = document.cookie.split('; ').find((c) => c.startsWith('almanaque_consent='));
-    if (m) return parseConsent(decodeURIComponent(m.slice('almanaque_consent='.length)));
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-function writeChoice(choice: Choice) {
-  if (typeof window === 'undefined') return;
-  const payload = JSON.stringify({ ...choice, ts: new Date().toISOString(), version: '1.0' });
-  window.localStorage.setItem(STORAGE_KEY, payload);
-  document.cookie = 'almanaque_consent=' + encodeURIComponent(payload) + ';path=/;max-age=31536000;samesite=lax';
-}
+type Category = Exclude<keyof ConsentChoice, 'necessary'>;
 
 export default function CookieConsentBanner() {
-  const { dict, t } = useI18n();
+  const { dict } = useI18n();
   const b = dict.common.cookieBanner;
+  const { hasConsent, save } = useConsent();
   const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(true);
   const [managing, setManaging] = useState(false);
-  const [choice, setChoice] = useState<Choice>({ preferences: false, analytics: false, personalization: false, marketing: false });
+  const [choice, setChoice] = useState<ConsentChoice>(choiceAllOptional(false));
 
-  // Hidratação segura: lemos a preferência (localStorage/cookie) somente após o mount,
-  // evitando hydration mismatch (o servidor não tem localStorage) — assim os botões respondem.
+  // Hidratação segura: a leitura da preferência (localStorage/cookie) acontece
+  // no hook, após o mount — o servidor não tem storage, então só renderizamos
+  // o banner depois de saber se há consentimento (evita mismatch/flash).
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setMounted(true);
-    if (readChoice()) setOpen(false);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -71,65 +39,125 @@ export default function CookieConsentBanner() {
     return () => window.removeEventListener(OPEN_EVENT, onOpen);
   }, []);
 
-  function apply(next: Choice) {
-    setChoice(next);
-    try {
-      writeChoice(next);
-    } catch {
-      /* mesmo que o armazenamento falhe, o banner deve ser dispensado */
-    }
-    setOpen(false);
-    setManaging(false);
-  }
+  if (!mounted || hasConsent) return null;
 
-  if (!mounted) return null; // evita SSR divergente
-  if (!open && !managing) return null;
   if (!managing) {
     return (
-      <div className="fixed bottom-0 inset-x-0 z-[70] bg-foreground text-white shadow-lg">
+      <div
+        data-testid="cookie-banner"
+        className="fixed bottom-0 inset-x-0 z-[70] bg-foreground text-white shadow-lg"
+        role="dialog"
+        aria-label={b.title}
+      >
         <div className="max-w-4xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1 text-sm text-white/80">
             <p className="font-semibold text-white mb-1">{b.title}</p>
-            <p>{b.body} <Link href="/cookies" className="underline text-white/90">{t('legal.terms') === '' ? b.necessary : dict.footer.terms}</Link> · <Link href="/privacidade" className="underline text-white/90">{dict.footer.privacy}</Link></p>
+            <p>
+              {b.body}{' '}
+              <Link href="/cookies" className="underline text-white/90">
+                {dict.footer.cookies}
+              </Link>{' '}
+              ·{' '}
+              <Link href="/privacidade" className="underline text-white/90">
+                {dict.footer.privacy}
+              </Link>
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => apply({ preferences: true, analytics: true, personalization: true, marketing: true })} className="bg-primary text-on-primary px-3 py-2 rounded-lg text-sm font-semibold">{b.accept}</button>
-            <button onClick={() => apply({ preferences: false, analytics: false, personalization: false, marketing: false })} className="border border-white/30 text-white px-3 py-2 rounded-lg text-sm font-semibold">{b.reject}</button>
-            <button onClick={() => setManaging(true)} className="border border-white/30 text-white px-3 py-2 rounded-lg text-sm">{b.manage}</button>
+            <button
+              data-testid="cookie-accept"
+              onClick={() => save(choiceAllOptional(true), 'banner')}
+              className={BUTTON_CLASS}
+            >
+              {b.accept}
+            </button>
+            <button
+              data-testid="cookie-reject"
+              onClick={() => save(choiceAllOptional(false), 'banner')}
+              className={BUTTON_CLASS}
+            >
+              {b.reject}
+            </button>
+            <button
+              data-testid="cookie-manage"
+              onClick={() => setManaging(true)}
+              className={BUTTON_CLASS}
+            >
+              {b.manage}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  const catOrder: { key: Category; label: string; always: boolean }[] = [
-    { key: 'preferences', label: b.preferences, always: false },
-    { key: 'analytics', label: b.analytics, always: false },
-    { key: 'personalization', label: b.personalization, always: false },
-    { key: 'marketing', label: b.marketing, always: false },
+  const catOrder: { key: Category; label: string; locked: boolean }[] = [
+    { key: 'preferences', label: b.preferences, locked: false },
+    { key: 'analytics', label: b.analytics, locked: false },
+    { key: 'personalization', label: b.personalization, locked: false },
+    { key: 'marketing', label: b.marketing, locked: false },
   ];
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 text-foreground">
+    <div
+      className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-label={b.title}
+    >
+      <div
+        data-testid="cookie-preferences"
+        className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 text-foreground"
+      >
         <h2 className="text-xl font-heading font-bold mb-3">{b.title}</h2>
         <p className="text-sm text-foreground/60 mb-2">{b.necessary}</p>
         <p className="text-xs text-foreground/50 mb-4">{b.necessaryAlways}</p>
         <div className="space-y-3 mb-5">
           {catOrder.map((c) => (
-            <label key={c.key} className="flex items-center justify-between gap-3 text-sm text-foreground/80 cursor-pointer">
+            <label
+              key={c.key}
+              className="flex items-center justify-between gap-3 text-sm text-foreground/80 cursor-pointer"
+            >
               <span>{c.label}</span>
-              <input type="checkbox" checked={choice[c.key]} onChange={(e) => setChoice((prev) => ({ ...prev, [c.key]: e.target.checked }))} className="h-4 w-4 text-primary" />
+              <input
+                type="checkbox"
+                data-testid={`cookie-cat-${c.key}`}
+                checked={choice[c.key]}
+                onChange={(e) => setChoice((prev) => ({ ...prev, [c.key]: e.target.checked }))}
+                className="h-4 w-4 text-primary"
+              />
             </label>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => apply(choice)} className="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">{b.save}</button>
-          <button onClick={() => apply({ preferences: false, analytics: false, personalization: false, marketing: false })} className="border border-border text-foreground px-4 py-2 rounded-lg text-sm">{b.reject}</button>
-          <button onClick={() => setManaging(false)} className="border border-border text-foreground px-4 py-2 rounded-lg text-sm">{dict.footer.terms}</button>
+          <button
+            data-testid="cookie-save"
+            onClick={() => save(choice, 'preferences')}
+            className={BUTTON_CLASS}
+          >
+            {b.save}
+          </button>
+          <button
+            data-testid="cookie-prefs-reject"
+            onClick={() => save(choiceAllOptional(false), 'preferences')}
+            className={BUTTON_CLASS}
+          >
+            {b.reject}
+          </button>
+          <button
+            onClick={() => setManaging(false)}
+            className="px-4 py-2 rounded-lg text-sm underline text-foreground/60"
+          >
+            {dict.common.back}
+          </button>
         </div>
         <p className="mt-4 text-xs text-foreground/50">
-          <Link href="/cookies" className="underline">{dict.footer.terms}</Link> · <Link href="/privacidade" className="underline">{dict.footer.privacy}</Link>
+          <Link href="/cookies" className="underline">
+            {dict.footer.cookies}
+          </Link>{' '}
+          ·{' '}
+          <Link href="/privacidade" className="underline">
+            {dict.footer.privacy}
+          </Link>
         </p>
       </div>
     </div>

@@ -24,6 +24,7 @@ export default function Footer() {
   const legalLinks = [
     { href: '/privacidade', label: t('footer.privacy') },
     { href: '/termos', label: t('footer.terms') },
+    { href: '/cookies', label: t('footer.cookies') },
     { href: '/seguranca', label: t('footer.security') },
   ];
 
@@ -37,11 +38,16 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.platformTitle')}</h3>
+            <h3 className="text-sm font-semibold text-white/80 mb-3">
+              {t('footer.platformTitle')}
+            </h3>
             <ul className="space-y-2">
               {platformLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -54,18 +60,29 @@ export default function Footer() {
             <ul className="space-y-2">
               {aboutLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                  >
                     {link.label}
                   </Link>
                 </li>
               ))}
               <li>
-                <a href="mailto:endart.studios@gmail.com" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200">
+                <a
+                  href="mailto:endart.studios@gmail.com"
+                  className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200"
+                >
                   <Mail className="w-3.5 h-3.5" /> {t('footer.contact')}
                 </a>
               </li>
               <li>
-                <a href="https://t.me/AlmanaqueDosClubes" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200">
+                <a
+                  href="https://t.me/AlmanaqueDosClubes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200"
+                >
                   <Send className="w-3.5 h-3.5" /> {t('footer.telegram')}
                 </a>
               </li>
@@ -77,13 +94,21 @@ export default function Footer() {
             <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                  >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-            <button onClick={openCookieConsent} className="mt-4 text-xs text-white/40 underline hover:text-white transition-colors duration-200 cursor-pointer">{t('common.cookieBanner.footerManage')}</button>
+            <button
+              onClick={openCookieConsent}
+              className="mt-4 text-xs text-white/40 underline hover:text-white transition-colors duration-200 cursor-pointer"
+            >
+              {t('common.cookieBanner.footerManage')}
+            </button>
             <div className="mt-6 flex items-center gap-2">
               {(['pt-br', 'en-us', 'es-es'] as Locale[]).map((l) => (
                 <button
