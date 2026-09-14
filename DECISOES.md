@@ -18,6 +18,12 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-14] Decisão: D-2026-09-14-t435-fechamento — T435 fechado: build web + gate + testes + hero Server Component + reconciliação
+
+Motivo: fechar o audit com 5 blocos. Bloco A corrigiu TS2322 em players/[id]/page.tsx:74 (InfoItem value: ReactNode) — next build local verde e preview Vercel READY (antes Error 13s). Bloco B fechou o gap estrutural: root typecheck inclui web + scripts/ci/check-entrypoint.mjs como gate no security-gate (prova positiva e negativa nos paths críticos do entrypoint.sh, que havia causado P0 com ./node_modules/.bin/prisma fora da imagem). Bloco C reconciliou a suíte: unit 60/60 (11 arquivos, incluindo T428/T431); integração 2 falhas em routes.test.ts são pré-existentes no origin/main (sem DB/Redis local — git stash + checkout main + vitest → mesmos 2 falhos; não é regressão do T435). Bloco D trocou o hero client (useEffect) por Server Component (app/page.tsx busca total de clubs/competitions/rankings com revalidate 3600; HeroSection recebe initialTotals como prop e renderiza String(total) ou fallback em crescimento — número real no HTML, sem layout shift, como no /map). Bloco E consolidou a tabela T433 (fase → commit/PR) no corpo do PR #99 e esta nota.
+Evidência: next build verde (10.5s) + pnpm typecheck (api+domain+web) 0 + migration-drift verde + security-gate verde + preview Vercel READY + smoke prod (hero 3857/1263/2 no HTML, /players/[id] com sourceUrl clicável, /map 113 de 3857 inalterado). PR #99 merged (ae3e057); PR #97 fechado como superseded; main com _prisma_migrations 15 linhas e API health/clubs/rankings/matches 200.
+Próximo: WS-L 1ª camada (banner + prova de consentimento) → M2.
+
 ### [2026-09-13] Decisão: D-2026-09-13-t431-fechamento — T431 parcial: stadiums entregue (#95), players adiado por instabilidade Wikidata
 
 Motivo: FASE 3 (stadiums) executável offline-first foi entregue e merged (#95): assessment SPARQL contou **3.606 estádios com P625** (> 100 threshold); em vez de criar script duplicado, o `seed-stadiums.ts` (T423) foi elevado ao padrão dos irmãos (`sourceUrl` via `WIKIDATA_ITEM_URL_BASE` + override `sourceUrlBase` antes morto, guard de importação, 6 testes com repo fake: sourceUrl/dedup/anti-órfão/idempotência). ORDER BY deliberadamente NÃO aplicado no seed (documentado no código: transitiva Q483110 + ORDER BY = HTTP 504; amostragem + dedup QID resolve).
