@@ -15,7 +15,7 @@
     "lint:fix": "eslint apps/**/*.ts packages/**/*.ts --fix",
     "format": "prettier --write '**/*.{ts,js,json,yaml,yml}'",
     "format:check": "prettier --check '**/*.{ts,js,json,yaml,yml}'",
-    "typecheck": "pnpm --filter @almanaque/api typecheck && pnpm --filter @almanaque/domain typecheck",
+    "typecheck": "pnpm --filter @almanaque/api typecheck && pnpm --filter @almanaque/domain typecheck && pnpm --filter web typecheck",
     "test:unit": "pnpm --recursive test",
     "test:coverage": "pnpm --filter @almanaque/api test --coverage",
     "test": "pnpm test:unit",

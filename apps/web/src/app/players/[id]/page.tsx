@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
@@ -12,6 +13,7 @@ interface Player {
   position?: string | null;
   qid?: string | null;
   importedFrom?: string | null;
+  sourceUrl?: string | null;
 }
 
 async function getPlayer(id: string) {
@@ -69,13 +71,18 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
           {birthYear && <InfoItem label="Nascimento" value={birthYear} />}
           {p.qid && <InfoItem label="Wikidata" value={p.qid} />}
           {p.importedFrom && <InfoItem label="Origem" value={p.importedFrom} />}
+          {p.sourceUrl && (
+            <InfoItem label="Fonte (Wikidata)" value={
+              <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">Ver no Wikidata</a>
+            } />
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <p className="text-xs text-foreground/40 uppercase tracking-wider">{label}</p>
