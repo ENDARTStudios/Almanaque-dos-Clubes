@@ -263,6 +263,8 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 **Seed de PRODUÇÃO (T429, fechado 2026-09-08) — counts reais auditáveis:** clubs 1889 → 3857 total (1968 novos + 10 backfilled), `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 sem qid); competitions 895 → 1263 total (368 novos + 334 backfilled), `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid); players 2396 total, `sourceUrl` 0 → 2396 (100%, via backfill SQL determinístico — SPARQL da Wikidata instável na janela com 502/429/timeout, retry/backoff comportou-se conforme o contrato). API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway. **M1 segue NÃO declarado** (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
+**WS-L 1ª camada (T436, fechado 2026-09-15) — cookie banner + consentimento + páginas legais:** schema `cookie_consents` + `cookie_policy_versions` (migration reversível, drift-verificada) e API `POST/GET /api/v1/consent` (prova auditável com IP apenas como hash SHA-256, CSRF obrigatório de uso único — 8 testes de integração). Web: banner com 3 botões de mesmo destaque (E2E de same-visual-weight), centro de preferências granular, hook `useConsent`, storage `consent_v` (localStorage + cookie + legado) e script loader gateado por categoria (4 testes unitários — analytics/marketing nunca carregam sem consentimento). Páginas legais (privacidade/termos/cookies/segurança) com dados REAIS em 3 idiomas e feature flags `LEGAL_PAGES_ENABLED`/`COOKIE_BANNER_ENABLED` **default OFF** (default verificado: legais 404 e sem banner; ON: 11/11 E2E). **Critérios técnicos do M1: 6/6 atendidos; M1 segue formalmente NÃO declarado até o smoke da ativação de produção das flags pelo Operador (reitera D-2026-09-14-ws-l-gated-by-operator).**
+
 **Migration automation (T430, fechado 2026-09-09) — fim da classe P2022:** entrypoint com `migrate deploy` fail-fast no boot da API (SKIP_MIGRATIONS só-incidente); job `migration-drift` no CI (baseline dump + resolve pinado + deploy + diff, com 1 exceção documentada para o índice GIST); job-runnability (scripts na imagem + dry-run in-container validado); `_prisma_migrations` de produção com 15 linhas (11 históricas + 4 do T430 aplicadas no primeiro boot). Validação: scratch Railway com baseline+resolve+deploy limpos; entrypoint real executado (migrate + boot até EADDRINUSE esperado); drift verde no CI + teste negativo vermelho-proposital (coluna sem migration → job falha com o DDL exato no log).
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
@@ -435,12 +437,12 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 **Bloqueante para ir ao ar publicamente:**
 
-- [ ] **Banner de cookies** (LGPD/GDPR) — 1ª camada + centro de preferências + prova de consentimento
-- [ ] **Política de Privacidade** publicada (minuta pronta no pacote)
-- [ ] **Termos de Uso** publicados (minuta pronta no pacote)
-- [ ] **Política de Cookies** publicada
-- [ ] **Política de Segurança** publicada
-- [ ] **Razão social + CNPJ + endereço** da END ART Studios (pendência Operador)
+- [x] **Banner de cookies** (LGPD/GDPR) — 1ª camada + centro de preferências + prova de consentimento (T436: 3 botões de mesmo destaque, script loader gateado, prova em `cookie_consents`; ativação em produção = flag `COOKIE_BANNER_ENABLED`, Operador pós-merge)
+- [x] **Política de Privacidade** publicada (T436: conteúdo real em 3 idiomas, fornecedores atuais Vercel/Railway/Cloudflare/Google Fonts/Stripe; ativação = flag `LEGAL_PAGES_ENABLED`)
+- [x] **Termos de Uso** publicados (T436: §Planos referencia /planos em vez de valores hardcoded; ativação = flag `LEGAL_PAGES_ENABLED`)
+- [x] **Política de Cookies** publicada (T436: inventário REAL — access_token, refresh_token, almanaque_locale, consent_v, CSRF sem cookie; zero analytics/marketing hoje; ativação = flag `LEGAL_PAGES_ENABLED`)
+- [x] **Política de Segurança** publicada (T436: medidas reais — CSP/Helmet, argon2id, rate-limit em camadas, RLS, audit log append-only, CI security; ativação = flag `LEGAL_PAGES_ENABLED`)
+- [x] **Razão social + CNPJ + endereço** da END ART Studios (confirmado pelo Operador em D-2026-09-15-ws-l-identity-confirmed; CNPJ 45.370.930/0001-75 · Osasco/SP já publicados no rodapé e páginas legais)
 - [ ] **Encarregado/DPO** nomeado e publicado
 - [ ] **E-mails oficiais** configurados (contato@, suporte@, privacidade@, security@, reembolso@, direitos@)
 - [ ] **Processo de direitos do titular** (LGPD art. 18)

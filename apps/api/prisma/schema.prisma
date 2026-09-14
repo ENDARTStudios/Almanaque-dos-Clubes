@@ -521,6 +521,39 @@ enum BillingStatus {
 }
 
 // -----------------------------------------------------------------------------
+// WS-L 1ª CAMADA — Consentimento de cookies (LGPD) — T436
+// Prova auditável de consentimento por visitante; versionado para
+// rastrear mudanças na política de cookies.
+// -----------------------------------------------------------------------------
+
+model CookieConsent {
+  id         String   @id @default(uuid())
+  visitorId  String   // hash anônimo do visitante (cookie httpOnly + localStorage)
+  version    String   // versão da política vigente no momento do consentimento
+  categories Json     // { necessary: true, preferences: boolean, analytics: boolean, personalization: boolean, marketing: boolean }
+  consentedAt DateTime @default(now())
+  userAgent  String?
+  ipHash     String?  // hash SHA-256 do IP (não armazena IP em claro)
+  revokedAt  DateTime?
+  metadata   Json?    // { source: "banner" | "preferences" | "api", ... }
+
+  @@index([visitorId])
+  @@index([version])
+  @@index([consentedAt])
+  @@map("cookie_consents")
+}
+
+model CookiePolicyVersion {
+  id          String   @id @default(uuid())
+  version     String   @unique // "1.0", "1.1", etc.
+  effectiveAt DateTime @default(now())
+  checksum    String?  // SHA-256 do conteúdo da política no momento
+  createdAt   DateTime @default(now())
+
+  @@map("cookie_policy_versions")
+}
+
+// -----------------------------------------------------------------------------
 // AUDIT LOG — append-only (somente insert). NUNCA update/delete via Prisma.
 // Rastreia mudanças em entidades críticas para conformidade e segurança.
 // -----------------------------------------------------------------------------

@@ -1,0 +1,11 @@
+T436 — comportamento default com flags OFF (next start, build de producao, sem LEGAL_PAGES_ENABLED/COOKIE_BANNER_ENABLED):
+
+/           -> 200
+/privacidade -> 404
+/termos      -> 404
+/cookies     -> 404
+/seguranca   -> 404
+/planos      -> 200
+
+Com flags ON (escopo preview/local): todas as legais retornam 200 (ver tests/e2e/consent.spec.ts).
+Nota: previews Vercel tem SSO Protection (all_except_custom_domains); verificacao 200 no preview requer browser logado no Vercel.
