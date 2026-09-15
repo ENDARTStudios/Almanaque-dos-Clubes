@@ -137,7 +137,24 @@ export interface Dictionary {
     clubs: { title: string; subtitle: string; placeholder: string };
     players: { title: string; subtitle: string; placeholder: string };
     competitions: { title: string; subtitle: string; empty: string };
-    rankings: { title: string; subtitle: string };
+    rankings: {
+      title: string;
+      subtitle: string;
+      filterYear: string;
+      filterGender: string;
+      filterCountry: string;
+      all: string;
+      genderMen: string;
+      genderWomen: string;
+      colPosition: string;
+      colClub: string;
+      colPoints: string;
+      colBase: string;
+      baseOf: string;
+      loadMore: string;
+      empty: string;
+      updated: string;
+    };
     search: { title: string; subtitle: string; placeholder: string };
     sobre: { title: string; intro: string; sections: LegalSection[] };
     planos: { title: string; intro: string; sections: LegalSection[]; note: string };

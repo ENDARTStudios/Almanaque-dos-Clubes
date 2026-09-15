@@ -148,8 +148,14 @@ model RankingEntry {
   ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
   clubId      String
   club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  position    Int
-  points      Int?
+  // position NULL = registro sem posição publicada (dados insuficientes) — T425
+  position    Int?
+  points      Int?     // 0-100 normalizado por gênero; NULL se dados insuficientes
+  baseMatches Int?     // nº de partidas que compõem a base do clube-ano (T425)
+  baseTitles  Int?     // nº de títulos auditáveis que compõem a base
+  dataSourceIds String? // JSON.stringify(proveniência) — espelho sqlite de Json (T425)
+  reason      String?  // NULL ou motivo de não-publicação (ex.: "dados insuficientes")
+  gender      String?  // "men" | "women" — isolamento por gênero (T425)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

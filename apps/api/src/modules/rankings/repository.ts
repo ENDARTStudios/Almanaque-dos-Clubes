@@ -80,6 +80,84 @@ export const rankingsRepository = {
     }) as Promise<RankingEntry[]>;
   },
 
+  // --- T438 — leitura pública otimizada (cursor-based) ---
+
+  /** Último Ranking publicado que casa com os filtros (ano/competição). */
+  async findLatestPublished(
+    filter: { season?: string; competitionId?: string } = {},
+  ): Promise<Ranking | null> {
+    return prisma.ranking.findFirst({
+      where: {
+        publishedAt: { not: null },
+        ...(filter.season ? { season: filter.season } : {}),
+        ...(filter.competitionId ? { competitionId: filter.competitionId } : {}),
+      },
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+    }) as Promise<Ranking | null>;
+  },
+
+  /** Entradas RANQUEADAS (position não-nula) em ordem de posição; cursor = última posição. */
+  async findRankedEntries(params: {
+    rankingId: string;
+    cursorPosition?: number | null;
+    limit: number;
+    country?: string;
+    state?: string;
+    city?: string;
+    gender?: string;
+  }) {
+    return prisma.rankingEntry.findMany({
+      where: {
+        rankingId: params.rankingId,
+        position: {
+          not: null,
+          ...(params.cursorPosition ? { gt: params.cursorPosition } : {}),
+        },
+        ...(params.gender ? { gender: params.gender } : {}),
+        ...(params.country || params.state || params.city
+          ? {
+              club: {
+                ...(params.country ? { country: params.country } : {}),
+                ...(params.state ? { state: params.state } : {}),
+                ...(params.city ? { city: params.city } : {}),
+              },
+            }
+          : {}),
+      },
+      orderBy: { position: 'asc' },
+      take: params.limit,
+      include: {
+        club: { select: { id: true, name: true, country: true, state: true, city: true } },
+      },
+    });
+  },
+
+  async clubExists(clubId: string): Promise<boolean> {
+    const c = await prisma.club.findUnique({ where: { id: clubId }, select: { id: true } });
+    return c !== null;
+  },
+
+  /** Histórico de rankings de um clube (entradas publicadas, mais recente primeiro). */
+  async findClubHistory(clubId: string, year?: string) {
+    return prisma.rankingEntry.findMany({
+      where: {
+        clubId,
+        position: { not: null },
+        ranking: {
+          publishedAt: { not: null },
+          ...(year ? { season: year } : {}),
+        },
+      },
+      orderBy: [{ ranking: { season: 'desc' } }, { ranking: { publishedAt: 'desc' } }],
+      include: {
+        club: { select: { id: true, name: true } },
+        ranking: {
+          select: { id: true, name: true, season: true, competitionId: true, publishedAt: true },
+        },
+      },
+    });
+  },
+
   async addEntry(data: Prisma.RankingEntryUncheckedCreateInput): Promise<RankingEntry> {
     return prisma.rankingEntry.create({ data }) as Promise<RankingEntry>;
   },
