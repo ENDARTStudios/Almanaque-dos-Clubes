@@ -16,17 +16,23 @@ export default function Navbar() {
     { href: '/competitions', label: t('nav.competitions') },
     { href: '/map', label: t('nav.map') },
     { href: '/rankings', label: t('nav.rankings') },
+    { href: '/favoritos', label: t('pages.favoritos.title') },
     { href: '/search', label: t('nav.search') },
     { href: '/planos', label: t('footer.plans') },
   ];
 
   return (
-    <nav ref={ref} className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <nav
+      ref={ref}
+      className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-heading font-bold text-primary">ALMANAQUE</span>
-            <span className="text-lg font-heading text-foreground hidden sm:inline">dos Clubes</span>
+            <span className="text-lg font-heading text-foreground hidden sm:inline">
+              dos Clubes
+            </span>
           </Link>
           <div className="flex items-center gap-4 sm:gap-6">
             {navLinks.map((link) => (

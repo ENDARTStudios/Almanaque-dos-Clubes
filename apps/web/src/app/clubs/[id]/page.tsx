@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
+import FavoriteButton from '@/components/FavoriteButton';
 
 async function getClub(id: string) {
   try {
@@ -65,6 +66,9 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
             {club.shortName && <p className="text-sm text-foreground/40">({club.shortName})</p>}
+          </div>
+          <div className="shrink-0">
+            <FavoriteButton clubId={club.id} />
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">

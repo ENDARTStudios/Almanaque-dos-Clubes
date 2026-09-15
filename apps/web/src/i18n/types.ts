@@ -137,6 +137,17 @@ export interface Dictionary {
     clubs: { title: string; subtitle: string; placeholder: string };
     players: { title: string; subtitle: string; placeholder: string };
     competitions: { title: string; subtitle: string; empty: string };
+    favoritos: {
+      title: string;
+      heartAdd: string;
+      heartRemove: string;
+      remove: string;
+      empty: string;
+      live: string;
+      offline: string;
+      error: string;
+      rankingBadge: string;
+    };
     rankings: {
       title: string;
       subtitle: string;
