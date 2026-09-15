@@ -146,13 +146,28 @@ describe('T439 — rotas de favoritos', () => {
 });
 
 describe('T439 — matriz RLS cross-user (deny no banco)', () => {
-  it('usuário B não vê favorito do usuário A via withRlsContext', async () => {
+  // O user do CI (dono das tabelas) é superuser no container — FORCE RLS não se
+  // aplica a superuser. A API real conecta como `app_user` (NOBYPASSRLS);
+  // o teste espelha isso com SET LOCAL ROLE app_user.
+  async function asAppUser<T>(
+    userId: string,
+    fn: (
+      tx: Parameters<Parameters<typeof import('@prisma/client').Prisma.$transaction>[0]>[0],
+    ) => Promise<T>,
+  ): Promise<T> {
+    return withRlsContext({ userId, role: 'USER' }, async (tx) => {
+      await tx.$executeRawUnsafe('SET LOCAL ROLE app_user');
+      return fn(tx);
+    });
+  }
+
+  it('usuário A vê o próprio favorito; B não vê o de A (deny no banco)', async () => {
     if (!dbOk || !isPostgres) return;
-    const asB = await withRlsContext({ userId: userB, role: 'USER' }, async (tx) =>
-      tx.favorite.findMany({ where: { clubId } }),
+    const asB = await asAppUser(userB, (tx) =>
+      tx.favorite.findMany({ where: { userId: userA, clubId } }),
     );
-    const asA = await withRlsContext({ userId: userA, role: 'USER' }, async (tx) =>
-      tx.favorite.findMany({ where: { clubId } }),
+    const asA = await asAppUser(userA, (tx) =>
+      tx.favorite.findMany({ where: { userId: userA, clubId } }),
     );
     expect(asA.length).toBeGreaterThanOrEqual(1); // A vê o próprio
     expect(asB.length).toBe(0); // B não vê nada de A
@@ -161,24 +176,23 @@ describe('T439 — matriz RLS cross-user (deny no banco)', () => {
   it('usuário B não consegue atualizar nem remover favorito do usuário A', async () => {
     if (!dbOk || !isPostgres) return;
     await expect(
-      withRlsContext({ userId: userB, role: 'USER' }, async (tx) =>
-        tx.favorite.updateMany({ where: { clubId }, data: { notificationsActive: false } }),
+      asAppUser(userB, (tx) =>
+        tx.favorite.updateMany({
+          where: { userId: userA, clubId },
+          data: { notificationsActive: false },
+        }),
       ),
     ).resolves.toMatchObject({ count: 0 });
 
     await expect(
-      withRlsContext({ userId: userB, role: 'USER' }, async (tx) =>
-        tx.favorite.deleteMany({ where: { clubId } }),
-      ),
+      asAppUser(userB, (tx) => tx.favorite.deleteMany({ where: { userId: userA, clubId } })),
     ).resolves.toMatchObject({ count: 0 });
   });
 
   it('usuário B não insere favorito com userId de A (WITH CHECK bloqueia)', async () => {
     if (!dbOk || !isPostgres) return;
     await expect(
-      withRlsContext({ userId: userB, role: 'USER' }, async (tx) =>
-        tx.favorite.create({ data: { userId: userA, clubId } }),
-      ),
+      asAppUser(userB, (tx) => tx.favorite.create({ data: { userId: userA, clubId } })),
     ).rejects.toThrow();
   });
 
