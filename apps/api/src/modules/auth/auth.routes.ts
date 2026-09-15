@@ -45,7 +45,10 @@ import {
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
+import { prisma } from '../../config/prisma.js';
 import { generateCsrfToken } from '../../middleware/csrf.js';
+import { authenticate } from './authenticate.middleware.js';
+import { getUserRoles } from './rbac.service.js';
 import { sendWelcomeEmail } from '../../services/email.js';
 import { mailerService } from '../mailer/mailer.service.js';
 import {
@@ -204,6 +207,41 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     } catch (err) {
       handleAuthError(err, reply);
     }
+  });
+
+  // -----------------------------------------------------------------
+  // GET /auth/me (T439 — ProtectedRoute): perfil resumido do usuário da
+  // sessão atual. 401 sem token; nunca expõe passwordHash.
+  // -----------------------------------------------------------------
+  app.get('/auth/me', { preHandler: [authenticate] }, async (request, reply) => {
+    const userId = request.user!.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        status: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    });
+    if (!user || user.status !== 'ACTIVE') {
+      return reply.status(401).send({
+        error: { code: 'UNAUTHORIZED', message: 'Sessão inválida' },
+      });
+    }
+    const roles = (await getUserRoles(userId)).map((r) => r.name);
+    return reply.send({
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified != null,
+        createdAt: user.createdAt,
+        roles,
+      },
+    });
   });
 
   // -----------------------------------------------------------------
