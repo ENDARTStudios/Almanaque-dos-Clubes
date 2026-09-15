@@ -55,7 +55,7 @@ test.describe('T439 — favoritos cross-user (produção)', () => {
 
     // Painel aberto ANTES de favoritar (WS conectado, lista vazia)
     await pageA0.goto('/favoritos');
-    await expect(pageA0.getByText(/Meu Almanaque|My Almanaque|Mi Almanaque/)).toBeVisible();
+    await expect(pageA0.getByRole('heading', { name: /Meu Almanaque|My Almanaque|Mi Almanaque/ })).toBeVisible();
     await pageA0.evaluate(() => {
       (window as unknown as { __noReloadProof: boolean }).__noReloadProof = true;
     });
