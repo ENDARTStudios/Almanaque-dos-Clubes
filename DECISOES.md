@@ -18,6 +18,15 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-15] Decisão: D-2026-09-15-rotacao-senha-postgres — Rotação da senha do user `postgres` executada (fecha higiene do eco do T430)
+
+Motivo: durante o diagnóstico pós-merge do T436, a `DATABASE_URL` de produção (senha completa do `postgres`) foi ecoada em output de comando. Higiene de segredo exige rotação. Executada via mecanismo oficial do Railway (**Postgres → Database → Config → Connection → Regenerate Password**), escopo = user `postgres` apenas.
+Execução: o check referência-vs-literal (`railway variables --json` expõe valores raw) mostrou que `DATABASE_URL` da API é **literal** — após o Regenerate, a variável foi atualizada manualmente com a URL nova do serviço Postgres e o redeploy automático subiu o deployment `35bc558f` (SUCCESS; o fail-fast do entrypoint prova que o `prisma migrate deploy` autenticou com a senha nova: "No pending migrations"). Smoke pós-rotação: health 200 · POST /consent 201 (canário de escrita, prova `61bbac89`) · GET /consent/current 200. `DATABASE_URL_APP` (user `app_user`, runtime/RLS) **não foi tocado** — o runtime nunca deixou de servir.
+Registro associado — **D-2026-09-15-diagnostico-prefixos-ecoados**: durante o mesmo diagnóstico, `railway variables --json` ecoou prefixos de 8 chars das senhas de `postgres` e `app_user`. Risco baixo (prefixo ≠ senha; acesso exige sessão Railway); mitigação = esta rotação (fecha o risco do T430) + **T437** (round separado) para rotação do `app_user` via `ALTER USER` + variável + redeploy — não bloqueia M1. Aprendizado: `railway variables --json` expõe valores raw; usar com redação de output em logs/scripts (mesmo padrão do `entrypoint.sh`).
+Alternativas consideradas: `ALTER ROLE postgres WITH PASSWORD` via ssh + `prisma db execute` (descartado — deixaria a variável do serviço Postgres stale, divergindo do mecanismo suportado); rotação do `app_user` no mesmo round (adiada para T437 — risco menor e mais passos; separação de mudanças).
+Evidência: deployment `35bc558f` SUCCESS com "No pending migrations"; smoke 200/201/200; variável `DATABASE_URL` da API sem a senha antiga (sanity check).
+Próximo: Operador ativa as flags da Vercel (`LEGAL_PAGES_ENABLED` + `COOKIE_BANNER_ENABLED`) → smoke do M1 → statement formal.
+
 ### [2026-09-15] Decisão: D-2026-09-15-migration-grants-rule — Toda migration que cria tabela nova inclui GRANT no create_app_user.sql no mesmo PR
 
 Motivo: o PR #101 (T436) criou `cookie_consents` + `cookie_policy_versions` via migration; a migration aplicou com sucesso em produção, mas os endpoints /consent retornavam 500 (`42501 permission denied`). Causa raiz: a app conecta como role `app_user` (`DATABASE_URL_APP`); tabelas criadas por migration não herdam grants automaticamente, e o padrão do repo mantém grants em `apps/api/scripts/sql/create_app_user.sql`, fora de migrations (aplicado manualmente em novos ambientes). Descoberto pelo smoke de produção pós-merge, antes do Operador ativar qualquer feature.
