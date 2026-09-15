@@ -130,3 +130,19 @@ critério de cookie banner/páginas legais.
 - `flags-off-default.txt` — comportamento default em build de produção.
 - Testes: integração API 8/8 (`POST/GET /consent`, CSRF, IP como hash);
   E2E 11/11 (banner → gerenciar → salvar → prova; persistência; páginas 200).
+
+---
+
+## 9. Snapshot T438 — M2 iniciado: Rankings 0-100 em cron (2026-09-15)
+
+Pipeline de Rankings 0-100 ATIVO (`D-2026-09-15-t438-rankings-cron`, PR #107):
+cron BullMQ diário 03:00 UTC no processo da API (`RANKING_CRON_AUTO=1`,
+deploy `8058f8f4`), job idempotente com guarda anti-ranking-vazio, filtro por
+gênero (bug latente do T425 corrigido), CLI compilada em dist, métricas
+`rankings_last_run_*` em /metrics, endpoints públicos com paginação cursor e
+página /rankings real com filtros (E2E 3/3 em produção).
+
+Honesto: matches=0 e wonEdges=0 em produção — o cron roda, registra
+"ranking vazio — não publicado" e só publicará quando houver clubes
+ranqueáveis (ETL de partidas/títulos, janela M4). Rankings exibidos hoje
+vêm do seed manual (2 rankings, 20 entradas).

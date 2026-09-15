@@ -478,7 +478,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 - [~] **Mapa-múndi interativo** — **código pronto** (`/map` Leaflet, círculos por clube, popup; 113 clubes com coords; T65). **Live deploy web bloqueado por Vercel build-rate-limit (externo)**; transições fluídas continente→país ainda são milestone WS-C
 - [ ] **Barra de pesquisa global** preditiva (Meilisearch ou OpenSearch)
-- [ ] **Ranking 0-100** com normalização MinMax (script Python/Node em cron)
+- [x] **Ranking 0-100** com normalização MinMax (cron diário 03:00 UTC — T438: job BullMQ ativo + CLI + métricas; publica somente com clubes ranqueáveis; conteúdo completo aguarda ETL de partidas/títulos, M4)
 - [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
 - [ ] **Futebol feminino integrado** (normalização independente)
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
