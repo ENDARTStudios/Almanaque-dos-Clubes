@@ -228,15 +228,37 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 ---
 
-## Marcos de Lançamento
+## Marcos de Lançamento (atualizado 2026-09-15)
 
-| Marco                           | Critério                                                  | Fases exigidas               |
-| ------------------------------- | --------------------------------------------------------- | ---------------------------- |
-| **Beta Fechada** (100 usuários) | Pesquisa de clubes/jogadores + login + área do usuário    | Fases 0–5 (parcial), 6.1–6.3 |
-| **Open Beta** (1.000 usuários)  | + rankings + billing Free/Pro/Elite + observabilidade     | Fases 0–8 (parcial), 9.1–9.6 |
-| **v1.0** (público)              | + IA RAG com citações + ETL automático + DAST + hardening | Todas as fases               |
+| Marco | Status | Data | Evidência |
+|---|---|---|---|
+| M0 — Método ativo | ✅ | 2026-08-11 | PLANO-ACAO.md mergeado |
+| **M1 — Beta Fechada (ler/navegar)** | **✅** | **2026-09-15** | **PR #105 + smoke verde + 7 critérios atendidos** |
+| M2 — Beta Fechada (engajar) | ⏳ | — | Rankings 0-100 + favoritos + comparações |
+| M3 — Open Beta (monetizar) | ⏳ | — | Gateway + checkout + webhook HMAC [Operador] |
+| M4 — v1.0 conteúdo amplo | ⏳ | — | Futebol feminino + ETL automático + Knowledge Graph |
+| M5 — v1.0 público | ⏳ | — | IA RAG + 360º + DAST + domínio próprio [Operador] |
 
----
+## 🎉 M1 — Beta Fechada (ler/navegar) — DECLARADO [2026-09-15]
+
+| Critério | Status | Evidência |
+|---|---|---|
+| Seed ≥1.000 clubes (Wikidata) | ✅ | 3.857 clubes em produção (100% proveniência: qid + importedFrom + importedAt + sourceUrl) |
+| Mapa-múndi read-only | ✅ | /map com 113 coords de 3.857 clubes + marcadores + drill-down |
+| Perfis clube/jogador | ✅ | /clubs/[id] + /players/[id] com sourceUrl auditável |
+| Busca global | ✅ | /search com tsvector + pg_trgm |
+| Hero dinâmico (1.3) | ✅ | Server Component com revalidate 3600 (totals reais no HTML) |
+| **Cookie banner + consentimento publicado** | ✅ | PR #101 merged + flags ativadas + smoke verde (banner visível, prova gravando, 0 analytics antes do consentimento) |
+| **Políticas publicadas** | ✅ | /privacidade + /termos + /cookies + /seguranca retornando 200 com dados reais (CNPJ 45.370.930/0001-75, Osasco/SP, endart.studios@gmail.com, fornecedores reais) |
+
+**M1 completo.** Plataforma pronta para Beta Fechada (100 usuários) com:
+- Conteúdo auditável (3.857 clubes + 1.263 competições + 2.396 jogadores + 3.606 estádios)
+- Experiência navegável (mapa + perfis + busca + hero dinâmico)
+- Compliance LGPD (banner + consentimento + políticas + prova de consentimento)
+- Infraestrutura sólida (Railway + Vercel + Railway Postgres + Cloudflare)
+- Segurança empresarial (CSP + rate-limit + argon2id + RLS + audit log)
+
+Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + comparações).
 
 ## Estado Final do Projeto (reconciliado 2026-09-02)
 
@@ -263,7 +285,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 **Seed de PRODUÇÃO (T429, fechado 2026-09-08) — counts reais auditáveis:** clubs 1889 → 3857 total (1968 novos + 10 backfilled), `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 sem qid); competitions 895 → 1263 total (368 novos + 334 backfilled), `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid); players 2396 total, `sourceUrl` 0 → 2396 (100%, via backfill SQL determinístico — SPARQL da Wikidata instável na janela com 502/429/timeout, retry/backoff comportou-se conforme o contrato). API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway. **M1 segue NÃO declarado** (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
-**WS-L 1ª camada (T436, fechado 2026-09-15) — cookie banner + consentimento + páginas legais:** schema `cookie_consents` + `cookie_policy_versions` (migration reversível, drift-verificada) e API `POST/GET /api/v1/consent` (prova auditável com IP apenas como hash SHA-256, CSRF obrigatório de uso único — 8 testes de integração). Web: banner com 3 botões de mesmo destaque (E2E de same-visual-weight), centro de preferências granular, hook `useConsent`, storage `consent_v` (localStorage + cookie + legado) e script loader gateado por categoria (4 testes unitários — analytics/marketing nunca carregam sem consentimento). Páginas legais (privacidade/termos/cookies/segurança) com dados REAIS em 3 idiomas e feature flags `LEGAL_PAGES_ENABLED`/`COOKIE_BANNER_ENABLED` **default OFF** (default verificado: legais 404 e sem banner; ON: 11/11 E2E). **Critérios técnicos do M1: 6/6 atendidos; M1 segue formalmente NÃO declarado até o smoke da ativação de produção das flags pelo Operador (reitera D-2026-09-14-ws-l-gated-by-operator).**
+**WS-L 1ª camada (T436, fechado 2026-09-15) — cookie banner + consentimento + páginas legais:** schema `cookie_consents` + `cookie_policy_versions` (migration reversível, drift-verificada) e API `POST/GET /api/v1/consent` (prova auditável com IP apenas como hash SHA-256, CSRF obrigatório de uso único — 8 testes de integração). Web: banner com 3 botões de mesmo destaque (E2E de same-visual-weight), centro de preferências granular, hook `useConsent`, storage `consent_v` (localStorage + cookie + legado) e script loader gateado por categoria (4 testes unitários — analytics/marketing nunca carregam sem consentimento). Páginas legais (privacidade/termos/cookies/segurança) com dados REAIS em 3 idiomas e feature flags `LEGAL_PAGES_ENABLED`/`COOKIE_BANNER_ENABLED` **default OFF** (default verificado: legais 404 e sem banner; ON: 11/11 E2E). **Critérios técnicos do M1: 6/6 atendidos; a condição ("smoke da ativação de produção das flags") foi cumprida em 2026-09-15 — M1 formalmente DECLARADO (ver seção \"🎉 M1\" acima e D-2026-09-15-m1-declarado no DECISOES).**
 
 **Migration automation (T430, fechado 2026-09-09) — fim da classe P2022:** entrypoint com `migrate deploy` fail-fast no boot da API (SKIP_MIGRATIONS só-incidente); job `migration-drift` no CI (baseline dump + resolve pinado + deploy + diff, com 1 exceção documentada para o índice GIST); job-runnability (scripts na imagem + dry-run in-container validado); `_prisma_migrations` de produção com 15 linhas (11 históricas + 4 do T430 aplicadas no primeiro boot). Validação: scratch Railway com baseline+resolve+deploy limpos; entrypoint real executado (migrate + boot até EADDRINUSE esperado); drift verde no CI + teste negativo vermelho-proposital (coluna sem migration → job falha com o DDL exato no log).
 

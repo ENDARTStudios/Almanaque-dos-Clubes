@@ -18,6 +18,13 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-15] Decisão: D-2026-09-15-m1-declarado — M1 (Beta Fechada ler/navegar) formalmente declarado
+
+Motivo: primeiro marco de produto do Almanaque dos Clubes, com os 7 critérios atendidos e provados em produção: seed ≥1.000 clubes via Wikidata (3.857 clubes, 100% proveniência); mapa-múndi read-only (/map, 113 coords); perfis clube/jogador com sourceUrl auditável; busca global (tsvector); hero dinâmico (Server Component, revalidate 3600); cookie banner + consentimento publicado (PR #101 + flags ativadas); políticas publicadas (/privacidade /termos /cookies /seguranca, 200 com dados reais — CNPJ 45.370.930/0001-75, Osasco/SP, endart.studios@gmail.com, fornecedores reais).
+Evidência: smoke de produção verde (PR #105 merged) — banner visível (screenshot commitado), prova gravando (POST /consent 201; cookie_consents count=3 via railway ssh), 0 analytics antes do consentimento, regressões OK (hero totals no HTML; /cookies com inventário real). Nota operacional: as flags haviam sido registradas só com alvo Preview (primeiro smoke veio vermelho — falso-negativo previsto pelo protocolo); corrigidas para Production+Preview via API (upsert) + redeploy, com prova pelo comportamento.
+Decisão: M1 formalmente declarado em 2026-09-15. Plataforma pronta para Beta Fechada (100 usuários).
+Próximo: M2 — Beta Fechada engajar (T438 rankings 0-100 em cron · T439 favoritos · T440 comparadores · T441 carrossel de campeões; T437 rotação do app_user em paralelo, não bloqueante).
+
 ### [2026-09-15] Decisão: D-2026-09-15-rotacao-senha-postgres — Rotação da senha do user `postgres` executada (fecha higiene do eco do T430)
 
 Motivo: durante o diagnóstico pós-merge do T436, a `DATABASE_URL` de produção (senha completa do `postgres`) foi ecoada em output de comando. Higiene de segredo exige rotação. Executada via mecanismo oficial do Railway (**Postgres → Database → Config → Connection → Regenerate Password**), escopo = user `postgres` apenas.
