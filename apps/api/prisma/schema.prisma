@@ -32,6 +32,7 @@ datasource db {
 // -----------------------------------------------------------------------------
 
 model Club {
+  favorites Favorite[]
   id           String     @id @default(uuid())
   name         String
   fullName     String?
@@ -206,6 +207,7 @@ model RankingEntry {
 // -----------------------------------------------------------------------------
 
 model User {
+  favorites Favorite[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -551,6 +553,31 @@ model CookiePolicyVersion {
   createdAt   DateTime @default(now())
 
   @@map("cookie_policy_versions")
+}
+
+// -----------------------------------------------------------------------------
+// WS-C 2ª CAMADA — Favoritos do usuário (T439)
+// Soft-delete (deletedAt) — princípio 1.1: sem hard-delete de dado de usuário.
+// Índice parcial único (userId, clubId) WHERE deletedAt IS NULL vive na
+// migration (Prisma não expressa índice parcial).
+// RLS owner-only: policies em scripts/sql/rls_favorites_setup.sql (fora de
+// migrations, mesmo padrão de sessions) + acesso via withRlsContext.
+// -----------------------------------------------------------------------------
+
+model Favorite {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId              String
+  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  notificationsActive Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  deletedAt           DateTime?
+
+  @@index([userId])
+  @@index([clubId])
+  @@index([userId, deletedAt])
+  @@map("favorites")
 }
 
 // -----------------------------------------------------------------------------

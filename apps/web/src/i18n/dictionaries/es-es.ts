@@ -166,6 +166,18 @@ const es: Dictionary = {
       subtitle: 'Explora {n} competiciones de fútbol registradas.',
       empty: 'No se encontraron competiciones.',
     },
+    favoritos: {
+      title: 'Mi Almanaque',
+      heartAdd: 'Favoritar',
+      heartRemove: 'Favorito',
+      remove: 'Quitar',
+      empty:
+        'Todavía no has favoritado ningún club. Usa el corazón en la página de un club para empezar.',
+      live: 'En vivo',
+      offline: 'Conectando…',
+      error: 'Error al cargar favoritos.',
+      rankingBadge: '#{position} en {name}',
+    },
     rankings: {
       title: 'Rankings',
       subtitle: 'Rankings históricos con fuentes verificadas y fecha de publicación.',
