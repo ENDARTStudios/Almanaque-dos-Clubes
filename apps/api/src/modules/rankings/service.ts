@@ -124,4 +124,118 @@ export const rankingsService = {
     if (ranking.publishedAt) throw new ConflictError('Ranking já publicado');
     await rankingsRepository.removeEntry(entryId);
   },
+
+  // --- T438 — leitura pública otimizada (cursor-based) ---
+
+  /**
+   * Entradas ranqueadas do último ranking publicado que casa com os filtros.
+   * Cursor = última `position` recebida (position é única por ranking).
+   * Só entradas COM posição (dados suficientes) — registros NULL ficam fora
+   * da listagem pública (princípio 1.3: não publicar não-ranqueado).
+   */
+  async getLatestRankedEntries(params: {
+    year?: string;
+    competitionId?: string;
+    gender?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    limit: number;
+    cursor?: number | null;
+  }): Promise<{
+    ranking: {
+      id: string;
+      name: string;
+      season: string | null;
+      competitionId: string | null;
+    } | null;
+    data: Array<{
+      position: number | null;
+      points: number | null;
+      clubId: string;
+      clubName: string;
+      country: string | null;
+      state: string | null;
+      city: string | null;
+      baseMatches: number | null;
+      baseTitles: number | null;
+      gender: string | null;
+    }>;
+    cursor: number | null;
+  }> {
+    const ranking = await rankingsRepository.findLatestPublished({
+      season: params.year,
+      competitionId: params.competitionId,
+    });
+    if (!ranking) return { ranking: null, data: [], cursor: null };
+    const entries = await rankingsRepository.findRankedEntries({
+      rankingId: ranking.id,
+      cursorPosition: params.cursor ?? null,
+      limit: params.limit,
+      country: params.country,
+      state: params.state,
+      city: params.city,
+      gender: params.gender,
+    });
+    return {
+      ranking: {
+        id: ranking.id,
+        name: ranking.name,
+        season: ranking.season,
+        competitionId: ranking.competitionId,
+      },
+      data: entries.map((e) => ({
+        position: e.position,
+        points: e.points,
+        clubId: e.club.id,
+        clubName: e.club.name,
+        country: e.club.country,
+        state: e.club.state,
+        city: e.club.city,
+        baseMatches: e.baseMatches,
+        baseTitles: e.baseTitles,
+        gender: e.gender,
+      })),
+      cursor: entries.length > 0 ? entries[entries.length - 1].position : null,
+    };
+  },
+
+  /** Histórico de rankings publicados de um clube (404 se o clube não existe). */
+  async getClubHistory(
+    clubId: string,
+    year?: string,
+  ): Promise<{
+    club: { id: string; name: string };
+    data: Array<{
+      rankingId: string;
+      rankingName: string;
+      season: string | null;
+      competitionId: string | null;
+      position: number | null;
+      points: number | null;
+      baseMatches: number | null;
+      baseTitles: number | null;
+      publishedAt: Date | null;
+    }>;
+  }> {
+    const exists = await rankingsRepository.clubExists(clubId);
+    if (!exists) throw new NotFoundError('Clube', clubId);
+    const entries = await rankingsRepository.findClubHistory(clubId, year);
+    return {
+      club: entries[0]
+        ? { id: entries[0].club.id, name: entries[0].club.name }
+        : { id: clubId, name: '' },
+      data: entries.map((e) => ({
+        rankingId: e.ranking.id,
+        rankingName: e.ranking.name,
+        season: e.ranking.season,
+        competitionId: e.ranking.competitionId,
+        position: e.position,
+        points: e.points,
+        baseMatches: e.baseMatches,
+        baseTitles: e.baseTitles,
+        publishedAt: e.ranking.publishedAt,
+      })),
+    };
+  },
 };

@@ -1,22 +1,30 @@
 /**
- * T425 — Cron diário do Ranking 0-100 (BullMQ, fila `ranking`, 03:00 UTC).
+ * T425/T438 — Cron diário do Ranking 0-100 (BullMQ, fila `ranking`, 03:00 UTC).
  *
- * Job idempotente: não recalcula/republca o ranking do mesmo ano+escopo se já
+ * Job idempotente: não recalcula/republica o ranking do mesmo ano+escopo se já
  * existir um Ranking publicado com o mesmo nome/season/competitionId.
  * Roda com contexto RLS `SERVICE` (`withRlsContext`) e usa o repositório Prisma.
+ *
+ * T438 — Honestidade de publicação (princípio 1.3): se o resultado NÃO tiver
+ * nenhum clube ranqueado (`rankedCount === 0`), o Ranking NÃO é publicado —
+ * sem dados de partidas/títulos o pipeline apenas registra o skip (evita
+ * poluir /rankings com rankings vazios). Observabilidade: logs estruturados
+ * (Pino) + gauges `rankings_last_run_*` em /api/v1/metrics.
  *
  * A normalização é ISOLADA por gênero: para cada ano+escopo geramos um Ranking
  * masculino e um feminino (quando `gender` não é passado), cada um normalizado
  * separadamente, evitando que o feminino seja esmagado pela escala masculina.
  *
- * Execução manual (teste/CI):
- *   import { runRankingForSeason } from '.../ranking-cron.job.js';
- *   await runRankingForSeason({ season: '2023' });
+ * Execução manual (teste/CI/prod):
+ *   - CLI compilado:  node dist/scripts/calculate-rankings.js --year 2026
+ *   - Programático:   import { runRankingForSeason } from '.../ranking-cron.job.js';
  */
 import type { Job } from 'bullmq';
 import type { Prisma } from '@prisma/client';
 import { queues, createWorker } from '../../services/queue.js';
 import { withRlsContext } from '../../config/rls-context.js';
+import { logger } from '../../config/logger.js';
+import { metrics } from '../../modules/observability/metrics.js';
 import {
   buildClubRanking,
   createPrismaRankingAlgorithmRepo,
@@ -38,6 +46,16 @@ export interface RankingRunOutcome {
   skipped: boolean;
   results: ClubRankingResult[];
   rankingIds: string[];
+  /** Resultados com 0 clubes ranqueados — NÃO publicados (honestidade, T438). */
+  emptyResults: number;
+}
+
+export interface RankingJobResult {
+  skipped: boolean;
+  rankingId: string | null;
+  result: ClubRankingResult | null;
+  /** true se o resultado foi descartado por não ter clubes ranqueados. */
+  empty?: boolean;
 }
 
 /** Persiste um Ranking (ano+escopo+gênero) se ainda não publicado (idempotente). */
@@ -45,18 +63,14 @@ export async function runRankingJob(scope: {
   season: string;
   competitionId?: string | null;
   gender: Gender;
-}): Promise<{
-  skipped: boolean;
-  rankingId: string | null;
-  result: ClubRankingResult | null;
-}> {
+}): Promise<RankingJobResult> {
   const genderLabel = scope.gender === 'women' ? 'Feminino' : 'Masculino';
   const rankingName = `Ranking 0-100 ${scope.season} — ${genderLabel}`;
 
   return withRlsContext({ role: 'SERVICE' }, async (tx) => {
     const repo = createPrismaRankingAlgorithmRepo(tx);
 
-    // Idempotência: se já existe Ranking publicado p/ o mesmo ano+escopo, NÃO recalcula/republca.
+    // Idempotência: se já existe Ranking publicado p/ o mesmo ano+escopo, NÃO recalcula/republica.
     const existing = await tx.ranking.findFirst({
       where: {
         name: rankingName,
@@ -74,6 +88,16 @@ export async function runRankingJob(scope: {
       gender: scope.gender,
     });
 
+    // T438 — honestidade: sem nenhum clube ranqueado (ex.: sem partidas/títulos
+    // no acervo), NÃO publica ranking vazio.
+    if (result.rankedCount === 0) {
+      logger.warn(
+        { season: scope.season, gender: scope.gender, rankedCount: 0 },
+        'ranking vazio — não publicado',
+      );
+      return { skipped: true, rankingId: null, result, empty: true };
+    }
+
     const ranking = await tx.ranking.create({
       data: {
         name: rankingName,
@@ -83,7 +107,13 @@ export async function runRankingJob(scope: {
       },
     });
 
-    for (const row of result.rows) {
+    // T438 — o Ranking publicado é POR GÊNERO: o buildClubRanking calcula os
+    // dois grupos (para normalização isolada), mas aqui só as linhas do gênero
+    // do escopo entram neste ranking — senão as posições (que recomeçam em 1
+    // por gênero) colidem em @@unique([rankingId, position]).
+    const rows = result.rows.filter((row) => row.gender === scope.gender);
+
+    for (const row of rows) {
       await tx.rankingEntry.create({
         data: {
           rankingId: ranking.id,
@@ -109,6 +139,7 @@ export async function runRankingForSeason(scope: RankingRunScope): Promise<Ranki
   const results: ClubRankingResult[] = [];
   const rankingIds: string[] = [];
   let anyCreated = false;
+  let emptyResults = 0;
 
   for (const g of genders) {
     const out = await runRankingJob({
@@ -116,23 +147,61 @@ export async function runRankingForSeason(scope: RankingRunScope): Promise<Ranki
       competitionId: scope.competitionId,
       gender: g,
     });
+    if (out.empty) emptyResults += 1;
     if (!out.skipped) anyCreated = true;
     if (out.rankingId) rankingIds.push(out.rankingId);
     if (out.result) results.push(out.result);
   }
 
-  return { skipped: !anyCreated, results, rankingIds };
+  return { skipped: !anyCreated, results, rankingIds, emptyResults };
+}
+
+/** Métricas de observabilidade do T438 (gauges expostos em /api/v1/metrics). */
+function recordRunMetrics(startedAt: number, outcome: RankingRunOutcome): void {
+  const ranked = outcome.results.reduce((n, r) => n + r.rankedCount, 0);
+  metrics.set('rankings_last_run_timestamp', undefined, Math.floor(Date.now() / 1000));
+  metrics.set('rankings_last_run_duration_seconds', undefined, (Date.now() - startedAt) / 1000);
+  metrics.set('rankings_last_run_clubs_processed', undefined, ranked);
+}
+
+/**
+ * Orquestrador único da execução do cron (usado pelo handler BullMQ e pelo CLI
+ * calculate-rankings): métricas + logs estruturados + captura de erro.
+ */
+export async function runRankingCronOnce(scope: RankingRunScope): Promise<RankingRunOutcome> {
+  const startedAt = Date.now();
+  logger.info(
+    { season: scope.season, competitionId: scope.competitionId ?? null },
+    'Calculando rankings para o ano',
+  );
+  try {
+    const outcome = await runRankingForSeason(scope);
+    const ranked = outcome.results.reduce((n, r) => n + r.rankedCount, 0);
+    recordRunMetrics(startedAt, outcome);
+    logger.info(
+      {
+        season: scope.season,
+        rankings: outcome.rankingIds.length,
+        ranked,
+        emptyResults: outcome.emptyResults,
+        skipped: outcome.skipped,
+        durationMs: Date.now() - startedAt,
+      },
+      'Rankings calculados',
+    );
+    return outcome;
+  } catch (err) {
+    metrics.inc('rankings_last_run_errors_total', undefined);
+    logger.error({ err, season: scope.season }, 'Falha no cálculo de rankings');
+    throw err;
+  }
 }
 
 /** Handler do job BullMQ (fila `ranking`). Extrai o ano/escopo do payload. */
 export async function rankingJobHandler(job: Job): Promise<void> {
   const data = (job.data ?? {}) as { season?: string; competitionId?: string | null };
   const season = data.season ?? String(new Date().getUTCFullYear());
-  console.log(`[RankingCron] computation for season=${season}`);
-  const outcome = await runRankingForSeason({ season, competitionId: data.competitionId ?? null });
-  console.log(
-    `[RankingCron] done skip=${outcome.skipped} rankings=${outcome.rankingIds.join(',')} ranked=${outcome.results.reduce((n, r) => n + r.rankedCount, 0)}`,
-  );
+  await runRankingCronOnce({ season, competitionId: data.competitionId ?? null });
 }
 
 let registered = false;
@@ -154,7 +223,7 @@ export async function registerRankingCron(): Promise<void> {
       opts: { removeOnComplete: { count: 10 }, removeOnFail: { count: 100 } },
     },
   );
-  console.log(`[RankingCron] scheduled at ${RANKING_CRON_PATTERN} (UTC)`);
+  logger.info({ pattern: RANKING_CRON_PATTERN }, 'Ranking cron agendado (UTC)');
 }
 
 // Fallback para workers dedicados: se este módulo for importado no processo worker

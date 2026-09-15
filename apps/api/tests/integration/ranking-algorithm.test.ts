@@ -29,6 +29,7 @@ import {
   type RankingAlgorithmRepo,
   type SeasonData,
 } from '../../src/modules/rankings/ranking-algorithm.service.js';
+import { runRankingForSeason } from '../../src/modules/rankings/ranking-cron.job.js';
 
 const NAC = (): CompetitionRef => ({
   id: 'comp-nac',
@@ -357,7 +358,7 @@ describe('ranking algorithm — integração Prisma (CI)', () => {
       prisma.knowledgeGraph.deleteMany({ where: { sourceId: { in: seededClubs } } }),
       prisma.club.deleteMany({ where: { id: { in: seededClubs } } }),
       prisma.competition.deleteMany({ where: { id: { in: seededComps } } }),
-      prisma.ranking.deleteMany({ where: { name: { contains: 'Ranking 0-100 2023' } } }),
+      prisma.ranking.deleteMany({ where: { name: { contains: 'Ranking 0-100' } } }),
     ]);
   });
 
@@ -384,5 +385,40 @@ describe('ranking algorithm — integração Prisma (CI)', () => {
     const r = await buildPlayerRanking(repo, { season: '2023' });
     expect(r.rankedCount).toBe(0);
     expect(r.rows).toEqual([]);
+  });
+
+  // --- T438: ciclo do job (publicação, idempotência, guarda de vazio) ---
+
+  it('runRankingForSeason publica rankings por gênero a partir dos fixtures', async () => {
+    if (!dbOk) return;
+    const outcome = await runRankingForSeason({ season: '2023' });
+    expect(outcome.skipped).toBe(false);
+    expect(outcome.rankingIds.length).toBe(2); // masculino + feminino
+    expect(outcome.emptyResults).toBe(0);
+    const published = await prisma.ranking.findMany({
+      where: { id: { in: outcome.rankingIds } },
+      include: { _count: { select: { entries: true } } },
+    });
+    expect(published.length).toBe(2);
+    for (const r of published) {
+      expect(r.publishedAt).not.toBeNull();
+      expect(r._count.entries).toBeGreaterThan(0);
+    }
+  });
+
+  it('idempotência: segunda execução do mesmo ano+escopo é skip', async () => {
+    if (!dbOk) return;
+    const outcome = await runRankingForSeason({ season: '2023' });
+    expect(outcome.skipped).toBe(true);
+    expect(outcome.rankingIds).toEqual([]);
+  });
+
+  it('guarda de vazio: temporada sem dados NÃO publica ranking', async () => {
+    if (!dbOk) return;
+    const before = await prisma.ranking.count();
+    const outcome = await runRankingForSeason({ season: '1999' });
+    expect(outcome.emptyResults).toBe(2); // men + women sem dados
+    const after = await prisma.ranking.count();
+    expect(after).toBe(before); // nada foi criado
   });
 });
