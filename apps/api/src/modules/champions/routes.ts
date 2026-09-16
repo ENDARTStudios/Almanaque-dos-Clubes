@@ -11,11 +11,9 @@ export const championsRoutes: FastifyPluginAsync = async (app: FastifyInstance) 
       return reply.send(data);
     } catch (err) {
       if (err instanceof ZodError)
-        return reply
-          .status(400)
-          .send({
-            error: { code: 'VALIDATION_ERROR', message: 'gender inválido (use men|women)' },
-          });
+        return reply.status(400).send({
+          error: { code: 'VALIDATION_ERROR', message: 'gender inválido (use men|women)' },
+        });
       return reply
         .status(500)
         .send({ error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor' } });

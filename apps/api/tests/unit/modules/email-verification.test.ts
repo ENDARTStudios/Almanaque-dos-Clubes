@@ -17,7 +17,6 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-import { prisma } from '../../../src/config/prisma.js';
 import {
   createEmailVerificationToken,
   consumeEmailVerificationToken,
