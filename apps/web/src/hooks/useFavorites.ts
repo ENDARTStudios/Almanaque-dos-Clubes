@@ -68,7 +68,8 @@ export function useFavorites() {
 
     const connect = async (): Promise<void> => {
       try {
-        const res = await api.post<{ data: { ticket: string } }>('/ws/ticket');
+        // body {} obrigatório: Content-Type json com corpo vazio → 400 do parser
+        const res = await api.post<{ data: { ticket: string } }>('/ws/ticket', {});
         if (disposed) return;
         const ws = new WebSocket(`${wsOrigin()}/ws?ticket=${res.data.ticket}`);
         liveRef.current = ws;
