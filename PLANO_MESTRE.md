@@ -442,7 +442,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 | Item                             | Status | Gap                                                                                                                                                                                    |
 | -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RLS em `users`                   | [~]    | Schema suporta, policies não aplicadas (deferido por D-2026-08-24-rls-sessions-pre-auth-design)                                                                                        |
+| RLS em `users`                   | [x]    | **T442**: ENABLE+FORCE, owner select/update, INSERT com id gerado no server + contexto, função SECURITY DEFINER pre-auth, SERVICE pleno; matriz cross-user no CI (app_user) + aplicado em produção com smoke verde                                                              |
 | Governança de proveniência (2.7) | [x]    | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas |
 | Criptografia de coluna (2.10)    | [~]    | Infra pronta, não aplicada a email/telefone                                                                                                                                            |
 | Testes E2E (Playwright)          | [~]    | Estrutura existe, cobertura baixa                                                                                                                                                      |
