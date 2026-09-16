@@ -13,7 +13,8 @@
  * - Tokens armazenados em Map em memória (singleton-instance dev/prod).
  *   Para multi-instance, migrar para tabela password_reset_tokens no schema.
  */
-import { prisma } from '../../config/prisma.js';
+import { withRlsContext } from '../../config/rls-context.js';
+import { usersFindByEmail } from './users-auth.queries.js';
 import { generateToken, hashToken, hashPassword } from '../../config/crypto.js';
 
 const RESET_TOKEN_EXPIRES_MS = 15 * 60 * 1000;
@@ -48,7 +49,8 @@ cleanupTimer.unref?.();
 export async function createPasswordResetToken(
   email: string,
 ): Promise<{ token: string; name: string; email: string } | null> {
-  const user = await prisma.user.findUnique({ where: { email } });
+  // T442 — pre-auth: função SECURITY DEFINER (FORCE RLS nega SELECT direto)
+  const user = await usersFindByEmail(email);
   if (!user) return null;
 
   // Revoga tokens anteriores do mesmo usuário
@@ -86,8 +88,7 @@ export async function consumePasswordResetToken(token: string): Promise<string |
  */
 export async function resetPassword(userId: string, newPassword: string): Promise<void> {
   const passwordHash = await hashPassword(newPassword);
-  await prisma.user.update({
-    where: { id: userId },
-    data: { passwordHash },
+  await withRlsContext({ userId, role: 'USER' }, async (tx) => {
+    await tx.user.update({ where: { id: userId }, data: { passwordHash } });
   });
 }
