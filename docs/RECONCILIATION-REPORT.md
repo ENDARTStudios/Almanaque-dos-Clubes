@@ -181,3 +181,21 @@ deep-link, mobile, teclado).
 Honesto: títulos em produção = 0 (WON edges vazios) e métricas de
 partidas/gols `null` com reason — preenchidos automaticamente quando o ETL M4
 chegar. M2: rankings ✅ · favoritos ✅ · comparadores ✅ · carrossel ⏳ (T441).
+
+---
+
+## 12. Snapshot T441 — M2 COMPLETO 4/4 (2026-09-16)
+
+Carrossel de campeões ativo (`D-2026-09-16-t441-champions-carousel`, PR #118):
+`GET /champions` por hierarquia (KnowledgeGraph WON, ano mais recente, cache
+1h, honestidade 1.3) + carrossel scroll-snap CSS puro na home com teclado,
+dots e aria-live. Em produção o estado é honestamente vazio (wonEdges=0) e
+os cards aparecem automaticamente quando o ETL M4 popular títulos.
+
+**M2 — Beta Fechada (engajar): COMPLETO (4/4)**
+- T438 rankings 0-100 em cron ✅
+- T439 favoritos em tempo real ✅
+- T440 comparadores ✅
+- T441 carrossel de campeões ✅
+
+Fila pós-M2: M3 (gateway — Operador) · T437 (rotação app_user) · WS-S/WS-O.
