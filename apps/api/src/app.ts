@@ -37,6 +37,7 @@ import { etlRoutes } from './modules/etl/routes.js';
 import { consentRoutes } from './modules/consent/routes.js';
 import { favoritesRoutes } from './modules/favorites/routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.js';
+import { compareRoutes } from './modules/compare/routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 
@@ -198,6 +199,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(consentRoutes);
       await api.register(favoritesRoutes);
       await api.register(wsTicketRoutes);
+      await api.register(compareRoutes);
     },
     { prefix: '/api/v1' },
   );
