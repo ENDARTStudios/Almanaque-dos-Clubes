@@ -234,7 +234,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 |---|---|---|---|
 | M0 — Método ativo | ✅ | 2026-08-11 | PLANO-ACAO.md mergeado |
 | **M1 — Beta Fechada (ler/navegar)** | **✅** | **2026-09-15** | **PR #105 + smoke verde + 7 critérios atendidos** |
-| M2 — Beta Fechada (engajar) | ⏳ | — | Rankings 0-100 + favoritos + comparações |
+| **M2 — Beta Fechada (engajar)** | **✅ COMPLETO 4/4** | **2026-09-16** | **T438 rankings · T439 favoritos · T440 comparadores · T441 carrossel (PRs #107–#119)** |
 | M3 — Open Beta (monetizar) | ⏳ | — | Gateway + checkout + webhook HMAC [Operador] |
 | M4 — v1.0 conteúdo amplo | ⏳ | — | Futebol feminino + ETL automático + Knowledge Graph |
 | M5 — v1.0 público | ⏳ | — | IA RAG + 360º + DAST + domínio próprio [Operador] |
@@ -484,7 +484,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
 - [x] **Painel de favoritos em tempo real** (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
 - [x] **Comparadores clube×clube e jogador×jogador** (T440: /compare com autocomplete duplo, tabela com líder por métrica, gráficos recharts responsivos/acessíveis, cache Redis 5min, deep-link com SEO dinâmico; métricas de partidas/gols honestamente vazias até o ETL M4)
-- [ ] **Carrossel de campeões** (mundial, continental, nacional, estadual, municipal)
+- [x] **Carrossel de campeões** (T441: GET /champions por hierarquia via KnowledgeGraph WON — ano mais recente vence, cache 1h; carrossel scroll-snap CSS puro com teclado/dots/aria-live; hierarquia sem dados → null+reason e estado vazio honesto na home; conteúdo aparece automaticamente com o ETL M4)
 - [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
 - [ ] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico)
 - [ ] **Linha do tempo** de clubes e jogadores

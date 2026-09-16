@@ -18,6 +18,14 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-16] Decisão: D-2026-09-16-t441-champions-carousel — Carrossel de campeões ATIVO e M2 COMPLETO (4/4)
+
+Motivo: fechar o M2. `GET /api/v1/champions` retorna o campeão vigente de CADA hierarquia (mundial→municipal) a partir das arestas KnowledgeGraph `WON` — **o ano mais recente vence**, gênero via metadata/competição, badge do ranking vigente, `trophy` null até o acervo ter imagens. **Honestidade 1.3**: hierarquia sem aresta auditável → `champion: null` com reason "sem dados auditáveis" (em produção hoje: matches=0/wonEdges=0 → as 5 hierarquias voltam null e a home exibe o estado vazio explícito; quando o ETL M4 popular, os cards aparecem sem deploy adicional — cache 1h). Frontend: carrossel **scroll-snap em CSS puro** (sem biblioteca), setas + teclado (ArrowLeft/Right) + dots indicadores, `role="region"` + `aria-live="polite"` + foco visível, placeholder SVG de troféu (sem HAS_TROPHY no acervo), cards linkam para `/clubs/[id]?season=[ano]`, i18n 3 idiomas. Sem autoplay deliberado (prefers-reduced-motion + foco).
+Alternativas consideradas: biblioteca de slider (descartada — CSS scroll-snap cobre e evita dependência); autoplay (descartado — acessibilidade); inventar campeão simbólico para "encher" o carrossel (violaria 1.3).
+Evidência: PR #118 (CI verde incl. integração champions em Postgres: ano mais recente vence, badge de ranking, gender filter, 400 gender inválido, nulls honestos); E2E 3/3 — estado vazio honesto AO VIVO em produção + fluxo com cards via mock de rota (cards, teclado, dots, link, mobile).
+Decisão: **M2 — Beta Fechada (engajar) COMPLETO (4/4)**: rankings ✅ T438 · favoritos ✅ T439 · comparadores ✅ T440 · carrossel ✅ T441.
+Próximo: fila pós-M2 (M3 gateway [Operador] · T437 rotação app_user · WS-S/WS-O paralelos).
+
 ### [2026-09-16] Decisão: D-2026-09-16-t440-comparators — Comparadores clube×clube e jogador×jogador (métricas auditáveis, honestas e cacheadas)
 
 Motivo: terceiro item do M2. `GET /compare/clubs?ids=a,b` e `GET /compare/players?ids=a,b` (Zod: exatamente 2 uuids separados por vírgula; 422 formato, 400 um id só, 404 inexistente) com **cache Redis 5min** via `cache.remember`. Métricas de clube AUDITÁVEIS do acervo: títulos por hierarquia (arestas KnowledgeGraph WON com a MESMA resolução de hierarquia do Ranking 0-100 — mundial 5.0→municipal 1.0), histórico de rankings publicados (por temporada), fundação, estádio representativo (maior capacidade — o schema guarda N estádios por clube) e líder calculado por linha (empate → sem líder). **Honestidade 1.3**: partidas/gols e métricas de carreira de jogador vêm `null` com `reason` (sem fonte no schema — jogador-ano NULL documentado T425 §8); contrato pronto para o ETL M4. Jogador×jogador hoje compara PERFIS (clube, posição, país) com nota honesta.
