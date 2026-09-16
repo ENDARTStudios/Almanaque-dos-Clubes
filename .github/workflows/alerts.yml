@@ -1,0 +1,50 @@
+# T443 / WS-O — Monitor externo gratuito (GitHub Actions cron).
+# Cada falha de job dispara e-mail para o Operador (canal de alerta).
+name: WS-O — alertas de produção
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+jobs:
+  health-and-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check (uptime externo)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://api.almanaquedosclubes.com/api/v1/health)
+          echo "health=$code"
+          [ "$code" = "200" ] || { echo "::error::health $code"; exit 1; }
+
+      - name: 5xx e falhas de auth (delta desde o run anterior)
+        run: |
+          METRICS=$(curl -s https://api.almanaquedosclubes.com/api/v1/metrics)
+          total5xx=$(echo "$METRICS" | grep '^http_5xx_total' | grep -oE '[0-9]+$' || echo 0)
+          authfail=$(echo "$METRICS" | grep '^auth_failures_total' | grep -oE '[0-9]+$' || echo 0)
+          echo "total5xx=$total5xx authfail=$authfail"
+          PREV5XX=$(cat 5xx.txt 2>/dev/null || echo 0)
+          PREVAUTH=$(cat auth.txt 2>/dev/null || echo 0)
+          if [ $((total5xx - PREV5XX)) -gt 50 ]; then echo "::error::5xx cresceu $((total5xx - PREV5XX)) desde o último check"; exit 1; fi
+          if [ $((authfail - PREVAUTH)) -gt 50 ]; then echo "::error::auth failures cresceu $((authfail - PREVAUTH)) desde o último check"; exit 1; fi
+          echo "$total5xx" > 5xx.txt
+          echo "$authfail" > auth.txt
+
+      - name: Persistir contadores entre runs
+        uses: actions/cache@v4
+        with:
+          path: |
+            5xx.txt
+            auth.txt
+          key: wso-counters-${{ github.run_id }}
+          restore-keys: wso-counters-
+
+  rankings-cron-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cron de rankings rodou nas últimas 25h
+        run: |
+          METRICS=$(curl -s https://api.almanaquedosclubes.com/api/v1/metrics)
+          ts=$(echo "$METRICS" | grep '^rankings_last_run_timestamp' | grep -oE '[0-9]+$' || echo 0)
+          now=$(date +%s)
+          age=$(( now - ts ))
+          echo "idade do último run: ${age}s"
+          if [ "$age" -gt 90000 ]; then echo "::error::cron de rankings sem rodar há >25h"; exit 1; fi
