@@ -67,8 +67,10 @@ jobs:
           cd apps/api
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_sessions_setup.sql
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_favorites_setup.sql
-          npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_users_setup.sql
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/create_app_user.sql
+          # rls_users por ÚLTIMO: o GRANT EXECUTE da função pre-auth exige a role
+          # app_user (criada no passo anterior).
+          npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_users_setup.sql
 
       - name: Typecheck
         run: pnpm typecheck
