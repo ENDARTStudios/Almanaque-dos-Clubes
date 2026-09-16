@@ -86,7 +86,10 @@ test.describe('T439 — favoritos cross-user (produção)', () => {
     const bBody = await bList.json();
     expect(bBody.data.some((f: { clubId: string }) => f.clubId === clubId)).toBe(false);
 
-    const bRemove = await pageB.request.delete(`${API}/favorites/${clubId}`);
+    const csrf = await (await pageB.request.get(`${API}/auth/csrf-token`)).json();
+    const bRemove = await pageB.request.delete(`${API}/favorites/${clubId}`, {
+      headers: { 'x-csrf-token': csrf.data.csrfToken },
+    });
     expect(bRemove.status()).toBe(200);
     expect((await bRemove.json()).removed).toBe(false); // B não tinha — e a de A permanece
 
