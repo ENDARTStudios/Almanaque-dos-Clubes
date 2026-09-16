@@ -148,6 +148,31 @@ export interface Dictionary {
       error: string;
       rankingBadge: string;
     };
+    compare: {
+      title: string;
+      subtitle: string;
+      typeClubs: string;
+      typePlayers: string;
+      searchPlaceholderA: string;
+      searchPlaceholderB: string;
+      compareBtn: string;
+      metric: string;
+      leader: string;
+      titlesTotal: string;
+      foundedYear: string;
+      stadiumCapacity: string;
+      rankingPoints: string;
+      matches: string;
+      timelineTitle: string;
+      titlesTitle: string;
+      noData: string;
+      selectBoth: string;
+      world: string;
+      continental: string;
+      national: string;
+      state: string;
+      municipal: string;
+    };
     rankings: {
       title: string;
       subtitle: string;
