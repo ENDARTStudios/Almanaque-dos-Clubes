@@ -146,3 +146,22 @@ Honesto: matches=0 e wonEdges=0 em produção — o cron roda, registra
 "ranking vazio — não publicado" e só publicará quando houver clubes
 ranqueáveis (ETL de partidas/títulos, janela M4). Rankings exibidos hoje
 vêm do seed manual (2 rankings, 20 entradas).
+
+---
+
+## 10. Snapshot T439 — M2 2/4: Favoritos em tempo real (2026-09-15)
+
+Favoritos ativos (`D-2026-09-15-t439-favorites`, PRs #109–#113): model com
+soft-delete + índice parcial único; RLS owner-only FORCE com matriz cross-user
+verde no CI (como `app_user`); API idempotente com rate-limit por usuário;
+`/ws` corrigido (ticket curto single-use substitui userId anônimo por query;
+CSP `connect-src` agora permite `wss://`); frontend com `FavoriteButton`
+(otimista, `aria-pressed`) e painel `/favoritos` com badge de ranking e
+indicador "Ao vivo" — E2E cross-user verde em produção.
+
+Gaps de produção corrigidos no mesmo ciclo: `GET /auth/me` inexistente
+(ProtectedRoute quebrado para qualquer página protegida), GRANT `app_user`
+da tabela nova (regra grants), CSP `wss://`.
+
+M2: rankings ✅ (T438) · favoritos ✅ (T439) · comparadores ⏳ (T440) ·
+carrossel ⏳ (T441). T437 (rotação `app_user`) em paralelo.

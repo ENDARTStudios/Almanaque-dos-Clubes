@@ -482,7 +482,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
 - [ ] **Futebol feminino integrado** (normalização independente)
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
-- [ ] **Painel de favoritos em tempo real** (Supabase Realtime ou SSE)
+- [x] **Painel de favoritos em tempo real** (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
 - [ ] **Carrossel de campeões** (mundial, continental, nacional, estadual, municipal)
 - [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
 - [ ] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico)
