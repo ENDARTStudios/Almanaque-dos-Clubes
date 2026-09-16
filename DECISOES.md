@@ -18,6 +18,16 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-16] Decisão: D-2026-09-16-t442-rls-users — RLS ENABLE+FORCE em users (fecha o gap de PII do premortem) + padrão INSERT documentado
+
+Motivo: o premortem apontava "RLS só em sessions → Exposição de PII" como risco de segurança máximo. `users` (email, hash de senha, status) agora tem **ENABLE + FORCE RLS** com: SELECT/UPDATE owner-only (`id = current_user_id`), **DELETE para ninguém** (soft-disable via status é SERVICE), INSERT com **WITH CHECK id = current_user_id** — o fluxo de registro gera o uuid NO SERVIDOR e seta o contexto antes do INSERT (padrão documentado; evita SECURITY DEFINER para escrita). SERVICE role com acesso pleno (admin/jobs).
+Pre-auth (SELECT por email sem contexto — login, checagem de duplicidade, forgot-password): função **SECURITY DEFINER `users_find_by_email(email)`**, criada pelo superuser que aplica o script (FORCE não se aplica a superuser), executável por app_user. Nenhum SELECT direto pré-auth.
+Código: 14 pontos de acesso à tabela users auditados e migrados — register (uuid no server + contexto owner), login (definer + lastLoginAt com contexto owner), refresh, /auth/me, forgot/reset password, verify-email, rbac (getUserRoles/Permissions como SERVICE — lookup interno), admin (4 rotas como SERVICE). GRANTs já existentes (regra grants).
+Rollback: `DROP POLICY` + `ALTER TABLE users NO FORCE/NO ROW LEVEL SECURITY` (<5min) — não foi necessário.
+Evidência: PR #120 (CI verde — matriz cross-user em Postgres como `app_user` via SET LOCAL ROLE: owner lê/atualiza próprio; A→B leitura/atualização/INSERT de terceiro negados no banco; SERVICE vê tudo; função pre-auth OK; register→/auth/me 200 sob FORCE RLS). Produção: SQL aplicado via ssh (idempotente), smoke register 201/login 200/me 200/health 200; sonda negada ao app_user sem contexto (mesma query retorna linhas para o owner e zero para o app_user — prova viva do RLS).
+Rollout seguro: código (com contextos) deployado ANTES do apply do SQL; qualquer caminho esquecido teria virado 42501 imediato — nenhum ocorreu (auditoria de 14 pontos completa).
+Próximo: T437 (rotação do app_user) · T443 (WS-O) · M3 gateway (Operador).
+
 ### [2026-09-16] Decisão: D-2026-09-16-t441-champions-carousel — Carrossel de campeões ATIVO e M2 COMPLETO (4/4)
 
 Motivo: fechar o M2. `GET /api/v1/champions` retorna o campeão vigente de CADA hierarquia (mundial→municipal) a partir das arestas KnowledgeGraph `WON` — **o ano mais recente vence**, gênero via metadata/competição, badge do ranking vigente, `trophy` null até o acervo ter imagens. **Honestidade 1.3**: hierarquia sem aresta auditável → `champion: null` com reason "sem dados auditáveis" (em produção hoje: matches=0/wonEdges=0 → as 5 hierarquias voltam null e a home exibe o estado vazio explícito; quando o ETL M4 popular, os cards aparecem sem deploy adicional — cache 1h). Frontend: carrossel **scroll-snap em CSS puro** (sem biblioteca), setas + teclado (ArrowLeft/Right) + dots indicadores, `role="region"` + `aria-live="polite"` + foco visível, placeholder SVG de troféu (sem HAS_TROPHY no acervo), cards linkam para `/clubs/[id]?season=[ano]`, i18n 3 idiomas. Sem autoplay deliberado (prefers-reduced-motion + foco).

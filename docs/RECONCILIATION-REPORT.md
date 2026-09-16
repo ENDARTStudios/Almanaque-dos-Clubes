@@ -199,3 +199,16 @@ os cards aparecem automaticamente quando o ETL M4 popular títulos.
 - T441 carrossel de campeões ✅
 
 Fila pós-M2: M3 (gateway — Operador) · T437 (rotação app_user) · WS-S/WS-O.
+
+---
+
+## 13. Snapshot T442 — WS-S: RLS em users (2026-09-16)
+
+`users` sob ENABLE+FORCE RLS (`D-2026-09-16-t442-rls-users`, PR #120):
+owner select/update, INSERT com id gerado no servidor + WITH CHECK, sem
+DELETE (soft-disable), SERVICE pleno, função SECURITY DEFINER para os
+lookups pre-auth por email. Matriz cross-user verde no CI (como app_user);
+aplicado em produção com smoke verde (register/login/me/health). O gap de
+segurança mais alto do premortem está fechado.
+
+Fila: T437 (rotação app_user) · T443 (WS-O) · M3 (gateway — Operador).
