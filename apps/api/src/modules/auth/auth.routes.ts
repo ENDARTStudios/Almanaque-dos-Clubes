@@ -45,8 +45,8 @@ import {
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
-import { prisma } from '../../config/prisma.js';
 import { generateCsrfToken } from '../../middleware/csrf.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import { authenticate } from './authenticate.middleware.js';
 import { getUserRoles } from './rbac.service.js';
 import { sendWelcomeEmail } from '../../services/email.js';
@@ -215,17 +215,19 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   // -----------------------------------------------------------------
   app.get('/auth/me', { preHandler: [authenticate] }, async (request, reply) => {
     const userId = request.user!.id;
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        status: true,
-        emailVerified: true,
-        createdAt: true,
-      },
-    });
+    const user = await withRlsContext({ userId, role: 'USER' }, async (tx) =>
+      tx.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          status: true,
+          emailVerified: true,
+          createdAt: true,
+        },
+      }),
+    );
     if (!user || user.status !== 'ACTIVE') {
       return reply.status(401).send({
         error: { code: 'UNAUTHORIZED', message: 'Sessão inválida' },
