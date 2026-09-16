@@ -13,6 +13,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { prisma } from '../../src/config/prisma.js';
 import { withRlsContext } from '../../src/config/rls-context.js';
+import { ROLE_PERMISSIONS } from '../../src/modules/auth/rbac.service.js';
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 
@@ -42,6 +43,28 @@ beforeAll(async () => {
     dbOk = false;
     return;
   }
+  // Seed idempotente de roles/permissions (o register atribui role 'free';
+  // o CI não roda prisma:seed).
+  for (const [roleName, perms] of Object.entries(ROLE_PERMISSIONS)) {
+    const role = await prisma.role.upsert({
+      where: { name: roleName },
+      update: {},
+      create: { name: roleName },
+    });
+    for (const permName of perms) {
+      const perm = await prisma.permission.upsert({
+        where: { name: permName },
+        update: {},
+        create: { name: permName },
+      });
+      await prisma.rolePermission.upsert({
+        where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
+        update: {},
+        create: { roleId: role.id, permissionId: perm.id },
+      });
+    }
+  }
+
   // Sem contexto (superuser): fixtures
   const a = await prisma.user.create({
     data: {
