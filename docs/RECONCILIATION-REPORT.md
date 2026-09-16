@@ -212,3 +212,20 @@ aplicado em produção com smoke verde (register/login/me/health). O gap de
 segurança mais alto do premortem está fechado.
 
 Fila: T437 (rotação app_user) · T443 (WS-O) · M3 (gateway — Operador).
+
+---
+
+## 14. Snapshot T437 — Credencial app_user rotacionada (2026-09-16)
+
+Rotação com papel duplo (`D-2026-09-16-t437-rotacao-app-user`): v2 criada com
+grants idênticos (script parametrizado via sed remoto + GRANT EXECUTE),
+`DATABASE_URL_APP` trocada com redeploy, smoke completo verde (health/
+register/login/me/favoritos 200), corte do papel velho (zero conexões em
+pg_stat_activity, REASSIGN/DROP/RENAME) e segundo redeploy com smoke final.
+Encerra o incidente de credenciais ecoadas (postgres em 09-15, app_user agora).
+Registro honesto: mismatch de senha entre chamadas derrubou a API por ~8min
+(fail-fast do entrypoint funcionou); correção via ALTER ROLE no container do
+Postgres + variável + redeploy.
+
+Fila: T443 (WS-O: backup diário 30d + alertas + uptime) · M3 (gateway —
+Operador) · T444 (checkout provider-agnostic).
