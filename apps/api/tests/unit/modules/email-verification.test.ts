@@ -1,7 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// T442 — o update do usuário agora roda dentro de withRlsContext (transação):
+// o mock repassa $transaction para o próprio mock (o set_config de
+// rls-context cai no $executeRawUnsafe do tx mockado, que é no-op).
+const mocks = vi.hoisted(() => ({
+  txUserUpdate: vi.fn().mockResolvedValue({ id: 'user-1' }),
+}));
 vi.mock('../../../src/config/prisma.js', () => ({
-  prisma: { user: { update: vi.fn().mockResolvedValue({ id: 'user-1' }) } },
+  prisma: {
+    user: { update: vi.fn().mockResolvedValue({ id: 'user-1' }) },
+    $transaction: async (fn: (t: unknown) => Promise<unknown>) =>
+      fn({
+        user: { update: mocks.txUserUpdate },
+        $executeRawUnsafe: vi.fn().mockResolvedValue(0),
+      }),
+  },
 }));
 
 import { prisma } from '../../../src/config/prisma.js';
@@ -28,7 +41,7 @@ describe('EmailVerificationService', () => {
 
     const userId = await consumeEmailVerificationToken(token!);
     expect(userId).toBe('user-a');
-    expect(prisma.user.update).toHaveBeenCalledWith({
+    expect(mocks.txUserUpdate).toHaveBeenCalledWith({
       where: { id: 'user-a' },
       data: { emailVerified: expect.any(Date) },
     });
