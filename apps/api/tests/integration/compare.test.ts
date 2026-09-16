@@ -16,6 +16,7 @@ let clubA = '';
 let clubB = '';
 let compId = '';
 let rankingId = '';
+let playerId = '';
 const cleanup: Array<{ id: string }> = [];
 
 beforeAll(async () => {
@@ -92,6 +93,7 @@ beforeAll(async () => {
     },
   });
   cleanup.push(player);
+  playerId = player.id;
 });
 
 afterAll(async () => {
@@ -145,7 +147,7 @@ describe('GET /api/v1/compare/clubs (T440)', () => {
   it('400 com um único id; 422 com formato inválido', async () => {
     if (!dbOk || !isPostgres) return;
     const one = await app.inject({ method: 'GET', url: `/api/v1/compare/clubs?ids=${clubA}` });
-    expect(one.statusCode).toBe(400);
+    expect(one.statusCode).toBe(422); // regex Zod exige 2 uuids com vírgula
     const bad = await app.inject({ method: 'GET', url: '/api/v1/compare/clubs?ids=abc,def' });
     expect(bad.statusCode).toBe(422);
   });
@@ -154,11 +156,9 @@ describe('GET /api/v1/compare/clubs (T440)', () => {
 describe('GET /api/v1/compare/players (T440)', () => {
   it('200 com perfis e nota honesta de métricas', async () => {
     if (!dbOk || !isPostgres) return;
-    const player = cleanup.find((c) => c.id && c !== clubA && c !== clubB && c !== compId);
-    if (!player) return;
     const res = await app.inject({
       method: 'GET',
-      url: `/api/v1/compare/players?ids=${player.id},${player.id}`,
+      url: `/api/v1/compare/players?ids=${playerId},${playerId}`,
     });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
