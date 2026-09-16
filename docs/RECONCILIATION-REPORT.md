@@ -165,3 +165,19 @@ da tabela nova (regra grants), CSP `wss://`.
 
 M2: rankings ✅ (T438) · favoritos ✅ (T439) · comparadores ⏳ (T440) ·
 carrossel ⏳ (T441). T437 (rotação `app_user`) em paralelo.
+
+---
+
+## 11. Snapshot T440 — M2 3/4: Comparadores (2026-09-16)
+
+Comparadores ativos (`D-2026-09-16-t440-comparators`, PRs #115+#116):
+`/compare/clubs` e `/compare/players` com validação Zod, cache Redis 5min e
+métricas auditáveis (títulos por hierarquia via KnowledgeGraph, histórico de
+rankings, fundação, estádio representativo); frontend `/compare` com
+autocompletes, tabela com líder por métrica, gráficos recharts acessíveis,
+deep-link com SEO dinâmico; E2E 4/4 contra produção (seleção por autocomplete,
+deep-link, mobile, teclado).
+
+Honesto: títulos em produção = 0 (WON edges vazios) e métricas de
+partidas/gols `null` com reason — preenchidos automaticamente quando o ETL M4
+chegar. M2: rankings ✅ · favoritos ✅ · comparadores ✅ · carrossel ⏳ (T441).

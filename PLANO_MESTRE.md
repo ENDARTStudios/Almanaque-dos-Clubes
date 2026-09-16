@@ -483,6 +483,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Futebol feminino integrado** (normalização independente)
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
 - [x] **Painel de favoritos em tempo real** (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
+- [x] **Comparadores clube×clube e jogador×jogador** (T440: /compare com autocomplete duplo, tabela com líder por métrica, gráficos recharts responsivos/acessíveis, cache Redis 5min, deep-link com SEO dinâmico; métricas de partidas/gols honestamente vazias até o ETL M4)
 - [ ] **Carrossel de campeões** (mundial, continental, nacional, estadual, municipal)
 - [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
 - [ ] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico)
