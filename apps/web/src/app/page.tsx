@@ -1,4 +1,5 @@
 import HeroSection, { type HeroTotals } from '@/components/HeroSection';
+import ChampionsCarousel from '@/components/ChampionsCarousel';
 import { getApiBase } from '@/lib/api-base';
 
 // T435-D — totals buscados no servidor (número real no HTML, como no /map).
@@ -29,5 +30,11 @@ async function getTotals(): Promise<HeroTotals> {
 
 export default async function HomePage() {
   const totals = await getTotals();
-  return <HeroSection initialTotals={totals} />;
+  return (
+    <>
+      <HeroSection initialTotals={totals} />
+      {/* T441 — campeões vigentes por hierarquia (dados auditáveis do KnowledgeGraph). */}
+      <ChampionsCarousel />
+    </>
+  );
 }

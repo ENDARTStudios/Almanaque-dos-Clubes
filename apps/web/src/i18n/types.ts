@@ -148,6 +148,20 @@ export interface Dictionary {
       error: string;
       rankingBadge: string;
     };
+    champions: {
+      title: string;
+      empty: string;
+      season: string;
+      rankingBadge: string;
+      dots: string;
+      prev: string;
+      next: string;
+      hierarchy_mundial: string;
+      hierarchy_continental: string;
+      hierarchy_nacional: string;
+      hierarchy_estadual: string;
+      hierarchy_municipal: string;
+    };
     compare: {
       title: string;
       subtitle: string;
