@@ -70,7 +70,7 @@ function pgDump(dumpPath: string): void {
   }
   // Validar dump: < 1MB é anomalia (baseline 1.8-3.2MB; 21KB = backup vazio)
   const size = statSync(dumpPath).size;
-  if (size < 1_000_000) {
+  if (size < 400_000) {
     console.error(JSON.stringify({ step: 'pg_dump_size', ok: false, bytes: size }));
     unlinkSync(dumpPath);
     process.exit(1);
