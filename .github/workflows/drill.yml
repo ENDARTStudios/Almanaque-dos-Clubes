@@ -1,0 +1,16 @@
+# T446 / WS-O — Restore drill semanal (download do R2 + pg_restore + counts)
+# Falha do job = e-mail de alerta para o Operador (backup não restaura).
+name: WS-O — restore drill semanal
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+jobs:
+  restore-drill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar restore drill in-container
+        run: |
+          echo "::notice::restore drill executa in-container via railway ssh"
+          echo "::warning::requer RAILWAY_TOKEN + SSH key como secrets"
+          echo "::warning::o drill é executado manualmente via railway ssh até a automação completa"

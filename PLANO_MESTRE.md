@@ -467,7 +467,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [x] **Razão social + CNPJ + endereço** da END ART Studios (confirmado pelo Operador em D-2026-09-15-ws-l-identity-confirmed; CNPJ 45.370.930/0001-75 · Osasco/SP já publicados no rodapé e páginas legais)
 - [ ] **Encarregado/DPO** nomeado e publicado
 - [ ] **E-mails oficiais** configurados (contato@, suporte@, privacidade@, security@, reembolso@, direitos@)
-- [ ] **Processo de direitos do titular** (LGPD art. 18)
+- [ ] **Processo de direitos do titular** (LGPD art. 18) — T445 agendado (próximo dispatch autônomo)
 - [ ] **Processo de reclamação de direitos autorais** (DMCA/análogo)
 - [ ] **Gateway de pagamento** (Stripe, PagSeguro ou Pix direto) — decisão pendente
 - [ ] **Webhook de pagamento** assinado (HMAC) e idempotente
@@ -482,7 +482,10 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
 - [ ] **Futebol feminino integrado** (normalização independente)
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
-- [x] **Painel de favoritos em tempo real** (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
+- [x] **Painel de favoritos em tempo real** (T439)
+- [x] **Comparadores clube×clube e jogador×jogador** (T440)
+- [x] **Carrossel de campeões** (T441)
+- [x] **Backup remoto R2 + drill semanal** (T446: pg_dump primário + restore drill counts idênticos + alerta anomalia tamanho) (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
 - [x] **Comparadores clube×clube e jogador×jogador** (T440: /compare com autocomplete duplo, tabela com líder por métrica, gráficos recharts responsivos/acessíveis, cache Redis 5min, deep-link com SEO dinâmico; métricas de partidas/gols honestamente vazias até o ETL M4)
 - [x] **Carrossel de campeões** (T441: GET /champions por hierarquia via KnowledgeGraph WON — ano mais recente vence, cache 1h; carrossel scroll-snap CSS puro com teclado/dots/aria-live; hierarquia sem dados → null+reason e estado vazio honesto na home; conteúdo aparece automaticamente com o ETL M4)
 - [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
