@@ -252,3 +252,16 @@ Operador) · T444 (checkout provider-agnostic).
 
 Fila: T444 (checkout provider-agnostic) · M3 (gateway — Operador) ·
 WS-L 2ª camada (processo titular/DMCA) · M5 (Loki/Grafana, Vault).
+
+---
+
+## 16. Snapshot T446 — WS-O: backup remoto R2 + restore drill (2026-09-17)
+
+Backup remoto ATIVO e RESTAURÁVEL (`D-2026-09-17-t446-backup-silencioso`,
+PRs #128+#129+#130+#131+#132+#133+#134): pg_dump format custom → R2 via
+spawnSync/env (credencial nunca em argv); auto-validação (clubs=0 aborta);
+HEAD pós-upload; postgresql-client-18 via PGDG repo no Dockerfile; drill
+in-container com counts idênticos. O incidente do backup vazio (tsvector
+P2010 engolido por catch silencioso) provou que o drill é o único controle
+que pega backup mentiroso — drill semanal automatizado (workflow).
+Fila: T445 (WS-L 2ª camada) · M3 gateway (Operador) · T447 (Stripe test-mode).
