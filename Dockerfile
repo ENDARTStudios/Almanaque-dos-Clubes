@@ -21,10 +21,9 @@ RUN pnpm --filter @almanaque/domain build 2>&1 && pnpm --filter @almanaque/api b
 FROM node:22-slim
 WORKDIR /app
 
-# T446 — postgresql-client no stage de produção: pg_dump/pg_restore
-# disponíveis in-container para o backup diário (sem depender do container
-# Postgres para executar). Cliente major 16 = servidor major 16.
-RUN apt-get update -y && apt-get install -y openssl ca-certificates postgresql-client --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# T446 — postgresql-client via PGDG repo: pg_dump versão 18 (matching server
+# 18.x). O repositório Debian bookworm tem apenas client 15, incompatível.
+RUN apt-get update -y && apt-get install -y openssl ca-certificates curl gnupg --no-install-recommends &&     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/pgdg.gpg &&     echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list &&     apt-get update -y && apt-get install -y postgresql-client-18 --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
 ENV NODE_ENV=production
