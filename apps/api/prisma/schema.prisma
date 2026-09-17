@@ -350,6 +350,7 @@ enum SubscriptionPlan {
 enum SubscriptionStatus {
   ACTIVE
   INACTIVE
+  PAST_DUE
   CANCELLED
   EXPIRED
   PENDING
@@ -579,6 +580,24 @@ model Favorite {
   @@index([userId, deletedAt])
   @@map("favorites")
 }
+
+
+// -----------------------------------------------------------------------------
+// WS-P — Log de eventos de pagamento (T444). Idempotência de webhook por
+// `providerEventId` UNIQUE: o mesmo evento processado 2× gera 1 efeito.
+// -----------------------------------------------------------------------------
+
+model PaymentEvent {
+  id              String   @id @default(uuid())
+  provider        String // "stripe" | "mock"
+  providerEventId String   @unique
+  type            String
+  payload         Json?
+  processedAt     DateTime @default(now())
+
+  @@map("payment_events")
+}
+
 
 // -----------------------------------------------------------------------------
 // AUDIT LOG — append-only (somente insert). NUNCA update/delete via Prisma.

@@ -97,8 +97,11 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
   });
 
   // Cria uma sessão de Checkout Stripe e devolve a URL de pagamento.
-  app.post('/billing/checkout', { preHandler: [authenticate] }, async (request, reply) => {
-    try {
+  // T444 — checkout só existe com a flag de monetização ativa (default off;
+  // ativação = env do Operador quando o merchant existir — M3).
+  if (process.env.PAYMENTS_ENABLED === 'true') {
+    app.post('/billing/checkout', { preHandler: [authenticate] }, async (request, reply) => {
+      try {
       if (!isStripeConfigured()) {
         return reply.status(503).send({
           error: {
@@ -125,7 +128,8 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
     } catch (err) {
       return handleDomainError(err, reply);
     }
-  });
+    });
+  }
 
   app.post('/billing/webhook', async (request, reply) => {
     const raw = (request as unknown as { rawBody?: string }).rawBody;
