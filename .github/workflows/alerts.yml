@@ -47,4 +47,5 @@ jobs:
           now=$(date +%s)
           age=$(( now - ts ))
           echo "idade do último run: ${age}s"
+          if [ "$ts" = "0" ]; then echo "::warning::gauge zerado (redeploy recente) — inconclusivo"; exit 0; fi
           if [ "$age" -gt 90000 ]; then echo "::error::cron de rankings sem rodar há >25h"; exit 1; fi

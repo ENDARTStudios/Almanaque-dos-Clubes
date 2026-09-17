@@ -47,6 +47,7 @@ const CSRF_EXEMPT_PREFIXES = [
   '/api/v1/health',
   '/api/v1/metrics',
   '/api/v1/billing/webhook',
+  '/api/v1/admin/backup', // T443: autenticado por segredo dedicado (x-backup-secret), não por cookie
 ];
 
 export async function csrfMiddleware(request: FastifyRequest, reply: FastifyReply): Promise<void> {
