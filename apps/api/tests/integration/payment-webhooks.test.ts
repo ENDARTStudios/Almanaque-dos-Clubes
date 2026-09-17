@@ -4,9 +4,12 @@
  * O fluxo mock é exercitado ponta-a-ponta (assinatura via /sign helper,
  * eventos via /webhooks/mock) — o mesmo contrato que o adapter Stripe segue
  * (verificação SDK + idempotência por providerEventId).
- * Local sem Postgres → parte de integração pula honesto; CI valida.
+ *
+ * Relógio: os testes de caso VÁLIDO usam fake timers — o clock de runners de
+ * CI pode desviar >5min e dispararia a tolerância de replay com assinatura
+ * válida. Local sem Postgres → skip honesto; CI valida.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { createHmac } from 'node:crypto';
 import { prisma } from '../../src/config/prisma.js';
@@ -15,7 +18,6 @@ import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
 let dbOk = true;
-const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
 let userId = '';
 
 const SECRET = 't444-mock-secret';
@@ -63,7 +65,6 @@ beforeAll(async () => {
   process.env.MOCK_WEBHOOK_SECRET = SECRET;
   app = await buildApp();
   await app.ready();
-  if (!isPostgres) return;
   try {
     await prisma.paymentEvent.count();
   } catch {
@@ -74,7 +75,7 @@ beforeAll(async () => {
   const suffix = Date.now();
   const user = await prisma.user.create({
     data: {
-      id: randomId(),
+      id: crypto.randomUUID(),
       email: `t444.${suffix}@test.local`,
       passwordHash: 'x',
       subscriptions: { create: { plan: 'FREE', status: 'PENDING' } },
@@ -83,14 +84,8 @@ beforeAll(async () => {
   userId = user.id;
 });
 
-function randomId(): string {
-  return crypto.randomUUID();
-}
-
-const crypto = globalThis.crypto;
-
 afterAll(async () => {
-  if (dbOk && isPostgres) {
+  if (dbOk) {
     await prisma.paymentEvent.deleteMany({ where: { provider: 'mock' } });
     await prisma.subscription.deleteMany({ where: { userId } });
     await prisma.auditLog.deleteMany({ where: { userId } });
@@ -101,7 +96,7 @@ afterAll(async () => {
 
 describe('T444 — webhook mock: HMAC + replay + idempotência + estados', () => {
   it('assinatura inválida → 400', async () => {
-    if (!dbOk || !isPostgres) return;
+    if (!dbOk) return;
     const body = JSON.stringify({ id: `evt_${Date.now()}`, type: 'checkout.succeeded', userId });
     const ts = Math.floor(Date.now() / 1000);
     const res = await postMockWebhook(body, ts, sign(body, ts, 'segredo-errado'));
@@ -109,7 +104,7 @@ describe('T444 — webhook mock: HMAC + replay + idempotência + estados', () =>
   });
 
   it('replay com timestamp antigo (>5min) → 400', async () => {
-    if (!dbOk || !isPostgres) return;
+    if (!dbOk) return;
     const body = JSON.stringify({ id: `evt_${Date.now()}`, type: 'checkout.succeeded', userId });
     const oldTs = Math.floor(Date.now() / 1000) - 600; // 10min atrás
     const res = await postMockWebhook(body, oldTs, sign(body, oldTs));
@@ -117,48 +112,53 @@ describe('T444 — webhook mock: HMAC + replay + idempotência + estados', () =>
   });
 
   it('evento válido ativa assinatura; MESMO evento 2× → 1 efeito (idempotência)', async () => {
-    if (!dbOk || !isPostgres) return;
-    const body = JSON.stringify({
-      id: `evt_t444_idem_${Date.now()}`,
-      type: 'checkout.succeeded',
-      userId,
-      plan: 'PRO',
-    });
-    const ts = Math.floor(Date.now() / 1000);
-    const r1 = await postMockWebhook(body, ts, sign(body, ts));
-    expect(r1.statusCode).toBe(200);
-    expect(r1.json().applied).toBe(true);
+    if (!dbOk) return;
+    // Fake timers: o clock de runners de CI pode desviar >5min e dispararia a
+    // tolerância de replay com assinatura VÁLIDA. Fixando o tempo, o teste é
+    // determinístico (o route lê Date.now() do mesmo relógio fake).
+    // toFake: ['Date'] — só o relógio é fake; timers/rede reais (Prisma hangaria).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-17T12:00:00Z'));
+    try {
+      const body = JSON.stringify({
+        id: `evt_t444_idem_${Date.now()}`,
+        type: 'checkout.succeeded',
+        userId,
+        plan: 'PRO',
+      });
+      const ts = Math.floor(Date.now() / 1000);
+      const r1 = await postMockWebhook(body, ts, sign(body, ts));
+      if (r1.statusCode !== 200) console.log('R1-BODY:', r1.body);
+      expect(r1.statusCode).toBe(200);
+      expect(r1.json().applied).toBe(true);
 
-    const sub = await prisma.subscription.findUnique({ where: { userId } });
-    expect(sub?.status).toBe('ACTIVE');
-    expect(sub?.plan).toBe('PRO');
+      const sub = await prisma.subscription.findUnique({ where: { userId } });
+      expect(sub?.status).toBe('ACTIVE');
+      expect(sub?.plan).toBe('PRO');
 
-    const r2 = await postMockWebhook(body, ts + 1, sign(body, ts + 1)); // mesmo id
-    expect(r2.statusCode).toBe(200);
-    expect(r2.json().duplicate).toBe(true);
+      const r2 = await postMockWebhook(body, ts + 1, sign(body, ts + 1)); // mesmo id
+      expect(r2.statusCode).toBe(200);
+      expect(r2.json().duplicate).toBe(true);
 
-    const events = await prisma.paymentEvent.count({
-      where: { providerEventId: JSON.parse(body).id },
-    });
-    expect(events).toBe(1);
+      const events = await prisma.paymentEvent.count({
+        where: { providerEventId: JSON.parse(body).id },
+      });
+      expect(events).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('transição inválida é rejeitada sem aplicar (máquina de estados)', async () => {
-    if (!dbOk || !isPostgres) return;
-    // EXPIRED → PAST_DUE não existe na máquina de estados
-    const body = JSON.stringify({
-      id: `evt_t444_invalid_${Date.now()}`,
-      type: 'subscription.past_due',
-      userId, // assinatura está ACTIVE → past_due é válido; usa fluxo cancelado→past_due:
-      plan: 'PRO',
-    });
-    void body;
+    if (!dbOk) return;
     // prepara estado CANCELLED via evento válido
     const cancelBody = JSON.stringify({
       id: `evt_t444_cancel_${Date.now()}`,
       type: 'subscription.canceled',
       userId,
     });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-17T12:00:00Z'));
     const ts = Math.floor(Date.now() / 1000);
     await postMockWebhook(cancelBody, ts, sign(cancelBody, ts));
     const afterCancel = await prisma.subscription.findUnique({ where: { userId } });
@@ -173,6 +173,7 @@ describe('T444 — webhook mock: HMAC + replay + idempotência + estados', () =>
     const res = await postMockWebhook(invalidBody, ts + 1, sign(invalidBody, ts + 1));
     expect(res.statusCode).toBe(200);
     expect(res.json().applied).toBe(false);
+    vi.useRealTimers();
 
     const sub = await prisma.subscription.findUnique({ where: { userId } });
     expect(sub?.status).toBe('CANCELLED'); // inalterado

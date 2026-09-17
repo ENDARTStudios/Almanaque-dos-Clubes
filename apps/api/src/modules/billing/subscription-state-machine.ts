@@ -9,13 +9,7 @@
  * EXPIRED · INACTIVE (conta desativada).
  */
 
-export type SubStatus =
-  | 'PENDING'
-  | 'ACTIVE'
-  | 'PAST_DUE'
-  | 'CANCELLED'
-  | 'EXPIRED'
-  | 'INACTIVE';
+export type SubStatus = 'PENDING' | 'ACTIVE' | 'PAST_DUE' | 'CANCELLED' | 'EXPIRED' | 'INACTIVE';
 
 /** Transições permitidas por estado atual. */
 export const ALLOWED_TRANSITIONS: Record<SubStatus, SubStatus[]> = {

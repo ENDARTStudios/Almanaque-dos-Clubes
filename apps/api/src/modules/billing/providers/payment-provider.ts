@@ -51,7 +51,9 @@ export function verifyHmacAndTimestamp(
   if (!signature || !timestamp) {
     throw new Error('assinatura/timestamp ausentes');
   }
-  const age = Math.abs(nowMs - Number(timestamp));
+  // Timestamp em SEGUNDOS (padrão Stripe); aceita ms também (>= 1e12).
+  const tsMs = Number(timestamp);
+  const age = Math.abs(nowMs - (tsMs < 1e12 ? tsMs * 1000 : tsMs));
   if (!Number.isFinite(age) || age > WEBHOOK_TOLERANCE_SECONDS * 1000) {
     throw new Error('timestamp fora da tolerância de 5min (replay?)');
   }
