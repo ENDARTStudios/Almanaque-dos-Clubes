@@ -75,17 +75,20 @@ export async function runBackup(bucket: string, client: BucketClient): Promise<B
   return { ok: true, key, tables: verify.tables, rows: verify.totalRows };
 }
 
+// T446 — R2_* tem prioridade (Cloudflare R2 é o destino de produção);
+// S3_* mantido como fallback para dev/MinIO local.
 if (process.argv[1]?.endsWith('backup-to-s3.ts')) {
-  const bucket = process.argv[2] ?? process.env.S3_BUCKET ?? 'almanaque-uploads';
+  const bucket = process.env.R2_BUCKET ?? process.env.S3_BUCKET ?? 'almanaque-uploads';
+  const endpoint = process.env.R2_ENDPOINT ?? process.env.S3_ENDPOINT ?? 'http://localhost:9000';
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID ?? process.env.S3_ACCESS_KEY_ID ?? 'almanaque';
+  const secretAccessKey =
+    process.env.R2_SECRET_ACCESS_KEY ?? process.env.S3_SECRET_ACCESS_KEY ?? 'almanaque_dev_2025';
   const client: BucketClient = {
     send: (input) =>
       new S3Client({
-        endpoint: process.env.S3_ENDPOINT ?? 'http://localhost:9000',
-        region: process.env.S3_REGION ?? 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.S3_ACCESS_KEY_ID ?? 'almanaque',
-          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? 'almanaque_dev_2025',
-        },
+        endpoint,
+        region: process.env.S3_REGION ?? 'auto',
+        credentials: { accessKeyId, secretAccessKey },
         forcePathStyle: true,
       }).send(new PutObjectCommand(input)),
   };
