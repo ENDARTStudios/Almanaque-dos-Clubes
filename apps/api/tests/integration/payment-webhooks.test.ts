@@ -77,7 +77,7 @@ beforeAll(async () => {
       id: randomId(),
       email: `t444.${suffix}@test.local`,
       passwordHash: 'x',
-      subscription: { create: { plan: 'FREE', status: 'PENDING' } },
+      subscriptions: { create: { plan: 'FREE', status: 'PENDING' } },
     },
   });
   userId = user.id;
