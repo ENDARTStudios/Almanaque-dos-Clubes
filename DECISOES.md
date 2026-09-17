@@ -26,6 +26,24 @@ Smoke: pós-v2 (health/register/login/me/favoritos 200) e pós-rename (idem) + s
 Rollback (documentado): antes do DROP, reverter `DATABASE_URL_APP` ao papel anterior (existente); após o DROP, recriar o papel com senha nova. Não foi necessário.
 Próximo: T443 (WS-O: backup diário 30d + alertas) · M3 gateway (Operador).
 
+### [2026-09-16] Regra: D-2026-09-16-regra-no-echo — Credenciais nunca atravessam shell local
+
+Motivo: terceiro eco de segredo no fio (DSN completa do Postgres no incidente T437; prefixos de app_user/postgres no diagnóstico). Notas por incidente não são controle — o controle é sistêmico.
+Regra: **credenciais nunca atravessam shell local.** Operações que tocam segredo rodam in-container (`railway ssh`/`run`) lendo env LÁ DENTRO; diagnósticos locais usam apenas formas redigidas (comprimentos, prefixos de nome de role); nenhum `echo`/`cut`/pipe sobre variável de credencial; pipelines exibem somente referências (`$VAR`), nunca valores. Re-rotação do `app_user` executada sob esta regra em 09-16 (FASE 0 do T443). Reincidência → re-rotação imediata com o procedimento consolidado (T437/T443, ~10min).
+Evidência: FASE 0 do T443 executada sem eco (ALTER via stdin pipe + variável + redeploy SUCCESS + health 200).
+
+### [2026-09-16] Decisão: D-2026-09-16-t443-wso — WS-O: deploy seguro (healthcheck gate), backup diário automatizado, alertas externos e re-rotação no-echo
+
+Motivo: fechar o pilar de confiabilidade exigido pelo premortem antes de monetizar. Quatro entregas:
+(1) **FASE 0 — re-rotação do `app_user` sob a regra no-echo** (senha gerada em variável, nunca impressa; aplicada via stdin pipe; variável trocada na mesma chamada; redeploy SUCCESS; health 200).
+(2) **FASE 1 — cutover de deploy seguro**: `railway.json` com `deploy.healthcheckPath=/api/v1/health` (timeout 120s) — o tráfego só troca se o novo deployment passar no healthcheck; falha mantém o anterior servindo. **Teste de fogo executado**: replay do modo de falha do T437 (DATABASE_URL_APP inválida) → deployment novo FAILED **isolado**, produção 200 em toda a janela (23:05–23:07 UTC), variável revertida → SUCCESS. Runbook `docs/DEPLOY-ROLLBACK.md`. Fecha o multiplicador do gap 9.3.
+(3) **FASE 2 — backup diário automatizado**: `POST /api/v1/admin/backup` (autenticado por `x-backup-secret` dedicado) despeja JSON auditável (clubs/players/competitions/seasons/rankings/rankingEntries/favorites/users SEM passwordHash; sessions excluídas); workflow `backup.yml` diário 04:00 UTC + artifact privado retenção 30d + validação estrutural; loader `scripts/restore-json-backup.ts` (upsert por id, datas normalizadas, users com senha redefinível via forgot). **RESTORE DRILL executado** (pg_dump in-container → restore_drill → counts idênticos: clubs 3857/players 2396/users 39/rankings 2 → DRILL-OK). Nota: o repo já tinha `backup-db.ts`/`backup-to-s3.ts` (T422, S3-compatível) — caminho preferido quando o Operador configurar storage; o endpoint/workflow cobre o intervalo sem S3.
+(4) **FASE 3/4 — alertas**: workflow `alerts.yml` 5min (uptime externo via GitHub Actions — health; deltas de `http_5xx_total`/`auth_failures_total` com cache; rankings_last_run >25h; backup stale = falha do backup.yml) → falha do job = e-mail ao Operador. Alerta real recebido: rankings-stale disparou no primeiro run (gauge zerado pós-redeploy) → tratado como warning quando inconclusivo.
+Correções no ciclo: `/admin/backup` isento do CSRF (autenticado por segredo dedicado; POST cai no 403 CSRF global — PR #125); gauge zerado pós-redeploy vira warning; `users_find_by_email` v2 com EXECUTE.
+Alternativas consideradas: Loki/Grafana (M5); S3/R2 para dumps (aguarda storage do Operador — os scripts T422 já suportam); backup via pg_dump agendado externo (impossível — postgres.railway.internal não resolve fora da rede; executado via ssh nos drills).
+Evidência: PRs #123 (gate+runbook), #124 (backup/alertas/workflows), #125 (CSRF exempt); fire-test `docs/evidence/t443/fire-test.md`; backup 3.2MB SUCCESS + artifact expira 2026-10-17; alerts green.
+Próximo: T444 (checkout provider-agnostic) · M3 gateway (Operador) · WS-L 2ª camada.
+
 ### [2026-09-16] Decisão: D-2026-09-16-t442-rls-users — RLS ENABLE+FORCE em users (fecha o gap de PII do premortem) + padrão INSERT documentado
 
 Motivo: o premortem apontava "RLS só em sessions → Exposição de PII" como risco de segurança máximo. `users` (email, hash de senha, status) agora tem **ENABLE + FORCE RLS** com: SELECT/UPDATE owner-only (`id = current_user_id`), **DELETE para ninguém** (soft-disable via status é SERVICE), INSERT com **WITH CHECK id = current_user_id** — o fluxo de registro gera o uuid NO SERVIDOR e seta o contexto antes do INSERT (padrão documentado; evita SECURITY DEFINER para escrita). SERVICE role com acesso pleno (admin/jobs).

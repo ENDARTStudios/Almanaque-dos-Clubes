@@ -229,3 +229,26 @@ Postgres + variável + redeploy.
 
 Fila: T443 (WS-O: backup diário 30d + alertas + uptime) · M3 (gateway —
 Operador) · T444 (checkout provider-agnostic).
+
+---
+
+## 15. Snapshot T443 — WS-O: confiabilidade de produção (2026-09-16)
+
+- **Deploy seguro**: healthcheck gate no `railway.json` (tráfego só troca após
+  /health passar) + `docs/DEPLOY-ROLLBACK.md`. Teste de fogo: replay do modo
+  de falha do T437 → deployment novo FAILED isolado, produção 200 em toda a
+  janela (evidência: docs/evidence/t443/fire-test.md). Gap 9.3 (deploy sem
+  fallback) deixa de ser teórico.
+- **Backup diário automatizado**: `backup.yml` (04:00 UTC, artifact privado
+  30d) via `POST /admin/backup` (x-backup-secret) — JSON auditável sem
+  passwordHash/sessions. Backup real: 200, 3.2MB, artifact expira 2026-10-17.
+- **RESTORE DRILL executado**: pg_dump in-container → restore_drill → counts
+  idênticos (clubs 3857 · players 2396 · users 39 · rankings 2) → DRILL-OK.
+- **Alertas**: `alerts.yml` 5min — health (uptime externo), 5xx e auth
+  failures (deltas com cache), rankings-stale (warn se gauge zerado pós-
+  redeploy). Canal: e-mail de falha do GitHub Actions.
+- **FASE 0**: re-rotação do `app_user` sob a regra no-echo (ALTER in-container
+  via stdin, sem eco; redeploy SUCCESS + health 200).
+
+Fila: T444 (checkout provider-agnostic) · M3 (gateway — Operador) ·
+WS-L 2ª camada (processo titular/DMCA) · M5 (Loki/Grafana, Vault).
