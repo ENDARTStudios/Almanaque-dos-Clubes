@@ -21,7 +21,10 @@ RUN pnpm --filter @almanaque/domain build 2>&1 && pnpm --filter @almanaque/api b
 FROM node:22-slim
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y openssl ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# T446 — postgresql-client-16 no stage de produção: pg_dump/pg_restore
+# disponíveis in-container para o backup diário (sem depender do container
+# Postgres para executar). Cliente major 16 = servidor major 16.
+RUN apt-get update -y && apt-get install -y openssl ca-certificates postgresql-client-16 --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@11 --activate
 
 ENV NODE_ENV=production
@@ -41,8 +44,6 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist/
 COPY --from=builder /app/packages/domain/dist ./packages/domain/dist/
 
 # T430 — job-runnability: scripts de ETL/seeds executáveis em produção
-# (COPY explícito = allowlist; nenhum .env/segredo entra — não há .dockerignore
-# porque nada além das linhas COPY acima entra na imagem).
 COPY apps/api/scripts/ ./apps/api/scripts/
 
 # T430 — entrypoint aplica `migrate deploy` (fail-fast) antes do servidor.

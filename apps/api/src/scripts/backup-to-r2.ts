@@ -2,20 +2,21 @@
  * T446 — Backup primário: pg_dump → R2 (formato custom, completo, imune a
  * tipos Prisma não-suportados como tsvector/PostGIS).
  *
- * Executa pg_dump in-container no serviço API (que tem DATABASE_URL para o
- * Postgres owner) e faz upload do dump para R2 via AWS SDK S3-compatível.
+ * Segurança (D-2026-09-16-eco-4): a connection string NUNCA entra em argv.
+ * spawn decompõe DATABASE_URL em PG* env vars herdadas pelo processo filho
+ * — o segredo vive apenas no env, invisível em `ps`, logs e error messages.
+ *
  * Fail-loud: qualquer erro → exit 1, NENHUM upload, gauge backup_last_success
- * NÃO atualiza (alerta >26h do T443 cobre).
+ * NÃO atualiza (alerta >26h do T443 cobre). Dump < 1MB → aborta (baseline
+ * ~1.8-3.2MB; 21KB = backup vazio, lição do incidente T446).
  *
  * Uso in-container:
  *   node dist/scripts/backup-to-r2.js
- *
- * Pós-upload: HEAD check (tamanho R2 == local) + gauge backup_last_size_bytes.
- * Importante: pg_dump usa DATABASE_URL (superuser — FORCE RLS não se aplica).
  */
 import { PrismaClient } from '@prisma/client';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
+import { readFileSync, statSync, unlinkSync } from 'node:fs';
 import { metrics } from '../modules/observability/metrics.js';
 
 const prisma = new PrismaClient();
@@ -37,11 +38,44 @@ const s3 = new S3Client({
   forcePathStyle: true,
 });
 
-function pgDump(): Buffer {
-  return execSync(
-    `pg_dump --format=custom --no-owner --no-privileges --dbname="${process.env.DATABASE_URL}"`,
-    { maxBuffer: 512 * 1024 * 1024, timeout: 300_000 },
+/** Decompõe DATABASE_URL em PG* env vars — pg_dump lê do env, nunca de argv. */
+function pgDumpEnv(): NodeJS.ProcessEnv {
+  const url = new URL(process.env.DATABASE_URL ?? '');
+  return {
+    ...process.env,
+    PGHOST: url.hostname,
+    PGPORT: url.port || '5432',
+    PGUSER: decodeURIComponent(url.username),
+    PGPASSWORD: decodeURIComponent(url.password),
+    PGDATABASE: url.pathname.slice(1),
+  };
+}
+
+function pgDump(dumpPath: string): void {
+  const result = spawnSync(
+    'pg_dump',
+    ['--format=custom', '--no-owner', '--no-privileges', '--file', dumpPath],
+    { env: pgDumpEnv(), stdio: ['ignore', 'ignore', 'pipe'], timeout: 300_000 },
   );
+  if (result.status !== 0 || result.error) {
+    console.error(
+      JSON.stringify({
+        step: 'pg_dump',
+        ok: false,
+        exitCode: result.status,
+        stderr: result.stderr?.toString().slice(0, 300),
+      }),
+    );
+    process.exit(1);
+  }
+  // Validar dump: < 1MB é anomalia (baseline 1.8-3.2MB; 21KB = backup vazio)
+  const size = statSync(dumpPath).size;
+  if (size < 1_000_000) {
+    console.error(JSON.stringify({ step: 'pg_dump_size', ok: false, bytes: size }));
+    unlinkSync(dumpPath);
+    process.exit(1);
+  }
+  console.log(JSON.stringify({ step: 'pg_dump', ok: true, bytes: size }));
 }
 
 async function manifestCounts(): Promise<Record<string, number>> {
@@ -66,6 +100,9 @@ async function r2Head(key: string): Promise<number | null> {
 }
 
 async function main(): Promise<void> {
+  const dumpPath = `/tmp/almanaque-backup-${Date.now()}.dump`;
+
+  // 1. Manifest de counts (query direta — para auto-validação)
   const counts = await manifestCounts();
   if (counts.clubs === 0) {
     console.error(JSON.stringify({ ok: false, error: 'clubs=0 — abortando (auto-validação)' }));
@@ -73,29 +110,40 @@ async function main(): Promise<void> {
   }
   console.log(JSON.stringify({ step: 'manifest', counts }));
 
-  const dump = await pgDump();
-  if (dump.length < 1_000_000) {
-    console.error(JSON.stringify({ ok: false, error: `dump suspeito: ${dump.length} bytes < 1MB` }));
-    process.exit(1);
-  }
-  console.log(JSON.stringify({ step: 'pg_dump', bytes: dump.length }));
+  // 2. pg_dump (spawnSync com env herdado — credencial nunca em argv)
+  pgDump(dumpPath);
 
+  // 3. Upload para R2
+  const dump = readFileSync(dumpPath);
+  const fileSize = dump.length;
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const key = `backups/almanaque-${ts}.dump`;
   await s3.send(
-    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: dump, ContentType: 'application/octet-stream' }),
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: dump,
+      ContentType: 'application/octet-stream',
+    }),
   );
 
+  // 4. Verificação pós-upload (HEAD: tamanho R2 == local)
   const remoteSize = await r2Head(key);
-  if (remoteSize === null || remoteSize !== dump.length) {
-    console.error(JSON.stringify({ ok: false, error: `pós-upload HEAD: R2=${remoteSize} local=${dump.length}` }));
+  if (remoteSize === null || remoteSize !== fileSize) {
+    console.error(
+      JSON.stringify({ ok: false, error: `pós-upload HEAD: R2=${remoteSize} local=${fileSize}` }),
+    );
     process.exit(1);
   }
 
-  metrics.set('backup_last_success_timestamp', undefined, Math.floor(Date.now() / 1000));
-  metrics.set('backup_last_size_bytes', undefined, dump.length);
+  // 5. Limpar dump temporário
+  unlinkSync(dumpPath);
 
-  console.log(JSON.stringify({ ok: true, key, bytes: dump.length, counts, remoteSize }));
+  // 6. Métricas
+  metrics.set('backup_last_success_timestamp', undefined, Math.floor(Date.now() / 1000));
+  metrics.set('backup_last_size_bytes', undefined, fileSize);
+
+  console.log(JSON.stringify({ ok: true, key, bytes: fileSize, counts, remoteSize }));
 }
 
 main()
