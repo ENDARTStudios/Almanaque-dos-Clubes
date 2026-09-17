@@ -11,7 +11,11 @@ const LABELS: Record<string, { subscribe: string; monthly: string; yearly: strin
   'es-es': { subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite', error: 'No se pudo iniciar el pago.' },
 };
 
-export default function CheckoutButton() {
+export default function CheckoutButton({
+  paymentsEnabled = true,
+}: {
+  paymentsEnabled?: boolean;
+} = {}) {
   const { locale } = useI18n();
   const l = LABELS[locale] ?? LABELS['pt-br'];
   const [interval, setInterval] = useState<'month' | 'year'>('month');
@@ -52,12 +56,13 @@ export default function CheckoutButton() {
         </button>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button onClick={() => start('PRO')} disabled={!!loading} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer">
+        <button onClick={() => start('PRO')} disabled={!!loading || !paymentsEnabled} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer">
           {loading === 'PRO' ? '...' : l.subscribe + ' ' + l.pro}
         </button>
-        <button onClick={() => start('ELITE')} disabled={!!loading} className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
+        <button onClick={() => start('ELITE')} disabled={!!loading || !paymentsEnabled} className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
           {loading === 'ELITE' ? '...' : l.subscribe + ' ' + l.elite}
         </button>
+        {!paymentsEnabled && <p className="w-full text-sm text-foreground/50">Pagamentos em breve.</p>}
       </div>
       <p className="mt-4 text-xs text-foreground/50">Stripe · {l.monthly} / {l.yearly}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

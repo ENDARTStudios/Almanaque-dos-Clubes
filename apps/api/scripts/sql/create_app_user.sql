@@ -17,6 +17,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "permissions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "players" TO app_user;
+GRANT SELECT, INSERT ON TABLE "payment_events" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "ranking_entries" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "rankings" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "role_permissions" TO app_user;
