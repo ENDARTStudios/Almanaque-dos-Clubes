@@ -1,109 +1,101 @@
 /**
- * T446 — Backup lógico para Cloudflare R2 (destino de produção).
+ * T446 — Backup primário: pg_dump → R2 (formato custom, completo, imune a
+ * tipos Prisma não-suportados como tsvector/PostGIS).
  *
- * Compilado para dist/scripts/ — roda in-container via railway ssh:
+ * Executa pg_dump in-container no serviço API (que tem DATABASE_URL para o
+ * Postgres owner) e faz upload do dump para R2 via AWS SDK S3-compatível.
+ * Fail-loud: qualquer erro → exit 1, NENHUM upload, gauge backup_last_success
+ * NÃO atualiza (alerta >26h do T443 cobre).
+ *
+ * Uso in-container:
  *   node dist/scripts/backup-to-r2.js
  *
- * Usa as mesmas funções de verificação/upload do módulo observability
- * (verifyBackupGzip + uploadBackupToS3) e as variáveis R2_* do Railway
- * (nunca impressas — regra D-2026-09-16-regra-no-echo).
- * R2_* têm prioridade; S3_* mantido como fallback para dev/MinIO.
- *
- * Exit 0 em sucesso, 1 em falha (fail-loud — o alerta de backup stale do
- * T443 cobre a janela >26h).
+ * Pós-upload: HEAD check (tamanho R2 == local) + gauge backup_last_size_bytes.
+ * Importante: pg_dump usa DATABASE_URL (superuser — FORCE RLS não se aplica).
  */
 import { PrismaClient } from '@prisma/client';
-import { gzipSync } from 'node:zlib';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { verifyBackupGzip } from '../modules/observability/backup.js';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { execSync } from 'node:child_process';
+import { metrics } from '../modules/observability/metrics.js';
 
 const prisma = new PrismaClient();
 
-const TABLES = [
-  'clubs',
-  'players',
-  'competitions',
-  'rankings',
-  'ranking_entries',
-  'users',
-  'sessions',
-  'roles',
-  'permissions',
-  'user_roles',
-  'role_permissions',
-  'subscriptions',
-  'billings',
-  'seasons',
-  'stadiums',
-  'matches',
-  'knowledge_graph',
-  'audit_logs',
-  'payment_events',
-] as const;
+const BUCKET = process.env.R2_BUCKET ?? '';
+const ENDPOINT = process.env.R2_ENDPOINT ?? '';
+const ACCESS_KEY = process.env.R2_ACCESS_KEY_ID ?? '';
+const SECRET_KEY = process.env.R2_SECRET_ACCESS_KEY ?? '';
 
-async function dumpDb(): Promise<Buffer> {
-  const payload: Record<string, unknown[]> = {};
-  for (const t of TABLES) {
-    const rows = (await prisma
-      .$queryRawUnsafe(`SELECT * FROM "${t}"`)
-      .catch(() => [])) as unknown[];
-    payload[t] = rows;
+if (!BUCKET || !ENDPOINT || !ACCESS_KEY || !SECRET_KEY) {
+  console.error(JSON.stringify({ ok: false, error: 'vars R2_* ausentes' }));
+  process.exit(1);
+}
+
+const s3 = new S3Client({
+  endpoint: ENDPOINT,
+  region: 'auto',
+  credentials: { accessKeyId: ACCESS_KEY, secretAccessKey: SECRET_KEY },
+  forcePathStyle: true,
+});
+
+function pgDump(): Buffer {
+  return execSync(
+    `pg_dump --format=custom --no-owner --no-privileges --dbname="${process.env.DATABASE_URL}"`,
+    { maxBuffer: 512 * 1024 * 1024, timeout: 300_000 },
+  );
+}
+
+async function manifestCounts(): Promise<Record<string, number>> {
+  const tables = ['clubs', 'players', 'competitions', 'users', 'rankings'];
+  const out: Record<string, number> = {};
+  for (const t of tables) {
+    const r = await prisma.$queryRawUnsafe<Array<{ c: bigint }>>(
+      `SELECT count(*) as c FROM "${t}"`,
+    );
+    out[t] = Number(r[0]?.c ?? 0);
   }
-  return gzipSync(JSON.stringify(payload));
+  return out;
+}
+
+async function r2Head(key: string): Promise<number | null> {
+  try {
+    const res = await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    return res.ContentLength ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function main(): Promise<void> {
-  const bucket = process.env.R2_BUCKET ?? process.env.S3_BUCKET ?? '';
-  const endpoint = process.env.R2_ENDPOINT ?? process.env.S3_ENDPOINT ?? '';
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID ?? process.env.S3_ACCESS_KEY_ID ?? '';
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? process.env.S3_SECRET_ACCESS_KEY ?? '';
-
-  if (!bucket || !endpoint || !accessKeyId || !secretAccessKey) {
-    console.error(
-      JSON.stringify({
-        ok: false,
-        error: 'vars R2_* ausentes (verifique R2_BUCKET/R2_ENDPOINT/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY)',
-      }),
-    );
+  const counts = await manifestCounts();
+  if (counts.clubs === 0) {
+    console.error(JSON.stringify({ ok: false, error: 'clubs=0 — abortando (auto-validação)' }));
     process.exit(1);
   }
+  console.log(JSON.stringify({ step: 'manifest', counts }));
 
-  const content = await dumpDb();
-  const verify = verifyBackupGzip(content);
-  if (!verify.ok) {
-    console.error(JSON.stringify({ ok: false, error: verify.error ?? 'verificação falhou' }));
+  const dump = await pgDump();
+  if (dump.length < 1_000_000) {
+    console.error(JSON.stringify({ ok: false, error: `dump suspeito: ${dump.length} bytes < 1MB` }));
     process.exit(1);
   }
+  console.log(JSON.stringify({ step: 'pg_dump', bytes: dump.length }));
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  const key = `backups/almanaque-${ts}.json.gz`;
-
-  const s3 = new S3Client({
-    endpoint,
-    region: 'auto',
-    credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: true,
-  });
+  const key = `backups/almanaque-${ts}.dump`;
   await s3.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: content,
-      ContentType: 'application/gzip',
-    }),
+    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: dump, ContentType: 'application/octet-stream' }),
   );
-  await s3.destroy();
 
-  console.log(
-    JSON.stringify({
-      ok: true,
-      key,
-      bucket,
-      bytes: content.length,
-      tables: verify.tables,
-      rows: verify.totalRows,
-    }),
-  );
+  const remoteSize = await r2Head(key);
+  if (remoteSize === null || remoteSize !== dump.length) {
+    console.error(JSON.stringify({ ok: false, error: `pós-upload HEAD: R2=${remoteSize} local=${dump.length}` }));
+    process.exit(1);
+  }
+
+  metrics.set('backup_last_success_timestamp', undefined, Math.floor(Date.now() / 1000));
+  metrics.set('backup_last_size_bytes', undefined, dump.length);
+
+  console.log(JSON.stringify({ ok: true, key, bytes: dump.length, counts, remoteSize }));
 }
 
 main()
