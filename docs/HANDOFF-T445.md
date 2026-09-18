@@ -52,6 +52,35 @@
   `D-2026-09-18-checkpoint-de-contexto`) · PLANO_MESTRE WS-L 2ª camada [x] ·
   RECONCILIATION-REPORT → draft #137 vira ready → merge → smoke.
 
+## CRITÉRIOS DE ACEITE da continuação (F2 APPROVED pelo Thinker em 09-18; parada acordada aqui — F3–F5 em sessão fresca)
+
+```text
+F3: /direitos-titular e /direitos-autorais publicadas (flag-consistentes com
+    o padrão WS-L), rodapé com os 2 links + "Gerenciar cookies", políticas
+    v1.1 com links cruzados (§2.12/§3.7) + histórico de versões acessível,
+    i18n pt/en/es SEM chave faltando (typecheck do dicionário prova)
+F4: E2E: formulário titular → protocolo → status por token (sem vazar email);
+    formulário DMCA → honeypot descarta silenciosamente; admin transiciona
+    com decisão motivada; 409 em atalho
+F5: R1 implementada (TEST_REQUIRE_DB no CI) + DECISOES (t445, R1, R2) +
+    PLANO_MESTRE WS-L 2ª camada [x] + REPORT + draft→ready→merge→smoke prod
+    (formulários 200, POST real gravando, GET por token 200)
+Follow-up registrado: espelho sqlite do PaymentEvent (T447) — entrar junto
+no merge do #138 ou em chore próprio, nunca esquecido
+```
+
+## REGRAS novas vindas da F2 (registrar no DECISOES no F5 — não deixar como intenção)
+
+- **R1 — `D-2026-09-18-testes-sem-skip-silencioso`**: o guard `dbOk` que pula
+  silenciosamente já produziu "verde vazio" 3× neste fio (T439, T444, T445).
+  Em CI, ausência de banco = **FALHA**, não skip — via env `TEST_REQUIRE_DB=true`
+  no workflow. Skip só local, e sempre com `console.warn('[SKIP] …')` visível.
+  Chore pequeno: entra no PR de F5 ou PR docs+CI próprio de 10 min.
+- **R2 — fixtures e cleanups escopados**: cleanup por `contains` genérico +
+  temporada compartilhada = flake por design. Fixture usa marcador/temporada
+  únicos (padrão `2038`) e cleanup do vizinho exclui o marcador alheio.
+  Já aplicada (`60c2198`+`684fe25`); falta só registrar em DECISOES.
+
 ## Decisões já tomadas (não re-discutir)
 
 | Decisão | Justificativa |
