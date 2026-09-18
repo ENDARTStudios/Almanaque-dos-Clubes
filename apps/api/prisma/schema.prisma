@@ -600,6 +600,47 @@ model PaymentEvent {
 
 
 // -----------------------------------------------------------------------------
+// WS-L 2ª CAMADA — Direitos do titular (LGPD art. 18) e DMCA (T445)
+// -----------------------------------------------------------------------------
+
+model PrivacyRequest {
+  id          String   @id @default(uuid())
+  requesterId String?  // userId se autenticado; null para não-usuários
+  email       String   // contato do titular (sempre preenchido)
+  rightType   String   // confirmação | acesso | correção | anonimização | portabilidade | eliminação | info_compartilhamento | info_consequência | revisão_automatizada | revogação
+  status      String   @default("recebido") // recebido | em_andamento | atendido | indeferido
+  token       String?  @unique // para não-usuários confirmarem identidade
+  slaDueAt    DateTime
+  fulfilledAt DateTime?
+  deferredUntil DateTime? // prazo estendido (art. 18 §3 — notificação ANPD em 15 dias)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([status, slaDueAt])
+  @@map("privacy_requests")
+}
+
+model CopyrightClaim {
+  id          String   @id @default(uuid())
+  material    String   // descrição do material alegadamente violado
+  location    String   // URL ou localização na plataforma
+  fundament   String   // fundamentação legal (DMCA art. 512, Lei 9.610/98)
+  contactEmail String
+  status      String   @default("recebida") // recebida | em_analise | deferida | indeferida | retirado
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@map("copyright_claims")
+}
+
+
+
+// -----------------------------------------------------------------------------
 // AUDIT LOG — append-only (somente insert). NUNCA update/delete via Prisma.
 // Rastreia mudanças em entidades críticas para conformidade e segurança.
 // -----------------------------------------------------------------------------
