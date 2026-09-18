@@ -4,7 +4,7 @@
 > sessão fresca precisa para retomar sem redescobrir nada. Ler antes de
 > tocar em qualquer arquivo.
 
-## Feito (commit `28a92a0` na branch `feat/t445-direitos-titular`)
+## Feito (F1 `28a92a0` · **F2 `b7563aa`** — flakes fixados `60c2198`+`684fe25`; CI 100% verde em `684fe25`)
 
 - **schema.prisma**: `PrivacyRequest` (10 rightTypes do art. 18, status flow,
   SLA, token p/ não-usuários, deferredUntil art. 18 §3) + `CopyrightClaim`
@@ -12,45 +12,45 @@
 - **Migration** `20260918120000_direitos_titular/migration.sql`: DDL completo
   (tabelas + índices). Rollback em `docs/evidence/t445-rollback.sql`.
 - **`create_app_user.sql`**: GRANTs das duas tabelas (regra grants — mesmo PR).
-- **PR #137 aberto como DRAFT** — CI valida DDL/migration-drift/GRANTs.
+- **PR #137 DRAFT com CI verde** (security-gate, drift, gitleaks, deps, Vercel).
+
+### F2 — API COMPLETA (b7563aa)
+- **`src/modules/privacy/`**: `state-machine.ts` (cadeia ESTRITA
+  recebido→em_andamento→atendido|indeferido; mesmo estado = no-op) ·
+  `privacy.service.ts` (criação pública com token 48-hex; SLA
+  `computeSlaDueAt` — imediato p/ confirmação/acesso, 15d ANPD demais;
+  transições com decisão motivada — indeferido exige notes; deferredUntil
+  art. 18 §3; fulfillment de eliminação = anonimiza titular + revoga
+  sessões, workflow preservado — SOFT-DELETE SEMPRE) · `privacy.routes.ts`
+  (POST público c/ auth opcional; GET status por token — projeção sem
+  email/notes; admin listagem+transição com `users:manage`).
+- **`src/modules/copyright/`**: service + rotas — POST público com honeypot
+  (`website`, descarte silencioso) + rate-limit de rota (5/h); cadeia
+  recebida→em_analise→deferida|indeferida|retirado; deferida/indeferida
+  exigem resolution.
+- **Audit**: ações `privacy.*`/`copyright.*` + EntityTypes novos.
+- **Espelho sqlite**: 2 models adicionados.
+- **12 testes de integração REAIS** (`privacy-copyright.test.ts`): CSRF,
+  guardas 401/403, SLA imediato/15d, cadeia estrita 409, decisão motivada
+  422, anonimização+sessões, honeypot, deferredUntil — passando no CI
+  postgres. O teste loga `dbOk` no beforeAll (run sem banco = skip honesto).
 
 ## Faltando (nesta ordem)
 
-### Espelho sqlite
-1. Adicionar os 2 models a `prisma/schema.sqlite.prisma` (Json→String se
-   houver; o sqlite client é regenerado para testes locais).
-2. `DATABASE_URL="file:./dev.db" npx prisma db push --schema=prisma/schema.sqlite.prisma`
-   → `npx prisma generate --schema=prisma/schema.sqlite.prisma`.
-3. **Depois de testar local**: regenerar o client Postgres (`npx prisma
-   generate --schema=prisma/schema.prisma`) para paridade com CI.
+### F3 — UI (próximo)
+- `/direitos-titular`: formulário público (10 rightTypes + email) + tela de
+  acompanhamento por protocolo/token; `/copyright`: formulário DMCA com
+  honeypot invisível; rodapé com os 2 links; políticas v1.1 com links
+  cruzados; i18n ×3 (pt-br/en-us/es-es).
 
-### F2 — API + máquina de estados
-4. `src/modules/privacy/`: service (SLA imediato p/ direito de resposta;
-   15 dias ANPD para os demais; fulfillment via SERVICE com segregação
-   — eliminação = soft-delete + segregação do que fica por obrigação
-   legal, NUNCA hard-delete), repository, rotas autenticadas.
-5. `src/modules/copyright/`: form público com rate-limit + honeypot,
-   workflow admin com decisão motivada.
-6. Machine de estados: `recebido → em_andamento → atendido/indeferido`
-   com transições auditadas (auditLog).
-7. `PAYMENTS_ENABLED` — NÃO confundir com T444; T445 não tem flag.
-
-### F3 — UI
-8. Formulário público de direitos do titular (10 rightTypes + email +
-   confirmação por token) — rota `/direitos-titular`.
-9. Formulário público de copyright claim — rota `/copyright`.
-10. Rodapé: links "Direitos do Titular" e "Copyright" (políticas v1.1).
-11. i18n 3 idiomas.
-
-### F4 — Testes
-12. Unit: SLA (imediato/15d), transições inválidas.
-13. Integração: create/status/fulfillment/claim + matriz RLS (se houver).
-14. E2E: formulário → protocolo → status.
+### F4 — Testes complementares
+- E2E browser dos formulários (criação → protocolo → status). A API já tem
+  integração real (12 casos no CI).
 
 ### F5 — Reconciliação
-15. DECISOES: D-2026-09-XX-t445-direitos-titular.
-16. PLANO_MESTRE: WS-L 2ª camada [x].
-17. RECONCILIATION-REPORT: snapshot.
+- DECISOES `D-2026-09-XX-t445-direitos-titular` (+ protocolo
+  `D-2026-09-18-checkpoint-de-contexto`) · PLANO_MESTRE WS-L 2ª camada [x] ·
+  RECONCILIATION-REPORT → draft #137 vira ready → merge → smoke.
 
 ## Decisões já tomadas (não re-discutir)
 
@@ -94,3 +94,8 @@
 | `page.request` não envia CSRF em writes | buscar /auth/csrf-token |
 | Fastify 400 com Content-Type json + corpo vazio | mandar `{}` |
 | E2E contra produção precisa esperar deploy terminar (~5min pós-merge) | aguardar antes de testar |
+| `.env.local` NUNCA é carregado (dotenv lê só `.env`) | testes locais: `DATABASE_URL` + `PRISMA_SCHEMA_PROVIDER=sqlite` INLINE no comando |
+| Path do repo tem ESPAÇOS — URL sqlite do runtime quebra | usar `%20` ou um path sem espaços (ex.: `file:C:/Users/edina/AppData/Local/Temp/t445-e2e.db`) |
+| "12/12 local" pode ser VACUOUS (dbOk=false → skips silenciosos) | o teste T445 loga `dbOk` com `--disable-console-intercept`; CI é quem valida |
+| `git checkout <arquivo>` reverte TUDO não-commitado (os 2 models do espelho se perderam assim) | commitar antes de reverter arquivo |
+| Flake rankings-read × ranking-algorithm (cleanup `contains 'Ranking 0-100'` apagava fixture vizinho; mesmo ano 2023) | CORRIGIDO nesta branch (`60c2198`+`684fe25`): read usa temporada `2038`; procurar ano/prefixo compartilhado em flakes futuros |
