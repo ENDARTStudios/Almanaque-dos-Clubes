@@ -1,99 +1,94 @@
-# HANDOFF T445 — Direitos do titular (LGPD art. 18) + Copyright claims (DMCA)
+# HANDOFF-T445.md — Checkpoint de contexto (2026-09-17)
 
-> **Checkpoint de contexto (D-2026-09-18-checkpoint-de-contexto).** Sessão anterior esgotou contexto
-> após F1. Esta sessão NÃO avança F2+. Retomada em sessão fresca começa AQUI, na ordem fixa da
-> seção "Retomada". Nada disto toca produção: branch não mergeada = migration não aplicada.
+> Sessão encerrada com contexto degradado. Este handoff contém tudo que a
+> sessão fresca precisa para retomar sem redescobrir nada. Ler antes de
+> tocar em qualquer arquivo.
 
-- **Branch:** `feat/t445-direitos-titular` — FASE 1 commitada, **PR em DRAFT** (CI valida DDL,
-  migration-drift e GRANTs cedo; se vermelhar, corrigir antes de qualquer F2).
-- **Épico:** WS-L 2ª camada. Fila geral em `docs/RECONCILIATION-REPORT.md` (linha ~267):
-  T445 → Operador: merchant Stripe + keys de teste → T447 test-mode → live + políticas v1.2 → **M3**.
+## Feito (commit `28a92a0` na branch `feat/t445-direitos-titular`)
 
----
+- **schema.prisma**: `PrivacyRequest` (10 rightTypes do art. 18, status flow,
+  SLA, token p/ não-usuários, deferredUntil art. 18 §3) + `CopyrightClaim`
+  (formulário DMCA com workflow admin) — ambos com GRANTs app_user.
+- **Migration** `20260918120000_direitos_titular/migration.sql`: DDL completo
+  (tabelas + índices). Rollback em `docs/evidence/t445-rollback.sql`.
+- **`create_app_user.sql`**: GRANTs das duas tabelas (regra grants — mesmo PR).
+- **PR #137 aberto como DRAFT** — CI valida DDL/migration-drift/GRANTs.
 
-## FEITO (F1 — completo neste checkpoint)
+## Faltando (nesta ordem)
 
-| Artefato | Local |
+### Espelho sqlite
+1. Adicionar os 2 models a `prisma/schema.sqlite.prisma` (Json→String se
+   houver; o sqlite client é regenerado para testes locais).
+2. `DATABASE_URL="file:./dev.db" npx prisma db push --schema=prisma/schema.sqlite.prisma`
+   → `npx prisma generate --schema=prisma/schema.sqlite.prisma`.
+3. **Depois de testar local**: regenerar o client Postgres (`npx prisma
+   generate --schema=prisma/schema.prisma`) para paridade com CI.
+
+### F2 — API + máquina de estados
+4. `src/modules/privacy/`: service (SLA imediato p/ direito de resposta;
+   15 dias ANPD para os demais; fulfillment via SERVICE com segregação
+   — eliminação = soft-delete + segregação do que fica por obrigação
+   legal, NUNCA hard-delete), repository, rotas autenticadas.
+5. `src/modules/copyright/`: form público com rate-limit + honeypot,
+   workflow admin com decisão motivada.
+6. Machine de estados: `recebido → em_andamento → atendido/indeferido`
+   com transições auditadas (auditLog).
+7. `PAYMENTS_ENABLED` — NÃO confundir com T444; T445 não tem flag.
+
+### F3 — UI
+8. Formulário público de direitos do titular (10 rightTypes + email +
+   confirmação por token) — rota `/direitos-titular`.
+9. Formulário público de copyright claim — rota `/copyright`.
+10. Rodapé: links "Direitos do Titular" e "Copyright" (políticas v1.1).
+11. i18n 3 idiomas.
+
+### F4 — Testes
+12. Unit: SLA (imediato/15d), transições inválidas.
+13. Integração: create/status/fulfillment/claim + matriz RLS (se houver).
+14. E2E: formulário → protocolo → status.
+
+### F5 — Reconciliação
+15. DECISOES: D-2026-09-XX-t445-direitos-titular.
+16. PLANO_MESTRE: WS-L 2ª camada [x].
+17. RECONCILIATION-REPORT: snapshot.
+
+## Decisões já tomadas (não re-discutir)
+
+| Decisão | Justificativa |
 |---|---|
-| 2 models Prisma (`PrivacyRequest`, `CopyrightClaim`) | `apps/api/prisma/schema.prisma` (~linha 602, bloco "WS-L 2ª CAMADA") |
-| Migration Postgres canônica | `apps/api/prisma/migrations/20260918120000_direitos_titular/migration.sql` |
-| GRANTs `app_user` (DML completo, 2 tabelas, ordem alfabética) | `apps/api/scripts/sql/create_app_user.sql` |
-| Rollback | `docs/evidence/t445-rollback.sql` (precede: `t439-`, `t444-rollback.sql`) |
-| PR draft | CI valida migration-drift + DDL + grants |
+| 10 rightTypes do art. 18 como enum string | flexível p/ novos direitos |
+| SLA imediato p/ direito de resposta; 15 dias ANPD para os demais | LGPD art. 18 §3 |
+| Token p/ não-usuários confirmarem identidade | sem login obrigatório |
+| deferredUntil p/ prazo estendido | art. 18 §3 |
+| Eliminação = soft-delete + segregação | princípio 1.1 |
+| Sem RLS nas tabelas (workflow interno) | acesso via SERVICE/admin |
+| Formulário copyright: rate-limit + honeypot | abuso público |
+| Canal do titular: endart.studios@gmail.com (já publicado) | T436 |
 
-Observação honesta: a sessão anterior registrou "GRANTs feitos" na memória, mas o working tree só
-tinha schema + migration — GRANTs e rollback foram **escritos nesta sessão de contenção**, seguindo
-o padrão existente. Sempre conferir o diff real contra o que a memória afirma.
+## Ponteiros
 
-## FALTANDO (F2–F5 — nada iniciado)
+- **Spec T445 do Thinker**: dispatch de 09-16 (ver histórico do chat)
+- **Pacote jurídico**: docs/LEGAL-FIELDS.md §2.12 (direitos) e §3.7 (DMCA)
+- **Canal do titular**: endart.studios@gmail.com (já publicado em rodapé)
+- **T444 artefatos**: PR #127 (checkout), PAYMENTS-RUNBOOK.md (criado no
+  commit docs/t446-fechamento)
+- **T446 fechamento**: PRs #128-#136, restore drill counts idênticos
+- **Eco-4**: rotação owner 09-16 ~19:15 UTC (confirmada, sem ambiguidade)
+- **Regra no-echo**: D-2026-09-16-regra-no-echo no DECISOES
+- **Protocolo checkpoint de contexto**: D-2026-09-18-checkpoint-de-contexto
+  (registrar na próxima reconciliação)
 
-1. **Espelho sqlite** dos 2 models em `apps/api/prisma/schema.sqlite.prisma` + `prisma generate`
-   (padrão do repo: `Json` vira `String` no espelho — 3 ocorrências existentes confirmam o padrão).
-2. **F2 API + máquina de estados + SLA + fulfillment SERVICE** com segregação (rotas públicas de
-   criação/consulta-por-token vs. rotas admin; nenhuma rota admin expõe `token`).
-3. **F3 UI**: formulário público de solicitação + painel admin + link no rodapé
-   (`apps/web/src/components/Footer.tsx`); políticas v1.1 com links para o canal
-   (`apps/web/src/app/privacidade`).
-4. **F4 testes**: unit (SLA, transições de status) · integração · E2E dos formulários.
-5. **F5 reconciliação** → PR draft vira ready → merge → smoke.
+## Armadilhas conhecidas (ler antes de escrever código)
 
----
-
-## DECISÕES DE DESIGN (vinculantes; spec do Thinker NÃO está commitada — este bloco é a fonte)
-
-> ⚠️ **Aviso de método:** a "spec T445 do Thinker" e o "pacote jurídico §2.12/§3.7" **não existem
-> como arquivos no repo** — viviam só na conversa anterior. As decisões abaixo são o resgate
-> verbatim do checkpoint. Se algo além disto for necessário, reabrir com o Thinker.
-
-1. **10 `rightType`s** (LGPD art. 18, valores exatos do schema):
-   `confirmação` · `acesso` · `correção` · `anonimização` · `portabilidade` · `eliminação` ·
-   `info_compartilhamento` · `info_consequência` · `revisão_automatizada` · `revogação`.
-2. **Máquina de estados:**
-   - `PrivacyRequest.status`: `recebido → em_andamento → atendido | indeferido`.
-   - `CopyrightClaim.status`: `recebida → em_analise → deferida | indeferida | retirado`.
-   - Transições inválidas devem ser rejeitadas no service (não só na UI).
-3. **SLA:** atendimento imediato para direitos de acesso/confirmação; prazo geral **15 dias
-   (padrão ANPD)** para os demais — campo `slaDueAt` é obrigatório no INSERT.
-4. **Token para não-usuários:** `token` unique permite titular sem conta confirmar identidade e
-   acompanhar a solicitação (`requesterId` null nesse caso); `email` sempre preenchido.
-5. **`deferredUntil` (art. 18 §3):** pedidos complexos podem ter prazo prorrogado com notificação
-   à ANPD em 15 dias — usar este campo, nunca zerar `slaDueAt`.
-6. **Soft-delete sempre:** nunca `DELETE` físico de solicitações/claims; eliminação de dados do
-   titular é atendida nos dados referenciados, preservando o registro do workflow (auditoria).
-7. **RLS:** sem policies nestas tabelas (workflow interno; acesso via SERVICE/admin e rotas
-   autenticadas) — decidido no header da migration, manter.
-
-## RETOMADA (sessão fresca — ordem fixa)
-
-```text
-1. Ler este HANDOFF + CI do draft PR (corrigir se algo vermelhou)
-2. Espelho sqlite dos 2 models (padrão Json→String) + prisma generate
-3. F2 API + máquina de estados + SLA + fulfillment SERVICE com segregação
-4. F3 UI (formulário público, admin, rodapé) + políticas v1.1 com links
-5. F4 testes (unit SLA/transições · integração · E2E formulários)
-6. F5 reconciliação → draft vira ready → merge → smoke
-```
-
-## PONTEIROS (verificados nesta sessão)
-
-- Schema/migration: `apps/api/prisma/schema.prisma` · `apps/api/prisma/migrations/20260918120000_direitos_titular/`
-- Grants + regra "mesmo PR": `apps/api/scripts/sql/create_app_user.sql` · header da migration
-- Canal do titular **já publicado**: `endart.studios@gmail.com` em `apps/web/src/components/Footer.tsx`
-  + dicionários i18n (`apps/web/src/i18n/dictionaries/{pt-br,en-us,es-es}.ts`)
-- Página de privacidade (para políticas v1.1): `apps/web/src/app/privacidade`
-- Espelho sqlite: `apps/api/prisma/schema.sqlite.prisma` (+ `dev.db`)
-- Rollbacks de precedência: `docs/evidence/t439-rollback.sql` · `docs/evidence/t444-rollback.sql`
-- Fila/epopeia: `docs/RECONCILIATION-REPORT.md` · `docs/ROADMAP.md`
-- Contexto de código: usar `graft ask`/`graft grep` antes de ler código-fonte às cegas (AGENTS.md)
-
-## PROTOCOLO REGISTRADO (entrar no DECISOES na próxima reconciliação)
-
-```text
-D-2026-09-18-checkpoint-de-contexto:
-- Contexto baixo → Doer commita WIP, abre PR draft (CI valida cedo),
-  escreve HANDOFF com feito/faltando/decisões/resume-checklist e para.
-- Retomada ocorre em sessão fresca lendo HANDOFF + graft memory,
-  não por resumo de chat.
-- Justificativa: qualidade degradada sob contexto exausto custa mais
-  que um round de retomada; pendência invisível é violação do método.
-```
+| Armadilha | Solução |
+|---|---|
+| `postgres.railway.internal` não resolve fora da rede | executar via `railway ssh` |
+| `railway variables --json` expõe valores raw | redigir outputs |
+| npm/npx ecoa comandos completos | usar binário direto (`railway`, `node`) |
+| `git add apps/web` arrasta lockfile bagunçado pelo npm | restaurar de origin/main antes de commitar |
+| sqlite client + typecheck = falhas ambientais | regenerar client Postgres para typecheck |
+| commits pós-merge caem na main local | criar branch ANTES de tocar em arquivos |
+| `SET LOCAL ROLE` fora de transação = no-op | sondas RLS devem usar BEGIN/ROLLBACK |
+| `page.request` não envia CSRF em writes | buscar /auth/csrf-token |
+| Fastify 400 com Content-Type json + corpo vazio | mandar `{}` |
+| E2E contra produção precisa esperar deploy terminar (~5min pós-merge) | aguardar antes de testar |

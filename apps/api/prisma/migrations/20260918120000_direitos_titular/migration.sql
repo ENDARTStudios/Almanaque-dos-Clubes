@@ -15,7 +15,7 @@ CREATE TABLE "privacy_requests" (
     "deferredUntil" TIMESTAMP(3),
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "privacy_requests_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX "privacy_requests_token_key" ON "privacy_requests"("token");
@@ -32,7 +32,7 @@ CREATE TABLE "copyright_claims" (
     "resolution" TEXT,
     "resolvedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "copyright_claims_pkey" PRIMARY KEY ("id")
 );
 CREATE INDEX "copyright_claims_status_idx" ON "copyright_claims"("status");
