@@ -26,6 +26,8 @@ export default function Footer() {
     { href: '/termos', label: t('footer.terms') },
     { href: '/cookies', label: t('footer.cookies') },
     { href: '/seguranca', label: t('footer.security') },
+    { href: '/direitos-titular', label: t('footer.dataSubjectRights') },
+    { href: '/direitos-autorais', label: t('footer.copyrightClaims') },
   ];
 
   return (
