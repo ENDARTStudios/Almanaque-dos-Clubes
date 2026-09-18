@@ -27,6 +27,7 @@ beforeAll(async () => {
     await prisma.rankingEntry.count();
   } catch {
     dbOk = false;
+    if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
     return;
   }
 
@@ -54,7 +55,7 @@ beforeAll(async () => {
   const ranking = await prisma.ranking.create({
     data: {
       name: 'Ranking 0-100 T438 Read — Masculino',
-      season: '2023',
+      season: '2038',
       publishedAt: new Date(),
     },
   });
@@ -92,10 +93,10 @@ afterAll(async () => {
 describe('GET /api/v1/rankings/entries (T438)', () => {
   it('retorna 200 com entradas ordenadas por posição + metadados do ranking', async () => {
     if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: '/api/v1/rankings/entries?year=2023' });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/rankings/entries?year=2038' });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.ranking).toMatchObject({ season: '2023' });
+    expect(body.ranking).toMatchObject({ season: '2038' });
     expect(body.data.length).toBeGreaterThanOrEqual(3);
     const positions = body.data.map((d: { position: number }) => d.position);
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
@@ -106,7 +107,7 @@ describe('GET /api/v1/rankings/entries (T438)', () => {
     if (!dbOk) return;
     const p1 = await app.inject({
       method: 'GET',
-      url: '/api/v1/rankings/entries?year=2023&limit=2',
+      url: '/api/v1/rankings/entries?year=2038&limit=2',
     });
     const b1 = JSON.parse(p1.body);
     expect(b1.data.length).toBe(2);
@@ -114,7 +115,7 @@ describe('GET /api/v1/rankings/entries (T438)', () => {
 
     const p2 = await app.inject({
       method: 'GET',
-      url: `/api/v1/rankings/entries?year=2023&limit=2&cursor=${b1.cursor}`,
+      url: `/api/v1/rankings/entries?year=2038&limit=2&cursor=${b1.cursor}`,
     });
     const b2 = JSON.parse(p2.body);
     expect(b2.data.length).toBeGreaterThanOrEqual(1);
@@ -132,7 +133,7 @@ describe('GET /api/v1/rankings/entries (T438)', () => {
     if (!dbOk) return;
     const res = await app.inject({
       method: 'GET',
-      url: '/api/v1/rankings/entries?year=2023&country=XX',
+      url: '/api/v1/rankings/entries?year=2038&country=XX',
     });
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).data).toEqual([]);
@@ -142,12 +143,12 @@ describe('GET /api/v1/rankings/entries (T438)', () => {
     if (!dbOk) return;
     const men = await app.inject({
       method: 'GET',
-      url: '/api/v1/rankings/entries?year=2023&gender=men',
+      url: '/api/v1/rankings/entries?year=2038&gender=men',
     });
     expect(JSON.parse(men.body).data.length).toBeGreaterThanOrEqual(3);
     const women = await app.inject({
       method: 'GET',
-      url: '/api/v1/rankings/entries?year=2023&gender=women',
+      url: '/api/v1/rankings/entries?year=2038&gender=women',
     });
     expect(JSON.parse(women.body).data).toEqual([]);
   });
@@ -161,7 +162,7 @@ describe('GET /api/v1/rankings/clube/:clubId (T438)', () => {
     const body = JSON.parse(res.body);
     expect(body.club).toMatchObject({ id: clubId, name: 'Ranking Read FC 1' });
     expect(body.data.length).toBeGreaterThanOrEqual(1);
-    expect(body.data[0]).toMatchObject({ season: '2023', points: 100 });
+    expect(body.data[0]).toMatchObject({ season: '2038', points: 100 });
   });
 
   it('?year sem histórico → 200 com data vazia', async () => {

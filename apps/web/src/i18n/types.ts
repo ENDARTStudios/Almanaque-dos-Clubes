@@ -52,6 +52,65 @@ export interface Dictionary {
     cookies: string;
     security: string;
     copyright: string;
+    dataSubjectRights: string;
+    copyrightClaims: string;
+  };
+  /** T445 — formulário público de direitos do titular (LGPD art. 18). */
+  direitosTitular: {
+    title: string;
+    intro: string;
+    formTitle: string;
+    rightTypeLabel: string;
+    emailLabel: string;
+    notesLabel: string;
+    notesOptional: string;
+    submit: string;
+    submitting: string;
+    successTitle: string;
+    successBody: string;
+    protocolLabel: string;
+    trackNow: string;
+    trackTitle: string;
+    trackInputLabel: string;
+    trackButton: string;
+    notFound: string;
+    errorGeneric: string;
+    statusLabel: string;
+    slaLabel: string;
+    createdAtLabel: string;
+    rightTypes: {
+      confirmacao: string;
+      acesso: string;
+      correcao: string;
+      anonimizacao: string;
+      portabilidade: string;
+      eliminacao: string;
+      infoCompartilhamento: string;
+      infoConsequencia: string;
+      revisaoAutomatizada: string;
+      revogacao: string;
+    };
+    statusLabels: {
+      recebido: string;
+      em_andamento: string;
+      atendido: string;
+      indeferido: string;
+    };
+  };
+  /** T445 — formulário público de copyright claims (DMCA). */
+  copyrightForm: {
+    title: string;
+    intro: string;
+    materialLabel: string;
+    locationLabel: string;
+    fundamentLabel: string;
+    emailLabel: string;
+    submit: string;
+    submitting: string;
+    successTitle: string;
+    successBody: string;
+    protocolLabel: string;
+    errorGeneric: string;
   };
   common: {
     loading: string;

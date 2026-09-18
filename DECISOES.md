@@ -18,6 +18,25 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-18] Decisão: D-2026-09-18-t445-direitos-titular — Direitos do titular (LGPD art. 18) e copyright claims (DMCA) COMPLETOS (F1–F5)
+
+Motivo: M3 (monetização live) é bloqueado pelo checklist jurídico — sem canal de direitos do titular e de copyright claims publicado, a ativação do Stripe viola o §4 do pacote jurídico. T444/T447 deixaram o pagante coberto; T445 cobre o titular.
+Escopo entregue: (F1) schema `privacy_requests`/`copyright_claims` + migration reversível + GRANTs (regra mesmo-PR) + rollback; (F2) API — POST/GET públicos com token de acompanhamento (auth opcional), SLA imediato/15d ANPD, cadeia ESTRITA de transições auditadas, decisão motivada obrigatória (indeferido/deferida-indeferida), fulfillment de eliminação = anonimização + revogação de sessões com preservação de workflow e financeiro (soft-delete sempre, sem rota DELETE), honeypot + rate-limit 5/h no DMCA; (F3) UI `/direitos-titular` + `/direitos-autorais` (gate `LEGAL_PAGES_ENABLED`, padrão WS-L), rodapé com 2 links, políticas v1.1 com links cruzados e histórico de versões, i18n pt/en/es; (F4) E2E manual em preview: protocolo → status → atendimento, honeypot descarta (0 registros), 409 em atalho, transições auditadas; 12 testes de integração reais no CI. (F5) esta reconciliação.
+Alternativas consideradas: RLS nas novas tabelas (rejeitada — workflow interno SERVICE/admin, decisão do header da migration); hard-delete na eliminação (rejeitado — auditoria e obrigações legais exigem preservação do registro).
+Evidência: PR #137 (CI verde), commits `b7563aa`..`c3b6b42`; HANDOFF-T445.md com critérios de aceite aprovados.
+
+### [2026-09-18] Regra: D-2026-09-18-testes-sem-skip-silencioso — Em CI, banco ausente é FALHA, não skip
+
+Motivo: o guard `dbOk` que pula testes sem banco produziu "verde vazio" 3× neste fio (T439, T444, T445) — suites passavam localmente sem tocar no banco, e o skip silencioso esconderia regressões no CI se o service de Postgres falhasse.
+Decisão: em CI (`TEST_REQUIRE_DB=true` no workflow), a sonda de banco dos testes lança em vez de pular. Skip silencioso só é permitido local, e o padrão novo loga o estado (`[t445] dbOk=…`). Aplicado nos 8 arquivos de integração com guard.
+Alternativas consideradas: setupFiles global (rejeitada — o probe é por-arquivo e o throw precisa abortar o arquivo certo).
+
+### [2026-09-18] Regra: D-2026-09-18-fixtures-escopados — Fixtures de teste usam marcadores únicos e cleanups não cruzam fronteiras
+
+Motivo: o cleanup do `ranking-algorithm.test` (`name contains 'Ranking 0-100'`) apagava o fixture do `rankings-read` (mesmo prefixo, mesma temporada 2023) quando os workers paralelos sobrepunham — flake determinístico sob mudança de agendamento (atingiu 2 runs de PRs não relacionados).
+Decisão: fixture usa marcador/temporada únicos (padrão: temporada `2038` no read) e cleanups scopados ao próprio fixture (com exclusão explícita do marcador alheio quando o prefixo é compartilhado). Ao criar teste novo com cleanup amplo, verificar colisão com fixtures existentes.
+
+
 ### [2026-09-16] Decisão: D-2026-09-16-t437-rotacao-app-user — Credencial do app_user rotacionada via papel duplo (zero downtime) + encerramento do incidente de credenciais ecoadas
 
 Motivo: fechar a pendência de higiene do incidente de eco de segredos (T436/T440): a senha do `app_user` teve prefixo ecoado em output. Rotação executada com **papel duplo** (zero downtime): (1) `CREATE ROLE app_user_v2 LOGIN PASSWORD <nova>` + **mesmos grants** do `create_app_user.sql` aplicados com o script parametrizado via `sed` remoto (s/app_user/app_user_v2/) + `GRANT EXECUTE` na função pre-auth; policies RLS não têm cláusula `TO` → aplicam-se a qualquer role não-superuser, nada a ajustar. (2) Troca do `DATABASE_URL_APP` para a URL da v2 → redeploy. (3) Corte: zero conexões do papel velho em `pg_stat_activity`, nenhum objeto owned, `DROP ROLE app_user` + `ALTER ROLE app_user_v2 RENAME TO app_user` (mantém repo/policies/scripts coerentes), atualização do `DATABASE_URL_APP` para a URL com o papel renomeado (mesma senha) → redeploy.

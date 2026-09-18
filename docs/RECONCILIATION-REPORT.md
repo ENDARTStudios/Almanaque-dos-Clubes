@@ -265,3 +265,33 @@ in-container com counts idênticos. O incidente do backup vazio (tsvector
 P2010 engolido por catch silencioso) provou que o drill é o único controle
 que pega backup mentiroso — drill semanal automatizado (workflow).
 Fila: T445 (WS-L 2ª camada) · M3 gateway (Operador) · T447 (Stripe test-mode).
+
+---
+
+## 17. Snapshot T445 — WS-L 2ª camada: direitos do titular + copyright claims (2026-09-18)
+
+`D-2026-09-18-t445-direitos-titular` (PR #137, CI verde, F1–F5):
+- **API**: `POST/GET /privacy-requests` (token de acompanhamento p/ não-usuários,
+  SLA imediato/15d ANPD, deferredUntil art. 18 §3, cadeia ESTRITA auditada,
+  decisão motivada obrigatória) + `POST /copyright-claims` (honeypot +
+  rate-limit 5/h) + admin `users:manage` com transições. Fulfillment de
+  eliminação: anonimização + revogação de sessões; workflow e financeiro
+  preservados — soft-delete SEMPRE (sem rota DELETE).
+- **UI**: `/direitos-titular` + `/direitos-autorais` (gate LEGAL_PAGES_ENABLED),
+  rodapé com 2 links, políticas v1.1 com links cruzados e histórico de
+  versões, i18n pt/en/es (Dictionary type prova paridade).
+- **Testes**: 12 de integração reais no CI (postgres) + E2E manual em preview
+  (protocolo → status → atendimento; honeypot descarta com 0 registros;
+  409 em atalho; transições auditadas).
+- **Regras novas**: `D-2026-09-18-testes-sem-skip-silencioso` (R1:
+  TEST_REQUIRE_DB=true no CI — guard dbOk lança em vez de pular; 8 arquivos)
+  e `D-2026-09-18-fixtures-escopados` (R2: temporada 2038 isolada + cleanup
+  scoped — flake rankings-read×ranking-algorithm eliminado).
+- **Achados de infra**: provisionamento fresh via `migrate deploy` é
+  impossível (3 migrations de julho criam as mesmas tabelas) — workaround de
+  baseline+mark-applied usado no preview; candidato a squash/DR no M3.
+  Dockerfile normaliza CRLF do entrypoint (checkouts Windows quebravam shebang).
+
+Fila: T447 merge (#138, 6 fixes do T444 + e2e aprovado) · Operador:
+STRIPE_PRICE_* prod = price_live (hoje prod_ → 500) + FASE 5 keys live +
+compra/estorno real · políticas v1.2 (Stripe no compartilhamento) · M3.
