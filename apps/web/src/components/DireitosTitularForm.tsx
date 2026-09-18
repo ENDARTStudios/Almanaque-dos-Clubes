@@ -56,7 +56,8 @@ export default function DireitosTitularForm() {
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [trackError, setTrackError] = useState<string | null>(null);
   const [protocol, setProtocol] = useState<string | null>(null);
 
   const [trackToken, setTrackToken] = useState('');
@@ -65,7 +66,7 @@ export default function DireitosTitularForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    setError(null);
+    setFormError(null);
     try {
       const res = await api.post<CreateResult>('/privacy-requests', {
         rightType,
@@ -74,7 +75,7 @@ export default function DireitosTitularForm() {
       });
       setProtocol(res.data.token);
     } catch (err) {
-      setError(err instanceof Error ? err.message : d.errorGeneric);
+      setFormError(err instanceof Error ? err.message : d.errorGeneric);
     } finally {
       setSubmitting(false);
     }
@@ -83,13 +84,13 @@ export default function DireitosTitularForm() {
   async function track(token?: string) {
     const value = (token ?? trackToken).trim();
     if (!value) return;
-    setError(null);
+    setTrackError(null);
     try {
       const res = await api.get<StatusResult>(`/privacy-requests/${encodeURIComponent(value)}`);
       setTrackResult(res.data);
     } catch {
       setTrackResult(null);
-      setError(d.notFound);
+      setTrackError(d.notFound);
     }
   }
 
@@ -113,7 +114,7 @@ export default function DireitosTitularForm() {
         >
           {d.trackNow}
         </button>
-        {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+        {trackError && <p className="mt-3 text-sm text-red-500">{trackError}</p>}
         {trackResult && (
           <dl className="mt-4 rounded-xl border border-border p-4 text-sm space-y-2">
             <div>
@@ -191,7 +192,7 @@ export default function DireitosTitularForm() {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {formError && <p className="text-sm text-red-500">{formError}</p>}
           <button
             type="submit"
             disabled={submitting}
@@ -227,7 +228,7 @@ export default function DireitosTitularForm() {
             {d.trackButton}
           </button>
         </form>
-        {error && trackToken && <p className="mt-3 text-sm text-red-500">{error}</p>}
+        {trackError && <p className="mt-3 text-sm text-red-500">{trackError}</p>}
         {trackResult && (
           <dl className="mt-4 rounded-xl border border-border p-4 text-sm space-y-2">
             <div>

@@ -121,7 +121,7 @@ export default function CopyrightClaimForm() {
         />
       </div>
       {/* Honeypot: invisível e fora da tabulação; bots preenchem, humanos não veem. */}
-      <div style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
+      <div className="hidden" aria-hidden="true">
         <label htmlFor="website">Website</label>
         <input
           id="website"
