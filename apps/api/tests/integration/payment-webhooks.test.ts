@@ -276,27 +276,53 @@ describe('T447 — webhook Stripe: idempotência + máquina de estados', () => {
 
   it('replay do MESMO evento → 200, sem billing duplicada (idempotência)', async () => {
     if (!dbOk) return;
-    const event = stripeEvent('evt_t447_replay_fixed', 'checkout.session.completed', {
-      id: 'cs_t447_replay',
-      object: 'checkout.session',
-      mode: 'subscription',
-      amount_total: 490,
-      currency: 'brl',
-      subscription: subExt,
-      metadata: { userId: stripeUserId, plan: 'PRO', interval: 'month', currency: 'BRL' },
+    // Usuário dedicado: o cenário de replay precisa começar com ZERO billings
+    // no externalId sob teste (findFirst é não-determinístico quando há mais
+    // de uma billing com o mesmo externalId).
+    const replayUser = await prisma.user.create({
+      data: {
+        id: crypto.randomUUID(),
+        email: `t447.replay.${Date.now()}@test.local`,
+        passwordHash: 'x',
+        subscriptions: { create: { plan: 'FREE', status: 'PENDING' } },
+      },
     });
-    const r1 = await postStripeWebhook(event);
-    expect(r1.statusCode).toBe(200);
+    try {
+      const subExtReplay = `sub_t447_replay_${Date.now()}`;
+      const event = stripeEvent('evt_t447_replay_fixed', 'checkout.session.completed', {
+        id: 'cs_t447_replay',
+        object: 'checkout.session',
+        mode: 'subscription',
+        amount_total: 490,
+        currency: 'brl',
+        subscription: subExtReplay,
+        metadata: { userId: replayUser.id, plan: 'PRO', interval: 'month', currency: 'BRL' },
+      });
+      const r1 = await postStripeWebhook(event);
+      expect(r1.statusCode).toBe(200);
 
-    const r2 = await postStripeWebhook(event); // MESMO event.id
-    expect(r2.statusCode).toBe(200);
+      const r2 = await postStripeWebhook(event); // MESMO event.id
+      expect(r2.statusCode).toBe(200);
 
-    const billings = await prisma.billing.count({ where: { externalId: subExt } });
-    expect(billings).toBe(1); // T444 criaria 2 — T447 corrige
-    const events = await prisma.paymentEvent.count({
-      where: { providerEventId: 'evt_t447_replay_fixed' },
-    });
-    expect(events).toBe(1);
+      const billings = await prisma.billing.count({ where: { externalId: subExtReplay } });
+      expect(billings).toBe(1); // T444 criaria 2 — T447 corrige
+      const events = await prisma.paymentEvent.count({
+        where: { providerEventId: 'evt_t447_replay_fixed' },
+      });
+      expect(events).toBe(1);
+      const replaySub = await prisma.subscription.findUnique({
+        where: { userId: replayUser.id },
+      });
+      expect(replaySub?.status).toBe('ACTIVE');
+    } finally {
+      await prisma.paymentEvent.deleteMany({
+        where: { providerEventId: 'evt_t447_replay_fixed' },
+      });
+      await prisma.billing.deleteMany({ where: { userId: replayUser.id } });
+      await prisma.auditLog.deleteMany({ where: { userId: replayUser.id } });
+      await prisma.subscription.deleteMany({ where: { userId: replayUser.id } });
+      await prisma.user.deleteMany({ where: { id: replayUser.id } });
+    }
   });
 
   it('invoice.payment_failed → PAST_DUE (máquina de estados)', async () => {
