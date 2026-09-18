@@ -68,7 +68,9 @@
 ## Ponteiros
 
 - **Spec T445 do Thinker**: dispatch de 09-16 (ver histórico do chat)
-- **Pacote jurídico**: docs/LEGAL-FIELDS.md §2.12 (direitos) e §3.7 (DMCA)
+- **Pacote jurídico**: minuta do Thinker (dispatch de 09-16, histórico do
+  chat). Atenção: `docs/LEGAL-FIELDS.md` tem apenas seções A–F — **não**
+  contém §2.12/§3.7 (verificado em 09-18; não procurar lá).
 - **Canal do titular**: endart.studios@gmail.com (já publicado em rodapé)
 - **T444 artefatos**: PR #127 (checkout), PAYMENTS-RUNBOOK.md (criado no
   commit docs/t446-fechamento)
