@@ -86,6 +86,9 @@ jobs:
         env:
           # Sobrescreve env do workflow para apontar ao service container
           DATABASE_URL: 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/almanaque'
+          # R1 (D-2026-09-18-testes-sem-skip-silencioso): em CI, banco ausente é
+          # FALHA — o guard dbOk dos testes lança em vez de pular silenciosamente.
+          TEST_REQUIRE_DB: 'true'
 
       - name: Check audit
         run: pnpm audit --audit-level=high || true

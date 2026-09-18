@@ -65,6 +65,7 @@ beforeAll(async () => {
     await prisma.privacyRequest.count();
   } catch (e) {
     dbOk = false;
+    if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
     console.log('[t445] count() falhou:', (e as Error).message.split('\n').slice(0, 12).join(' | '));
   }
   // Honestidade: run sem banco passa "vazio" (skip por teste) — deixar visível.
