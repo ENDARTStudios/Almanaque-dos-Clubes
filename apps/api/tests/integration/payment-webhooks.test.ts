@@ -12,9 +12,18 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { createHmac } from 'node:crypto';
+import Stripe from 'stripe';
 import { prisma } from '../../src/config/prisma.js';
 import { ROLE_PERMISSIONS } from '../../src/modules/auth/rbac.service.js';
 import type { FastifyInstance } from 'fastify';
+
+// T447 — Stripe configurado ANTES do load dos módulos (config/stripe.ts lê o
+// env no import). Key fake: handleStripeEvent não chama a API do Stripe —
+// constructEvent/generateTestHeaderString são criptografia local.
+vi.hoisted(() => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_t447_fake';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_t447_test';
+});
 
 let app: FastifyInstance;
 let dbOk = true;
@@ -37,6 +46,34 @@ async function postMockWebhook(body: string, ts: number, sig: string) {
       'content-type': 'application/json',
     },
   });
+}
+
+async function stripeSignatureHeader(payload: string, secret = 'whsec_t447_test'): Promise<string> {
+  const stripe = new Stripe('sk_test_t447_fake');
+  return stripe.webhooks.generateTestHeaderString({ payload, secret });
+}
+
+async function postStripeWebhook(eventObj: unknown) {
+  const payload = JSON.stringify(eventObj);
+  const header = await stripeSignatureHeader(payload);
+  return app.inject({
+    method: 'POST',
+    url: '/api/v1/billing/webhook',
+    payload,
+    headers: { 'stripe-signature': header, 'content-type': 'application/json' },
+  });
+}
+
+function stripeEvent(id: string, type: string, object: Record<string, unknown>) {
+  return {
+    id,
+    object: 'event',
+    api_version: '2024-06-20',
+    created: Math.floor(Date.now() / 1000),
+    type,
+    livemode: false,
+    data: { object },
+  };
 }
 
 async function seedRoles(): Promise<void> {
@@ -178,5 +215,153 @@ describe('T444 — webhook mock: HMAC + replay + idempotência + estados', () =>
 
     const sub = await prisma.subscription.findUnique({ where: { userId } });
     expect(sub?.status).toBe('CANCELLED'); // inalterado
+  });
+});
+
+// -----------------------------------------------------------------------------
+// T447 — webhook Stripe (rota real, assinatura SDK): checkout → ACTIVE,
+// replay sem billing duplicada, payment_failed → PAST_DUE, cancel →
+// CANCELLED, refund → billing REFUNDED sem transição inválida.
+// -----------------------------------------------------------------------------
+describe('T447 — webhook Stripe: idempotência + máquina de estados', () => {
+  let stripeUserId = '';
+  let subExt = '';
+
+  beforeAll(async () => {
+    if (!dbOk) return;
+    subExt = `sub_t447_${Date.now()}`;
+    const user = await prisma.user.create({
+      data: {
+        id: crypto.randomUUID(),
+        email: `t447.${Date.now()}@test.local`,
+        passwordHash: 'x',
+        subscriptions: { create: { plan: 'FREE', status: 'PENDING' } },
+      },
+    });
+    stripeUserId = user.id;
+  });
+
+  afterAll(async () => {
+    if (!dbOk || !stripeUserId) return;
+    await prisma.paymentEvent.deleteMany({ where: { provider: 'stripe' } });
+    await prisma.billing.deleteMany({ where: { userId: stripeUserId } });
+    await prisma.subscription.deleteMany({ where: { userId: stripeUserId } });
+    await prisma.auditLog.deleteMany({ where: { userId: stripeUserId } });
+    await prisma.user.deleteMany({ where: { id: stripeUserId } });
+  });
+
+  it('checkout.session.completed → ACTIVE/PRO + billing PAID', async () => {
+    if (!dbOk) return;
+    const event = stripeEvent(`evt_t447_checkout_${Date.now()}`, 'checkout.session.completed', {
+      id: `cs_t447_${Date.now()}`,
+      object: 'checkout.session',
+      mode: 'subscription',
+      amount_total: 490,
+      currency: 'brl',
+      subscription: subExt,
+      metadata: { userId: stripeUserId, plan: 'PRO', interval: 'month', currency: 'BRL' },
+    });
+    const res = await postStripeWebhook(event);
+    if (res.statusCode !== 200) console.log('T447-CHECKOUT-BODY:', res.body);
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ received: true });
+
+    const sub = await prisma.subscription.findUnique({ where: { userId: stripeUserId } });
+    expect(sub?.status).toBe('ACTIVE');
+    expect(sub?.plan).toBe('PRO');
+
+    const billing = await prisma.billing.findFirst({ where: { externalId: subExt } });
+    expect(billing?.status).toBe('PAID');
+    expect(billing?.amountCents).toBe(490);
+  });
+
+  it('replay do MESMO evento → 200, sem billing duplicada (idempotência)', async () => {
+    if (!dbOk) return;
+    const event = stripeEvent('evt_t447_replay_fixed', 'checkout.session.completed', {
+      id: 'cs_t447_replay',
+      object: 'checkout.session',
+      mode: 'subscription',
+      amount_total: 490,
+      currency: 'brl',
+      subscription: subExt,
+      metadata: { userId: stripeUserId, plan: 'PRO', interval: 'month', currency: 'BRL' },
+    });
+    const r1 = await postStripeWebhook(event);
+    expect(r1.statusCode).toBe(200);
+
+    const r2 = await postStripeWebhook(event); // MESMO event.id
+    expect(r2.statusCode).toBe(200);
+
+    const billings = await prisma.billing.count({ where: { externalId: subExt } });
+    expect(billings).toBe(1); // T444 criaria 2 — T447 corrige
+    const events = await prisma.paymentEvent.count({
+      where: { providerEventId: 'evt_t447_replay_fixed' },
+    });
+    expect(events).toBe(1);
+  });
+
+  it('invoice.payment_failed → PAST_DUE (máquina de estados)', async () => {
+    if (!dbOk) return;
+    const event = stripeEvent(`evt_t447_fail_${Date.now()}`, 'invoice.payment_failed', {
+      id: `in_t447_${Date.now()}`,
+      object: 'invoice',
+      subscription: subExt,
+    });
+    const res = await postStripeWebhook(event);
+    expect(res.statusCode).toBe(200);
+
+    const sub = await prisma.subscription.findUnique({ where: { userId: stripeUserId } });
+    expect(sub?.status).toBe('PAST_DUE');
+  });
+
+  it('customer.subscription.updated (canceled) → CANCELLED + periodEnd', async () => {
+    if (!dbOk) return;
+    const periodEnd = Math.floor(Date.now() / 1000) + 86400;
+    const event = stripeEvent(`evt_t447_cancel_${Date.now()}`, 'customer.subscription.updated', {
+      id: subExt,
+      object: 'subscription',
+      status: 'canceled',
+      current_period_end: periodEnd,
+    });
+    const res = await postStripeWebhook(event);
+    expect(res.statusCode).toBe(200);
+
+    const sub = await prisma.subscription.findUnique({ where: { userId: stripeUserId } });
+    expect(sub?.status).toBe('CANCELLED');
+    expect(sub?.cancelledAt).not.toBeNull();
+    expect(sub?.currentPeriodEnd?.getTime()).toBe(periodEnd * 1000);
+  });
+
+  it('charge.refunded → billing REFUNDED; sem transição inválida (segue CANCELLED)', async () => {
+    if (!dbOk) return;
+    const event = stripeEvent(`evt_t447_refund_${Date.now()}`, 'charge.refunded', {
+      id: `ch_t447_${Date.now()}`,
+      object: 'charge',
+      subscription: subExt,
+      refunded: true,
+    });
+    const res = await postStripeWebhook(event);
+    expect(res.statusCode).toBe(200);
+
+    const billing = await prisma.billing.findFirst({ where: { externalId: subExt } });
+    expect(billing?.status).toBe('REFUNDED');
+
+    const sub = await prisma.subscription.findUnique({ where: { userId: stripeUserId } });
+    expect(sub?.status).toBe('CANCELLED'); // CANCELLED→EXPIRED não é permitida
+    const events = await prisma.paymentEvent.count({ where: { type: 'charge.refunded' } });
+    expect(events).toBeGreaterThanOrEqual(1);
+  });
+
+  it('assinatura forjada → 400', async () => {
+    if (!dbOk) return;
+    const payload = JSON.stringify(stripeEvent(`evt_t447_forge_${Date.now()}`, 'ping', {}));
+    const badHeader = await stripeSignatureHeader(payload, 'whsec_errado');
+    const res = app.inject({
+      method: 'POST',
+      url: '/api/v1/billing/webhook',
+      payload,
+      headers: { 'stripe-signature': badHeader, 'content-type': 'application/json' },
+    });
+    expect((await res).statusCode).toBe(400);
   });
 });
