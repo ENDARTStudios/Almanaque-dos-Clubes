@@ -47,7 +47,8 @@ COPY apps/api/scripts/ ./apps/api/scripts/
 
 # T430 — entrypoint aplica `migrate deploy` (fail-fast) antes do servidor.
 COPY apps/api/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+# T447 — normaliza CRLF: checkouts Windows (core.autocrlf=true) quebram o shebang
+RUN chmod +x ./entrypoint.sh && sed -i 's/\r$//' ./entrypoint.sh
 
 EXPOSE 3000
 ENTRYPOINT ["./entrypoint.sh"]
