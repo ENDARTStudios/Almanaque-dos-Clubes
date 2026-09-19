@@ -26,7 +26,7 @@ export default function LegalDocument({ kind }: { kind: 'terms' | 'privacy' }) {
 
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">{doc.title}</h1>
       <p className="text-sm text-foreground/50 mb-8">
-        {t('legal.updatedLabel')}: 2026-09-01 · END ART Studios · CNPJ 45.370.930/0001-75
+        {t('legal.updatedLabel')}: 2026-09-18 (v1.1) · END ART Studios · CNPJ 45.370.930/0001-75
       </p>
       <p className="text-foreground/70 mb-8 leading-relaxed">{doc.intro}</p>
 

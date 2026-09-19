@@ -260,6 +260,7 @@ describe('ranking algorithm — integração Prisma (CI)', () => {
       await prisma.season.count();
     } catch {
       dbOk = false;
+      if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
     }
     if (!dbOk) return;
 
@@ -358,7 +359,11 @@ describe('ranking algorithm — integração Prisma (CI)', () => {
       prisma.knowledgeGraph.deleteMany({ where: { sourceId: { in: seededClubs } } }),
       prisma.club.deleteMany({ where: { id: { in: seededClubs } } }),
       prisma.competition.deleteMany({ where: { id: { in: seededComps } } }),
-      prisma.ranking.deleteMany({ where: { name: { contains: 'Ranking 0-100' } } }),
+      // T445 — NÃO tocar no fixture do rankings-read (mesmo prefixo genérico;
+      // o contains apagava o ranking do teste vizinho no overlap de workers).
+      prisma.ranking.deleteMany({
+        where: { name: { contains: 'Ranking 0-100', not: { contains: 'T438 Read' } } },
+      }),
     ]);
   });
 
