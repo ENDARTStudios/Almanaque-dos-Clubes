@@ -37,6 +37,44 @@ railway redeploy --service "Almanaque-dos-Clubes"
 ```
 
 ### 4. Flag de produção
+
+---
+
+## Estado da configuração test-mode em PRODUÇÃO (T447, 2026-09-18) ✅
+
+Configurado via Stripe CLI/API e validado com checkout real de teste:
+- **`STRIPE_PRICE_*` (12 vars por moeda) CORRIGIDAS** — apontavam para IDs de
+  PRODUTO (`prod_…`, causa de 500 no checkout); agora com os `price_…` de teste
+  corretos (mapping produto+moeda+ciclo via API).
+- **Webhook**: endpoint test-mode `we_1UAfPOLpsXCO8a8IF9Qtg0R2` →
+  `https://api.almanaquedosclubes.com/api/v1/billing/webhook` (criado pelo
+  Operador; `charge.refunded` adicionado via API). **Pareamento
+  env↔endpoint VERIFICADO por entrega real**: checkout `cs_test_…` pago com
+  4242 → webhook processou → `subscriptions` PRO/ACTIVE + `billings` PAID
+  R$4,90 em produção. Dados do teste removidos (subscription cancelada,
+  refund succeeded, customer e registros locais deletados).
+- **`PAYMENTS_ENABLED` segue AUSENTE** — a ativação é o gesto do Operador.
+
+## FASE 5 — checklist exato do Operador (único passo restante)
+
+1. Stripe Dashboard → **ativar live mode** → criar os produtos/preços live
+   (Pro e Elite × mensal/anual, moedas BRL/USD/EUR) e as keys
+   `sk_live_…`/`pk_live_…`.
+2. Criar webhook endpoint **live** →
+   `https://api.almanaquedosclubes.com/api/v1/billing/webhook` com os
+   eventos: `checkout.session.completed`, `customer.subscription.updated`,
+   `customer.subscription.deleted`, `invoice.payment_failed`,
+   `charge.refunded` → anotar o `whsec_live_…`.
+3. Railway (produção) — substituir:
+   - `STRIPE_SECRET_KEY=sk_live_…`, `STRIPE_PUBLISHABLE_KEY=pk_live_…`,
+     `STRIPE_WEBHOOK_SECRET=whsec_live_…`
+   - `STRIPE_PRICE_{PRO,ELITE}_{MONTH,YEAR}_{BRL,USD,EUR}=price_live_…`
+     (12 vars, mesmos nomes)
+   - `PAYMENTS_ENABLED=true`
+   - (redeploy automático por mudança de variável)
+4. Smoke live: compra real Pro R$4,90 → webhook → assinatura ACTIVE →
+   reembolso CDC art. 49 → EXPIRED/CANCELLED + `payment_events` +
+   `audit_logs` gravando. Políticas v1.2 (Stripe no compartilhamento).
 ```bash
 vercel env add PAYMENTS_ENABLED production true
 vercel redeploy
