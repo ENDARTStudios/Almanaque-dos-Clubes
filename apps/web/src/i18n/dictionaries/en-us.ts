@@ -692,7 +692,7 @@ const en: Dictionary = {
           title: '18. Copyright (DMCA) and version history',
           body: [
             'Copyright holders may report alleged infringement through the form at /direitos-autorais (material description, location, legal grounds and contact) or through the channel endart.studios@gmail.com. Notices go through triage and a reasoned decision; unequivocally infringing content is removed.',
-            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added the copyright notice channel.',
+            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added the copyright notice channel; v1.2 (2026-09-19) — Stripe activated as the production payment processor.',
           ],
         },
       ],
@@ -730,6 +730,7 @@ const en: Dictionary = {
           body: [
             'We do not sell personal data. Data may be shared with infrastructure and payment providers, strictly necessary for operation, and with authorities when required by law.',
             'Current environment providers: Vercel (frontend hosting), Railway (API and PostgreSQL database hosting), Cloudflare (DNS and network protection) and Google Fonts (typographic fonts). Payments are processed by Stripe, which acts as an independent controller of payment data towards the data subject. This list is updated whenever a provider is contracted or replaced.',
+            'The payment processor Stripe (Stripe, Inc., USA) processes payment and fraud-prevention data, with international transfer to the USA under the LGPD (art. 33 et seq.) and standard contractual clauses where applicable; full card data never touches our servers (Stripe PCI DSS).',
           ],
         },
         {
@@ -782,7 +783,7 @@ const en: Dictionary = {
           body: [
             'The rights set out in art. 18 of the LGPD (confirmation, access, correction, anonymization, portability, deletion, information on sharing, information on the consequences of not providing data, review of automated decisions and withdrawal of consent) may be exercised through the form at /direitos-titular, which issues a tracking protocol, or through the channel endart.studios@gmail.com.',
             'Confirmation and access requests receive an immediate response; all others within 15 days, extendable under art. 18, §3, with notification to the ANPD.',
-            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added data subject rights channels and copyright notice channels.',
+            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added data subject rights channels and copyright notice channels; v1.2 (2026-09-19) — Stripe activated as the production payment processor.',
           ],
         },
       ],
