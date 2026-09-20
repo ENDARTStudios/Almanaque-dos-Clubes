@@ -18,6 +18,14 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-20] Decisão: D-2026-09-20-checkout-app-url-e-guard-live — Pós-pagamento aterrissou em localhost (Cadeia A) + keys live sob guard de boot
+
+Motivo: primeira compra real (Elite mensal R$9,90, `cs_live_a1RZNPAENd`, paid) processou o webhook e ativou a assinatura em produção, mas o pós-pagamento aterrissou em `localhost:3001` — `APP_URL` ausente no env de produção e o código cai no fallback `localhost:3001`. O Operador citou a sessão anual (`cs_live_a1Pwe…`, R$100,98) que na verdade estava `open/unpaid` (abandonada). Forense C1–C4 classificou como **Cadeia A** (compra na produção, redirect errado); Cadeia B (dev com keys live) foi descartada por evidência.
+Decisões: (1) `APP_URL=https://almanaquedosclubes.com` setada em produção e **obrigatória + https** quando `NODE_ENV=production` (guard no boot via env.ts); (2) **key live fora de produção falha o boot** (`sk_live_` + `NODE_ENV≠production` → erro no carregamento de `config/stripe.ts` — dev nunca cobra dinheiro real); (3) higiene verificada: nenhum `.env` local contém `sk_live`.
+Follow-ups: página pós-checkout resiliente (poll de "processando pagamento" quando a assinatura ainda não chegou) e `currentPeriodEnd` local respeitar ciclo anual (hoje o handler grava +30 dias para qualquer plano — a Stripe é a fonte da verdade do período).
+Evidência: `payment_events` gravou `checkout.succeeded` + `customer.subscription.created` em LIVE; `audit_logs` registrou a transição; zero erros no horário. Incidente documentado como o teste de fogo do pipeline #138 (primeira compra real processada idempotentemente).
+
+
 ### [2026-09-18] Decisão: D-2026-09-18-t445-direitos-titular — Direitos do titular (LGPD art. 18) e copyright claims (DMCA) COMPLETOS (F1–F5)
 
 Motivo: M3 (monetização live) é bloqueado pelo checklist jurídico — sem canal de direitos do titular e de copyright claims publicado, a ativação do Stripe viola o §4 do pacote jurídico. T444/T447 deixaram o pagante coberto; T445 cobre o titular.
