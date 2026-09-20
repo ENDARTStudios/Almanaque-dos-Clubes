@@ -16,7 +16,8 @@ const es: Dictionary = {
     search: 'Buscar',
     login: 'Entrar',
     dashboard: 'Panel',
-    signOut: 'Salir',
+    signOut: 'Salir',    subscription: 'Suscripción',
+
   },
   footer: {
     tagline:
