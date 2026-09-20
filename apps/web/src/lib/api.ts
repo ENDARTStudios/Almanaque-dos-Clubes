@@ -23,7 +23,39 @@ async function readCsrfToken(): Promise<string | null> {
   return csrfToken;
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// P1 — renovação de sessão single-flight: o access token dura 15min e NENHUM
+// código do client chamava /auth/refresh — após 15min toda chamada dava 401 e
+// o usuário aparentava logout (a sessão de 7 dias existia, mas nunca era usada).
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshSession(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const token = await readCsrfToken();
+        const res = await fetch(API_BASE + '/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+          // corpo "{}" obrigatório: parser do Fastify rejeita JSON vazio
+          // (armadilha HANDOFF-T445) — o token vem do cookie __Host-refresh_token.
+          body: '{}',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'x-csrf-token': token } : {}),
+          },
+        });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    })();
+  }
+  const ok = await refreshPromise;
+  refreshPromise = null;
+  return ok;
+}
+
+async function request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
   const method = (options.method ?? 'GET').toUpperCase();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -34,6 +66,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (token) headers['x-csrf-token'] = token;
   }
   let res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+  // P1 — access expirado (401): renova a sessão uma vez e refaz a chamada.
+  if (res.status === 401 && !isRetry) {
+    const renewed = await tryRefreshSession();
+    if (renewed) {
+      const retryHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
+      };
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        csrfToken = null;
+        const fresh = await readCsrfToken();
+        if (fresh) retryHeaders['x-csrf-token'] = fresh;
+      }
+      res = await fetch(API_BASE + path, { credentials: 'include', headers: retryHeaders, ...options });
+    }
+  }
   // Se um write falhar por CSRF stale, invalida o cache, refaz o token e tenta uma vez.
   if (!res.ok && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
     const probe = (await res.json().catch(() => null)) as { error?: { code?: string } } | null;
