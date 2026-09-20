@@ -16,7 +16,7 @@
  */
 import { withRlsContext } from '../../config/rls-context.js';
 import { hashPassword, verifyPassword } from '../../config/crypto.js';
-import { createSession, revokeSession, type SessionMetadata } from './session.service.js';
+import { createSession, type SessionMetadata } from './session.service.js';
 import { assignRole, getUserPermissions, getUserRoles, ROLE_NAMES } from './rbac.service.js';
 import { createFreeSubscription } from '../billing/subscription.service.js';
 import { usersFindByEmail } from './users-auth.queries.js';
@@ -296,19 +296,21 @@ export async function logout(refreshToken: string | undefined): Promise<boolean>
     return true;
   }
 
-  // Tenta encontrar a sessão para auditoria
-  // (verifySession não revela o motivo — usamos revokeSession que é idempotente)
-  await revokeSession(refreshToken);
+  // T456 — "Sair" encerra a FAMÍLIA de sessão: resolve a sessão pelo token
+  // ANTES de revogar e revoga TODAS as sessões do usuário. Sem isso, uma
+  // rotação em voo (refresh concorrente de outra aba) deixa uma sessão filha
+  // B ativa com cookies novos — a ressurreição pós-logout (incidente 09-20).
+  const { findSessionByToken, revokeAllUserSessions } = await import('./session.service.js');
+  const session = await findSessionByToken(refreshToken);
 
-  // Auditoria: não temos mais userId aqui (sessão foi revogada)
-  // Em produção, poderíamos buscar session por tokenHash ANTES de revogar
-  // para registrar userId no audit log. Por ora, registramos ação genérica.
+  await revokeAllUserSessions(session?.userId ?? '');
+
   await auditLog.record({
     entityType: EntityType.SESSION,
-    entityId: 'logout',
+    entityId: session?.id ?? 'logout',
     action: AuditAction.USER_LOGOUT,
-    userId: null,
-    metadata: { timestamp: new Date().toISOString() },
+    userId: session?.userId ?? null,
+    metadata: { sessionsRevoked: session ? 'all' : 'none' },
   });
 
   return true;
