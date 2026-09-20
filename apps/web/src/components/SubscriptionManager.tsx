@@ -21,6 +21,7 @@ const L: Record<
     cancel: string;
     withdraw: string;
     done: string;
+    refundDone: string;
     error: string;
   }
 > = {
@@ -33,6 +34,7 @@ const L: Record<
     cancel: 'Cancelar assinatura',
     withdraw: 'Solicitar reembolso (7 dias)',
     done: 'Feito.',
+    refundDone: 'Reembolso solicitado em {date} — protocolo {protocol}. O crédito aparece no extrato em alguns dias.',
     error: 'Erro ao processar.',
   },
   'en-us': {
@@ -44,6 +46,7 @@ const L: Record<
     cancel: 'Cancel subscription',
     withdraw: 'Request refund (7 days)',
     done: 'Done.',
+    refundDone: 'Refund requested on {date} — protocol {protocol}. The credit appears on your statement within a few days.',
     error: 'Error processing.',
   },
   'es-es': {
@@ -55,6 +58,7 @@ const L: Record<
     cancel: 'Cancelar suscripción',
     withdraw: 'Solicitar reembolso (7 días)',
     done: 'Hecho.',
+    refundDone: 'Reembolso solicitado el {date} — protocolo {protocol}. El crédito aparece en tu extracto en unos días.',
     error: 'Error al procesar.',
   },
 };
@@ -79,9 +83,17 @@ export default function SubscriptionManager() {
     setBusy(kind);
     setMsg('');
     try {
-      const r = await api.post<{ data: Sub }>('/billing/' + kind);
+      // T451 — withdraw devolve o protocolo do refund (fail-loud: erros do
+      // provedor chegam como exceção e o estado local NÃO é alterado).
+      const r = await api.post<{ data: Sub; refund?: { id: string } }>('/billing/' + kind);
       setSub(r.data);
-      setMsg(l.done);
+      setMsg(
+        kind === 'withdraw' && r.refund?.id
+          ? l.refundDone
+              .replace('{date}', new Date().toLocaleDateString())
+              .replace('{protocol}', r.refund.id)
+          : l.done,
+      );
     } catch (err) {
       setMsg(err instanceof Error ? err.message : l.error);
     } finally {

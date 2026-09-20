@@ -18,6 +18,14 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-20] Decisão: D-2026-09-20-refund-fail-loud — Caminho de estorno nunca mente: refund real antes de REFUNDED local
+
+Motivo: primeira compra real (Elite mensal R$9,90) foi estornada pelo painel e o site disse "Feito." **sem criar refund no Stripe** — ledger interno marcando REFUNDED sem efeito externo (risco CDC art. 49 + contabilidade falsa). Causa raiz (linha exata, `stripe.service.ts` refundStripeSubscription): `invoices.list({subscription, limit:1})` no **formato novo do Checkout** retorna fatura paga **sem `payment_intent` e sem `charge`** (validado em produção: o PI só é alcançável por `charges.list({customer}).payment_intent`) → `if (invoice && pi)` falso → refund pulado silenciosamente dentro de `catch {}` vazio → a rota marcava o estado local de qualquer jeito. A assunção do T447 ("funcionaria em dados limpos") era não-testada.
+Decisões: (1) **caminho de dinheiro é fail-loud** — `refundStripeSubscription` lança (`RefundNotPossibleError`/erros do provedor) em vez de engolir; a rota `/billing/withdraw` só executa `withdrawSubscription` (REFUNDED/CANCELLED locais) **após** o refund bem-sucedido no provedor; erro → 502 `REFUND_NOT_RESOLVED`/`PROVIDER_ERROR` com estado local inalterado; (2) resolver em cascata com fixture real de produção: `invoice.payment_intent` (formato antigo) → `charges.list({customer})` com `payment_intent` e não-reembolsado (formato novo); (3) UI devolve protocolo do refund ("Reembolso solicitado em {data} — protocolo {id}"), nunca "Feito." solto; (4) e-mail de confirmação permanece gap conhecido (sem provider SMTP) — registrado, não escondido.
+Regra de método (Thinker/Doer, 09-20): **caminho de dinheiro (cobrança, estorno, cancelamento) só é certificado por teste que exercita o caminho de produção com fixture realista — nunca por workaround manual + assunção.**
+Evidência: refund real executado manualmente `re_3UHZeZPvpIyYKAjl1F3q0gaw` (succeeded, R$9,90 — o titular foi reembolsado antes do fix); unit tests do resolver 6/6 (fixtures live).
+
+
 ### [2026-09-20] Decisão: D-2026-09-20-checkout-app-url-e-guard-live — Pós-pagamento aterrissou em localhost (Cadeia A) + keys live sob guard de boot
 
 Motivo: primeira compra real (Elite mensal R$9,90, `cs_live_a1RZNPAENd`, paid) processou o webhook e ativou a assinatura em produção, mas o pós-pagamento aterrissou em `localhost:3001` — `APP_URL` ausente no env de produção e o código cai no fallback `localhost:3001`. O Operador citou a sessão anual (`cs_live_a1Pwe…`, R$100,98) que na verdade estava `open/unpaid` (abandonada). Forense C1–C4 classificou como **Cadeia A** (compra na produção, redirect errado); Cadeia B (dev com keys live) foi descartada por evidência.
