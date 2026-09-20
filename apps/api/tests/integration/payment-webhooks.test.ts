@@ -13,6 +13,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { createHmac } from 'node:crypto';
 import Stripe from 'stripe';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../src/config/prisma.js';
 import { ROLE_PERMISSIONS } from '../../src/modules/auth/rbac.service.js';
 import type { FastifyInstance } from 'fastify';
@@ -24,6 +25,11 @@ vi.hoisted(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_t447_fake';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_t447_test';
 });
+
+// R2 — seed tolerante a corrida entre arquivos paralelos (upsert concorrente = já existe).
+const ignoreDuplicate = (e: unknown): void => {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+};
 
 let app: FastifyInstance;
 let dbOk = true;
@@ -82,18 +88,18 @@ async function seedRoles(): Promise<void> {
       where: { name: roleName },
       update: {},
       create: { name: roleName },
-    });
+    }).catch(ignoreDuplicate);
     for (const permName of perms) {
       const perm = await prisma.permission.upsert({
         where: { name: permName },
         update: {},
         create: { name: permName },
-      });
+      }).catch(ignoreDuplicate);
       await prisma.rolePermission.upsert({
         where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
         update: {},
         create: { roleId: role.id, permissionId: perm.id },
-      });
+      }).catch(ignoreDuplicate);
     }
   }
 }

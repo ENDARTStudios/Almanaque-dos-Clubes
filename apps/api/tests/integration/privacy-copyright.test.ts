@@ -9,12 +9,18 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { generateCsrfToken } from '../../src/middleware/csrf.js';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../src/config/prisma.js';
 import { ROLE_PERMISSIONS } from '../../src/modules/auth/rbac.service.js';
 import type { FastifyInstance } from 'fastify';
 
 // Token CSRF é de uso único — cada POST precisa de um token fresco.
 const csrf = () => ({ 'x-csrf-token': generateCsrfToken('t445'), 'content-type': 'application/json' });
+
+// R2 — seed tolerante a corrida entre arquivos paralelos (upsert concorrente = já existe).
+const ignoreDuplicate = (e: unknown): void => {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+};
 
 let app: FastifyInstance;
 let dbOk = true;
@@ -32,18 +38,18 @@ async function seedRoles(): Promise<void> {
       where: { name: roleName },
       update: {},
       create: { name: roleName },
-    });
+    }).catch(ignoreDuplicate);
     for (const permName of perms) {
       const perm = await prisma.permission.upsert({
         where: { name: permName },
         update: {},
         create: { name: permName },
-      });
+      }).catch(ignoreDuplicate);
       await prisma.rolePermission.upsert({
         where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
         update: {},
         create: { roleId: role.id, permissionId: perm.id },
-      });
+      }).catch(ignoreDuplicate);
     }
   }
 }

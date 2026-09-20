@@ -85,7 +85,7 @@ beforeAll(async () => {
   });
 
   const ranking = await prisma.ranking.create({
-    data: { name: 'Ranking 0-100 T441 — Masculino', season: '2023', publishedAt: new Date() },
+    data: { name: 'Ranking 0-100 T441 — Masculino', season: '2039', publishedAt: new Date() },
   });
   rankingId = ranking.id;
   await prisma.rankingEntry.create({
@@ -117,7 +117,7 @@ describe('GET /api/v1/champions (T441)', () => {
     const mundial = byHierarchy.get('mundial');
     expect(mundial.champion).not.toBeNull();
     expect(mundial.champion.club.name).toBe('Champions World FC');
-    expect(mundial.champion.season).toBe(2023); // mais recente vence
+    expect(mundial.champion.season).toBe(2039); // mais recente vence
     expect(mundial.champion.competition.name).toContain('World Cup');
     expect(mundial.champion.trophy).toBeNull(); // acervo sem imagens ainda
 
