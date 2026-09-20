@@ -312,3 +312,15 @@ antes de REFUNDED local (incidente do "Feito." mentiroso resolvido na raiz;
 live (re_3UHZeZ…, succeeded, R$9,90). Pendência de provider: e-mail transacional
 (Operador escolhe SMTP/Resend; protocolo na tela cumpre Termos 3.5 até lá).
 Fila: re-teste do loop CDC no painel com o código final (Operador) · **M3** · M4.
+
+---
+
+## 19. Snapshot T457 — cadeia de sessão sempre assenta (2026-09-20)
+
+`D-2026-09-20-sessao-sempre-assenta` (PR #151): P0 de navegabilidade — 3 navegadores
+travados em "Verificando sessão…" por 429 do rate-limit global (IP compartilhado) +
+semântica do T455 que mantinha loading em não-401. Hotfix: qualquer HTTP assenta
+(401/403/429/5xx → anon navegável) + teto de 8s (AbortController). Postmortem da
+saga: uma causa, cinco sintomas (T455 pill, área indisponível, não-desloga, login
+sem renderizar, inavegável). Pendências: bucket próprio p/ auth endpoints
+(Operador/config) · e-mail transacional (provider).
