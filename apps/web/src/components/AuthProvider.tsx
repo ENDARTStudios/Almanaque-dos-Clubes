@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { api, suppressSessionRefresh } from '@/lib/api';
 import { getApiBase } from '@/lib/api-base';
@@ -40,6 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
   const pathname = usePathname();
+  // T458 — orçamento de sessão no client: re-checks de navegação são
+  // throttled (30s), focus só re-verifica após 60s e as abas compartilham o
+  // resultado via BroadcastChannel (N abas = 1 verificação, não N).
+  const lastCheckRef = useRef(0);
+  const channelRef = useRef<BroadcastChannel | null>(null);
 
   const refresh = useCallback(async (): Promise<void> => {
     // T457 (regra P0 do 09-20) — a cadeia de sessão SEMPRE assenta: qualquer
@@ -75,20 +80,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.warn('[auth] sessão não verificada (resolvida anônima):', status ?? 'sem resposta');
     } finally {
       clearTimeout(teto);
+      lastCheckRef.current = Date.now();
     }
   }, []);
 
-  // Re-verifica no mount, a cada navegação e no retorno de foco — o indicador
+  const refreshThrottled = useCallback(async (): Promise<void> => {
+    const since = Date.now() - lastCheckRef.current;
+    if (since < 30_000) return; // orçamento: máx. 1 check a cada 30s
+    await refresh();
+  }, [refresh]);
+
+  // Re-verifica no mount (força) e nas navegações (throttled 30s) — o indicador
   // nunca fica preso num estado resolvido antes de um login/logout.
   useEffect(() => {
     void refresh();
   }, [refresh, pathname]);
 
   useEffect(() => {
-    const onFocus = () => void refresh();
+    // T458 — focus só re-verifica após 60s da última checagem.
+    const onFocus = () => {
+      if (Date.now() - lastCheckRef.current > 60_000) void refresh();
+    };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [refresh]);
+
+  // T458 — abas compartilham a sessão via BroadcastChannel (N abas = 1 check).
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const ch = new BroadcastChannel('almanaque-session');
+    ch.onmessage = (ev: MessageEvent) => {
+      const data = ev.data as { user: AuthUser | null; at: number } | null;
+      if (!data || data.at <= lastCheckRef.current) return;
+      lastCheckRef.current = data.at;
+      setUser(data.user);
+      setStatus(data.user ? 'authed' : 'anon');
+    };
+    channelRef.current = ch;
+    return () => ch.close();
+  }, []);
+
+  // publica o estado resolvido para as outras abas (owner + anon)
+  useEffect(() => {
+    if (status === 'loading') return;
+    channelRef.current?.postMessage({ user, at: Date.now() });
+  }, [user, status]);
 
   const logout = useCallback(async () => {
     // T454 — suprime o auto-refresh ANTES do POST (sem ressurreição).

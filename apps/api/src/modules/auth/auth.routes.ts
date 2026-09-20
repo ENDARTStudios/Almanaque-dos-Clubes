@@ -68,11 +68,19 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
    * GET /auth/csrf-token — emite token CSRF de uso único (24h).
    * Cliente deve enviá-lo no header `x-csrf-token` em rotas de escrita.
    */
-  app.get('/auth/csrf-token', async (request, reply) => {
-    const userId = (request.user as { sub?: string } | undefined)?.sub ?? 'anonymous';
-    const token = generateCsrfToken(userId);
-    return reply.status(200).send({ data: { csrfToken: token } });
-  });
+  app.get(
+    '/auth/csrf-token',
+    // T458 — bucket próprio folgado (o client o busca a cada renovação de
+    // sessão; não deve competir com o orçamento global do usuário).
+    {
+      config: { rateLimit: { max: 600, timeWindow: '15 minutes' } },
+    },
+    async (request, reply) => {
+      const userId = (request.user as { sub?: string } | undefined)?.sub ?? 'anonymous';
+      const token = generateCsrfToken(userId);
+      return reply.status(200).send({ data: { csrfToken: token } });
+    },
+  );
 
   /**
    * Helper: setar cookies httpOnly com access e refresh tokens.
@@ -217,14 +225,22 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   // GET /auth/me (T439 — ProtectedRoute): perfil resumido do usuário da
   // sessão atual. 401 sem token; nunca expõe passwordHash.
   // -----------------------------------------------------------------
-  app.get('/auth/me', { preHandler: [authenticate] }, async (request, reply) => {
-    const userId = request.user!.id;
-    const user = await withRlsContext({ userId, role: 'USER' }, async (tx) =>
-      tx.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
+  app.get(
+    '/auth/me',
+    {
+      preHandler: [authenticate],
+      // T458 — orçamento de sessão: re-checks do client (navegação/focus) têm
+      // bucket próprio folgado e não competem com o orçamento global de API.
+      config: { rateLimit: { max: 600, timeWindow: '15 minutes' } },
+    },
+    async (request, reply) => {
+      const userId = request.user!.id;
+      const user = await withRlsContext({ userId, role: 'USER' }, async (tx) =>
+        tx.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
           name: true,
           status: true,
           emailVerified: true,
@@ -320,7 +336,12 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   // -----------------------------------------------------------------
   // POST /auth/refresh
   // -----------------------------------------------------------------
-  app.post('/auth/refresh', async (request, reply) => {
+  app.post(
+    '/auth/refresh',
+    // T458 — bucket próprio: 1 refresh silencioso por expiração nunca deve
+    // competir com o orçamento global (429 no refresh = ressurreição/pilha).
+    { config: { rateLimit: { max: 600, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
     try {
       RefreshSchema.parse(request.body);
 

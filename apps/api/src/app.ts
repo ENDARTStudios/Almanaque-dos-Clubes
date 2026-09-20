@@ -99,10 +99,20 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Rate limiting avançado (7.3): janela deslizante por usuário+IP em /auth/*
   // (complementa o brute-force por IP+email do login — rate-limit.service.ts).
+  // T458 — re-checks de sessão (me/csrf/refresh) têm bucket próprio de
+  // 600/15min (config.rateLimit nas rotas) e NÃO consomem o AUTH_WINDOW:
+  // era o self-DoS do 09-20 (re-checks de navegação/focus competindo com a
+  // navegação do usuário no mesmo orçamento).
   if (!env.rateLimitDisabled) {
+    const SESSION_READ_PATHS = new Set([
+      '/api/v1/auth/me',
+      '/api/v1/auth/csrf-token',
+      '/api/v1/auth/refresh',
+    ]);
     app.addHook('onRequest', async (request, reply) => {
-      const url = request.raw.url ?? '';
-      if (!url.startsWith('/api/v1/auth/')) return;
+      const path = (request.raw.url ?? '').split('?')[0] ?? '';
+      if (!path.startsWith('/api/v1/auth/')) return;
+      if (SESSION_READ_PATHS.has(path)) return;
       await rateLimitByUserOrIp(AUTH_WINDOW)(request, reply);
     });
   }
