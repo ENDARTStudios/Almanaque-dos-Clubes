@@ -14,6 +14,7 @@ import {
   createCheckoutSession,
   handleStripeEvent,
   refundStripeSubscription,
+  RefundNotPossibleError,
 } from './stripe.service.js';
 import { isStripeConfigured, getStripe, STRIPE_WEBHOOK_SECRET } from '../../config/stripe.js';
 import { mapCountryToCurrency } from '@almanaque/domain';
@@ -85,9 +86,34 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
     try {
       const userId = request.user!.id;
       const paid = (await listUserBillings(userId, { status: 'PAID', limit: 1 }))[0];
-      if (paid?.externalId) await refundStripeSubscription(paid.externalId);
+      // T451 — FAIL-LOUD: o refund no provedor vem PRIMEIRO e qualquer falha
+      // aborta com 502 SEM marcar o estado local (o ledger interno nunca mente
+      // "REFUNDED" sem o dinheiro ter voltado).
+      let refundId: string | null = null;
+      if (paid?.externalId && isStripeConfigured()) {
+        try {
+          const result = await refundStripeSubscription(paid.externalId);
+          refundId = result.refundId;
+        } catch (err) {
+          if (err instanceof RefundNotPossibleError) {
+            return reply.status(502).send({
+              error: {
+                code: 'REFUND_NOT_RESOLVED',
+                message:
+                  'Não foi possível localizar o pagamento a estornar no provedor. Nenhum valor foi marcado como devolvido. Contate o suporte.',
+              },
+            });
+          }
+          return reply.status(502).send({
+            error: {
+              code: 'PROVIDER_ERROR',
+              message: 'Falha ao executar o reembolso no provedor. Tente novamente.',
+            },
+          });
+        }
+      }
       const sub = await withdrawSubscription(userId);
-      return reply.send({ data: sub });
+      return reply.send({ data: sub, refund: refundId ? { id: refundId } : null });
     } catch (err) {
       if (
         err instanceof Error &&

@@ -185,22 +185,67 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 }
 
 /**
- * Cancela a assinatura no Stripe e estorna o pagamento da fatura mais recente
- * (best-effort — se falhar, o estado local já foi tratado pelo route).
+ * T451 — resolve o PaymentIntent cobrado de uma assinatura, em cascata:
+ * (a) invoice.payment_intent (formato antigo); (b) charges do customer
+ * (formato Checkout recente — invoice e PI não se referenciam nessa forma;
+ * validado em produção 2026-09-20). Retorna null quando não resolvível —
+ * o chamador DEVE falhar alto, nunca marcar REFUNDED local sem efeito externo.
  */
-export async function refundStripeSubscription(stripeSubscriptionId: string): Promise<void> {
-  try {
-    const stripe = getStripe();
-    await stripe.subscriptions.cancel(stripeSubscriptionId);
-    const invoices = await stripe.invoices.list({ subscription: stripeSubscriptionId, limit: 1 });
-    const invoice = invoices.data[0];
-    const pi = (invoice as unknown as { payment_intent?: string | null })?.payment_intent;
-    if (invoice && pi) {
-      await stripe.refunds.create({ payment_intent: pi });
-    }
-  } catch {
-    // best-effort — reembolso físico pode ser concluído via webhook/manual
+export function resolveRefundablePaymentIntentId(
+  paidInvoices: Array<{ id: string; payment_intent?: string | null; customer?: string | null }>,
+  customerCharges: Array<{ status: string; refunded: boolean; payment_intent?: string | null }>,
+): string | null {
+  for (const inv of paidInvoices) {
+    if (inv.payment_intent) return inv.payment_intent;
   }
+  const charge = customerCharges.find((c) => c.status === 'succeeded' && !c.refunded && c.payment_intent);
+  return charge?.payment_intent ?? null;
+}
+
+export class RefundNotPossibleError extends Error {
+  constructor(stripeSubscriptionId: string) {
+    super(
+      `Não foi possível resolver o pagamento a estornar da assinatura ${stripeSubscriptionId} no provedor.`,
+    );
+    this.name = 'RefundNotPossibleError';
+  }
+}
+
+/**
+ * T451 — FAIL-LOUD: cancela a assinatura no provedor, resolve o PI cobrado
+ * (cascata acima) e cria o refund. Qualquer falha LANÇA — o estado local
+ * só é marcado como REFUNDED pelo route DEPOIS do sucesso aqui.
+ */
+export async function refundStripeSubscription(
+  stripeSubscriptionId: string,
+): Promise<{ refundId: string; paymentIntentId: string }> {
+  const stripe = getStripe();
+  await stripe.subscriptions.cancel(stripeSubscriptionId);
+
+  const invoices = await stripe.invoices.list({ subscription: stripeSubscriptionId, limit: 20 });
+  const paidInvoices = invoices.data
+    .filter((i) => i.status === 'paid')
+    .map((i) => ({
+      id: i.id,
+      payment_intent: (i as unknown as { payment_intent?: string | null }).payment_intent ?? null,
+      customer: typeof i.customer === 'string' ? i.customer : null,
+    }));
+  const customer = paidInvoices[0]?.customer ?? null;
+  const charges = customer
+    ? (await stripe.charges.list({ customer, limit: 20 })).data.map((c) => ({
+        status: c.status as string,
+        refunded: c.refunded,
+        payment_intent: (c as unknown as { payment_intent?: string | null }).payment_intent ?? null,
+      }))
+    : [];
+
+  const pi = resolveRefundablePaymentIntentId(paidInvoices, charges);
+  if (!pi) {
+    throw new RefundNotPossibleError(stripeSubscriptionId);
+  }
+
+  const refund = await stripe.refunds.create({ payment_intent: pi });
+  return { refundId: refund.id, paymentIntentId: pi };
 }
 
 export { STRIPE_WEBHOOK_SECRET, getStripe };
