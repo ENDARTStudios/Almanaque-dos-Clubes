@@ -60,8 +60,8 @@ beforeAll(async () => {
   });
   compNational = n.id;
 
-  // Mundial: 2022 e 2023 → 2023 vence (mais recente).
-  for (const year of [2022, 2023]) {
+  // Mundial: 2037 e 2038 → 2038 vence (mais recente; anos únicos — regra R2 de fixtures escopados).
+  for (const year of [2037, 2038]) {
     await prisma.knowledgeGraph.create({
       data: {
         sourceId: clubWorld,
@@ -80,7 +80,7 @@ beforeAll(async () => {
       targetId: compNational,
       targetType: 'Competition',
       relation: 'WON',
-      metadata: { year: 2023, dataSource: 'manual' },
+      metadata: { year: 2038, dataSource: 'manual' },
     },
   });
 
@@ -117,7 +117,7 @@ describe('GET /api/v1/champions (T441)', () => {
     const mundial = byHierarchy.get('mundial');
     expect(mundial.champion).not.toBeNull();
     expect(mundial.champion.club.name).toBe('Champions World FC');
-    expect(mundial.champion.season).toBe(2039); // mais recente vence
+    expect(mundial.champion.season).toBe(2038); // mais recente vence
     expect(mundial.champion.competition.name).toContain('World Cup');
     expect(mundial.champion.trophy).toBeNull(); // acervo sem imagens ainda
 
