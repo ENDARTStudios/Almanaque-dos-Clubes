@@ -694,7 +694,7 @@ const pt: Dictionary = {
           title: '18. Direitos autorais (DMCA) e histórico de versões',
           body: [
             'Titulares de direitos autorais podem notificar alegações de violação pelo formulário em /direitos-autorais (descrição do material, localização, fundamentação legal e contato) ou pelo canal endart.studios@gmail.com. Notificações passam por triagem e decisão motivada; conteúdo inequivocamente infrator é removido.',
-            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão do canal de notificações de direitos autorais.',
+            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão do canal de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.',
           ],
         },
       ],
@@ -732,6 +732,7 @@ const pt: Dictionary = {
           body: [
             'Não vendemos dados pessoais. Dados podem ser compartilhados com provedores de infraestrutura e pagamento, estritamente necessários à operação, e com autoridades quando exigido por lei.',
             'Provedores atuais do ambiente: Vercel (hospedagem do frontend), Railway (hospedagem da API e do banco de dados PostgreSQL), Cloudflare (DNS e proteção de rede) e Google Fonts (fontes tipográficas). Pagamentos são processados pelo Stripe, que atua como controlador dos dados de pagamento perante o titular. Esta lista é atualizada sempre que um fornecedor é contratado ou substituído.',
+            'O processador de pagamentos Stripe (Stripe, Inc., EUA) trata dados de pagamento e antifraude, com transferência internacional para os EUA nos termos da LGPD (art. 33 e seguintes) e cláusulas-padrão contratuais quando aplicáveis; dados completos de cartão não tocam nossos servidores (PCI DSS do Stripe).',
           ],
         },
         {
@@ -784,7 +785,7 @@ const pt: Dictionary = {
           body: [
             'Os direitos do art. 18 da LGPD (confirmação, acesso, correção, anonimização, portabilidade, eliminação, informação sobre compartilhamento, informação sobre consequências de não fornecer dados, revisão de decisões automatizadas e revogação do consentimento) podem ser exercidos pelo formulário em /direitos-titular, com emissão de protocolo para acompanhamento, ou pelo canal endart.studios@gmail.com.',
             'Pedidos de confirmação e acesso têm resposta imediata; os demais, em até 15 dias, prorrogáveis nos termos do art. 18, §3, com comunicação à ANPD.',
-            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão dos canais de exercício de direitos do titular e de notificações de direitos autorais.',
+            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão dos canais de exercício de direitos do titular e de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.',
           ],
         },
       ],

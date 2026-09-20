@@ -58,6 +58,25 @@ export const billingRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
   });
 
   app.post('/billing/cancel', { preHandler: [authenticate] }, async (request, reply) => {
+    // T447 — assinatura Stripe: cancela no provedor primeiro (cancel_at_period_end;
+    // renovação encerra, acesso mantido até o fim do ciclo). Sem isto o Stripe
+    // continuaria cobrando após o cancelamento na UI. Local permanece ACTIVE até
+    // o webhook de cancelamento efetivo (fim do ciclo) → CANCELLED.
+    const paid = (await listUserBillings(request.user!.id, { status: 'PAID', limit: 1 }))[0];
+    if (paid?.externalId && isStripeConfigured()) {
+      try {
+        await getStripe().subscriptions.update(paid.externalId, { cancel_at_period_end: true });
+        const sub = await getSubscription(request.user!.id);
+        return reply.send({ data: sub });
+      } catch {
+        return reply.status(502).send({
+          error: {
+            code: 'PROVIDER_ERROR',
+            message: 'Falha ao cancelar no provedor de pagamento.',
+          },
+        });
+      }
+    }
     const sub = await cancelSubscription(request.user!.id);
     return reply.send({ data: sub });
   });
