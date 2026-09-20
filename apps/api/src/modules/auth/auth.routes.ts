@@ -93,11 +93,15 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * Helper: limpar cookies (logout).
+   * T452 — os atributos PRECISAM espelhar a criação: browsers (Chrome) rejeitam
+   * Set-Cookie com prefixo __Host- sem Secure/SameSite — sem isso o logout
+   * não apaga o cookie no browser (logout cosmético, incidente 2026-09-20).
    */
   function clearAuthCookies(reply: FastifyReply): void {
     const isProd = env.isProd;
-    reply.clearCookie(getAccessCookieName(isProd), { path: '/' });
-    reply.clearCookie(getRefreshCookieName(isProd), { path: '/' });
+    const base = { path: '/', httpOnly: true, secure: isProd, sameSite: 'strict' as const };
+    reply.clearCookie(getAccessCookieName(isProd), base);
+    reply.clearCookie(getRefreshCookieName(isProd), base);
   }
 
   /**

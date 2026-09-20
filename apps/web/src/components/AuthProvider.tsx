@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api, suppressSessionRefresh } from '@/lib/api';
 
 // T450 — fonte ÚNICA de verdade do estado de sessão no client. O navbar (e
 // qualquer componente) consome este contexto em vez de chamar /auth/me por
@@ -51,11 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const logout = useCallback(async () => {
+    // T454 — a ordem IMPORTA: primeiro o POST /auth/logout (o interceptor do
+    // #143 renova o access expirado e o retry revoga de fato); a supressão
+    // do auto-refresh vem DEPOIS, para evitar ressurreição por 401s residuais.
     try {
       await api.post('/auth/logout');
-    } catch {
-      // sessão já inexistente — o estado local é limpo do mesmo jeito
+    } catch (err) {
+      console.warn('[auth] logout: servidor não confirmou revogação', err);
     }
+    suppressSessionRefresh();
     setUser(null);
   }, []);
 
