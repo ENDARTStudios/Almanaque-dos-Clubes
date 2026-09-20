@@ -88,13 +88,19 @@ async function seedRoles(): Promise<void> {
       where: { name: roleName },
       update: {},
       create: { name: roleName },
-    }).catch(ignoreDuplicate);
+    }).catch(async (e: unknown) => {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+      return prisma.role.findUniqueOrThrow({ where: { name: roleName } });
+    });
     for (const permName of perms) {
       const perm = await prisma.permission.upsert({
         where: { name: permName },
         update: {},
         create: { name: permName },
-      }).catch(ignoreDuplicate);
+      }).catch(async (e: unknown) => {
+        if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+        return prisma.permission.findUniqueOrThrow({ where: { name: permName } });
+      });
       await prisma.rolePermission.upsert({
         where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
         update: {},
