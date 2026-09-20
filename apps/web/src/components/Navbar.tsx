@@ -9,7 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 export default function Navbar() {
   const ref = useRef<HTMLElement>(null);
   const { t } = useI18n();
-  const { user, loading, logout } = useAuth();
+  const { user, status, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   useGsapFadeIn(ref);
 
@@ -51,7 +51,7 @@ export default function Navbar() {
             ))}
             <LanguageSelector />
             {/* T450 — indicador de sessão: fonte única é o AuthProvider */}
-            {loading ? (
+            {status === 'loading' ? (
               <div
                 data-testid="nav-auth-loading"
                 className="w-20 h-8 rounded-lg bg-foreground/10 animate-pulse"

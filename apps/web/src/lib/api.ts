@@ -119,7 +119,13 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
             .filter(Boolean)
             .slice(0, 3)
         : [];
-    throw new Error(details.length ? details.join('; ') : body.error.message);
+    // T455 — status acessível ao chamador (AuthProvider distingue 401 de
+    // erro transitório: só 401 resolve "deslogado").
+    const error = new Error(
+      details.length ? details.join('; ') : body.error.message,
+    ) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
   }
   return res.json() as Promise<T>;
 }
