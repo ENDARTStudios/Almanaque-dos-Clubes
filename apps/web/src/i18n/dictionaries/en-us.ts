@@ -16,7 +16,8 @@ const en: Dictionary = {
     search: 'Search',
     login: 'Log in',
     dashboard: 'Dashboard',
-    signOut: 'Sign out',
+    signOut: 'Sign out',    subscription: 'Subscription',
+
   },
   footer: {
     tagline:
