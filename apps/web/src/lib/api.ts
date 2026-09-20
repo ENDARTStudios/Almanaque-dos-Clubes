@@ -28,7 +28,16 @@ async function readCsrfToken(): Promise<string | null> {
 // o usuário aparentava logout (a sessão de 7 dias existia, mas nunca era usada).
 let refreshPromise: Promise<boolean> | null = null;
 
+// T454 — após "Sair" explícito, o interceptor NÃO pode ressuscitar a sessão
+// com um refresh residual (cookies HttpOnly sobrevivem a falhas do logout).
+let sessionSuppressed = false;
+
+export function suppressSessionRefresh(): void {
+  sessionSuppressed = true;
+}
+
 async function tryRefreshSession(): Promise<boolean> {
+  if (sessionSuppressed) return false;
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
@@ -66,6 +75,11 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
     if (token) headers['x-csrf-token'] = token;
   }
   let res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+  // T454 — login/register bem-sucedidos reabilitam a renovação automática
+  // (cancela a supressão pós-logout).
+  if (res.ok && method === 'POST' && (path === '/auth/login' || path === '/auth/register')) {
+    sessionSuppressed = false;
+  }
   // P1 — access expirado (401): renova a sessão uma vez e refaz a chamada.
   if (res.status === 401 && !isRetry) {
     const renewed = await tryRefreshSession();
