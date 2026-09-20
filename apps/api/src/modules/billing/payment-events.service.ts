@@ -29,8 +29,18 @@ export interface ApplyEventResult {
   to?: SubStatus;
 }
 
-export async function applyPaymentEvent(input: ApplyEventInput): Promise<ApplyEventResult> {
-  // Idempotência: insert-first. Unique violation → evento já processado.
+/**
+ * T447 — registro idempotente de evento verificado (insert-first).
+ * Unique violation em providerEventId → { duplicate: true } sem efeito.
+ * Usado por applyPaymentEvent (com transição) e pelo handler Stripe para
+ * eventos somente-contabilidade (ex.: charge.refunded).
+ */
+export async function recordProviderEvent(input: {
+  provider: string;
+  providerEventId: string;
+  type: string;
+  payload?: unknown;
+}): Promise<{ duplicate: boolean }> {
   try {
     await prisma.paymentEvent.create({
       data: {
@@ -45,9 +55,22 @@ export async function applyPaymentEvent(input: ApplyEventInput): Promise<ApplyEv
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === 'P2002' // unique violation em providerEventId
     ) {
-      return { duplicate: true, applied: false };
+      return { duplicate: true };
     }
     throw err;
+  }
+  return { duplicate: false };
+}
+
+export async function applyPaymentEvent(input: ApplyEventInput): Promise<ApplyEventResult> {
+  const { duplicate } = await recordProviderEvent({
+    provider: input.provider,
+    providerEventId: input.providerEventId,
+    type: input.type,
+    payload: input.payload,
+  });
+  if (duplicate) {
+    return { duplicate: true, applied: false };
   }
 
   const subscription = await prisma.subscription.findUnique({ where: { userId: input.userId } });
