@@ -469,6 +469,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **E-mails oficiais** configurados (contato@, suporte@, privacidade@, security@, reembolso@, direitos@)
 - [x] **Processo de direitos do titular** (LGPD art. 18) — T445 FECHO (2026-09-18, PR #137): formulário /direitos-titular com protocolo de acompanhamento, SLA imediato/15d ANPD, cadeia auditada, decisão motivada, fulfillment com anonimização (soft-delete sempre)
 - [x] **Processo de reclamação de direitos autorais** (DMCA/análogo) — T445 FECHO (2026-09-18, PR #137): /direitos-autorais com honeypot + rate-limit, triagem com decisão motivada
+- [x] **Histórico de cobranças + transparência de reembolso no painel** — T453 (2026-09-20): billings owner-scoped com valor/status/externalId + bloco CDC art. 49/prazo do adquirente/canal, i18n ×3 (PR da sessão T452/T453); logout efetivo validado server-side (T452, D-2026-09-20-t452-t453-logout-e-historico)
 - [ ] **Gateway de pagamento** (Stripe, PagSeguro ou Pix direto) — decisão pendente
 - [ ] **Webhook de pagamento** assinado (HMAC) e idempotente
 
