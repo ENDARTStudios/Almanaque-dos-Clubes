@@ -16,7 +16,8 @@ const pt: Dictionary = {
     search: 'Busca',
     login: 'Entrar',
     dashboard: 'Painel',
-    signOut: 'Sair',
+    signOut: 'Sair',    subscription: 'Assinatura',
+
   },
   footer: {
     tagline:

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { AuthProvider } from '@/components/AuthProvider';
 import Footer from '@/components/Footer';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { cookieBannerEnabled } from '@/lib/flags';
@@ -87,10 +88,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-full flex flex-col bg-white text-foreground antialiased">
         <I18nProvider initialLocale={locale}>
+          <AuthProvider>
           <Navbar />
           <main className="flex-1 pt-16">{children}</main>
           <Footer />
           {cookieBannerEnabled() && <CookieConsentBanner />}
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>

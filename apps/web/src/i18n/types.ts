@@ -30,6 +30,7 @@ export interface Dictionary {
     login: string;
     dashboard: string;
     signOut: string;
+    subscription: string;
   };
   footer: {
     tagline: string;
