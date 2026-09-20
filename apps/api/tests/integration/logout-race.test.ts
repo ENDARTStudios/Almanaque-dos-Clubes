@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { prisma } from '../../src/config/prisma.js';
 import { createSession, verifySession } from '../../src/modules/auth/session.service.js';
-import { logout } from '../../src/modules/auth/auth.service.js';
+import { refreshSession, logout } from '../../src/modules/auth/auth.service.js';
 import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
