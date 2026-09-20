@@ -130,7 +130,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // T454 — suprime o auto-refresh ANTES do POST (sem ressurreição).
     suppressSessionRefresh();
     try {
-      await api.post('/auth/logout');
+      // T462 — body '{}' obrigatório: parser do Fastify rejeita JSON vazio
+      // (mesma armadilha do /auth/refresh — HANDOFF-T445).
+      await api.post('/auth/logout', {});
     } catch (err) {
       console.warn('[auth] logout: servidor não confirmou revogação', err);
     }
