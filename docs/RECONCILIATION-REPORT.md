@@ -295,3 +295,20 @@ Fila: T445 (WS-L 2ª camada) · M3 gateway (Operador) · T447 (Stripe test-mode)
 Fila: T447 merge (#138, 6 fixes do T444 + e2e aprovado) · Operador:
 STRIPE_PRICE_* prod = price_live (hoje prod_ → 500) + FASE 5 keys live +
 compra/estorno real · políticas v1.2 (Stripe no compartilhamento) · M3.
+
+---
+
+## 18. Snapshot T452/T453 — logout efetivo + histórico de cobranças (2026-09-20)
+
+Uso real (primeiro cliente pagante) endureceu a borda final: (1) **logout** — forense
+provou revogação server-side e limpeza de cookies corretas desde sempre; o sintoma
+era o **indicador de sessão inexistente no client** (navbar "Entrar" hardcoded) →
+T450/#145 (AuthProvider fonte única + menu do usuário). (2) **histórico +
+transparência** → T453: painel lista billings owner-scoped (valor/moeda, status,
+externalId) + bloco permanente de condições de reembolso (CDC art. 49, prazo do
+adquirente, canal) em pt/en/es. (3) **estorno fail-loud** → T451/#146: refund real
+antes de REFUNDED local (incidente do "Feito." mentiroso resolvido na raiz;
+`D-2026-09-20-refund-fail-loud`). Anti-duplicidade verificada: exatamente 1 refund
+live (re_3UHZeZ…, succeeded, R$9,90). Pendência de provider: e-mail transacional
+(Operador escolhe SMTP/Resend; protocolo na tela cumpre Termos 3.5 até lá).
+Fila: re-teste do loop CDC no painel com o código final (Operador) · **M3** · M4.

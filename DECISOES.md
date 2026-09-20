@@ -18,6 +18,16 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-20] Decisão: D-2026-09-20-t452-t453-logout-e-historico — Logout validado server-side + histórico de cobranças no painel (T452/T453)
+
+Motivo: uso real reportou (1) 'Sair não desloga' (P1 suspeito) e (2) painel sem histórico de cobranças/reembolsos nem condições de estorno — transparência insuficiente pós-incidente do refund.
+Forense T452: o logout server-side SEMPRE revogou (revokeSession) e limpou cookies (Path=/ casa); prova em produção: me com cookies antigos pós-logout = **401**; reuso isolado = 401 pontual sem cascata. Causa raiz do sintoma = **indicador de sessão inexistente no client** (T450, PR #145) — o usuário ESTAVA logado e a interface dizia que não.
+T453: painel /dashboard/subscription agora lista o histórico de cobranças do próprio usuário (GET /billing/invoices, owner-scoped server-side; usuário A nunca vê dados de B) com valor/moeda, status (PAID/REFUNDED) e externalId, além de bloco permanente de condições de reembolso (CDC art. 49, prazo de crédito do adquirente 3–10 dias úteis, canal reembolso@) em pt/en/es.
+Registro de pendência (não é falha do fluxo): e-mail transacional de confirmação aguarda provider SMTP (decisão do Operador: Resend/SendGrid/SMTP próprio; free tier basta) — até lá, Termos 3.5 é satisfeito pelo protocolo na tela + histórico.
+Evidência: PR #146 (fail-loud) + PR #145 (indicador) + este PR (histórico/condições); refund real re_3UHZeZPvpIyYKAjl1F3q0gaw (succeeded, R$9,90).
+
+
+
 ### [2026-09-20] Decisão: D-2026-09-20-refund-fail-loud — Caminho de estorno nunca mente: refund real antes de REFUNDED local
 
 Motivo: primeira compra real (Elite mensal R$9,90) foi estornada pelo painel e o site disse "Feito." **sem criar refund no Stripe** — ledger interno marcando REFUNDED sem efeito externo (risco CDC art. 49 + contabilidade falsa). Causa raiz (linha exata, `stripe.service.ts` refundStripeSubscription): `invoices.list({subscription, limit:1})` no **formato novo do Checkout** retorna fatura paga **sem `payment_intent` e sem `charge`** (validado em produção: o PI só é alcançável por `charges.list({customer}).payment_intent`) → `if (invoice && pi)` falso → refund pulado silenciosamente dentro de `catch {}` vazio → a rota marcava o estado local de qualquer jeito. A assunção do T447 ("funcionaria em dados limpos") era não-testada.
