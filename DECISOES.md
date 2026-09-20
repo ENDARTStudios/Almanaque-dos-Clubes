@@ -18,6 +18,13 @@ Alternativas consideradas: <se houver>
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-20] Decisão: D-2026-09-20-sessao-sempre-assenta — Cadeia de sessão no client sempre resolve (teto 8s; nunca spinner perpétuo) + postmortem da saga
+
+Motivo: P0 — site inavegável em 3 navegadores ("Verificando sessão…" infinito). Forense: /auth/me respondia **429** (rate-limit global 100/15min por IP — os 3 navegadores do Operador compartilham o bucket) e a semântica do T455 ("só 401 resolve anon") transformava não-401 em spinner eterno. Probes do Doer (IP próprio) respondiam limpo — a divergência de IP foi o dado que fechou.
+Decisões: (1) `AuthProvider.refresh` — qualquer resposta HTTP assenta o estado (2xx authed; 401/403/429/5xx anon navegável), teto duro de 8s via AbortController, re-verificação por navegação/focus; (2) postmortem da saga de sessão: **uma causa (contrato de refresh + semântica de loading), cinco sintomas** (pill vazio, área indisponível logado, não-desloga, login sem renderizar, site inavegável) — sintomas em cadeia pedem forense única do contrato, não fixes por sintoma; (3) regra: **todo gate de auth tem teto de loading**; (4) refresh já responde 401 para anônimo (contrato correto — probe); (5) rate-limit de auth endpoints: bucket próprio mais folgado é follow-up de config do Operador.
+Evidência: PR #151; probes curl (IP limpo 401/200 vs IP do Operador 429).
+
+
 ### [2026-09-20] Decisão: D-2026-09-20-t452-t453-logout-e-historico — Logout validado server-side + histórico de cobranças no painel (T452/T453)
 
 Motivo: uso real reportou (1) 'Sair não desloga' (P1 suspeito) e (2) painel sem histórico de cobranças/reembolsos nem condições de estorno — transparência insuficiente pós-incidente do refund.
