@@ -62,6 +62,23 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return handleDomainError(err, reply);
     }
   });
+
+  /**
+   * GET /clubs/:id/titles — T448, galeria de honra (arestas WON do KG).
+   * Vazio-honesto: sem conquista auditável → data: [].
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/titles', async (request, reply) => {
+    try {
+      const club = await clubsService.getById(request.params.id);
+      if (!club) {
+        throw new NotFoundError('Clube', request.params.id);
+      }
+      const data = await clubsService.titles(request.params.id);
+      return reply.send({ data, total: data.length });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
 };
 
 /**

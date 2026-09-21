@@ -20,6 +20,11 @@ import {
   upsertCompetitionFromWikidata,
   upsertStadiumFromWikidata,
 } from './jobs/entity-resolver.js';
+import {
+  createPrismaWonEdgeRepo,
+  fetchWonCandidates,
+  syncWonEdges,
+} from '../../api/src/modules/etl/won-edges.service.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -33,6 +38,10 @@ createWorker('etl', async (job) => {
     switch (source) {
       case 'wikidata':
         await ingestWikidata(entity);
+        break;
+      case 'wikidata-titles':
+        // T448 — arestas WON (títulos) a partir de edições Wikidata (P1346).
+        await ingestWikidataTitles();
         break;
       case 'rsssf':
         await ingestRsssf();
@@ -118,6 +127,22 @@ async function ingestWikidata(entity?: string) {
     }
     console.log(`[ETL] Wikidata stadiums: ${stadiums.length} processed`);
   }
+}
+
+async function ingestWikidataTitles() {
+  // T448 — arestas WON. APPLY sempre (o DRY-RUN é o script one-shot);
+  // idempotente: re-run não duplica (dedup competitionId+year+clubId+WON).
+  console.log('[ETL] Wikidata → arestas WON (títulos)');
+  const { candidates, stats } = await fetchWonCandidates();
+  console.log(
+    `[ETL] WON candidatos: ${candidates.length} (linhas: ${stats.rows}, inválidos: ${stats.invalid}, sem label: ${stats.withoutLabel})`,
+  );
+  const result = await syncWonEdges(candidates, createPrismaWonEdgeRepo(prisma));
+  console.log(
+    `[ETL] WON arestas: created=${result.counts.created} skipped=${result.counts.skipped} ` +
+      `updated=${result.counts.updated} gaps(mãe ausente)=${result.gaps.length} ` +
+      `órfãos(clube ausente)=${result.orphans.length}`,
+  );
 }
 
 async function ingestRsssf() {

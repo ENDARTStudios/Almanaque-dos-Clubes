@@ -13,6 +13,7 @@ import {
   resolveHierarchy,
   type RankHierarchy,
 } from '../rankings/ranking-algorithm.service.js';
+import { isKnownHierarchy } from '../etl/connectors/wikidata-won-edges.connector.js';
 
 export interface ChampionView {
   hierarchy: RankHierarchy;
@@ -24,6 +25,8 @@ export interface ChampionView {
     trophy: string | null;
     gender: 'men' | 'women' | null;
     ranking: { name: string; position: number; points: number | null } | null;
+    /** Fonte da aresta WON (URL da EDIÇÃO no Wikidata) — citabilidade 1.3. */
+    sourceUrl: string | null;
   } | null;
   reason?: string;
 }
@@ -64,21 +67,38 @@ export async function loadChampions(gender?: 'men' | 'women'): Promise<Champions
     : [];
   const compById = new Map(comps.map((c) => [c.id, c]));
 
-  // Melhor (mais recente) campeão por hierarquia.
+  // Melhor (mais recente) campeão por hierarquia. T448: a hierarquia lida é a
+  // CONGELADA em metadata.hierarchy na escrita (mesma fonte de verdade do
+  // ranking); arestas sem metadata.hierarchy caem na derivação legada.
   const best = new Map<
     RankHierarchy,
-    { clubId: string; compId: string | null; year: number; gender: 'men' | 'women' | null }
+    {
+      clubId: string;
+      compId: string | null;
+      year: number;
+      gender: 'men' | 'women' | null;
+      sourceUrl: string | null;
+    }
   >();
   for (const e of edges) {
     if (e.sourceType !== 'Club' || e.targetType !== 'Competition') continue;
     const comp = compById.get(e.targetId) ?? null;
-    const hierarchy = resolveHierarchy(comp);
     const meta = (e.metadata as Record<string, unknown> | null) ?? {};
     const year = typeof meta.year === 'number' ? meta.year : null;
     const gender: 'men' | 'women' | null = isWomenEdge(comp, meta.gender) ? 'women' : 'men';
+    const hierarchy: RankHierarchy = isKnownHierarchy(meta.hierarchy)
+      ? meta.hierarchy
+      : resolveHierarchy(comp);
+    const sourceUrl = typeof meta.sourceUrl === 'string' ? meta.sourceUrl : null;
     const current = best.get(hierarchy);
     if (!current || (year !== null && year > current.year)) {
-      best.set(hierarchy, { clubId: e.sourceId, compId: e.targetId, year: year ?? 0, gender });
+      best.set(hierarchy, {
+        clubId: e.sourceId,
+        compId: e.targetId,
+        year: year ?? 0,
+        gender,
+        sourceUrl,
+      });
     }
   }
 
@@ -127,6 +147,7 @@ export async function loadChampions(gender?: 'men' | 'women'): Promise<Champions
         season: b.year || null,
         trophy: null, // acervo ainda sem imagens de troféu (HAS_TROPHY/imageUrl) — placeholder no frontend
         gender: b.gender,
+        sourceUrl: b.sourceUrl,
         ranking:
           entry && latestRanking
             ? { name: latestRanking.name, position: entry.position ?? 0, points: entry.points }

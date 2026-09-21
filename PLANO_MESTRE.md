@@ -273,13 +273,14 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | Schema & Migrations                 | 🟢 Concluído    | 85%                                |
 | Compliance Legal                    | 🔴 Crítico      | 10%                                |
 | Features Core (produto)             | 🔴 Crítico      | 5%                                 |
-| Dados reais (conteúdo)              | 🟡 Quase — T429 fechado | Seed prod + teste OK; sourceUrl 100% |
-| Frontend UX                         | 🟡 Parcial      | 30%                                |
-| IA/ETL/Knowledge Graph              | 🔴 Crítico      | 5%                                 |
+| Dados — identidade de entidade (clubs/players/competitions) | 🟢 Alta | T429: 3.857 clubes · 2.396 jogadores · 1.263 competições; proveniência 100% |
+| Dados — histórico/conquista (arestas WON) | 🟡 Parcial — T448 | pipeline + produto prontos; piloto local 235 arestas auditáveis; **rodada em produção pendente (Operador)**; gap por hierarquia declarado → T448b |
+| Frontend UX                         | 🟡 Parcial      | 35% (carrossel de campeões vivo + galeria de honra) |
+| IA/ETL/Knowledge Graph              | 🟡 Parcial — T448 | escrita+leitura de WON funcionando; ETL cron = T451 |
 | Testes avançados                    | 🟡 Parcial      | 40%                                |
 | Observabilidade                     | 🟡 Parcial      | 30%                                |
 
-**Conclusão honesta:** base técnica (infra + segurança + auth + CI) sólida em nível produção empresarial; ainda **não é o produto Almanaque** — faltam conteúdo (seed prod + ETL automático), experiência (drill-down do mapa, perfis, rankings, favoritos, 360º) e legalidade (cookies/termos/privacidade/gateway/CNPJ).
+**Conclusão honesta (corrigida pós-T448, regra R3):** a leitura antiga "dados 1% / Knowledge Graph 5%" estava velha — o Estado Final agora distingue DUAS CAMADAS de dado: **identidade de entidade = ALTA** (T429, proveniência 100%) e **histórico/conquista = PARCIAL** (T448 fecha o circuito técnico com dado real citável no piloto local; a escala de produção é um comando do Operador e o gap de mães ausentes é medido e declarado, não escondido). A base técnica continua sólida; faltam conteúdo em escala (T448b/T449/T451), experiência e legalidade.
 
 **Seed de TESTE (T428) — counts reais auditáveis:** 1.626 clubes · 892 competições · 2.458 jogadores, todos com proveniência completa (qid + importedFrom + importedAt + sourceUrl, **100%**); 113 clubes com coordenada P625 em produção (vs 1.889 totais em produção pós-rodada pré-#84 — o número cresce com T429); idempotência 2× provada por script com `novos=0` na segunda execução; bug 1.3 do `/map` corrigido (count 113 de 1.889 auditável em runtime, não assado no build). **M1 (Beta Fechada) ainda NÃO declarado** — faltam T429 (seed prod, operacional), WS-C restante (drill-down/perfis/busca), WS-L 1ª camada. Próximo: T429 (rodar `ingest-*-wikidata.ts --apply` contra produção com rollback por proveniência + smoke pós).
 
@@ -497,10 +498,10 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 #### 🔧 Produto — Infra Avançada (Fase 6)
 
-- [ ] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia)
+- [ ] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia) — cron = T451
 - [ ] **Web scrapers** (Python/BeautifulSoup para federações locais)
 - [ ] **IA RAG** com citações verificáveis (pgvector + LLM open-source)
-- [ ] **Knowledge Graph** (jogador→clube→competição→título)
+- [~] **Knowledge Graph** (jogador→clube→competição→título) — T448 fechou a camada `WON` (conquistas) com proveniência por aresta e leitura congelada; `PLAYED_FOR` feminino (WS-O womens) e demais relações conforme WS-D avança
 - [ ] **Upload antivírus** (ClamAV em container)
 - [ ] **Cache Redis** read-through em listas frequentes
 - [ ] **Fila BullMQ** completa (ETL, emails, reprocessamento de rankings)
@@ -511,6 +512,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 - [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `docs/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
 - [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
+- [~] **Arestas WON (títulos de clubes)** — T448: conector P1346 + dedup idempotente + hierarquia/gênero congelados + fonte por aresta + galeria de honra + carrossel de campeões lendo dado real; **piloto local 235 arestas (2005–2026, corpus declarado); rodada em produção pendente (Operador, runbook no REPORT §22); gap de mães ausentes medido por hierarquia → T448b**
 - [ ] **Ingestão RSSSF** (arquivo histórico global)
 - [ ] **Ingestão de federações** (divisões inferiores, futebol feminino, amador)
 - [ ] **Dados de estádios** (coordenadas PostGIS, curiosidades)
@@ -617,3 +619,32 @@ mostra o histórico com honestidade. Sessão confiável no ambiente real do paga
 | Infra — price IDs errados | prod_ em vez de price_ | Operador corrigiu |
 
 Regras permanentes registradas: D-2026-09-18-testes-sem-skip-silencioso · D-2026-09-20-fixtures-escopados · D-2026-09-20-refund-fail-loud · D-2026-09-20-sessao-sempre-assenta · D-2026-09-21-pr-merged-nao-certifica-conteudo · D-2026-09-21-t463-checkout-entradas · D-2026-09-21-t462-logout-efetivo.
+
+---
+
+## 22. 🏆 M4 inicia — T448: Arestas WON no Knowledge Graph (2026-09-22)
+
+**O que fechou:** o Almanaque já tinha O QUE catalogar (3.857 clubes, T429); o T448 começa a dar a ele
+A HISTÓRIA catalogada — campeões reais, citáveis, com a fonte na aresta. Conector `wikidata-won-edges`
+(P1346 sobre edições cuja mãe é competição de futebol Q1478437 — classe verificada ao vivo), sync
+idempotente (dedup `(competitionId, year, clubId, WON)`), hierarquia e gênero congelados em
+`metadata` na escrita (mesma `resolveHierarchy` do ranking; carrossel LÊ, não re-deriva),
+proveniência POR ARESTA (sourceUrl = EDIÇÃO, CC0), job `wikidata-titles` na fila ETL (retry+backoff;
+cron = T451), `GET /clubs/:id/titles` + galeria de honra no perfil, fonte por título no carrossel
+(T441) e no perfil.
+
+**Regra R3 validada pela 3ª vez (permanente):** dispatch ancora em query de produção, não em
+documento/snapshot/checklist. A FASE 0 pegou "dados 1%" velho + premissa de hierarquia-como-coluna;
+a execução pegou `upsertTitle`-stub do T420, 504 do endpoint com label service, 431 de URL grande e
+o double-count de temporada cross-year (424→235) — nenhum documento registrava qualquer um deles.
+
+**Números do piloto local (2005–2026, corpus DECLARADO — 12 mães + 101 clubes):** 7.681 candidatos
+únicos · 235 arestas (continental 40 · nacional 195) · gap 277 por hierarquia (input do T448b) ·
+órfãos 5.681 · re-run `0 criar · 235 skip` · spot-check independente 20/20 · `/champions` ao vivo
+com PSG (Champions League) e Arsenal (Premier League), fonte por card.
+
+**Pendências declaradas:** rodada de produção = MESMO script via Railway (Operador — runbook no
+REPORT §22); RSSSF estadual/municipal + semeadura de mães ausentes = T448b; partidas = T449;
+feminino = T450; cron = T451.
+
+Regras permanentes: + **R3-t448-dispatch-ancora-em-query**.

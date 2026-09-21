@@ -16,8 +16,8 @@ const pt: Dictionary = {
     search: 'Busca',
     login: 'Entrar',
     dashboard: 'Painel',
-    signOut: 'Sair',    subscription: 'Assinatura',
-
+    signOut: 'Sair',
+    subscription: 'Assinatura',
   },
   footer: {
     tagline:
@@ -184,6 +184,7 @@ const pt: Dictionary = {
       title: 'Campeões atuais',
       empty: 'Sem campeões registrados no momento — o acervo de títulos está em crescimento.',
       season: 'Temporada',
+      source: 'Fonte (Wikidata)',
       rankingBadge: '{position}º no {name}',
       dots: 'Card',
       prev: 'Anterior',
@@ -794,7 +795,8 @@ const pt: Dictionary = {
   },
   direitosTitular: {
     title: 'Direitos do Titular (LGPD art. 18)',
-    intro: 'Exerça seus direitos sobre dados pessoais sem precisar de conta. Confirmação e acesso têm resposta imediata; os demais, em até 15 dias (prazo ANPD), prorrogável nos termos do art. 18, §3. Você recebe um protocolo para acompanhar o pedido.',
+    intro:
+      'Exerça seus direitos sobre dados pessoais sem precisar de conta. Confirmação e acesso têm resposta imediata; os demais, em até 15 dias (prazo ANPD), prorrogável nos termos do art. 18, §3. Você recebe um protocolo para acompanhar o pedido.',
     formTitle: 'Nova solicitação',
     rightTypeLabel: 'Direito que deseja exercer',
     emailLabel: 'Seu e-mail de contato',
@@ -810,7 +812,8 @@ const pt: Dictionary = {
     trackInputLabel: 'Protocolo',
     trackButton: 'Consultar',
     notFound: 'Protocolo não encontrado. Confira os caracteres e tente novamente.',
-    errorGeneric: 'Não foi possível concluir. Tente novamente ou escreva para endart.studios@gmail.com.',
+    errorGeneric:
+      'Não foi possível concluir. Tente novamente ou escreva para endart.studios@gmail.com.',
     statusLabel: 'Status',
     slaLabel: 'Prazo de resposta',
     createdAtLabel: 'Recebida em',
@@ -835,7 +838,8 @@ const pt: Dictionary = {
   },
   copyrightForm: {
     title: 'Notificação de Direitos Autorais (DMCA)',
-    intro: 'Titulares de direitos autorais podem notificar alegações de violação (DMCA art. 512 / Lei 9.610/98). Notificações passam por triagem com decisão motivada; conteúdo inequivocamente infrator é removido.',
+    intro:
+      'Titulares de direitos autorais podem notificar alegações de violação (DMCA art. 512 / Lei 9.610/98). Notificações passam por triagem com decisão motivada; conteúdo inequivocamente infrator é removido.',
     materialLabel: 'Material alegadamente violado (descreva a obra)',
     locationLabel: 'Localização na plataforma (URL)',
     fundamentLabel: 'Fundamentação legal e declaração de boa-fé',
@@ -843,11 +847,12 @@ const pt: Dictionary = {
     submit: 'Enviar notificação',
     submitting: 'Enviando…',
     successTitle: 'Notificação recebida',
-    successBody: 'Guarde o protocolo abaixo. A triagem ocorre em até 5 dias úteis e decisões são sempre motivadas.',
+    successBody:
+      'Guarde o protocolo abaixo. A triagem ocorre em até 5 dias úteis e decisões são sempre motivadas.',
     protocolLabel: 'Protocolo',
-    errorGeneric: 'Não foi possível enviar. Tente novamente ou escreva para endart.studios@gmail.com.',
+    errorGeneric:
+      'Não foi possível enviar. Tente novamente ou escreva para endart.studios@gmail.com.',
   },
-
 };
 
 export default pt;

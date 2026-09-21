@@ -18,6 +18,7 @@ interface ChampionEntry {
     trophy: string | null;
     gender: 'men' | 'women' | null;
     ranking: { name: string; position: number; points: number | null } | null;
+    sourceUrl?: string | null;
   } | null;
   reason?: string;
 }
@@ -153,6 +154,17 @@ export default function ChampionsCarousel() {
                         .replace('{position}', String(c.ranking.position))
                         .replace('{name}', c.ranking.name)}
                     </p>
+                  ) : null}
+                  {c.sourceUrl ? (
+                    <a
+                      href={c.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid={`champion-source-${entry.hierarchy}`}
+                      className="inline-block text-xs text-foreground/50 hover:text-primary transition-colors mt-2 underline decoration-dotted underline-offset-2"
+                    >
+                      {t.source}
+                    </a>
                   ) : null}
                 </article>
               );

@@ -4,6 +4,8 @@
  */
 import { prisma } from '../../config/prisma.js';
 import type { Club } from '@almanaque/domain';
+import { hierarchyOfEdge } from '../etl/won-edges.service.js';
+import { isWomensCompetition, type RankHierarchy } from '../rankings/ranking-algorithm.service.js';
 
 export interface ListClubsParams {
   country?: string;
@@ -80,4 +82,69 @@ export const clubsRepository = {
     });
     return count > 0;
   },
+
+  /**
+   * T448 — Galeria de honra: arestas WON do clube no KnowledgeGraph.
+   * Hierarquia lida do metadata congelado na escrita (fallback: derivação do
+   * ranking — mesma função). Sem fonte auditável na aresta → sourceUrl null.
+   */
+  async listTitlesByClub(clubId: string): Promise<ClubTitleView[]> {
+    const edges = await prisma.knowledgeGraph.findMany({
+      where: {
+        relation: 'WON',
+        OR: [
+          { sourceId: clubId, sourceType: 'Club' },
+          { targetId: clubId, targetType: 'Club' },
+        ],
+      },
+      select: {
+        sourceId: true,
+        sourceType: true,
+        targetId: true,
+        targetType: true,
+        metadata: true,
+      },
+    });
+
+    const compIds = [
+      ...new Set(
+        edges
+          .filter((e) => e.sourceType === 'Competition' || e.targetType === 'Competition')
+          .map((e) => (e.sourceType === 'Competition' ? e.sourceId : e.targetId)),
+      ),
+    ];
+    const comps = compIds.length
+      ? await prisma.competition.findMany({
+          where: { id: { in: compIds } },
+          select: { id: true, qid: true, name: true, type: true, country: true },
+        })
+      : [];
+    const compById = new Map(comps.map((c) => [c.id, c]));
+
+    const titles = edges.map((e) => {
+      const clubIsSource = e.sourceType === 'Club';
+      const comp = compById.get(clubIsSource ? e.targetId : e.sourceId) ?? null;
+      const meta = (e.metadata as Record<string, unknown> | null) ?? {};
+      const isWomen = meta.gender === 'women' || (comp ? isWomensCompetition(comp) : false);
+      return {
+        year: typeof meta.year === 'number' ? meta.year : null,
+        season: typeof meta.season === 'string' ? meta.season : null,
+        competition: comp ? { id: comp.id, name: comp.name } : null,
+        hierarchy: hierarchyOfEdge(e.metadata, comp),
+        gender: isWomen ? ('women' as const) : ('men' as const),
+        sourceUrl: typeof meta.sourceUrl === 'string' ? meta.sourceUrl : null,
+      };
+    });
+
+    return titles.sort((a, b) => (b.year ?? -1) - (a.year ?? -1));
+  },
 };
+
+export interface ClubTitleView {
+  year: number | null;
+  season: string | null;
+  competition: { id: string; name: string | null } | null;
+  hierarchy: RankHierarchy;
+  gender: 'men' | 'women';
+  sourceUrl: string | null;
+}

@@ -72,7 +72,7 @@ export async function fetchBatch(offset: number): Promise<CompRow[]> {
       {
         headers: { 'user-agent': USER_AGENT, Accept: 'application/sparql-results+json' },
       },
-      { logContext: { offset }, label: 'ingest-competitions' },
+      { logContext: { offset }, label: 'ingest-competitions', timeoutMs: 90_000 },
     );
     const j = (await res.json()) as {
       results?: { bindings?: Array<Record<string, { value: string }>> };

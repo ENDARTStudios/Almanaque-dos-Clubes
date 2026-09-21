@@ -8,7 +8,7 @@ import {
   type Club,
   type CreateClubInput,
 } from '@almanaque/domain';
-import { clubsRepository, type ListClubsParams } from './repository.js';
+import { clubsRepository, type ClubTitleView, type ListClubsParams } from './repository.js';
 import { cache } from '../../services/cache.js';
 
 const CLUBS_LIST_TTL_SECONDS = 60;
@@ -74,6 +74,16 @@ export const clubsService = {
   async getById(id: string): Promise<Club | null> {
     return cache.remember(`clubs:byId:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findById(id),
+    );
+  },
+
+  /**
+   * T448 — Galeria de honra do clube (arestas WON do KnowledgeGraph).
+   * Lista vazia = ainda não há conquista auditável (honestidade 1.3).
+   */
+  async titles(id: string): Promise<ClubTitleView[]> {
+    return cache.remember(`clubs:titles:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
+      clubsRepository.listTitlesByClub(id),
     );
   },
 };

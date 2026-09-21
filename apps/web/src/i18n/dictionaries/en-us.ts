@@ -16,8 +16,8 @@ const en: Dictionary = {
     search: 'Search',
     login: 'Log in',
     dashboard: 'Dashboard',
-    signOut: 'Sign out',    subscription: 'Subscription',
-
+    signOut: 'Sign out',
+    subscription: 'Subscription',
   },
   footer: {
     tagline:
@@ -182,6 +182,7 @@ const en: Dictionary = {
       title: 'Current champions',
       empty: 'No champions registered at the moment — the titles archive is growing.',
       season: 'Season',
+      source: 'Source (Wikidata)',
       rankingBadge: '#{position} in {name}',
       dots: 'Card',
       prev: 'Previous',
@@ -792,7 +793,8 @@ const en: Dictionary = {
   },
   direitosTitular: {
     title: 'Data Subject Rights (LGPD art. 18)',
-    intro: 'Exercise your rights over personal data without needing an account. Confirmation and access receive an immediate response; all others within 15 days (ANPD deadline), extendable under art. 18, §3. You receive a protocol to track your request.',
+    intro:
+      'Exercise your rights over personal data without needing an account. Confirmation and access receive an immediate response; all others within 15 days (ANPD deadline), extendable under art. 18, §3. You receive a protocol to track your request.',
     formTitle: 'New request',
     rightTypeLabel: 'Right you wish to exercise',
     emailLabel: 'Your contact e-mail',
@@ -833,7 +835,8 @@ const en: Dictionary = {
   },
   copyrightForm: {
     title: 'Copyright Notice (DMCA)',
-    intro: 'Copyright holders may report alleged infringement (DMCA §512 / Brazilian Law 9.610/98). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
+    intro:
+      'Copyright holders may report alleged infringement (DMCA §512 / Brazilian Law 9.610/98). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
     materialLabel: 'Allegedly infringed material (describe the work)',
     locationLabel: 'Location on the platform (URL)',
     fundamentLabel: 'Legal grounds and good-faith statement',
@@ -841,11 +844,11 @@ const en: Dictionary = {
     submit: 'Submit notice',
     submitting: 'Submitting…',
     successTitle: 'Notice received',
-    successBody: 'Keep the protocol below. Triage occurs within 5 business days and decisions are always reasoned.',
+    successBody:
+      'Keep the protocol below. Triage occurs within 5 business days and decisions are always reasoned.',
     protocolLabel: 'Protocol',
     errorGeneric: 'Could not submit. Try again or write to endart.studios@gmail.com.',
   },
-
 };
 
 export default en;

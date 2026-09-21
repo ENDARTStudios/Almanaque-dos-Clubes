@@ -16,8 +16,8 @@ const es: Dictionary = {
     search: 'Buscar',
     login: 'Entrar',
     dashboard: 'Panel',
-    signOut: 'Salir',    subscription: 'Suscripción',
-
+    signOut: 'Salir',
+    subscription: 'Suscripción',
   },
   footer: {
     tagline:
@@ -185,6 +185,7 @@ const es: Dictionary = {
       title: 'Campeones actuales',
       empty: 'Sin campeones registrados por el momento — el acervo de títulos está en crecimiento.',
       season: 'Temporada',
+      source: 'Fuente (Wikidata)',
       rankingBadge: '#{position} en {name}',
       dots: 'Tarjeta',
       prev: 'Anterior',
@@ -795,7 +796,8 @@ const es: Dictionary = {
   },
   direitosTitular: {
     title: 'Derechos del Titular (LGPD art. 18)',
-    intro: 'Ejerce tus derechos sobre datos personales sin necesidad de cuenta. La confirmación y el acceso reciben respuesta inmediata; los demás, en un plazo de 15 días (plazo ANPD), prorrogable conforme el art. 18, §3. Recibes un protocolo para seguir tu solicitud.',
+    intro:
+      'Ejerce tus derechos sobre datos personales sin necesidad de cuenta. La confirmación y el acceso reciben respuesta inmediata; los demás, en un plazo de 15 días (plazo ANPD), prorrogable conforme el art. 18, §3. Recibes un protocolo para seguir tu solicitud.',
     formTitle: 'Nueva solicitud',
     rightTypeLabel: 'Derecho que deseas ejercer',
     emailLabel: 'Tu correo electrónico de contacto',
@@ -836,7 +838,8 @@ const es: Dictionary = {
   },
   copyrightForm: {
     title: 'Notificación de Derechos de Autor (DMCA)',
-    intro: 'Los titulares de derechos de autor pueden notificar presuntas infracciones (DMCA art. 512 / Ley 9.610/98). Las notificaciones pasan por triaje con decisión motivada; el contenido inequívocamente infractor es retirado.',
+    intro:
+      'Los titulares de derechos de autor pueden notificar presuntas infracciones (DMCA art. 512 / Ley 9.610/98). Las notificaciones pasan por triaje con decisión motivada; el contenido inequívocamente infractor es retirado.',
     materialLabel: 'Material presuntamente vulnerado (describe la obra)',
     locationLabel: 'Ubicación en la plataforma (URL)',
     fundamentLabel: 'Fundamentación legal y declaración de buena fe',
@@ -844,11 +847,11 @@ const es: Dictionary = {
     submit: 'Enviar notificación',
     submitting: 'Enviando…',
     successTitle: 'Notificación recibida',
-    successBody: 'Guarda el protocolo de abajo. El triaje ocurre en hasta 5 días hábiles y las decisiones son siempre motivadas.',
+    successBody:
+      'Guarda el protocolo de abajo. El triaje ocurre en hasta 5 días hábiles y las decisiones son siempre motivadas.',
     protocolLabel: 'Protocolo',
     errorGeneric: 'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios@gmail.com.',
   },
-
 };
 
 export default es;

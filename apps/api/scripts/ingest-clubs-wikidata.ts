@@ -26,7 +26,9 @@ const log = pino({ name: 'ingest-clubs-wikidata' });
 // T426 — política de robustez (agora no helper compartilhado ./lib/http-resilience):
 // retry com backoff exponencial (1s, 2s, 4s), timeout de 30s por request,
 // sleep de 2s entre batches (rate limit conservador do endpoint SPARQL).
-const REQUEST_TIMEOUT_MS = 30_000;
+// T448 — teto de timeout 30s→90s: o endpoint passou a responder classes-pesadas
+// (P31/P279* Q476028) em 30-60s; abaixo disso a rodada aborta sem alcançar retry útil.
+const REQUEST_TIMEOUT_MS = 90_000;
 const BATCH_SLEEP_MS = 2000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
