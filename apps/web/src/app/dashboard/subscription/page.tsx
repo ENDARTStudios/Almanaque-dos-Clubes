@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import SubscriptionManager from '@/components/SubscriptionManager';
+import UpgradeButton from '@/components/UpgradeButton';
 import { mapCountryToCurrency, formatPrice, PLAN_CENTS } from '@/lib/pricing';
 
 export const metadata: Metadata = { title: 'Assinatura' };
@@ -64,12 +65,7 @@ export default async function SubscriptionPage() {
                 </li>
               ))}
             </ul>
-            <button
-              className="mt-6 w-full bg-primary text-on-primary py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer"
-              aria-label={plan.cta}
-            >
-              {plan.cta}
-            </button>
+            <UpgradeButton plan={plan.name} label={plan.cta} />
           </div>
         ))}
       </div>

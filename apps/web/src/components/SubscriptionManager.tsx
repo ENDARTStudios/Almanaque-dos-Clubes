@@ -10,6 +10,15 @@ type Sub = {
   cancelledAt: string | null;
 } | null;
 
+interface Billing {
+  id: string;
+  status: string;
+  amountCents: number;
+  currency: string;
+  externalId: string | null;
+  createdAt: string;
+}
+
 const L: Record<
   string,
   {
@@ -23,6 +32,11 @@ const L: Record<
     done: string;
     refundDone: string;
     error: string;
+    historyTitle: string;
+    refundCondTitle: string;
+    refundCondCdc: string;
+    refundCondPrazo: string;
+    refundCondCanal: string;
   }
 > = {
   'pt-br': {
@@ -36,6 +50,11 @@ const L: Record<
     done: 'Feito.',
     refundDone: 'Reembolso solicitado em {date} — protocolo {protocol}. O crédito aparece no extrato em alguns dias.',
     error: 'Erro ao processar.',
+    historyTitle: 'Histórico de cobranças',
+    refundCondTitle: 'Condições de reembolso',
+    refundCondCdc: 'Arrependimento em até 7 dias (CDC art. 49): devolução integral do valor pago.',
+    refundCondPrazo: 'O crédito no extrato ocorre em 3–10 dias úteis, conforme o adquirente.',
+    refundCondCanal: 'Dúvidas: reembolso@almanaquedosclubes.com — sempre com o protocolo da solicitação.',
   },
   'en-us': {
     loading: 'Loading subscription...',
@@ -48,6 +67,11 @@ const L: Record<
     done: 'Done.',
     refundDone: 'Refund requested on {date} — protocol {protocol}. The credit appears on your statement within a few days.',
     error: 'Error processing.',
+    historyTitle: 'Billing history',
+    refundCondTitle: 'Refund conditions',
+    refundCondCdc: 'Withdrawal within 7 days (CDC art. 49): full refund of the amount paid.',
+    refundCondPrazo: 'The credit appears on your statement within 3–10 business days, per the acquirer.',
+    refundCondCanal: 'Questions: reembolso@almanaquedosclubes.com — always include the request protocol.',
   },
   'es-es': {
     loading: 'Cargando suscripción...',
@@ -60,6 +84,11 @@ const L: Record<
     done: 'Hecho.',
     refundDone: 'Reembolso solicitado el {date} — protocolo {protocol}. El crédito aparece en tu extracto en unos días.',
     error: 'Error al procesar.',
+    historyTitle: 'Historial de cobros',
+    refundCondTitle: 'Condiciones de reembolso',
+    refundCondCdc: 'Arrepentimiento en hasta 7 días (CDC art. 49): devolución íntegra del valor pagado.',
+    refundCondPrazo: 'El crédito aparece en tu extracto en 3–10 días hábiles, según el adquirente.',
+    refundCondCanal: 'Dudas: reembolso@almanaquedosclubes.com — incluye siempre el protocolo de la solicitud.',
   },
 };
 
@@ -70,12 +99,25 @@ export default function SubscriptionManager() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
+  const [billings, setBillings] = useState<Array<{
+    id: string;
+    status: string;
+    amountCents: number;
+    currency: string;
+    externalId: string | null;
+    createdAt: string;
+  }>>([]);
 
   useEffect(() => {
     api
       .get<{ data: Sub }>('/billing/subscription')
       .then((r) => setSub(r.data))
-      .catch(() => setSub(null))
+      .catch(() => setSub(null));
+    // T463 — histórico de cobranças do próprio usuário (owner-scoped no server)
+    api
+      .get<{ data: Array<Billing> }>('/billing/invoices?limit=20')
+      .then((r) => setBillings(r.data ?? []))
+      .catch(() => setBillings([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -141,6 +183,58 @@ export default function SubscriptionManager() {
         </div>
       )}
       {msg && <p className="mt-3 text-sm text-foreground/60">{msg}</p>}
+
+      {/* T463 — histórico de cobranças (owner-scoped) */}
+      {billings.length > 0 && (
+        <div className="mt-8" data-testid="billing-history">
+          <h3 className="text-lg font-heading font-semibold mb-3">{l.historyTitle}</h3>
+          <ul className="space-y-2 text-sm">
+            {billings.map((b) => (
+              <li
+                key={b.id}
+                className="flex flex-wrap gap-x-3 items-center rounded-lg border border-border px-3 py-2"
+              >
+                <span className="font-semibold text-foreground">
+                  {(b.amountCents / 100).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: b.currency || 'BRL',
+                  })}
+                </span>
+                <span
+                  className={
+                    b.status === 'PAID'
+                      ? 'text-green-700'
+                      : b.status === 'REFUNDED'
+                        ? 'text-amber-700'
+                        : 'text-foreground/60'
+                  }
+                >
+                  {b.status}
+                </span>
+                <span className="text-foreground/50">
+                  {new Date(b.createdAt).toLocaleDateString()}
+                </span>
+                {b.externalId && (
+                  <span className="text-foreground/40 text-xs truncate max-w-[16rem]">
+                    {b.externalId}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* T463 — condições de reembolso (permanente) */}
+      <div
+        className="mt-8 rounded-lg border border-border p-4 text-xs text-foreground/60"
+        data-testid="refund-conditions"
+      >
+        <p className="font-semibold text-foreground/80 mb-1">{l.refundCondTitle}</p>
+        <p className="mb-1">{l.refundCondCdc}</p>
+        <p className="mb-1">{l.refundCondPrazo}</p>
+        <p>{l.refundCondCanal}</p>
+      </div>
     </div>
   );
 }
