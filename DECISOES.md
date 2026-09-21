@@ -17,6 +17,16 @@ Alternativas consideradas: <se houver>
 ## Histórico de decisões
 
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
+<!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
+
+### [2026-09-21] Decisão: D-2026-09-21-m3-declarado — M3 Open Beta (monetizar) DECLARADO
+
+Motivo: gateway + checkout + webhook HMAC idempotente + assinatura funcional + CDC art. 49 (estorno real com fail-loud) + compliance completo (T445 direitos do titular + políticas v1.2) + smoke live verde (compra real Pro R$4,90 + estorno pelo painel com protocolo re_3UHwb…).
+Decisões: (1) produção live = apenas cartão real (4242 é test-mode only); (2) /planos = vitrine pública, área do usuário = gestão (duas entradas, uma função); (3) caminho de dinheiro é fail-loud — nunca marca local sem efeito externo; (4) rate-limit de auth endpoints tem bucket próprio (600/15min) separado do global (100/min); (5) toda gate de auth tem teto de loading (8s) — nunca spinner perpétuo; (6) PR merged não certifica conteúdo no main — verificar diff do main contra o esperado.
+Regras permanentes: D-2026-09-18-testes-sem-skip-silencioso · D-2026-09-20-fixtures-escopados · D-2026-09-20-refund-fail-loud · D-2026-09-20-sessao-sempre-assenta · D-2026-09-21-pr-merged-nao-certifica-conteudo · D-2026-09-21-t463-checkout-entradas · D-2026-09-21-t462-logout-efetivo · D-2026-09-20-conteudo-antes-pagamentos (adendo: ativação prossegue, conteúdo como próxima prioridade pós-M3).
+Saga de sessão: oito PRs (#142–#154), uma causa por camada — postmortem completo no PLANO_MESTRE (seção M3).
+
+
 
 ### [2026-09-20] Decisão: D-2026-09-20-sessao-sempre-assenta — Cadeia de sessão no client sempre resolve (teto 8s; nunca spinner perpétuo) + postmortem da saga
 
