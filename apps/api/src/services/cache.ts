@@ -41,6 +41,13 @@ let redis: Redis | null = createRedisClient();
 
 const DEFAULT_TTL_SECONDS = 300;
 
+export interface CacheInvalidationResult {
+  ok: boolean;
+  keysDeleted: number;
+  /** Presente quando ok=false — NUNCA silenciado: também logado em warn aqui. */
+  error?: Error;
+}
+
 export const cache = {
   async get<T>(key: string): Promise<T | null> {
     if (!redis) return null;
@@ -59,13 +66,23 @@ export const cache = {
       /* ignore */
     }
   },
-  async invalidate(pattern: string): Promise<void> {
-    if (!redis) return;
+  /**
+   * T448d — fail-loud: invalidação é caminho de ESCRITA/consistência de dado
+   * público — falha de Redis aqui deixou a vitrine de campeões velha por 2
+   * rodadas porque o catch engolia (mesma classe do logout-400 #156 e do
+   * refund-skip #146). Regra permanente: write/invalidation paths nunca
+   * engolem erro — o erro volta estruturado E é logado em warn aqui.
+   */
+  async invalidate(pattern: string): Promise<CacheInvalidationResult> {
+    if (!redis) return { ok: true, keysDeleted: 0 };
     try {
       const keys = await redis.keys(pattern);
       if (keys.length > 0) await redis.del(...keys);
-    } catch {
-      /* ignore */
+      return { ok: true, keysDeleted: keys.length };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.warn({ pattern, error: error.message }, '[cache] falha ao invalidar — dado pode ficar stale');
+      return { ok: false, keysDeleted: 0, error };
     }
   },
   async remember<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {

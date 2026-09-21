@@ -479,3 +479,22 @@ engolir — follow-up).
 futurada com vencedor pré-atribuído no Wikidata) — consequência legítima do critério de vigência
 sobre dado da fonte; documentado como refinamento (ex.: desconsiderar edições futuras) quando o
 critério for revisado com T449.
+
+### GATE 2 adendum — T448d: guarda de vigência + cache fail-loud (2026-09-21, #164-#167 na sequência)
+
+**Correção de registro (R3 contra o próprio relato):** a query de produção de TODAS as arestas com
+`year > current_year` retornou **0 linhas** — o "universo futuro" estava vazio; a aresta do Johan
+Cruijff Shield tem `year=2026` (ano corrente; a edição de agosto/2026 já foi disputada). O card
+nacional atual é dado real do ano corrente — não "campeão do futuro". A guarda implementada
+(`selectRepresentatives` descarta `year > currentYear` UTC, calculado no momento) protege a CLASSE:
+pré-atribuições de 2027+ deixam de virar "vigente" a partir de janeiro/2027.
+
+**Cache fail-loud:** `cache.invalidate` agora retorna `CacheInvalidationResult {ok, keysDeleted,
+error?}` e loga warn no próprio módulo (12 call sites ganham visibilidade sem churn). Anti-padrão
+nomeado (3ª instância): catch silencioso em caminho de escrita/invalidação = logout-400 (#156) +
+refund-skip (#146) + cache-stale (este). Testes com Redis mockado lançando em `keys` e `del` →
+`ok:false` + warn chamado. Operação pós-ingestão: DEL com chave exata (`DEL champions:all`).
+
+Evidência: unit 14/14 tie-break (incl. guarda com `currentYear` injetável — sem relógio no teste) +
+4/4 cache fail-loud + 24/24 won-edges; query R3 de futuros = 0 linhas; live verify pós-deploy com
+`generatedAt` fresco e DEL exato das chaves champions (men/women/all).
