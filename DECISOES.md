@@ -19,6 +19,13 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t448b1-escopo-copas — T448b-1 semeia mães-COPA (gap real); estaduais/municipais = T448b-2
+
+Motivo: o gap real de produção do T448 (2.832 mães ausentes) é dominado por COPAS — o seed T429 importou `competitions` só de ligas (Q15991303, 893 LEAGUE e ~1 CUP), então FA Cup, Coppa Italia, DFB-Pokal, Copa del Rey, Libertadores, Champions, FIFA Club World Cup, Supercopas etc. nunca entraram como mães. O gargalo da vitrine é COPA, não estadual — por isso o T448b foi fatiado: **T448b-1 = copas (este round)**; T448b-2 = estaduais/municipais via RSSSF (próximo round, parser HTML variável).
+Seleção de copa (R3 — classe descoberta/validada AO VIVO, não de memória): P31/P279* de **Q8463186** (national cup — FA Cup, DFB-Pokal, del Rey), **Q1824674** (league cup), **Q34262807** (super cup — Supercopa de España, Trophée des Champions), **Q34542757** (international clubs cup — UCL), **Q123856943** (club world championship — FIFA Club World Cup). **Fallback por rótulo** (cup/copa/coppa/pokal/cupen/trophy/trofeo/trophée/recopa/super cup) é obrigatório porque parte do gap está modelada com classe genérica no Wikidata (Coppa Italia = "sports competition"; Libertadores = "recurring sporting event"). Campeonato Carioca (liga, 85 no gap) fica de fora por design — T448b-2.
+Proveniência/reversibilidade: mães-copa gravadas com `importedFrom='wikidata-cups'` (marcador dedicado — purge limpo), `type='CUP'`, `sourceUrl`, dedup por QID (existentes intocados). Hierarquia/gênero NÃO ganham coluna (premissa da FASE 0 mantida): continuam derivados pelas mesmas `resolveHierarchy`/`resolveGender` no momento da escrita das arestas (já congelados no T448).
+Meta mensurável: gap continental 286→~0 e mundial 16→~0; copas nacionais na vitrine. Contagem POR HIERARQUIA antes/depois + re-run idempotente + spot-check independente no mesmo pacote.
+
 ### [2026-09-22] Decisão: D-2026-09-22-correcao-premissa-cli-ingestao-autonoma — Ingestão de fonte aberta e deploy da API são autônomos do Doer
 
 Motivo: o GATE 1 do T448 foi despachado como se dependesse do Operador (Console do painel como fallback), mas a execução provou o contrário: a CLI do Railway está instalada e autenticada nesta máquina (`railway whoami`), `railway up` faz o deploy da API e `railway ssh` executa comandos dentro do container de produção. O Operador NÃO é necessário para ingestão de fonte aberta (Wikidata CC0) nem para deploy/verificação da API.
