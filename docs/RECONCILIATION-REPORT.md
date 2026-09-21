@@ -438,3 +438,44 @@ competições principais) — candidato a refinamento no T448b/T465.
 ```
 cd /app/apps/api && node dist/scripts/ingest-won-edges-wikidata.js --apply --spot-check=20
 ```
+
+### GATE 2 — T448c (tie-break) + T448b-1 (copas) em produção (2026-09-21, PRs #164/#165)
+
+**T448c — tie-break determinístico do carrossel.** Defeito de apresentação: com 2.825 arestas
+"nacionais", o desempate ano-mais-recente empataba (vários 2025) e a ordem do `findMany` decidia —
+Elitettan (2ª divisão sueca feminina) exposta como campeã nacional. Critério escolhido após
+REPROVAR os proxies sugeridos contra o dado real: "mais edições" elegeria Campeonato Paulista
+(estadual congelado como nacional, arquivo parado em 2020) e "mais campeões distintos" elegeria
+Serie B (paridade de divisão de acesso). Adotado: **vigência → edições → campeões distintos →
+nome asc → id asc** (comparador total; seleção nunca lê gênero; unit embaralha a entrada para
+provar independência de ordem; resposta expõe `editions` para auditoria). Verificação viva:
+fingerprint `c95e4d3` + invalidação de cache + nacional = **PSG | Ligue 1 | 2025 | 75 edições**,
+estável entre chamadas. Unit 10/10.
+
+**T448b-1 — mães-COPA semeadas + WON re-rodado.** Classe de copa validada AO VIVO (P31 das mães
+reais do gap): Q8463186 national cup · Q1824674 league cup · Q34262807 super cup · Q34542757
+international clubs cup · Q123856943 club world championship + fallback por rótulo (Coppa Italia e
+Libertadores estão com classe genérica no Wikidata). 300 mães-copa semeadas
+(`importedFrom='wikidata-cups'`, type='CUP'; 1.263 → 1.563 competições; spot-check 10/10).
+
+| Métrica | Antes | Depois |
+|---|---|---|
+| Arestas WON totais | 2.826 | **5.157** |
+| Mundial | 0 | **16** (Real Madrid, FIFA Club World Cup na vitrine) |
+| Continental | 1 | **268** (PSG, UEFA Champions League 2025 na vitrine) |
+| Nacional | 2.825 | 4.873 |
+| Gap de mãe ausente | 2.832 | **514** (mundial **0** · continental 20 · nacional 494 → T448b-2) |
+| Zero duplicação (GROUP BY clube+competição+ano HAVING>1) | — | **0** |
+| Proveniência (dataSource+CC0+sourceUrl da edição) | — | **5.157/5.157 (100%)** |
+| Re-run idempotente (2005–2026) | — | `2.051 skip · 13 criar (claims novas do grafo vivo) · 3 atualizar` — zero duplicação |
+| Spot-check independente | — | 20/20 arestas + 10/10 mães-copa |
+
+**Cache:** invalidação por padrão (`cache.invalidate('champions:*')`) falhou silenciosamente 2× —
+`DEL` com chave exata resolveu; invalidação efetiva do carrossel pós-ingestão deve usar DEL por
+chave exata ou aguardar TTL de 1h (correção estrutural candidata: logar falha de Redis em vez de
+engolir — follow-up).
+
+**Nuance de dado declarada:** o card nacional passou por Johan Cruijff Shield 2026 (edição
+futurada com vencedor pré-atribuído no Wikidata) — consequência legítima do critério de vigência
+sobre dado da fonte; documentado como refinamento (ex.: desconsiderar edições futuras) quando o
+critério for revisado com T449.
