@@ -274,7 +274,7 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | Compliance Legal                    | 🔴 Crítico      | 10%                                |
 | Features Core (produto)             | 🔴 Crítico      | 5%                                 |
 | Dados — identidade de entidade (clubs/players/competitions) | 🟢 Alta | T429: 3.857 clubes · 2.396 jogadores · 1.263 competições; proveniência 100% |
-| Dados — histórico/conquista (arestas WON) | 🟡 Parcial — T448 | pipeline + produto prontos; piloto local 235 arestas auditáveis; **rodada em produção pendente (Operador)**; gap por hierarquia declarado → T448b |
+| Dados — histórico/conquista (arestas WON) | 🟢 Quase-completo — T448/T448b-1 | **5.157 arestas em produção** (mundial 16 · continental 268 · nacional 4.873), proveniência 100%, carrossel + galeria + comparador vivos com fonte; gap 2.832 → **514** (estaduais/regionais → T448b-2); tie-break determinístico (T448c) |
 | Frontend UX                         | 🟡 Parcial      | 35% (carrossel de campeões vivo + galeria de honra) |
 | IA/ETL/Knowledge Graph              | 🟡 Parcial — T448 | escrita+leitura de WON funcionando; ETL cron = T451 |
 | Testes avançados                    | 🟡 Parcial      | 40%                                |
@@ -512,7 +512,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 - [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `docs/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
 - [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
-- [~] **Arestas WON (títulos de clubes)** — T448: conector P1346 + dedup idempotente + hierarquia/gênero congelados + fonte por aresta + galeria de honra + carrossel de campeões lendo dado real; **piloto local 235 arestas (2005–2026, corpus declarado); rodada em produção pendente (Operador, runbook no REPORT §22); gap de mães ausentes medido por hierarquia → T448b**
+- [~] **Arestas WON (títulos de clubes)** — T448 + T448b-1: conector P1346 + dedup idempotente + hierarquia/gênero congelados + fonte por aresta + galeria de honra + carrossel com tie-break determinístico (T448c); **produção: 5.157 arestas (mundial 16 · continental 268 · nacional 4.873), zero duplicação, proveniência 100%**; gap residual 514 (copas de onze/estaduais regionais) → T448b-2; refinamento de critério (edições futuras) com T449
 - [ ] **Ingestão RSSSF** (arquivo histórico global)
 - [ ] **Ingestão de federações** (divisões inferiores, futebol feminino, amador)
 - [ ] **Dados de estádios** (coordenadas PostGIS, curiosidades)
