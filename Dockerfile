@@ -14,6 +14,10 @@ COPY apps/api/prisma/ ./apps/api/prisma/
 RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.prisma 2>&1
 
 COPY apps/api/src ./apps/api/src/
+# T448 hotfix — o builder NÃO copiava scripts/ e `won-edges.service.ts` importa
+# `scripts/lib/http-resilience` → tsc (TS2307) falhava dentro do build Docker
+# (o CI não pega: na Actions o repo inteiro é checkoutado).
+COPY apps/api/scripts ./apps/api/scripts/
 COPY packages/domain/src ./packages/domain/src/
 
 RUN pnpm --filter @almanaque/domain build 2>&1 && pnpm --filter @almanaque/api build 2>&1
