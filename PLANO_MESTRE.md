@@ -235,7 +235,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 | M0 — Método ativo | ✅ | 2026-08-11 | PLANO-ACAO.md mergeado |
 | **M1 — Beta Fechada (ler/navegar)** | **✅** | **2026-09-15** | **PR #105 + smoke verde + 7 critérios atendidos** |
 | **M2 — Beta Fechada (engajar)** | **✅ COMPLETO 4/4** | **2026-09-16** | **T438 rankings · T439 favoritos · T440 comparadores · T441 carrossel (PRs #107–#119)** |
-| M3 — Open Beta (monetizar) | ⏳ | — | Gateway + checkout + webhook HMAC [Operador] |
+| **M3 — Open Beta (monetizar)** | **✅** | **2026-09-21** | **Stripe LIVE + checkout + webhook HMAC idempotente + assinatura funcional + CDC art. 49 (PRs #127–#155) — compra real R$4,90 + estorno com protocolo** |
 | M4 — v1.0 conteúdo amplo | ⏳ | — | Futebol feminino + ETL automático + Knowledge Graph |
 | M5 — v1.0 público | ⏳ | — | IA RAG + 360º + DAST + domínio próprio [Operador] |
 
@@ -583,3 +583,37 @@ Almanaque, mas faltam:
 **Para Open Beta (1.000 usuários):** 6. Rankings 0-100 rodando em cron 7. Futebol feminino integrado 8. Painel de favoritos 9. ETL automático (Wikidata + RSSSF) 10. IA RAG com citações
 
 **Para v1.0 público:** 11. Knowledge Graph 12. Visualizador 360º 13. DAST + carga + observabilidade completos 14. Domínio próprio + DNSSEC
+
+---
+
+## 🎉 M3 — Open Beta (monetizar) — DECLARADO [2026-09-21]
+
+| Critério (PLANO-ACAO §4) | Evidência | Status |
+|---|---|---|
+| Gateway de pagamento integrado | Stripe LIVE (sk_live_/pk_live_/whsec_), 4 preços BRL corretos | ✅ |
+| Checkout funcional | Compra real Pro R$ 4,90 (20/09) — sessão live paga, redirect de sucesso | ✅ |
+| Webhook HMAC idempotente | payment_events gravando checkout.session.completed + charge.refunded; applyPaymentEvent insert-first | ✅ |
+| Assinatura funcional | PRO/ACTIVE → "Solicitar reembolso" → protocolo re_3UHwb… instantâneo → "Nenhuma assinatura ativa" | ✅ |
+| Arrependimento CDC art. 49 | Estorno REAL executado com fail-loud (#146): refund no provedor antes de marcar local; protocolo na tela | ✅ |
+| Compliance completo | T445 (direitos do titular + DMCA) + políticas v1.2 (#141) + histórico de cobranças + bloco de condições (#147/#155) | ✅ |
+| Smoke live verde | Compra + estorno reais pelo /checkout logado, com auditoria (audit_logs provider: stripe) | ✅ |
+
+**M3 completo.** Plataforma em Open Beta monetizada: cobra, registra, reembolsa e
+mostra o histórico com honestidade. Sessão confiável no ambiente real do pagante
+(saga T452→T462 fechada). Fila avança para M4 (conteúdo — WS-D).
+
+### Postmortem da saga de sessão (T452→T462, oito PRs, uma causa por camada)
+
+| Camada | Defeito | Fix |
+|---|---|---|
+| API — clearCookie sem atributos | Chrome rejeita Set-Cookie `__Host-` sem Secure | #148: espelha atributos da criação |
+| API — logout sem body | FST_ERR_CTP_EMPTY_JSON_BODY → 400 antes do handler | T462: body `{}` |
+| API — refund silencioso | `invoice.payment_intent` null no formato novo → refund pulado | #146: fail-loud + resolver cascata |
+| API — cancel sem tocar no provedor | Stripe continuaria cobrando pós-cancel na UI | cancel_at_period_end |
+| Client — interceptor ressuscitava | refresh residual pós-logout | suppressSessionRefresh |
+| Client — sem refresh no fluxo | access de 15min expirava, ninguém chamava /auth/refresh | #143 interceptor |
+| Client — indicador cego | navbar "Entrar" hardcoded | AuthProvider T450 |
+| Infra — CRLF no entrypoint | checkouts Windows quebravam shebang | Dockerfile sed |
+| Infra — price IDs errados | prod_ em vez de price_ | Operador corrigiu |
+
+Regras permanentes registradas: D-2026-09-18-testes-sem-skip-silencioso · D-2026-09-20-fixtures-escopados · D-2026-09-20-refund-fail-loud · D-2026-09-20-sessao-sempre-assenta · D-2026-09-21-pr-merged-nao-certifica-conteudo · D-2026-09-21-t463-checkout-entradas · D-2026-09-21-t462-logout-efetivo.

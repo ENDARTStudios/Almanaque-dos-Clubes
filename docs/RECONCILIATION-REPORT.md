@@ -327,13 +327,12 @@ sem renderizar, inavegável). Pendências: bucket próprio p/ auth endpoints
 
 ---
 
-## 20. Snapshot T463 — entradas de checkout e transparência validadas pelo pagante (2026-09-21)
+## 21. 🎉 M3 — Open Beta (monetizar) — DECLARADO (2026-09-21)
 
-`D-2026-09-21-t463-checkout-entradas` (PR #156 + #155): primeiro ciclo de uso real
-completo — Operador logou, comprou (PRO mensal live R$4,90), visualizou painel,
-solicitou estorno. Exposi: histórico/condições ausentes (código T453 perdido em
-branch switch), upgrade buttons inertes, /planos sem container. Corrigidos:
-SubscriptionManager busca /billing/invoices e renderiza histórico + condições;
-UpgradeButton client com POST /billing/checkout + redirect Stripe; /planos em
-container max-w-3xl. Regra: **código em branch intermediária que nunca chegou ao
-main = pendência invisível — verificar o HEAD de produção antes de fechar task.**
+Stripe LIVE + checkout + webhook HMAC idempotente + assinatura funcional +
+CDC art. 49 (estorno real com fail-loud) + compliance completo (T445 +
+políticas v1.2) + smoke live verde. Compra real Pro R$4,90 + estorno pelo
+painel com protocolo re_3UHwb… Saga de sessão fechada (oito PRs, uma causa
+por camada — postmortem no PLANO_MESTRE). PRs #127–#155. Fila: M4 (conteúdo
+WS-D) · pendências: SMTP, currentPeriodEnd anual, audit-events, bucket
+próprio p/ auth rate-limit.
