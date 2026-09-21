@@ -34,16 +34,16 @@ import { PrismaClient } from '@prisma/client';
 import {
   RANKING_HIERARCHIES,
   type RankHierarchy,
-} from '../src/modules/rankings/ranking-algorithm.service.js';
+} from '../modules/rankings/ranking-algorithm.service.js';
 import {
   createPrismaWonEdgeRepo,
   fetchWonCandidates,
   hierarchyOfEdge,
   syncWonEdges,
   type WonEdgeRepo,
-} from '../src/modules/etl/won-edges.service.js';
-import { fetchWithRetry } from './lib/http-resilience.js';
-import { WIKIDATA_ENTITY_URL_BASE } from '../src/modules/etl/connectors/wikidata-won-edges.connector.js';
+} from '../modules/etl/won-edges.service.js';
+import { fetchWithRetry } from '../lib/http-resilience.js';
+import { WIKIDATA_ENTITY_URL_BASE } from '../modules/etl/connectors/wikidata-won-edges.connector.js';
 
 const APPLY = process.argv.includes('--apply');
 const argValue = (flag: string): string | undefined =>
@@ -126,7 +126,7 @@ interface SpotCheckRow {
  */
 async function spotCheck(
   prisma: PrismaClient,
-  samples: Array<{ editionQid: string; clubQid: string; motherQid: string; year: number }>,
+  samples: Array<{ editionQid: string; winnerQid: string; motherQid: string; year: number }>,
 ): Promise<SpotCheckRow[]> {
   const out: SpotCheckRow[] = [];
   for (const s of samples) {
