@@ -212,6 +212,7 @@ export interface Dictionary {
       title: string;
       empty: string;
       season: string;
+      source: string;
       rankingBadge: string;
       dots: string;
       prev: string;

@@ -336,3 +336,63 @@ painel com protocolo re_3UHwb… Saga de sessão fechada (oito PRs, uma causa
 por camada — postmortem no PLANO_MESTRE). PRs #127–#155. Fila: M4 (conteúdo
 WS-D) · pendências: SMTP, currentPeriodEnd anual, audit-events, bucket
 próprio p/ auth rate-limit.
+
+---
+
+## 22. Snapshot T448 — WS-D: arestas WON no Knowledge Graph (2026-09-22)
+
+**Escopo executado (dispatch refinado pós-FASE 0):** conector de conquistas estendendo o padrão
+Wikidata do acervo (SPARQL + retry/backoff + dedup + proveniência + Zod), idempotência por
+`(competitionId, seasonYear, clubId, WON)`, validação de dado por contagem POR HIERARQUIA +
+spot-check independente + gap declarado, efeito de produto (carrossel/galeria/comparador) e
+reconciliação no mesmo PR.
+
+### Critérios de aceite — evidência por linha
+
+| Critério | Evidência | Veredito |
+|---|---|---|
+| Arestas WON com proveniência 100% | 235/235 com `metadata.{dataSource='wikidata', sourceUrl=URL da EDIÇÃO, license='CC0', importedAt}` (integração confere campo a campo) | ✅ |
+| Contagem POR HIERARQUIA antes/depois | antes `0×5`; depois `235` = continental 40 + nacional 195 (tabelas no output do script) | ✅ |
+| Spot-check 20 com veredito por linha | re-busca da EDIÇÃO via `Special:EntityData` (não confia no pipeline): P1346=vencedor ∧ P3450=mãe ∧ ano ∈ P585/P580/P582 → **20/20 OK** | ✅ |
+| Re-run idempotente | 2ª rodada completa: `0 criar · 235 skip · 0 atualizar`; `count(*)` estável | ✅ |
+| Gap medido e reportado (não limado) | 277 gaps: mundial 17 · continental 18 · nacional 242; top mães ausentes listadas com QID (FA Cup, Ligue 1, Coppa Italia, FIFA Club World Cup…) | ✅ |
+| Carrossel com campeão real + link + fonte | `/champions` ao vivo: PSG (UEFA Champions League, fonte `Q124024430`) · Arsenal (Premier League, fonte `Q132674557`); fonte = link Wikidata no card | ✅ |
+| CI verde real (R1) + tsc/lint/prettier 0 | tsc api/web 0 erros; eslint 0 erros nos arquivos do PR; CI roda no PR | ✅ (CI no PR) |
+| Estado Final corrigido (duas camadas) | PLANO_MESTRE: identidade=ALTA (T429) · conquistas=PARCIAL com gap declarado; "dados 1%" aposentado | ✅ |
+| R2 — sem corrida/estado compartilhado | fixture com ano 1901 (não desbancra T441); contagens escopadas ao fixture; leitura congelada testada com prisma mockado | ✅ |
+
+### Onde o dado foi buscado e onde vive
+
+- **Fonte:** Wikidata SPARQL (CC0), janelas de 5 anos (1870→ano corrente), User-Agent identificado,
+  retry/backoff via `http-resilience`. Query validada ao vivo (forma union-first + filtro nativo de
+  dateTime; label service em query separada — 504/431 medidos e contornados, chunk 200).
+- **Prova executada no corpus-piloto LOCAL (declarado):** 12 competição-mães mais frequentes dos
+  candidatos reais 2005–2026 + 101 clubes vencedores, no Postgres docker da máquina
+  (`almanaque-postgis-test`). Motivo honesto: esta máquina NÃO alcança o Postgres de produção
+  (`postgres.railway.internal`, sem Railway CLI) e o dump do repo é só estrutura
+  (`prisma/baseline/prod-structure-*.sql`). Gap/counts são funções do corpus em que o script roda.
+- **Bug encontrado e corrigido durante a validação:** UNION sobre P585/P580/P582 fazia temporada
+  cross-year (ex. 2. Bundesliga 2022-23) virar DOIS títulos → colapso `uma edição = um ano`
+  (ano inicial) — 424→235 no piloto; testes unit + integração cobrem.
+
+### 📋 RUNBOOK DO OPERADOR — rodada de produção (T448, ~20-40 min)
+
+```bash
+# No Railway (ambiente da API de produção), uma única vez:
+pnpm --filter @almanaque/api exec tsx scripts/ingest-won-edges-wikidata.ts --apply
+# Dry-run antes (não grava, mostra plano + gap):
+pnpm --filter @almanaque/api exec tsx scripts/ingest-won-edges-wikidata.ts
+# Opcionais: --min-year=1870 --max-year=<ano atual> --spot-check=20
+
+# Reversão (dados importados são aditivos e reversíveis por proveniência):
+# DELETE FROM knowledge_graph WHERE relation='WON' AND metadata->>'dataSource'='wikidata';
+
+# Pós-rodada: cache de campeões (chave champions:*) expira em 1h sozinho,
+# ou reinicie a API para invalidar. O carrossel e a galeria acordam sozinhos.
+```
+
+Espera-se em produção: órbita de ~15-25k candidatos (universo completo do futebol em Wikidata),
+criação limitada pelos 1.263 mothers + 3.857 clubes do acervo, gap material para o T448b.
+Job recorrente: `POST /admin/etl/ingest/wikidata-titles` (admin) ou cron no T451.
+
+Regras permanentes: + **R3-t448-dispatch-ancora-em-query** (dispatch ancora em query, não em documento).

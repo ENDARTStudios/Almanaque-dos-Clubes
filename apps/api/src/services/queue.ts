@@ -50,8 +50,13 @@ export const queues = {
 
 export type QueueName = keyof typeof queues;
 
-export async function addJob(queue: QueueName, name: string, data: Record<string, unknown>) {
-  return queues[queue].add(name, data);
+export async function addJob(
+  queue: QueueName,
+  name: string,
+  data: Record<string, unknown>,
+  opts?: { attempts?: number; backoff?: { type: 'exponential'; delay: number } },
+) {
+  return queues[queue].add(name, data, opts);
 }
 
 export function createWorker(queue: QueueName, handler: (job: Job) => Promise<void>) {

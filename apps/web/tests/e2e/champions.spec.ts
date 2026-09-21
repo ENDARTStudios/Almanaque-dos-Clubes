@@ -34,6 +34,7 @@ const FIXTURE = {
         trophy: null,
         gender: 'men',
         ranking: { name: 'Ranking 0-100 2023 — Masculino', position: 1, points: 100 },
+        sourceUrl: 'https://www.wikidata.org/wiki/Q123456',
       },
     },
     {
@@ -45,6 +46,7 @@ const FIXTURE = {
         trophy: null,
         gender: 'men',
         ranking: null,
+        sourceUrl: null,
       },
     },
     { hierarchy: 'continental', champion: null, reason: 'sem dados auditáveis' },
@@ -55,12 +57,33 @@ const FIXTURE = {
 };
 
 test.describe('Carrossel de campeões (T441)', () => {
-  test('produção honesta: sem arestas WON → estado vazio explícito', async ({ page }) => {
+  // T448: com a ingestão de arestas WON, produção deixa de estar vazio — os
+  // dois estados são honestos. O teste garante que a região responde SEM erro;
+  // o estado vazio estrito fica no teste mockado abaixo.
+  test('produção: região responde com estado vazio honesto OU cards reais', async ({ page }) => {
     await dismissConsent(page);
     await page.goto('/');
-    await expect(page.getByRole('region', { name: /Campeões|Champions|Campeones/i })).toBeVisible({
-      timeout: 20000,
+    const region = page.getByRole('region', { name: /Campeões|Champions|Campeones/i });
+    await expect(region).toBeVisible({ timeout: 20000 });
+    const empty = page.getByTestId('champions-empty');
+    const cards = page.locator('article');
+    const ok = (await empty.isVisible().catch(() => false)) || (await cards.count()) > 0;
+    expect(ok).toBe(true);
+  });
+
+  test('vazio mockado: sem campeões → estado vazio explícito', async ({ page }) => {
+    await page.route('**/api/v1/champions*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: FIXTURE.data.map((d) => ({ ...d, champion: null, reason: 'sem dados auditáveis' })),
+          generatedAt: new Date().toISOString(),
+        }),
+      });
     });
+    await dismissConsent(page);
+    await page.goto('/');
     await expect(page.getByTestId('champions-empty')).toBeVisible({ timeout: 15000 });
   });
 
@@ -88,6 +111,13 @@ test.describe('Carrossel de campeões (T441)', () => {
       'href',
       '/clubs/club-mundial-1111?season=2023',
     );
+
+    // T448 — fonte por aresta: card com sourceUrl mostra link "Fonte (Wikidata)";
+    // card sem sourceUrl (nacional) não mostra.
+    const fonte = page.getByTestId('champion-source-mundial');
+    await expect(fonte).toBeVisible();
+    await expect(fonte).toHaveAttribute('href', 'https://www.wikidata.org/wiki/Q123456');
+    await expect(page.getByTestId('champion-source-nacional')).toHaveCount(0);
 
     // Navegação por teclado: foco no grupo, ArrowRight move para o card 2
     const group = page.getByRole('group', { name: /Campeões|Champions/i });
