@@ -36,7 +36,7 @@ import {
   resolveHierarchy,
   type RankHierarchy,
 } from '../rankings/ranking-algorithm.service.js';
-import { fetchWithRetry, type Fetcher } from '../../../scripts/lib/http-resilience.js';
+import { fetchWithRetry, type Fetcher } from '../../lib/http-resilience.js';
 
 // ---------------------------------------------------------------------------
 // Contrato de repositório (injetável para TDD com mock; default = Prisma)
