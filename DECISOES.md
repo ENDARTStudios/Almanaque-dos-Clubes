@@ -19,6 +19,20 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-correcao-premissa-cli-ingestao-autonoma — Ingestão de fonte aberta e deploy da API são autônomos do Doer
+
+Motivo: o GATE 1 do T448 foi despachado como se dependesse do Operador (Console do painel como fallback), mas a execução provou o contrário: a CLI do Railway está instalada e autenticada nesta máquina (`railway whoami`), `railway up` faz o deploy da API e `railway ssh` executa comandos dentro do container de produção. O Operador NÃO é necessário para ingestão de fonte aberta (Wikidata CC0) nem para deploy/verificação da API.
+Decisões: (1) ingestão de fonte aberta = fluxo autônomo Doer (branch → merge → deploy → execução in-container → evidência); (2) identidade, dinheiro, domínio e credenciais continuam sendo terreno exclusivo do Operador; (3) toda verificação de deploy é por FINGERPRINT no container (`RAILWAY_GIT_COMMIT_SHA` + handler da rota), nunca por "fiz o merge".
+Correção de premissa registrada pelo Thinker (o despacho original previa 4 cliques do Operador como caminho primário).
+
+### [2026-09-22] Decisão: D-2026-09-22-t448c-criterio-tiebreak — Carrossel: representante por hierarquia = vigência → longevidade → diversidade → nome → id (proxy até T449)
+
+Motivo: com 2.825 arestas WON "nacionais" de ligas do mundo inteiro, o desempate do campeão vigente por ano-mais-recente empata com frequência (vários 2025) e a ordem implícita do `findMany` decidia — a vitrine expôs a Elitettan (2ª divisão sueca feminina) como campeã nacional. Defeito de APRESENTAÇÃO sobre dado correto (a aresta está certa; a escolha do representante é que não tinha critério).
+Critério adotado (validado contra o dado de produção ANTES da escolha, como a diretriz exigiu): cada hierarquia é representada pela competição com o comparador total **(1) maior ano no arquivo (vigência) → (2) mais edições registradas (longevidade) → (3) mais campeões distintos → (4) nome asc (bytes, sem locale) → (5) id asc**; campeão exibido = aresta vigente da competição (ano desc → clubId asc). Restrições honradas: seleção NUNCA lê gênero (filtro `?gender=` é parâmetro que aplica a MESMA regra ao conjunto filtrado) e NUNCA depende de ordem de banco (unit embaralha a entrada e prova resultado idêntico). Auditável: a resposta expõe `editions` da competição representante.
+Proxies sugeridos como primários e REPROVADOS contra o dado real (por isso a ordem invertida): "mais edições" elegeria o Campeonato Paulista (102 edições — estadual congelado como nacional pela ausência de keyword estadual em `resolveHierarchy`, arquivo parado em 2020) e "mais campeões distintos" elegeria a Serie B (38 campeões — paridade é característica de divisão de acesso, não prestígio). Vigência primeiro corrige ambos: Paulistão perde por recência (2020 < 2025), Serie B perde por recência/edições.
+**Dívida consciente (não esquecimento):** o critério é proxy enquanto não existe ranking/força de liga (T449); quando existir, reavaliar em DECISOES. Limitação correlata registrada: `resolveHierarchy` não tem keywords estaduais/municipais — ligas estaduais caem em "nacional" (T448b-2/ranking devem tratar).
+Evidência: unit 10/10 (`champions-tiebreak.test.ts`) com entrada embaralhada; verificação viva em produção pós-deploy (carrossel estável entre recargas; representante nacional = Ligue 1, campeão 2025). Reversível: mudança de ordenação apenas, sem migration.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t448-arestas-won — Arestas WON no Knowledge Graph (T448) + regra R3 (dispatch ancora em query)
 
 Motivo: a FASE 0 do T448 (auditoria em query, não em documento) enterrou a premissa do T448′ (seed) com dado: `competitions` NÃO tem coluna hierarchy/gender (hierarquia é derivada por `resolveHierarchy({name})` no ranking), o KG nasce vazio por design e nenhum conector gravava `WON`. O T448 completa o circuito T420 (conector de títulos existia; `upsertTitle` era stub): conector `wikidata-won-edges` (edições com P1346 sobre mães de futebol Q1478437, validada ao vivo contra o endpoint) + `syncWonEdges` (dedup `(competitionId, year, clubId, WON)`, hierarquia/gênero CONGELADOS em metadata na escrita, proveniência POR ARESTA com sourceUrl da EDIÇÃO) + script one-shot DRY-RUN/--apply + job BullMQ (`wikidata-titles`, retry+backoff) + leitura congelada no `/champions` + `GET /clubs/:id/titles` (galeria de honra) + fonte por título no frontend.
@@ -35,14 +49,11 @@ Decisões: (1) produção live = apenas cartão real (4242 é test-mode only); (
 Regras permanentes: D-2026-09-18-testes-sem-skip-silencioso · D-2026-09-20-fixtures-escopados · D-2026-09-20-refund-fail-loud · D-2026-09-20-sessao-sempre-assenta · D-2026-09-21-pr-merged-nao-certifica-conteudo · D-2026-09-21-t463-checkout-entradas · D-2026-09-21-t462-logout-efetivo · D-2026-09-20-conteudo-antes-pagamentos (adendo: ativação prossegue, conteúdo como próxima prioridade pós-M3).
 Saga de sessão: oito PRs (#142–#154), uma causa por camada — postmortem completo no PLANO_MESTRE (seção M3).
 
-
-
 ### [2026-09-20] Decisão: D-2026-09-20-sessao-sempre-assenta — Cadeia de sessão no client sempre resolve (teto 8s; nunca spinner perpétuo) + postmortem da saga
 
 Motivo: P0 — site inavegável em 3 navegadores ("Verificando sessão…" infinito). Forense: /auth/me respondia **429** (rate-limit global 100/15min por IP — os 3 navegadores do Operador compartilham o bucket) e a semântica do T455 ("só 401 resolve anon") transformava não-401 em spinner eterno. Probes do Doer (IP próprio) respondiam limpo — a divergência de IP foi o dado que fechou.
 Decisões: (1) `AuthProvider.refresh` — qualquer resposta HTTP assenta o estado (2xx authed; 401/403/429/5xx anon navegável), teto duro de 8s via AbortController, re-verificação por navegação/focus; (2) postmortem da saga de sessão: **uma causa (contrato de refresh + semântica de loading), cinco sintomas** (pill vazio, área indisponível logado, não-desloga, login sem renderizar, site inavegável) — sintomas em cadeia pedem forense única do contrato, não fixes por sintoma; (3) regra: **todo gate de auth tem teto de loading**; (4) refresh já responde 401 para anônimo (contrato correto — probe); (5) rate-limit de auth endpoints: bucket próprio mais folgado é follow-up de config do Operador.
 Evidência: PR #151; probes curl (IP limpo 401/200 vs IP do Operador 429).
-
 
 ### [2026-09-20] Decisão: D-2026-09-20-t452-t453-logout-e-historico — Logout validado server-side + histórico de cobranças no painel (T452/T453)
 
@@ -52,8 +63,6 @@ T453: painel /dashboard/subscription agora lista o histórico de cobranças do p
 Registro de pendência (não é falha do fluxo): e-mail transacional de confirmação aguarda provider SMTP (decisão do Operador: Resend/SendGrid/SMTP próprio; free tier basta) — até lá, Termos 3.5 é satisfeito pelo protocolo na tela + histórico.
 Evidência: PR #146 (fail-loud) + PR #145 (indicador) + este PR (histórico/condições); refund real re_3UHZeZPvpIyYKAjl1F3q0gaw (succeeded, R$9,90).
 
-
-
 ### [2026-09-20] Decisão: D-2026-09-20-refund-fail-loud — Caminho de estorno nunca mente: refund real antes de REFUNDED local
 
 Motivo: primeira compra real (Elite mensal R$9,90) foi estornada pelo painel e o site disse "Feito." **sem criar refund no Stripe** — ledger interno marcando REFUNDED sem efeito externo (risco CDC art. 49 + contabilidade falsa). Causa raiz (linha exata, `stripe.service.ts` refundStripeSubscription): `invoices.list({subscription, limit:1})` no **formato novo do Checkout** retorna fatura paga **sem `payment_intent` e sem `charge`** (validado em produção: o PI só é alcançável por `charges.list({customer}).payment_intent`) → `if (invoice && pi)` falso → refund pulado silenciosamente dentro de `catch {}` vazio → a rota marcava o estado local de qualquer jeito. A assunção do T447 ("funcionaria em dados limpos") era não-testada.
@@ -61,14 +70,12 @@ Decisões: (1) **caminho de dinheiro é fail-loud** — `refundStripeSubscriptio
 Regra de método (Thinker/Doer, 09-20): **caminho de dinheiro (cobrança, estorno, cancelamento) só é certificado por teste que exercita o caminho de produção com fixture realista — nunca por workaround manual + assunção.**
 Evidência: refund real executado manualmente `re_3UHZeZPvpIyYKAjl1F3q0gaw` (succeeded, R$9,90 — o titular foi reembolsado antes do fix); unit tests do resolver 6/6 (fixtures live).
 
-
 ### [2026-09-20] Decisão: D-2026-09-20-checkout-app-url-e-guard-live — Pós-pagamento aterrissou em localhost (Cadeia A) + keys live sob guard de boot
 
 Motivo: primeira compra real (Elite mensal R$9,90, `cs_live_a1RZNPAENd`, paid) processou o webhook e ativou a assinatura em produção, mas o pós-pagamento aterrissou em `localhost:3001` — `APP_URL` ausente no env de produção e o código cai no fallback `localhost:3001`. O Operador citou a sessão anual (`cs_live_a1Pwe…`, R$100,98) que na verdade estava `open/unpaid` (abandonada). Forense C1–C4 classificou como **Cadeia A** (compra na produção, redirect errado); Cadeia B (dev com keys live) foi descartada por evidência.
 Decisões: (1) `APP_URL=https://almanaquedosclubes.com` setada em produção e **obrigatória + https** quando `NODE_ENV=production` (guard no boot via env.ts); (2) **key live fora de produção falha o boot** (`sk_live_` + `NODE_ENV≠production` → erro no carregamento de `config/stripe.ts` — dev nunca cobra dinheiro real); (3) higiene verificada: nenhum `.env` local contém `sk_live`.
 Follow-ups: página pós-checkout resiliente (poll de "processando pagamento" quando a assinatura ainda não chegou) e `currentPeriodEnd` local respeitar ciclo anual (hoje o handler grava +30 dias para qualquer plano — a Stripe é a fonte da verdade do período).
 Evidência: `payment_events` gravou `checkout.succeeded` + `customer.subscription.created` em LIVE; `audit_logs` registrou a transição; zero erros no horário. Incidente documentado como o teste de fogo do pipeline #138 (primeira compra real processada idempotentemente).
-
 
 ### [2026-09-18] Decisão: D-2026-09-18-t445-direitos-titular — Direitos do titular (LGPD art. 18) e copyright claims (DMCA) COMPLETOS (F1–F5)
 
@@ -87,7 +94,6 @@ Alternativas consideradas: setupFiles global (rejeitada — o probe é por-arqui
 
 Motivo: o cleanup do `ranking-algorithm.test` (`name contains 'Ranking 0-100'`) apagava o fixture do `rankings-read` (mesmo prefixo, mesma temporada 2023) quando os workers paralelos sobrepunham — flake determinístico sob mudança de agendamento (atingiu 2 runs de PRs não relacionados).
 Decisão: fixture usa marcador/temporada únicos (padrão: temporada `2038` no read) e cleanups scopados ao próprio fixture (com exclusão explícita do marcador alheio quando o prefixo é compartilhado). Ao criar teste novo com cleanup amplo, verificar colisão com fixtures existentes.
-
 
 ### [2026-09-16] Decisão: D-2026-09-16-t437-rotacao-app-user — Credencial do app_user rotacionada via papel duplo (zero downtime) + encerramento do incidente de credenciais ecoadas
 
@@ -222,11 +228,12 @@ Fora do escopo (inalterado): enrich-coords, competições, migrations, WS-C/WS-L
 ### [2026-09-13] Decisão: D-2026-09-13-t432-higiene — T432: working tree limpa (graft-tools commitado, notas descartadas com justificativa)
 
 Motivo: ao fechar o T430 restaram 5 itens não-commitados violando "working tree limpa". Destino decidido por conteúdo, não por inércia:
+
 - `scripts/graft-tools/` (graft-dead.mjs, graft-impact.mjs, README.md) → **COMMITADO**: ferramentas reais, testadas localmente (dead:1 verdadeiro + 3 dead-files verificados via grep; impact com blast radius exato em mudança sintética). Origem: ideias do codebase-memory-mcp adaptadas aos dados do `graft/` (decisão consciente de não instalar segundo indexador).
 - `T430-CLOSING-NOTES.md` → **DELETADO**: checklist integralmente resolvido (PR #91 merged, entrada T430 em DECISOES, deploy com entrypoint verificado). Registrar checklist morto seria ruído.
 - `T430-POST-MERGE-ACTIONS.md` → **DELETADO**: item 2 (CSP) resolvido via PR #92 merged; item 3 (scaffold vago) sem conteúdo acionável; item 1 (hero stats hardcoded) permanece vivo e é carregado adiante como follow-up T-vis-01 (não se perde nada: está rastreado na auditoria visual).
-Evidência: re-run `graft-dead --json` idêntico ao baseline validado (dead:1, suspect:206, sameFileRef:38, methodRef:124, deadFiles:3); `graft-impact` funcional; tsc/lint/prettier verdes; CI do PR como gate.
-Carry-forward explícito: **hero stats hardcoded na home** (`HeroSection` 10/3/2 vs 3857/895/2396) continua aberto — candidato a fast-follow (padrão T428-FASE 1, meia hora).
+  Evidência: re-run `graft-dead --json` idêntico ao baseline validado (dead:1, suspect:206, sameFileRef:38, methodRef:124, deadFiles:3); `graft-impact` funcional; tsc/lint/prettier verdes; CI do PR como gate.
+  Carry-forward explícito: **hero stats hardcoded na home** (`HeroSection` 10/3/2 vs 3857/895/2396) continua aberto — candidato a fast-follow (padrão T428-FASE 1, meia hora).
 
 ### [2026-09-09] Decisão: D-2026-09-09-t430-fechamento — T430 fechado: migration automation + drift check + job-runnability
 
@@ -244,14 +251,15 @@ Caminho canônico de provisionamento: baseline dump (`apps/api/prisma/baseline/`
 
 Motivo: baseline prod mostrava `sourceUrl = 0%` em clubs (1889), competitions (895) e players (2396). Execução integralmente pelo Doer sob a diretriz D-2026-09-08-atribuicao-doer-first (zero ações do Operador no round): merge do #87 via `gh`, scripts rodados em prod via `railway ssh` no container da API, smoke via `curl` + SQL.
 Evidência (antes → depois, banco de produção Railway):
+
 - clubs: 1889 → 3857 total (1968 novos via --apply + 10 backfilled); `sourceUrl` 0 → 3847 (100% das linhas com qid; 10 linhas sem qid, impossíveis de preencher — dado honesto)
 - competitions: 895 → 1263 total (368 novos + 334 backfilled); `sourceUrl` 0 → 1260 (100% das com qid; 3 sem qid)
 - players: 2396 total, `sourceUrl` 0 → 2396 (100%; SPARQL da Wikidata instável na janela — 502/429/timeout — então o backfill SQL determinístico cobriu as linhas existentes; ETL cobre linhas novas em round futuro)
 - API: `GET /clubs?limit=1` 200 com `sourceUrl` presente; health 200; zero 5xx nos logs Railway durante os jobs
-Método híbrido (documentado, não improvisado): (1) scripts `--apply` para linhas novas + backfill das linhas na janela do fetch; (2) `UPDATE ... SET "sourceUrl" = base || "qid" WHERE "qid" IS NOT NULL AND "sourceUrl" IS NULL` para o resíduo fora da janela (valor byte-idêntico ao que o script escreve; contagem antes/depois auditada por tabela). Rollback pré-documentado e não acionado: `UPDATE ... SET "sourceUrl"=NULL WHERE "importedFrom"='wikidata'`.
-Nota operacional: queries ad-hoc em psql via `railway ssh` exigem escape `\"` para identificadores case-sensitive (ver D-railway-ssh-quotes); sem escape o Postgres folda para minúsculo e a query falha ou mira a coluna errada.
-Addendum N1 (T430, condição de registro do review T429): (a) decisão do SQL direto + motivo — SPARQL de players instável na janela (502/429/timeout sustained ~20min) bloqueava o `--apply`; o UPDATE determinístico cobre exatamente as linhas existentes com `qid` sem tocar em mais nada; (b) transporte base64 dos 4 scripts (3 ingest + lib) para o container com validação byte-a-byte (md5 origem == destino em todos); (c) regen do Prisma Client in-container com backup prévio em `/tmp/prisma-client-backup` (client da imagem estava stale, sem `sourceUrl` — sem o regen, os `createMany`/`update` com o campo falhariam em validação client-side).
-M1 segue NÃO declarado (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
+  Método híbrido (documentado, não improvisado): (1) scripts `--apply` para linhas novas + backfill das linhas na janela do fetch; (2) `UPDATE ... SET "sourceUrl" = base || "qid" WHERE "qid" IS NOT NULL AND "sourceUrl" IS NULL` para o resíduo fora da janela (valor byte-idêntico ao que o script escreve; contagem antes/depois auditada por tabela). Rollback pré-documentado e não acionado: `UPDATE ... SET "sourceUrl"=NULL WHERE "importedFrom"='wikidata'`.
+  Nota operacional: queries ad-hoc em psql via `railway ssh` exigem escape `\"` para identificadores case-sensitive (ver D-railway-ssh-quotes); sem escape o Postgres folda para minúsculo e a query falha ou mira a coluna errada.
+  Addendum N1 (T430, condição de registro do review T429): (a) decisão do SQL direto + motivo — SPARQL de players instável na janela (502/429/timeout sustained ~20min) bloqueava o `--apply`; o UPDATE determinístico cobre exatamente as linhas existentes com `qid` sem tocar em mais nada; (b) transporte base64 dos 4 scripts (3 ingest + lib) para o container com validação byte-a-byte (md5 origem == destino em todos); (c) regen do Prisma Client in-container com backup prévio em `/tmp/prisma-client-backup` (client da imagem estava stale, sem `sourceUrl` — sem o regen, os `createMany`/`update` com o campo falhariam em validação client-side).
+  M1 segue NÃO declarado (faltam WS-C restante + WS-L). Próximo: T430 (migration automation).
 
 ### [2026-09-06] Decisão: D-2026-09-06-image-hardening — Hardening defensivo de Image Optimization + CSP libera tiles OSM
 
