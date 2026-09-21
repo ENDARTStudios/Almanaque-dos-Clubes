@@ -17,9 +17,9 @@ export default async function PlanosPage() {
   const currency = mapCountryToCurrency(country);
 
   return (
-    <>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <ContentDocument namespace="planos" currency={currency} />
       <CheckoutButton />
-    </>
+    </div>
   );
 }
