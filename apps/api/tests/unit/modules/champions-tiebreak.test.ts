@@ -198,6 +198,67 @@ describe('T448c — selectRepresentatives (critério vigência → edições →
   });
 });
 
+describe('T448d — guarda de vigência (edição futura não existe para o carrossel)', () => {
+  it('competição cuja ÚNICA edição é futura não vira representante', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'copa-futura', year: 2027, hierarchy: 'mundial' }),
+        edge({ compId: 'liga-real', year: 2026, hierarchy: 'mundial' }),
+      ),
+      [comp('copa-futura', 'Copa Pré-Atribuída'), comp('liga-real', 'Liga Real')],
+      undefined,
+      2026, // currentYear (UTC) injetado — sem relógio no teste
+    );
+    expect(reps.get('mundial')!.compId).toBe('liga-real');
+    expect(reps.get('mundial')!.editions).toBe(1); // a futura não conta
+  });
+
+  it('liga do ano corrente vence supercopa com edição futura (caso Cruijff, generalizado)', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'supercopa', year: 2027, hierarchy: 'nacional' }),
+        edge({ compId: 'supercopa', year: 2025, hierarchy: 'nacional' }),
+        edge({ compId: 'liga', year: 2026, hierarchy: 'nacional' }),
+        edge({ compId: 'liga', year: 2025, hierarchy: 'nacional' }),
+        edge({ compId: 'liga', year: 2024, hierarchy: 'nacional' }),
+      ),
+      [comp('supercopa', 'Supercopa Real'), comp('liga', 'Liga Real')],
+      undefined,
+      2026,
+    );
+    expect(reps.get('nacional')!.compId).toBe('liga'); // 2026 vigente > 2025; a 2027 não existe
+    expect(reps.get('nacional')!.latestYear).toBe(2026);
+  });
+
+  it('edição futura não infla o contador de edições (auditoria honesta)', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'liga', year: 2026, hierarchy: 'nacional' }),
+        edge({ compId: 'liga', year: 2026, hierarchy: 'nacional' }),
+        edge({ compId: 'liga', year: 2027, hierarchy: 'nacional' }), // pré-atribuída
+      ),
+      [comp('liga', 'Liga Real')],
+      undefined,
+      2026,
+    );
+    expect(reps.get('nacional')!.editions).toBe(2);
+  });
+
+  it('determinismo se mantém com arestas futuras na entrada (shuffle → mesmo resultado)', () => {
+    const build = () => [
+      edge({ compId: 'b', year: 2027, hierarchy: 'nacional' }),
+      edge({ compId: 'b', year: 2025, hierarchy: 'nacional' }),
+      edge({ compId: 'a', year: 2026, hierarchy: 'nacional' }),
+      edge({ compId: 'a', year: 2026, hierarchy: 'nacional' }),
+    ];
+    const comps = [comp('a', 'Liga A'), comp('b', 'Liga B')];
+    const r1 = selectRepresentatives(build(), comps, undefined, 2026);
+    const r2 = selectRepresentatives([...build()].reverse(), comps, undefined, 2026);
+    expect(r1.get('nacional')!.compId).toBe(r2.get('nacional')!.compId);
+    expect(r1.get('nacional')!.compId).toBe('a'); // 2026 vigente > 2025; a 2027 não conta
+  });
+});
+
 describe('T448c — compareRepresentatives (reprovações registradas no DECISOES)', () => {
   it('"mais edições" como critério PRIMÁRIO elegeria Campeonato Paulista (estadual, 2020) — reprovado', () => {
     const paulistao: Representative = rep('paulistao', 'Campeonato Paulista', 102, 9, 2020);

@@ -126,11 +126,18 @@ export function compareRepresentatives(a: Representative, b: Representative): nu
  * Seleção PURA: agrega arestas por (hierarquia, competição) e elege o
  * representante de cada hierarquia pelo comparador acima. Ordem de entrada
  * NÃO afeta o resultado (testes embaralham a entrada para provar).
+ *
+ * T448d — guarda de vigência: edição com year > currentYear (UTC, no momento
+ * da comparação) NÃO existe para o carrossel — não é "vigente", não conta em
+ * nenhuma métrica do representante. Motivo: bots pré-atribuem vencedores de
+ * edições futuras no Wikidata; sem a guarda, a edição futura vence a recência
+ * assim que o ano vira (D-2026-09-22-t448d-vigencia-nao-futura).
  */
 export function selectRepresentatives(
   edges: WonEdgeInput[],
   comps: CompRefInput[],
   gender?: 'men' | 'women',
+  currentYear: number = new Date().getUTCFullYear(),
 ): Map<RankHierarchy, Representative> {
   const compById = new Map(comps.map((c) => [c.id, c]));
   const aggs = new Map<string, Representative & { champions: Set<string> }>();
@@ -140,6 +147,7 @@ export function selectRepresentatives(
     const comp = compById.get(e.targetId) ?? null;
     const meta = (e.metadata as Record<string, unknown> | null) ?? {};
     const year = typeof meta.year === 'number' ? meta.year : 0;
+    if (year > currentYear) continue; // T448d — guarda de vigência (edição futura)
     const edgeGender: 'men' | 'women' = isWomenEdge(comp, meta.gender) ? 'women' : 'men';
     if (gender && edgeGender !== gender) continue;
     const hierarchy: RankHierarchy = isKnownHierarchy(meta.hierarchy)
