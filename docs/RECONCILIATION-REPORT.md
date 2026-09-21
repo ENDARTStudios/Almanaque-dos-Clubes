@@ -396,3 +396,45 @@ criação limitada pelos 1.263 mothers + 3.857 clubes do acervo, gap material pa
 Job recorrente: `POST /admin/etl/ingest/wikidata-titles` (admin) ou cron no T451.
 
 Regras permanentes: + **R3-t448-dispatch-ancora-em-query** (dispatch ancora em query, não em documento).
+
+### GATE 1 — Rodada de PRODUÇÃO executada (2026-09-21, mesma sessão do #159)
+
+**Passo 0 (R3):** o #159 estava OPEN e o container de produção rodava `f9fcabb` (#158) — o script não
+existia no servidor. Resolvido na ordem: merge #159 → o auto-deploy Railway EXISTE (dispara no merge) mas
+falhou 2× por dois defeitos reais que o CI não pega (na Actions o repo inteiro é checkoutado; o build
+Docker não): (1) builder sem `apps/api/scripts` → TS2307 no import de `src`→`scripts` (#160); (2) com
+`scripts/` no grafo do tsc o rootDir inferido migra e o output vira `dist/src/server.js` → boot sem
+módulo → healthcheck falha (#161 — helper movido para `src/lib/` com shim em `scripts/lib/`). Terceira
+camada: a imagem não tem `apps/api/src`, então o script migrou para `src/scripts/` (padrão T430) e roda
+compilado com `node` puro (#162). Deploy final verificado por fingerprint: `RAILWAY_GIT_COMMIT_SHA =
+7fda267` + rota nova `GET /clubs/:id/titles` respondendo com o handler do T448.
+
+**Números reais de produção (acervo 3.857 clubes · 1.263 competições):**
+
+| Métrica | Valor |
+|---|---|
+| Fetch (janela 1870–2026, 32 janelas) | 17.470 linhas · **13.436 candidatos únicos** · 217s |
+| Arestas WON criadas | **2.809** (nacional 2.808 · continental 1) — ANTES 0 |
+| Gap de mãe ausente (input T448b) | **2.832** (mundial 16 · continental 286 · nacional 2.530) |
+| Órfãos (vencedor fora do acervo — seleções/clubes não importados) | 7.795 |
+| Re-run idempotente (janela 2005–2026) | `1.087 skip · 17 criar · 2 atualizar` — grafo vivo do Wikidata (claims novas/editadas entre rodadas); **zero duplicação**: total evoluiu exatamente +17 (2.809→2.826), duplicados por (clube,competição,ano) = **0** no DB |
+| Proveniência | **2.826/2.826 (100%)** com dataSource=wikidata + license=CC0 + sourceUrl da EDIÇÃO |
+| Spot-check independente | **20/20 OK** (re-busca da EDIção: P1346 vencedor + P3450 mãe + ano) |
+| Carrossel vivo | `/champions` respondendo campeões reais com fonte Wikidata por card |
+
+**Top mães ausentes (T448b):** Q15804 (124) · Scottish Cup (102) · **Campeonato Carioca (85)** ·
+Coppa Italia (73) · Norwegian Cup (69) · Scottish League Cup (69) · FA Cup (66) · Copa del Rey (65) ·
+DFB-Pokal (60) · UEFA Champions League (54) · **Copa Libertadores (51)** — copas nacionais/continentais
+e estaduais são o grosso do gap (o corpus tem 893 LEAGUE e quase nenhuma COPA).
+
+**Achado de produto (para o Thinker):** com 2.825 arestas "nacionais" de ligas do mundo inteiro, o
+desempate do campeão vigente por ano-mais-recente empata com frequência (vários 2025) e a ordem de
+iteração decide — produziu Elitettan (2ª divisão sueca feminina) como campeã nacional no ar. É
+determinístico e auditável, mas a QUALIDADE da escolha pede tie-break de produto (ex.: peso da liga /
+competições principais) — candidato a refinamento no T448b/T465.
+
+**Comando de produção (uma linha, Console Railway do serviço `Almanaque-dos-Clubes`):**
+
+```
+cd /app/apps/api && node dist/scripts/ingest-won-edges-wikidata.js --apply --spot-check=20
+```
