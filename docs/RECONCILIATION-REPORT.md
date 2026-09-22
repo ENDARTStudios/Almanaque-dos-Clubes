@@ -576,3 +576,53 @@ como entregue. Preço/periodicidade INTACTOS; nenhuma promessa adicionada além 
 **i18n:** os dicionários pt/en/es NÃO carregam listas de recursos (o checkout é PT-only hoje, e as
 seções soft dos 3 locales são consistentes entre si — condicionais ao checkout) — paridade mantida
 por construção; checkout PT-only para falantes não-PT = flag para o gate legal do Operador.
+
+### GATE 2 adendum 5 — T469: P0 jurídico-autônomo (2026-09-22)
+
+**FASE 0 (W1 — re-ancoragem em produção):** counts ao vivo: clubs 3.857 · players 2.396 ·
+competitions 1.563 · arestas WON 5.157 (proveniência 100%) · rankings publicados 2 (seed
+CONMEBOL/CBF 2023 — produto 0-100 por jogo aguarda T449) · IA não operacional. Leitura do FONTE
+das 6 páginas legais + home: claims medidas ("maior acervo", "IA", "história completa", numeração
+da privacidade 1-12 SEM salto — o 5→7 da auditoria não existe na versão atual; "v2.0 órfã" também
+não existe no fonte — históricos v1.0→v1.2 coerentes; a linha de versão era hardcode compartilhado
+no LegalDocument para termos e privacidade).
+
+**W2 cumprido:** nenhum PII da auditoria (razão social, endereço Cajamar, e-mail Yahoo do DPO)
+foi publicado ou preenchido; o bloco de identificação permaneceu como estava (CNPJ já publicado
+pelo Operador); endereço/DPO nominal = escalação.
+
+**Entregas (×3 locales nas seções existentes):**
+
+- Direitos (§5): prazos harmonizados — recebimento imediato; conclusiva 15d BR (LGPD art. 18 §3) /
+  1 mês EEE-UK (GDPR art. 12), prorrogável.
+- Segurança (§7): comunicação de incidentes — ANPD referência 3 dias úteis; GDPR 72h.
+- Retenção (§8): períodos concretos — backups 30d (T446), pagamento 5 anos (fiscal), logs,
+  conta ativa.
+- Menores (§9) + cadastro: declaração proporcional de 18 anos no formulário (sem KYC).
+- Compartilhamento (§4): cláusula de transferência internacional (LGPD Cap. IV / GDPR Cap. V),
+  fornecedores nomeados (Vercel, Railway, Cloudflare, Stripe, Resend, ipwho.is), "não vendemos
+  dados e não os usamos para treinamento de IA", DPAs públicos citados (Stripe/Cloudflare);
+  demais = "mediante solicitação — Operador coleta".
+- **Google Fonts auto-hospedado** (27 woff2, Barlow/Barlow Condensed OFL em /fonts; @import
+  runtime removido) — fornecedor eliminado; removido das listas de terceiros nos 3 idiomas.
+- ipwho.is: MANTIDO em runtime (invariante documentado "moeda pela localização REAL" — schema do
+  checkout proíbe cliente de escolher moeda; substituição por header alteraria comportamento de
+  pagamento, território T471) e DOCUMENTADO: §11 já o nomeia + tabela do REPORT.
+- almanaque_locale (achado 14): **ESTRITAMENTE NECESSÁRIO** — set SOMENTE em escolha explícita do
+  usuário (5 controles de UI; zero auto-detect; server só lê), first-party, 1 ano, sem rastreamento.
+- Inventário de cookies: **verificado em produção com contexto limpo — ZERO cookies antes de
+  qualquer escolha do titular**; consent_v/locale/__Host-* somente após ações; sem analytics/
+  marketing; intro da Política de Cookies atualizada de "será atualizado" para "verificado em
+  22/09/2026"; nota Stripe no ato do pagamento.
+- Consent E2E contra PRODUÇÃO: **11/11** (destaque equivalente, revogação, prova registrada,
+  inventário real, fornecedores).
+- Home claims re-ancoradas (×3 locales + layout): "maior acervo"→"acervo em construção, com
+  proveniência documentada"; "com IA"→removido (coerente com T465); "história completa"→"em
+  construção e com fontes verificadas".
+- **/metodologia** publicada (fontes, licenças, critério de verificação, divergências→revisão,
+  correções, limitações declaradas: gap de coordenadas, gap 514, IA em breve) + link no rodapé.
+  "Fontes verificadas" agora é verdade-por-método-publicado.
+
+**Fora (roteado):** direitos do titular/DMCA fluxos reais → T470 · Opção B geo-restrição → T471 ·
+i18n legal + checkout → T472/T468 · cursor-based pagination → WS-S/C · disclosure cheio de IA →
+quando IA shippar · identidade/DPO/DPAs/advogado/agente-EUA → OPERADOR (escalação).

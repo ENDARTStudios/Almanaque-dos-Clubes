@@ -49,6 +49,7 @@ export interface Dictionary {
     telegram: string;
     legalTitle: string;
     privacy: string;
+    methodology: string;
     terms: string;
     cookies: string;
     security: string;
@@ -177,6 +178,7 @@ export interface Dictionary {
     registerLink: string;
     acceptTerms: string;
     acceptPrivacy: string;
+    ageDeclaration: string;
     acceptRequired: string;
     registerErrorDefault: string;
     forgotPasswordLink: string;
@@ -284,8 +286,20 @@ export interface Dictionary {
   };
   legal: {
     updatedLabel: string;
-    terms: { title: string; intro: string; sections: LegalSection[] };
-    privacy: { title: string; intro: string; sections: LegalSection[] };
+    terms: {
+      title: string;
+      intro: string;
+      sections: LegalSection[];
+      version?: string;
+      updated?: string;
+    };
+    privacy: {
+      title: string;
+      intro: string;
+      sections: LegalSection[];
+      version?: string;
+      updated?: string;
+    };
   };
   langSelector: { label: string; current: string };
 }

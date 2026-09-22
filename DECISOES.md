@@ -19,6 +19,18 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t469-legal-p0-autonomo — P0 jurídico-autônomo: re-ancoragem na produção, W1/W2/W3 e roteamento dos 21 achados
+
+Motivo: a auditoria jurídica externa (22/09/2026) cometeu o MESMO erro R3 que a regra combate: leu o snapshot "dados 1%" do PLANO_MESTRE 02/09 em vez de consultar produção ("10 clubes" vs 3.857 medidos). Lição registrada como caso-estudo: **review externo também precisa de query, não de documento**.
+**Três avisos inegociáveis executados:** W1 — cada claim re-ancorada em query/fonte (a numeração 5→7 da privacidade apontada pela auditoria NÃO existe na versão atual: medido, 1-12 contínuo; "v2.0 órfã" também não existe no fonte); W2 — NENHUM PII da auditoria publicado (razão social/endereço/e-mail do DPO = escalado ao Operador; bloco de identificação intocado); W3 — o pacote segue "para revisão de advogado habilitado", NUNCA declarado "conforme".
+**Entregas:** prazos harmonizados (15d LGPD / 1 mês GDPR, recebimento imediato); retenção com períodos concretos ancorados em config real (backups 30d T446, pagamento 5y fiscal); comunicação de incidentes (ANPD 3 dias úteis ref. / GDPR 72h); menores com declaração proporcional no cadastro (sem KYC); cláusula de transferência internacional + fornecedores nomeados com DPAs públicos citados (Stripe/Cloudflare) e não-públicos marcados "Operador coleta"; **Google Fonts auto-hospedado** (27 woff2 OFL — fornecedor eliminado); ipwho.is MANTIDO (invariante "moeda pela localização REAL" documentado; substituição mudaria comportamento de pagamento = T471) e exaustivamente documentado; consentimento provado em produção 11/11 (T436 suite) + inventário verificado (ZERO cookies antes da escolha — evidência de ouro do design T436); almanaque_locale = estritamente necessário (set só em escolha explícita, zero auto-detect — achado 14); claims da home re-ancoradas ×3 locales; **/metodologia publicada** ("fontes verificadas" = verdade-por-método-publicado).
+**Roteamento declarado:** direitos do titular + DMCA reais → T470 (reusa protocolo/export/soft-delete/audit) · Opção B geo-restrição → T471 · i18n legal+checkout → T472/T468 · cursor-based → WS-S/C · disclosure cheio de IA → quando IA shippar · identidade/DPO/DPAs/advogado/agente-EUA/age-gate-profundo → OPERADOR.
+
+### [2026-09-22] Decisão: D-2026-09-22-checkout-pt-only-pre-beta — i18n do checkout é nosso (T468, pré-beta); o gate do Operador é o jurídico
+
+Motivo: flag levantado no T465 e incorporado pelo Thinker: o checkout PT-only expõe risco de clareza (CDC art. 6, informação adequada) para assinante não-PT. Distinção registrada para não confundir gates: a **correção de i18n do checkout é AUTÔNOMA nossa (WS-F, T468), pré-abertura do beta pago**; o gate do Operador é o JURÍDICO (advogado/DPO/provedores/domínio — D-2026-09-22-gate-legal-m3-produto-corrigido). Ambos pré-requisitos do beta; de donos diferentes.
+Até o T468: checkout permanece PT-only (estado atual honesto e conhecido; os termos/privacidade referenciados são o contrato vigente em pt).
+
 ### [2026-09-22] Decisão: D-2026-09-22-t465-oferta-honesta — A oferta descreve o que roda; o resto é "em breve"; fonte única do catálogo
 
 Motivo: a oferta tinha três superfícies divergentes — `plan-features.ts` (T444) era CÓDIGO MORTO sem consumidor, o `/checkout` hardcodava listas que já tinham divergido (Pro sem suporte; Elite sem exportação estendida) e o `/planos` delegava ao checkout. Cobrar recurso não-operacional é risco CDC art. 30/37 (oferta vincula; publicidade enganosa).
