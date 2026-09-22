@@ -19,6 +19,18 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t465-oferta-honesta — A oferta descreve o que roda; o resto é "em breve"; fonte única do catálogo
+
+Motivo: a oferta tinha três superfícies divergentes — `plan-features.ts` (T444) era CÓDIGO MORTO sem consumidor, o `/checkout` hardcodava listas que já tinham divergido (Pro sem suporte; Elite sem exportação estendida) e o `/planos` delegava ao checkout. Cobrar recurso não-operacional é risco CDC art. 30/37 (oferta vincula; publicidade enganosa).
+Tabela-veredicto completa no REPORT §22 (adendum 4). Veredictos: busca = "Busca textual avançada" (o "ilimitada" violava a política do próprio /planos de não anunciar ilimitado sem alcance); **IA assistida com citações e API de dados = "(em breve)"** (não operacionais — IA 8.9 [ ]; emissão de key inexistente no backend); exportação precisa ("CSV e JSON" — formatos reais do GET /export); suporte = "canal dedicado" (sem SLA publicado); duplicatas removidas da ELITE ("Tudo do Pro" cobre).
+**Knowledge Graph entra como ENTREGUE na ELITE** (autorizado no despacho: promessa do Escopo 6.6 tornada verdade pelo T448 — 5.157 arestas com fonte por aresta; não é promessa nova, é a antiga que virou verdade). Preço/periodicidade INTACTOS; nenhuma promessa ADICIONADA além do KG autorizado.
+Fonte única: `plan-features.ts` consumido pelo /checkout (hardcode removido — divergência morta por construção); contrato testado por unit (anti-"ilimitado", marcador "(em breve)", anti-hardcode no page.tsx) + E2E `oferta-honesta.spec.ts`. Flags seguidas (fora do escopo): home hero "com inteligência artificial" (marketing, decisão de conteúdo) e checkout PT-only para falantes não-PT (gate legal do Operador).
+
+### [2026-09-22] Decisão: D-2026-09-22-gate-legal-m3-produto-corrigido — O bloqueante legal do M3 de produto é advogado/DPO/provedores/domínio, não T465+preço
+
+Motivo: correção de ERRO do planejamento, registrado por ele próprio: por duas rodadas o bloqueante do M3 de produto foi tratado como "T465 + preço/periodicidade". Os documentos (pacote de publicação + PLANO-ACAO §5) mostram que o bloqueante LEGAL é outro: advogado revisando o pacote, DPO nomeado, provedores + transferência internacional confirmados, alcance internacional (GDPR se UE), e-mails de domínio próprio — tudo do Operador, escalado nesta rodada.
+Os DOIS gates são distintos e ambos necessários para abrir o beta pago a 1.000: **T465 (oferta honesta) mata CDC art. 30/37 — técnico, autônomo, FECHADO neste PR. Pacote jurídico mata LGPD/GDPR — Operador.** Um sem o outro não abre. Preço/periodicidade já estão no ar como decisão do Operador (mensal/anual 15% off) — não são bloqueante.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t448f-type-first-condicional — Type-first só onde a liga é flagship; mundial/continental voltam a vigência-primeiro
 
 Motivo: a verificação viva do T448e (checkpoint FASE 3) expôs a interação nº 4 do round — o type-first GLOBAL derrubou a UEFA Champions League (CUP, 2025, 54 edições) abaixo da VFF Champions League (LEAGUE, 2012, 1 edição) no card continental: a regra "liga vence copa" só faz sentido ONDE A LIGA É O FLAGSHIP da hierarquia. Falha do planejamento (type-first GLOBAL sem particionar por hierarquia), não da execução — que parou no checkpoint com evidência viva em vez de expandir escopo.
