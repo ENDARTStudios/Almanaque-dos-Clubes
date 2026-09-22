@@ -34,7 +34,9 @@ beforeAll(async () => {
     return;
   }
   await cleanup();
-  const country = await prisma.country.create({ data: { iso2: ISO, name: 'T449EN Land', continent: 'EU' } });
+  const country = await prisma.country.create({
+    data: { iso2: ISO, name: 'T449EN Land', continent: 'EU' },
+  });
   await prisma.club.create({ data: { name: activeName, country: ISO, countryId: country.id } });
   const del = await prisma.club.create({
     data: { name: deletedName, country: ISO, countryId: country.id, deletedAt: new Date() },
@@ -66,7 +68,10 @@ describe('T449EN C2 — soft-deleted fora das views públicas', () => {
 
   it('busca não encontra o soft-deleted', async () => {
     if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: `/api/v1/clubs?search=${encodeURIComponent(deletedName)}` });
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/clubs?search=${encodeURIComponent(deletedName)}`,
+    });
     const body = JSON.parse(res.body) as { data: Array<{ name: string }> };
     expect(body.data.some((c) => c.name === deletedName)).toBe(false);
   });
