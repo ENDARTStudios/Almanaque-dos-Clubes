@@ -6,6 +6,9 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- USAGE no schema (roles não-superuser precisam; o default de PUBLIC não basta em PG15+).
+GRANT USAGE ON SCHEMA public TO app_user;
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "audit_logs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "billings" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cities" TO app_user;
@@ -14,7 +17,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_consents" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_policy_versions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "competitions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "copyright_claims" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "copyright_notices" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "countries" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "data_subject_requests" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "favorites" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;

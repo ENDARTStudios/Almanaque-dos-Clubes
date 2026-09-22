@@ -698,3 +698,13 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Artefato novo:** `.gitattributes` (`* text=auto eol=lf`) — faltava (lição T448d).
 
 **Dívida rastreada:** `format:check` (prettier standalone) **não roda no CI** e cobre 954 arquivos (majoritariamente `apps/web/**`, ignorado pelo eslint) — gap separado; 98 warnings de estilo/segurança-FP. **R1:** "CI verde" passa a cobrir lint recursivo de api/worker/packages (ressalva no HANDOFF).
+
+### GATE 2 adendum 9 — T470: processo de direitos do titular + notificação autoral (2026-09-22)
+
+**FASE 0 (medida):** SMTP **ausente** → automatizado só autenticado; deslogado = manual. Produção: users 42 (4 ativos) · sessions 127 · subscriptions 41 · billings 2 · favorites 20 · audit_logs 174 · cookie_consents 8 · privacy_requests 0 · copyright_claims 0.
+
+**Entregas:** migration `20261002120000_t470_legal_titular_dmca` (`data_subject_requests`, `copyright_notices`, `users.deletedAt`; enums; PG+SQLite) com **GRANT/RLS idempotentes no SQL** (owner SELECT/INSERT; UPDATE/DELETE só SERVICE; `GRANT USAGE ON SCHEMA public`) + espelho `rls_legal_setup.sql`/`create_app_user.sql` + passo no `ci.yml` · módulo `legal` (Zod, protocolo, prazos BR 15d / EEA-UK 30d, export JSON/CSV, exclusão soft+anonimização, notificação/contranotificação, admin RBAC) · frontend `/direitos-titular` e `/direitos-autorais` (logado = fluxo; deslogado = orientação + canal manual; sem DMCA/safe harbor; sem “resposta imediata”).
+
+**Evidência:** 11 testes (unit + integração Postgres real): RLS como `app_user` (titular lê o próprio; **não lê de terceiro**; UPDATE direto negado; SERVICE atualiza); protocolo `dsr_*`; prazo 15d; export **sem** `passwordHash`/`tokenHash`; exclusão anonimiza e-mail, `deletedAt`, sessões revogadas, DSR `completed`; senha inválida → 401. `pnpm typecheck` 0 · `pnpm lint` recursivo **0 erros** (98 warnings).
+
+**Limitações (declaradas):** tradução legal = T472 · SMTP = Operador · rotas T445 legadas mantidas (deprecadas, não surfacadas) · consentimento fora do export (sem vínculo userId↔visitorId).

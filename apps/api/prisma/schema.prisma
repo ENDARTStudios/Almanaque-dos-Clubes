@@ -228,6 +228,7 @@ model User {
   lastLoginAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime? // T470 — soft-delete (titular); e-mail anonimizado na exclusão
 
   // Relações
   sessions      Session[]
@@ -236,6 +237,8 @@ model User {
   billings      Billing[]
   userRoles     UserRole[]
   clubsCreated  Club[]   @relation("ClubCreatedByUser")
+  dataSubjectRequests DataSubjectRequest[]
+  copyrightNotices    CopyrightNotice[]
 
   @@index([status])
   @@index([createdAt])
@@ -762,4 +765,107 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// -----------------------------------------------------------------------------
+// T470 — WS-L: processo de direitos do titular (LGPD art. 18) e notificação
+// autoral (Lei 9.610/98 + análoga; SEM safe harbor formal). Fluxo AUTENTICADO,
+// com protocolo rastreável. Não-logado = canal manual (sem SMTP).
+// -----------------------------------------------------------------------------
+
+enum DsrType {
+  confirmation_access
+  correction
+  anonymization_blockage_deletion
+  portability
+  sharing_information
+  consent_revocation
+  objection
+  automated_decision_review
+}
+
+enum DsrJurisdiction {
+  BR
+  EEA_UK
+  OTHER
+}
+
+enum DsrStatus {
+  received
+  needs_verification
+  in_progress
+  completed
+  rejected
+  cancelled
+}
+
+model DataSubjectRequest {
+  id                String          @id @default(uuid())
+  protocol          String          @unique // protocolo rastreável (dsr_…)
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              DsrType
+  jurisdiction      DsrJurisdiction @default(BR)
+  status            DsrStatus       @default(received)
+  description       String? // sanitizado, limitado
+  requestedFields   Json? // escopo do pedido (ex.: account, billing, favorites)
+  deadlineAt        DateTime?
+  completedAt       DateTime?
+  responseSummary   String? // sem PII desnecessária
+  internalNote      String? // apenas admin; nunca exposto fora do admin
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([deadlineAt])
+  @@index([protocol])
+  @@map("data_subject_requests")
+}
+
+enum CopyrightNoticeType {
+  infringement_notice
+  counter_notice
+}
+
+enum CopyrightNoticeStatus {
+  received
+  under_review
+  action_taken
+  rejected
+  closed
+}
+
+model CopyrightNotice {
+  id                 String                @id @default(uuid())
+  protocol           String                @unique // protocolo rastreável (cr_…)
+  type               CopyrightNoticeType
+  status             CopyrightNoticeStatus @default(received)
+  userId             String
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalNoticeId   String?
+  originalNotice     CopyrightNotice?      @relation("NoticeCounter", fields: [originalNoticeId], references: [id], onDelete: SetNull)
+  counterNotices     CopyrightNotice[]     @relation("NoticeCounter")
+  workTitle          String
+  workUrl            String?
+  materialUrl        String
+  description        String
+  goodFaithDeclaration Boolean
+  accuracyDeclaration Boolean
+  signatureText      String
+  jurisdiction       DsrJurisdiction       @default(BR)
+  responseSummary    String?
+  internalNote       String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  deletedAt          DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([originalNoticeId])
+  @@index([protocol])
+  @@map("copyright_notices")
 }

@@ -37,6 +37,7 @@ import { etlRoutes } from './modules/etl/routes.js';
 import { consentRoutes } from './modules/consent/routes.js';
 import { privacyRoutes } from './modules/privacy/privacy.routes.js';
 import { copyrightRoutes } from './modules/copyright/copyright.routes.js';
+import { legalRoutes } from './modules/legal/routes.js';
 import { favoritesRoutes } from './modules/favorites/routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.js';
 import { compareRoutes } from './modules/compare/routes.js';
@@ -213,6 +214,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(consentRoutes);
       await api.register(privacyRoutes);
       await api.register(copyrightRoutes);
+      await api.register(legalRoutes);
       await api.register(favoritesRoutes);
       await api.register(wsTicketRoutes);
       await api.register(compareRoutes);
