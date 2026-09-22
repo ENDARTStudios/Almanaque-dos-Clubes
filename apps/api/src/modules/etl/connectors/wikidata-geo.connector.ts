@@ -37,6 +37,7 @@ export interface GeoRow {
   stateName: string | null;
   stateCode: string | null;
   cityPoint: { lat: number; lng: number } | null;
+  clubPoint: { lat: number; lng: number } | null;
 }
 
 const GeoRowSchema = z.object({
@@ -57,6 +58,7 @@ const GeoRowSchema = z.object({
   stateName: z.string().min(1).nullable(),
   stateCode: z.string().min(1).nullable(),
   cityPoint: z.object({ lat: z.number(), lng: z.number() }).nullable(),
+  clubPoint: z.object({ lat: z.number(), lng: z.number() }).nullable(),
 });
 
 interface SparqlBinding {
@@ -103,11 +105,12 @@ export function parsePoint(wkt: string | undefined): { lat: number; lng: number 
 export function buildGeoQuery(clubQids: string[]): string {
   const values = clubQids.map((q) => `wd:${q}`).join(' ');
   return `
-SELECT DISTINCT ?club ?country ?countryLabel ?iso ?continentQid ?admin ?adminLabel ?parent ?parentLabel ?parentIso ?adminPoint WHERE {
+SELECT DISTINCT ?club ?country ?countryLabel ?iso ?continentQid ?admin ?adminLabel ?parent ?parentLabel ?parentIso ?adminPoint ?clubPoint WHERE {
   VALUES ?club { ${values} }
   ?club wdt:P17 ?country .
   ?country wdt:P297 ?iso .
   OPTIONAL { ?country wdt:P30 ?continentQid . }
+  OPTIONAL { ?club wdt:P625 ?clubPoint . }
   OPTIONAL {
     ?club wdt:P131 ?admin .
     OPTIONAL { ?admin wdt:P625 ?adminPoint . }
@@ -122,8 +125,8 @@ SELECT DISTINCT ?club ?country ?countryLabel ?iso ?continentQid ?admin ?adminLab
  * pega o 1º admin (cidade) e o 1º parent com ISO 3166-2 (estado). Linhas sem país
  * ISO-2 válido são descartadas. Zod valida cada linha (payload externo).
  */
-export function parseGeoBindings(json: SparqlResponse): GeoRow[] {
-  const bindings = json?.results?.bindings ?? [];
+export function parseGeoBindings(json: unknown): GeoRow[] {
+  const bindings = (json as SparqlResponse | null)?.results?.bindings ?? [];
   const byClub = new Map<string, GeoRow>();
 
   for (const b of bindings) {
@@ -146,6 +149,7 @@ export function parseGeoBindings(json: SparqlResponse): GeoRow[] {
         stateName: null,
         stateCode: null,
         cityPoint: null,
+        clubPoint: parsePoint(b.clubPoint?.value),
       };
       byClub.set(clubQid, row);
     }
@@ -205,6 +209,8 @@ export interface ClubGeoLink {
   countryIso2: string;
   stateCode: string | null;
   cityQid: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 export interface GeoPlan {
   countries: CountryPlan[];
@@ -252,6 +258,8 @@ export function planGeo(rows: GeoRow[]): GeoPlan {
       countryIso2: r.countryIso2,
       stateCode: r.stateCode,
       cityQid: r.adminQid,
+      latitude: r.clubPoint?.lat ?? null,
+      longitude: r.clubPoint?.lng ?? null,
     });
   }
 
@@ -300,6 +308,9 @@ export interface ClubGeoUpdate {
   countryId: string | null;
   stateId: string | null;
   cityId: string | null;
+  // Coordenadas P625 (opcionais: ausência na fonte NÃO sobrescreve o valor existente).
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface GeoRepository {
@@ -323,6 +334,8 @@ export interface GeoRepository {
     countryId: string | null;
     stateId: string | null;
     cityId: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null>;
   updateClubGeo(clubId: string, update: ClubGeoUpdate): Promise<void>;
 }
@@ -458,10 +471,19 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
       stateId: link.stateCode ? (stateIdByCode.get(link.stateCode) ?? null) : null,
       cityId: link.cityQid ? (cityIdByQid.get(link.cityQid) ?? null) : null,
     };
+    // Coordenada P625: só grava quando a fonte tem valor (ausência NÃO apaga o existente).
+    const hasCoords = link.latitude != null && link.longitude != null;
+    if (hasCoords) {
+      update.latitude = link.latitude as number;
+      update.longitude = link.longitude as number;
+    }
+    const coordsSame =
+      !hasCoords || (club.latitude === link.latitude && club.longitude === link.longitude);
     if (
       club.countryId === update.countryId &&
       club.stateId === update.stateId &&
-      club.cityId === update.cityId
+      club.cityId === update.cityId &&
+      coordsSame
     ) {
       stats.links.unchanged++;
       continue;

@@ -4,9 +4,15 @@
  * Fonte: Wikidata (CC0); proveniência por registro (`importedFrom='wikidata-geo'`,
  * `sourceUrl=https://www.wikidata.org/wiki/<QID>`, `importedAt`).
  *
- * Uso:
- *   pnpm --filter @almanaque/api exec tsx scripts/ingest-geo-wikidata.ts          # DRY-RUN
- *   pnpm --filter @almanaque/api exec tsx scripts/ingest-geo-wikidata.ts --apply  # grava
+ * Resolve país/estado/cidade E a coordenada P625 do próprio clube (tudo no mesmo SPARQL),
+ * gravando também `clubs.latitude/longitude` de forma idempotente.
+ *
+ * Uso (local):
+ *   pnpm --filter @almanaque/api exec tsx src/scripts/ingest-geo-wikidata.ts          # DRY-RUN
+ *   pnpm --filter @almanaque/api exec tsx src/scripts/ingest-geo-wikidata.ts --apply  # grava
+ * Uso (produção, lição #162 — compila p/ dist e roda com node puro, NÃO tsx):
+ *   node apps/api/dist/scripts/ingest-geo-wikidata.js          # DRY-RUN
+ *   node apps/api/dist/scripts/ingest-geo-wikidata.js --apply  # grava
  *
  * Idempotente: chaves estáveis (countries.iso2, states.code, cities.qid) + detecção de
  * mudança em `syncGeo` — re-run sem alteração ⇒ ZERO escrita.
@@ -15,7 +21,8 @@
  *   DELETE FROM cities WHERE "importedFrom"='wikidata-geo';
  *   DELETE FROM states WHERE "importedFrom"='wikidata-geo';
  *   DELETE FROM countries WHERE "importedFrom"='wikidata-geo';
- *   UPDATE clubs SET "countryId"=NULL, "stateId"=NULL, "cityId"=NULL;
+ *   UPDATE clubs SET "countryId"=NULL, "stateId"=NULL, "cityId"=NULL, latitude=NULL, longitude=NULL
+ *     WHERE "qid" IN (SELECT qid FROM clubs WHERE qid IS NOT NULL);  -- rollback de coords opcional
  */
 import { PrismaClient } from '@prisma/client';
 import {
@@ -24,9 +31,9 @@ import {
   planGeo,
   syncGeo,
   type GeoRow,
-} from '../src/modules/etl/connectors/wikidata-geo.connector.js';
-import { prismaGeoRepository } from '../src/modules/etl/geo.repository.js';
-import { fetchWithRetry } from '../src/lib/http-resilience.js';
+} from '../modules/etl/connectors/wikidata-geo.connector.js';
+import { prismaGeoRepository } from '../modules/etl/geo.repository.js';
+import { fetchWithRetry } from '../lib/http-resilience.js';
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes('--apply');
@@ -109,9 +116,12 @@ async function main(): Promise<void> {
   );
 }
 
-const invokedAsScript = (process.argv[1] ?? '')
-  .replace(/\\/g, '/')
-  .endsWith('scripts/ingest-geo-wikidata.ts');
+// Guarda de importação: em testes (vitest) o módulo é importado sem executar.
+// Casa tanto o fonte (`…scripts/ingest-geo-wikidata.ts`, tsx local) quanto o build
+// de produção (`…dist/scripts/ingest-geo-wikidata.js`, node puro — lição #162).
+const invokedAsScript = /scripts\/ingest-geo-wikidata\.(ts|js)$/.test(
+  (process.argv[1] ?? '').replace(/\\/g, '/'),
+);
 if (invokedAsScript) {
   main()
     .catch((err) => {

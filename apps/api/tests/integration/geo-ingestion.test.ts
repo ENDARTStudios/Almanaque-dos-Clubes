@@ -58,6 +58,8 @@ interface ClubRec {
   countryId: string | null;
   stateId: string | null;
   cityId: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface MemRepo extends GeoRepository {
@@ -118,7 +120,16 @@ function makeRepo(clubs: ClubRec[] = []): MemRepo {
     },
     async findClubByQid(qid) {
       const c = clubs.find((x) => x.qid === qid);
-      return c ? { id: c.id, countryId: c.countryId, stateId: c.stateId, cityId: c.cityId } : null;
+      return c
+        ? {
+            id: c.id,
+            countryId: c.countryId,
+            stateId: c.stateId,
+            cityId: c.cityId,
+            latitude: c.latitude,
+            longitude: c.longitude,
+          }
+        : null;
     },
     async updateClubGeo(clubId: string, update: ClubGeoUpdate) {
       const i = clubs.findIndex((x) => x.id === clubId);
@@ -138,6 +149,7 @@ const base: Omit<GeoRow, 'clubQid'> = {
   stateName: 'Rio de Janeiro',
   stateCode: 'BR-RJ',
   cityPoint: { lat: -22.9, lng: -43.2 },
+  clubPoint: { lat: -22.91, lng: -43.21 },
 };
 
 function planOf(rows: GeoRow[]): GeoPlan {
@@ -147,7 +159,15 @@ function planOf(rows: GeoRow[]): GeoPlan {
 describe('syncGeo — criação e proveniência', () => {
   it('cria país/estado/cidade e vincula o clube; grava proveniência em cada registro', async () => {
     const repo = makeRepo([
-      { id: 'c1', qid: 'Q100', countryId: null, stateId: null, cityId: null },
+      {
+        id: 'c1',
+        qid: 'Q100',
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        latitude: null,
+        longitude: null,
+      },
     ]);
     const now = new Date('2026-09-22T00:00:00Z');
     const stats = await syncGeo(repo, planOf([{ ...base, clubQid: 'Q100' }]), now);
@@ -176,6 +196,9 @@ describe('syncGeo — criação e proveniência', () => {
     expect(club.countryId).toBe(repo.countries[0].id);
     expect(club.stateId).toBe(repo.states[0].id);
     expect(club.cityId).toBe(repo.cities[0].id);
+    // Coordenada do clube (P625) gravada a partir da fonte.
+    expect(club.latitude).toBeCloseTo(-22.91);
+    expect(club.longitude).toBeCloseTo(-43.21);
     expect(repo.cities[0].countryId).toBe(repo.countries[0].id);
     expect(repo.cities[0].stateId).toBe(repo.states[0].id);
     expect(repo.states[0].countryId).toBe(repo.countries[0].id);
@@ -185,7 +208,15 @@ describe('syncGeo — criação e proveniência', () => {
 describe('syncGeo — idempotência (re-run ⇒ zero escrita)', () => {
   it('segunda execução idêntica não cria nem atualiza nada', async () => {
     const repo = makeRepo([
-      { id: 'c1', qid: 'Q100', countryId: null, stateId: null, cityId: null },
+      {
+        id: 'c1',
+        qid: 'Q100',
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        latitude: null,
+        longitude: null,
+      },
     ]);
     const plan = planOf([{ ...base, clubQid: 'Q100' }]);
     const now = new Date('2026-09-22T00:00:00Z');
@@ -201,7 +232,15 @@ describe('syncGeo — idempotência (re-run ⇒ zero escrita)', () => {
 
   it('detecta e conta mudança de nome como update', async () => {
     const repo = makeRepo([
-      { id: 'c1', qid: 'Q100', countryId: null, stateId: null, cityId: null },
+      {
+        id: 'c1',
+        qid: 'Q100',
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        latitude: null,
+        longitude: null,
+      },
     ]);
     const now = new Date('2026-09-22T00:00:00Z');
     await syncGeo(repo, planOf([{ ...base, clubQid: 'Q100' }]), now);

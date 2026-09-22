@@ -46,7 +46,14 @@ export function prismaGeoRepository(): GeoRepository {
     findClubByQid: (qid) =>
       prisma.club.findUnique({
         where: { qid },
-        select: { id: true, countryId: true, stateId: true, cityId: true },
+        select: {
+          id: true,
+          countryId: true,
+          stateId: true,
+          cityId: true,
+          latitude: true,
+          longitude: true,
+        },
       }),
     updateClubGeo: async (clubId: string, update: ClubGeoUpdate) => {
       await prisma.club.update({ where: { id: clubId }, data: update });

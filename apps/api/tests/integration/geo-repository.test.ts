@@ -43,6 +43,7 @@ describe('T466 — prismaGeoRepository + syncGeo (Postgres real)', () => {
         stateName: 'Testshire',
         stateCode: CODE,
         cityPoint: { lat: 1.5, lng: 2.5 },
+        clubPoint: { lat: 3.5, lng: 4.5 },
       },
     ]);
 
@@ -55,6 +56,8 @@ describe('T466 — prismaGeoRepository + syncGeo (Postgres real)', () => {
     const linked = await prisma.club.findUnique({
       where: { qid: CLUB_QID },
       select: {
+        latitude: true,
+        longitude: true,
         countryRef: { select: { iso2: true, name: true } },
         stateRef: { select: { code: true } },
         cityRef: { select: { qid: true, latitude: true, longitude: true, importedFrom: true } },
@@ -65,6 +68,9 @@ describe('T466 — prismaGeoRepository + syncGeo (Postgres real)', () => {
     expect(linked?.cityRef?.qid).toBe(CITY_QID);
     expect(linked?.cityRef?.latitude).toBeCloseTo(1.5);
     expect(linked?.cityRef?.importedFrom).toBe('wikidata-geo');
+    // Coordenada P625 do clube gravada pelo mesmo seed.
+    expect(linked?.latitude).toBeCloseTo(3.5);
+    expect(linked?.longitude).toBeCloseTo(4.5);
 
     const second = await syncGeo(prismaGeoRepository(), plan, new Date());
     expect(second.countries).toEqual({ created: 0, updated: 0, skipped: 1 });

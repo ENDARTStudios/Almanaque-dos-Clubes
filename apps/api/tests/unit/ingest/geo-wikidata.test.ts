@@ -82,6 +82,7 @@ describe('parseGeoBindings', () => {
             parent: uri('Q41428'),
             parentLabel: binding('', 'Rio de Janeiro'),
             parentIso: binding('', 'BR-RJ'),
+            clubPoint: binding('', 'Point(-43.21 -22.91)'),
           },
         ],
       },
@@ -98,6 +99,7 @@ describe('parseGeoBindings', () => {
       stateQid: 'Q41428',
       stateCode: 'BR-RJ',
       cityPoint: { lat: -22.9, lng: -43.2 },
+      clubPoint: { lat: -22.91, lng: -43.21 },
     });
   });
 
@@ -141,6 +143,7 @@ describe('planGeo (dedup por chave estável)', () => {
     stateName: 'Rio de Janeiro',
     stateCode: 'BR-RJ',
     cityPoint: null,
+    clubPoint: null,
   };
 
   it('deduplica países/estados/cidades e mantém 1 link por clube', () => {
@@ -171,6 +174,7 @@ describe('validateGeoRow (Zod — payload externo hostil)', () => {
       stateName: null,
       stateCode: null,
       cityPoint: null,
+      clubPoint: null,
     };
     expect(validateGeoRow(ok)).not.toBeNull();
     expect(validateGeoRow({ ...ok, countryIso2: 'BRA' })).toBeNull();
