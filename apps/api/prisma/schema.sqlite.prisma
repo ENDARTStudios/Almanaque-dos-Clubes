@@ -50,6 +50,8 @@ model Club {
   sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  // T449EN — remoção por admin/ruído (NÃO é clube extinto); exclui das views públicas.
+  deletedAt    DateTime?
 
   // Relações
   players       Player[]

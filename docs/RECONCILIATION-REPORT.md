@@ -748,3 +748,9 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Licença (0.4, corrigida):** RSSSF **não é domínio público** — "free to copy **with proper acknowledgement**". Atribuição obrigatória; `sourceUrl`/`retrievedAt` por aresta.
 
 **Corte de escopo:** o **parser RSSSF BR estadual** excede o round (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
+
+### GATE 2 adendum 15 — T449EN: base EN para o piloto T449a (2026-09-23)
+
+**FASE 0 (medida):** EN clubs GB **303** (100% ACTIVE/qid/proveniência); piloto RSSSF **93/116** casavam; **23 faltantes** (5 grandes) + **1 ruído** (`1964–65 Leeds…season`). Competições do piloto (5) presentes. Threshold **100%**; soft-delete via **migration `deletedAt`**.
+
+**Entregue:** migration `20261003120000_t449en_club_deleted_at` + filtro `deletedAt: null` (lista/count/detalhe/geo) · conector `wikidata-en-clubs` (SPARQL `P641=futebol` + `P17 UK/England`; fallback `wbsearchentities`) · script `ingest-en-clubs-missing` (resolve faltantes por QID + soft-delete do ruído) · 8 testes. **DRY-RUN: 115/115** nomes resolvidos. **Produção aplica pós-merge** (passo de deploy). #185 permanece **não mergeado** até o threshold. (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
