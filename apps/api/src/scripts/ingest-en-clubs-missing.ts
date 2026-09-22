@@ -54,6 +54,26 @@ async function fetchEnClubs(): Promise<EnClub[]> {
   return all;
 }
 
+/** Resolve/cria o Country GB (hierarquia T466) para ligar os clubes EN. */
+async function ensureGbCountry(): Promise<{ id: string }> {
+  let gb = await prisma.country.findUnique({ where: { iso2: 'GB' }, select: { id: true } });
+  if (!gb) {
+    gb = await prisma.country.create({
+      data: {
+        iso2: 'GB',
+        name: 'United Kingdom',
+        continent: 'EU',
+        qid: 'Q145',
+        importedFrom: WIKIDATA_EN_DATASOURCE,
+        importedAt: new Date(),
+        sourceUrl: 'https://www.wikidata.org/wiki/Q145',
+      },
+      select: { id: true },
+    });
+  }
+  return gb;
+}
+
 async function main(): Promise<void> {
   // 1. nomes RSSSF
   const rsssfRes = await fetchWithRetry(
@@ -78,6 +98,23 @@ async function main(): Promise<void> {
   console.log(
     `Casados na base: ${names.length - missingNames.length}/${names.length} · faltantes: ${missingNames.length}`,
   );
+
+  // Fixes de dados (idempotentes; rodam MESMO sem clubes novos): link geo
+  // (countryId T466) + soft-delete do ruído.
+  if (APPLY) {
+    const gbFix = await ensureGbCountry();
+    const back = await prisma.club.updateMany({
+      where: { country: 'GB', countryId: null, deletedAt: null },
+      data: { countryId: gbFix.id },
+    });
+    const noise = await prisma.club.updateMany({
+      where: { qid: NOISE_QID, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    console.log(
+      `APPLY fixes: countryId backfill=${back.count} | ruído soft-deleted=${noise.count}`,
+    );
+  }
 
   if (!missingNames.length) {
     console.log('Nada a ingerir.');
@@ -107,23 +144,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Liga à hierarquia geográfica (T466): resolve/cria o Country GB (senão os
-  // clubes novos não entram no geo-stats/mapa, que agrupam por countryId FK).
-  let gb = await prisma.country.findUnique({ where: { iso2: 'GB' }, select: { id: true } });
-  if (!gb) {
-    gb = await prisma.country.create({
-      data: {
-        iso2: 'GB',
-        name: 'United Kingdom',
-        continent: 'EU',
-        qid: 'Q145',
-        importedFrom: WIKIDATA_EN_DATASOURCE,
-        importedAt: new Date(),
-        sourceUrl: 'https://www.wikidata.org/wiki/Q145',
-      },
-      select: { id: true },
-    });
-  }
+  const gb = await ensureGbCountry();
 
   const now = new Date();
   let created = 0;
