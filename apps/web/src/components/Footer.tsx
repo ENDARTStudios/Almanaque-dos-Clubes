@@ -19,6 +19,7 @@ export default function Footer() {
   const aboutLinks = [
     { href: '/sobre', label: t('footer.aboutUs') },
     { href: '/planos', label: t('footer.plans') },
+    { href: '/metodologia', label: t('footer.methodology') },
   ];
 
   const legalLinks = [

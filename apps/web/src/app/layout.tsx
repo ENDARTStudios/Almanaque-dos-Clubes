@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: '%s | Almanaque dos Clubes',
   },
   description:
-    'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA e fontes verificadas.',
+    'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas.',
   keywords: [
     'futebol',
     'clubes',
@@ -38,14 +38,14 @@ export const metadata: Metadata = {
     siteName: 'Almanaque dos Clubes',
     title: 'Almanaque dos Clubes — História do Futebol Mundial',
     description:
-      'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA.',
+      'Acervo histórico do futebol em construção. Pesquise clubes, jogadores, competições e rankings.',
     url: siteUrl,
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Almanaque dos Clubes' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Almanaque dos Clubes — História do Futebol Mundial',
-    description: 'O maior acervo de dados históricos do futebol mundial.',
+    description: 'Acervo histórico do futebol em construção, com proveniência documentada.',
     images: ['/og-image.png'],
   },
   robots: { index: true, follow: true },
@@ -67,7 +67,7 @@ const jsonLd = {
   applicationCategory: 'SportsApplication',
   operatingSystem: 'Web',
   description:
-    'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA e fontes verificadas.',
+    'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas.',
   url: siteUrl,
   author: { '@type': 'Organization', name: 'END ART Studios' },
   publisher: { '@type': 'Organization', name: 'END ART Studios' },

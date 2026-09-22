@@ -21,7 +21,7 @@ const en: Dictionary = {
   },
   footer: {
     tagline:
-      'The complete history of world football at your fingertips. Clubs, players, competitions and auditable rankings.',
+      'World football history in the making, with verified sources. Clubs, players, competitions and auditable rankings (methodology at /metodologia).',
     platformTitle: 'Platform',
     platformClubs: 'Clubs',
     platformPlayers: 'Players',
@@ -37,6 +37,7 @@ const en: Dictionary = {
     telegram: 'Telegram',
     legalTitle: 'Legal',
     privacy: 'Privacy',
+    methodology: "Methodology & sources",
     cookies: 'Cookies',
     terms: 'Terms of Use',
     security: 'Security',
@@ -135,6 +136,7 @@ const en: Dictionary = {
     registerLink: 'Log in',
     acceptTerms: 'I have read and accept the Terms of Use and Service',
     acceptPrivacy: 'I have read and accept the Privacy Policy (LGPD)',
+    ageDeclaration: "Registration is intended for users aged 18 or over; by creating an account you declare meeting this requirement.",
     acceptRequired: 'You must accept the Terms of Use and the Privacy Policy to sign up.',
     registerErrorDefault: 'Error creating account',
     forgotPasswordLink: 'Forgot your password?',
@@ -369,7 +371,7 @@ const en: Dictionary = {
     cookiePolicy: {
       title: 'Cookie Policy',
       intro:
-        'This Cookie Policy explains how END ART Studios (CNPJ 45.370.930/0001-75) uses cookies and similar technologies on Almanaque dos Clubes. The inventory will be updated according to the cookies, providers and technologies actually installed.',
+        'This Cookie Policy explains how END ART Studios (CNPJ 45.370.930/0001-75) uses cookies and similar technologies on Almanaque dos Clubes. Inventory verified in production on 2026-09-22 (clean context, before any choice: no cookie is set without the data subject’s action).',
       sections: [
         {
           title: 'What are cookies',
@@ -395,7 +397,7 @@ const en: Dictionary = {
         {
           title: 'Third parties and transfers',
           body: [
-            'Current providers: Vercel (frontend), Railway (API and PostgreSQL database), Cloudflare (DNS/network) and Google Fonts (fonts); payments via Stripe. Hosting, authentication, payment, analytics, support, AI and security providers may receive identifiers according to the purpose, always minimised and contractually bound. Where there is an international transfer, the LGPD and (if applicable) GDPR must be observed.',
+            'Current providers: Vercel (frontend), Railway (API and PostgreSQL database) and Cloudflare (DNS/network); payments via Stripe. Hosting, authentication, payment, analytics, support, AI and security providers may receive identifiers according to the purpose, always minimised and contractually bound. Where there is an international transfer, the LGPD and (if applicable) GDPR must be observed.',
           ],
         },
         {
@@ -538,6 +540,8 @@ const en: Dictionary = {
     updatedLabel: 'Last updated',
     terms: {
       title: 'Terms of Use and Service',
+        version: 'v1.3',
+        updated: '2026-09-22',
       intro:
         'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 2, 2026 · Version 2.0.',
       sections: [
@@ -694,13 +698,15 @@ const en: Dictionary = {
           title: '18. Copyright (DMCA) and version history',
           body: [
             'Copyright holders may report alleged infringement through the form at /direitos-autorais (material description, location, legal grounds and contact) or through the channel endart.studios@gmail.com. Notices go through triage and a reasoned decision; unequivocally infringing content is removed.',
-            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added the copyright notice channel; v1.2 (2026-09-19) — Stripe activated as the production payment processor.',
+            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added the copyright notice channel; v1.2 (2026-09-19) — Stripe activated as the production payment processor.; v1.3 (2026-09-22) — document consistency: rights deadlines, detailed retention, security incidents, minors and providers (self-hosted fonts).',
           ],
         },
       ],
     },
     privacy: {
       title: 'Privacy Policy',
+        version: 'v1.3',
+        updated: '2026-09-22',
       intro:
         'This Privacy Policy describes how END ART Studios (CNPJ 45.370.930/0001-75) collects, uses, stores and protects the personal data of users of the Almanaque dos Clubes platform, in accordance with the Brazilian General Data Protection Law (Law No. 13,709/2018 — LGPD) and other applicable rules.',
       sections: [
@@ -731,16 +737,18 @@ const en: Dictionary = {
           title: '4. Sharing',
           body: [
             'We do not sell personal data. Data may be shared with infrastructure and payment providers, strictly necessary for operation, and with authorities when required by law.',
-            'Current environment providers: Vercel (frontend hosting), Railway (API and PostgreSQL database hosting), Cloudflare (DNS and network protection) and Google Fonts (typographic fonts). Payments are processed by Stripe, which acts as an independent controller of payment data towards the data subject. This list is updated whenever a provider is contracted or replaced.',
+            'Current environment providers: Vercel (frontend hosting), Railway (API and PostgreSQL database hosting) and Cloudflare (DNS and network protection). Since 2026-09-22, typographic fonts are self-hosted (no third-party request). Payments are processed by Stripe, which acts as an independent controller of payment data towards the data subject. This list is updated whenever a provider is contracted or replaced.',
             'The payment processor Stripe (Stripe, Inc., USA) processes payment and fraud-prevention data, with international transfer to the USA under the LGPD (art. 33 et seq.) and standard contractual clauses where applicable; full card data never touches our servers (Stripe PCI DSS).',
-          ],
+          
+            'International transfer: as our providers operate outside Brazil, sharing involves international data transfer, in accordance with Chapters IV (LGPD) and V (GDPR, where applicable), with contractual guarantees. We do not sell data and do not use it to train AI models. Reference providers: Vercel (frontend and edge geolocation), Railway (API and PostgreSQL database), Cloudflare (DNS/network), Stripe (payments — Stripe’s own terms apply at payment time), Resend (transactional e-mail) and ipwho.is (IP geolocation only during checkout). Public processing terms: Stripe and Cloudflare publish them on their websites; other cases: upon request via the privacy channel. (ref. T469-4)',],
         },
         {
           title: '5. Data subject rights (LGPD)',
           body: [
             'Users may request confirmation, access, correction, anonymization, portability, deletion and withdrawal of consent.',
             'To exercise your rights, contact the privacy channel indicated below.',
-          ],
+          
+            'Receipt of the request is confirmed immediately. A conclusive response is provided within 15 days in Brazil (LGPD, art. 18, §3) or within one month in the EEA/UK (GDPR, art. 12), extendable as provided by law. (ref. T469-5)',],
         },
         {
           title: '6. Cookies',
@@ -752,19 +760,22 @@ const en: Dictionary = {
           title: '7. Security',
           body: [
             'We adopt technical and organizational measures (password encryption, access control, monitoring) to protect data. No system is infallible; we store passwords hashed and never in clear text.',
-          ],
+          
+            'In the event of a security incident that may pose a relevant risk to data subjects, we will notify the ANPD (Brazilian DPA) and affected users within a timeframe consistent with applicable regulation (reference: 3 business days, where applicable) and, where the GDPR applies, the competent authority within 72 hours. (ref. T469-7)',],
         },
         {
           title: '8. Retention',
           body: [
             'Data is kept for as long as necessary for the purposes and legal obligations, or until deletion at the request of the data subject or account closure.',
-          ],
+          
+            'Reference periods: encrypted backups for 30 days (backup/restore policy); payment and billing records for up to 5 years (tax and accounting obligations); security and access logs for as long as needed for legal defense; other data while the account remains active or as required by specific law. (ref. T469-8)',],
         },
         {
           title: '9. Minors',
           body: [
             'The platform is not intended for minors without the consent of their guardians. We do not intentionally collect data from minors.',
-          ],
+          
+            'Registration on the platform is intended for individuals aged 18 or over (or legally emancipated minors); by creating an account, the user declares meeting this requirement. If an account held by a minor without legal capacity is identified, it will be suspended and the data deleted. (ref. T469-9)',],
         },
         {
           title: '10. Data Protection Officer (DPO) and contact',
@@ -785,7 +796,7 @@ const en: Dictionary = {
           body: [
             'The rights set out in art. 18 of the LGPD (confirmation, access, correction, anonymization, portability, deletion, information on sharing, information on the consequences of not providing data, review of automated decisions and withdrawal of consent) may be exercised through the form at /direitos-titular, which issues a tracking protocol, or through the channel endart.studios@gmail.com.',
             'Confirmation and access requests receive an immediate response; all others within 15 days, extendable under art. 18, §3, with notification to the ANPD.',
-            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added data subject rights channels and copyright notice channels; v1.2 (2026-09-19) — Stripe activated as the production payment processor.',
+            'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added data subject rights channels and copyright notice channels; v1.2 (2026-09-19) — Stripe activated as the production payment processor.; v1.3 (2026-09-22) — rights deadlines (15d LGPD / 1 month GDPR), detailed retention, incident notification, minors and providers.',
           ],
         },
       ],

@@ -5,7 +5,7 @@ const pt: Dictionary = {
     name: 'Almanaque dos Clubes',
     tagline: 'A história do futebol mundial num só lugar',
     description:
-      'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com inteligência artificial e fontes verificadas.',
+      'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas (metodologia em /metodologia). Recursos de IA: em breve.',
   },
   nav: {
     clubs: 'Clubes',
@@ -21,7 +21,7 @@ const pt: Dictionary = {
   },
   footer: {
     tagline:
-      'A história completa do futebol mundial ao seu alcance. Clubes, jogadores, competições e rankings auditáveis.',
+      'A história do futebol, em construção e com fontes verificadas. Clubes, jogadores, competições e rankings auditáveis (metodologia em /metodologia).',
     platformTitle: 'Plataforma',
     platformClubs: 'Clubes',
     platformPlayers: 'Jogadores',
@@ -37,6 +37,7 @@ const pt: Dictionary = {
     telegram: 'Telegram',
     legalTitle: 'Legal',
     privacy: 'Privacidade',
+    methodology: "Metodologia e fontes",
     cookies: 'Cookies',
     terms: 'Termos de Uso',
     security: 'Segurança',
@@ -77,7 +78,7 @@ const pt: Dictionary = {
     heroTitle: 'A História do Futebol',
     heroTitleAccent: 'num Só Lugar',
     heroSubtitle:
-      'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com inteligência artificial e fontes verificadas.',
+      'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas (metodologia em /metodologia). Recursos de IA: em breve.',
     ctaSearch: 'Começar Pesquisa',
     ctaRegister: 'Criar Conta Gratuita',
     stats: {
@@ -135,6 +136,7 @@ const pt: Dictionary = {
     registerLink: 'Faça login',
     acceptTerms: 'Li e aceito os Termos de Uso e Serviço',
     acceptPrivacy: 'Li e aceito a Política de Privacidade (LGPD)',
+    ageDeclaration: "O cadastro é destinado a maiores de 18 anos; ao criar a conta, você declara atender a esse requisito.",
     acceptRequired:
       'É necessário aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.',
     registerErrorDefault: 'Erro ao cadastrar',
@@ -371,7 +373,7 @@ const pt: Dictionary = {
     cookiePolicy: {
       title: 'Política de Cookies',
       intro:
-        'Esta Política de Cookies explica como a END ART Studios utiliza cookies e tecnologias semelhantes no Almanaque dos Clubes. O inventário será atualizado conforme os cookies, fornecedores e tecnologias efetivamente instalados. END ART Studios, CNPJ 45.370.930/0001-75.',
+        'Esta Política de Cookies explica como a END ART Studios utiliza cookies e tecnologias semelhantes no Almanaque dos Clubes. Inventário verificado em produção em 22/09/2026 (contexto limpo, antes de qualquer escolha: nenhum cookie é instalado sem ação do titular). END ART Studios, CNPJ 45.370.930/0001-75.',
       sections: [
         {
           title: 'O que são cookies',
@@ -397,7 +399,7 @@ const pt: Dictionary = {
         {
           title: 'Terceiros e transferências',
           body: [
-            'Provedores atuais: Vercel (frontend), Railway (API e banco PostgreSQL), Cloudflare (DNS/rede) e Google Fonts (fontes); pagamentos via Stripe. Fornecedores de hospedagem, autenticação, pagamento, analytics, suporte, IA e segurança podem receber identificadores conforme a finalidade, sempre minimizados e contratualmente vinculados. Quando houver transferência internacional, a LGPD e (se aplicável) o GDPR devem ser observados.',
+            'Provedores atuais: Vercel (frontend), Railway (API e banco PostgreSQL), Cloudflare (DNS/rede); pagamentos via Stripe. Fornecedores de hospedagem, autenticação, pagamento, analytics, suporte, IA e segurança podem receber identificadores conforme a finalidade, sempre minimizados e contratualmente vinculados. Quando houver transferência internacional, a LGPD e (se aplicável) o GDPR devem ser observados.',
           ],
         },
         {
@@ -540,6 +542,8 @@ const pt: Dictionary = {
     updatedLabel: 'Última atualização',
     terms: {
       title: 'Termos de Uso e Serviço',
+        version: 'v1.3',
+        updated: '22/09/2026',
       intro:
         'Estes Termos de Uso e Serviço ("Termos") regulam o acesso e o uso da Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Ao criar uma conta, contratar um plano ou utilizar a Plataforma, o usuário declara ter lido e aceito estes Termos. Última atualização: 02 de setembro de 2026 · Versão 2.0.',
       sections: [
@@ -696,13 +700,15 @@ const pt: Dictionary = {
           title: '18. Direitos autorais (DMCA) e histórico de versões',
           body: [
             'Titulares de direitos autorais podem notificar alegações de violação pelo formulário em /direitos-autorais (descrição do material, localização, fundamentação legal e contato) ou pelo canal endart.studios@gmail.com. Notificações passam por triagem e decisão motivada; conteúdo inequivocamente infrator é removido.',
-            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão do canal de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.',
+            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão do canal de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.; v1.3 (22/09/2026) — consistência documental: prazos de direitos, retenção detalhada, incidentes de segurança, menores e fornecedores (fontes auto-hospedadas).',
           ],
         },
       ],
     },
     privacy: {
       title: 'Política de Privacidade',
+        version: 'v1.3',
+        updated: '22/09/2026',
       intro:
         'Esta Política de Privacidade descreve como a END ART Studios (CNPJ 45.370.930/0001-75) coleta, utiliza, armazena e protege os dados pessoais dos usuários da plataforma Almanaque dos Clubes, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD) e demais normas aplicáveis.',
       sections: [
@@ -733,16 +739,18 @@ const pt: Dictionary = {
           title: '4. Compartilhamento',
           body: [
             'Não vendemos dados pessoais. Dados podem ser compartilhados com provedores de infraestrutura e pagamento, estritamente necessários à operação, e com autoridades quando exigido por lei.',
-            'Provedores atuais do ambiente: Vercel (hospedagem do frontend), Railway (hospedagem da API e do banco de dados PostgreSQL), Cloudflare (DNS e proteção de rede) e Google Fonts (fontes tipográficas). Pagamentos são processados pelo Stripe, que atua como controlador dos dados de pagamento perante o titular. Esta lista é atualizada sempre que um fornecedor é contratado ou substituído.',
+            'Provedores atuais do ambiente: Vercel (hospedagem do frontend), Railway (hospedagem da API e do banco de dados PostgreSQL) e Cloudflare (DNS e proteção de rede). Desde 22/09/2026 as fontes tipográficas são auto-hospedadas (sem requisição a terceiros). Pagamentos são processados pelo Stripe, que atua como controlador dos dados de pagamento perante o titular. Esta lista é atualizada sempre que um fornecedor é contratado ou substituído.',
             'O processador de pagamentos Stripe (Stripe, Inc., EUA) trata dados de pagamento e antifraude, com transferência internacional para os EUA nos termos da LGPD (art. 33 e seguintes) e cláusulas-padrão contratuais quando aplicáveis; dados completos de cartão não tocam nossos servidores (PCI DSS do Stripe).',
-          ],
+          
+            'Transferência internacional: como os provedores operam fora do Brasil, o compartilhamento envolve transferência internacional de dados, observados os Capítulos IV (LGPD) e V (GDPR, quando aplicável), com garantias contratuais. Não vendemos dados e não os utilizamos para treinamento de modelos de IA. Fornecedores de referência: Vercel (frontend e geolocalização de borda), Railway (API e banco PostgreSQL), Cloudflare (DNS/rede), Stripe (pagamentos — no ato do pagamento aplicam-se os termos do Stripe), Resend (e-mail transacional) e ipwho.is (geolocalização de IP apenas durante o checkout). Termos de processamento públicos: Stripe e Cloudflare publicam em seus sites; demais casos: mediante solicitação pelo canal de privacidade. (ref. T469-4)',],
         },
         {
           title: '5. Direitos do titular (LGPD)',
           body: [
             'O usuário pode solicitar confirmação, acesso, correção, anonimização, portabilidade, eliminação e revogação do consentimento.',
             'Para exercer seus direitos, entre em contato com o canal de privacidade indicado abaixo.',
-          ],
+          
+            'O recebimento do pedido é confirmado imediatamente. A resposta conclusiva ocorre em até 15 dias corridos no Brasil (LGPD, art. 18, §3º) ou em até 1 mês no Espaço Econômico Europeu/Reino Unido (GDPR, art. 12), prorrogáveis nos casos previstos em lei. (ref. T469-5)',],
         },
         {
           title: '6. Cookies',
@@ -754,19 +762,22 @@ const pt: Dictionary = {
           title: '7. Segurança',
           body: [
             'Adotamos medidas técnicas e organizacionais (criptografia de senha, controle de acesso, monitoramento) para proteger os dados. Nenhum sistema é infalível; guardamos a senha de forma hash e não em texto claro.',
-          ],
+          
+            'Em caso de incidente de segurança que possa causar risco relevante a titulares, comunicaremos à ANPD e aos afetados em prazo compatível com a regulamentação (referência: 3 dias úteis, quando aplicável) e, quando aplicável o GDPR, em até 72 horas à autoridade competente. (ref. T469-7)',],
         },
         {
           title: '8. Retenção',
           body: [
             'Os dados são mantidos pelo tempo necessário às finalidades e obrigações legais, ou até a exclusão a pedido do titular ou encerramento da conta.',
-          ],
+          
+            'Períodos de referência: backups criptografados por 30 dias (política de backup/restauração); registros de pagamento e faturamento por até 5 anos (obrigação fiscal e contábil); logs de segurança e acesso pelo prazo necessário à defesa em procedimentos; demais dados, enquanto a conta estiver ativa ou por prazo legal específico. (ref. T469-8)',],
         },
         {
           title: '9. Menores',
           body: [
             'A plataforma não se destina a menores de idade sem consentimento dos responsáveis. Não coletamos intencionalmente dados de menores.',
-          ],
+          
+            'O cadastro na plataforma é destinado a maiores de 18 anos (ou menor emancipado); ao criar uma conta, o usuário declara atender a esse requisito. Identificado cadastro de menor sem capacidade civil, ele será suspenso e os dados eliminados. (ref. T469-9)',],
         },
         {
           title: '10. Encarregado (DPO) e contato',
@@ -787,7 +798,7 @@ const pt: Dictionary = {
           body: [
             'Os direitos do art. 18 da LGPD (confirmação, acesso, correção, anonimização, portabilidade, eliminação, informação sobre compartilhamento, informação sobre consequências de não fornecer dados, revisão de decisões automatizadas e revogação do consentimento) podem ser exercidos pelo formulário em /direitos-titular, com emissão de protocolo para acompanhamento, ou pelo canal endart.studios@gmail.com.',
             'Pedidos de confirmação e acesso têm resposta imediata; os demais, em até 15 dias, prorrogáveis nos termos do art. 18, §3, com comunicação à ANPD.',
-            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão dos canais de exercício de direitos do titular e de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.',
+            'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão dos canais de exercício de direitos do titular e de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.; v1.3 (22/09/2026) — prazos de direitos (15d LGPD / 1 mês GDPR), retenção detalhada, comunicação de incidentes, menores e fornecedores.',
           ],
         },
       ],
