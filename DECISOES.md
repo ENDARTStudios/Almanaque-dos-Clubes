@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-gap-e2e-ci-nao-rodado — O CI de PR não roda Playwright E2E (achado do G1; dívida rastreada T476c)
+
+Motivo (CONF do G1): o `security-gate` roda **unit+integração** (vitest via `pnpm --recursive test`, incluindo `apps/web` — 16 testes), **lint recursivo** (T476) e **typecheck**; **NÃO roda Playwright E2E** (`tests/e2e/**`). A bifurcação prevista no G1, aplicada: unit **roda** (a hipótese "CI não roda web" era falsa para unit); o `rights.spec.ts` obsoleto "passou" porque é Playwright → **o gap real é E2E, não unit**. Consequência: os E2E validados por round (champions-stability, oferta-honesta, galeria, acessibilidade do mapa T467, direitos titular T470, T472a en/es) **não são cobertos pelo "CI verde"**. **Dívida rastreada:** **T476c** (opcional-futuro, pré-M5) — job Playwright contra preview/staging (stack completo) OU ressalva permanente. **Não bloqueia M4.** Ressalva **PERMANENTE no HANDOFF** até T476c.
+
+### [2026-09-22] Decisão: D-2026-09-22-t472a-checkout-flag-estado — "Pagamentos em breve" é porta fechada com fechadura provada (não regride o M3 técnico)
+
+Motivo (CONF-1): o `CheckoutButton`/checkout fica **desativado para o PÚBLICO** (`PAYMENTS_ENABLED` off) até o Operador abrir o beta pago (gate técnico fechado + decisão dele). **Mas o código de pagamento está PROVADO em produção** (#146/#156/#168/#170/#171 — incl. smoke com cartão real). "Em breve" ≠ "quebrado" ≠ "nunca funcionou": é **porta fechada com fechadura provada**. **NÃO regride o M3 técnico já declarado** (o marco fica; a **escala** é gate do Operador). Registrado para não confundir "feature flag off" com "não implementado".
+
 ### [2026-09-22] Decisão: D-2026-09-22-t472b-condicionado-advogado — Tradução das páginas legais é CONDICIONADA (disclaimer de prevalência ou advogado)
 
 Motivo (correção de escopo do Thinker): o Operador cortou o advogado; traduzir texto **jurídico** (termos/privacidade/cookies/segurança/direitos) para en/es sem revisão cria uma "versão que o usuário aceitou" imprecisa (risco CDC art. 6/30 e transparência LGPD), **pior** que PT-only honesto. **Salvaguarda:** só traduzir com **disclaimer visível em cada idioma** — "Versão informativa em [idioma]. A versão vigente e prevalecente é a em português (Brasil)." Sem o disclaimer, as páginas ficam **PT-only** e declaram "documentos legais vigentes em português (BR)". Se o Operador trouxer advogado, T472b vira autônomo (o disclaimer pode ser revisado/removido). **NÃO executado neste round.**

@@ -22,8 +22,14 @@ test.describe('i18n da UI de assinatura (T472a)', () => {
 
   test('/checkout em EN (condicional a PAYMENTS_ENABLED=true)', async ({ page }) => {
     const res = await page.goto('/checkout');
-    test.skip(res?.status() === 404, 'PAYMENTS_ENABLED off — /checkout 404 (esperado)');
-    await page.getByRole('button', { name: 'English' }).click().catch(() => {});
+    // SKIP EXPLÍCITO E NOMEADO (não false-pass silencioso): sem a flag o /checkout
+    // não renderiza (404 por design). Rodar o E2E completo exige preview com a flag.
+    test.skip(
+      res?.status() === 404,
+      'PAYMENTS_ENABLED off em produção — /checkout 404 por design; validar em preview com a flag on',
+    );
+    // EN via seletor de idioma (o resumo lê o dict; a moeda vem do servidor).
+    await page.getByRole('button', { name: 'English' }).click();
     // Sem PT vazado nos textos NOSSOS do resumo (preço/forma ficam no Stripe).
     await expect(page.locator('body')).not.toContainText('Antes de assinar');
     await expect(page.getByText(/Before subscribing/)).toBeVisible();
