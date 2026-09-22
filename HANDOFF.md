@@ -198,6 +198,8 @@ pnpm dev
 
 **⚠️ Ressalva R1 — lint recursivo (T476, 2026-09-22):** até o T476, `pnpm lint` no CI varria só **1 nível** de `apps/api` (**27/186** arquivos); `src/modules/**`, `tests/**` e `src/scripts/**` **não eram lintados** (falso verde). Corrigido (aspas no glob → eslint expande recursivo). A partir daqui, **"CI verde" cobre lint recursivamente** de `apps/api`/`apps/worker`/`packages`. O `format:check` (prettier standalone) **ainda NÃO roda no CI** (954 arquivos, majoritariamente `apps/web`, ignorado pelo eslint) — dívida rastreada.
 
+**⚠️ Ressalva E2E-CI (2026-09-22, achado do G1):** o **"CI verde" NÃO cobre E2E Playwright**. O `security-gate` roda unit+integração (vitest, **inclui `apps/web`**), lint recursivo e typecheck — mas **`tests/e2e/**` não roda no CI de PR**. Logo os E2E de cada round (champions-stability, oferta-honesta, galeria, acessibilidade do mapa T467, direitos titular T470, T472a en/es) são **validação LOCAL/manual por round** — não contam como "CI verde". Dívida **T476c** (opcional-futuro, pré-M5): job Playwright contra preview/staging OU manter esta ressalva permanentemente.
+
 ---
 
 ## 6. Deploy
@@ -331,7 +333,7 @@ railway variable set CHAVE="valor"
 
 ## 12. Roadmap (Próximos Passos)
 
-> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + **T467 (mapa-múndi choropleth, M1·WS-C) [x]** → **T472** (i18n legal + checkout, liga T468) → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472 + identidade Operador. M1·WS-C **fechado** (mapa read-only sobre geo real; gaps de coord/estado/cidade declarados).
+> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + T467/M1·WS-C **[x]** (smoke pós-deploy verde) + **T472a (i18n checkout/UI assinatura) [x]** → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). **T472b (i18n das páginas legais) = [condicionado: disclaimer de prevalência do PT OU advogado] — NÃO é gate.** Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472a + identidade Operador → **gate técnico COMPLETO após T472a**; abertura de fato é decisão do Operador. G1: "verde do web (vitest)" é confiável; "E2E web" (Playwright) **não** roda no CI de PR.
 
 ### Imediato (travar produção)
 1. ~~Registrar domínio~~ ✅

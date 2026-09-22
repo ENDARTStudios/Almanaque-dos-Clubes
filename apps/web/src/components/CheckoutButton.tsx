@@ -5,10 +5,21 @@ import { api } from '@/lib/api';
 
 // A moeda NÃO é determinada aqui. A API deriva a moeda da localização real do
 // usuário (país do IP) e NUNCA aceita a moeda vinda do cliente ou do idioma.
-const LABELS: Record<string, { subscribe: string; monthly: string; yearly: string; pro: string; elite: string; error: string }> = {
-  'pt-br': { subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite', error: 'Não foi possível iniciar o pagamento.' },
-  'en-us': { subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite', error: 'Could not start checkout.' },
-  'es-es': { subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite', error: 'No se pudo iniciar el pago.' },
+const LABELS: Record<
+  string,
+  {
+    subscribe: string;
+    monthly: string;
+    yearly: string;
+    pro: string;
+    elite: string;
+    error: string;
+    soon: string;
+  }
+> = {
+  'pt-br': { subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite', error: 'Não foi possível iniciar o pagamento.', soon: 'Pagamentos em breve.' },
+  'en-us': { subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite', error: 'Could not start checkout.', soon: 'Payments coming soon.' },
+  'es-es': { subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite', error: 'No se pudo iniciar el pago.', soon: 'Pagos muy pronto.' },
 };
 
 export default function CheckoutButton({
@@ -62,7 +73,7 @@ export default function CheckoutButton({
         <button onClick={() => start('ELITE')} disabled={!!loading || !paymentsEnabled} className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
           {loading === 'ELITE' ? '...' : l.subscribe + ' ' + l.elite}
         </button>
-        {!paymentsEnabled && <p className="w-full text-sm text-foreground/50">Pagamentos em breve.</p>}
+        {!paymentsEnabled && <p className="w-full text-sm text-foreground/50">{l.soon}</p>}
       </div>
       <p className="mt-4 text-xs text-foreground/50">Stripe · {l.monthly} / {l.yearly}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

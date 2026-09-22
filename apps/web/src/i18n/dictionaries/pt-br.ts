@@ -874,6 +874,21 @@ const pt: Dictionary = {
     mapAlt: 'Mapa por país. Use a lista de regiões para navegar por teclado.',
     states: 'Estados',
   },
+  checkout: {
+    title: 'Checkout',
+    intro:
+      'Escolha o plano e a periodicidade. Preço total, moeda e forma de pagamento são exibidos antes da confirmação. Assinatura com renovação automática até cancelamento; arrependimento em até 7 dias (CDC art. 49).',
+    beforeTitle: 'Antes de assinar, você tem:',
+    compare: 'Comparativo completo dos planos',
+    compareSuffix: 'com recursos e limites',
+    terms: 'Termos de Uso',
+    privacy: 'Política de Privacidade',
+    termsMid: 'vigentes (versão registrada) e',
+    cancelInfo: 'Cancelamento da renovação em 1 clique no painel da assinatura',
+    withdrawInfo: 'Arrependimento em 7 dias:',
+    includedTitle: 'Recursos incluídos (por plano)',
+    paymentsSoon: 'Pagamentos em breve.',
+  },
 };
 
 export default pt;

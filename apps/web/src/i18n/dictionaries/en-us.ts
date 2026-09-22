@@ -870,6 +870,21 @@ const en: Dictionary = {
     mapAlt: 'Map by country. Use the region list to navigate by keyboard.',
     states: 'States',
   },
+  checkout: {
+    title: 'Checkout',
+    intro:
+      'Choose the plan and the billing period. Total price, currency and payment method are shown before confirmation. Subscription auto-renews until cancelled; withdrawal within 7 days (CDC art. 49).',
+    beforeTitle: 'Before subscribing, you have:',
+    compare: 'Full plan comparison',
+    compareSuffix: 'with features and limits',
+    terms: 'Terms of Use',
+    privacy: 'Privacy Policy',
+    termsMid: 'in force (registered version) and',
+    cancelInfo: 'One-click renewal cancellation in the subscription panel',
+    withdrawInfo: 'Withdrawal within 7 days:',
+    includedTitle: 'Included features (per plan)',
+    paymentsSoon: 'Payments coming soon.',
+  },
 };
 
 export default en;
