@@ -312,6 +312,20 @@ export interface Dictionary {
     mapAlt: string;
     states: string;
   };
+  checkout: {
+    title: string;
+    intro: string;
+    beforeTitle: string;
+    compare: string;
+    compareSuffix: string;
+    terms: string;
+    privacy: string;
+    termsMid: string;
+    cancelInfo: string;
+    withdrawInfo: string;
+    includedTitle: string;
+    paymentsSoon: string;
+  };
 }
 
 export type { Locale };

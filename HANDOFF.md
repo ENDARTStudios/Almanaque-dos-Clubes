@@ -331,7 +331,7 @@ railway variable set CHAVE="valor"
 
 ## 12. Roadmap (Próximos Passos)
 
-> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + **T467 (mapa-múndi choropleth, M1·WS-C) [x]** → **T472** (i18n legal + checkout, liga T468) → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472 + identidade Operador. M1·WS-C **fechado** (mapa read-only sobre geo real; gaps de coord/estado/cidade declarados).
+> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + T467/M1·WS-C **[x]** (smoke pós-deploy verde) + **T472a (i18n checkout/UI assinatura) [x]** → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). **T472b (i18n das páginas legais) = [condicionado: disclaimer de prevalência do PT OU advogado] — NÃO é gate.** Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472a + identidade Operador → **gate técnico COMPLETO após T472a**; abertura de fato é decisão do Operador. G1: "verde do web (vitest)" é confiável; "E2E web" (Playwright) **não** roda no CI de PR.
 
 ### Imediato (travar produção)
 1. ~~Registrar domínio~~ ✅

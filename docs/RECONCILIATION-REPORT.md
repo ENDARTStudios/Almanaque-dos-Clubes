@@ -732,3 +732,9 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Evidência:** integração (geo-stats COUNT real + filtro `stateId`); unit (asset + licença); web 16 testes. `tsc` 0 · `lint` recursivo 0 erros.
 
 **Gaps declarados:** coord direta ~3,7% (pino opcional), estado 4,9%, cidade 11,6%, sem fronteira estado/cidade. **Não é "mapa completo".**
+
+### GATE 2 adendum 13 — T472a: i18n da UI de assinatura/checkout + G1 (CI-do-web medido) (2026-09-22)
+
+**G1 (medido, não assumido):** `pnpm test:unit` (= `pnpm --recursive test`, o que o `security-gate` roda) **inclui `apps/web` (vitest, 4 arq./16 testes)** → a hipótese "CI não roda testes do web" é **FALSA** para unit; o `rights.spec.ts` obsoleto "passou" porque é **Playwright** (`tests/e2e/**`, fora do vitest, **sem passo no `ci.yml`**) → gap real = Playwright E2E não roda no CI de PR (fora do escopo do T476b). Sem T476b.
+
+**T472a:** i18n pt/en/es de `CheckoutSummary`/`CheckoutButton`/modal T464 + catálogo **`plan-features.ts` multi-locale** (fonte única). E2E en/es de `/planos` (+`/checkout` condicional à flag). **T472b (jurídico) CONDICIONADO** — não traduzir sem disclaimer de prevalência/advogado.
