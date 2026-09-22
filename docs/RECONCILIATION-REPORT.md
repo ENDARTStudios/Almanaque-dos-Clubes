@@ -546,3 +546,33 @@ universo miscategorizado por keyword).
 
 **Dívida declarada:** supertaça-continentais com vigência mais recente que UCL/Libertadores venceriam
 o card em GRUPO-COPA — não observado hoje; solução = campo tier/flagship no T449 (D-…-divida-tier-flagship).
+
+### GATE 2 adendum 4 — T465: integridade de oferta (2026-09-22, na sequência de #170)
+
+**FASE 0 (R3 — lido do FONTE, não de prints):** a oferta tinha TRÊS superfícies divergentes:
+`plan-features.ts` (T444, **sem nenhum consumidor** — código morto), `/checkout` com listas
+hardcoded que já tinham divergido (Pro sem "Suporte prioritário por e-mail"; Elite sem "Exportações
+estendidas"), e `/planos` com texto soft que delega a tabela ao checkout. **Tabela-veredicto:**
+
+| Recurso (fonte)                         | /planos                  | /checkout     | Estado real                                                                                | Veredicto                                                                                               |
+| --------------------------------------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Busca avançada ilimitada (PRO)          | soft                     | hardcoded     | busca textual tsvector existe; "ilimitada" sem alcance (viola política do próprio /planos) | ENTREGA renomeada: "Busca textual avançada"                                                             |
+| IA assistida com citações (PRO)         | soft condicional         | hardcoded     | 8.9 [ ] — não operacional                                                                  | **EM BREVE** ("(em breve)")                                                                             |
+| Exportações CSV (PRO)                   | —                        | hardcoded     | GET /export?format=csv existe                                                              | ENTREGA                                                                                                 |
+| Suporte prioritário por e-mail (PRO)    | —                        | hardcoded     | canal e-mail existe, sem SLA                                                               | ENTREGA renomeada: "Suporte por e-mail dedicado"                                                        |
+| Tudo do Pro (ELITE)                     | —                        | hardcoded     | estrutural                                                                                 | ENTREGA                                                                                                 |
+| API com limites estendidos (ELITE)      | —                        | hardcoded     | **nenhuma emissão de key no backend**                                                      | **EM BREVE** ("API de dados (em breve)")                                                                |
+| Exportações estendidas (ELITE)          | —                        | hardcoded     | /export format=json existe                                                                 | ENTREGA precisa: "Exportações em CSV e JSON"                                                            |
+| Suporte prioritário (ELITE)             | —                        | hardcoded     | idem PRO                                                                                   | coberto por "Tudo do Pro" (duplicata removida)                                                          |
+| Knowledge Graph (ELITE)                 | não declarado            | não declarado | **5.157 arestas, vitrine corrigida, fonte por aresta**                                     | **ENTREGA — entra na ELITE** (promessa do Escopo 6.6 tornada verdade pelo T448; autorizada no despacho) |
+| Rankings (recurso de plano)             | menção soft no marketing | não listado   | página existe; 2 rankings seed (CONMEBOL/CBF 2023); 0-100 por jogo aguarda T449            | N/A na oferta (não listado) — flag                                                                      |
+| Escrita PRO (clubes/jogadores)          | não declarado            | não declarado | CRUD admin/RBAC                                                                            | N/A (não ofertado)                                                                                      |
+| Home hero "com inteligência artificial" | marketing                | —             | IA não operacional                                                                         | **FLAG** (fora da superfície T465 — /planos+/checkout; seguir para decisão de marketing)                |
+
+**FASE 1:** `plan-features.ts` virou FONTE ÚNICA consumida pelo /checkout (hardcode removido — a
+divergência não pode voltar por construção). **FASE 2:** IA e API marcados "(em breve)"; "ilimitada"
+removida; "estendidas" preciseada para "CSV e JSON"; suporte descrito como canal dedicado; KG entrou
+como entregue. Preço/periodicidade INTACTOS; nenhuma promessa adicionada além do KG autorizado.
+**i18n:** os dicionários pt/en/es NÃO carregam listas de recursos (o checkout é PT-only hoje, e as
+seções soft dos 3 locales são consistentes entre si — condicionais ao checkout) — paridade mantida
+por construção; checkout PT-only para falantes não-PT = flag para o gate legal do Operador.
