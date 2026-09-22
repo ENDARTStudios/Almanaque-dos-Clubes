@@ -722,3 +722,13 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Gap:** `DELETE /legal/rights/me/account` revogava o refresh mas o **access JWT (15 min)** seguia aceito. **FASE 0 (R3):** `authenticate.middleware.ts:58` = `jwt.verify` puro, **sem DB** ⇒ Opção A inviável ⇒ **Opção B** (blocklist Redis, TTL 15 min). Escrita **fail-loud** (antes da anonimização; Redis fora ⇒ 502, nada muda); leitura fail-open com log.
 
 **Evidência:** unit (block/reconhece; falha de escrita lança; leitura fail-open) + integração E2E (**register→login→/auth/me 200→DELETE→mesmo access→401 imediato**). Sem migration; reversível (TTL auto-expira). Fecha a ressalva **R3-PROD-GATE** do T470.
+
+### GATE 2 adendum 12 — T467: mapa-múndi choropleth (M1·WS-C) (2026-09-22)
+
+**FASE 0 (veredicto contra o artefato):** (0.1) Continente **não é model** — é `Country.continent` (168 países, 3 sem → bucket `ZZ`); **sem migration**. (0.2) `/clubs` filtrava country/city — **sem state/continent/agregação** ⇒ criados `GET /clubs/geo-stats` + filtros `continent/countryId/stateId/cityId` (OFFSET). (0.3) Licença: **Natural Earth domínio público** (continente/país) usado; **ODbL rejeitado** → estado/cidade **vazio-honesto** (lista). (0.4) Stack: **Leaflet 1.9.4** (sem lib nova). **Choropleth**, não pinos (coord ~3,7%).
+
+**Entregas:** `GET /clubs/geo-stats` (COUNT real derivado, `source='derived'`, cache read-through) · asset `public/geo/ne_110m_admin_0_countries.geojson` + `LICENSE.md` · `WorldChoropleth` + `MapExplorer` (breadcrumb acessível, `aria-live`, região clicável por teclado, lista de clubes paginada, busca textual) · `/map` reescrito.
+
+**Evidência:** integração (geo-stats COUNT real + filtro `stateId`); unit (asset + licença); web 16 testes. `tsc` 0 · `lint` recursivo 0 erros.
+
+**Gaps declarados:** coord direta ~3,7% (pino opcional), estado 4,9%, cidade 11,6%, sem fronteira estado/cidade. **Não é "mapa completo".**

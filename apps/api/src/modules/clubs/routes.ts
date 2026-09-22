@@ -40,11 +40,23 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       status: query.status,
       search: query.search,
       hasCoordinates: query.hasCoordinates === 'true',
+      continent: query.continent,
+      countryId: query.countryId,
+      stateId: query.stateId,
+      cityId: query.cityId,
       limit,
       offset,
     });
 
     return reply.send(result);
+  });
+
+  /**
+   * GET /clubs/geo-stats — T467, agregação por região (COUNT real derivado do
+   * banco) para o choropleth. Declarada ANTES de /clubs/:id (rota estática).
+   */
+  app.get('/clubs/geo-stats', async (_request, reply) => {
+    return reply.send({ data: await clubsService.geoStats() });
   });
 
   /**

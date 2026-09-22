@@ -331,7 +331,7 @@ railway variable set CHAVE="valor"
 
 ## 12. Roadmap (Próximos Passos)
 
-> **Fila WS (atualizada 2026-09-22):** T470 (direitos do titular + notificação autoral) **[x]** → **T464** (confirmação destrutiva de reembolso/cancelamento — WS-P, **pré-beta pago**) → T467 (mapa-múndi sobre geo semeado) → T472 (i18n legal + checkout, liga T468). T448b-2/T449 depois. Beta pago = T465 + T469/T469b + T470 + T472 + identidade Operador.
+> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + **T467 (mapa-múndi choropleth, M1·WS-C) [x]** → **T472** (i18n legal + checkout, liga T468) → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472 + identidade Operador. M1·WS-C **fechado** (mapa read-only sobre geo real; gaps de coord/estado/cidade declarados).
 
 ### Imediato (travar produção)
 1. ~~Registrar domínio~~ ✅

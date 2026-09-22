@@ -1,62 +1,51 @@
 import type { Metadata } from 'next';
-import MapSection from '@/components/MapSection';
+import MapExplorer, { type GeoStats } from '@/components/MapExplorer';
 import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
   title: 'Mapa-múndi',
-  description: 'Clubes de futebol no mapa-múndi — Almanaque dos Clubes.',
+  description:
+    'Clubes de futebol por continente, país e estado — navegação read-only sobre a hierarquia geográfica auditável.',
 };
 
-interface MapPoint {
-  id: string;
-  name: string;
-  country?: string | null;
-  latitude: number;
-  longitude: number;
-}
-
-interface MapData {
-  points: MapPoint[];
-  /** Total auditável da API (nem todo clube entra no mapa — limit de marcadores). */
-  withCoords: number;
-  totalClubs: number;
-}
-
-// T428/1.3 — count em runtime, nunca valor assado no build:
-// `data` vem truncado pelo cap de `limit` da API (max 100), então o número
-// público precisa vir do campo `total` — a métrica auditável da mesma resposta.
-async function getMapData(): Promise<MapData> {
-  const fallback: MapData = { points: [], withCoords: 0, totalClubs: 0 };
+// T467 — choropleth por região (COUNT real derivado do banco via T466). O número
+// público vem da agregação server-side (`/clubs/geo-stats`), não de valor assado.
+async function getStats(): Promise<GeoStats | null> {
   try {
-    const [coordsRes, allRes] = await Promise.all([
-      fetch(`${getApiBase()}/clubs?hasCoordinates=true&limit=100`, { cache: 'no-store' }),
-      fetch(`${getApiBase()}/clubs?limit=1`, { cache: 'no-store' }),
-    ]);
-    if (!coordsRes.ok || !allRes.ok) return fallback;
-    const coordsJson = await coordsRes.json();
-    const allJson = await allRes.json();
-    return {
-      points: (coordsJson.data ?? []) as MapPoint[],
-      withCoords: (coordsJson.total ?? 0) as number,
-      totalClubs: (allJson.total ?? 0) as number,
-    };
+    const res = await fetch(`${getApiBase()}/clubs/geo-stats`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return ((await res.json()) as { data: GeoStats }).data;
   } catch {
-    return fallback;
+    return null;
   }
 }
 
 export default async function MapPage() {
-  const { points, withCoords, totalClubs } = await getMapData();
+  const stats = await getStats();
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground text-center">
         Mapa-múndi
       </h1>
-      <p className="text-center text-foreground/60 max-w-xl mx-auto mt-2 mb-6">
-        {withCoords} de {totalClubs} clubes com coordenadas conhecidas. Clique em um ponto para ver
-        o clube.
-      </p>
-      <MapSection clubs={points} />
+      {stats ? (
+        <p className="text-center text-foreground/60 max-w-2xl mx-auto mt-2 mb-6">
+          {stats.totals.clubsWithCountry} clubes em {stats.totals.countries} países e{' '}
+          {stats.totals.states} estados. Mapa por região (read-only); clique para descer de nível e
+          ver os clubes abaixo. Onde não há fronteira/coordenada, a navegação é pela lista —
+          vazio-honesto.
+        </p>
+      ) : (
+        <p className="text-center text-foreground/60 mt-2 mb-6">
+          Agregação indisponível no momento.
+        </p>
+      )}
+      {stats ? (
+        <MapExplorer stats={stats} />
+      ) : (
+        <div className="rounded-2xl border border-border p-6 text-sm text-foreground/60">
+          Não foi possível carregar o mapa agora. Tente novamente.
+        </div>
+      )}
     </div>
   );
 }
