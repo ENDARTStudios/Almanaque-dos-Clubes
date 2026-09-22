@@ -280,6 +280,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | Testes avançados                    | 🟡 Parcial      | 40%                                |
 | Observabilidade                     | 🟡 Parcial      | 30%                                |
 
+**Nota T448e (09-22):** vitrine nacional corrigida POR TIPO — LEAGUE representa o país, supercopa não (campo objetivo já existente; backfill das 18 ligas com aresta executado); dívida de tier (1ª-vs-2ª divisão) explicitamente ligada ao T449. Conquistas mantidas em 5.157.
+
 **Nota T448d (09-22):** vitrine nacional corrigida com critério determinístico (vigência→edições→campeões→nome→id) e guarda de vigência (edições futuras não representam); cache fail-loud (3ª instância do anti-padrão catch-silencioso nomeada). Conquistas mantidas em 5.157.
 
 **Conclusão honesta (corrigida pós-T448, regra R3):** a leitura antiga "dados 1% / Knowledge Graph 5%" estava velha — o Estado Final agora distingue DUAS CAMADAS de dado: **identidade de entidade = ALTA** (T429, proveniência 100%) e **histórico/conquista = PARCIAL** (T448 fecha o circuito técnico com dado real citável no piloto local; a escala de produção é um comando do Operador e o gap de mães ausentes é medido e declarado, não escondido). A base técnica continua sólida; faltam conteúdo em escala (T448b/T449/T451), experiência e legalidade.

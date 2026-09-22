@@ -498,3 +498,20 @@ refund-skip (#146) + cache-stale (este). Testes com Redis mockado lançando em `
 Evidência: unit 14/14 tie-break (incl. guarda com `currentYear` injetável — sem relógio no teste) +
 4/4 cache fail-loud + 24/24 won-edges; query R3 de futuros = 0 linhas; live verify pós-deploy com
 `generatedAt` fresco e DEL exato das chaves champions (men/women/all).
+
+### GATE 2 adendum 2 — T448e: representante nacional = LEAGUE, não supercopa (2026-09-21, #164-#168 na sequência)
+
+**FASE 0 (R3):** types em produção: LEAGUE 893 · CUP 301 · nulo 368; competições COM arestas WON:
+LEAGUE 218 · CUP 183 · **nulo 18** — as 18 eram ligas reais (Allsvenskan 75 ed, Eliteserien 50,
+Scottish Premiership, 2. Bundesliga, Elitettan, VFF CL…) → backfill idempotente
+`type='LEAGUE'` executado ANTES da regra (0 nulas restantes com aresta; proveniência preservada).
+Spot-check: Eredivisie=LEAGUE, Johan Cruijff Shield=CUP.
+
+**Cards antes/depois (Holanda):** antes = AZ Alkmaar | Johan Cruijff Shield | 2026 (CUP);
+depois (alvo) = campeão da Eredivisie (LEAGUE) — critério: **tipo (LEAGUE→CUP→NULL) → vigência →
+edições → campeões → nome → id**. Nenhum país perde representante: hierarquia só com CUP segue
+representada pela CUP.
+
+**Regra de processo (3ª ocorrência):** commit nasce NA branch do PR; se caiu na main local,
+`reset --hard origin/main` antes de tudo; stash alheio preserva-se. DECISOES
+`D-2026-09-22-regra-processo-branch`.
