@@ -107,6 +107,24 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Liga à hierarquia geográfica (T466): resolve/cria o Country GB (senão os
+  // clubes novos não entram no geo-stats/mapa, que agrupam por countryId FK).
+  let gb = await prisma.country.findUnique({ where: { iso2: 'GB' }, select: { id: true } });
+  if (!gb) {
+    gb = await prisma.country.create({
+      data: {
+        iso2: 'GB',
+        name: 'United Kingdom',
+        continent: 'EU',
+        qid: 'Q145',
+        importedFrom: WIKIDATA_EN_DATASOURCE,
+        importedAt: new Date(),
+        sourceUrl: 'https://www.wikidata.org/wiki/Q145',
+      },
+      select: { id: true },
+    });
+  }
+
   const now = new Date();
   let created = 0;
   let updated = 0;
@@ -120,6 +138,7 @@ async function main(): Promise<void> {
         data: {
           name: label,
           country: 'GB',
+          countryId: gb.id,
           foundedYear: src?.foundedYear ?? undefined,
           deletedAt: null,
         },
@@ -130,6 +149,7 @@ async function main(): Promise<void> {
         data: {
           name: label,
           country: 'GB',
+          countryId: gb.id,
           fullName: label,
           foundedYear: src?.foundedYear ?? null,
           qid,
