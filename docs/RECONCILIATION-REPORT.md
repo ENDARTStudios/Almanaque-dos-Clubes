@@ -708,3 +708,11 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Evidência:** 11 testes (unit + integração Postgres real): RLS como `app_user` (titular lê o próprio; **não lê de terceiro**; UPDATE direto negado; SERVICE atualiza); protocolo `dsr_*`; prazo 15d; export **sem** `passwordHash`/`tokenHash`; exclusão anonimiza e-mail, `deletedAt`, sessões revogadas, DSR `completed`; senha inválida → 401. `pnpm typecheck` 0 · `pnpm lint` recursivo **0 erros** (98 warnings).
 
 **Limitações (declaradas):** tradução legal = T472 · SMTP = Operador · rotas T445 legadas mantidas (deprecadas, não surfacadas) · consentimento fora do export (sem vínculo userId↔visitorId).
+
+### GATE 2 adendum 10 — T464: confirmação destrutiva + consistência billing↔refund (2026-09-22)
+
+**Causa-raiz F2 (R3):** o servidor **certa** — `withdrawSubscription` marca `billing.status='REFUNDED'` na mesma transação. O defeito era **UI**: o histórico era buscado só no mount e não re-sincronizava após o refund (linha PAID obsoleta).
+
+**Correção:** modal acessível (`role=dialog`, `aria-modal`, foco preso, Esc, foco inicial em Voltar, `aria-haspopup`) com **distinção visível** reembolso×cancelamento; re-fetch do histórico após a ação; fail-loud preservado (client já re-lê CSRF em 403). Sem migration; backend intocado.
+
+**Limitação:** E2E prod do modal exige assinatura paga de teste (declarado).
