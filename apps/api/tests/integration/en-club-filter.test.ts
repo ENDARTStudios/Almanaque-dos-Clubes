@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../../src/app.js';
 import { prisma } from '../../src/config/prisma.js';
+import { cache } from '../../src/services/cache.js';
 
 let app: FastifyInstance;
 const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
@@ -78,6 +79,8 @@ describe('T449EN C2 — soft-deleted fora das views públicas', () => {
 
   it('geo-stats não conta o soft-deleted', async () => {
     if (!dbOk) return;
+    // geo-stats é cacheado (TTL curto); invalida a chave exata p/ verificar o dado vivo.
+    await cache.invalidate('clubs:geo-stats');
     const res = await app.inject({ method: 'GET', url: '/api/v1/clubs/geo-stats' });
     const body = JSON.parse(res.body) as {
       data: { continents: Array<{ countries: Array<{ iso2: string; clubs: number }> }> };
