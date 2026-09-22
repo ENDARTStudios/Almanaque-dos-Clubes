@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-23] Decisão: D-2026-09-23-t449a-tier-emerge-por-competicao — Ranking 0-100 POR competição/temporada (sem agregado cross-division)
+
+Motivo: o T449a **não cria ranking único** misturando Premier League/Championship/League One/League Two/National League. A normalização MinMax é **por competição/temporada** → as divisões ficam em rankings separados e o **tier emerge** do escopo (não de campo novo). A dívida de "tier agregado 1ª-vs-2ª num ranking nacional" fica **T449c/T449b** (com campo de tier/divisão). **Limitação declarada:** sem ranking cross-division.
+
+### [2026-09-23] Decisão: D-2026-09-23-t449a-parser-tables-ranking-piloto-en — T449a = tabelas RSSSF → ranking 0-100 (sem `matches`) + fórmula documentada
+
+Motivo (FASE 0, medido): o parser #185 lê `rsssf.org/tablese/eng2023.html` e emite **TABELAS FINAIS** (classificação: P/W/D/L/GF-GA/pontos) por divisão — **NÃO partidas individuais**. Popular `matches` exigiria **outro parser** (resultados por rodada com **nomes abreviados** "Crystal P") — sub-projeto. Arbitrado: **T449a = tabelas→ranking 0-100**, sem escrever `matches` (consistente com a arbitragem anterior). Pilot: England 2022/23, 5 divisões. **Fórmula documentada:** `raw = W×3×peso + D×1×peso + GF×0.2×peso` (+ `títulos×50×peso`, **títulos=0** no piloto — sem KG auditável na competição/temporada; limitação declarada) → **MinMax por competição/temporada** → 0-100; desempate determinístico (gols contra, saldo, GF, nome, clubId). **Peso** = hierarquia real (nacional=3.0 no piloto). **Escrita:** `competitions` (por **QID existente**: PL Q9448/Championship Q19510/League One Q19565/League Two Q48837/National League Q18504 — sem duplicar por nome), `rankings` (competição+temporada), `ranking_entries` (`position`, `points`=score, `baseMatches`=P, `dataSourceIds=['rsssf']`, `gender='men'`). **Sem migration.** Proveniência/atribuição RSSSF em cada escrita. **Gap de schema declarado:** `Ranking` não tem `methodVersion`/`limitations` (documentados em `/metodologia`/docs; migration futura). **Cobertura:** 116/116 (gate T449EN). Reversível por proveniência.
+
 ### [2026-09-23] Decisão: D-2026-09-23-t449en-universo-minimo — Base EN para o piloto T449a: universo mínimo, threshold 100%, soft-delete por `deletedAt`
 
 Motivo (FASE 0 medida): o piloto T449a exige os clubes da Inglaterra. Produção tinha **303 clubes GB** mas só **93/116** das tabelas RSSSF casavam; **23 faltantes** (5 grandes: Arsenal, Chelsea, Liverpool, Manchester City, Leeds) + **1 ruído** (`1964–65 Leeds United A.F.C. season`, Q10556336, ingerido como clube). `Club` **não tinha `deletedAt`**.
@@ -27,6 +35,12 @@ Motivo (FASE 0 medida): o piloto T449a exige os clubes da Inglaterra. Produção
 ### [2026-09-23] Decisão: D-2026-09-23-t449a-bloqueado-ate-en — T449a permanece bloqueado; #185 não mergeia
 
 Motivo: o parser RSSSF do T449a (#185, PR aberto) funciona, mas o ranking sairia **parcial** sem a base EN completa. Decisão: **#185 fica aberto/não mergeado** até o T449EN elevar a cobertura ao **threshold 100%** em produção. Não publicar ranking parcial.
+
+### [2026-09-22] Decisão: D-2026-09-22-t449-partidas-ranking-piloto — T449a (England tabelas→ranking): FASE 0 medida + parser entregue; BLOQUEADOR de resolução de entidade
+
+Motivo (FASE 0 medida): **schema SEM gap** — `Match` já tem scores/date/round/**dedupKey**/sourceUrl/**license**; `RankingEntry` já tem **`points 0-100`**+baseMatches/baseTitles/reason/gender; **o algoritmo já existe** (`computeClubPoints`/`normalizeMinMax`/`aggregateSeason`). **Tier EMERGE** (ranking por competição separa divisões; sem migration). **Licença RSSSF = atribuição** (R3-5). Fonte parseável (eng2023: 5 divisões, tabelas com nomes **completos**).
+**Entregue:** conector puro `rsssf-tables.connector.ts` (parse tabelas por divisão + `rankDivision` via `normalizeMinMax` + `rsssfSeasonUrl` + atribuição) + script `ingest-rsssf-england-tables.ts` (DRY-RUN/`--apply`) + 4 testes unit. DRY-RUN ao vivo: **5 divisões / 116 clubes**.
+**BLOQUEADOR (gate de viabilidade):** a **resolução RSSSF-clube → nossa entidade** falha. Produção tem **303 clubes GB**, mas só **1/20** da Premier League casa por nome exato e **21/26** com normalização (tira "F.C./A.F.C."/pontuação). **Faltam clubes grandes** (Manchester City, Arsenal, Liverpool, Chelsea, Leeds) — a base Wikidata está **incompleta para a pirâmide inglesa**. Há também **ruído**: "1964–65 Leeds United A.F.C. season" ingerido como clube. Publicar o ranking agora = **ranking parcial** (subconjunto casado) com **gap declarado**. Alternativa = **enriquecer a base de clubes da Inglaterra** (round ETL dedicado) antes do ranking. **PAUSA para arbitragem** (o piloto não entrega ranking completo sem resolver entidade). Não inflar nem fingir cobertura.
 
 ### [2026-09-22] Decisão: D-2026-09-22-rsssf-atribuicao-correcao-planejador — Licença de fonte aberta SEMPRE lida na fonte, mesmo quando o Thinker afirma "domínio público"
 
