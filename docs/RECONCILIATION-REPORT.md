@@ -716,3 +716,9 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Correção:** modal acessível (`role=dialog`, `aria-modal`, foco preso, Esc, foco inicial em Voltar, `aria-haspopup`) com **distinção visível** reembolso×cancelamento; re-fetch do histórico após a ação; fail-loud preservado (client já re-lê CSRF em 403). Sem migration; backend intocado.
 
 **Limitação:** E2E prod do modal exige assinatura paga de teste (declarado).
+
+### GATE 2 adendum 11 — T470b: revogação do access token pós-exclusão (2026-09-22)
+
+**Gap:** `DELETE /legal/rights/me/account` revogava o refresh mas o **access JWT (15 min)** seguia aceito. **FASE 0 (R3):** `authenticate.middleware.ts:58` = `jwt.verify` puro, **sem DB** ⇒ Opção A inviável ⇒ **Opção B** (blocklist Redis, TTL 15 min). Escrita **fail-loud** (antes da anonimização; Redis fora ⇒ 502, nada muda); leitura fail-open com log.
+
+**Evidência:** unit (block/reconhece; falha de escrita lança; leitura fail-open) + integração E2E (**register→login→/auth/me 200→DELETE→mesmo access→401 imediato**). Sem migration; reversível (TTL auto-expira). Fecha a ressalva **R3-PROD-GATE** do T470.

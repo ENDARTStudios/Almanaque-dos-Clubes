@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t470b-revoke-access-on-deletion — Fecha o gap dos 15 min do access token pós-exclusão (blocklist fail-loud)
+
+Motivo (R3-PROD-GATE do T470): o `DELETE /legal/rights/me/account` anonimizava o banco + revogava o refresh, mas o **access token (JWT stateless, 15 min)** da sessão que excluiu **continuava aceito** → usuário "excluído" seguia logado por até 15 min.
+**FASE 0 (R3, medida):** `authenticate.middleware.ts:58` faz **`jwt.verify` puro, sem hit no banco** (não carrega user/sessão). Logo **Opção A inviável** (não há select existente onde pendurar `deletedAt IS NULL`; pendurá-lo custaria DB em toda rota autenticada) → **Opção B**: blocklist `userId` no **Redis** (TTL = 15 min, vida máx do access), checada no `authenticate`; cobre **todos os devices**.
+**Fail-loud (inegociável):** a escrita da blocklist é parte do "excluído com sucesso" → escrita **ANTES da anonimização**; se o Redis falhar, **aborta com 502 e NADA muda** (nunca "anonimizei mas não bloqueei"). Leitura: **fail-open COM log alto** se o Redis cair (não derruba toda a autenticação num outage; reabre o gap só durante o outage). `maxRetriesPerRequest` + offline queue default (evita falso fail-loud no cold-start).
+**Reversível:** guarda no `authenticate` + blocklist (TTL auto-expira); **sem migration**.
+**Verificação:** unit (block/reconhece; escrita lança com Redis fora; leitura fail-open) + integração E2E (register→login→`/auth/me` 200→DELETE→**mesmo access → 401 imediato**). Fecha a ressalva **R3-PROD-GATE** do T470 (agora por construção, não follow-up).
+
 ### [2026-09-22] Decisão: D-2026-09-22-t464-confirm-destructiva — Confirmação de ação destrutiva (reembolso/cancel) + consistência billing↔refund
 
 Motivo (WS-P, hardening pré-beta pago): reembolso e cancelamento coexistem no `SubscriptionManager` **sem fricção nem distinção visível**; o usuário podia executar ação irreversível por engano. Subjacente, o achado (print 4): linha R$ 4,90 **PAID** mesmo com protocolo de refund emitido.
