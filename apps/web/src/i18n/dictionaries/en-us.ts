@@ -42,7 +42,7 @@ const en: Dictionary = {
     terms: 'Terms of Use',
     security: 'Security',
     dataSubjectRights: 'Data Subject Rights',
-    copyrightClaims: 'Copyright (DMCA)',
+    copyrightClaims: 'Copyright',
     copyright: 'Copyright © 2026 END ART Studios',
   },
   common: {
@@ -694,7 +694,7 @@ const en: Dictionary = {
           ],
         },
         {
-          title: '18. Copyright (DMCA) and version history',
+          title: '18. Copyright and version history',
           body: [
             'Copyright holders may report alleged infringement through the form at /direitos-autorais (material description, location, legal grounds and contact) or through the channel endart.studios@gmail.com. Notices go through triage and a reasoned decision; unequivocally infringing content is removed.',
             'Version history: v1.0 (2026-09-01) — initial version; v1.1 (2026-09-18) — added the copyright notice channel; v1.2 (2026-09-19) — Stripe activated as the production payment processor.; v1.3 (2026-09-22) — document consistency: rights deadlines, detailed retention, security incidents, minors and providers (self-hosted fonts).',
@@ -844,9 +844,9 @@ const en: Dictionary = {
     },
   },
   copyrightForm: {
-    title: 'Copyright Notice (DMCA)',
+        title: 'Copyright Notice',
     intro:
-      'Copyright holders may report alleged infringement (DMCA §512 / Brazilian Law 9.610/98). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
+        'Copyright holders may report alleged infringement (Brazilian Law 9.610/98 and analogous rules). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
     materialLabel: 'Allegedly infringed material (describe the work)',
     locationLabel: 'Location on the platform (URL)',
     fundamentLabel: 'Legal grounds and good-faith statement',
