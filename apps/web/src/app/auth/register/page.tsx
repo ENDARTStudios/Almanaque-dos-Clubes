@@ -121,8 +121,6 @@ export default function RegisterPage() {
               </Link>
             </span>
           </label>
-          {/* T469 — declaração proporcional de idade (achado 11): statement, sem KYC. */}
-          <p className="text-xs text-foreground/50 pl-8">{t('auth.ageDeclaration')}</p>
         </div>
 
         <button

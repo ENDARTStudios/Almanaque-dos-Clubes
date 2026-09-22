@@ -5,7 +5,7 @@ const en: Dictionary = {
     name: 'Almanaque dos Clubes',
     tagline: 'The history of world football in one place',
     description:
-      'The largest historical football dataset in the world. Search clubs, players, competitions and rankings with artificial intelligence and verified sources.',
+      'Historical football archive under construction, with documented provenance. Search clubs, players, competitions and rankings with verified sources (methodology at /metodologia). AI features: coming soon.',
   },
   nav: {
     clubs: 'Clubs',
@@ -78,7 +78,7 @@ const en: Dictionary = {
     heroTitle: 'The History of Football',
     heroTitleAccent: 'in One Place',
     heroSubtitle:
-      'The largest historical football dataset in the world. Search clubs, players, competitions and rankings with artificial intelligence and verified sources.',
+      'Historical football archive under construction, with documented provenance. Search clubs, players, competitions and rankings with verified sources (methodology at /metodologia). AI features: coming soon.',
     ctaSearch: 'Start Searching',
     ctaRegister: 'Create Free Account',
     stats: {
@@ -90,11 +90,11 @@ const en: Dictionary = {
       growing: 'Archive growing',
     },
     featuresTitle: 'All About World Football',
-    featuresSubtitle: 'Complete historical data with modern search and analysis tools.',
+    featuresSubtitle: 'Historical data under construction with modern search and analysis tools.',
     features: [
       {
-        title: 'Complete History',
-        desc: 'Access the full collection of clubs, players and competitions since the 19th century.',
+        title: 'History Under Construction',
+        desc: 'Access the growing collection of clubs, players and competitions, with documented provenance.',
       },
       {
         title: 'Auditable Rankings',
@@ -105,12 +105,12 @@ const en: Dictionary = {
         desc: 'Advanced text search with full-text indexes and fuzzy search.',
       },
       {
-        title: 'AI with Citations',
-        desc: 'Ask about football and get answers with verifiable sources.',
+        title: 'AI (coming soon)',
+        desc: 'Feature under development; answers with sources when available.',
       },
       {
         title: 'Structured Data',
-        desc: 'REST API with normalized data and cursor-based pagination.',
+        desc: 'REST API with normalized data and pagination.',
       },
       {
         title: 'Multilingual',
@@ -136,7 +136,6 @@ const en: Dictionary = {
     registerLink: 'Log in',
     acceptTerms: 'I have read and accept the Terms of Use and Service',
     acceptPrivacy: 'I have read and accept the Privacy Policy (LGPD)',
-    ageDeclaration: "Registration is intended for users aged 18 or over; by creating an account you declare meeting this requirement.",
     acceptRequired: 'You must accept the Terms of Use and the Privacy Policy to sign up.',
     registerErrorDefault: 'Error creating account',
     forgotPasswordLink: 'Forgot your password?',
@@ -773,9 +772,9 @@ const en: Dictionary = {
         {
           title: '9. Minors',
           body: [
-            'The platform is not intended for minors without the consent of their guardians. We do not intentionally collect data from minors.',
+            'The platform does not perform age verification and does not intentionally collect data from children. We do not direct the service to children.',
           
-            'Registration on the platform is intended for individuals aged 18 or over (or legally emancipated minors); by creating an account, the user declares meeting this requirement. If an account held by a minor without legal capacity is identified, it will be suspended and the data deleted. (ref. T469-9)',],
+            'If a guardian identifies inadequate collection of data from a child, contact the privacy channel for review and appropriate measures. (ref. T469b-9)',],
         },
         {
           title: '10. Data Protection Officer (DPO) and contact',

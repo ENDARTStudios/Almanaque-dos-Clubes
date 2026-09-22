@@ -626,3 +626,36 @@ pelo Operador); endereço/DPO nominal = escalação.
 **Fora (roteado):** direitos do titular/DMCA fluxos reais → T470 · Opção B geo-restrição → T471 ·
 i18n legal + checkout → T472/T468 · cursor-based pagination → WS-S/C · disclosure cheio de IA →
 quando IA shippar · identidade/DPO/DPAs/advogado/agente-EUA → OPERADOR (escalação).
+
+### GATE 2 adendum 6 — T469b: correção dos deltas do Operador + achados da FASE 0 (2026-09-22)
+
+**FASE 0 (re-auditoria do T469 mergeado, ANTES de editar texto):** produção medida — clubs **3.857** ·
+players **2.396** · competitions **1.563**; matches 0 / rankings 4 (não citáveis como verificados);
+"5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
+locale/ipwho: runtime usa SÓ `ipwho.is` no checkout (`apps/api/src/modules/billing/geo.ts`), sem header
+CF/Vercel → decisão da FASE 2 mantida. Identidade publicada já conforme a lista confirmada
+(END ART Studios · CNPJ 45.370.930/0001-75 · Osasco/SP · endart.studios@gmail.com), sem razão social,
+rua/CEP, Yahoo ou nome pessoal de DPO.
+
+**Achados corrigidos neste round:**
+
+- **Delta 1 / age gate (D-2026-09-22-sem-age-gate):** removida `auth.ageDeclaration` (3 locales +
+  `types.ts` + `register/page.tsx`); §9 Menores reescrito para declarar a **ausência** de verificação
+  ("não realiza verificação de idade e não coleta intencionalmente dados de crianças … canal de
+  privacidade para o responsável"), sem prometer suspensão/eliminação de conta.
+- **G-W2 (caixa de domínio inexistente):** `reembolso@almanaquedosclubes.com` → `endart.studios@gmail.com`
+  em `/checkout` e `SubscriptionManager` (×3). Nenhuma caixa de domínio restante em `apps/web/src`.
+- **G-W1/FASE 4 (claims públicas):** EN/ES "largest/mayor colección … with AI" → claim honesta (acervo em
+  construção, proveniência documentada, IA em breve); grid `home.features` (renderizado em
+  `HeroSection.tsx`) ×3 locales — "História Completa"→"em Construção", "IA com Citações"→"IA (em breve)",
+  "cursor-based"→"paginação" (a API usa OFFSET, não cursor).
+
+**Delta 2 (T471) e Delta 3 (gate beta pago):** T471 (geobloqueio UE) não aplicado — opcional-futuro
+(D-2026-09-22-t471-nao-aplicado); gate do beta pago reescrito em D-2026-09-22-gate-beta-pago-ajustado
+(pendem T470 + T472; advogado/representante UE/age gate = riscos residuais aceitos e registrados).
+
+**Verificação:** `pnpm typecheck` 0 erros. Sem regressão de lint/prettier: os 122 erros de lint e as
+falhas de prettier são **pré-existentes** em `apps/api`/`apps/worker`/`apps/web` (o script
+`eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório — por isso o CI fica verde;
+nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pacote autônomo e honesto,
+**sem revisão jurídica externa e sem representante UE** — NUNCA "conforme/GDPR-ready/pronto global".
