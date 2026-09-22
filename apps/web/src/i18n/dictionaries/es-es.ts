@@ -42,7 +42,7 @@ const es: Dictionary = {
     terms: 'Términos de Uso',
     security: 'Seguridad',
     dataSubjectRights: 'Derechos del Titular',
-    copyrightClaims: 'Derechos de Autor (DMCA)',
+    copyrightClaims: 'Derechos de Autor',
     copyright: 'Copyright © 2026 END ART Studios',
   },
   common: {
@@ -697,7 +697,7 @@ const es: Dictionary = {
           ],
         },
         {
-          title: '18. Derechos de autor (DMCA) e historial de versiones',
+          title: '18. Derechos de autor e historial de versiones',
           body: [
             'Los titulares de derechos de autor pueden notificar presuntas infracciones mediante el formulario en /direitos-autorais (descripción del material, ubicación, fundamentación legal y contacto) o por el canal endart.studios@gmail.com. Las notificaciones pasan por triaje y decisión motivada; el contenido inequívocamente infractor es retirado.',
             'Historial de versiones: v1.0 (01/09/2026) — versión inicial; v1.1 (18/09/2026) — inclusión del canal de notificaciones de derechos de autor; v1.2 (19/09/2026) — Stripe activado como procesador de pagamentos en producción.; v1.3 (22/09/2026) — consistencia documental: plazos de derechos, retención detallada, incidentes de seguridad, menores y proveedores (fuentes autoalojadas).',
@@ -847,9 +847,9 @@ const es: Dictionary = {
     },
   },
   copyrightForm: {
-    title: 'Notificación de Derechos de Autor (DMCA)',
+        title: 'Notificación de Derechos de Autor',
     intro:
-      'Los titulares de derechos de autor pueden notificar presuntas infracciones (DMCA art. 512 / Ley 9.610/98). Las notificaciones pasan por triaje con decisión motivada; el contenido inequívocamente infractor es retirado.',
+      'Los titulares de derechos de autor pueden notificar presuntas infracciones (Ley 9.610/98 y normas análogas). Las notificaciones pasan por triaje con decisión motivada; el contenido inequívocamente infractor es retirado.',
     materialLabel: 'Material presuntamente vulnerado (describe la obra)',
     locationLabel: 'Ubicación en la plataforma (URL)',
     fundamentLabel: 'Fundamentación legal y declaración de buena fe',

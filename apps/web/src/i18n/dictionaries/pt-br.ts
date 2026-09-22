@@ -42,7 +42,7 @@ const pt: Dictionary = {
     terms: 'Termos de Uso',
     security: 'Segurança',
     dataSubjectRights: 'Direitos do Titular',
-    copyrightClaims: 'Direitos Autorais (DMCA)',
+    copyrightClaims: 'Direitos Autorais',
     copyright: 'Copyright © 2026 END ART Studios',
   },
   common: {
@@ -696,7 +696,7 @@ const pt: Dictionary = {
           ],
         },
         {
-          title: '18. Direitos autorais (DMCA) e histórico de versões',
+          title: '18. Direitos autorais e histórico de versões',
           body: [
             'Titulares de direitos autorais podem notificar alegações de violação pelo formulário em /direitos-autorais (descrição do material, localização, fundamentação legal e contato) ou pelo canal endart.studios@gmail.com. Notificações passam por triagem e decisão motivada; conteúdo inequivocamente infrator é removido.',
             'Histórico de versões: v1.0 (01/09/2026) — versão inicial; v1.1 (18/09/2026) — inclusão do canal de notificações de direitos autorais; v1.2 (19/09/2026) — Stripe ativado como processador de pagamentos em produção.; v1.3 (22/09/2026) — consistência documental: prazos de direitos, retenção detalhada, incidentes de segurança, menores e fornecedores (fontes auto-hospedadas).',
@@ -847,9 +847,9 @@ const pt: Dictionary = {
     },
   },
   copyrightForm: {
-    title: 'Notificação de Direitos Autorais (DMCA)',
+        title: 'Notificação de Direitos Autorais',
     intro:
-      'Titulares de direitos autorais podem notificar alegações de violação (DMCA art. 512 / Lei 9.610/98). Notificações passam por triagem com decisão motivada; conteúdo inequivocamente infrator é removido.',
+      'Titulares de direitos autorais podem notificar alegações de violação (Lei 9.610/98 e normas análogas). Notificações passam por triagem com decisão motivada; conteúdo inequivocamente infrator é removido.',
     materialLabel: 'Material alegadamente violado (descreva a obra)',
     locationLabel: 'Localização na plataforma (URL)',
     fundamentLabel: 'Fundamentação legal e declaração de boa-fé',

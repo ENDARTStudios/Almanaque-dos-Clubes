@@ -99,7 +99,7 @@ export interface Dictionary {
       indeferido: string;
     };
   };
-  /** T445 — formulário público de copyright claims (DMCA). */
+  /** T445/T470 — textos de notificação autoral (Lei 9.610/98 + análoga). */
   copyrightForm: {
     title: string;
     intro: string;
