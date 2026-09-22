@@ -11,6 +11,7 @@ import { prisma } from '../../config/prisma.js';
 import { withRlsContext } from '../../config/rls-context.js';
 import { verifyPassword } from '../../config/crypto.js';
 import { revokeAllUserSessions } from '../auth/session.service.js';
+import { blockAccessToken } from '../auth/access-blocklist.service.js';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
 import { legalRepository } from './repository.js';
 import {
@@ -198,6 +199,19 @@ export const legalService = {
     if (!user) throw new NotFoundError('Usuário', userId);
     const ok = await verifyPassword(password, user.passwordHash).catch(() => false);
     if (!ok) throw new DomainError('Senha inválida', 'INVALID_CREDENTIALS', 401);
+
+    // T470b — blocklist PRIMEIRO (fail-loud): se o Redis falhar, aborta SEM
+    // alterar nada (nem anonimiza, nem bloqueia) — nunca "anonimizei mas não
+    // bloqueei o access token" (gap pior). Cobre TODOS os devices.
+    try {
+      await blockAccessToken(userId);
+    } catch {
+      throw new DomainError(
+        'Não foi possível invalidar a sessão; nada foi alterado. Tente novamente.',
+        'ACCESS_REVOKE_FAILED',
+        502,
+      );
+    }
 
     await revokeAllUserSessions(userId);
 
