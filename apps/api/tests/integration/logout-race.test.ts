@@ -53,7 +53,10 @@ afterAll(async () => {
 
 describe('T456 — logout encerra a família de sessão (corrida refresh × logout)', () => {
   it('rotação A→B em voo + logout com A stale → B morre (nada ressuscita)', async () => {
-    if (!dbOk || process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite') { console.warn('[t456] skip sqlite'); return; }
+    if (!dbOk || process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite') {
+      console.warn('[t456] skip sqlite');
+      return;
+    }
     // A: sessão original (login)
     const a = await createSession(userId, {});
     sessionsCreated.push(a.session.id);
@@ -76,7 +79,10 @@ describe('T456 — logout encerra a família de sessão (corrida refresh × logo
   });
 
   it('logout idempotente: segundo Sair com o mesmo token não quebra', async () => {
-    if (!dbOk || process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite') { console.warn('[t456] skip sqlite'); return; }
+    if (!dbOk || process.env.PRISMA_SCHEMA_PROVIDER === 'sqlite') {
+      console.warn('[t456] skip sqlite');
+      return;
+    }
     const a = await createSession(userId, {});
     await logout(a.refreshToken);
     const second = await logout(a.refreshToken); // já revogada

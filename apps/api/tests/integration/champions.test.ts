@@ -28,7 +28,8 @@ beforeAll(async () => {
     await prisma.knowledgeGraph.count();
   } catch {
     dbOk = false;
-    if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
+    if (process.env.TEST_REQUIRE_DB === 'true')
+      throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
     return;
   }
 

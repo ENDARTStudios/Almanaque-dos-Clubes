@@ -70,7 +70,10 @@ export const privacyRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
       const body = CreateSchema.parse(request.body);
       if (!isKnownRightType(body.rightType)) {
         return reply.status(422).send({
-          error: { code: 'INVALID_RIGHT_TYPE', message: `rightType desconhecido: ${body.rightType}` },
+          error: {
+            code: 'INVALID_RIGHT_TYPE',
+            message: `rightType desconhecido: ${body.rightType}`,
+          },
         });
       }
       const requesterId = (request as { user?: { id: string } }).user?.id ?? null;
@@ -135,15 +138,13 @@ export const privacyRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
 
 export function handleError(err: unknown, reply: import('fastify').FastifyReply) {
   if (err instanceof z.ZodError || err instanceof ZodError)
-    return reply
-      .status(422)
-      .send({ error: { code: 'VALIDATION_ERROR', message: 'Payload inválido', details: err.issues } });
+    return reply.status(422).send({
+      error: { code: 'VALIDATION_ERROR', message: 'Payload inválido', details: err.issues },
+    });
   if (err instanceof DomainError)
     return reply.status(err.statusCode).send({ error: { code: err.code, message: err.message } });
   if (err instanceof InvalidTransitionError)
-    return reply
-      .status(409)
-      .send({ error: { code: 'INVALID_TRANSITION', message: err.message } });
+    return reply.status(409).send({ error: { code: 'INVALID_TRANSITION', message: err.message } });
   if (err instanceof DecisionRequiresNotesError || err instanceof DecisionRequiresResolutionError)
     return reply.status(422).send({
       error: { code: err.name, message: err.message },

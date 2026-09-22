@@ -81,7 +81,10 @@ export const cache = {
       return { ok: true, keysDeleted: keys.length };
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      logger.warn({ pattern, error: error.message }, '[cache] falha ao invalidar — dado pode ficar stale');
+      logger.warn(
+        { pattern, error: error.message },
+        '[cache] falha ao invalidar — dado pode ficar stale',
+      );
       return { ok: false, keysDeleted: 0, error };
     }
   },

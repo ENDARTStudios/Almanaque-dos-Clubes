@@ -196,6 +196,8 @@ pnpm dev
 | `pnpm test:k6` | k6 load test (100 users) |
 | `pnpm db:seed` | Seed: 10 clubes, 3 competições, 2 rankings, RBAC |
 
+**⚠️ Ressalva R1 — lint recursivo (T476, 2026-09-22):** até o T476, `pnpm lint` no CI varria só **1 nível** de `apps/api` (**27/186** arquivos); `src/modules/**`, `tests/**` e `src/scripts/**` **não eram lintados** (falso verde). Corrigido (aspas no glob → eslint expande recursivo). A partir daqui, **"CI verde" cobre lint recursivamente** de `apps/api`/`apps/worker`/`packages`. O `format:check` (prettier standalone) **ainda NÃO roda no CI** (954 arquivos, majoritariamente `apps/web`, ignorado pelo eslint) — dívida rastreada.
+
 ---
 
 ## 6. Deploy

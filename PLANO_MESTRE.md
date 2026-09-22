@@ -50,7 +50,7 @@
 
 **Verificação (T002 — 2026-08-11):**
 
-- `pnpm lint` — ✅ 0 erros (12 warnings `security/detect-object-injection`, falsos positivos documentados em DECISOES.md)
+- `pnpm lint` — ✅ 0 erros (98 warnings: `security/detect-object-injection` 57, `no-explicit-any` 26, `detect-non-literal-fs-filename` 14, `detect-unsafe-regex` 1 — FP/estilo, não bloqueiam). **Nota T476 (09-22):** o glob SEM aspas fazia o bash do CI expandir só 1 nível (**27/186** arquivos de `apps/api`; `modules/**`, `tests/**`, `src/scripts/**` nunca varridos = falso verde). Corrigido com aspas (o eslint expande recursivo) + triagem (118 prettier auto-fix, 3 FP `no-undef` desligado p/ TS, 1 `preserve-caught-error`) + `.gitattributes` LF (lição T448d). **Fase 9.1.1 (lint+typecheck em todo PR): [x] CI cobre recursivamente de verdade** (R1).
 - `pnpm typecheck` — ✅ 0 erros
 - `pnpm test` — ✅ 27/27 (API 17 + Domain 4 + FeatureFlags 6)
 - `pnpm format:check` — pendente de ajustes finos. `[~]`

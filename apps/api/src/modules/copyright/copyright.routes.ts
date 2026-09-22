@@ -10,11 +10,7 @@ import { z } from 'zod';
 import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { handleError } from '../privacy/privacy.routes.js';
-import {
-  createClaim,
-  listClaims,
-  transitionClaim,
-} from './copyright.service.js';
+import { createClaim, listClaims, transitionClaim } from './copyright.service.js';
 
 const CreateSchema = z.object({
   material: z.string().min(10).max(2000),

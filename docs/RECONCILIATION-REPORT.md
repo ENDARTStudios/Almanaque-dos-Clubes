@@ -684,3 +684,17 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **GAP DECLARADO:** apenas ~3% dos clubes têm P625 direto (produção 113/3.857; amostra 2/60) — mapa será esparso por clube; cidades (com P625 via P131) podem servir de fallback no T467. `stadiums` vazio (sem seed nesta rodada).
 
 **Blocker honesto:** produção só recebe as tabelas geo no **deploy pós-merge** (migration no boot via `migrate deploy`; não aplicada à mão — regra T430). Portanto o seed em produção (`ingest-geo-wikidata.ts --apply` + `enrich-club-coords.ts --apply`) e o E2E-produção ficam **pós-deploy** (Operador). `M1·WS-C` mapa segue `[ ]` até T467.
+
+### GATE 2 adendum 8 — T476: glob recursivo do lint (governança de CI) (2026-09-22)
+
+**Ponto-cego (medido, não assumido):** `pnpm lint` = `eslint apps/api/**/*.ts apps/worker/**/*.ts packages/**/*.ts` **sem aspas**. No bash do runner (sem `globstar`), `**` age como `*` e o shell expande **um** nível. Arquivos varridos: `apps/api` **27/186**, `apps/worker` **2/14**, `packages` **1/15**. `apps/api/src/modules/**`, `apps/api/tests/**`, `apps/api/src/scripts/**` **nunca eram lintados no CI** → 122 erros escondidos por trás de "CI verde" (viola R1 na infraestrutura).
+
+**Correção:** aspas nos globs do `lint` e `lint:fix` → o shell entrega o padrão literal e o **eslint expande recursivamente** (portável). `prettier --check` já estava entre aspas → recursivo (954 arquivos, 0 diff main=branch). `tsc` usa `tsconfig include` (não glob de shell) → `apps/api` cobre `src/**`; `scripts/**` fora é intencional (T448/#160).
+
+**Antes → depois (arquivos varridos por eslint):** api **27 → 186** · worker **2 → 14** · packages **1 → 15**.
+
+**Triagem por categoria (122 erros / 20 arquivos):** 118 `prettier/prettier` (18 arquivos — **formatação**, `eslint --fix`) · 3 `no-undef` (`NodeJS.ProcessEnv` como tipo → **FP** de core `no-undef` com TS; regra desligada p/ TS) · 1 `preserve-caught-error` (`privacy-copyright.test.ts` → `{ cause: e }`). **Resultado: 0 erros · 98 warnings** (registrados: detect-object-injection 57, no-explicit-any 26, detect-non-literal-fs-filename 14, detect-unsafe-regex 1).
+
+**Artefato novo:** `.gitattributes` (`* text=auto eol=lf`) — faltava (lição T448d).
+
+**Dívida rastreada:** `format:check` (prettier standalone) **não roda no CI** e cobre 954 arquivos (majoritariamente `apps/web/**`, ignorado pelo eslint) — gap separado; 98 warnings de estilo/segurança-FP. **R1:** "CI verde" passa a cobrir lint recursivo de api/worker/packages (ressalva no HANDOFF).

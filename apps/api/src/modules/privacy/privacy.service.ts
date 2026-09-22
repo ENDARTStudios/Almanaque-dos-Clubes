@@ -34,7 +34,9 @@ export function isKnownRightType(rightType: string): rightType is PrivacyRightTy
 
 /** Prazo: imediato (agora) para confirmação/acesso; 15 dias ANPD para os demais. */
 export function computeSlaDueAt(rightType: string, now = new Date()): Date {
-  return IMMEDIATE_RIGHTS.includes(rightType) ? now : new Date(now.getTime() + ANPD_SLA_DAYS * 86_400_000);
+  return IMMEDIATE_RIGHTS.includes(rightType)
+    ? now
+    : new Date(now.getTime() + ANPD_SLA_DAYS * 86_400_000);
 }
 
 export async function createPrivacyRequest(input: CreatePrivacyInput) {
@@ -81,7 +83,11 @@ export async function getRequestStatusByToken(token: string) {
   };
 }
 
-export async function listPrivacyRequests(options: { status?: string; limit?: number; offset?: number }) {
+export async function listPrivacyRequests(options: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}) {
   const { status, limit = 50, offset = 0 } = options;
   const rows = await prisma.privacyRequest.findMany({
     where: status ? { status } : undefined,
