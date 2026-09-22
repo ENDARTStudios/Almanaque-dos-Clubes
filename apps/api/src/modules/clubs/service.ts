@@ -12,6 +12,7 @@ import {
   clubsRepository,
   type ClubGeoView,
   type ClubTitleView,
+  type GeoStats,
   type ListClubsParams,
 } from './repository.js';
 import { cache } from '../../services/cache.js';
@@ -79,6 +80,16 @@ export const clubsService = {
   async getById(id: string): Promise<Club | null> {
     return cache.remember(`clubs:byId:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findById(id),
+    );
+  },
+
+  /**
+   * T467 — agregação por região (COUNT real) para o mapa. Cache read-through
+   * curto; leitura derivada do banco (não é fonte de terceiro).
+   */
+  async geoStats(): Promise<GeoStats> {
+    return cache.remember('clubs:geo-stats', CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.geoStats(),
     );
   },
 

@@ -19,6 +19,32 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-m1-ws-c-fechado-por-t467 — T467 fecha a ponta M1·WS-C (mapa) que ficou [ ] quando declarei M1 fechado
+
+Motivo (correção de processo, 2ª instância após T448′/T465): o M1 foi declarado em 2026-09-15 com "Mapa-múndi interativo" ainda `[ ]` em Features Core. **Marco não se declara fechado com ponta visível aberta.** T467 fecha M1·WS-C (mapa read-only sobre a hierarquia geo real). Registrado para o critério de declaração de marco.
+
+### [2026-09-22] Decisão: D-2026-09-22-t467-falha-open-blocklist-justificada — Por que o fail-open da LEITURA da blocklist (#180) é seguro AQUI
+
+Motivo: o `authenticate` (#180) faz **fail-open na leitura** da blocklist Redis. Isso só é aceitável **porque**: (a) a anonimização PRECEDE o bloqueio (o banco já está sem PII quando o Redis cai), e (b) o access expira em 15 min (janela máxima). **Não** vira padrão cego: em outro contexto (ex.: blocklist de credencial sensível), fail-open seria inaceitável. A escrita continua **fail-loud** (502, nada muda).
+
+### [2026-09-22] Decisão: D-2026-09-22-t467-licenca-fronteiras — Fronteiras: Natural Earth (domínio público) só até país; estado/cidade vazio-honesto
+
+Motivo (FASE 0.3, verificada antes de baixar — não "open source = ok"): 
+| nível | fonte | licença | decisão |
+|---|---|---|---|
+| continente/país | Natural Earth 1:110m | **domínio público** | **usar** (asset versionado + `LICENSE.md`/proveniência) |
+| estado/cidade | OSM admin-borders (ODbL) / IBGE (a verificar) | **ODbL = share-alike** | **NÃO usar ODbL** (contamina o acervo); nível **vazio-honesto** via **lista clicável** |
+
+Asset estático versionado (`apps/web/public/geo/ne_110m_admin_0_countries.geojson`, 816 KB, 177 features) + `LICENSE.md` (fonte/versão/data/URL). Teste garante presença + licença.
+
+### [2026-09-22] Decisão: D-2026-09-22-t467-continente — Continente JÁ existe como campo (sem migration)
+
+Motivo (FASE 0.1, contra o schema): **não existe model Continent**; é `Country.continent String? @db.VarChar(2)` (AF/AN/AS/EU/NA/OC/SA, do P30). Produção: 168 países, **3 sem continente** (bucket honesto `ZZ`); 3.777 clubes sob continente. Logo o agregado por continente é **auditável no banco** (`GROUP BY countries.continent`) ⇒ **sem migration/seed novo** (opções (b)/(c) descartadas).
+
+### [2026-09-22] Decisão: D-2026-09-22-t467-mapa-choropleth — Choropleth por região (não pinos); vazio-honesto; offset; busca textual
+
+Motivo (FASE 0): o Escopo 2 descreve navegação por **divisão administrativa**, não por pino. Números reais: coordenada direta ~3,7% (158/3.808), estado 4,9%, cidade 11,6% → **pino não sustenta "mapa denso"** (T465/T469: claim=verdade). Núcleo = **choropleth** (COUNT real derivado do banco, `source='derived'`); **pino = enriquecimento opcional**; onde não há coordenada/fronteira → **lista**, não invenção. Paginação = **OFFSET** (não cursor). Busca = **tsvector textual** (não "preditiva"; Meilisearch = Operador). Mapa é acessório: navegação por teclado/leitor de tela é a **lista de regiões** (aria-live, breadcrumb, foco). Cache read-through curto; sem migration.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t470b-revoke-access-on-deletion — Fecha o gap dos 15 min do access token pós-exclusão (blocklist fail-loud)
 
 Motivo (R3-PROD-GATE do T470): o `DELETE /legal/rights/me/account` anonimizava o banco + revogava o refresh, mas o **access token (JWT stateless, 15 min)** da sessão que excluiu **continuava aceito** → usuário "excluído" seguia logado por até 15 min.

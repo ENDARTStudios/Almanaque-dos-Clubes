@@ -859,6 +859,17 @@ const en: Dictionary = {
     protocolLabel: 'Protocol',
     errorGeneric: 'Could not submit. Try again or write to endart.studios@gmail.com.',
   },
+  mapExplorer: {
+    world: 'World',
+    clubs: 'clubs',
+    regions: 'Regions',
+    loading: 'Loading…',
+    noClubs: 'No clubs in this region.',
+    loadMore: 'Load more',
+    searchLabel: 'Text search',
+    mapAlt: 'Map by country. Use the region list to navigate by keyboard.',
+    states: 'States',
+  },
 };
 
 export default en;

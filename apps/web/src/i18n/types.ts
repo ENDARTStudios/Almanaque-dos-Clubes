@@ -301,6 +301,17 @@ export interface Dictionary {
     };
   };
   langSelector: { label: string; current: string };
+  mapExplorer: {
+    world: string;
+    clubs: string;
+    regions: string;
+    loading: string;
+    noClubs: string;
+    loadMore: string;
+    searchLabel: string;
+    mapAlt: string;
+    states: string;
+  };
 }
 
 export type { Locale };

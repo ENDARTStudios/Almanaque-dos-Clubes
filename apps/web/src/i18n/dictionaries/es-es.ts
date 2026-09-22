@@ -862,6 +862,17 @@ const es: Dictionary = {
     protocolLabel: 'Protocolo',
     errorGeneric: 'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios@gmail.com.',
   },
+  mapExplorer: {
+    world: 'Mundo',
+    clubs: 'clubes',
+    regions: 'Regiones',
+    loading: 'Cargando…',
+    noClubs: 'No hay clubes en esta región.',
+    loadMore: 'Cargar más',
+    searchLabel: 'Búsqueda textual',
+    mapAlt: 'Mapa por país. Use la lista de regiones para navegar con el teclado.',
+    states: 'Estados',
+  },
 };
 
 export default es;
