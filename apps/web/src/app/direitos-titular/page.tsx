@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
-import DireitosTitularForm from '@/components/DireitosTitularForm';
+import DireitosTitularPanel from '@/components/DireitosTitularPanel';
 
-// T445 — Direitos do titular (LGPD art. 18): formulário público + acompanhamento
-// por protocolo. Mesmo gate de superfície legal do WS-L (legalPagesEnabled).
+// T470 — Direitos do titular (LGPD art. 18): processo com protocolo rastreável.
+// Logado = fluxo automatizado (pedido/export/exclusão). Deslogado = orientação +
+// canal manual (sem SMTP). Gate de superfície legal (legalPagesEnabled).
 
 export const metadata: Metadata = {
   title: 'Direitos do Titular | Almanaque dos Clubes',
@@ -27,11 +28,12 @@ export default function DireitosTitularPage() {
       </h1>
       <p className="text-sm text-foreground/50 mb-8">LGPD, art. 18 · END ART Studios</p>
       <p className="text-foreground/70 mb-8 leading-relaxed">
-        Confirmação e acesso têm resposta imediata; os demais direitos em até 15 dias (prazo ANPD),
-        prorrogável nos termos do art. 18, §3, com comunicação ao órgão regulador. Canal alternativo:
+        Exerça seus direitos com protocolo rastreável. O recebimento é confirmado na hora; a resposta
+        conclusiva sai em até 15 dias no Brasil (LGPD, art. 18, §3, prorrogável, com comunicação à
+        ANPD) ou em até 1 mês no EEE/Reino Unido quando aplicável. Canal manual (sem conta):
         endart.studios@gmail.com.
       </p>
-      <DireitosTitularForm />
+      <DireitosTitularPanel />
     </div>
   );
 }

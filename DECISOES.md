@@ -19,6 +19,17 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t470-direitos-titular-dmca — Processo real de direitos do titular + notificação autoral (WS-L)
+
+Motivo: `/direitos-titular` e `/direitos-autorais` eram páginas rasas (T445), com formulário público sem protocolo rastreável; site já público = exposição. T470 substitui por processo mínimo e auditável.
+**FASE 0 (R3, medida):** **SMTP AUSENTE** (`env.ts` sem SMTP/RESEND; mailer dry-run) → fluxo automatizado **só autenticado**; não-logado = canal manual (gmail), sem POST público. Primitivos reusados: `revokeAllUserSessions` (T456), `verifyPassword`, `auditLog` (append-only), `withRlsContext`. Produção: users **42** (4 ativos) · sessions 127 · subscriptions 41 · billings 2 · favorites 20 · audit_logs 174 · cookie_consents 8 · privacy_requests **0** · copyright_claims **0**.
+**Modelo:** tabelas **NOVAS** `data_subject_requests` + `copyright_notices` (protocolo, enums, `userId NOT NULL`, deadline, internalNote, deletedAt) + `User.deletedAt`. T445 público **aposentado na superfície** (páginas → manual); tabelas/rotas legadas mantidas (deprecadas, 0 linhas) por reversibilidade.
+**Grants/RLS:** no **próprio SQL da migration** (PG-only, role-guarded, idempotente) + espelho `rls_legal_setup.sql`/`create_app_user.sql` para o CI. Owner SELECT/INSERT; **UPDATE/DELETE só SERVICE**. Adicionado `GRANT USAGE ON SCHEMA public` (faltava; sem ele `app_user` dá `permission denied for schema public`).
+**Endpoints:** `/legal/rights/requests` (POST/GET/GET :protocol/POST :protocol/cancel) · `/legal/rights/me/export` (json/csv) · `DELETE /legal/rights/me/account` (confirmação exata **EXCLUIR CONTA** + senha) · `PATCH /legal/rights/me/profile` · `/legal/copyright/notices` (+`:protocol/counter`, GET) · admin `/admin/legal/*` (RBAC `USERS_MANAGE`). **Sem safe harbor formal** (Lei 9.610/98 + análoga). **Sem age gate**. **Sem e-mail automático**.
+**Exclusão:** soft (`deletedAt`) + e-mail **anonimizado** (`deleted_<id>@almanaquedosclubes.invalid`; `userId` mantido p/ integridade; billings/audit preservados) + sessões revogadas + hash invalidado + DSR `completed` + audit.
+**Verificação:** 11 testes (unit + integração **Postgres real com RLS como `app_user`** + export sem segredos + exclusão). RLS: titular lê o próprio; **não lê de terceiro**; UPDATE direto negado; SERVICE atualiza.
+**Limitações declaradas:** tradução legal = T472 · SMTP = Operador · remoção total das rotas T445 legadas = follow-up · consentimento fora do export (sem vínculo userId↔visitorId).
+
 ### [2026-09-22] Decisão: D-2026-09-22-t476-ci-glob-recursivo — O glob do lint expandia só 1 nível no CI (falso verde); corrigido + triagem dos 122
 
 Motivo: o script `pnpm lint` era `eslint apps/api/**/*.ts apps/worker/**/*.ts packages/**/*.ts` **sem aspas**. No bash do runner (sem `globstar`), `**` age como `*` e o shell expande **um** nível (`apps/api/*/*.ts`): **27 arquivos varridos de 186** em `apps/api`; o eslint recebia a lista explícita e **não recursava**. Logo `apps/api/src/modules/**`, `apps/api/tests/**` e `apps/api/src/scripts/**` **nunca eram lintados no CI** — "CI verde" escondendo **122 erros** (viola R1 na infraestrutura).

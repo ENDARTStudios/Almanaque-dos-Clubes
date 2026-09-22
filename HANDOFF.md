@@ -331,6 +331,8 @@ railway variable set CHAVE="valor"
 
 ## 12. Roadmap (Próximos Passos)
 
+> **Fila WS (atualizada 2026-09-22):** T470 (direitos do titular + notificação autoral) **[x]** → **T464** (confirmação destrutiva de reembolso/cancelamento — WS-P, **pré-beta pago**) → T467 (mapa-múndi sobre geo semeado) → T472 (i18n legal + checkout, liga T468). T448b-2/T449 depois. Beta pago = T465 + T469/T469b + T470 + T472 + identidade Operador.
+
 ### Imediato (travar produção)
 1. ~~Registrar domínio~~ ✅
 2. ~~Escolher plataforma de deploy~~ ✅ (Railway)

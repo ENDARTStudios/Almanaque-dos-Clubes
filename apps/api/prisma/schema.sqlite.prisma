@@ -194,6 +194,7 @@ model User {
   lastLoginAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime? // T470 — soft-delete (titular); e-mail anonimizado
 
   sessions      Session[]
   auditLogs     AuditLog[]
@@ -201,6 +202,8 @@ model User {
   billings      Billing[]
   userRoles     UserRole[]
   clubsCreated  Club[]   @relation("ClubCreatedByUser")
+  dataSubjectRequests DataSubjectRequest[]
+  copyrightNotices    CopyrightNotice[]
 
   @@index([status])
   @@index([createdAt])
@@ -620,4 +623,67 @@ model CopyrightClaim {
 
   @@index([status])
   @@map("copyright_claims")
+}
+
+// -----------------------------------------------------------------------------
+// T470 — Direitos do titular + notificação autoral (espelho sqlite; enums = String,
+// Json = String serializado — mesma convenção do AuditLog acima).
+// -----------------------------------------------------------------------------
+
+model DataSubjectRequest {
+  id              String    @id @default(uuid())
+  protocol        String    @unique
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String // DsrType
+  jurisdiction    String    @default("BR")
+  status          String    @default("received")
+  description     String?
+  requestedFields String? // JSON.stringify(…) — lido via JSON.parse
+  deadlineAt      DateTime?
+  completedAt     DateTime?
+  responseSummary String?
+  internalNote    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([deadlineAt])
+  @@index([protocol])
+  @@map("data_subject_requests")
+}
+
+model CopyrightNotice {
+  id                   String    @id @default(uuid())
+  protocol             String    @unique
+  type                 String // CopyrightNoticeType
+  status               String    @default("received")
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalNoticeId     String?
+  originalNotice       CopyrightNotice? @relation("NoticeCounter", fields: [originalNoticeId], references: [id], onDelete: SetNull)
+  counterNotices       CopyrightNotice[] @relation("NoticeCounter")
+  workTitle            String
+  workUrl              String?
+  materialUrl          String
+  description          String
+  goodFaithDeclaration Boolean
+  accuracyDeclaration  Boolean
+  signatureText        String
+  jurisdiction         String    @default("BR")
+  responseSummary      String?
+  internalNote         String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([originalNoticeId])
+  @@index([protocol])
+  @@map("copyright_notices")
 }
