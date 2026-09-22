@@ -19,6 +19,17 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-consentimento-export-gap — Consentimento fora do export do titular (gap LGPD art. 18; direção de correção)
+
+Motivo (ressalva R1-CONSENT da revisão do #177, aceita e não bloqueante): o `/legal/rights/me/export` **não inclui** os consentimentos de cookies, porque `cookie_consents` é chaveado por `visitorId` (client-side) e **não há vínculo `visitorId ↔ userId`** no schema. Forçar um join agora inventaria vínculo inexistente (viola 1.3/R3). É **gap real** de acesso (art. 18) para titular autenticado.
+**Direção de correção (follow-up WS-L pequeno, NÃO no T470):** (a) ao registrar consentimento **autenticado**, gravar também `userId` em `cookie_consents` (nova coluna nullable + migration); (b) migração retrospectiva **somente se** houver log de consentimento com identificador de conta correlacionável — sem inventar vínculo. Até lá, declarado como limitação.
+
+### [2026-09-22] Decisão: D-2026-09-22-t470-ressalvas-rastreadas — Cobertura de integração do admin (R2) e o gate de produção que fecha o T470 (R3)
+
+Motivo (ressalvas R2/R3 da revisão do #177): 
+**R2-ADMIN:** a cobertura de **integração** dos endpoints admin (`/admin/legal/*` — HTTP + RBAC `USERS_MANAGE` + audit + transições de status) é **unit-only**. O caminho de escrita do **titular** (o que protege o usuário) está coberto por **RLS real como `app_user`**. O admin é interno → aceito, mas **não declarar T470 “completo em admin”** até o E2E do gate de produção (ou follow-up WS-L) cobrir admin HTTP+RBAC+audit.
+**R3-PROD-GATE:** o **merge do #177 não fecha o T470 em produção** — a página ao vivo ainda é a antiga até o gate de produção passar. Ordem obrigatória (trava destrutiva): (1) deploy + fingerprint SHA + rota `/legal/rights/*` viva; (2) **E2E de leitura** em produção (cookies reais) + confirmar que a página saiu do “resposta imediata”; (3) **E2E destrutivo** (DELETE account) em **staging/preview**, 2× (idempotência), verde; (4) só então `LEGAL_PAGES_ENABLED=true` em produção + smoke destrutivo em conta de teste dedicada (nunca a do Operador). **Passo 4 depende do passo 3 verde** — expor caminho destrutivo sem prova isolada repete o erro do T462 (logout que fingia sucesso).
+
 ### [2026-09-22] Decisão: D-2026-09-22-t470-direitos-titular-dmca — Processo real de direitos do titular + notificação autoral (WS-L)
 
 Motivo: `/direitos-titular` e `/direitos-autorais` eram páginas rasas (T445), com formulário público sem protocolo rastreável; site já público = exposição. T470 substitui por processo mínimo e auditável.
