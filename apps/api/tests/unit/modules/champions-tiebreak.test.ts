@@ -15,6 +15,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   compareRepresentatives,
+  FLAGSHIP_GROUP,
   selectRepresentatives,
   typeRank,
   type CompRefInput,
@@ -276,13 +277,13 @@ describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não
     expect(nacional.champion.year).toBe(2025);
   });
 
-  it('hierarquia só com CUP: a CUP representa (preferir LEAGUE se houver, não excluir CUP)', () => {
+  it('hierarquia GRUPO-LIGA só com CUP: a CUP representa (preferir LEAGUE se houver, não excluir CUP)', () => {
     const reps = selectRepresentatives(
-      edgesOf(edge({ compId: 'copa-isolada', year: 2015, hierarchy: 'mundial' })),
+      edgesOf(edge({ compId: 'copa-isolada', year: 2015, hierarchy: 'nacional' })),
       [comp('copa-isolada', 'Copa Isolada', 'CUP')],
     );
-    expect(reps.get('mundial')!.compId).toBe('copa-isolada');
-    expect(reps.get('mundial')!.compType).toBe('CUP');
+    expect(reps.get('nacional')!.compId).toBe('copa-isolada');
+    expect(reps.get('nacional')!.compType).toBe('CUP');
   });
 
   it('NUANCE documentada: LEAGUE antiga (2020) representa antes de CUP recente (2026) — tipo vem antes de ano', () => {
@@ -291,7 +292,10 @@ describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não
         edge({ compId: 'liga-antiga', year: 2020, hierarchy: 'nacional' }),
         edge({ compId: 'supercopa-recente', year: 2026, hierarchy: 'nacional' }),
       ),
-      [comp('liga-antiga', 'Liga Antiga', 'LEAGUE'), comp('supercopa-recente', 'Supercopa 2026', 'CUP')],
+      [
+        comp('liga-antiga', 'Liga Antiga', 'LEAGUE'),
+        comp('supercopa-recente', 'Supercopa 2026', 'CUP'),
+      ],
     );
     expect(reps.get('nacional')!.compId).toBe('liga-antiga');
   });
@@ -320,7 +324,7 @@ describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não
     expect(r1.get('nacional')!.compId).toBe('eredivisie');
   });
 
-  it('guarda de futuro T448d INTACTA: CUP 2027 não vence LEAGUE 2025', () => {
+  it('guarda de futuro T448d INTACTA em GRUPO-COPA: CUP 2027 excluída, LEAGUE 2025 representa por vigência', () => {
     const reps = selectRepresentatives(
       edgesOf(
         edge({ compId: 'copa-2027', year: 2027, hierarchy: 'mundial' }),
@@ -330,7 +334,8 @@ describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não
       undefined,
       2026,
     );
-    // A CUP 2027 é excluída pela guarda; a LEAGUE 2025 representa (única elegível).
+    // GRUPO-COPA = vigência-primeiro, MAS a guarda T448d exclui a 2027 antes;
+    // a LEAGUE 2025 é a única elegível e representa.
     expect(reps.get('mundial')!.compId).toBe('liga-2025');
   });
 
@@ -340,6 +345,105 @@ describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não
     expect(typeRank('TOURNAMENT')).toBe(2);
     expect(typeRank(null)).toBe(2);
     expect(typeRank(undefined)).toBe(2);
+  });
+});
+
+describe('T448f — type-first CONDICIONAL por grupo de flagship', () => {
+  it('REGRESSÃO continental (o caso que motivou o T448f): UCL 2025 (CUP) vence VFF 2012 (LEAGUE miscategorizada) por vigência', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'ucl', year: 2025, hierarchy: 'continental' }),
+        edge({ compId: 'ucl', year: 2024, hierarchy: 'continental' }),
+        edge({ compId: 'vff', year: 2012, hierarchy: 'continental' }),
+      ),
+      [comp('ucl', 'UEFA Champions League', 'CUP'), comp('vff', 'VFF Champions League', 'LEAGUE')],
+    );
+    const continental = reps.get('continental')!;
+    expect(continental.compId).toBe('ucl'); // vigência-first em GRUPO-COPA
+    expect(continental.compType).toBe('CUP');
+    expect(continental.latestYear).toBe(2025);
+  });
+
+  it('mundial: FIFA Club World Cup (CUP) representa — sem liga mundial no acervo', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'fifa-cwc', year: 2023, hierarchy: 'mundial' }),
+        edge({ compId: 'fifa-cwc', year: 2022, hierarchy: 'mundial' }),
+      ),
+      [comp('fifa-cwc', 'FIFA Club World Cup', 'CUP')],
+    );
+    expect(reps.get('mundial')!.compId).toBe('fifa-cwc');
+    expect(reps.get('mundial')!.compType).toBe('CUP');
+  });
+
+  it('TRANSIÇÃO prova a partição por hierarquia: mesma entrada, regras diferentes', () => {
+    const edges = edgesOf(
+      edge({ compId: 'copa', year: 2026, hierarchy: 'nacional' }),
+      edge({ compId: 'liga', year: 2025, hierarchy: 'nacional' }),
+    );
+    const comps = [comp('copa', 'Copa X', 'CUP'), comp('liga', 'Liga X', 'LEAGUE')];
+    const asNacional = selectRepresentatives(
+      edges.map((e) => ({ ...e, metadata: { ...(e.metadata as object), hierarchy: 'nacional' } })),
+      comps,
+    );
+    const asContinental = selectRepresentatives(
+      edges.map((e) => ({
+        ...e,
+        metadata: { ...(e.metadata as object), hierarchy: 'continental' },
+      })),
+      comps,
+    );
+    expect(asNacional.get('nacional')!.compId).toBe('liga'); // GRUPO-LIGA: type-first
+    expect(asContinental.get('continental')!.compId).toBe('copa'); // GRUPO-COPA: vigência 2026
+  });
+
+  it('gender-blind em GRUPO-COPA: copa feminina 2026 vence liga feminina 2025 por vigência', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'copa-fem', year: 2026, gender: 'women', hierarchy: 'continental' }),
+        edge({ compId: 'liga-fem', year: 2025, gender: 'women', hierarchy: 'continental' }),
+      ),
+      [comp('copa-fem', 'Copa Fem', 'CUP'), comp('liga-fem', 'Liga Fem', 'LEAGUE')],
+      'women',
+    );
+    expect(reps.get('continental')!.compId).toBe('copa-fem');
+  });
+
+  it('anti-findMany em GRUPO-COPA: shuffle com CUP+LEAGUE → mesmo resultado', () => {
+    const build = () => [
+      edge({ compId: 'ucl', year: 2025, hierarchy: 'continental' }),
+      edge({ compId: 'vff', year: 2012, hierarchy: 'continental' }),
+      edge({ compId: 'libertadores', year: 2024, hierarchy: 'continental' }),
+    ];
+    const comps = [
+      comp('ucl', 'UEFA Champions League', 'CUP'),
+      comp('vff', 'VFF Champions League', 'LEAGUE'),
+      comp('libertadores', 'Copa Libertadores', 'CUP'),
+    ];
+    const r1 = selectRepresentatives(build(), comps);
+    const r2 = selectRepresentatives([...build()].reverse(), comps);
+    expect(r1.get('continental')!.compId).toBe(r2.get('continental')!.compId);
+    expect(r1.get('continental')!.compId).toBe('ucl');
+  });
+
+  it('FLAGSHIP_GROUP cobre EXATAMENTE os 5 valores reais de RANKING_HIERARCHIES (R3 — lidos do fonte)', () => {
+    expect(Object.keys(FLAGSHIP_GROUP).sort()).toEqual(
+      ['continental', 'estadual', 'mundial', 'municipal', 'nacional'].sort(),
+    );
+    expect(FLAGSHIP_GROUP.nacional).toBe('liga');
+    expect(FLAGSHIP_GROUP.estadual).toBe('liga');
+    expect(FLAGSHIP_GROUP.municipal).toBe('liga');
+    expect(FLAGSHIP_GROUP.mundial).toBe('copa');
+    expect(FLAGSHIP_GROUP.continental).toBe('copa');
+  });
+
+  it('hierarquia fora do mapa (futuro do enum): default copa = vigência-first, sem demotion por tipo', () => {
+    const newer = rep('copa-nova', 'Copa Nova', 1, 1, 2026);
+    const older = rep('liga-velha', 'Liga Velha', 90, 30, 2010);
+    (newer as { hierarchy: RankHierarchy }).hierarchy = 'inventado' as RankHierarchy;
+    (older as { hierarchy: RankHierarchy }).hierarchy = 'inventado' as RankHierarchy;
+    // GRUPO-COPA (default): sem type-first → a mais recente vence mesmo sendo CUP.
+    expect(compareRepresentatives(newer, older) < 0).toBe(true);
   });
 });
 

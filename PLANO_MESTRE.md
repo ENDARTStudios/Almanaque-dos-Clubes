@@ -230,28 +230,29 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 
 ## Marcos de Lançamento (atualizado 2026-09-15)
 
-| Marco | Status | Data | Evidência |
-|---|---|---|---|
-| M0 — Método ativo | ✅ | 2026-08-11 | PLANO-ACAO.md mergeado |
-| **M1 — Beta Fechada (ler/navegar)** | **✅** | **2026-09-15** | **PR #105 + smoke verde + 7 critérios atendidos** |
-| **M2 — Beta Fechada (engajar)** | **✅ COMPLETO 4/4** | **2026-09-16** | **T438 rankings · T439 favoritos · T440 comparadores · T441 carrossel (PRs #107–#119)** |
-| **M3 — Open Beta (monetizar)** | **✅** | **2026-09-21** | **Stripe LIVE + checkout + webhook HMAC idempotente + assinatura funcional + CDC art. 49 (PRs #127–#155) — compra real R$4,90 + estorno com protocolo** |
-| M4 — v1.0 conteúdo amplo | ⏳ | — | Futebol feminino + ETL automático + Knowledge Graph |
-| M5 — v1.0 público | ⏳ | — | IA RAG + 360º + DAST + domínio próprio [Operador] |
+| Marco                               | Status              | Data           | Evidência                                                                                                                                               |
+| ----------------------------------- | ------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 — Método ativo                   | ✅                  | 2026-08-11     | PLANO-ACAO.md mergeado                                                                                                                                  |
+| **M1 — Beta Fechada (ler/navegar)** | **✅**              | **2026-09-15** | **PR #105 + smoke verde + 7 critérios atendidos**                                                                                                       |
+| **M2 — Beta Fechada (engajar)**     | **✅ COMPLETO 4/4** | **2026-09-16** | **T438 rankings · T439 favoritos · T440 comparadores · T441 carrossel (PRs #107–#119)**                                                                 |
+| **M3 — Open Beta (monetizar)**      | **✅**              | **2026-09-21** | **Stripe LIVE + checkout + webhook HMAC idempotente + assinatura funcional + CDC art. 49 (PRs #127–#155) — compra real R$4,90 + estorno com protocolo** |
+| M4 — v1.0 conteúdo amplo            | ⏳                  | —              | Futebol feminino + ETL automático + Knowledge Graph                                                                                                     |
+| M5 — v1.0 público                   | ⏳                  | —              | IA RAG + 360º + DAST + domínio próprio [Operador]                                                                                                       |
 
 ## 🎉 M1 — Beta Fechada (ler/navegar) — DECLARADO [2026-09-15]
 
-| Critério | Status | Evidência |
-|---|---|---|
-| Seed ≥1.000 clubes (Wikidata) | ✅ | 3.857 clubes em produção (100% proveniência: qid + importedFrom + importedAt + sourceUrl) |
-| Mapa-múndi read-only | ✅ | /map com 113 coords de 3.857 clubes + marcadores + drill-down |
-| Perfis clube/jogador | ✅ | /clubs/[id] + /players/[id] com sourceUrl auditável |
-| Busca global | ✅ | /search com tsvector + pg_trgm |
-| Hero dinâmico (1.3) | ✅ | Server Component com revalidate 3600 (totals reais no HTML) |
-| **Cookie banner + consentimento publicado** | ✅ | PR #101 merged + flags ativadas + smoke verde (banner visível, prova gravando, 0 analytics antes do consentimento) |
-| **Políticas publicadas** | ✅ | /privacidade + /termos + /cookies + /seguranca retornando 200 com dados reais (CNPJ 45.370.930/0001-75, Osasco/SP, endart.studios@gmail.com, fornecedores reais) |
+| Critério                                    | Status | Evidência                                                                                                                                                        |
+| ------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Seed ≥1.000 clubes (Wikidata)               | ✅     | 3.857 clubes em produção (100% proveniência: qid + importedFrom + importedAt + sourceUrl)                                                                        |
+| Mapa-múndi read-only                        | ✅     | /map com 113 coords de 3.857 clubes + marcadores + drill-down                                                                                                    |
+| Perfis clube/jogador                        | ✅     | /clubs/[id] + /players/[id] com sourceUrl auditável                                                                                                              |
+| Busca global                                | ✅     | /search com tsvector + pg_trgm                                                                                                                                   |
+| Hero dinâmico (1.3)                         | ✅     | Server Component com revalidate 3600 (totals reais no HTML)                                                                                                      |
+| **Cookie banner + consentimento publicado** | ✅     | PR #101 merged + flags ativadas + smoke verde (banner visível, prova gravando, 0 analytics antes do consentimento)                                               |
+| **Políticas publicadas**                    | ✅     | /privacidade + /termos + /cookies + /seguranca retornando 200 com dados reais (CNPJ 45.370.930/0001-75, Osasco/SP, endart.studios@gmail.com, fornecedores reais) |
 
 **M1 completo.** Plataforma pronta para Beta Fechada (100 usuários) com:
+
 - Conteúdo auditável (3.857 clubes + 1.263 competições + 2.396 jogadores + 3.606 estádios)
 - Experiência navegável (mapa + perfis + busca + hero dinâmico)
 - Compliance LGPD (banner + consentimento + políticas + prova de consentimento)
@@ -265,20 +266,22 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 > Sobreposição/resumo executivo da base técnica concluída. O detalhamento por domínio e o backlog completo estão em
 > **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `docs/RECONCILIATION-REPORT.md`.
 
-| Dimensão                            | Status          | % estimado                         |
-| ----------------------------------- | --------------- | ---------------------------------- |
-| Infraestrutura & DevOps             | 🟢 Concluída    | 95%                                |
-| Segurança & Hardening               | 🟢 Concluída    | 90%                                |
-| Autenticação & Sessão (RLS efetiva) | 🟢 Concluída    | 95%                                |
-| Schema & Migrations                 | 🟢 Concluído    | 85%                                |
-| Compliance Legal                    | 🔴 Crítico      | 10%                                |
-| Features Core (produto)             | 🔴 Crítico      | 5%                                 |
-| Dados — identidade de entidade (clubs/players/competitions) | 🟢 Alta | T429: 3.857 clubes · 2.396 jogadores · 1.263 competições; proveniência 100% |
-| Dados — histórico/conquista (arestas WON) | 🟢 Quase-completo — T448/T448b-1 | **5.157 arestas em produção** (mundial 16 · continental 268 · nacional 4.873), proveniência 100%, carrossel + galeria + comparador vivos com fonte; gap 2.832 → **514** (estaduais/regionais → T448b-2); tie-break determinístico (T448c) |
-| Frontend UX                         | 🟡 Parcial      | 35% (carrossel de campeões vivo + galeria de honra) |
-| IA/ETL/Knowledge Graph              | 🟡 Parcial — T448 | escrita+leitura de WON funcionando; ETL cron = T451 |
-| Testes avançados                    | 🟡 Parcial      | 40%                                |
-| Observabilidade                     | 🟡 Parcial      | 30%                                |
+| Dimensão                                                    | Status                           | % estimado                                                                                                                                                                                                                                |
+| ----------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Infraestrutura & DevOps                                     | 🟢 Concluída                     | 95%                                                                                                                                                                                                                                       |
+| Segurança & Hardening                                       | 🟢 Concluída                     | 90%                                                                                                                                                                                                                                       |
+| Autenticação & Sessão (RLS efetiva)                         | 🟢 Concluída                     | 95%                                                                                                                                                                                                                                       |
+| Schema & Migrations                                         | 🟢 Concluído                     | 85%                                                                                                                                                                                                                                       |
+| Compliance Legal                                            | 🔴 Crítico                       | 10%                                                                                                                                                                                                                                       |
+| Features Core (produto)                                     | 🔴 Crítico                       | 5%                                                                                                                                                                                                                                        |
+| Dados — identidade de entidade (clubs/players/competitions) | 🟢 Alta                          | T429: 3.857 clubes · 2.396 jogadores · 1.263 competições; proveniência 100%                                                                                                                                                               |
+| Dados — histórico/conquista (arestas WON)                   | 🟢 Quase-completo — T448/T448b-1 | **5.157 arestas em produção** (mundial 16 · continental 268 · nacional 4.873), proveniência 100%, carrossel + galeria + comparador vivos com fonte; gap 2.832 → **514** (estaduais/regionais → T448b-2); tie-break determinístico (T448c) |
+| Frontend UX                                                 | 🟡 Parcial                       | 35% (carrossel de campeões vivo + galeria de honra)                                                                                                                                                                                       |
+| IA/ETL/Knowledge Graph                                      | 🟡 Parcial — T448                | escrita+leitura de WON funcionando; ETL cron = T451                                                                                                                                                                                       |
+| Testes avançados                                            | 🟡 Parcial                       | 40%                                                                                                                                                                                                                                       |
+| Observabilidade                                             | 🟡 Parcial                       | 30%                                                                                                                                                                                                                                       |
+
+**Nota T448f (09-22):** vitrine corrigida POR HIERARQUIA — liga representa o país (GRUPO-LIGA), copa representa o continente/mundo (GRUPO-COPA: continental restaurado para UCL 2025); dívidas ligadas a T448b-2/T449: tier/flagship (supertaça-vs-UCL), 1ª-vs-2ª divisão e miscategorização por keyword (VFF e universo a auditar).
 
 **Nota T448e (09-22):** vitrine nacional corrigida POR TIPO — LEAGUE representa o país, supercopa não (campo objetivo já existente; backfill das 18 ligas com aresta executado); dívida de tier (1ª-vs-2ª divisão) explicitamente ligada ao T449. Conquistas mantidas em 5.157.
 
@@ -433,30 +436,30 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 #### Qualidade & Governança
 
-| Item                                                            | Evidência |
-| --------------------------------------------------------------- | --------- |
-| PLANO_MESTRE reconciliado (112 [x] / 7 [~] / 5 [ ])             | T381      |
-| DECISOES.md com histórico completo                              | main      |
-| RECONCILIATION-REPORT.md                                        | T381      |
-| Hero com números reais (10 clubes / 3 competições / 2 rankings) | T394      |
+| Item                                                                                                  | Evidência |
+| ----------------------------------------------------------------------------------------------------- | --------- |
+| PLANO_MESTRE reconciliado (112 [x] / 7 [~] / 5 [ ])                                                   | T381      |
+| DECISOES.md com histórico completo                                                                    | main      |
+| RECONCILIATION-REPORT.md                                                                              | T381      |
+| Hero com números reais (10 clubes / 3 competições / 2 rankings)                                       | T394      |
 | Hero dinâmico com totals reais no HTML (T435: Server Component, revalidate 3600; 3857/1263/2 em prod) | T435      |
-| Linha "em crescimento" no hero (pt/en/es)                       | T399      |
-| ESLint + Prettier (sem varrer dist/)                            | T392      |
+| Linha "em crescimento" no hero (pt/en/es)                                                             | T399      |
+| ESLint + Prettier (sem varrer dist/)                                                                  | T392      |
 
 ### ⚠️ PARCIALMENTE FEITO (gaps documentados)
 
-| Item                             | Status | Gap                                                                                                                                                                                    |
-| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RLS em `users`                   | [x]    | **T442**: ENABLE+FORCE, owner select/update, INSERT com id gerado no server + contexto, função SECURITY DEFINER pre-auth, SERVICE pleno; matriz cross-user no CI (app_user) + aplicado em produção com smoke verde                                                              |
-| Governança de proveniência (2.7) | [x]    | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas |
-| Criptografia de coluna (2.10)    | [~]    | Infra pronta, não aplicada a email/telefone                                                                                                                                            |
-| Testes E2E (Playwright)          | [~]    | Estrutura existe, cobertura baixa                                                                                                                                                      |
-| Testes de carga (k6)             | [ ]    | Não executado                                                                                                                                                                          |
-| DAST (OWASP ZAP)                 | [ ]    | Job existe, sem cron semanal ativo                                                                                                                                                     |
-| CodeQL (SAST)                    | [~]    | Configurado, sem análise regular                                                                                                                                                       |
-| Feature flags                    | [ ]    | Tabela existe, sem UI de administração                                                                                                                                                 |
-| DNSSEC + CAA + HSTS preload      | [ ]    | Depende de domínio próprio (pendência Operador)                                                                                                                                        |
-| Vault/Infisical                  | [~]    | Railway tem secret manager nativo (usado), mas sem rotação automática de 90 dias                                                                                                       |
+| Item                             | Status | Gap                                                                                                                                                                                                                |
+| -------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RLS em `users`                   | [x]    | **T442**: ENABLE+FORCE, owner select/update, INSERT com id gerado no server + contexto, função SECURITY DEFINER pre-auth, SERVICE pleno; matriz cross-user no CI (app_user) + aplicado em produção com smoke verde |
+| Governança de proveniência (2.7) | [x]    | Convenção `qid`+`importedFrom`+`importedAt`+`sourceUrl` oficializada (D-2026-09-07-proveniencia-convencional, T426); `data_sources`/`entity_revisions` não existem e não serão criadas                             |
+| Criptografia de coluna (2.10)    | [~]    | Infra pronta, não aplicada a email/telefone                                                                                                                                                                        |
+| Testes E2E (Playwright)          | [~]    | Estrutura existe, cobertura baixa                                                                                                                                                                                  |
+| Testes de carga (k6)             | [ ]    | Não executado                                                                                                                                                                                                      |
+| DAST (OWASP ZAP)                 | [ ]    | Job existe, sem cron semanal ativo                                                                                                                                                                                 |
+| CodeQL (SAST)                    | [~]    | Configurado, sem análise regular                                                                                                                                                                                   |
+| Feature flags                    | [ ]    | Tabela existe, sem UI de administração                                                                                                                                                                             |
+| DNSSEC + CAA + HSTS preload      | [ ]    | Depende de domínio próprio (pendência Operador)                                                                                                                                                                    |
+| Vault/Infisical                  | [~]    | Railway tem secret manager nativo (usado), mas sem rotação automática de 90 dias                                                                                                                                   |
 
 ### ❌ FALTA FAZER (por domínio)
 
@@ -594,15 +597,15 @@ Almanaque, mas faltam:
 
 ## 🎉 M3 — Open Beta (monetizar) — DECLARADO [2026-09-21]
 
-| Critério (PLANO-ACAO §4) | Evidência | Status |
-|---|---|---|
-| Gateway de pagamento integrado | Stripe LIVE (sk_live_/pk_live_/whsec_), 4 preços BRL corretos | ✅ |
-| Checkout funcional | Compra real Pro R$ 4,90 (20/09) — sessão live paga, redirect de sucesso | ✅ |
-| Webhook HMAC idempotente | payment_events gravando checkout.session.completed + charge.refunded; applyPaymentEvent insert-first | ✅ |
-| Assinatura funcional | PRO/ACTIVE → "Solicitar reembolso" → protocolo re_3UHwb… instantâneo → "Nenhuma assinatura ativa" | ✅ |
-| Arrependimento CDC art. 49 | Estorno REAL executado com fail-loud (#146): refund no provedor antes de marcar local; protocolo na tela | ✅ |
-| Compliance completo | T445 (direitos do titular + DMCA) + políticas v1.2 (#141) + histórico de cobranças + bloco de condições (#147/#155) | ✅ |
-| Smoke live verde | Compra + estorno reais pelo /checkout logado, com auditoria (audit_logs provider: stripe) | ✅ |
+| Critério (PLANO-ACAO §4)       | Evidência                                                                                                           | Status |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------ |
+| Gateway de pagamento integrado | Stripe LIVE (sk_live_/pk_live_/whsec_), 4 preços BRL corretos                                                       | ✅     |
+| Checkout funcional             | Compra real Pro R$ 4,90 (20/09) — sessão live paga, redirect de sucesso                                             | ✅     |
+| Webhook HMAC idempotente       | payment_events gravando checkout.session.completed + charge.refunded; applyPaymentEvent insert-first                | ✅     |
+| Assinatura funcional           | PRO/ACTIVE → "Solicitar reembolso" → protocolo re_3UHwb… instantâneo → "Nenhuma assinatura ativa"                   | ✅     |
+| Arrependimento CDC art. 49     | Estorno REAL executado com fail-loud (#146): refund no provedor antes de marcar local; protocolo na tela            | ✅     |
+| Compliance completo            | T445 (direitos do titular + DMCA) + políticas v1.2 (#141) + histórico de cobranças + bloco de condições (#147/#155) | ✅     |
+| Smoke live verde               | Compra + estorno reais pelo /checkout logado, com auditoria (audit_logs provider: stripe)                           | ✅     |
 
 **M3 completo.** Plataforma em Open Beta monetizada: cobra, registra, reembolsa e
 mostra o histórico com honestidade. Sessão confiável no ambiente real do pagante
@@ -610,17 +613,17 @@ mostra o histórico com honestidade. Sessão confiável no ambiente real do paga
 
 ### Postmortem da saga de sessão (T452→T462, oito PRs, uma causa por camada)
 
-| Camada | Defeito | Fix |
-|---|---|---|
-| API — clearCookie sem atributos | Chrome rejeita Set-Cookie `__Host-` sem Secure | #148: espelha atributos da criação |
-| API — logout sem body | FST_ERR_CTP_EMPTY_JSON_BODY → 400 antes do handler | T462: body `{}` |
-| API — refund silencioso | `invoice.payment_intent` null no formato novo → refund pulado | #146: fail-loud + resolver cascata |
-| API — cancel sem tocar no provedor | Stripe continuaria cobrando pós-cancel na UI | cancel_at_period_end |
-| Client — interceptor ressuscitava | refresh residual pós-logout | suppressSessionRefresh |
-| Client — sem refresh no fluxo | access de 15min expirava, ninguém chamava /auth/refresh | #143 interceptor |
-| Client — indicador cego | navbar "Entrar" hardcoded | AuthProvider T450 |
-| Infra — CRLF no entrypoint | checkouts Windows quebravam shebang | Dockerfile sed |
-| Infra — price IDs errados | prod_ em vez de price_ | Operador corrigiu |
+| Camada                             | Defeito                                                       | Fix                                |
+| ---------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| API — clearCookie sem atributos    | Chrome rejeita Set-Cookie `__Host-` sem Secure                | #148: espelha atributos da criação |
+| API — logout sem body              | FST_ERR_CTP_EMPTY_JSON_BODY → 400 antes do handler            | T462: body `{}`                    |
+| API — refund silencioso            | `invoice.payment_intent` null no formato novo → refund pulado | #146: fail-loud + resolver cascata |
+| API — cancel sem tocar no provedor | Stripe continuaria cobrando pós-cancel na UI                  | cancel_at_period_end               |
+| Client — interceptor ressuscitava  | refresh residual pós-logout                                   | suppressSessionRefresh             |
+| Client — sem refresh no fluxo      | access de 15min expirava, ninguém chamava /auth/refresh       | #143 interceptor                   |
+| Client — indicador cego            | navbar "Entrar" hardcoded                                     | AuthProvider T450                  |
+| Infra — CRLF no entrypoint         | checkouts Windows quebravam shebang                           | Dockerfile sed                     |
+| Infra — price IDs errados          | prod_ em vez de price_                                        | Operador corrigiu                  |
 
 Regras permanentes registradas: D-2026-09-18-testes-sem-skip-silencioso · D-2026-09-20-fixtures-escopados · D-2026-09-20-refund-fail-loud · D-2026-09-20-sessao-sempre-assenta · D-2026-09-21-pr-merged-nao-certifica-conteudo · D-2026-09-21-t463-checkout-entradas · D-2026-09-21-t462-logout-efetivo.
 

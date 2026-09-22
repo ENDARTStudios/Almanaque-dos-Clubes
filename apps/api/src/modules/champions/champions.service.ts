@@ -19,7 +19,7 @@ export interface ChampionView {
   hierarchy: RankHierarchy;
   champion: {
     club: { id: string; name: string; country: string | null };
-        competition: { id: string; name: string | null; type: string | null };
+    competition: { id: string; name: string | null; type: string | null };
     season: number | null;
     /** URL de imagem do troféu (metadata.imageUrl) — hoje o acervo não tem; placeholder no frontend. */
     trophy: string | null;
@@ -124,10 +124,37 @@ export function typeRank(type: string | null | undefined): number {
   return 2;
 }
 
+/**
+ * T448f — partição por grupo de flagship (valores REAIS de RANKING_HIERARCHIES,
+ * lidos do fonte nesta tarefa — conjunto completo, sem órfãos):
+ *   GRUPO-LIGA (flagship = liga): nacional, estadual, municipal
+ *     → type-first (LEAGUE > CUP > outros/NULL) antes da vigência.
+ *   GRUPO-COPA (flagship = copa): mundial, continental
+ *     → vigência-primeiro (a copa É o flagship: UCL, FIFA Club World Cup).
+ * Hierarquia fora do mapa (futuro do enum): default 'copa' (vigência-first,
+ * sem demotion por tipo) — registrado no DECISOES, nunca em silêncio.
+ */
+export const FLAGSHIP_GROUP: Record<RankHierarchy, 'liga' | 'copa'> = {
+  nacional: 'liga',
+  estadual: 'liga',
+  municipal: 'liga',
+  mundial: 'copa',
+  continental: 'copa',
+};
+
+const DEFAULT_FLAGSHIP_GROUP: 'liga' | 'copa' = 'copa';
+
 /** Comparador total (nunca 0 entre candidatos distintos — id fecha a ordem). */
 export function compareRepresentatives(a: Representative, b: Representative): number {
+  // T448f — a partição é POR HIERARQUIA (a e b compartilham hierarquia por
+  // construção em selectRepresentatives; nos usos diretos, a hierarquia de `a`).
+  const group = FLAGSHIP_GROUP[a.hierarchy] ?? DEFAULT_FLAGSHIP_GROUP;
+  const base =
+    group === 'liga'
+      ? typeRank(a.compType) - typeRank(b.compType) // T448e — só onde a liga é flagship
+      : 0; // GRUPO-COPA: vigência-primeiro (T448c puro), sem demotion por tipo
   return (
-    typeRank(a.compType) - typeRank(b.compType) ||
+    base ||
     b.latestYear - a.latestYear ||
     b.editions - a.editions ||
     b.distinctChampions - a.distinctChampions ||
@@ -138,8 +165,9 @@ export function compareRepresentatives(a: Representative, b: Representative): nu
 
 /**
  * Seleção PURA: agrega arestas por (hierarquia, competição) e elege o
- * representante de cada hierarquia pelo comparador acima. Ordem de entrada
- * NÃO afeta o resultado (testes embaralham a entrada para provar).
+ * representante de cada hierarquia pelo comparador acima (condicional por
+ * grupo de flagship — ver FLAGSHIP_GROUP). Ordem de entrada NÃO afeta o
+ * resultado (testes embaralham a entrada para provar).
  *
  * T448d — guarda de vigência: edição com year > currentYear (UTC, no momento
  * da comparação) NÃO existe para o carrossel — não é "vigente", não conta em
