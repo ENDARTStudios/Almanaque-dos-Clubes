@@ -737,4 +737,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **G1 (medido, não assumido):** `pnpm test:unit` (= `pnpm --recursive test`, o que o `security-gate` roda) **inclui `apps/web` (vitest, 4 arq./16 testes)** → a hipótese "CI não roda testes do web" é **FALSA** para unit; o `rights.spec.ts` obsoleto "passou" porque é **Playwright** (`tests/e2e/**`, fora do vitest, **sem passo no `ci.yml`**) → gap real = Playwright E2E não roda no CI de PR (fora do escopo do T476b). Sem T476b.
 
-**T472a:** i18n pt/en/es de `CheckoutSummary`/`CheckoutButton`/modal T464 + catálogo **`plan-features.ts` multi-locale** (fonte única). E2E en/es de `/planos` (+`/checkout` condicional à flag). **T472b (jurídico) CONDICIONADO** — não traduzir sem disclaimer de prevalência/advogado.
+**T472a:** i18n pt/en/es de `CheckoutSummary`/`CheckoutButton`/modal T464 + catálogo **`plan-features.ts` multi-locale`** (fonte única). E2E en/es de `/planos` (+`/checkout` condicional à flag). **T472b (jurídico) CONDICIONADO** — não traduzir sem disclaimer de prevalência/advogado.
+
+### GATE 2 adendum 14 — T448b-2 FASE 0+1: reclassificação de miscategorização (parser RSSSF splitado) (2026-09-22)
+
+**FASE 0 (medido):** keywords do `resolveHierarchy` lidos do fonte (`ranking-algorithm.service.ts:77-86`); `estadual/municipal` **sem keyword** → default nacional. Produção: arestas WON nacional **4873** · continental **268** · mundial **16** · **estadual/municipal 0** (gap 514). Das **18** competitions que batem o keyword continental, **2 miscategorizadas** (country ≠ null): `VFF Champions League` (VU, 1 aresta) e `Afghanistan Champions League` (AF).
+
+**Veredicto (a) [arbitrado]:** continental por nome só com `country` nulo; re-ingestão idempotente. Entregue + testado (`t448b2-hierarchy.test.ts`, 3 casos).
+
+**Licença (0.4, corrigida):** RSSSF **não é domínio público** — "free to copy **with proper acknowledgement**". Atribuição obrigatória; `sourceUrl`/`retrievedAt` por aresta.
+
+**Corte de escopo:** o **parser RSSSF BR estadual** excede o round (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).

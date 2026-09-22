@@ -19,6 +19,22 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t448b2-reclassificacao-miscategorizacao — Miscategorização por keyword: 2 competições, corrigidas por (a)
+
+Motivo (FASE 0 medida): o `resolveHierarchy` classifica 'continental' por **nome** (`champions league` etc.) sem exigir confederação. Universo real: das **18** competitions que batem o keyword continental, **2 têm `country` não-nulo** (miscategorizadas): `VFF Champions League` (VU, Q17632439, **1 aresta WON**) e `Afghanistan Champions League` (AF, Q124735366). Correção (**a**): `continental` por nome só vale com **`country` nulo** (confederação); ligas nacionais homônimas caem em nacional. Re-ingestão idempotente (o `won-edges.service` já atualiza metadata divergente sem duplicar — T448b-1). **Hierarquia-como-nome é frágil** → **(b)** (coluna `hierarchy` em `competitions`) fica reservada a **T449/tier** se o volume crescer.
+
+### [2026-09-22] Decisão: D-2026-09-22-t448b2-gap-coordenada-nao-e-escopo — RSSSF não dá P625; o gap de coordenada do mapa NÃO é T448b-2
+
+Motivo: o gap de coordenada/estado/cidade do mapa é **limitação declarada do T467** (coord direta ~3,7%, estado 4,9%, cidade 11,6%). O RSSSF **não fornece** `P625`; T448b-2 corrige **hierarquia** (estadual deixa de ser miscategorizado) e **títulos**, **não** adensa pinos. Não prometer "mapa mais denso" aqui. Densidade de coordenada viria de T448b-2/T449 se algum dia houver fonte com P625.
+
+### [2026-09-22] Decisão: D-2026-09-22-rsssf-licenca-atribuicao — RSSSF NÃO é domínio público: exige atribuição
+
+Motivo (FASE 0.4, verificado no artefato): a home da RSSSF Brasil declara "(C) Copyright RSSSF and RSSSF Brazil … You are free to copy this document in whole or part **provided that proper acknowledgement is given** … All rights reserved." — ou seja, **cópia permitida COM atribuição obrigatória**, não domínio público (a premissa do despacho estava imprecisa). Uso autônomo OK **desde que** cada aresta guarde `source='rsssf'` + `sourceUrl` + `retrievedAt` **e** o produto credite RSSSF/RSSSF Brasil. Fontes de licença fechada (FBref/StatsBomb/Transfermarkt) seguem fora (§2.5 Operador).
+
+### [2026-09-22] Decisão: D-2026-09-22-t448b2-estadual-municipal-piloto — Escopo cortado: reclassificação ENTREGUE; parser RSSSF BR estadual SPLITADO (excede o round)
+
+Motivo (FASE 0 + tentativa de FASE 2): entregue a **FASE 1 (reclassificação das 2 miscategorizadas, (a))** — contida, testada (`t448b2-hierarchy.test.ts`). O **parser RSSSF de estaduais brasileiros** (FASE 2) **estoura o round**: a RSSSF Brasil cobre ~27 estados em páginas por estado, com **layouts variados**, mantidas por autores distintos, **sem directory listing público** (403) e sem URL canônica estável por campeonato — é descoberta-de-fonte + N parsers, não 1 parser. **Corte honesto (lição WS-P):** T448b-2 = reclassificação (este PR); **parser RSSSF BR estadual = round dedicado (T448b-2b)**; municipal/outros países depois (T448b-2c/-2d se necessário). O gap 514 (estaduais/municipais = **0** no metadata) fica **DECLARADO** até o round do parser.
+
 ### [2026-09-22] Decisão: D-2026-09-22-gap-e2e-ci-nao-rodado — O CI de PR não roda Playwright E2E (achado do G1; dívida rastreada T476c)
 
 Motivo (CONF do G1): o `security-gate` roda **unit+integração** (vitest via `pnpm --recursive test`, incluindo `apps/web` — 16 testes), **lint recursivo** (T476) e **typecheck**; **NÃO roda Playwright E2E** (`tests/e2e/**`). A bifurcação prevista no G1, aplicada: unit **roda** (a hipótese "CI não roda web" era falsa para unit); o `rights.spec.ts` obsoleto "passou" porque é Playwright → **o gap real é E2E, não unit**. Consequência: os E2E validados por round (champions-stability, oferta-honesta, galeria, acessibilidade do mapa T467, direitos titular T470, T472a en/es) **não são cobertos pelo "CI verde"**. **Dívida rastreada:** **T476c** (opcional-futuro, pré-M5) — job Playwright contra preview/staging (stack completo) OU ressalva permanente. **Não bloqueia M4.** Ressalva **PERMANENTE no HANDOFF** até T476c.
