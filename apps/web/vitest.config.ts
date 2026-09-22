@@ -1,9 +1,12 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
+  // Alias `@` → src (mesmo do Next) para testes de componente.
+  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     // Unit apenas: tests/e2e é do Playwright (playwright.config.ts, testDir
     // ./tests/e2e) e NÃO roda sob o runner do vitest.
-    include: ['tests/unit/**/*.test.ts'],
+    include: ['tests/unit/**/*.test.{ts,tsx}'],
   },
 });

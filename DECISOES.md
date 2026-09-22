@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t464-confirm-destructiva — Confirmação de ação destrutiva (reembolso/cancel) + consistência billing↔refund
+
+Motivo (WS-P, hardening pré-beta pago): reembolso e cancelamento coexistem no `SubscriptionManager` **sem fricção nem distinção visível**; o usuário podia executar ação irreversível por engano. Subjacente, o achado (print 4): linha R$ 4,90 **PAID** mesmo com protocolo de refund emitido.
+**Causa-raiz F2 (medida, R3):** o servidor **certa** — `withdrawSubscription` faz `billing.updateMany(status: 'REFUNDED')` no mesmo transação do cancelamento. O defeito era de **UI**: o `SubscriptionManager` carregava `/billing/invoices` uma única vez no mount e **não re-sincronizava** após o refund → linha PAID obsoleta.
+**Correção:** F1 **modal acessível** (`role=dialog`, `aria-modal`, foco preso em Tab, Esc fecha, foco inicial no botão SEGURO = Voltar, `aria-haspopup`), com **distinção visível** (reembolso = devolve {valor} + encerra agora; cancel = interrompe renovação, mantém acesso até {data}, sem devolução) → só então `POST /billing/{kind}`. F2 **re-sincroniza** o histórico (`loadData()` após a ação). F3 mantém o **fail-loud** (erros do provedor chegam como exceção; estado local nunca é limpo/fingido) — o retry com CSRF novo já existe no client (`api` re-lê token em 403).
+**Sem migration** (UI + client). Backend withdraw/cancel intocado (provado #146/#156). Docs reconciliados.
+**Limitação:** E2E de produção do modal exige assinatura paga (PRO/ELITE) de teste — declarado; a lógica de fechar-sem-agir é inerente (a ação só roda no `Confirmar`).
+
 ### [2026-09-22] Decisão: D-2026-09-22-consentimento-export-gap — Consentimento fora do export do titular (gap LGPD art. 18; direção de correção)
 
 Motivo (ressalva R1-CONSENT da revisão do #177, aceita e não bloqueante): o `/legal/rights/me/export` **não inclui** os consentimentos de cookies, porque `cookie_consents` é chaveado por `visitorId` (client-side) e **não há vínculo `visitorId ↔ userId`** no schema. Forçar um join agora inventaria vínculo inexistente (viola 1.3/R3). É **gap real** de acesso (art. 18) para titular autenticado.
