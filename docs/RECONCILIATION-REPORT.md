@@ -13,10 +13,10 @@ gap documentado; `[ ]` sem evidência/não iniciado.
 ## 2. Estado real (números)
 
 | Marcação | Contagem |
-|---|---|
-| `[x]` | 111 |
-| `[~]` | 7 |
-| `[ ]` | 6 |
+| -------- | -------- |
+| `[x]`    | 111      |
+| `[~]`    | 7        |
+| `[ ]`    | 6        |
 
 > **Correção de premissa:** o handoff citava "~80 itens `[ ]`". O arquivo real
 > tem **6 `[ ]`** e **7 `[~]`**. O débito de governança é bem menor do que o
@@ -24,40 +24,40 @@ gap documentado; `[ ]` sem evidência/não iniciado.
 
 ## 3. Mapeamento T3xx → Fase (principais)
 
-| T3xx | Fase/Item | Efeito no plano |
-|---|---|---|
-| T341/T342 | Fase 3 (auth), Fase 6.2 | mailer transacional + verificação de email + reset via mailer |
-| T344/T345/T377 | Fase 2/3 (sessions) | RLS de `sessions` desenhada e validada em teste (aditivo) |
-| T347/T348/T349 | Fase 4 (domain) | reconciliação docs + quarentena de `uml.ts`/`rbac-matrix.ts` |
-| T350/T351/T366/T368 | Fase 9.4 | Root Directory Vercel + deploy web destravado |
-| T359 | Fase 2 (billing) | coluna `trial_used_at` + migration |
-| T370/T371 | Fase 2/3 (sessions) | `rls-context.ts` + adoção `withRlsContext` |
-| T373/T374/T375/T378 | Fase 9.1 | CI: fix Redis + oracle + gitleaks + dependency-audit |
-| T376/T380 | Fase 9.4 | merges via exceção governada; produção verde |
-| T379 | Fase 9.9 | `MANUAL_DO_OPERADOR.md` reescrito |
+| T3xx                | Fase/Item               | Efeito no plano                                               |
+| ------------------- | ----------------------- | ------------------------------------------------------------- |
+| T341/T342           | Fase 3 (auth), Fase 6.2 | mailer transacional + verificação de email + reset via mailer |
+| T344/T345/T377      | Fase 2/3 (sessions)     | RLS de `sessions` desenhada e validada em teste (aditivo)     |
+| T347/T348/T349      | Fase 4 (domain)         | reconciliação docs + quarentena de `uml.ts`/`rbac-matrix.ts`  |
+| T350/T351/T366/T368 | Fase 9.4                | Root Directory Vercel + deploy web destravado                 |
+| T359                | Fase 2 (billing)        | coluna `trial_used_at` + migration                            |
+| T370/T371           | Fase 2/3 (sessions)     | `rls-context.ts` + adoção `withRlsContext`                    |
+| T373/T374/T375/T378 | Fase 9.1                | CI: fix Redis + oracle + gitleaks + dependency-audit          |
+| T376/T380           | Fase 9.4                | merges via exceção governada; produção verde                  |
+| T379                | Fase 9.9                | `MANUAL_DO_OPERADOR.md` reescrito                             |
 
 ## 4. Itens `[ ]` (6) — status
 
-| Item | Status real |
-|---|---|
-| 2.7 Tabelas de governança (`data_sources`, `entity_revisions`) | ❌ não existem no schema; "rankings auditáveis" depende de ETL futuro |
-| 2.10 Criptografia a nível de coluna | ❌ não implementada (condicional a Vault/Infisical) |
-| 7.9 Vault/Infisical (CONDICIONAL) | ❌ não implementado |
-| 7.10 DNSSEC + CAA + HSTS preload (CONDICIONAL, domínio) | ❌ pendente de domínio próprio |
-| 9.3 Deploy blue-green/rolling (zero downtime) | ❌ pendente (deploys atuais são recriação simples) |
-| 9.4 Plataforma de deploy (decidir) | ✅ **DECIDIDA** — Railway (API) + Vercel (web), em produção → propor `[x]` |
+| Item                                                           | Status real                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 2.7 Tabelas de governança (`data_sources`, `entity_revisions`) | ❌ não existem no schema; "rankings auditáveis" depende de ETL futuro      |
+| 2.10 Criptografia a nível de coluna                            | ❌ não implementada (condicional a Vault/Infisical)                        |
+| 7.9 Vault/Infisical (CONDICIONAL)                              | ❌ não implementado                                                        |
+| 7.10 DNSSEC + CAA + HSTS preload (CONDICIONAL, domínio)        | ❌ pendente de domínio próprio                                             |
+| 9.3 Deploy blue-green/rolling (zero downtime)                  | ❌ pendente (deploys atuais são recriação simples)                         |
+| 9.4 Plataforma de deploy (decidir)                             | ✅ **DECIDIDA** — Railway (API) + Vercel (web), em produção → propor `[x]` |
 
 ## 5. Itens `[~]` (7) — status
 
-| Item | Estado real |
-|---|---|
-| Fase 2 (resumo 13/15) | 2.7/2.10 seguem pendentes |
-| 3.9 Testes de integração | escritos; rodam em CI quando o Actions voltar (Caminho A) |
-| Fase 7 (resumo) | 7.9/7.10 condicionais |
-| Fase 9 (resumo) | 9.4 decidida; 9.3 pendente |
-| 8.3 E2E (Playwright) | 5/5 passando (T003); execução manual |
-| 8.8 Regressão de segurança | CI configurado; expandir cenários |
-| 8.9 Testes pipeline IA | pendente (Ollama/pgvector operacional) |
+| Item                       | Estado real                                               |
+| -------------------------- | --------------------------------------------------------- |
+| Fase 2 (resumo 13/15)      | 2.7/2.10 seguem pendentes                                 |
+| 3.9 Testes de integração   | escritos; rodam em CI quando o Actions voltar (Caminho A) |
+| Fase 7 (resumo)            | 7.9/7.10 condicionais                                     |
+| Fase 9 (resumo)            | 9.4 decidida; 9.3 pendente                                |
+| 8.3 E2E (Playwright)       | 5/5 passando (T003); execução manual                      |
+| 8.8 Regressão de segurança | CI configurado; expandir cenários                         |
+| 8.9 Testes pipeline IA     | pendente (Ollama/pgvector operacional)                    |
 
 ## 6. Gaps consolidados (candidatas, NÃO executadas)
 
@@ -91,13 +91,13 @@ consentimento + páginas legais), referente a
 
 ### Critérios técnicos do M1 — 6/6 atendidos
 
-| Critério | Status |
-|---|---|
-| Seed ≥ 1.000 clubes | ✅ 3.857 em produção (T429) |
-| Mapa-múndi read-only | ✅ |
-| Perfis clube/jogador | ✅ |
-| Busca global | ✅ |
-| Hero dinâmico (1.3) | ✅ (T435) |
+| Critério                                | Status                                                          |
+| --------------------------------------- | --------------------------------------------------------------- |
+| Seed ≥ 1.000 clubes                     | ✅ 3.857 em produção (T429)                                     |
+| Mapa-múndi read-only                    | ✅                                                              |
+| Perfis clube/jogador                    | ✅                                                              |
+| Busca global                            | ✅                                                              |
+| Hero dinâmico (1.3)                     | ✅ (T435)                                                       |
 | Cookie banner + consentimento publicado | ✅ estrutura completa (T436) — ver pendência de ativação abaixo |
 
 ### Pendência única (externa, decisão do Operador)
@@ -193,6 +193,7 @@ dots e aria-live. Em produção o estado é honestamente vazio (wonEdges=0) e
 os cards aparecem automaticamente quando o ETL M4 popular títulos.
 
 **M2 — Beta Fechada (engajar): COMPLETO (4/4)**
+
 - T438 rankings 0-100 em cron ✅
 - T439 favoritos em tempo real ✅
 - T440 comparadores ✅
@@ -271,6 +272,7 @@ Fila: T445 (WS-L 2ª camada) · M3 gateway (Operador) · T447 (Stripe test-mode)
 ## 17. Snapshot T445 — WS-L 2ª camada: direitos do titular + copyright claims (2026-09-18)
 
 `D-2026-09-18-t445-direitos-titular` (PR #137, CI verde, F1–F5):
+
 - **API**: `POST/GET /privacy-requests` (token de acompanhamento p/ não-usuários,
   SLA imediato/15d ANPD, deferredUntil art. 18 §3, cadeia ESTRITA auditada,
   decisão motivada obrigatória) + `POST /copyright-claims` (honeypot +
@@ -349,17 +351,17 @@ reconciliação no mesmo PR.
 
 ### Critérios de aceite — evidência por linha
 
-| Critério | Evidência | Veredito |
-|---|---|---|
-| Arestas WON com proveniência 100% | 235/235 com `metadata.{dataSource='wikidata', sourceUrl=URL da EDIÇÃO, license='CC0', importedAt}` (integração confere campo a campo) | ✅ |
-| Contagem POR HIERARQUIA antes/depois | antes `0×5`; depois `235` = continental 40 + nacional 195 (tabelas no output do script) | ✅ |
-| Spot-check 20 com veredito por linha | re-busca da EDIÇÃO via `Special:EntityData` (não confia no pipeline): P1346=vencedor ∧ P3450=mãe ∧ ano ∈ P585/P580/P582 → **20/20 OK** | ✅ |
-| Re-run idempotente | 2ª rodada completa: `0 criar · 235 skip · 0 atualizar`; `count(*)` estável | ✅ |
-| Gap medido e reportado (não limado) | 277 gaps: mundial 17 · continental 18 · nacional 242; top mães ausentes listadas com QID (FA Cup, Ligue 1, Coppa Italia, FIFA Club World Cup…) | ✅ |
-| Carrossel com campeão real + link + fonte | `/champions` ao vivo: PSG (UEFA Champions League, fonte `Q124024430`) · Arsenal (Premier League, fonte `Q132674557`); fonte = link Wikidata no card | ✅ |
-| CI verde real (R1) + tsc/lint/prettier 0 | tsc api/web 0 erros; eslint 0 erros nos arquivos do PR; CI roda no PR | ✅ (CI no PR) |
-| Estado Final corrigido (duas camadas) | PLANO_MESTRE: identidade=ALTA (T429) · conquistas=PARCIAL com gap declarado; "dados 1%" aposentado | ✅ |
-| R2 — sem corrida/estado compartilhado | fixture com ano 1901 (não desbancra T441); contagens escopadas ao fixture; leitura congelada testada com prisma mockado | ✅ |
+| Critério                                  | Evidência                                                                                                                                           | Veredito      |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Arestas WON com proveniência 100%         | 235/235 com `metadata.{dataSource='wikidata', sourceUrl=URL da EDIÇÃO, license='CC0', importedAt}` (integração confere campo a campo)               | ✅            |
+| Contagem POR HIERARQUIA antes/depois      | antes `0×5`; depois `235` = continental 40 + nacional 195 (tabelas no output do script)                                                             | ✅            |
+| Spot-check 20 com veredito por linha      | re-busca da EDIÇÃO via `Special:EntityData` (não confia no pipeline): P1346=vencedor ∧ P3450=mãe ∧ ano ∈ P585/P580/P582 → **20/20 OK**              | ✅            |
+| Re-run idempotente                        | 2ª rodada completa: `0 criar · 235 skip · 0 atualizar`; `count(*)` estável                                                                          | ✅            |
+| Gap medido e reportado (não limado)       | 277 gaps: mundial 17 · continental 18 · nacional 242; top mães ausentes listadas com QID (FA Cup, Ligue 1, Coppa Italia, FIFA Club World Cup…)      | ✅            |
+| Carrossel com campeão real + link + fonte | `/champions` ao vivo: PSG (UEFA Champions League, fonte `Q124024430`) · Arsenal (Premier League, fonte `Q132674557`); fonte = link Wikidata no card | ✅            |
+| CI verde real (R1) + tsc/lint/prettier 0  | tsc api/web 0 erros; eslint 0 erros nos arquivos do PR; CI roda no PR                                                                               | ✅ (CI no PR) |
+| Estado Final corrigido (duas camadas)     | PLANO_MESTRE: identidade=ALTA (T429) · conquistas=PARCIAL com gap declarado; "dados 1%" aposentado                                                  | ✅            |
+| R2 — sem corrida/estado compartilhado     | fixture com ano 1901 (não desbancra T441); contagens escopadas ao fixture; leitura congelada testada com prisma mockado                             | ✅            |
 
 ### Onde o dado foi buscado e onde vive
 
@@ -411,16 +413,16 @@ compilado com `node` puro (#162). Deploy final verificado por fingerprint: `RAIL
 
 **Números reais de produção (acervo 3.857 clubes · 1.263 competições):**
 
-| Métrica | Valor |
-|---|---|
-| Fetch (janela 1870–2026, 32 janelas) | 17.470 linhas · **13.436 candidatos únicos** · 217s |
-| Arestas WON criadas | **2.809** (nacional 2.808 · continental 1) — ANTES 0 |
-| Gap de mãe ausente (input T448b) | **2.832** (mundial 16 · continental 286 · nacional 2.530) |
-| Órfãos (vencedor fora do acervo — seleções/clubes não importados) | 7.795 |
-| Re-run idempotente (janela 2005–2026) | `1.087 skip · 17 criar · 2 atualizar` — grafo vivo do Wikidata (claims novas/editadas entre rodadas); **zero duplicação**: total evoluiu exatamente +17 (2.809→2.826), duplicados por (clube,competição,ano) = **0** no DB |
-| Proveniência | **2.826/2.826 (100%)** com dataSource=wikidata + license=CC0 + sourceUrl da EDIÇÃO |
-| Spot-check independente | **20/20 OK** (re-busca da EDIção: P1346 vencedor + P3450 mãe + ano) |
-| Carrossel vivo | `/champions` respondendo campeões reais com fonte Wikidata por card |
+| Métrica                                                           | Valor                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fetch (janela 1870–2026, 32 janelas)                              | 17.470 linhas · **13.436 candidatos únicos** · 217s                                                                                                                                                                        |
+| Arestas WON criadas                                               | **2.809** (nacional 2.808 · continental 1) — ANTES 0                                                                                                                                                                       |
+| Gap de mãe ausente (input T448b)                                  | **2.832** (mundial 16 · continental 286 · nacional 2.530)                                                                                                                                                                  |
+| Órfãos (vencedor fora do acervo — seleções/clubes não importados) | 7.795                                                                                                                                                                                                                      |
+| Re-run idempotente (janela 2005–2026)                             | `1.087 skip · 17 criar · 2 atualizar` — grafo vivo do Wikidata (claims novas/editadas entre rodadas); **zero duplicação**: total evoluiu exatamente +17 (2.809→2.826), duplicados por (clube,competição,ano) = **0** no DB |
+| Proveniência                                                      | **2.826/2.826 (100%)** com dataSource=wikidata + license=CC0 + sourceUrl da EDIÇÃO                                                                                                                                         |
+| Spot-check independente                                           | **20/20 OK** (re-busca da EDIção: P1346 vencedor + P3450 mãe + ano)                                                                                                                                                        |
+| Carrossel vivo                                                    | `/champions` respondendo campeões reais com fonte Wikidata por card                                                                                                                                                        |
 
 **Top mães ausentes (T448b):** Q15804 (124) · Scottish Cup (102) · **Campeonato Carioca (85)** ·
 Coppa Italia (73) · Norwegian Cup (69) · Scottish League Cup (69) · FA Cup (66) · Copa del Rey (65) ·
@@ -458,17 +460,17 @@ international clubs cup · Q123856943 club world championship + fallback por ró
 Libertadores estão com classe genérica no Wikidata). 300 mães-copa semeadas
 (`importedFrom='wikidata-cups'`, type='CUP'; 1.263 → 1.563 competições; spot-check 10/10).
 
-| Métrica | Antes | Depois |
-|---|---|---|
-| Arestas WON totais | 2.826 | **5.157** |
-| Mundial | 0 | **16** (Real Madrid, FIFA Club World Cup na vitrine) |
-| Continental | 1 | **268** (PSG, UEFA Champions League 2025 na vitrine) |
-| Nacional | 2.825 | 4.873 |
-| Gap de mãe ausente | 2.832 | **514** (mundial **0** · continental 20 · nacional 494 → T448b-2) |
-| Zero duplicação (GROUP BY clube+competição+ano HAVING>1) | — | **0** |
-| Proveniência (dataSource+CC0+sourceUrl da edição) | — | **5.157/5.157 (100%)** |
-| Re-run idempotente (2005–2026) | — | `2.051 skip · 13 criar (claims novas do grafo vivo) · 3 atualizar` — zero duplicação |
-| Spot-check independente | — | 20/20 arestas + 10/10 mães-copa |
+| Métrica                                                  | Antes | Depois                                                                               |
+| -------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------ |
+| Arestas WON totais                                       | 2.826 | **5.157**                                                                            |
+| Mundial                                                  | 0     | **16** (Real Madrid, FIFA Club World Cup na vitrine)                                 |
+| Continental                                              | 1     | **268** (PSG, UEFA Champions League 2025 na vitrine)                                 |
+| Nacional                                                 | 2.825 | 4.873                                                                                |
+| Gap de mãe ausente                                       | 2.832 | **514** (mundial **0** · continental 20 · nacional 494 → T448b-2)                    |
+| Zero duplicação (GROUP BY clube+competição+ano HAVING>1) | —     | **0**                                                                                |
+| Proveniência (dataSource+CC0+sourceUrl da edição)        | —     | **5.157/5.157 (100%)**                                                               |
+| Re-run idempotente (2005–2026)                           | —     | `2.051 skip · 13 criar (claims novas do grafo vivo) · 3 atualizar` — zero duplicação |
+| Spot-check independente                                  | —     | 20/20 arestas + 10/10 mães-copa                                                      |
 
 **Cache:** invalidação por padrão (`cache.invalidate('champions:*')`) falhou silenciosamente 2× —
 `DEL` com chave exata resolveu; invalidação efetiva do carrossel pós-ingestão deve usar DEL por
@@ -515,3 +517,32 @@ representada pela CUP.
 **Regra de processo (3ª ocorrência):** commit nasce NA branch do PR; se caiu na main local,
 `reset --hard origin/main` antes de tudo; stash alheio preserva-se. DECISOES
 `D-2026-09-22-regra-processo-branch`.
+
+### GATE 2 adendum 3 — T448f: type-first CONDICIONAL por grupo de flagship (2026-09-22, #169 na sequência)
+
+O checkpoint FASE 3 do T448e expôs a interação nº 4: type-first GLOBAL derrubou a UCL (CUP, 2025,
+54 ed) abaixo da VFF Champions League (LEAGUE, 2012, 1 ed — liga nacional de Vanuatu miscategorizada
+como continental pelo keyword do nome, congelada na escrita). Arbitragem do Thinker: **type-first só
+onde a liga é flagship**.
+
+**Mapeamento REAL de `RANKING_HIERARCHIES` (lido do fonte, conjunto completo):**
+
+| Hierarquia                    | Grupo                        | Comparador                                                             |
+| ----------------------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| nacional, estadual, municipal | GRUPO-LIGA (flagship = liga) | **tipo (LEAGUE>CUP>NULL) → vigência → edições → campeões → nome → id** |
+| mundial, continental          | GRUPO-COPA (flagship = copa) | **vigência (guarda T448d) → edições → campeões → nome → id**           |
+
+Fora do mapa (futuro do enum): default GRUPO-COPA, registrado (nunca em silêncio). Backfill de type
+do T448e PRESERVADO; dado do VFF INTACTO (reclassificação = T448b-2/T449 com auditoria R3 do
+universo miscategorizado por keyword).
+
+**Live verify (fingerprint `d624e5f`, DEL exato, generatedAt fresco):**
+
+- nacional = **PSG | Ligue 1 | 2025 | LEAGUE | 75 ed** (mantido do T448e)
+- continental = **PSG | UEFA Champions League | 2025 | CUP | 54 ed** (RESTAURADO — não é VFF)
+- mundial = **Real Madrid | FIFA Club World Cup | 2023 | CUP | 15 ed** (mantido)
+- Nenhum país/hierarquia perdeu representante; `type` correto em cada card; gender-blind em ambos
+  os grupos; unit de TRANSIÇÃO prova a partição por hierarquia (mesma entrada, regras diferentes).
+
+**Dívida declarada:** supertaça-continentais com vigência mais recente que UCL/Libertadores venceriam
+o card em GRUPO-COPA — não observado hoje; solução = campo tier/flagship no T449 (D-…-divida-tier-flagship).

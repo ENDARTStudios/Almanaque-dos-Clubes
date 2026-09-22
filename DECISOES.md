@@ -19,6 +19,22 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t448f-type-first-condicional — Type-first só onde a liga é flagship; mundial/continental voltam a vigência-primeiro
+
+Motivo: a verificação viva do T448e (checkpoint FASE 3) expôs a interação nº 4 do round — o type-first GLOBAL derrubou a UEFA Champions League (CUP, 2025, 54 edições) abaixo da VFF Champions League (LEAGUE, 2012, 1 edição) no card continental: a regra "liga vence copa" só faz sentido ONDE A LIGA É O FLAGSHIP da hierarquia. Falha do planejamento (type-first GLOBAL sem particionar por hierarquia), não da execução — que parou no checkpoint com evidência viva em vez de expandir escopo.
+Arbitragem: **GRUPO-LIGA (flagship = liga): nacional, estadual, municipal → type-first (LEAGUE > CUP > outros/NULL) → vigência → edições → campeões → nome → id. GRUPO-COPA (flagship = copa): mundial, continental → vigência-primeiro (T448c puro) → edições → campeões → nome → id.** Mapeamento dos valores REAIS de `RANKING_HIERARCHIES` lidos do fonte nesta tarefa (mundial, continental, nacional, estadual, municipal — conjunto completo, sem órfãos); hierarquia fora do mapa (futuro do enum) cai no default GRUPO-COPA (vigência-first, sem demotion por tipo) — registrado, nunca em silêncio. Comportamentos intactos: guarda T448d (ambas as branches), gender-blind, anti-findMany, `type` exposto na resposta, backfill de type do T448e, dado do VFF intocado.
+Evidência: unit de TRANSIÇÃO (mesma entrada, hierarquia nacional → liga vence; hierarquia continental → copa vence — prova que a partição é por hierarquia, não global) + reescrita dos testes type-first-globais do T448e para GRUPO-COPA (não ficaram verdes mentindo) + regressão continental como teste (UCL 2025 > VFF 2012 por vigência). Live verify: os 3 cards na vitrine com `generatedAt` fresco.
+
+### [2026-09-22] Decisão: D-2026-09-22-divida-tier-flagship — "copa secundária vs copa principal" em GRUPO-COPA é dívida do T449 (declarada, não observada)
+
+Motivo: com a vigência-primeiro restaurada em mundial/continental (T448f), uma SUPERCOPA continental com edição mais recente que a UCL/Libertadores venceria o card continental — NÃO observado no acervo atual (a supertroféu mais recente é anterior), mas possível a qualquer ingestão. A solução geral é campo `tier`/flagship, que o dado NÃO tem hoje — inventar seria fabricar dado (mesma lógica da dívida 1ª-vs-2ª divisão).
+Registro: dívida ligada EXPLICITAMENTE ao T449 (partidas → tier/flagship → resolve supertaça-vs-UCL e 1ª-vs-2ª divisão com dado real). Não é hotfix de vitrine; não é campo inventado agora.
+
+### [2026-09-22] Decisão: D-2026-09-22-raiz-vff-miscategorizacao — Miscategorização por keyword de nome é DADO; corrigir é T448b-2/T449, com auditoria R3 antes de qualquer re-ingestão
+
+Motivo: a VFF Champions League é a LIGA nacional de Vanuatu, mas `resolveHierarchy` por keyword de nome (`/champions league/`) a classificou como continental — e o T448 CONGELOU o erro na escrita (`metadata.hierarchy`). Com o type-first condicional (T448f), o card continental voltou à UCL; o VFF permanece no acervo como dado (importedFrom='wikidata', type corrigido para LEAGUE no backfill do T448e, hierarchy congelada 'continental').
+Registro: reclassificação de hierarquia é trabalho de DADO (T448b-2/T449) — NÃO hotfix de vitrine. Antes de qualquer re-ingestão/reclassificação: **auditar quantas competições do acervo estão miscategorizadas pelo mesmo keyword** (R3 contra o dado, não contra a memória) — o VFF pode ser um de vários.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t448e-representante-por-tipo — LEAGUE representa o país antes de CUP (tipo = campo objetivo, antes da vigência)
 
 Motivo: a interação T448b-1 (copas semeadas) × T448c (vigência-primeiro) colocou o Johan Cruijff Shield (supercopa, `type='CUP'`, ano 2026) acima da Eredivisie (`type='LEAGUE'`, ano 2025) no card nacional da Holanda — a supercopa de agosto bate a liga cuja temporada é registrada pelo ano de início (convenção do colapso cross-year). Mesmo defeito que o T448c matou (competição secundária representando o país), agora pela porta do calendário.
