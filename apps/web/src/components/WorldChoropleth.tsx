@@ -16,7 +16,6 @@ interface Props {
   activeCountry: string | null;
   fitTo: string[] | null;
   onSelectCountry: (iso2: string) => void;
-  ariaLabel: string;
 }
 
 const isoOf = (f: GeoFeature): string => {
@@ -31,7 +30,6 @@ export default function WorldChoropleth({
   activeCountry,
   fitTo,
   onSelectCountry,
-  ariaLabel,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -108,10 +106,10 @@ export default function WorldChoropleth({
   }, [fitTo]);
 
   return (
+    // Mapa DECORATIVO: aria-hidden. A navegação acessível é a lista de regiões
+    // (aria-live/breadcrumb) com contagem — o mapa não é a única forma de navegar.
     <div
       ref={ref}
-      role="img"
-      aria-label={ariaLabel}
       aria-hidden="true"
       className="h-[55vh] sm:h-[60vh] w-full rounded-2xl border border-border/50 bg-slate-50"
     />
