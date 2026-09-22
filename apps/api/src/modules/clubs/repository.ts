@@ -74,6 +74,7 @@ export const clubsRepository = {
 
     return prisma.club.findMany({
       where: {
+        deletedAt: null,
         AND: [
           country ? { country } : {},
           city ? { city } : {},
@@ -106,6 +107,7 @@ export const clubsRepository = {
       params;
     return prisma.club.count({
       where: {
+        deletedAt: null,
         AND: [
           country ? { country } : {},
           city ? { city } : {},
@@ -131,7 +133,8 @@ export const clubsRepository = {
   },
 
   async findById(id: string): Promise<Club | null> {
-    return prisma.club.findUnique({ where: { id } }) as Promise<Club | null>;
+    // T449EN — exclui soft-deleted (ruído) do detalhe/perfil.
+    return prisma.club.findFirst({ where: { id, deletedAt: null } }) as Promise<Club | null>;
   },
 
   /**
@@ -140,8 +143,8 @@ export const clubsRepository = {
    * campos nulos = dado ausente (honesto, sem invenção).
    */
   async findGeoById(id: string): Promise<ClubGeoView | null> {
-    const club = await prisma.club.findUnique({
-      where: { id },
+    const club = await prisma.club.findFirst({
+      where: { id, deletedAt: null },
       select: {
         latitude: true,
         longitude: true,
@@ -231,12 +234,12 @@ export const clubsRepository = {
     const [byCountry, byState] = await Promise.all([
       prisma.club.groupBy({
         by: ['countryId'],
-        where: { countryId: { not: null } },
+        where: { countryId: { not: null }, deletedAt: null },
         _count: { _all: true },
       }),
       prisma.club.groupBy({
         by: ['stateId'],
-        where: { stateId: { not: null } },
+        where: { stateId: { not: null }, deletedAt: null },
         _count: { _all: true },
       }),
     ]);

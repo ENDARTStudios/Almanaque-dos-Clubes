@@ -52,6 +52,7 @@ model Club {
   sourceUrl    String?    // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?  // T449EN — soft-delete (ruído); exclui das views por padrão
 
   // Coluna tsvector Unsupported para busca full-text (definida via SQL raw).
   // Ver `prisma/fulltext-indexes.sql` e evidência 2.11.
