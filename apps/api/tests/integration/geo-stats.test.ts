@@ -14,12 +14,14 @@ let dbOk = true;
 const ISO = 'ZT';
 const CODE = 'ZT-01';
 const clubName = `T467 Test Club ${Date.now()}`;
+const NULL_ISO = 'ZU'; // país SEM continente → bucket 'ZZ'
+const nullClubName = `T467 NoCont Club ${Date.now()}`;
 let stateId = '';
 
 async function cleanup(): Promise<void> {
-  await prisma.club.deleteMany({ where: { name: clubName } });
+  await prisma.club.deleteMany({ where: { name: { in: [clubName, nullClubName] } } });
   await prisma.state.deleteMany({ where: { code: CODE } });
-  await prisma.country.deleteMany({ where: { iso2: ISO } });
+  await prisma.country.deleteMany({ where: { iso2: { in: [ISO, NULL_ISO] } } });
 }
 
 beforeAll(async () => {
@@ -44,6 +46,18 @@ beforeAll(async () => {
   stateId = state.id;
   await prisma.club.create({
     data: { name: clubName, country: ISO, countryId: country.id, stateId: state.id },
+  });
+  // país sem continente → bucket 'ZZ'
+  const noCont = await prisma.country.create({
+    data: {
+      iso2: NULL_ISO,
+      name: 'T467 NoContinent',
+      continent: null,
+      qid: `Q${randomUUID().slice(0, 8)}`,
+    },
+  });
+  await prisma.club.create({
+    data: { name: nullClubName, country: NULL_ISO, countryId: noCont.id },
   });
 });
 
@@ -87,5 +101,20 @@ describe('T467 — /clubs/geo-stats', () => {
     const body = JSON.parse(res.body) as { data: Array<{ name: string }>; total: number };
     expect(body.total).toBeGreaterThanOrEqual(1);
     expect(body.data.some((c) => c.name === clubName)).toBe(true);
+  });
+
+  it('bucket ZZ (sem continente): agrega E filtra por continent=ZZ (casa NULL)', async () => {
+    if (!dbOk) return;
+    const stats = JSON.parse(
+      (await app.inject({ method: 'GET', url: '/api/v1/clubs/geo-stats' })).body,
+    ) as { data: { continents: Array<{ code: string; countries: Array<{ iso2: string }> }> } };
+    const zz = stats.data.continents.find((c) => c.code === 'ZZ');
+    expect(zz?.countries.some((c) => c.iso2 === NULL_ISO)).toBe(true);
+
+    const filtered = JSON.parse(
+      (await app.inject({ method: 'GET', url: '/api/v1/clubs?continent=ZZ' })).body,
+    ) as { data: Array<{ name: string }>; total: number };
+    expect(filtered.total).toBeGreaterThanOrEqual(1);
+    expect(filtered.data.some((c) => c.name === nullClubName)).toBe(true);
   });
 });

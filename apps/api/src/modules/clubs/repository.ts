@@ -79,7 +79,8 @@ export const clubsRepository = {
           city ? { city } : {},
           status ? { status: status as never } : {},
           hasCoordinates ? { latitude: { not: null } } : {},
-          continent ? { countryRef: { continent } } : {},
+          // T467 — 'ZZ' = bucket dos países sem continente (continent NULL).
+          continent ? { countryRef: { continent: continent === 'ZZ' ? null : continent } } : {},
           countryId ? { countryId } : {},
           stateId ? { stateId } : {},
           cityId ? { cityId } : {},
@@ -110,7 +111,8 @@ export const clubsRepository = {
           city ? { city } : {},
           status ? { status: status as never } : {},
           hasCoordinates ? { latitude: { not: null } } : {},
-          continent ? { countryRef: { continent } } : {},
+          // T467 — 'ZZ' = bucket dos países sem continente (continent NULL).
+          continent ? { countryRef: { continent: continent === 'ZZ' ? null : continent } } : {},
           countryId ? { countryId } : {},
           stateId ? { stateId } : {},
           cityId ? { cityId } : {},

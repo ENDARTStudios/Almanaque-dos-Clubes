@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-g1-ci-web-tests — O CI JÁ roda os testes **vitest** do web; o que não roda é o Playwright (E2E)
+
+Motivo (G1, medido — não assumido): `pnpm test:unit` no `security-gate` = `pnpm --recursive test`, que **inclui `apps/web`** (`vitest run`, `include: tests/unit/**`) — confirmado localmente (web **4 arquivos / 16 testes**). Portanto a hipótese "CI não roda testes do web" é **FALSA** para unit/component. O `rights.spec.ts` obsoleto do T470 "passou" porque é **Playwright** (`tests/e2e/**`), **excluído do vitest** e **sem passo de Playwright no `ci.yml`** → nunca foi executado. **Conclusão:** não há 2º ponto-cego de unit (T476b desnecessário nesse escopo); o gap real e já conhecido é **Playwright E2E não rodar no CI de PR** (exige base URL viva — fora do escopo declarado do T476b). **Ressalva:** "verde do web (vitest)" é confiável; "verde de E2E web" **não** é coberto pelo CI de PR.
+
+### [2026-09-22] Decisão: D-2026-09-22-t467-geostats-cache-ttl — Cache do geo-stats é TTL-only (por que é seguro aqui)
+
+Motivo (ressalva C2): `clubs:geo-stats` usa `cache.remember` com **TTL curto (300 s)** e **sem invalidação explícita**. A regra T448d (invalidação fail-loud) só se aplica onde há caminho de escrita que deva invalidation; aqui **não há**: a contagem é **derivada**, muda **somente** quando a ingestão geo muda (raro, via T466/M4), é **não-sensível**, **não-destrutiva** e **não é de dinheiro**. Logo TTL-only é seguro e **não existe caminho de invalidação silenciosa** a temer. Registrado o **porquê** (disciplina da fail-open do blocklist: registrar o porquê é seguro, não deixar padrão cego). Se um dia a contagem passar a mudar por ação de usuário, revisar para invalidação explícita fail-loud.
+
 ### [2026-09-22] Decisão: D-2026-09-22-m1-ws-c-fechado-por-t467 — T467 fecha a ponta M1·WS-C (mapa) que ficou [ ] quando declarei M1 fechado
 
 Motivo (correção de processo, 2ª instância após T448′/T465): o M1 foi declarado em 2026-09-15 com "Mapa-múndi interativo" ainda `[ ]` em Features Core. **Marco não se declara fechado com ponta visível aberta.** T467 fecha M1·WS-C (mapa read-only sobre a hierarquia geo real). Registrado para o critério de declaração de marco.
