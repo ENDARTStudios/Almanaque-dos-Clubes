@@ -76,6 +76,31 @@ export const clubsRepository = {
     return prisma.club.findUnique({ where: { id } }) as Promise<Club | null>;
   },
 
+  /**
+   * T466 — Geografia resolvida do clube (contrato consumido pelo mapa T467).
+   * Retorna a hierarquia normalizada (país/estado/cidade) + coordenadas do clube;
+   * campos nulos = dado ausente (honesto, sem invenção).
+   */
+  async findGeoById(id: string): Promise<ClubGeoView | null> {
+    const club = await prisma.club.findUnique({
+      where: { id },
+      select: {
+        latitude: true,
+        longitude: true,
+        countryRef: { select: { id: true, iso2: true, name: true, continent: true } },
+        stateRef: { select: { id: true, code: true, name: true } },
+        cityRef: { select: { id: true, qid: true, name: true, latitude: true, longitude: true } },
+      },
+    });
+    if (!club) return null;
+    return {
+      country: club.countryRef,
+      state: club.stateRef,
+      city: club.cityRef,
+      coordinates: { latitude: club.latitude, longitude: club.longitude },
+    };
+  },
+
   async existsByName(name: string, country?: string): Promise<boolean> {
     const count = await prisma.club.count({
       where: { name, country: country ?? null },
@@ -139,6 +164,19 @@ export const clubsRepository = {
     return titles.sort((a, b) => (b.year ?? -1) - (a.year ?? -1));
   },
 };
+
+export interface ClubGeoView {
+  country: { id: string; iso2: string; name: string; continent: string | null } | null;
+  state: { id: string; code: string; name: string } | null;
+  city: {
+    id: string;
+    qid: string | null;
+    name: string;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
+  coordinates: { latitude: number | null; longitude: number | null };
+}
 
 export interface ClubTitleView {
   year: number | null;

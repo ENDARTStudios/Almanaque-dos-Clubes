@@ -659,3 +659,28 @@ falhas de prettier são **pré-existentes** em `apps/api`/`apps/worker`/`apps/we
 `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório — por isso o CI fica verde;
 nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pacote autônomo e honesto,
 **sem revisão jurídica externa e sem representante UE** — NUNCA "conforme/GDPR-ready/pronto global".
+
+### GATE 2 adendum 7 — T466: dado geográfico (WS-D) — hierarquia + coordenadas (2026-09-22)
+
+**FASE 0 (R3 medida, não assumida) — veredicto (a):** não existem models geográficos (só `Club.city/state/country` texto + `latitude/longitude`; `Stadium` idem). Produção: clubs **3.857** · com `country` **3.857 (100%)** (169 distintos) · com `city` **463** · com `state` **10** · com coordenada **113 (2,9%)**; `stadiums` **0**; `PostGIS` ausente (`20260905_stadiums_postgis` = no-op documentado, **não** drift). → T466 = migration versionada + seed.
+
+**Entregas:** migration `20261001120000_t466_geo_hierarchy` (`Country`/`State`/`City` + FKs nullable em `clubs`/`stadiums`; PostgreSQL + paridade SQLite; grants) · conector puro `wikidata-geo.connector.ts` (P17→ISO-2/P30; P131→cidade; P131-pai/P300→estado; Zod) · `planGeo`/`syncGeo` (idempotente) · script `ingest-geo-wikidata.ts` (DRY-RUN/`--apply`) · `GET /clubs/:id/geo` (contrato T467).
+
+**Validação viva (amostra real de produção; Wikidata ao vivo):**
+
+| medida | valor |
+|---|---|
+| clubes resolvidos | **60/60** |
+| países / estados / cidades | 23 / 6 / 17 |
+| clubes vinculados (país / estado / cidade) | 60 / 6 / 17 |
+| re-run (2ª execução) | **created=0, updated=0, unchanged=60** (zero escrita) |
+| spot-check 20 clubes (P625 + ISO via P17→P297) | **20/20** |
+| spot-check 17 cidades (P625 na fonte) | **17/17** |
+| spot-check 6 estados (P300 == code) | **6/6** |
+| coordenada fora de faixa | **0** |
+| BR fora do bounding-box | **0** |
+| órfão/ciclo de hierarquia | **0** |
+
+**GAP DECLARADO:** apenas ~3% dos clubes têm P625 direto (produção 113/3.857; amostra 2/60) — mapa será esparso por clube; cidades (com P625 via P131) podem servir de fallback no T467. `stadiums` vazio (sem seed nesta rodada).
+
+**Blocker honesto:** produção só recebe as tabelas geo no **deploy pós-merge** (migration no boot via `migrate deploy`; não aplicada à mão — regra T430). Portanto o seed em produção (`ingest-geo-wikidata.ts --apply` + `enrich-club-coords.ts --apply`) e o E2E-produção ficam **pós-deploy** (Operador). `M1·WS-C` mapa segue `[ ]` até T467.

@@ -8,7 +8,12 @@ import {
   type Club,
   type CreateClubInput,
 } from '@almanaque/domain';
-import { clubsRepository, type ClubTitleView, type ListClubsParams } from './repository.js';
+import {
+  clubsRepository,
+  type ClubGeoView,
+  type ClubTitleView,
+  type ListClubsParams,
+} from './repository.js';
 import { cache } from '../../services/cache.js';
 
 const CLUBS_LIST_TTL_SECONDS = 60;
@@ -74,6 +79,13 @@ export const clubsService = {
   async getById(id: string): Promise<Club | null> {
     return cache.remember(`clubs:byId:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findById(id),
+    );
+  },
+
+  /** T466 — geografia resolvida (país/estado/cidade + coordenadas) para o mapa T467. */
+  async geo(id: string): Promise<ClubGeoView | null> {
+    return cache.remember(`clubs:geo:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
+      clubsRepository.findGeoById(id),
     );
   },
 
