@@ -104,7 +104,14 @@ export function resolveHierarchy(
   }
   if (comp.name) {
     for (const [re, h] of HIERARCHY_KEYWORDS) {
-      if (re.test(comp.name)) return h;
+      if (re.test(comp.name)) {
+        // T448b-2 (a) — 'continental' por NOME só vale para confederação (country
+        // nulo). Ligas nacionais homônimas ("VFF Champions League" VU, "Afghanistan
+        // Champions League" AF) batem o keyword mas NÃO são continentais → seguem
+        // para nacional via o próximo keyword/default.
+        if (h === 'continental' && comp.country) continue;
+        return h;
+      }
     }
   }
   return DEFAULT_HIERARCHY;
