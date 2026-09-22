@@ -11,8 +11,8 @@ import { prisma } from '../../src/config/prisma.js';
 let app: FastifyInstance;
 const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
 let dbOk = true;
-const ISO = 'ZZ';
-const CODE = 'ZZ-01';
+const ISO = 'ZT';
+const CODE = 'ZT-01';
 const clubName = `T467 Test Club ${Date.now()}`;
 let stateId = '';
 
