@@ -396,9 +396,13 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
   }
 
   const stateIdByCode = new Map<string, string>();
+  // País do estado por código — impede aresta cidade→estado cruzando países
+  // (ex.: clubes da Alemanha Oriental, P17=DD, com P131 num estado moderno DE-*).
+  const stateCountryByCode = new Map<string, string>();
   for (const s of plan.states) {
     const countryId = countryIdByIso2.get(s.countryIso2);
     if (!countryId) continue;
+    stateCountryByCode.set(s.code, s.countryIso2);
     const input: StateCreateInput = {
       code: s.code,
       name: s.name,
@@ -425,10 +429,17 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
   }
 
   const cityIdByQid = new Map<string, string>();
+  const cityCountryByQid = new Map<string, string>();
   for (const ct of plan.cities) {
     const countryId = countryIdByIso2.get(ct.countryIso2);
     if (!countryId) continue;
-    const stateId = ct.stateCode ? (stateIdByCode.get(ct.stateCode) ?? null) : null;
+    cityCountryByQid.set(ct.qid, ct.countryIso2);
+    const rawStateId = ct.stateCode ? (stateIdByCode.get(ct.stateCode) ?? null) : null;
+    // Só vincula o estado quando ele pertence ao MESMO país da cidade (hierarquia consistente).
+    const stateId =
+      rawStateId && ct.stateCode && stateCountryByCode.get(ct.stateCode) === ct.countryIso2
+        ? rawStateId
+        : null;
     const input: CityCreateInput = {
       qid: ct.qid,
       name: ct.name,
@@ -466,10 +477,19 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
       stats.links.missing++;
       continue;
     }
+    // Vínculos só quando o alvo pertence ao MESMO país do clube (sem aresta cruzada).
+    const linkStateId =
+      link.stateCode && stateCountryByCode.get(link.stateCode) === link.countryIso2
+        ? (stateIdByCode.get(link.stateCode) ?? null)
+        : null;
+    const linkCityId =
+      link.cityQid && cityCountryByQid.get(link.cityQid) === link.countryIso2
+        ? (cityIdByQid.get(link.cityQid) ?? null)
+        : null;
     const update: ClubGeoUpdate = {
       countryId: countryIdByIso2.get(link.countryIso2) ?? null,
-      stateId: link.stateCode ? (stateIdByCode.get(link.stateCode) ?? null) : null,
-      cityId: link.cityQid ? (cityIdByQid.get(link.cityQid) ?? null) : null,
+      stateId: linkStateId,
+      cityId: linkCityId,
     };
     // Coordenada P625: só grava quando a fonte tem valor (ausência NÃO apaga o existente).
     const hasCoords = link.latitude != null && link.longitude != null;

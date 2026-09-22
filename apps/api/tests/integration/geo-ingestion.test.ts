@@ -251,6 +251,65 @@ describe('syncGeo — idempotência (re-run ⇒ zero escrita)', () => {
   });
 });
 
+describe('syncGeo — consistência de hierarquia (sem aresta cruzando países)', () => {
+  it('não vincula estado de país diferente (clube/cidade DE, estado criado sob DD)', async () => {
+    const repo = makeRepo([
+      {
+        id: 'c1',
+        qid: 'Q1',
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        latitude: null,
+        longitude: null,
+      },
+      {
+        id: 'c2',
+        qid: 'Q2',
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        latitude: null,
+        longitude: null,
+      },
+    ]);
+    const rows: GeoRow[] = [
+      {
+        ...base,
+        clubQid: 'Q1',
+        countryQid: 'Q16957',
+        countryIso2: 'DD',
+        countryName: 'East Germany',
+        adminQid: 'QJ1',
+        adminName: 'Leipzig',
+        stateQid: 'QS1',
+        stateName: 'Saxony',
+        stateCode: 'DE-TH',
+      },
+      {
+        ...base,
+        clubQid: 'Q2',
+        countryQid: 'Q183',
+        countryIso2: 'DE',
+        countryName: 'Germany',
+        adminQid: 'QJ2',
+        adminName: 'Jena',
+        stateQid: 'QS1',
+        stateName: 'Saxony',
+        stateCode: 'DE-TH',
+      },
+    ];
+    const stats = await syncGeo(repo, planOf(rows), new Date());
+    expect(stats.states.created).toBe(1); // DE-TH criado uma vez (sob DD)
+
+    // Cidade de mesmo país do estado (DD) → vincula; cidade DE → estado fica nulo.
+    expect(repo.cities.find((c) => c.qid === 'QJ1')?.stateId).not.toBeNull();
+    expect(repo.cities.find((c) => c.qid === 'QJ2')?.stateId).toBeNull();
+    // Clube DE não recebe estado cruzado.
+    expect(repo.clubs.find((c) => c.qid === 'Q2')?.stateId).toBeNull();
+  });
+});
+
 describe('syncGeo — missing honesto (clube ausente não inventa vínculo)', () => {
   it('conta missing quando o clube não existe no repositório', async () => {
     const repo = makeRepo([]);
