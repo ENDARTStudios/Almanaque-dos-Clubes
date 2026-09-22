@@ -19,6 +19,31 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-gate-beta-pago-ajustado — Gate do beta PAGO após os deltas do Operador (age gate, advogado, rep UE e T471 cortados)
+
+Motivo: o gate anterior (D-2026-09-22-gate-legal-m3-produto-corrigido) tratava advogado/DPO/provedores/domínio como bloqueantes. O Operador decidiu cortar expressamente. Novo gate do M3 de produto (abrir beta pago): **[x] T465 no ar** (oferta honesta, #171) · **[x] T469 no ar SEM age gate** e com texto de menores honesto (este round) · **[ ] T470** (direitos do titular + DMCA reais — LGPD art. 18, independe de advogado/idade/UE) · **[ ] T472** (checkout pt/en/es — clareza CDC art. 6) · **[—] advogado NÃO exigido** (decisão do Operador; texto publicado sem revisão externa) · **[—] representante UE NÃO exigido** (risco aceito) · **[—] age gate NÃO existe** (decisão do Operador) · **[—] T471 geobloqueio NÃO aplicado** (opcional-futuro).
+**Risco residual ACEITO e registrado (não é esquecimento):** canal único é gmail (domínio próprio = M5 do Operador); sem razão social/endereço de rua públicos (decisão de privacidade); checkout UE não travado. PAYMENTS segue provado (#146/#156/#168/#170/#171) e **dormente no sentido de não escalar além do gate**.
+**W3 ajustada:** PR e docs declaram o pacote "autônomo consistente e honesto, lançado por decisão do Operador SEM revisão jurídica externa e SEM representante UE". NUNCA "conforme/LGPD-compliant/GDPR-ready/pronto para público global".
+
+### [2026-09-22] Decisão: D-2026-09-22-t471-nao-aplicado — Geobloqueio/Opção B da UE NÃO é aplicado (opcional-futuro)
+
+Motivo: o Operador não pediu restrição de acesso comercial. O T471 (geobloqueio UE + supressão de EUR até representante UE + cláusulas + advogado) sai do caminho crítico e vira **opcional-futuro**: só volta à fila se um dia o produto cobrar em EUR ou fizer marketing direcionado à UE. Nota técnica de risco aceito: enquanto o checkout for só BRL e não houver direcionamento ativo à UE, a aplicabilidade do GDPR art. 3(2) é fraca; o risco residual (usuário UE pagando sem representante UE) é aceito pelo Operador. Substitui o roteamento "Opção B geo-restrição → T471" do D-2026-09-22-t469-legal-p0-autonomo.
+
+### [2026-09-22] Decisão: D-2026-09-22-sem-age-gate — A plataforma NÃO restringe idade
+
+Motivo: decisão explícita do Operador ("não tem restrição de idade"; conteúdo de futebol, não sensível). NÃO se implementa checkbox de maioridade, verificação documental nem campo de idade. O texto legal reflete a **AUSÊNCIA de verificação** em vez de prometer proteção inexistente (mesma lógica do T465: claim = verdade): "A plataforma não realiza verificação de idade e não coleta intencionalmente dados de crianças… Caso um responsável identifique coleta inadequada, contate o canal de privacidade para análise e providências." Revoga a "declaração proporcional de 18 anos no cadastro" (`auth.ageDeclaration`) e o §9 Menores anterior do T469.
+
+### [2026-09-22] Decisão: D-2026-09-22-t469b-legal-deltas — Correção dos 3 deltas do Operador + fechamento dos achados da FASE 0 do T469
+
+Motivo: o T469 (#172) foi mergeado antes de o Operador publicar os três deltas que resolvem parâmetros antes "[a confirmar]". A re-auditoria de FASE 0 (fonte + produção) mediu:
+- **Delta 1 (age gate)** — removido conforme D-2026-09-22-sem-age-gate.
+- **Delta 2 (T471)** — fora do crítico conforme D-2026-09-22-t471-nao-aplicado.
+- **Delta 3 (gate beta pago)** — ajustado conforme D-2026-09-22-gate-beta-pago-ajustado.
+- **G-W2 (caixa de domínio inexistente):** `reembolso@almanaquedosclubes.com` estava publicado em `/checkout` e `SubscriptionManager` (×3 locales) → trocado pelo canal único `endart.studios@gmail.com` (migração p/ domínio = M5 do Operador; não afirmar caixa inexistente).
+- **G-W1/FASE 4 (claims públicas):** EN/ES mantinham "largest/mayor colección … with artificial intelligence"; e o grid `home.features` (renderizado em `HeroSection.tsx`, público) seguia com "História Completa", "IA com Citações" e "paginação cursor-based" nos 3 idiomas → "acervo em construção"/proveniência documentada, IA "(em breve)", "cursor-based"→"paginação" (a API usa OFFSET, não cursor).
+**Counts re-ancorados em produção (W1):** clubs **3.857** · players **2.396** · competitions **1.563**; o "5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
+**Fora da superfície legal (registrado):** `pnpm lint` local acusa 122 erros **pré-existentes** em `apps/api`/`apps/worker` (o script `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório, por isso o CI fica verde; nenhum arquivo fora de `apps/web` foi tocado neste round) — não é regressão do T469b.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t469-legal-p0-autonomo — P0 jurídico-autônomo: re-ancoragem na produção, W1/W2/W3 e roteamento dos 21 achados
 
 Motivo: a auditoria jurídica externa (22/09/2026) cometeu o MESMO erro R3 que a regra combate: leu o snapshot "dados 1%" do PLANO_MESTRE 02/09 em vez de consultar produção ("10 clubes" vs 3.857 medidos). Lição registrada como caso-estudo: **review externo também precisa de query, não de documento**.

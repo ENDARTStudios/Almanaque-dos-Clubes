@@ -5,7 +5,7 @@ const es: Dictionary = {
     name: 'Almanaque dos Clubes',
     tagline: 'La historia del fútbol mundial en un solo lugar',
     description:
-      'La mayor colección de datos históricos del fútbol mundial. Busca clubes, jugadores, competiciones y rankings con inteligencia artificial y fuentes verificadas.',
+      'Archivo histórico del fútbol en construcción, con procedencia documentada. Busca clubes, jugadores, competiciones y rankings con fuentes verificadas (metodología en /metodologia). Funciones de IA: próximamente.',
   },
   nav: {
     clubs: 'Clubes',
@@ -78,7 +78,7 @@ const es: Dictionary = {
     heroTitle: 'La Historia del Fútbol',
     heroTitleAccent: 'en un Solo Lugar',
     heroSubtitle:
-      'La mayor colección de datos históricos del fútbol mundial. Busca clubes, jugadores, competiciones y rankings con inteligencia artificial y fuentes verificadas.',
+      'Archivo histórico del fútbol en construcción, con procedencia documentada. Busca clubes, jugadores, competiciones y rankings con fuentes verificadas (metodología en /metodologia). Funciones de IA: próximamente.',
     ctaSearch: 'Comenzar Búsqueda',
     ctaRegister: 'Crear Cuenta Gratuita',
     stats: {
@@ -91,11 +91,11 @@ const es: Dictionary = {
     },
     featuresTitle: 'Todo sobre el Fútbol Mundial',
     featuresSubtitle:
-      'Datos históricos completos con herramientas modernas de búsqueda y análisis.',
+      'Datos históricos en construcción con herramientas modernas de búsqueda y análisis.',
     features: [
       {
-        title: 'Historia Completa',
-        desc: 'Accede a la colección completa de clubes, jugadores y competiciones desde el siglo XIX.',
+        title: 'Historia en Construcción',
+        desc: 'Accede a la colección en construcción de clubes, jugadores y competiciones, con procedencia documentada.',
       },
       {
         title: 'Rankings Auditables',
@@ -106,12 +106,12 @@ const es: Dictionary = {
         desc: 'Búsqueda de texto avanzada con índices full-text y búsqueda difusa.',
       },
       {
-        title: 'IA con Citas',
-        desc: 'Pregunta sobre fútbol y recibe respuestas con fuentes verificables.',
+        title: 'IA (próximamente)',
+        desc: 'Función en desarrollo; respuestas con fuentes cuando esté disponible.',
       },
       {
         title: 'Datos Estructurados',
-        desc: 'API REST con datos normalizados y paginación cursor-based.',
+        desc: 'API REST con datos normalizados y paginación.',
       },
       {
         title: 'Multilingüe',
@@ -137,7 +137,6 @@ const es: Dictionary = {
     registerLink: 'Inicia sesión',
     acceptTerms: 'He leído y acepto los Términos de Uso y Servicio',
     acceptPrivacy: 'He leído y acepto la Política de Privacidad (LGPD)',
-    ageDeclaration: "El registro está destinado a mayores de 18 años; al crear la cuenta, declaras cumplir este requisito.",
     acceptRequired:
       'Debes aceptar los Términos de Uso y la Política de Privacidad para registrarte.',
     registerErrorDefault: 'Error al crear la cuenta',
@@ -776,9 +775,9 @@ const es: Dictionary = {
         {
           title: '9. Menores',
           body: [
-            'La plataforma no está destinada a menores sin el consentimiento de sus responsables. No recopilamos intencionalmente datos de menores.',
+            'La plataforma no realiza verificación de edad y no recopila intencionalmente datos de niños. No dirigimos el servicio a niños.',
           
-            'El registro en la plataforma está destinado a mayores de 18 años (o menores emancipados); al crear una cuenta, el usuario declara cumplir este requisito. Si se identifica una cuenta de un menor sin capacidad civil, será suspendida y los datos eliminados. (ref. T469-9)',],
+            'Si un responsable identifica una recopilación inadecuada de datos de un niño, contacte el canal de privacidad para su análisis y las medidas correspondientes. (ref. T469b-9)',],
         },
         {
           title: '10. Delegado de Protección de Datos (DPO) y contacto',

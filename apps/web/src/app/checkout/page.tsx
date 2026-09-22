@@ -53,8 +53,8 @@ export default function CheckoutPage({ searchParams }: { searchParams: Promise<S
           <li>Cancelamento da renovação em 1 clique no painel da assinatura</li>
           <li>
             Arrependimento em 7 dias:{' '}
-            <a className="underline" href="mailto:reembolso@almanaquedosclubes.com">
-              reembolso@almanaquedosclubes.com
+            <a className="underline" href="mailto:endart.studios@gmail.com">
+              endart.studios@gmail.com
             </a>
           </li>
         </ul>

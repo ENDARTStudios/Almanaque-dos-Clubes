@@ -90,11 +90,11 @@ const pt: Dictionary = {
       growing: 'Acervo em crescimento',
     },
     featuresTitle: 'Tudo sobre o Futebol Mundial',
-    featuresSubtitle: 'Dados históricos completos com ferramentas modernas de busca e análise.',
+    featuresSubtitle: 'Dados históricos em construção com ferramentas modernas de busca e análise.',
     features: [
       {
-        title: 'História Completa',
-        desc: 'Acesse o acervo completo de clubes, jogadores e competições desde o século XIX.',
+        title: 'História em Construção',
+        desc: 'Acesse o acervo em construção de clubes, jogadores e competições, com proveniência documentada.',
       },
       {
         title: 'Rankings Auditáveis',
@@ -105,12 +105,12 @@ const pt: Dictionary = {
         desc: 'Busca textual avançada com índices full-text e fuzzy search.',
       },
       {
-        title: 'IA com Citações',
-        desc: 'Pergunte sobre futebol e receba respostas com fontes verificáveis.',
+        title: 'IA (em breve)',
+        desc: 'Recurso em desenvolvimento; respostas com fontes quando disponível.',
       },
       {
         title: 'Dados Estruturados',
-        desc: 'API REST com dados normalizados e paginação cursor-based.',
+        desc: 'API REST com dados normalizados e paginação.',
       },
       {
         title: 'Multi-idioma',
@@ -136,7 +136,6 @@ const pt: Dictionary = {
     registerLink: 'Faça login',
     acceptTerms: 'Li e aceito os Termos de Uso e Serviço',
     acceptPrivacy: 'Li e aceito a Política de Privacidade (LGPD)',
-    ageDeclaration: "O cadastro é destinado a maiores de 18 anos; ao criar a conta, você declara atender a esse requisito.",
     acceptRequired:
       'É necessário aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.',
     registerErrorDefault: 'Erro ao cadastrar',
@@ -775,9 +774,9 @@ const pt: Dictionary = {
         {
           title: '9. Menores',
           body: [
-            'A plataforma não se destina a menores de idade sem consentimento dos responsáveis. Não coletamos intencionalmente dados de menores.',
+            'A plataforma não realiza verificação de idade e não coleta intencionalmente dados de crianças. Não direcionamos o serviço a crianças.',
           
-            'O cadastro na plataforma é destinado a maiores de 18 anos (ou menor emancipado); ao criar uma conta, o usuário declara atender a esse requisito. Identificado cadastro de menor sem capacidade civil, ele será suspenso e os dados eliminados. (ref. T469-9)',],
+            'Caso um responsável identifique coleta inadequada de dados de criança, contate o canal de privacidade para análise e providências. (ref. T469b-9)',],
         },
         {
           title: '10. Encarregado (DPO) e contato',

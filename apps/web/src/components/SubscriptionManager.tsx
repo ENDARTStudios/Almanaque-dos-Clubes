@@ -54,7 +54,7 @@ const L: Record<
     refundCondTitle: 'Condições de reembolso',
     refundCondCdc: 'Arrependimento em até 7 dias (CDC art. 49): devolução integral do valor pago.',
     refundCondPrazo: 'O crédito no extrato ocorre em 3–10 dias úteis, conforme o adquirente.',
-    refundCondCanal: 'Dúvidas: reembolso@almanaquedosclubes.com — sempre com o protocolo da solicitação.',
+    refundCondCanal: 'Dúvidas: endart.studios@gmail.com — sempre com o protocolo da solicitação.',
   },
   'en-us': {
     loading: 'Loading subscription...',
@@ -71,7 +71,7 @@ const L: Record<
     refundCondTitle: 'Refund conditions',
     refundCondCdc: 'Withdrawal within 7 days (CDC art. 49): full refund of the amount paid.',
     refundCondPrazo: 'The credit appears on your statement within 3–10 business days, per the acquirer.',
-    refundCondCanal: 'Questions: reembolso@almanaquedosclubes.com — always include the request protocol.',
+    refundCondCanal: 'Questions: endart.studios@gmail.com — always include the request protocol.',
   },
   'es-es': {
     loading: 'Cargando suscripción...',
@@ -88,7 +88,7 @@ const L: Record<
     refundCondTitle: 'Condiciones de reembolso',
     refundCondCdc: 'Arrepentimiento en hasta 7 días (CDC art. 49): devolución íntegra del valor pagado.',
     refundCondPrazo: 'El crédito aparece en tu extracto en 3–10 días hábiles, según el adquirente.',
-    refundCondCanal: 'Dudas: reembolso@almanaquedosclubes.com — incluye siempre el protocolo de la solicitud.',
+    refundCondCanal: 'Dudas: endart.studios@gmail.com — incluye siempre el protocolo de la solicitud.',
   },
 };
 

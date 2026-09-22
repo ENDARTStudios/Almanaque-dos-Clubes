@@ -178,7 +178,6 @@ export interface Dictionary {
     registerLink: string;
     acceptTerms: string;
     acceptPrivacy: string;
-    ageDeclaration: string;
     acceptRequired: string;
     registerErrorDefault: string;
     forgotPasswordLink: string;
