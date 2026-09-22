@@ -62,3 +62,13 @@ describe('404 handling', () => {
     expect(body).toHaveProperty('error');
   });
 });
+
+describe('GET /api/v1/clubs/:id/geo (T466)', () => {
+  it('retorna 404 para clube inexistente', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/clubs/00000000-0000-0000-0000-000000000000/geo',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});

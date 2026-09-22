@@ -64,6 +64,22 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   /**
+   * GET /clubs/:id/geo — T466, geografia resolvida (país/estado/cidade + coordenadas).
+   * Contrato consumido pelo mapa-múndi (T467). Nulos = dado ausente (honesto).
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/geo', async (request, reply) => {
+    try {
+      const geo = await clubsService.geo(request.params.id);
+      if (!geo) {
+        throw new NotFoundError('Clube', request.params.id);
+      }
+      return reply.send({ data: geo });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
    * GET /clubs/:id/titles — T448, galeria de honra (arestas WON do KG).
    * Vazio-honesto: sem conquista auditável → data: [].
    */

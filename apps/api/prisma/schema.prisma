@@ -68,6 +68,14 @@ model Club {
   createdBy     String?
   createdByUser User?      @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
 
+  // T466 — geografia normalizada (FKs nullable; campos texto legados preservados p/ compat)
+  countryId String?
+  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  stateId   String?
+  stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  cityId    String?
+  cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+
   @@unique([name, country])
   @@index([country])
   @@index([city])
@@ -76,6 +84,9 @@ model Club {
   // Índices compostos para buscas filtradas frequentes (Tarefa 2.4)
   @@index([country, status])
   @@index([city, state])
+  @@index([countryId])
+  @@index([stateId])
+  @@index([cityId])
   @@map("clubs")
 }
 
@@ -424,6 +435,15 @@ model Stadium {
   qid          String?  @unique // Wikidata Q-identifier
   clubId       String?  // clube mandante principal
   club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+
+  // T466 — geografia normalizada (FKs nullable)
+  countryId String?
+  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  stateId   String?
+  stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  cityId    String?
+  cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+
   importedFrom String?  // "wikidata", "openstreetmap", "manual"
   importedAt   DateTime?
   sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
@@ -435,7 +455,88 @@ model Stadium {
   @@index([clubId])
   @@index([country])
   @@index([qid])
+  @@index([countryId])
+  @@index([stateId])
+  @@index([cityId])
   @@map("stadiums")
+}
+
+// -----------------------------------------------------------------------------
+// GEOGRAFIA (T466) — hierarquia Continent → Country → State → City
+// Continent é um código de 2 letras (AF/AN/AS/EU/NA/OC/SA) derivado do Wikidata P30.
+// Chaves de dedup: Country.iso2 (P297), State.code (ISO 3166-2 / P300), City.qid (Q-id).
+// Coordenadas em Float (paridade com Club/Stadium); PostGIS NÃO é exigido (produção não tem).
+// -----------------------------------------------------------------------------
+
+model Country {
+  id           String   @id @default(uuid())
+  iso2         String   @unique @db.Char(2) // ISO 3166-1 alpha-2 (P297)
+  iso3         String?  @db.Char(3) // ISO 3166-1 alpha-3 (P298)
+  name         String
+  continent    String?  @db.VarChar(2) // AF | AN | AS | EU | NA | OC | SA (P30)
+  latitude     Float?
+  longitude    Float?
+  qid          String?  @unique // Wikidata Q-id do país
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  states   State[]
+  cities   City[]
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([continent])
+  @@map("countries")
+}
+
+model State {
+  id           String   @id @default(uuid())
+  code         String   @unique // ISO 3166-2 (P300) — chave de dedup
+  name         String
+  countryId    String
+  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  latitude     Float?
+  longitude    Float?
+  qid          String?  @unique
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cities   City[]
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([countryId])
+  @@map("states")
+}
+
+model City {
+  id           String   @id @default(uuid())
+  qid          String?  @unique // Wikidata Q-id (P131) — chave de dedup
+  name         String
+  countryId    String
+  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  stateId      String?
+  state        State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  latitude     Float?
+  longitude    Float?
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([countryId])
+  @@index([stateId])
+  @@map("cities")
 }
 
 // -----------------------------------------------------------------------------

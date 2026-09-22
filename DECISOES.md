@@ -19,6 +19,29 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t466-dado-geografico — WS-D: hierarquia geográfica normalizada + coordenadas P625
+
+Motivo: o mapa-múndi (M1·WS-C) e os rankings por jogo (M2) dependem de dado geográfico; o conector de clubes gravava `country/city` como TEXTO e não havia hierarquia continente→país→estado→cidade nem coordenadas em massa.
+**FASE 0 (R3, medida — não assumida):** **veredicto (a)** — NÃO existiam models geográficos (só `Club.city/state/country` texto + `latitude/longitude`; `Stadium` idem). Produção: clubs 3.857 · com `country` 3.857 (100%, 169 distintos) · com `city` **463** · com `state` **10** · com coordenada **113 (2,9%)**; `stadiums` **0 linhas**; **PostGIS ausente** em produção (`20260905_stadiums_postgis` é no-op documentado — não é drift).
+**Entregas:** migration versionada/reversível `20261001120000_t466_geo_hierarchy` (models `Country`/`State`/`City` + FKs **nullable** em `clubs`/`stadiums`; PostgreSQL **e** paridade SQLite; grants em `create_app_user.sql`). Seed `ingest-geo-wikidata.ts` (DRY-RUN/`--apply`) via conector puro `wikidata-geo.connector.ts`: **país** = P17 (ISO-2 via P297, continente via P30); **cidade** = P131 (QID + label + P625); **estado** = P131 da cidade quando tem ISO 3166-2 (P300). Chaves de dedup: `countries.iso2`, `states.code`, `cities.qid`; proveniência por registro (`importedFrom='wikidata-geo'`, `sourceUrl`, `importedAt`); Zod no payload externo. Coordenadas de clube via `enrich-club-coords.ts` (P625; **reuso**, não recriado).
+**API:** `GET /clubs/:id/geo` (contrato do T467) — hierarquia resolvida + coordenadas; nulos = dado ausente (honesto).
+**Validação viva (amostra real de produção, 60 clubes, Wikidata ao vivo):** 60/60 país vinculado · 23 países · 6 estados · 17 cidades · **re-run ⇒ ZERO escrita** (2ª execução `created=0 updated=0`, `links unchanged=60`) · **spot-check** 20 clubes (P625 e ISO via P17→P297) 20/20 · 17 cidades 17/17 · 6 estados (P300==code) 6/6 · **bbox** fora=0 · **órfão/ciclo**=0.
+**GAP DECLARADO (honesto):** só ~3% dos clubes têm P625 direto no item Wikidata (produção 113/3.857; amostra 2/60) — o mapa (T467) será esparso por clube e poderá plotar **cidades** (que têm P625 via P131) como fallback; decidir no T467, sem inventar coordenada. `stadiums` fica vazio (sem seed nesta rodada; proxy de estádio = T467/Operador).
+**Reversível:** por proveniência (`DELETE ... WHERE "importedFrom"='wikidata-geo'`) + drop da migration. FKs nullable não reescrevem as 3.857 linhas.
+**Ativação em produção = pós-deploy** (a migration aplica no boot via `migrate deploy`; NÃO foi aplicada à mão em produção — regra T430). Comando de seed: `ingest-geo-wikidata.ts --apply` + `enrich-club-coords.ts --apply`.
+
+### [2026-09-22] Decisão: D-2026-09-22-m1-ws-c-map-gap — M1 declarado com o mapa-múndi ainda [ ] ; T466 (dado) + T467 (pinta) fecham o gap
+
+Motivo: o STATUS/Features Core lista "Mapa-múndi interativo" como `[ ]` embora o M1 tenha sido declarado em 2026-09-15, e o §8 ordena mapa-múndi (M1·WS-C) ANTES de rankings (M2). Sem afirmar a intenção da rodada de M1 (não lida): a leitura do fonte/produção confirma que o dado geográfico necessário **não existia** — logo o mapa não poderia estar pintado. O gap é de **dado**, fechado por T466 (hierarquia + coordenadas) e T467 (render). `mapa-múndi` permanece `[ ]` em Features Core até o T467.
+
+### [2026-09-22] Decisão: D-2026-09-22-t465-aprovado-codigo-morto — T465 aprovado: "alinhar texto" virou "fechar a raiz por construção"
+
+Motivo: aprovação do T465 (#171). A FASE 0 leu o FONTE do deploy (não prints/memória) e achou pior que os prints: `plan-features.ts` era **código morto** (zero consumidores) e o `/checkout` hardcodava listas já divergentes. Em vez de alinhar texto, a divergência foi morta na raiz: fonte única (`plan-features.ts` consumido pelo `/checkout`) + **teste anti-hardcode** que lê o `page.tsx` e rejeita listas paralelas. Learning registrado: "alinhar texto" → "fechar raiz por construção"; R3 aplicada à oferta. Registrada também a regra de branch na prática (caiu na main local; procedimento registrado funcionou; zero perda).
+
+### [2026-09-22] Decisão: D-2026-09-22-checkout-pt-only-pre-beta — (já registrada) i18n do checkout = T468, autônomo nosso, pré-beta
+
+Nota de encadeamento: esta decisão já existe acima (T465). Mantida a distinção para não confundir gates: i18n do checkout (WS-F, T468) é **correção autônoma nossa**, pré-abertura do beta pago; o gate do Operador é o **jurídico** (advogado/DPO/provedores/domínio). T468 vem depois de T466/T467.
+
 ### [2026-09-22] Decisão: D-2026-09-22-gate-beta-pago-ajustado — Gate do beta PAGO após os deltas do Operador (age gate, advogado, rep UE e T471 cortados)
 
 Motivo: o gate anterior (D-2026-09-22-gate-legal-m3-produto-corrigido) tratava advogado/DPO/provedores/domínio como bloqueantes. O Operador decidiu cortar expressamente. Novo gate do M3 de produto (abrir beta pago): **[x] T465 no ar** (oferta honesta, #171) · **[x] T469 no ar SEM age gate** e com texto de menores honesto (este round) · **[ ] T470** (direitos do titular + DMCA reais — LGPD art. 18, independe de advogado/idade/UE) · **[ ] T472** (checkout pt/en/es — clareza CDC art. 6) · **[—] advogado NÃO exigido** (decisão do Operador; texto publicado sem revisão externa) · **[—] representante UE NÃO exigido** (risco aceito) · **[—] age gate NÃO existe** (decisão do Operador) · **[—] T471 geobloqueio NÃO aplicado** (opcional-futuro).
