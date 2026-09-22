@@ -1,14 +1,10 @@
 /**
- * T449a — Ingestão RSSSF (tabelas finais por divisão) → ranking 0-100.
- * Piloto: England 2022/23 (5 divisões). Sem partidas individuais (T449b).
+ * T449a — RSSSF (tabelas finais por divisão) → ranking 0-100 por competição/temporada.
+ * Piloto: England 2022/23 (5 divisões). NÃO popula `matches` (decisão: tabelas→ranking).
  *
- * Uso:
- *   pnpm --filter @almanaque/api exec tsx src/scripts/ingest-rsssf-england-tables.ts          # DRY-RUN
- *   pnpm --filter @almanaque/api exec tsx src/scripts/ingest-rsssf-england-tables.ts --apply  # grava
- * Produção (lição #162): node apps/api/dist/scripts/ingest-rsssf-england-tables.js [--apply]
- *
- * Licença RSSSF: ATRIBUIÇÃO obrigatória (RSSSF_ATTRIBUTION); proveniência por registro.
- * Reversível: DELETE ranking_entries/rankings WHERE dataSourceIds @> '["rsssf"]' etc.
+ * Uso: tsx src/scripts/ingest-rsssf-england-tables.ts [--apply]  (prod: node dist/scripts/...)
+ * Licença RSSSF = ATRIBUIÇÃO obrigatória. Rank: por competição/temporada (tier EMERGE).
+ * Reversível: DELETE ranking_entries/rankings do piloto (proveniência dataSourceIds=['rsssf']).
  */
 import { PrismaClient } from '@prisma/client';
 import {
@@ -18,75 +14,70 @@ import {
   RSSSF_ATTRIBUTION,
   RSSSF_LICENSE,
 } from '../modules/etl/connectors/rsssf-tables.connector.js';
+import { normalizeClubName } from '../modules/etl/connectors/wikidata-en-clubs.connector.js';
 import { fetchWithRetry } from '../lib/http-resilience.js';
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes('--apply');
-const SEASON = '2023'; // temporada 2022/23
-const COUNTRY = 'GB'; // Inglaterra (Wikidata P297 = GB)
+const SEASON = '2023';
+const COUNTRY = 'GB';
+const METHOD_VERSION = 't449a-rsssf-tables-v1';
 const UA =
-  'AlmanaqueDosClubes/0.1 (t449 rsssf tables; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
+  'AlmanaqueDosClubes/0.1 (t449a rsssf; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 
-async function fetchPage(url: string): Promise<string> {
-  const res = await fetchWithRetry(url, { headers: { 'user-agent': UA } }, { label: 't449-rsssf' });
-  return res.text();
-}
+/** Divisões RSSSF → QID da competição JÁ existente (não duplicar por nome). */
+export const DIVISION_QID: Record<string, string> = {
+  'Premier League': 'Q9448',
+  Championship: 'Q19510',
+  'Division 1': 'Q19565',
+  'Division 2': 'Q48837',
+  'National League': 'Q18504',
+};
 
 async function main(): Promise<void> {
   const url = rsssfSeasonUrl(SEASON);
   console.log('Fonte:', url);
-  const page = await fetchPage(url);
-  const tables = parseEnglandFinalTables(page);
-  console.log(
-    'Divisões parseadas:',
-    tables.map((t) => `${t.division}(${t.rows.length})`).join(' · '),
+  const res = await fetchWithRetry(
+    url,
+    { headers: { 'user-agent': UA } },
+    { label: 't449a-rsssf' },
   );
+  const tables = parseEnglandFinalTables(await res.text());
+  console.log('Divisões:', tables.map((t) => `${t.division}(${t.rows.length})`).join(' · '));
+
+  const activeClubs = await prisma.club.findMany({
+    where: { country: COUNTRY, deletedAt: null },
+    select: { id: true, name: true },
+  });
+  const byNorm = new Map(activeClubs.map((c) => [normalizeClubName(c.name), c.id]));
 
   let totalMatched = 0;
   let totalRows = 0;
   for (const table of tables) {
-    totalRows += table.rows.length;
     const ranked = rankDivision(table.rows);
-    const names = ranked.map((r) => r.club);
-    const clubs = await prisma.club.findMany({
-      where: { name: { in: names, mode: 'insensitive' } },
-      select: { id: true, name: true },
-    });
-    const byName = new Map(clubs.map((c) => [c.name.toLowerCase(), c.id]));
-    const matched = ranked.filter((r) => byName.has(r.club.toLowerCase()));
+    totalRows += ranked.length;
+    const matched = ranked
+      .map((r) => ({ ...r, clubId: byNorm.get(normalizeClubName(r.club)) }))
+      .filter((r): r is typeof r & { clubId: string } => !!r.clubId);
     totalMatched += matched.length;
     console.log(`\n[${table.division}] ${ranked.length} clubes · casados ${matched.length}`);
-    for (const r of ranked.slice(0, 3)) {
-      console.log(
-        `  ${r.position}. ${r.club} pts=${r.points} score=${r.score} ${byName.has(r.club.toLowerCase()) ? '✓' : '·sem clube'}`,
-      );
-    }
+
     if (!APPLY) continue;
 
-    // APPLY: competição da divisão + ranking + entries (idempotente)
-    const compName = `England ${table.division} ${SEASON}`;
-    let competition = await prisma.competition.findFirst({
-      where: { name: compName, country: COUNTRY },
+    const qid = DIVISION_QID[table.division];
+    const competition = qid
+      ? await prisma.competition.findUnique({ where: { qid }, select: { id: true } })
+      : null;
+    if (!competition) {
+      console.log(`  ! competição sem match (QID ${qid}) — pulando divisão`);
+      continue;
+    }
+    let ranking = await prisma.ranking.findFirst({
+      where: { competitionId: competition.id, season: SEASON },
       select: { id: true },
     });
-    if (!competition) {
-      competition = await prisma.competition.create({
-        data: {
-          name: compName,
-          country: COUNTRY,
-          type: 'LEAGUE',
-          importedFrom: 'rsssf',
-          importedAt: new Date(),
-          sourceUrl: url,
-        },
-        select: { id: true },
-      });
-    }
-    const ranking =
-      (await prisma.ranking.findFirst({
-        where: { competitionId: competition.id, season: SEASON },
-      })) ??
-      (await prisma.ranking.create({
+    if (!ranking) {
+      ranking = await prisma.ranking.create({
         data: {
           name: `${table.division} ${SEASON}`,
           competitionId: competition.id,
@@ -94,11 +85,11 @@ async function main(): Promise<void> {
           publishedAt: new Date(),
         },
         select: { id: true },
-      }));
+      });
+    }
     for (const r of matched) {
-      const clubId = byName.get(r.club.toLowerCase()) as string;
       await prisma.rankingEntry.upsert({
-        where: { rankingId_clubId: { rankingId: ranking.id, clubId } },
+        where: { rankingId_clubId: { rankingId: ranking.id, clubId: r.clubId } },
         update: {
           position: r.position,
           points: r.score,
@@ -109,7 +100,7 @@ async function main(): Promise<void> {
         },
         create: {
           rankingId: ranking.id,
-          clubId,
+          clubId: r.clubId,
           position: r.position,
           points: r.score,
           baseMatches: r.played,
@@ -121,9 +112,9 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `\nTotal: ${totalMatched}/${totalRows} clubes casados. Atribuição: ${RSSSF_ATTRIBUTION}. Licença: ${RSSSF_LICENSE}`,
+    `\nTotal: ${totalMatched}/${totalRows} casados · methodVersion=${METHOD_VERSION} · atribuição=${RSSSF_ATTRIBUTION} · licença=${RSSSF_LICENSE}`,
   );
-  if (!APPLY) console.log('DRY-RUN — nada gravado. Rode com --apply.');
+  if (!APPLY) console.log('DRY-RUN — nada gravado.');
 }
 
 const invokedAsScript = /scripts\/ingest-rsssf-england-tables\.(ts|js)$/.test(

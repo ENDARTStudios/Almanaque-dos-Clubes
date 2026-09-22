@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-23] Decisão: D-2026-09-23-t449a-tier-emerge-por-competicao — Ranking 0-100 POR competição/temporada (sem agregado cross-division)
+
+Motivo: o T449a **não cria ranking único** misturando Premier League/Championship/League One/League Two/National League. A normalização MinMax é **por competição/temporada** → as divisões ficam em rankings separados e o **tier emerge** do escopo (não de campo novo). A dívida de "tier agregado 1ª-vs-2ª num ranking nacional" fica **T449c/T449b** (com campo de tier/divisão). **Limitação declarada:** sem ranking cross-division.
+
+### [2026-09-23] Decisão: D-2026-09-23-t449a-parser-tables-ranking-piloto-en — T449a = tabelas RSSSF → ranking 0-100 (sem `matches`) + fórmula documentada
+
+Motivo (FASE 0, medido): o parser #185 lê `rsssf.org/tablese/eng2023.html` e emite **TABELAS FINAIS** (classificação: P/W/D/L/GF-GA/pontos) por divisão — **NÃO partidas individuais**. Popular `matches` exigiria **outro parser** (resultados por rodada com **nomes abreviados** "Crystal P") — sub-projeto. Arbitrado: **T449a = tabelas→ranking 0-100**, sem escrever `matches` (consistente com a arbitragem anterior). Pilot: England 2022/23, 5 divisões. **Fórmula documentada:** `raw = W×3×peso + D×1×peso + GF×0.2×peso` (+ `títulos×50×peso`, **títulos=0** no piloto — sem KG auditável na competição/temporada; limitação declarada) → **MinMax por competição/temporada** → 0-100; desempate determinístico (gols contra, saldo, GF, nome, clubId). **Peso** = hierarquia real (nacional=3.0 no piloto). **Escrita:** `competitions` (por **QID existente**: PL Q9448/Championship Q19510/League One Q19565/League Two Q48837/National League Q18504 — sem duplicar por nome), `rankings` (competição+temporada), `ranking_entries` (`position`, `points`=score, `baseMatches`=P, `dataSourceIds=['rsssf']`, `gender='men'`). **Sem migration.** Proveniência/atribuição RSSSF em cada escrita. **Gap de schema declarado:** `Ranking` não tem `methodVersion`/`limitations` (documentados em `/metodologia`/docs; migration futura). **Cobertura:** 116/116 (gate T449EN). Reversível por proveniência.
+
 ### [2026-09-23] Decisão: D-2026-09-23-t449en-universo-minimo — Base EN para o piloto T449a: universo mínimo, threshold 100%, soft-delete por `deletedAt`
 
 Motivo (FASE 0 medida): o piloto T449a exige os clubes da Inglaterra. Produção tinha **303 clubes GB** mas só **93/116** das tabelas RSSSF casavam; **23 faltantes** (5 grandes: Arsenal, Chelsea, Liverpool, Manchester City, Leeds) + **1 ruído** (`1964–65 Leeds United A.F.C. season`, Q10556336, ingerido como clube). `Club` **não tinha `deletedAt`**.
