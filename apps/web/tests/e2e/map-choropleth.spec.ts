@@ -50,8 +50,9 @@ test.describe('Mapa-múndi (T467)', () => {
     const regions = page.getByTestId('region-list');
     await expect(regions).toBeVisible();
     await expect(regions.getByRole('button', { name: /Europa,\s*1200 clubes/ })).toBeVisible();
-    // mapa é acessório (aria-hidden) — a navegação é pela lista
-    await expect(page.locator('[aria-label*="Mapa por país"]')).toHaveCount(1);
+    // mapa é DECORATIVO (aria-hidden); a navegação acessível é a lista de regiões
+    await expect(page.locator('[aria-hidden="true"]').first()).toBeVisible();
+    await expect(page.getByText(/Mundo\s*—\s*3808 clubes/)).toBeVisible();
   });
 
   test('teclado: foco na região → Enter desce de nível, aria-live anuncia (SPA, sem reload)', async ({

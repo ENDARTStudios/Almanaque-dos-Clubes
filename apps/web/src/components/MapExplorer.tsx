@@ -243,7 +243,6 @@ export default function MapExplorer({ stats }: { stats: GeoStats }) {
             setStateId(null);
           }
         }}
-        ariaLabel={m.mapAlt}
       />
 
       {/* Busca textual (tsvector existente — NÃO preditiva) */}

@@ -30,6 +30,7 @@ Motivo (ressalva C2): `clubs:geo-stats` usa `cache.remember` com **TTL curto (30
 ### [2026-09-22] Decisão: D-2026-09-22-m1-ws-c-fechado-por-t467 — T467 fecha a ponta M1·WS-C (mapa) que ficou [ ] quando declarei M1 fechado
 
 Motivo (correção de processo, 2ª instância após T448′/T465): o M1 foi declarado em 2026-09-15 com "Mapa-múndi interativo" ainda `[ ]` em Features Core. **Marco não se declara fechado com ponta visível aberta.** T467 fecha M1·WS-C (mapa read-only sobre a hierarquia geo real). Registrado para o critério de declaração de marco.
+**Smoke pós-deploy (C1, 2026-09-22) — [x] de fato:** `GET /api/v1/clubs/geo-stats` **200** `source=derived` (3.808 clubes/168 países/97 estados; 7 continentes EU 2246 · SA 769 · AS 380 · AF 194 · NA 174 · ZZ 31 · OC 14; sem segredos); `GET /map` **200** com lista de regiões SSR + "Europa"; asset `/geo/ne_110m_admin_0_countries.geojson` **200** (815.562 B). Nota: o mapa é decorativo (`aria-hidden`); a navegação acessível é a lista de regiões (aria-live/breadcrumb).
 
 ### [2026-09-22] Decisão: D-2026-09-22-t467-falha-open-blocklist-justificada — Por que o fail-open da LEITURA da blocklist (#180) é seguro AQUI
 
