@@ -30,9 +30,10 @@ describe('T451 — resolveRefundablePaymentIntentId', () => {
   });
 
   it('charge já reembolsada não é candidata → null (fail-loud)', () => {
-    const pi = resolveRefundablePaymentIntentId([paidInvNoPi], [
-      { status: 'succeeded', refunded: true, payment_intent: 'pi_3UHZeZPvpIyYKAjl1O13Zllg' },
-    ]);
+    const pi = resolveRefundablePaymentIntentId(
+      [paidInvNoPi],
+      [{ status: 'succeeded', refunded: true, payment_intent: 'pi_3UHZeZPvpIyYKAjl1O13Zllg' }],
+    );
     expect(pi).toBeNull();
   });
 
@@ -42,9 +43,10 @@ describe('T451 — resolveRefundablePaymentIntentId', () => {
   });
 
   it('charge sem payment_intent não é candidata → null', () => {
-    const pi = resolveRefundablePaymentIntentId([paidInvNoPi], [
-      { status: 'succeeded', refunded: false, payment_intent: null },
-    ]);
+    const pi = resolveRefundablePaymentIntentId(
+      [paidInvNoPi],
+      [{ status: 'succeeded', refunded: false, payment_intent: null }],
+    );
     expect(pi).toBeNull();
   });
 

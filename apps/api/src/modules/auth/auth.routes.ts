@@ -241,30 +241,31 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           select: {
             id: true,
             email: true,
-          name: true,
-          status: true,
-          emailVerified: true,
-          createdAt: true,
+            name: true,
+            status: true,
+            emailVerified: true,
+            createdAt: true,
+          },
+        }),
+      );
+      if (!user || user.status !== 'ACTIVE') {
+        return reply.status(401).send({
+          error: { code: 'UNAUTHORIZED', message: 'Sessão inválida' },
+        });
+      }
+      const roles = (await getUserRoles(userId)).map((r) => r.name);
+      return reply.send({
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified != null,
+          createdAt: user.createdAt,
+          roles,
         },
-      }),
-    );
-    if (!user || user.status !== 'ACTIVE') {
-      return reply.status(401).send({
-        error: { code: 'UNAUTHORIZED', message: 'Sessão inválida' },
       });
-    }
-    const roles = (await getUserRoles(userId)).map((r) => r.name);
-    return reply.send({
-      data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified != null,
-        createdAt: user.createdAt,
-        roles,
-      },
-    });
-  });
+    },
+  );
 
   // -----------------------------------------------------------------
   // POST /auth/login
@@ -342,33 +343,34 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // competir com o orçamento global (429 no refresh = ressurreição/pilha).
     { config: { rateLimit: { max: 600, timeWindow: '15 minutes' } } },
     async (request, reply) => {
-    try {
-      RefreshSchema.parse(request.body);
+      try {
+        RefreshSchema.parse(request.body);
 
-      const oldRefreshToken = getRefreshTokenFromRequest(request);
-      if (!oldRefreshToken) {
-        throw new AuthError('Credenciais inválidas');
-      }
+        const oldRefreshToken = getRefreshTokenFromRequest(request);
+        if (!oldRefreshToken) {
+          throw new AuthError('Credenciais inválidas');
+        }
 
-      const metadata = extractMetadata(request);
-      const result = await refreshSession(oldRefreshToken, metadata);
+        const metadata = extractMetadata(request);
+        const result = await refreshSession(oldRefreshToken, metadata);
 
-      const { accessToken } = jwt.signTokens(result.user, result.sessionId);
-      setAuthCookies(reply, accessToken, result.refreshToken);
+        const { accessToken } = jwt.signTokens(result.user, result.sessionId);
+        setAuthCookies(reply, accessToken, result.refreshToken);
 
-      return reply.status(200).send({
-        data: {
-          user: {
-            id: result.user.id,
-            email: result.user.email,
-            roles: result.user.roles,
+        return reply.status(200).send({
+          data: {
+            user: {
+              id: result.user.id,
+              email: result.user.email,
+              roles: result.user.roles,
+            },
           },
-        },
-      });
-    } catch (err) {
-      handleAuthError(err, reply);
-    }
-  });
+        });
+      } catch (err) {
+        handleAuthError(err, reply);
+      }
+    },
+  );
 
   // -----------------------------------------------------------------
   // POST /auth/forgot-password

@@ -19,6 +19,15 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-22] Decisão: D-2026-09-22-t476-ci-glob-recursivo — O glob do lint expandia só 1 nível no CI (falso verde); corrigido + triagem dos 122
+
+Motivo: o script `pnpm lint` era `eslint apps/api/**/*.ts apps/worker/**/*.ts packages/**/*.ts` **sem aspas**. No bash do runner (sem `globstar`), `**` age como `*` e o shell expande **um** nível (`apps/api/*/*.ts`): **27 arquivos varridos de 186** em `apps/api`; o eslint recebia a lista explícita e **não recursava**. Logo `apps/api/src/modules/**`, `apps/api/tests/**` e `apps/api/src/scripts/**` **nunca eram lintados no CI** — "CI verde" escondendo **122 erros** (viola R1 na infraestrutura).
+**Correção:** aspas nos globs → o shell entrega o padrão literal e o **eslint expande recursivamente** (portável; sem `shopt`/`find`). `lint:fix` idem. `prettier --check` já estava entre aspas (recursivo) → sem mudança. `tsc` usa `tsconfig include` (não glob de shell) → verificado: `apps/api` cobre `src/**`; `scripts/**` fora é **intencional** (T448/#160 — senão o `rootDir` vira `dist/src`).
+**Triagem (glob recursivo; 20 arquivos com problema):** 122 erros → **118 `prettier/prettier`** (18 arquivos; **formatação**, auto-fixados via `eslint --fix`), **3 `no-undef`** (`NodeJS.ProcessEnv` como **tipo** em `src/scripts/backup-to-r2.ts`/`restore-drill.ts` = **FP** de core `no-undef` com TS → regra desligada p/ TS, conforme recomendação typescript-eslint), **1 `preserve-caught-error`** (`privacy-copyright.test.ts` → `{ cause: e }`). **98 warnings registrados** (security/detect-object-injection 57, @typescript-eslint/no-explicit-any 26, detect-non-literal-fs-filename 14, detect-unsafe-regex 1) — não bloqueiam; dívida rastreada.
+**Artefato novo:** `.gitattributes` (`* text=auto eol=lf`) — **faltava** (lição T448d); evita falso-diff prettier CRLF (Windows) vs LF (CI).
+**Fora / dívida rastreada:** o `format:check` standalone **não roda no CI** e cobre 954 arquivos (majoritariamente `apps/web/**`, que o eslint **ignora** por configuração `ignores: ['apps/web/', …]`) — gap separado, não deste round; avaliar em round WS-S futuro (adicionar `apps/web` ao lint/prettier de CI). Os 98 warnings ficam como dívida de estilo/segurança-FP.
+**R1 (CI verde real):** a partir de T476, "CI verde" **cobre** lint recursivo de `apps/api`/`apps/worker`/`packages`; antes, era confiável só para os arquivos de 1º nível — a ressalva fica no HANDOFF.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t466-dado-geografico — WS-D: hierarquia geográfica normalizada + coordenadas P625
 
 Motivo: o mapa-múndi (M1·WS-C) e os rankings por jogo (M2) dependem de dado geográfico; o conector de clubes gravava `country/city` como TEXTO e não havia hierarquia continente→país→estado→cidade nem coordenadas em massa.

@@ -198,7 +198,9 @@ export function resolveRefundablePaymentIntentId(
   for (const inv of paidInvoices) {
     if (inv.payment_intent) return inv.payment_intent;
   }
-  const charge = customerCharges.find((c) => c.status === 'succeeded' && !c.refunded && c.payment_intent);
+  const charge = customerCharges.find(
+    (c) => c.status === 'succeeded' && !c.refunded && c.payment_intent,
+  );
   return charge?.payment_intent ?? null;
 }
 

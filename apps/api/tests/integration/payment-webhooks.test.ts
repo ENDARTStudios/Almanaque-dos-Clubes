@@ -84,28 +84,34 @@ function stripeEvent(id: string, type: string, object: Record<string, unknown>) 
 
 async function seedRoles(): Promise<void> {
   for (const [roleName, perms] of Object.entries(ROLE_PERMISSIONS)) {
-    const role = await prisma.role.upsert({
-      where: { name: roleName },
-      update: {},
-      create: { name: roleName },
-    }).catch(async (e: unknown) => {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
-      return prisma.role.findUniqueOrThrow({ where: { name: roleName } });
-    });
-    for (const permName of perms) {
-      const perm = await prisma.permission.upsert({
-        where: { name: permName },
+    const role = await prisma.role
+      .upsert({
+        where: { name: roleName },
         update: {},
-        create: { name: permName },
-      }).catch(async (e: unknown) => {
+        create: { name: roleName },
+      })
+      .catch(async (e: unknown) => {
         if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
-        return prisma.permission.findUniqueOrThrow({ where: { name: permName } });
+        return prisma.role.findUniqueOrThrow({ where: { name: roleName } });
       });
-      await prisma.rolePermission.upsert({
-        where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
-        update: {},
-        create: { roleId: role.id, permissionId: perm.id },
-      }).catch(ignoreDuplicate);
+    for (const permName of perms) {
+      const perm = await prisma.permission
+        .upsert({
+          where: { name: permName },
+          update: {},
+          create: { name: permName },
+        })
+        .catch(async (e: unknown) => {
+          if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+          return prisma.permission.findUniqueOrThrow({ where: { name: permName } });
+        });
+      await prisma.rolePermission
+        .upsert({
+          where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
+          update: {},
+          create: { roleId: role.id, permissionId: perm.id },
+        })
+        .catch(ignoreDuplicate);
     }
   }
 }
@@ -118,7 +124,8 @@ beforeAll(async () => {
     await prisma.paymentEvent.count();
   } catch {
     dbOk = false;
-    if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
+    if (process.env.TEST_REQUIRE_DB === 'true')
+      throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
     return;
   }
   await seedRoles();

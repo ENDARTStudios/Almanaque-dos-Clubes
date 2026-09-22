@@ -1,0 +1,17 @@
+# T476 — normaliza fim de linha para LF.
+# Motivo: checkouts Windows (core.autocrlf=true) materializam CRLF, e o prettier
+# (endOfLine=lf) passa a reportar falso-diff contra o CI Linux (lição T448d).
+# `eol=lf` força LF no working tree e no repo; `text=auto` detecta binários.
+* text=auto eol=lf
+
+# Binários — nunca normalizar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.db binary

@@ -24,6 +24,11 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       ...securityPlugin.configs.recommended.rules,
       'prettier/prettier': 'error',
+      // T476 — FP documentado: core `no-undef` não entende namespaces de TIPO do TS
+      // (ex.: `NodeJS.ProcessEnv`), embora o parser TS os resolva. typescript-eslint
+      // recomenda desligar core `no-undef` em arquivos TS (o compilador já cobre
+      // identificadores indefinidos). Ver D-2026-09-22-t476-ci-glob-recursivo.
+      'no-undef': 'off',
       'no-redeclare': 'off',
       '@typescript-eslint/no-redeclare': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

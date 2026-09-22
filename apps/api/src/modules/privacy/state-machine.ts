@@ -10,12 +10,7 @@
  */
 
 export type PrivacyStatus = 'recebido' | 'em_andamento' | 'atendido' | 'indeferido';
-export type ClaimStatus =
-  | 'recebida'
-  | 'em_analise'
-  | 'deferida'
-  | 'indeferida'
-  | 'retirado';
+export type ClaimStatus = 'recebida' | 'em_analise' | 'deferida' | 'indeferida' | 'retirado';
 
 export const PRIVACY_TRANSITIONS: Record<PrivacyStatus, PrivacyStatus[]> = {
   recebido: ['em_andamento'],

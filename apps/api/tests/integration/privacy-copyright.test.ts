@@ -15,7 +15,10 @@ import { ROLE_PERMISSIONS } from '../../src/modules/auth/rbac.service.js';
 import type { FastifyInstance } from 'fastify';
 
 // Token CSRF é de uso único — cada POST precisa de um token fresco.
-const csrf = () => ({ 'x-csrf-token': generateCsrfToken('t445'), 'content-type': 'application/json' });
+const csrf = () => ({
+  'x-csrf-token': generateCsrfToken('t445'),
+  'content-type': 'application/json',
+});
 
 // R2 — seed tolerante a corrida entre arquivos paralelos (upsert concorrente = já existe).
 const ignoreDuplicate = (e: unknown): void => {
@@ -34,28 +37,34 @@ let auditUserIds: string[] = [];
 
 async function seedRoles(): Promise<void> {
   for (const [roleName, perms] of Object.entries(ROLE_PERMISSIONS)) {
-    const role = await prisma.role.upsert({
-      where: { name: roleName },
-      update: {},
-      create: { name: roleName },
-    }).catch(async (e: unknown) => {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
-      return prisma.role.findUniqueOrThrow({ where: { name: roleName } });
-    });
-    for (const permName of perms) {
-      const perm = await prisma.permission.upsert({
-        where: { name: permName },
+    const role = await prisma.role
+      .upsert({
+        where: { name: roleName },
         update: {},
-        create: { name: permName },
-      }).catch(async (e: unknown) => {
+        create: { name: roleName },
+      })
+      .catch(async (e: unknown) => {
         if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
-        return prisma.permission.findUniqueOrThrow({ where: { name: permName } });
+        return prisma.role.findUniqueOrThrow({ where: { name: roleName } });
       });
-      await prisma.rolePermission.upsert({
-        where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
-        update: {},
-        create: { roleId: role.id, permissionId: perm.id },
-      }).catch(ignoreDuplicate);
+    for (const permName of perms) {
+      const perm = await prisma.permission
+        .upsert({
+          where: { name: permName },
+          update: {},
+          create: { name: permName },
+        })
+        .catch(async (e: unknown) => {
+          if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+          return prisma.permission.findUniqueOrThrow({ where: { name: permName } });
+        });
+      await prisma.rolePermission
+        .upsert({
+          where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
+          update: {},
+          create: { roleId: role.id, permissionId: perm.id },
+        })
+        .catch(ignoreDuplicate);
     }
   }
 }
@@ -77,8 +86,14 @@ beforeAll(async () => {
     await prisma.privacyRequest.count();
   } catch (e) {
     dbOk = false;
-    if (process.env.TEST_REQUIRE_DB === 'true') throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)');
-    console.log('[t445] count() falhou:', (e as Error).message.split('\n').slice(0, 12).join(' | '));
+    if (process.env.TEST_REQUIRE_DB === 'true')
+      throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip (D-2026-09-18)', {
+        cause: e,
+      });
+    console.log(
+      '[t445] count() falhou:',
+      (e as Error).message.split('\n').slice(0, 12).join(' | '),
+    );
   }
   // Honestidade: run sem banco passa "vazio" (skip por teste) — deixar visível.
   console.log(`[t445] dbOk=${dbOk} (false = skips honestos; CI valida)`);
@@ -336,7 +351,11 @@ describe('T445 — admin workflow: guardas + cadeia estrita + eliminação', () 
       method: 'POST',
       url: `/api/v1/admin/privacy-requests/${id}/transition`,
       headers: { cookie: `access_token=${adminToken}`, ...csrf() },
-      payload: { to: 'em_andamento', deferredUntil: future, notes: 'complexidade — prorrogação §3' },
+      payload: {
+        to: 'em_andamento',
+        deferredUntil: future,
+        notes: 'complexidade — prorrogação §3',
+      },
     });
     expect(res.statusCode).toBe(200);
     const row = await prisma.privacyRequest.findUnique({ where: { id } });
