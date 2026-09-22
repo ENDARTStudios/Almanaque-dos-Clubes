@@ -19,7 +19,7 @@ export interface ChampionView {
   hierarchy: RankHierarchy;
   champion: {
     club: { id: string; name: string; country: string | null };
-    competition: { id: string; name: string | null };
+        competition: { id: string; name: string | null; type: string | null };
     season: number | null;
     /** URL de imagem do troféu (metadata.imageUrl) — hoje o acervo não tem; placeholder no frontend. */
     trophy: string | null;
@@ -100,6 +100,7 @@ export interface Representative {
   hierarchy: RankHierarchy;
   compId: string;
   compName: string | null;
+  compType: string | null;
   editions: number;
   distinctChampions: number;
   latestYear: number;
@@ -111,9 +112,22 @@ function cmpAsc(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
+/**
+ * T448e — rank de tipo: LEAGUE representa o país antes de CUP (e de qualquer
+ * outro/NULL). Campo OBJETIVO já existente no acervo (seed T429 = LEAGUE;
+ * T448b-1 marcou as copas com CUP; backfill das 18 ligas com aresta executado
+ * em produção) — não é tier subjetivo: 1ª-vs-2ª divisão segue dívida do T449.
+ */
+export function typeRank(type: string | null | undefined): number {
+  if (type === 'LEAGUE') return 0;
+  if (type === 'CUP') return 1;
+  return 2;
+}
+
 /** Comparador total (nunca 0 entre candidatos distintos — id fecha a ordem). */
 export function compareRepresentatives(a: Representative, b: Representative): number {
   return (
+    typeRank(a.compType) - typeRank(b.compType) ||
     b.latestYear - a.latestYear ||
     b.editions - a.editions ||
     b.distinctChampions - a.distinctChampions ||
@@ -162,6 +176,7 @@ export function selectRepresentatives(
         hierarchy,
         compId: e.targetId,
         compName: comp?.name ?? null,
+        compType: comp?.type ?? null,
         editions: 0,
         distinctChampions: 0,
         latestYear: 0,
@@ -186,6 +201,7 @@ export function selectRepresentatives(
       hierarchy: agg.hierarchy,
       compId: agg.compId,
       compName: agg.compName,
+      compType: agg.compType,
       editions: agg.editions,
       distinctChampions: agg.champions.size,
       latestYear: agg.latestYear,
@@ -255,7 +271,7 @@ export async function loadChampions(gender?: 'men' | 'women'): Promise<Champions
       hierarchy,
       champion: {
         club: { id: club.id, name: club.name, country: club.country },
-        competition: { id: rep.compId, name: comp?.name ?? null },
+        competition: { id: rep.compId, name: comp?.name ?? null, type: comp?.type ?? null },
         season: rep.champion.year || null,
         trophy: null, // acervo ainda sem imagens de troféu (HAS_TROPHY/imageUrl) — placeholder no frontend
         gender: rep.champion.gender,

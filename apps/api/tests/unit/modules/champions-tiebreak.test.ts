@@ -16,6 +16,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   compareRepresentatives,
   selectRepresentatives,
+  typeRank,
   type CompRefInput,
   type Representative,
   type WonEdgeInput,
@@ -50,8 +51,8 @@ function edge(opts: {
   };
 }
 
-function comp(id: string, name: string): CompRefInput {
-  return { id, qid: null, name, type: 'LEAGUE', country: null };
+function comp(id: string, name: string, type = 'LEAGUE'): CompRefInput {
+  return { id, qid: null, name, type, country: null };
 }
 
 const edgesOf = (...es: WonEdgeInput[]) => es;
@@ -256,6 +257,89 @@ describe('T448d — guarda de vigência (edição futura não existe para o carr
     const r2 = selectRepresentatives([...build()].reverse(), comps, undefined, 2026);
     expect(r1.get('nacional')!.compId).toBe(r2.get('nacional')!.compId);
     expect(r1.get('nacional')!.compId).toBe('a'); // 2026 vigente > 2025; a 2027 não conta
+  });
+});
+
+describe('T448e — tipo antes de vigência: LEAGUE representa o país, CUP não', () => {
+  it('caso Holanda: Eredivisie (LEAGUE, 2025) vence Cruijff Shield (CUP, 2026)', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'cruijff', year: 2026, hierarchy: 'nacional' }),
+        edge({ compId: 'eredivisie', year: 2025, hierarchy: 'nacional' }),
+        edge({ compId: 'eredivisie', year: 2024, hierarchy: 'nacional' }),
+      ),
+      [comp('eredivisie', 'Eredivisie', 'LEAGUE'), comp('cruijff', 'Johan Cruijff Shield', 'CUP')],
+    );
+    const nacional = reps.get('nacional')!;
+    expect(nacional.compId).toBe('eredivisie');
+    expect(nacional.compType).toBe('LEAGUE');
+    expect(nacional.champion.year).toBe(2025);
+  });
+
+  it('hierarquia só com CUP: a CUP representa (preferir LEAGUE se houver, não excluir CUP)', () => {
+    const reps = selectRepresentatives(
+      edgesOf(edge({ compId: 'copa-isolada', year: 2015, hierarchy: 'mundial' })),
+      [comp('copa-isolada', 'Copa Isolada', 'CUP')],
+    );
+    expect(reps.get('mundial')!.compId).toBe('copa-isolada');
+    expect(reps.get('mundial')!.compType).toBe('CUP');
+  });
+
+  it('NUANCE documentada: LEAGUE antiga (2020) representa antes de CUP recente (2026) — tipo vem antes de ano', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'liga-antiga', year: 2020, hierarchy: 'nacional' }),
+        edge({ compId: 'supercopa-recente', year: 2026, hierarchy: 'nacional' }),
+      ),
+      [comp('liga-antiga', 'Liga Antiga', 'LEAGUE'), comp('supercopa-recente', 'Supercopa 2026', 'CUP')],
+    );
+    expect(reps.get('nacional')!.compId).toBe('liga-antiga');
+  });
+
+  it('gender-blind sob a nova ordem: LEAGUE feminina vence CUP masculina', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'fem-liga', year: 2025, gender: 'women', hierarchy: 'nacional' }),
+        edge({ compId: 'masc-copa', year: 2026, gender: 'men', hierarchy: 'nacional' }),
+      ),
+      [comp('fem-liga', 'Liga Fem', 'LEAGUE'), comp('masc-copa', 'Cupa Masc', 'CUP')],
+    );
+    expect(reps.get('nacional')!.compId).toBe('fem-liga');
+  });
+
+  it('anti-findMany mantido: entrada embaralhada LEAGUE+CUP → mesmo resultado', () => {
+    const build = () => [
+      edge({ compId: 'cruijff', year: 2026, hierarchy: 'nacional' }),
+      edge({ compId: 'eredivisie', year: 2025, hierarchy: 'nacional' }),
+      edge({ compId: 'eredivisie', year: 2024, hierarchy: 'nacional' }),
+    ];
+    const comps = [comp('eredivisie', 'Eredivisie', 'LEAGUE'), comp('cruijff', 'Cruijff', 'CUP')];
+    const r1 = selectRepresentatives(build(), comps);
+    const r2 = selectRepresentatives([...build()].reverse(), comps);
+    expect(r1.get('nacional')!.compId).toBe(r2.get('nacional')!.compId);
+    expect(r1.get('nacional')!.compId).toBe('eredivisie');
+  });
+
+  it('guarda de futuro T448d INTACTA: CUP 2027 não vence LEAGUE 2025', () => {
+    const reps = selectRepresentatives(
+      edgesOf(
+        edge({ compId: 'copa-2027', year: 2027, hierarchy: 'mundial' }),
+        edge({ compId: 'liga-2025', year: 2025, hierarchy: 'mundial' }),
+      ),
+      [comp('copa-2027', 'Copa Futura', 'CUP'), comp('liga-2025', 'Liga 2025', 'LEAGUE')],
+      undefined,
+      2026,
+    );
+    // A CUP 2027 é excluída pela guarda; a LEAGUE 2025 representa (única elegível).
+    expect(reps.get('mundial')!.compId).toBe('liga-2025');
+  });
+
+  it('typeRank: LEAGUE 0 < CUP 1 < outros/NULL 2 (regressão do backfill)', () => {
+    expect(typeRank('LEAGUE')).toBe(0);
+    expect(typeRank('CUP')).toBe(1);
+    expect(typeRank('TOURNAMENT')).toBe(2);
+    expect(typeRank(null)).toBe(2);
+    expect(typeRank(undefined)).toBe(2);
   });
 });
 
