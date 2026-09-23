@@ -105,3 +105,111 @@ Ainda dizem "RSSSF = domínio público", **contradizendo** a decisão corrigida:
    - **FASE 2b (base de clubes, NOVO gate):** medir/expandir clubes de MG via Wikidata (CC0); **sem isso a FASE 3 rende pouco**.
    - **FASE 3 (títulos WON):** só clubes resolvidos por **QID**; resto → fila de revisão (nunca órfão/fuzzy).
 3. **Escopo honesto do 1º round executável:** FASE 1 + FASE 2a (mães) + relatório de cobertura. **Títulos em massa dependem de 2b (base).**
+
+---
+
+## 12. FASE 0.2 — Fechamento dos Gates 5–8
+
+> Addendum docs-only (**zero código/parser/produção**). Fecha as lacunas 5–8 da leitura crítica do Thinker.
+> **Correções de fato aplicadas ao rascunho recebido (R3 — medido, não assumido):**
+> - Branch do #194 = **`docs/t448b-2b-fase0`** (não existe `feat/t448b-2b-fase0-docs`).
+> - URL real da página MG = **`https://rsssfbrasil.com/tablesfq/mg2025.htm`** (o padrão `rsssf.org/tablesb/*` do rascunho dá **403**; medido).
+> - **Schema (lido de `schema.prisma`):** `KnowledgeGraph` **não tem** `deletedAt`/`deletionReason` (só `metadata Json?`) e `AuditLog` **não tem** `trace_id`/`reason`/`before/after` (tem `entityType/entityId/action/userId?/changes/metadata`). Os Gates 7–8 abaixo foram reescritos para o schema **real**, sem migration.
+
+### Gate 5 — Chave de Deduplicação Estável
+
+**Definição final (arestas WON estaduais/municipais):**
+
+```
+dedupKey = sha256(
+    competition.qid + '|' +
+    seasonStartYear + '-' + seasonEndYear + '|' +
+    championClubQid + '|' +
+    sourcePageUrlHash
+)
+```
+
+- `sourcePageUrlHash` = SHA-256 da URL canônica da página (ex.: `rsssfbrasil.com/tablesfq/mg2025.htm`).
+- **Justificativa:** inclui o hash da URL-fonte porque o RSSSF publica correções/repostagens; evita colisão entre temporadas sobrepostas (ex.: 2023–24 atravessando anos civis) e mantém idempotência mesmo se o Wikidata ajustar um QID secundário.
+- **MG é single-year:** no Campeonato Mineiro `seasonStartYear == seasonEndYear` (temporada Jan–Abr); o par `start-end` fica genérico para competições cross-year de outros estados.
+
+**Ambiguidade estrutural (múltiplos campeões legítimos na mesma temporada):** cada campeão gera aresta distinta com sufixo `_co{index}` **no campo derivado internamente** (não altera o `championClubQid` original). **Declarado como limitação do piloto** (ver Refinamentos).
+
+### Gate 6 — Mapa de Proveniência e Atribuição Campo-a-Campo
+
+| Campo | Fonte RSSSF | Validação | Exemplo |
+|---|---|---|---|
+| `metadata.source` | Literal `'rsssf'` | Sempre presente | `'rsssf'` |
+| `metadata.scopeTag` | Literal `'br-piloto-mg-2023-2025'` | Sempre presente (recorte do piloto) | `'br-piloto-mg-2023-2025'` |
+| `metadata.sourceUrl` | URL exata da página parseada | **HTTP 200 verificado em dry-run** | `https://rsssfbrasil.com/tablesfq/mg2025.htm` |
+| `metadata.retrievedAt` | Timestamp ISO-8601 UTC no fetch | Gerado pelo conector | `2026-09-24T14:30:00Z` |
+| `metadata.authorCredit` | Autor extraído do bloco de crédito | Regex por layout; ausência → fila | `(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2024-2025.` |
+| `metadata.licenseText` | Texto **verbatim** da cláusula de uso | Copiado integral; nunca resumido | `You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.` |
+| `externalId` | SHA-256 truncado (16 chars) de `linhaBruta + sourceUrl` | Rastreabilidade reversa à fonte | `a1b2c3d4e5f67890` |
+
+**Regra inegociável:** se `authorCredit` ou `licenseText` estiverem ausentes/incompletos após o parsing, a linha vai para `pending_attribution_review` e **NÃO** vira aresta WON. **Gap declarado > aresta sem atribuição válida.**
+
+> ⚠️ **Sub-fonte com licença própria (medido):** a página do CE credita `Gerson R. Magalhães | foothistory.com | futebolnacional.com.br` — ou seja, **autor + domínios externos**. A licença desses domínios **não foi lida** → tratar como **licença desconhecida** (não assumir CC0/domínio público). Ver Refinamentos.
+
+### Gate 7 — Política de Exclusão e Reversão (Soft-Delete Apenas)
+
+- **Nenhum hard delete** em nenhuma circunstância neste round.
+- **`knowledge_graph` não tem coluna de soft-delete** → o recorte é **lógico, em `metadata` (JSONB)**, sem migration:
+  `metadata.deletedAt = <ISO-8601>` + `metadata.deletionReason ∈ {'attribution_missing','duplicate_detected','source_correction'}`.
+- **Filtro default:** endpoints/views de conhecimento **devem** filtrar `metadata->>'deletedAt' IS NULL` (ajuste de repository na FASE 3; precedente de soft-delete = `clubs.deletedAt` do T449EN/#186).
+- **Merge de entidades duplicadas:** só em script administrativo **separado** (fora deste round); aqui, apenas soft-delete individual.
+- **Auditoria:** toda exclusão registra em `audit_logs` com os campos **existentes**: `entityType='KnowledgeGraph'`, `entityId=<id>`, `action='delete'`, `userId=NULL` (sistema), `changes={metadata:{old,new}}` (snapshot minimizado), `metadata={reason, traceId}`.
+
+### Gate 8 — Rollback Preliminar Documentado
+
+Procedimento (executável manual; script futuro). **Sem migration → rollback puramente lógico/dado.**
+
+1. **Identificar escopo:**
+   ```sql
+   SELECT id FROM knowledge_graph
+   WHERE relation='WON'
+     AND metadata->>'source'='rsssf'
+     AND metadata->>'scopeTag'='br-piloto-mg-2023-2025'
+     AND metadata->>'deletedAt' IS NULL;
+   ```
+2. **Backup lógico prévio:** dump versionado das linhas afetadas (`backup_rsssf_br_piloto_YYYYMMDD.sql.gz`), via `COPY (…) TO STDOUT` com o mesmo `WHERE`.
+3. **Execução reversível (preferida):**
+   ```sql
+   UPDATE knowledge_graph
+   SET metadata = metadata || jsonb_build_object(
+         'deletedAt', to_char(now() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+         'deletionReason', 'rollback_manual')
+   WHERE relation='WON'
+     AND metadata->>'source'='rsssf'
+     AND metadata->>'scopeTag'='br-piloto-mg-2023-2025';
+   ```
+   *Alternativa destrutiva* (`DELETE …`) **só** com backup confirmado por hash/contagem.
+4. **Verificação pós-rollback:** contagem ativa volta ao baseline pré-ingestão; spot-check de 5 arestas confirma ausência nas views públicas (que filtram `metadata->>'deletedAt' IS NULL`).
+5. **Limpeza de cache:** `DEL` exato das chaves `champions`/galeria/metodologia relacionadas.
+6. **Auditoria:** um `audit_logs` (`action='delete'`) por aresta afetada, com `metadata.traceId` do rollback.
+
+### Refinamentos Solicitados pelo Thinker
+
+#### (a) Validação de Atribuição por Página (FASE 1)
+
+**Layouts medidos (≥2 distintos):**
+
+| Layout | Exemplo | Crédito observado | Regex/heurística |
+|---|---|---|---|
+| **A — autor único inline** | MG (`mg2025`) | `Prepared and maintained by Claudio Freati for the … RSSSF Brazil` + `(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2024-2025.` | `/(?:Prepared and maintained by|maintained by)\s+(.+?)\s+for the Rec\.Sport\.Soccer/` → `authorCredit` · `/(\(C\) Copyright[^\n]+)/` → `licenseText` |
+| **B — autor + domínios externos** | CE (`ce2026`) | `Prepared and maintained by Gerson R. Magalhães \| foothistory.com \| futebolnacional.com.br for the …` | captura autor **e** `externalSubSources:[…]`; licença dos domínios **desconhecida** → fila |
+| **C — crédito não capturado por A/B** | SP (`sp2025`) | (regex A não casou na amostra) | **sem match ⇒ `pending_attribution_review`** |
+
+**Regra:** `authorCredit` **e** `licenseText` obrigatórios; se **um** faltar, **ou** houver `externalSubSources`, a linha **não** vira aresta WON e vai para `pending_attribution_review`. **Fallback seguro obrigatório** para qualquer layout novo/não reconhecido (nunca publicar sem atribuição).
+
+#### (b) Suficiência da dedup key p/ co-campeões / fases independentes
+
+- **Amostra MG 1985–2024:** **um único campeão por temporada** — **nenhum caso de co-campeão** observado. Não há exemplo concreto no histórico mineiro para exercitar o sufixo `_co{index}`.
+- **Consequência:** o sufixo `_co{index}` permanece como **regra precautória**, porém **não validada por caso real** → registrado como **limitação do piloto**. Se um co-campeão surgir (MG 2023–2025 ou outra UF na FASE 1), o comportamento deve ser reavaliado **antes** de gravar (não inventar precedente).
+- **Fases independentes** (ex.: Taça/Módulo separado) só entram no escopo se declaradas como **competições distintas** (QID próprio); não são tratadas como co-campeões.
+
+#### (c) Família do marcador de campeão (correção da afirmação anterior de "regex único")
+
+Medido em MG: o marcador é uma **família de frases**, não um padrão único. Variantes reais:
+`****** ATLÉTICO are Minas Gerais 1985 champions ******` · `** … are Minas Gerais 1990 champions **` · `** … are 2015 Minas Gerais' champions **` · `** … are Minas Gerais' unveaten champions **` (sic) · `** … are Minas Gerais's champions of 2021 **` · `** … are Minas Gerais 1st Level champions of 2024 **` · fallback de tabela `1.<Clube> … Champions`.
+→ a FASE 1 implementa uma **família de regex** (asteriscos variáveis, `1st Level` opcional, possessivo `'`/`'s`, ordem `champions of YYYY`/`YYYY champions`) + fallback de linha de tabela; linhas fora da família → fila de revisão.
