@@ -7,10 +7,10 @@
 
 ## 1. Produção atual
 
-| Frente   | Onde                                                                            | Como verificar                                                                     |
-| -------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Frontend | Vercel — `https://almanaquedosclubes.com`                                       | `curl -sI https://almanaquedosclubes.com` → `HTTP/1.1 200 OK`                      |
-| API      | Railway — serviço `Almanaque-dos-Clubes` — `https://api.almanaquedosclubes.com` | `curl -s https://api.almanaquedosclubes.com/api/v1/health` → `{"status":"ok",...}` |
+| Frente | Onde | Como verificar |
+|---|---|---|
+| Frontend | Vercel — `https://almanaquedosclubes.com` | `curl -sI https://almanaquedosclubes.com` → `HTTP/1.1 200 OK` |
+| API | Railway — serviço `Almanaque-dos-Clubes` — `https://api.almanaquedosclubes.com` | `curl -s https://api.almanaquedosclubes.com/api/v1/health` → `{"status":"ok",...}` |
 
 - Root Directory do projeto Vercel = `apps/web` (corrigido em T351).
 - `main` protegida: check `security-gate` obrigatório, `approvals=0` (repo de
@@ -22,11 +22,11 @@
 
 Tudo entra em `main` por **PR** (push direto bloqueado). Branches aguardando:
 
-| Ordem | Branch                       | Conteúdo                                                               |
-| ----- | ---------------------------- | ---------------------------------------------------------------------- |
-| —     | `feat/ci-hardening`          | T378 — gates gitleaks (bloqueante) + dependency-audit (não-bloqueante) |
-| 1º    | `feat/rls-sessions-policies` | T377 — policies RLS completas de `sessions`                            |
-| 2º    | `feat/rls-bulk-adoption`     | T371 — adoção de `withRlsContext` nos fluxos de sessão                 |
+| Ordem | Branch | Conteúdo |
+|---|---|---|
+| — | `feat/ci-hardening` | T378 — gates gitleaks (bloqueante) + dependency-audit (não-bloqueante) |
+| 1º | `feat/rls-sessions-policies` | T377 — policies RLS completas de `sessions` |
+| 2º | `feat/rls-bulk-adoption` | T371 — adoção de `withRlsContext` nos fluxos de sessão |
 
 A ordem **T377 → T371** é obrigatória (a adoção depende das policies). O merge
 só acontece com `security-gate` verde (ver §3) ou por Caminho B explícito.

@@ -6,22 +6,22 @@
 
 ## A. Campos obrigatórios (substituir antes de publicar)
 
-| Campo                                  | Valor a confirmar            | Onde aparece                              |
-| -------------------------------------- | ---------------------------- | ----------------------------------------- |
-| Razão social completa                  | END ART Studios              | Legal / Contato                           |
-| CNPJ                                   | [45.370.930/0001-75]         | Rodapé / /sobre / /termos-assinatura      |
-| Endereço completo                      | [Osasco, São Paulo - Brasil] | /sobre / Termos                           |
-| E-mail geral                           | [endart.studios@gmail.com]   | Rodapé / Termos                           |
-| Suporte                                | [endart.studios@gmail.com]   | Rodapé / Termos / IA                      |
-| Privacidade/DPO                        | [endart.studios@gmail.com]   | /privacidade / /cookies / /como-usamos-ia |
-| Segurança                              | [endart.studios@gmail.com]   | /seguranca                                |
-| Reembolso/arrependimento               | [endart.studios@gmail.com]   | /termos-assinatura / Termos               |
-| Direitos de terceiros                  | [endart.studios@gmail.com]   | Termos / PI                               |
-| Periodicidade Pro/Elite                | [mensal/anual]               | /planos / /termos-assinatura / Termos     |
-| Gateway de pagamento                   | [fornecedor e país]          | Checkout / Termos                         |
-| Provedores (hospedagem, analytics, IA) | [lista atualizada]           | /privacidade / /cookies / /como-usamos-ia |
-| Encarregado                            | [nome ou canal]              | /privacidade                              |
-| DPO/cookies reais instalados           | [inventário]                 | /cookies / banner                         |
+| Campo | Valor a confirmar | Onde aparece |
+|---|---|---|
+| Razão social completa | END ART Studios — [razão social completa] | Legal / Contato |
+| CNPJ | [CNPJ] | Rodapé / /sobre / /termos-assinatura |
+| Endereço completo | [endereço completo] | /sobre / Termos |
+| E-mail geral | [contato@domínio] | Rodapé / Termos |
+| Suporte | [suporte@domínio] | Rodapé / Termos / IA |
+| Privacidade/DPO | [privacidade@domínio] | /privacidade / /cookies / /como-usamos-ia |
+| Segurança | [security@domínio] | /seguranca |
+| Reembolso/arrependimento | [reembolso@domínio] | /termos-assinatura / Termos |
+| Direitos de terceiros | [direitos@domínio] | Termos / PI |
+| Periodicidade Pro/Elite | [mensal/anual/outra] | /planos / /termos-assinatura / Termos |
+| Gateway de pagamento | [fornecedor e país] | Checkout / Termos |
+| Provedores (hospedagem, analytics, IA) | [lista atualizada] | /privacidade / /cookies / /como-usamos-ia |
+| Encarregado | [nome ou canal] | /privacidade |
+| DPO/cookies reais instalados | [inventário] | /cookies / banner |
 
 ## B. Distinção que o site deve refletir (não confundir)
 
@@ -31,19 +31,19 @@
 
 ## C. Retenção — matriz inicial (validar com contador/jurídico/DPO)
 
-| Categoria              | Ação                         | Prazo inicial sugerido |
-| ---------------------- | ---------------------------- | ---------------------- |
-| Identificação da conta | Excluir/anonimizar           | Até 30 dias            |
-| Nome/e-mail            | Manter mínimo necessário     | Até 30 dias            |
-| Senha/tokens           | Revogar/apagar               | Imediato–24h           |
-| Preferências/histórico | Apagar/anonimizar            | Até 30 dias            |
-| Prompts/IA             | Apagar/anonimizar/restringir | Até 30 dias            |
-| Suporte                | Restringir/conservar         | Até 5 anos (validar)   |
-| Assinatura/transações  | Conservar registros fiscais  | Prazo contábil         |
-| Logs de segurança      | Conforme Marco Civil/lei     | Conforme lei/risco     |
-| Antifraude             | Restringir/revisar           | 12–24 meses (validar)  |
-| Consentimentos         | Prova mínima                 | Prazo de defesa        |
-| Backups                | Rotação técnica              | Até 90 dias (validar)  |
+| Categoria | Ação | Prazo inicial sugerido |
+|---|---|---|
+| Identificação da conta | Excluir/anonimizar | Até 30 dias |
+| Nome/e-mail | Manter mínimo necessário | Até 30 dias |
+| Senha/tokens | Revogar/apagar | Imediato–24h |
+| Preferências/histórico | Apagar/anonimizar | Até 30 dias |
+| Prompts/IA | Apagar/anonimizar/restringir | Até 30 dias |
+| Suporte | Restringir/conservar | Até 5 anos (validar) |
+| Assinatura/transações | Conservar registros fiscais | Prazo contábil |
+| Logs de segurança | Conforme Marco Civil/lei | Conforme lei/risco |
+| Antifraude | Restringir/revisar | 12–24 meses (validar) |
+| Consentimentos | Prova mínima | Prazo de defesa |
+| Backups | Rotação técnica | Até 90 dias (validar) |
 
 ## D. PI — limites que os Termos devem respeitar
 
