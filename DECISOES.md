@@ -19,6 +19,11 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-23] Decisão: D-2026-09-23-t449a-close-produto — Superfície pública do ranking piloto + crédito RSSSF (fecha T449a)
+
+Motivo (exigido pelo Operador; sem isso a oferta pública podia ser enganosa — CDC art. 30/37): o número "Ranking 0-100" precisa declarar que é **piloto Inglaterra · RSSSF · tabelas-só · sem títulos**, e a RSSSF precisa de **atribuição** (D-rsssf-atribuicao-obrigatoria).
+**Entregue:** (1) `/metodologia` ganha a seção **"Ranking 0-100 (Piloto Inglaterra)"** (`id=ranking-piloto-inglaterra`) com fórmula (`Vitórias×3 + Empates×1 + Gols Pró×0.2`; títulos=0), peso (nacional 3.0), normalização MinMax por competição/temporada, **fonte + atribuição RSSSF** ("uso condicionado à atribuição adequada; não é domínio público"), limitações e canal de correção; a seção "Fontes" passa a creditar a RSSSF corretamente (removida a menção errônea "acesso público"). (2) **Badge honesto** na UI de rankings: "Piloto Inglaterra · Fonte RSSSF" + subtítulo + link para a seção, **i18n pt/en/es** (`pages.rankings.pilotBadge/pilotSubtitle/pilotMethodology`). **Reversível:** texto/i18n apenas; sem migration.
+
 ### [2026-09-23] Decisão: D-2026-09-23-t449a-tier-emerge-por-competicao — Ranking 0-100 POR competição/temporada (sem agregado cross-division)
 
 Motivo: o T449a **não cria ranking único** misturando Premier League/Championship/League One/League Two/National League. A normalização MinMax é **por competição/temporada** → as divisões ficam em rankings separados e o **tier emerge** do escopo (não de campo novo). A dívida de "tier agregado 1ª-vs-2ª num ranking nacional" fica **T449c/T449b** (com campo de tier/divisão). **Limitação declarada:** sem ranking cross-division.

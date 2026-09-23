@@ -124,6 +124,20 @@ export default function RankingsTable() {
 
   return (
     <div className="mt-8">
+      {/* T449a-close — rótulo honesto do piloto (Inglaterra/RSSSF/tabelas-só) */}
+      <div
+        className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-foreground/5 px-3 py-2 text-xs"
+        data-testid="ranking-pilot-badge"
+      >
+        <span className="font-semibold text-foreground">{t.pilotBadge}</span>
+        <span className="text-foreground/60">{t.pilotSubtitle}</span>
+        <Link
+          href="/metodologia#ranking-piloto-inglaterra"
+          className="text-primary hover:underline"
+        >
+          {t.pilotMethodology}
+        </Link>
+      </div>
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <label className="flex flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterYear}</span>

@@ -761,4 +761,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Entrega:** script `ingest-rsssf-england-tables` (DRY-RUN/`--apply`): casa clubes por **nome normalizado** (deletedAt null), computa `rankDivision` (`normalizeMinMax`), escreve `ranking_entries` por **competição existente (QID)** + `rankings` (competição+temporada) com **proveniência/atribuição RSSSF**. **Tier emerge** (por competição). Fórmula documentada (`W×3 + D×1 + GF×0.2`; títulos=0).
 
-**Gate de produção (pós-merge):** DRY-RUN no container → `--apply` → re-run idempotente → live verify → rollback. **#185 vira o PR do T449a.** (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
+**Gate de produção (pós-merge):** DRY-RUN no container → `--apply` → re-run idempotente → live verify → rollback. **#185 vira o PR do T449a.**
+
+### GATE 2 adendum 17 — T449a-close: superfície pública + crédito RSSSF (2026-09-23)
+
+**Produção (T449a):** `--apply` → 4 rankings do piloto (Premier League 2023 20 entries; Championship/Division 1/Division 2/National League 2023 24 cada) · points 0-100 · `dup=0` · re-run idempotente · `GET /rankings` lista o piloto; `GET /rankings/:id/entries` → 20 (100/92/78).
+
+**T449a-close:** `/metodologia#ranking-piloto-inglaterra` (fórmula, MinMax, peso, fonte, **atribuição RSSSF**, limitações, data, canal) + Fontes creditando RSSSF corretamente + **badge** "Piloto Inglaterra · Fonte RSSSF" na UI de rankings (pt/en/es) + link. Sem migration; reversível. **T449a [x].** (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).

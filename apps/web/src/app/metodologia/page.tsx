@@ -22,7 +22,7 @@ export default function MetodologiaPage() {
         Metodologia e fontes
       </h1>
       <p className="text-sm text-foreground/50 mb-8">
-        Última atualização: 22/09/2026 · END ART Studios
+        Última atualização: 23/09/2026 · END ART Studios
       </p>
 
       <div className="space-y-8 text-foreground/70 leading-relaxed">
@@ -40,7 +40,68 @@ export default function MetodologiaPage() {
               Wikidata
             </a>{' '}
             sob licença <strong>CC0</strong> (domínio público). Conteúdos históricos complementares
-            utilizam o arquivo RSSSF (Rekord-Kija), de acesso público.
+            são obtidos da{' '}
+            <a
+              href="https://www.rsssf.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF
+            </a>{' '}
+            (Rec.Sport.Soccer Statistics Foundation).{' '}
+            <strong>
+              Dados históricos fornecidos pela RSSSF. Uso condicionado à atribuição adequada.
+            </strong>{' '}
+            (Não é domínio público.)
+          </p>
+        </section>
+
+        <section id="ranking-piloto-inglaterra" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Ranking 0-100 (Piloto Inglaterra)
+          </h2>
+          <p>
+            <strong>Status:</strong> piloto em produção. Cobre as 5 divisões inglesas da temporada
+            2022/23 (Premier League, Championship, League One, League Two e National League).
+          </p>
+          <p className="mt-2">
+            <strong>Fórmula (pontos brutos):</strong> Vitórias×3 + Empates×1 + Gols Pró×0.2. Nesta
+            fase <strong>títulos = 0</strong> (sem integração com o grafo de conquistas) — limitação
+            declarada.
+          </p>
+          <p className="mt-2">
+            <strong>Peso:</strong> hierarquia <em>nacional</em> (3.0) para todas as divisões do
+            piloto.
+          </p>
+          <p className="mt-2">
+            <strong>Normalização:</strong> MinMax <em>por competição/temporada/divisão</em> (maior
+            pontuação bruta = 100; menor = 0; demais proporcionais, arredondamento determinístico;
+            desempate por gols contra, saldo, gols pró, nome, id). As divisões são normalizadas{' '}
+            <strong>isoladamente</strong> — não há ranking único cross-division.
+          </p>
+          <p className="mt-2">
+            <strong>Fonte e atribuição:</strong> baseado nas tabelas finais de classificação das
+            ligas inglesas fornecidas pela{' '}
+            <a
+              href="https://www.rsssf.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF
+            </a>
+            . <strong>Uso condicionado à atribuição adequada.</strong>
+          </p>
+          <p className="mt-2">
+            <strong>Limitações conhecidas:</strong> (i) restrito à Inglaterra 2022/23; (ii) baseado
+            apenas em <em>tabelas finais de classificação</em> (não em partidas individuais); (iii)
+            sem integração com o grafo de títulos (títulos=0); (iv) sem ranking cross-division; (v)
+            dados históricos podem conter lacunas e divergências entre fontes.
+          </p>
+          <p className="mt-2">
+            <strong>Atualização e correções:</strong> última atualização em 23/09/2026. Encontrou um
+            erro? Escreva para <strong>endart.studios@gmail.com</strong>.
           </p>
         </section>
 
@@ -82,8 +143,10 @@ export default function MetodologiaPage() {
               as edições correspondentes aguardam a semeadura das mães.
             </li>
             <li>
-              Rankings por jogos reais dependem do histórico de partidas, ainda não importado. Não
-              há inteligência artificial operacional na plataforma — quando houver, será marcada e
+              O ranking <strong>0-100 é um piloto (Inglaterra/RSSSF)</strong>, calculado a partir de
+              tabelas finais de classificação — não de partidas individuais — e sem títulos. Rankings
+              por jogos reais e para jogadores/técnicos aguardam ingestão granular. Não há
+              inteligência artificial operacional na plataforma — quando houver, será marcada e
               documentada com fonte e citação.
             </li>
           </ul>
