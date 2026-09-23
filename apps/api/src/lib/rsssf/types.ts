@@ -111,9 +111,13 @@ export type Gender = 'men' | 'women' | 'unknown';
 export interface WonCandidate {
   relation: 'WON';
   competitionQid: string;
+  /** nome da competição-mãe (do fixture) — usado pelo writer p/ criar a mãe ausente. */
+  competitionName: string;
   competitionId: string | null;
   seasonYear: number;
   clubQid: string;
+  /** nome do clube como aparece na fonte (fallback de resolução por nome EXATO no writer). */
+  clubName: string;
   clubId: string | null;
   hierarchy: 'estadual';
   gender: Gender;

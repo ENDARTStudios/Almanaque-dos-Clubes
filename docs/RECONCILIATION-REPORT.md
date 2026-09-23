@@ -782,3 +782,21 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Blindagens provadas por teste:** dedup factual sem hash de URL (T9 — mesma tríade, URL diferente ⇒ mesmo `dedupKey`); co-campeão e conflito ⇒ `pending_review`, zero candidate (T3/T4); atribuição ausente bloqueia (T8); gênero desconhecido bloqueia (T10); tabela malformada não inventa campeão (T11); determinismo (T12).
 
 **Gates de escopo:** nenhum arquivo `prisma/`/`schema`/`migration`; nenhum script escreve em DB/produção; testes sem rede; **FASE 2 (writer/idempotência + read-filter de `metadata.deletedAt` + `--apply`) NÃO iniciada**; gap estadual (fora do MG) declarado.
+
+### GATE 2 adendum 19 — T448b-2b FASE 2: writer WON RSSSF + soft-delete (2026-09-24)
+
+**Contexto:** FASE 1 empilhada (PR #195); FASE 2 em branch própria sobre a FASE 1. Execução em **Postgres de teste local (54330, espelho de CI: PostGIS + RLS + `app_user`)** — **zero produção**.
+
+**Entrega:** `modules/etl/rsssf-won-edges.service.ts` (repo injetável + `syncRsssfWonEdges`), `scripts/write-rsssf-won-edges.ts` (DRY = transação revertida; `--apply`; **bloqueio de produção sem `--allow-production`**), `modules/graph/soft-delete.ts` (aplicado em `clubs/repository.listTitlesByClub`, `champions.loadChampions`, `compare.service`, `ranking-algorithm`).
+
+**Ponte de identidade (provada):** competição-mãe ausente → **upsert idempotente por `qid`** (criou `Q731877` "Campeonato Mineiro", `country=BR`, `type=LEAGUE`, `importedFrom=rsssf`, `sourceUrl`); clube resolvido por `qid` (produção) **ou** por **nome exato** → vincula `qid` (testado); ausente → **fail-fast** (`club_missing`, sem órfão).
+
+**Evidência (logs reais):**
+- `apply` (1ª vez): **created=3** (2023/2024/2025), `failed=0`, `attributionMissing=0`.
+- `apply` (2ª vez): **created=0 / skipped=3** → **idempotência provada**.
+- `GET /api/v1/clubs/:id/titles`: **200** · `total=3` · `hierarchy=estadual` · `sourceUrl=https://rsssfbrasil.com/tablesfq/mg2023|2024|2025.htm`.
+- Integração `tests/integration/rsssf-won-edges.test.ts`: **7/7** (ponte, idempotência, fail-fast, atribuição, API titles, soft-delete excluindo). Suíte de integração completa: **222 passed / 1 skipped**; única falha = `t470b-revoke-access` (isolamento; passa isolada — módulo não tocado).
+
+**Desvios de schema (R3, sinalizados):** o payload do dispatch (`competitionId`/`year`/`clubId`) não existe em `KnowledgeGraph` → convenção real do T448 (`sourceId`/`targetId`/`metadata.year`); `Competition` não tem `hierarchy`/`state`/`gender` → upsert com colunas reais, hierarquia em `metadata.hierarchy`.
+
+**Fora de escopo (não feito):** `--apply` em produção; migration; semear competição além do piloto; parser de outros estados; reclassificação em massa.

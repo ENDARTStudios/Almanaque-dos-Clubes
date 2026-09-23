@@ -14,6 +14,7 @@ import {
   type RankHierarchy,
 } from '../rankings/ranking-algorithm.service.js';
 import { isKnownHierarchy } from '../etl/connectors/wikidata-won-edges.connector.js';
+import { excludeSoftDeleted } from '../graph/soft-delete.js';
 
 export interface ChampionView {
   hierarchy: RankHierarchy;
@@ -244,10 +245,12 @@ export function selectRepresentatives(
 }
 
 export async function loadChampions(gender?: 'men' | 'women'): Promise<ChampionsResponse> {
-  const edges: WonEdgeInput[] = await prisma.knowledgeGraph.findMany({
+  const rawEdges: WonEdgeInput[] = await prisma.knowledgeGraph.findMany({
     where: { relation: 'WON' },
     select: { sourceId: true, sourceType: true, targetId: true, targetType: true, metadata: true },
   });
+  // T448b-2b FASE 2 — exclui arestas soft-deletadas (metadata.deletedAt).
+  const edges = excludeSoftDeleted(rawEdges);
 
   const compIds = new Set<string>();
   for (const e of edges) {
