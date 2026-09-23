@@ -1,0 +1,14 @@
+{
+    "season":  2024,
+    "meta":  {
+                 "sourceUrl":  "https://rsssfbrasil.com/tablesfq/mg2024.htm",
+                 "retrievedAt":  "2026-09-23T22:59:09Z",
+                 "authorCredit":  "(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2023-2024.",
+                 "licenseText":  "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+                 "expectedSeason":  2024,
+                 "expectedCompetitionName":  "Campeonato Mineiro",
+                 "notes":  "Excerpt minimo real: bloco de credito/licenca + frase de campeao. Bytes windows-1252 preservados."
+             },
+    "encoding":  "windows-1252",
+    "rawBase64":  "UHJlcGFyZWQgYW5kIG1haW50YWluZWQgYnkgQ2xhdWRpbyBGcmVhdGkgZm9yIHRoZSBSZWMuU3BvcnQuU29jY2VyIFN0YXRpc3RpY3MgRm91bmRhdGlvbiBhbmQgUlNTU0YgQnJhemlsCihDKSBDb3B5cmlnaHQgQ2xhdWRpbyBGcmVhdGksIFJTU1NGIGFuZCBSU1NTRiBCcmF6aWwgMjAyMy0yMDI0LgpZb3UgYXJlIGZyZWUgdG8gY29weSB0aGlzIGRvY3VtZW50IGluIHdob2xlIG9yIHBhcnQgcHJvdmlkZWQgdGhhdCBwcm9wZXIgYWNrbm93bGVkZ2VtZW50IGlzIGdpdmVuIHRvIHRoZSBhdXRob3IuIEFsbCByaWdodHMgcmVzZXJ2ZWQuCioqIEFUTMlUSUNPIGFyZSBNaW5hcyBHZXJhaXMgMXN0IExldmVsIGNoYW1waW9ucyBvZiAyMDI0ICoq"
+}

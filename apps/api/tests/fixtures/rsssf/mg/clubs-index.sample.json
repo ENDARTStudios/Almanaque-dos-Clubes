@@ -1,0 +1,20 @@
+[
+  {
+    "id": null,
+    "qid": "Q270995",
+    "name": "Atlético-MG",
+    "popularName": "Atlético",
+    "officialName": "Clube Atlético Mineiro",
+    "aliases": ["Galo", "Atlético Mineiro"],
+    "active": true
+  },
+  {
+    "id": null,
+    "qid": "Q188277",
+    "name": "Cruzeiro",
+    "popularName": "Cruzeiro",
+    "officialName": "Cruzeiro Esporte Clube",
+    "aliases": ["Cruzeiro EC"],
+    "active": true
+  }
+]
