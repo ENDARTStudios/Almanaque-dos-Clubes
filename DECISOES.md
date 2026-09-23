@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-23] Decisão: D-2026-09-23-t449b-scoring-engine — Motor 0-100 de jogadores/técnicos (lógica pura, sem dado real)
+
+Motivo (spec do Operador): o "0-100" definitivo é de **jogadores** (estatística individual) e **técnicos** (desempenho coletivo sob mandato); **clubes** seguem lógica federativa (classificação/títulos) — o piloto de clubes do T449a é transitório/rotulado. Entreguei a **infraestrutura lógica** (`apps/api/src/lib/scoring/**`): tipos puros (`types/player.ts`, `types/coach.ts`), constantes (`constants/weights.ts` — matrizes por posição, MIJ por fase, bônus/penalidades, K/interino), motores puros (`engine/computePlayerRaw.ts`, `engine/computeCoachRaw.ts`), normalização (`utils/normalization.ts` — MinMax + percentil) e **14 testes** (`tests/unit/scoring/{player,coach}.test.ts`) cobrindo bordas (amostra insuficiente→cap 70; cartões; MinMax com outlier; empate→50; interino ×0.7; título mundial×estadual; rebaixamento −30). Doc: `docs/METODOLOGIA_RANKING.md` (fórmulas, pesos justificados, fluxo, limitações). **Sem Prisma/DB/rede, sem endpoints, sem UI** — só código/teste/doc. Determinístico e reprodutível. Ativação gated em dados granulares (Operador/fontes) + relabeling dos clubes.
+
 ### [2026-09-23] Decisão: D-2026-09-23-t449a-close-produto — Superfície pública do ranking piloto + crédito RSSSF (fecha T449a)
 
 Motivo (exigido pelo Operador; sem isso a oferta pública podia ser enganosa — CDC art. 30/37): o número "Ranking 0-100" precisa declarar que é **piloto Inglaterra · RSSSF · tabelas-só · sem títulos**, e a RSSSF precisa de **atribuição** (D-rsssf-atribuicao-obrigatoria).
