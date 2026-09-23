@@ -9,6 +9,26 @@
 
 ---
 
+## ⚠️ Estado REAL do produto (2026-09-22 — re-ancorado em produção, regra R3)
+
+O texto abaixo é o documento de VISÃO original (T347). O estado entregue hoje difere e a oferta
+pública segue a verdade do T465 (docs/RECONCILIATION-REPORT.md §22):
+
+| Visão (abaixo) | Estado real (medido em produção) |
+|---|---|
+| "história completa… rankings e estatísticas" | identidade 3.857/2.396/1.563 + conquistas 5.157 arestas com fonte; **rankings por jogo e partidas NÃO existem** (T449) |
+| "IA com respostas fundamentadas" | **IA NÃO operacional** — anunciada como "(em breve)" na oferta |
+| Mapa-múndi/360º/hinos/uniformes | não implementados (fila: T466/T467 e M5) |
+| Monetização | Stripe LIVE com oferta honesta; beta pago abre em gate triplo (T465 ✅ + T468 + jurídico do Operador) |
+
+O que já É verdade: plataforma de consulta com proveniência 100% (fonte por registro), vitrine de
+campeões por hierarquia auditável, favoritos, comparação, exportação CSV/JSON, busca textual,
+consentimento LGPD com prova, e legal P0 no ar. **Toda claim pública obedece ao PRD real, não à
+visão** (CDC art. 30/37 — docs/COMPLIANCE.md).
+
+---
+
+
 ## 1. Visão do produto
 
 O Almanaque dos Clubes é uma plataforma mundial de pesquisa e inteligência

@@ -6,7 +6,33 @@
 
 ---
 
-## Estado Atual (Diagnóstico)
+## 📍 ONDE ESTAMOS DE FATO (2026-09-22 — supersedes o diagnóstico abaixo)
+
+O diagnóstico desta página é de 10/08 — **desatualizado** (a Fase 10 "Go to Production" e as
+fases 11+ já foram executadas de outra forma). Estado real (fonte: PLANO_MESTRE.md +
+RECONCILIATION-REPORT.md §22, re-ancorado em produção):
+
+- **M1 (Beta Fechada — ler/navegar) ✅ declarado** (09-15) · **M2 (engajar) ✅ 4/4** (rankings,
+  favoritos, comparadores, carrossel) · **M3 (Open Beta monetizar) ✅ declarado** (09-21: Stripe
+  LIVE, CDC art. 49 provado com estorno real).
+- **WS-D (conteúdo)**: T448 + c/d/e/f fechados — 5.157 arestas WON com fonte por aresta, vitrine
+  por hierarquia, gap 514 declarado (copas de acesso/estaduais → T448b-2).
+- **Oferta honesta (T465)** + **legal P0 (T469)** no ar; M3 de PRODUTO (beta pago a 1.000) aguarda
+  gate triplo: T465 ✅ + T468 (i18n checkout) + pacote jurídico do Operador.
+
+### Fila travada (ordem do Thinker, um workstream por round)
+
+1. **T470** direitos do titular + DMCA reais → 2. **T471** Opção B geo (UE/UK) →
+2. **T472** i18n legal+checkout (= T468) → **beta pago abre** →
+3. **T448b-2** RSSSF estaduais + auditoria de miscategorização → **T449** partidas/rankings por
+   jogo (resolve dívida de tier) → **T450** feminino → **T451** cron → **T466/T467** dado
+   geográfico + mapa-múndi → M5 (domínio próprio/DNSSEC = Operador).
+
+O texto abaixo permanece como registro histórico do planejamento de 10/08.
+
+---
+
+## Estado Atual (Diagnóstico) — ⚠️ desatualizado, ver bloco acima
 
 | Dimensão | Status | Observação |
 |---|---|---|
