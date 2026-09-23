@@ -222,6 +222,10 @@ const en: Dictionary = {
     rankings: {
       title: 'Rankings',
       subtitle: 'Historical rankings with verified sources and publication dates.',
+      pilotBadge: 'England pilot · RSSSF source',
+      pilotSubtitle:
+        'Based on final league tables from English competitions (RSSSF). No titles in this phase.',
+      pilotMethodology: 'See methodology',
       filterYear: 'Year',
       filterGender: 'Gender',
       filterCountry: 'Country',

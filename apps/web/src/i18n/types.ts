@@ -252,6 +252,9 @@ export interface Dictionary {
     rankings: {
       title: string;
       subtitle: string;
+      pilotBadge: string;
+      pilotSubtitle: string;
+      pilotMethodology: string;
       filterYear: string;
       filterGender: string;
       filterCountry: string;

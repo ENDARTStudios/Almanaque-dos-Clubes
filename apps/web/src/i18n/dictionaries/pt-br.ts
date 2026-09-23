@@ -224,6 +224,10 @@ const pt: Dictionary = {
     rankings: {
       title: 'Rankings',
       subtitle: 'Rankings históricos com fontes verificadas e data de publicação.',
+      pilotBadge: 'Piloto Inglaterra · Fonte RSSSF',
+      pilotSubtitle:
+        'Baseado nas tabelas finais de classificação das ligas inglesas (RSSSF). Sem títulos nesta fase.',
+      pilotMethodology: 'Ver metodologia',
       filterYear: 'Ano',
       filterGender: 'Gênero',
       filterCountry: 'País',
