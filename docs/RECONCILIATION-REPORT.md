@@ -800,3 +800,13 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Desvios de schema (R3, sinalizados):** o payload do dispatch (`competitionId`/`year`/`clubId`) não existe em `KnowledgeGraph` → convenção real do T448 (`sourceId`/`targetId`/`metadata.year`); `Competition` não tem `hierarchy`/`state`/`gender` → upsert com colunas reais, hierarquia em `metadata.hierarchy`.
 
 **Fora de escopo (não feito):** `--apply` em produção; migration; semear competição além do piloto; parser de outros estados; reclassificação em massa.
+
+### GATE 2 adendum 20 — T448b-2b FIX-PACK: candidates no runtime (#197) (2026-09-25)
+
+**Bloqueio medido (gate de produção abortado):** o writer do #196 lia `apps/api/tests/fixtures/rsssf/mg/*.json`; o **Dockerfile não copia `tests/`** → em prod o script falharia com **ENOENT** (0 candidates), mesmo após merge. (Premissa do gate também falhou: #195/#196 estavam **OPEN**, não mergeados.)
+
+**Correção (#197):** pack **congelado** `apps/api/src/lib/rsssf/data/mg-pilot-candidates.json` (emitido ao `dist/` pelo tsc — `resolveJsonModule` + import `with { type:'json' }`), carregado por `candidates-pack.ts` (**Zod + fail-fast**: pack inválido / atribuição ausente / `dedupKey` duplicada). Writer usa `loadPilotCandidates()` por padrão; `--from-fixtures` = dev. Trava de produção restrita ao `--apply`.
+
+**Evidência (Docker local, zero produção):** `docker build` OK → `/app/apps/api/dist/lib/rsssf/data/mg-pilot-candidates.json` presente (3360 bytes) → dry-run **no container**: `candidatesSource=pack(prod)`, `candidates=3`, `created=3`, `failed=0`, `attributionMissing=0`. Testes: `candidates-pack` 6 casos (48 unit rsssf no total); integração `rsssf-won-edges` 7/7; unit completo 33 arquivos verdes.
+
+**Limitação declarada:** piloto MG 2023–2025; expansão (outros estados / ingestão dinâmica) exige novos packs ou mecanismo genérico — workstream separado.
