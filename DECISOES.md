@@ -19,6 +19,19 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-24] Decisão: D-2026-09-24-clubs-name-country-unique-blocker — `clubs @@unique([name,country])` é blocker real para homônimos nacionais
+
+Motivo (medido no FASE 0 do seed GO): o índice **`clubs_name_country_key` (UNIQUE name,country)** impede criar dois clubes BR com o mesmo nome. O clube **Vila Nova/GO `Q1513287`** não pode ser criado porque `Q10391045` (Vila Nova/RN) já ocupa `("Vila Nova Futebol Clube","BR")`. **Não autorizado** rename/sufixo/link-by-name/migration neste round. **Follow-up:** `T448b-2f` — remediation de identidade de clubes/homônimos (auditar a constraint; opções: unique por `qid` + remover/relaxar name/country; name/country/state; aliases + unique em qid), **sem implementar migration sem aprovação**.
+
+### [2026-09-24] Decisão: D-2026-09-24-go-pilot-reduced-2023-2024 — Piloto GO reduzido a 2023–2024 (2025 = gap)
+
+Motivo: com o blocker de identidade acima, **GO 2025** (campeão Vila Nova/GO `Q1513287`) fica **excluído do piloto** (`club_name_unique_conflict`). O seed de identidade GO fica **reduzido**: **criar só a competição-mãe `Q931386`**, **noop** no clube `Q198034` (Atlético Goianiense) e **nenhuma** criação/link/update de clube. Homônimos `Q10391045`/`Q10391046` **intocados**. O **parser GO** (round futuro) cobrirá apenas **2023/2024**.
+
+### [2026-09-24] Decisão: D-2026-09-24-t448b2d-go-pre-identity-seed — Seed de identidade GO (reduzido)
+
+Motivo: `apps/api/src/lib/rsssf/go/**` (`identity-types`, `seed-plan` com Zod/fail-fast, `index`) + pack `apps/api/src/lib/rsssf/data/go-identity-seed.json` (`pilotScope=go-2023-2024`, `license=CC0`, `retrievedAt=2026-09-24T14:49:12Z` estático) + script `apps/api/src/scripts/seed-go-identity.ts` (DRY default; `--apply` exige `--allow-production`; `$transaction` Serializable). **Proveniência em `importedFrom='wikidata-go-pre'`+`sourceUrl`** (Competition/Club **não têm `metadata`**). **Competition sem `deletedAt`** → rollback por hard delete **só com aprovação explícita** e ausência de referências. **SEM parser RSSSF, SEM writer WON, SEM arestas, SEM migration.** Dry-run local (dist) = `competition create` + `Q198034 noop` + `excluded Q1513287` + `errors []`. Testes: unit 14 + integração 6 verdes.
+Alternativas consideradas: rename/sufixo do clube GO ou link-by-name — REJEITADAS (contornariam a identidade). Migration da constraint — fora do round (follow-up T448b-2f).
+
 ### [2026-09-24] Decisão: D-2026-09-24-t448b2d-pr-blocked-go-discovery — PR bloqueado; GO discovery (seedable)
 
 Motivo: **T448b-2d (PR) BLOQUEADO** — o Paranaense (`Q920397`, mãe existente) só tem **2025** com frase explícita (`*** Operário are Champions ***`), e o clube campeão **`Q2580083` Operário Ferroviário EC está ausente** do acervo; **2023/2024 não têm declaração de campeão** (2024 só tabela; 2023 sem tabela no formato) → **0 temporadas plenamente ready (<2)**. **Nenhuma branch de parser PR codada.** **Discovery GO (read-only)** aprovou GO como próxima UF: `tablesfq/go{2023,2024,2025}.htm` **200**, autor **Guillermo Alexander Rivera**, licença presente, **frase de campeão explícita nos 3 anos** (2023/2024 ATLÉTICO; 2025 VILA NOVA); mãe **`Q931386`** (Wikidata: P31=Q1478437, P17=Q155) **ausente do DB (seed)**; campeões **`Q198034`** Atlético Goianiense (**presente ACTIVE**) e **`Q1513287`** Vila Nova/GO (**ausente, `missing_but_seedable_by_qid`**). ⚠️ **Homônimo**: o DB tem `Q10391045`/`Q10391046` (Vila Nova/RN e /ES; o RN tem o mesmo nome) → resolver **só por QID**. **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c permanece no-op**. **Ver:** `docs/T448B2D-PR-BLOCK-GO-DISCOVERY.md`. **Seed GO (PASSO 2) gated na aprovação do Thinker.**

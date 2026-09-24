@@ -1,0 +1,33 @@
+{
+  "pilotScope": "go-2023-2024",
+  "source": "wikidata",
+  "license": "CC0",
+  "retrievedAt": "2026-09-24T14:49:12Z",
+  "competition": {
+    "qid": "Q931386",
+    "name": "Campeonato Goiano de Futebol",
+    "type": "LEAGUE",
+    "country": "BR",
+    "importedFrom": "wikidata-go-pre",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q931386"
+  },
+  "clubs": [
+    {
+      "qid": "Q198034",
+      "action": "noop_if_present",
+      "name": "Atlético Clube Goianiense",
+      "country": "BR",
+      "sourceUrl": "https://www.wikidata.org/wiki/Q198034"
+    }
+  ],
+  "excluded": [
+    {
+      "qid": "Q1513287",
+      "name": "Vila Nova Futebol Clube",
+      "reason": "club_name_unique_conflict",
+      "detail": "clubs_name_country_key (UNIQUE name,country) occupied by Q10391045 with same name/country; no rename/link/migration authorized in this round.",
+      "pilotImpact": "GO 2025 excluded from pilot."
+    }
+  ],
+  "doNotTouch": ["Q10391045", "Q10391046", "Q1513287"]
+}
