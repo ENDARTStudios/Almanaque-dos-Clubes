@@ -768,3 +768,17 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Produção (T449a):** `--apply` → 4 rankings do piloto (Premier League 2023 20 entries; Championship/Division 1/Division 2/National League 2023 24 cada) · points 0-100 · `dup=0` · re-run idempotente · `GET /rankings` lista o piloto; `GET /rankings/:id/entries` → 20 (100/92/78).
 
 **T449a-close:** `/metodologia#ranking-piloto-inglaterra` (fórmula, MinMax, peso, fonte, **atribuição RSSSF**, limitações, data, canal) + Fontes creditando RSSSF corretamente + **badge** "Piloto Inglaterra · Fonte RSSSF" na UI de rankings (pt/en/es) + link. Sem migration; reversível. **T449a [x].** (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
+
+### GATE 2 adendum 18 — T448b-2b FASE 1: parser PURO MG, sem escrita (2026-09-24)
+
+**Contexto (#193 + #194 mergeados):** motor de scoring T449b e docs FASE 0/0.2 do T448b-2b aprovados e mergeados; `main` avançou; branch da FASE 1 criada da `main` pós-merge.
+
+**Entrega (parser puro, SEM escrita):** `apps/api/src/lib/rsssf/**` — `types`, `decode-legacy-table` (decodifica **cp1252** mascarado como utf-8 + extração de tabela com warnings estruturados), `extract-state-champion` (**família** de frases + **cross-check** com a tabela), `map-team-to-club` (match **exato** por nome/alias/QID — **sem fuzzy**), `resolve-competition-qid` (por QID/alias auditável), `build-won-candidate`, `pending-review`, `fixtures-loader`; script **DRY** `src/scripts/parse-rsssf-mg-fixtures.ts` (**sem Prisma**); **41 testes** T1–T12 network-free; fixtures reais mínimas (cp1252 em base64) com `sourceUrl/retrievedAt/authorCredit/licenseText`.
+
+**R5 (medido ao vivo, read-only):** `mg2023/2024/2025` = HTTP **200**, com bloco de crédito e frase de campeão; QIDs verificados **fora do código** (Mineiro **Q731877**; Atlético-MG **Q270995**).
+
+**DRY-RUN (fixtures locais):** `parsedSeasons=[2023,2024,2025]` · **candidatesValid=3** · pendingReview=0 · `dedupKey` factual (`Q731877|<ano>|Q270995|WON`) · `externalId` distinto por temporada. Cobertura do parser: **95% stmts / 87% branch / 100% funcs**.
+
+**Blindagens provadas por teste:** dedup factual sem hash de URL (T9 — mesma tríade, URL diferente ⇒ mesmo `dedupKey`); co-campeão e conflito ⇒ `pending_review`, zero candidate (T3/T4); atribuição ausente bloqueia (T8); gênero desconhecido bloqueia (T10); tabela malformada não inventa campeão (T11); determinismo (T12).
+
+**Gates de escopo:** nenhum arquivo `prisma/`/`schema`/`migration`; nenhum script escreve em DB/produção; testes sem rede; **FASE 2 (writer/idempotência + read-filter de `metadata.deletedAt` + `--apply`) NÃO iniciada**; gap estadual (fora do MG) declarado.
