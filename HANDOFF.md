@@ -398,3 +398,9 @@ Toda interação entre Dev e Operador segue o `PROTOCOLO_MESTRE.md` — nada é 
 ---
 
 *Handoff gerado em 2026-08-14. Último commit: `a37f0c0`. Todos os serviços em produção respondendo 200.*
+
+---
+
+## Lições recentes
+
+- **[2026-09-25 · T448b-2b #197] Ingestão containerizada nunca depende de `tests/`.** Scripts que rodam em produção (`node dist/scripts/*.js`) devem ler dados de **dentro de `src/`** (ou `prisma/`) — o Dockerfile copia esses diretórios, **não** `tests/`. Antes de prometer um gate de produção, validar `COPY` do Dockerfile × imports/paths relativos do script (ex.: `resolve(here,'../../tests/...')` = ENOENT no container). Padrão adotado: **pack congelado em `src/.../data/*.json`** + **validação Zod + fail-fast** + build que **emite o asset ao `dist/`** (`resolveJsonModule` + import `with { type:'json' }`). DRY/rolled-back é read-only e pode ser permitido em produção; a trava (`--allow-production`) fica **só no `--apply`**.
