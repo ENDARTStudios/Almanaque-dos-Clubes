@@ -838,3 +838,17 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **API pública:** `/clubs/420a0968-…/titles` → **200 · total=3** (estadual, 2025/2024/2023, `sourceUrl` RSSSF Brasil, sem segredos); `/champions` → 200 · 5 itens · **estadual → Atlético-MG**, sem regressão.
 
 **Resultado:** piloto MG 2023–2025 **ativo** com proveniência completa (RSSSF + atribuição ao autor da página). Próximo: T448b-2c (outros estados) / T448b-2d (municipal).
+
+### GATE 2 adendum 23 — T448b-2c: discovery read-only de expansão estadual (2026-09-24)
+
+**Escopo:** descoberta **read-only** (sem parser/writer/escrita/migration). Doc: `docs/T448B2C-DISCOVERY-UFS.md`.
+
+**Higiene jurídica:** `/direitos-titular` (cache-bypass) **sem "resposta imediata"** → **T470c no-op** (texto coerente: BR 15 dias / EEE-UK "1 mês" prorrogável, canal manual). `/fontes` = **404**, **sem referência no repo** → no-op.
+
+**Candidatas (2023–2025):** SP (mãe `Q1348155` existe; campeão **não-inline**) · CE (mãe `Q2469206` existe; **2025=404**) · PR (mãe `Q920397` existe; campeão explícito; homônimo "Operário") · SC (mãe `Q2317199` ausente; licença/autor incompletos 2023/2024; campeão `*** Avaí ***`) · GO (mãe `Q931386` ausente; **campeão explícito nos 3 anos**).
+
+**RJ/RS/RO/RR:** ausentes do índice e do histórico; probe direto 404 em todos os prefixos; sem "carioca/gaúcho" → **gap de fonte** (RSSSF Brasil não publica).
+
+**DB read-only:** mães SP/CE/PR existem; SC/GO ausentes; homônimos confirmados (Vila Nova, Operário).
+
+**Recomendação:** **PR** (primária: mãe existente + licença + campeão explícito) e **GO** (secundária: melhor evidência de campeão; mãe a semear). **Gap:** SP/CE/SC e RJ/RS/RO/RR. **Nenhum parser iniciado** (T448b-2d gated na aprovação do Thinker).
