@@ -863,6 +863,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Follow-up:** `T448b-2f` remediation de identidade de clubes (constraint `@@unique([name,country])` × homônimos) — design, sem migration sem aprovação.
 
+### GATE 2 adendum 26 — T448b-2d GO: parser puro 2023–2024 (2026-09-25)
+
+**FASE 0 (read-only):** `tablesfq/go2023/2024.htm` = **200**; autor **Guillermo Alexander Rivera**; licença (atribuição ao autor) presente; frases `*** ATLÉTICO are Goiás State 2023/2024 champions ***`. Wikidata `Q931386` (P31=Q1478437, P17=Q155, P641=Q2736) e `Q198034` (P31=Q476028) validados; DB: mãe `3063bf26-…`, clube `16a63050-…` ACTIVE; homônimos intactos.
+
+**Encoding (medido):** páginas GO são **UTF-8** (meta diz windows-1252; hex `c3 89` = É) — fixtures em `utf-8`/`rawText`. **Gênero = men evidenciado** (sufixo `w` = feminino no RSSSF Brasil + clube masculino `Q198034`). **Hierarquia = estadual**.
+
+**Entrega:** `lib/rsssf/go/**` (reusa o núcleo genérico `lib/rsssf` — decode/extract/map/resolve) + `pack.ts` (Zod: rejeita 2025/Q1513287) + `data/go-pilot-candidates.json` (**2 candidates**; `dedupKey=Q931386|year|Q198034|WON`; `retrievedAt=2026-09-24T20:03:52Z`) + `scripts/parse-rsssf-go-fixtures.ts`. Dry-run: **candidatesValid=2 · pendingReview=0 · excluded=[2025]**.
+
+**Excluído:** GO 2025 (`Q1513287`, `club_name_unique_conflict`); PR (`Q2580083`). **Testes:** unit GO T1–T15 verdes; total unit rsssf **78**. tsc/lint/prettier 0. **Sem writer/apply/arestas/migration/produção.**
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

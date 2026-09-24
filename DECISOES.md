@@ -19,6 +19,15 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-25] Decisão: D-2026-09-25-go-2025-gap-club-name-unique-conflict — GO 2025 = gap (não entra no parser)
+
+Motivo: `Q1513287` (Vila Nova/GO, campeão 2025) **não pode ser seedado** por `clubs @@unique([name,country])` (ocupada por `Q10391045`). Homônimos **intocados**; sem rename/link/migration. **GO 2025 excluído** do parser (pack em `excluded`). Reabrir só após **T448b-2f**.
+
+### [2026-09-25] Decisão: D-2026-09-25-t448b2d-parser-go-2023-2024 — Parser GO puro (2023–2024)
+
+Motivo: parser puro do **Campeonato Goiano 2023–2024** (RSSSF Brasil). **FASE 0 read-only:** `tablesfq/go2023/2024.htm` **200**, autor **Guillermo Alexander Rivera**, licença (atribuição ao autor) presente, frases `*** ATLÉTICO are Goiás State 2023/2024 champions ***`. **Encoding:** as páginas GO são **UTF-8** apesar do meta declarar windows-1252 (confirmado por hex `c3 89` = É) — fixtures em `utf-8`/`rawText` (as MG eram cp1252). **Gênero = men evidenciado:** RSSSF Brasil distingue feminino pelo sufixo `w` (`go2023w.htm` = 200) e o clube campeão `Q198034` é o masculino. **Hierarquia = estadual** (título "Goiás State League" + `Q931386`). **Identidade por QID** (`Q931386` mãe; `Q198034` clube). **#198-style:** `lib/rsssf/go/**` (reusa o núcleo genérico: decode/extract/map/resolve) + `data/go-pilot-candidates.json` (**2 candidates**, `dedupKey` factual sem hash de URL, `retrievedAt=2026-09-24T20:03:52Z` estático) + `scripts/parse-rsssf-go-fixtures.ts` (dry, sem rede no CI) + `pack.ts` (Zod/fail-fast: rejeita 2025/Q1513287). **Testes:** unit GO (T1–T15) verdes; total unit rsssf **78**. **SEM writer/apply/arestas/migration/produção.** Dry-run: `candidatesValid=2 · pendingReview=0 · excluded=[2025]`.
+Alternativas consideradas: incluir 2025 — REJEITADO (club_name_unique_conflict); assumir men por padrão — evitado (evidência documentada: sufixo `w` + clube masculino).
+
 ### [2026-09-24] Decisão: D-2026-09-24-clubs-name-country-unique-blocker — `clubs @@unique([name,country])` é blocker real para homônimos nacionais
 
 Motivo (medido no FASE 0 do seed GO): o índice **`clubs_name_country_key` (UNIQUE name,country)** impede criar dois clubes BR com o mesmo nome. O clube **Vila Nova/GO `Q1513287`** não pode ser criado porque `Q10391045` (Vila Nova/RN) já ocupa `("Vila Nova Futebol Clube","BR")`. **Não autorizado** rename/sufixo/link-by-name/migration neste round. **Follow-up:** `T448b-2f` — remediation de identidade de clubes/homônimos (auditar a constraint; opções: unique por `qid` + remover/relaxar name/country; name/country/state; aliases + unique em qid), **sem implementar migration sem aprovação**.
