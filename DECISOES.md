@@ -19,6 +19,11 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-25] Decisão: D-2026-09-25-t448b2d-writer-go-2023-2024 — Writer GO idempotente (2023–2024)
+
+Motivo: writer das 2 arestas WON GO (`Q931386|year|Q198034|WON`). **GO não cria/linka entidades** — resolve competição/clube **só por QID** (fail-fast: `missing/ambiguous_competition`, `missing/ambiguous_club`, `soft_deleted_club`). `modules/etl/rsssf-won-edges-go.service.ts` (repo injetável + `syncGoWonEdges`; idempotência factual inclui soft-deleted; **restore só** para reasons GO `rollback_t448b2d_go_{apply,provenance,failure}`; >1 aresta → `duplicate_factual_edges`). Script `write-rsssf-won-edges.ts` ganhou `--pack=go` (MG inalterado; DRY default; `--apply` exige `--allow-production`; `$transaction` Serializable). Metadata: `retrievedAt` do pack (estático), `authorCredit`/`licenseText`, `writerVersion=t448b2d-writer-go-v1`, `pilotScope`, `uf=GO`, `sourcePageUrlHash`/`championPhrase`, `dedupKey`. **Guardas:** rejeita 2025/Q1513287; não toca homônimos/MG; sem create/migration/hard delete. Evidência local (test DB): dry-run `--pack=go` → **created=2 · failed=0**; unit 11/11; integração 4/4.
+Alternativas consideradas: generalizar o sync MG (create/link) — REJEITADO (GO proíbe criar/linkar); writer separado — ADOTADO.
+
 ### [2026-09-25] Decisão: D-2026-09-25-go-2025-gap-club-name-unique-conflict — GO 2025 = gap (não entra no parser)
 
 Motivo: `Q1513287` (Vila Nova/GO, campeão 2025) **não pode ser seedado** por `clubs @@unique([name,country])` (ocupada por `Q10391045`). Homônimos **intocados**; sem rename/link/migration. **GO 2025 excluído** do parser (pack em `excluded`). Reabrir só após **T448b-2f**.

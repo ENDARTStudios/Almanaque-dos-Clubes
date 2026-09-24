@@ -873,6 +873,12 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Excluído:** GO 2025 (`Q1513287`, `club_name_unique_conflict`); PR (`Q2580083`). **Testes:** unit GO T1–T15 verdes; total unit rsssf **78**. tsc/lint/prettier 0. **Sem writer/apply/arestas/migration/produção.**
 
+### GATE 2 adendum 27 — T448b-2d GO: writer idempotente (2026-09-25)
+
+**Entrega (#206):** `modules/etl/rsssf-won-edges-go.service.ts` (repo injetável + `syncGoWonEdges`) + `--pack=go` em `write-rsssf-won-edges.ts` (MG inalterado). **GO não cria/linka**: resolve competição/clube **só por QID** (fail-fast). Idempotência factual `(clubId, competitionId, year, WON)` **inclui soft-deleted**; **restore só** de reasons GO; `duplicate_factual_edges` se >1. Metadata com `retrievedAt` do pack (estático), `authorCredit`/`licenseText`, `writerVersion`, `pilotScope`, `uf=GO`, `dedupKey`. Guardas: rejeita 2025/Q1513287; não toca homônimos/MG.
+
+**Evidência (test DB):** dry-run `--pack=go` → `created=2 · updated=0 · restored=0 · skipped=0 · failed=0 · attributionMissing=0`. Unit **11/11**; integração **4/4** (create 2, re-run skip 2, 0 arestas 2025, homônimos intactos). Apply em produção **pendente** de #205+#206+#207 + verificação do `/champions`.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
