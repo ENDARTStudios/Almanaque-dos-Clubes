@@ -810,3 +810,17 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Evidência (Docker local, zero produção):** `docker build` OK → `/app/apps/api/dist/lib/rsssf/data/mg-pilot-candidates.json` presente (3360 bytes) → dry-run **no container**: `candidatesSource=pack(prod)`, `candidates=3`, `created=3`, `failed=0`, `attributionMissing=0`. Testes: `candidates-pack` 6 casos (48 unit rsssf no total); integração `rsssf-won-edges` 7/7; unit completo 33 arquivos verdes.
 
 **Limitação declarada:** piloto MG 2023–2025; expansão (outros estados / ingestão dinâmica) exige novos packs ou mecanismo genérico — workstream separado.
+
+### GATE 2 adendum 21 — T448b-2b GATE PROD MG: aborto por proveniência + rollback + fix (#198) (2026-09-25)
+
+**Deploy:** SHA `42db45f` (container de produção). **Pré-check de identidade:** clube Atlético-MG `420a0968-…` estava **sem `qid`** → micro-update escopado/transacional vinculou `qid='Q270995'` (rowcount 1); competição `Q731877` (`89ada543-…`) **já existia** (não criada).
+
+**Apply:** `created=3 · failed=0 · competitionsCreated=[] · clubsLinked=[]`.
+
+**Gate SQL (falha):** 3.1 active=3 ✓ · 3.2 anos 1/1/1 ✓ · 3.3 duplicação=0 ✓ · **3.4 missing_provenance=3 ✗** · 3.5 links=3 ✓ · 3.6 Q5028286=0 ✓. Diagnóstico: as arestas tinham `sourceUrl/authorCredit/licenseText` mas **faltava `retrievedAt`** (writer v1 gravava `importedAt`).
+
+**Rollback (lógico):** `UPDATE 3` → `active=0`; soft-deleted com `reason=rollback_t448b2b_mg_apply`; API `/titles` → **total=0** (read-filter OK); `/champions` 200 sem regressão. **Nenhum cache invalidado.** `clubs.qid` e a competição preservados.
+
+**Fix (#198):** `retrievedAt` persistido do candidate (fail-fast se ausente/inválido) + `parserVersion` bump (`t448b2b-fase2-provenance-v2`) + `dedupKey` no metadata; idempotência só por campos estáveis; lookup inclui soft-deleted; upsert **created/updated/restored/skipped/failed**; restore só com reason de rollback do piloto; APPLY atômico (`Serializable`). **Simulação contra o estado de prod → `created=0 · restored=3 · failed=0`**; unit etl 14/14; integração 11/11.
+
+**Lição:** dry-run local não bastou — não exercitou a **persistência real de todos os campos de proveniência**; o gate SQL pegou. Regra: todo campo exigido pelo gate deve ter teste de integração que **asserta presença no DB**.

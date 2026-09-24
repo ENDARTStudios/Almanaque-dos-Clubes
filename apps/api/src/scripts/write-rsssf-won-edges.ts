@@ -9,7 +9,7 @@
  *   DATABASE_URL=... tsx src/scripts/write-rsssf-won-edges.ts            # DRY
  *   DATABASE_URL=... tsx src/scripts/write-rsssf-won-edges.ts --apply    # grava
  */
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeLegacyTable, fixtureToText } from '../lib/rsssf/decode-legacy-table.js';
@@ -68,17 +68,20 @@ async function main(): Promise<void> {
   let result: Awaited<ReturnType<typeof syncRsssfWonEdges>> | undefined;
 
   try {
+    const run = (client: PrismaClient) =>
+      syncRsssfWonEdges(candidates, createPrismaRsssfWonRepo(client), {});
+
     if (apply) {
-      result = await syncRsssfWonEdges(candidates, createPrismaRsssfWonRepo(prisma), {});
+      // APPLY ATÔMICO (tudo-ou-nada). Serializable = mecanismo equivalente a FOR UPDATE
+      // p/ evitar corrida entre execuções concorrentes.
+      result = await prisma.$transaction((tx) => run(tx as unknown as PrismaClient), {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      });
     } else {
-      // DRY: transação revertida — contagens reais, nada persiste.
+      // DRY: MESMA transação, revertida — contagens reais, nada persiste.
       try {
         await prisma.$transaction(async (tx) => {
-          result = await syncRsssfWonEdges(
-            candidates,
-            createPrismaRsssfWonRepo(tx as unknown as PrismaClient),
-            {},
-          );
+          result = await run(tx as unknown as PrismaClient);
           throw ROLLBACK;
         });
       } catch (err) {
