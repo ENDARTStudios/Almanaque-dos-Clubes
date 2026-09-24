@@ -853,6 +853,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Recomendação:** **PR** (primária: mãe existente + licença + campeão explícito) e **GO** (secundária: melhor evidência de campeão; mãe a semear). **Gap:** SP/CE/SC e RJ/RS/RO/RR. **Nenhum parser iniciado** (T448b-2d gated na aprovação do Thinker).
 
+### GATE 2 adendum 25 — T448b-2d GO: seed de identidade reduzido (2023–2024) (2026-09-24)
+
+**Blocker real de schema (FASE 0 complementar):** `clubs` tem **`@@unique([name,country])`** (`clubs_name_country_key`); `Q10391045` (Vila Nova/RN) já ocupa `("Vila Nova Futebol Clube","BR")` → criar `Q1513287` (Vila Nova/GO) **viola a constraint** → **`club_name_unique_conflict`**. Decisão: **piloto GO reduzido a 2023–2024**; **2025 = gap**; sem rename/sufixo/link/migration.
+
+**Entrega (seed de identidade):** `lib/rsssf/go/**` (`identity-types`, `seed-plan` com Zod/fail-fast, `index`) + pack `data/go-identity-seed.json` (`pilotScope=go-2023-2024`, `retrievedAt=2026-09-24T14:49:12Z`, `CC0`) + script `scripts/seed-go-identity.ts` (DRY default; `--apply` exige `--allow-production`). **Só a competição-mãe é escrita**; `Q198034` noop; `Q1513287` só em `excluded`; homônimos intocados.
+
+**Evidência:** dry-run local (dist) = `{"mode":"DRY","competition":{"qid":"Q931386","action":"create","conflicts":[]},"clubs":[{"qid":"Q198034","action":"noop"}],"excluded":[{"qid":"Q1513287","reason":"club_name_unique_conflict"}],"errors":[],"wouldWrite":true}`. Testes: unit **14/14**, integração **6/6**. tsc/lint/prettier 0. Gate de produção (dry-run/apply/SQL/cache) **pendente de merge+deploy**.
+
+**Follow-up:** `T448b-2f` remediation de identidade de clubes (constraint `@@unique([name,country])` × homônimos) — design, sem migration sem aprovação.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
