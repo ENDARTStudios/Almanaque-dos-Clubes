@@ -105,6 +105,76 @@ export default function MetodologiaPage() {
           </p>
         </section>
 
+        <section id="conquistas-estaduais-piloto-mg" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Conquistas estaduais — Piloto Minas Gerais (2023-2025)
+          </h2>
+          <p>
+            Os títulos estaduais do piloto Minas Gerais 2023-2025 foram obtidos a partir de tabelas
+            históricas publicadas pela{' '}
+            <a
+              href="https://rsssfbrasil.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF / RSSSF Brasil
+            </a>{' '}
+            (Rec.Sport.Soccer Statistics Foundation), nas páginas mantidas por{' '}
+            <strong>Claudio Freati</strong>.
+          </p>
+          <p className="mt-2">
+            <strong>Fontes:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              Campeonato Mineiro 2023 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/mg2023.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/mg2023.htm
+              </a>
+            </li>
+            <li>
+              Campeonato Mineiro 2024 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/mg2024.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/mg2024.htm
+              </a>
+            </li>
+            <li>
+              Campeonato Mineiro 2025 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/mg2025.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/mg2025.htm
+              </a>
+            </li>
+          </ul>
+          <p className="mt-2">
+            <strong>Licença/atribuição:</strong> o material da RSSSF é de uso condicionado à
+            atribuição adequada ao autor. Conforme as páginas-fonte: &ldquo;(C) Copyright Claudio
+            Freati, RSSSF and RSSSF Brazil. You are free to copy this document in whole or part
+            provided that proper acknowledgement is given to the author. All rights
+            reserved.&rdquo;
+          </p>
+          <p className="mt-2">
+            <strong>Limitação:</strong> esta seção cobre apenas o piloto do Campeonato Mineiro
+            Módulo I para as temporadas 2023, 2024 e 2025. Não representa cobertura completa de
+            campeonatos estaduais, municipais ou nacionais do Brasil.
+          </p>
+        </section>
+
         <section>
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
             Critério de verificação
