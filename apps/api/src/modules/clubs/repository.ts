@@ -6,6 +6,7 @@ import { prisma } from '../../config/prisma.js';
 import type { Club } from '@almanaque/domain';
 import { hierarchyOfEdge } from '../etl/won-edges.service.js';
 import { isWomensCompetition, type RankHierarchy } from '../rankings/ranking-algorithm.service.js';
+import { excludeSoftDeleted } from '../graph/soft-delete.js';
 
 export interface ListClubsParams {
   country?: string;
@@ -175,7 +176,7 @@ export const clubsRepository = {
    * ranking — mesma função). Sem fonte auditável na aresta → sourceUrl null.
    */
   async listTitlesByClub(clubId: string): Promise<ClubTitleView[]> {
-    const edges = await prisma.knowledgeGraph.findMany({
+    const rawEdges = await prisma.knowledgeGraph.findMany({
       where: {
         relation: 'WON',
         OR: [
@@ -191,6 +192,8 @@ export const clubsRepository = {
         metadata: true,
       },
     });
+    // T448b-2b FASE 2 — exclui arestas soft-deletadas (metadata.deletedAt).
+    const edges = excludeSoftDeleted(rawEdges);
 
     const compIds = [
       ...new Set(

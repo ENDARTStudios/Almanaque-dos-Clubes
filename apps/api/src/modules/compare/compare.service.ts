@@ -18,6 +18,7 @@ import {
   RANKING_HIERARCHIES,
   type RankHierarchy,
 } from '../rankings/ranking-algorithm.service.js';
+import { isEdgeSoftDeleted } from '../graph/soft-delete.js';
 
 export type HierarchyBreakdown = Record<RankHierarchy, number> & { total: number };
 
@@ -146,15 +147,17 @@ export async function compareClubs(ids: [string, string]): Promise<CompareResult
   }
 
   // Títulos por hierarquia (arestas WON do KnowledgeGraph).
-  const wonEdges = await prisma.knowledgeGraph.findMany({
-    where: { relation: 'WON', OR: ids.map((id) => ({ sourceId: id, sourceType: 'Club' })) },
-    select: {
-      sourceId: true,
-      targetId: true,
-      targetType: true,
-      metadata: true,
-    },
-  });
+  const wonEdges = (
+    await prisma.knowledgeGraph.findMany({
+      where: { relation: 'WON', OR: ids.map((id) => ({ sourceId: id, sourceType: 'Club' })) },
+      select: {
+        sourceId: true,
+        targetId: true,
+        targetType: true,
+        metadata: true,
+      },
+    })
+  ).filter((e) => !isEdgeSoftDeleted(e.metadata)); // T448b-2b FASE 2
   const compIds = new Set<string>();
   for (const e of wonEdges) {
     if (e.targetType === 'Competition') compIds.add(e.targetId);

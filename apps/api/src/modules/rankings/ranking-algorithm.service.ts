@@ -26,6 +26,7 @@ import {
   WOMENS_COMPETITION_QIDS,
   WOMENS_GENDER_VALUE,
 } from '../etl/connectors/wikidata-womens-football.connector.js';
+import { isEdgeSoftDeleted } from '../graph/soft-delete.js';
 
 // ---------------------------------------------------------------------------
 // Config & pesos (registro documentado — ver docs/RANKING-ALGORITHM.md)
@@ -613,6 +614,7 @@ export function createPrismaRankingAlgorithmRepo(db: RankingDb): RankingAlgorith
       // Títulos = arestas KnowledgeGraph relation='WON' (sourceType/targetType Club/Competition).
       const edges = await db.knowledgeGraph.findMany({ where: { relation: 'WON' } });
       const relevant = edges.filter((e) => {
+        if (isEdgeSoftDeleted(e.metadata)) return false; // T448b-2b FASE 2 — soft-delete
         const meta = (e.metadata as Record<string, unknown> | null) ?? {};
         if (seasonNum !== null) {
           const year = Number(meta.year ?? seasonNum);

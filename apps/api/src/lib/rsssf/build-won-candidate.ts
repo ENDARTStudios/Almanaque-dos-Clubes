@@ -166,9 +166,11 @@ export function buildWonCandidate(input: BuildInput): BuildResult {
     candidate: {
       relation: 'WON',
       competitionQid: comp.competition.qid,
+      competitionName,
       competitionId: comp.competition.id,
       seasonYear: season,
       clubQid: club.qid,
+      clubName: champ.championTeam,
       clubId: club.id,
       hierarchy: 'estadual',
       gender,
