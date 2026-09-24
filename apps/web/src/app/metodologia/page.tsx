@@ -175,6 +175,73 @@ export default function MetodologiaPage() {
           </p>
         </section>
 
+        <section id="conquistas-estaduais-piloto-go" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Conquistas estaduais — Piloto Campeonato Goiano (2023–2024)
+          </h2>
+          <p>
+            Os títulos do piloto do Campeonato Goiano 2023–2024 foram obtidos a partir de tabelas
+            históricas publicadas pela{' '}
+            <a
+              href="https://rsssfbrasil.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF / RSSSF Brasil
+            </a>
+            , nas páginas mantidas por <strong>Guillermo Alexander Rivera</strong>.
+          </p>
+          <p className="mt-2">
+            <strong>Fontes:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              Campeonato Goiano 2023 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/go2023.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/go2023.htm
+              </a>
+            </li>
+            <li>
+              Campeonato Goiano 2024 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/go2024.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/go2024.htm
+              </a>
+            </li>
+          </ul>
+          <p className="mt-2">
+            <strong>Licença/atribuição:</strong> o material da RSSSF é de uso condicionado à
+            atribuição adequada ao autor. Conforme as páginas-fonte: &ldquo;(C) Copyright Guillermo
+            Alexander Rivera, RSSSF and RSSSF Brazil. You are free to copy this document in whole or
+            part provided that proper acknowledgement is given to the author. All rights
+            reserved.&rdquo; O uso destes dados exige atribuição adequada <strong>ao autor da
+            página</strong>, não apenas à RSSSF/RSSSF Brasil. (Não é domínio público.)
+          </p>
+          <p className="mt-2">
+            <strong>Limitação:</strong> este piloto cobre apenas o Campeonato Goiano <strong>2023 e
+            2024</strong>. A temporada <strong>2025</strong> não está incluída porque o clube campeão
+            (Vila Nova Futebol Clube / Q1513287) não pôde ser vinculado ao acervo sob a restrição
+            atual <code>clubs @@unique([name, country])</code> (sem autorização de renomeação, vínculo
+            por nome ou migração neste round). Não representa cobertura completa de campeonatos
+            estaduais, municipais ou nacionais do Brasil.
+          </p>
+          <p className="mt-2">
+            <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
+            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            fonte prevalecem no idioma original.
+          </p>
+        </section>
+
         <section>
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
             Critério de verificação
