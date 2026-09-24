@@ -852,3 +852,11 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **DB read-only:** mães SP/CE/PR existem; SC/GO ausentes; homônimos confirmados (Vila Nova, Operário).
 
 **Recomendação:** **PR** (primária: mãe existente + licença + campeão explícito) e **GO** (secundária: melhor evidência de campeão; mãe a semear). **Gap:** SP/CE/SC e RJ/RS/RO/RR. **Nenhum parser iniciado** (T448b-2d gated na aprovação do Thinker).
+
+### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
+
+**Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
+
+**PR bloqueado (T448b-2d PR):** `Q920397` existe, mas 2023 sem declaração de campeão; 2024 só tabela; **2025** com frase (`*** Operário are Champions ***`) porém clube **`Q2580083` ausente** → **0 ready (<2)**. Nenhum parser PR.
+
+**GO discovery (read-only):** `go2023/2024/2025.htm` = 200; autor **G. A. Rivera**; licença presente; **campeão explícito nos 3 anos** (`*** ATLÉTICO … 2023/2024 ***`, `*** VILA NOVA … 2025 ***`). Mãe **`Q931386`** (P31=Q1478437; P17=Q155) **ausente do DB** → seed. Campeões: **`Q198034`** (presente ACTIVE), **`Q1513287`** Vila Nova/GO (ausente; `missing_but_seedable_by_qid`). Homônimo: DB tem `Q10391045`/`Q10391046` (RN/ES) → resolver só por QID. **Veredito: GO seedable (3/3, zero blocked).** Seed gated na aprovação do Thinker. Doc: `docs/T448B2D-PR-BLOCK-GO-DISCOVERY.md`.
