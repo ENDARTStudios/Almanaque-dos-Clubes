@@ -824,3 +824,17 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Fix (#198):** `retrievedAt` persistido do candidate (fail-fast se ausente/inválido) + `parserVersion` bump (`t448b2b-fase2-provenance-v2`) + `dedupKey` no metadata; idempotência só por campos estáveis; lookup inclui soft-deleted; upsert **created/updated/restored/skipped/failed**; restore só com reason de rollback do piloto; APPLY atômico (`Serializable`). **Simulação contra o estado de prod → `created=0 · restored=3 · failed=0`**; unit etl 14/14; integração 11/11.
 
 **Lição:** dry-run local não bastou — não exercitou a **persistência real de todos os campos de proveniência**; o gate SQL pegou. Regra: todo campo exigido pelo gate deve ter teste de integração que **asserta presença no DB**.
+
+### GATE 2 adendum 22 — T448b-2b GATE PROD MG: ATIVAÇÃO CONCLUÍDA (2026-09-24)
+
+**Deploy:** SHA `dfe6e5c` (após merge do #198). Container verificado: pack presente + `t448b2b-fase2-provenance-v2` no bundle.
+
+**Dry-run + APPLY (produção):** `candidatesSource=pack(prod)`, `candidates=3`, **`created=0 · updated=0 · restored=3 · skipped=0 · failed=0`** (restaurou os MESMOS edgeIds soft-deleted — idempotência sobre soft-delete provada).
+
+**Gate SQL (6/6 verde):** 4.1 active=3 · 4.2 2023|1/2024|1/2025|1 · 4.3 `missing_provenance=0` · 4.4 `soft_deleted_remaining=0` · 4.5 links=3 (`420a0968-…`/`89ada543-…`) · 4.6 `Q5028286`=0. Amostra: `retrievedAt=2026-09-23T22:59:09Z`, `reactivationReason=t448b2b_provenance_fix`, crédito "Claudio Freati…".
+
+**Cache:** `champions:*` → `champions:all` deletado; `clubs:titles:<id>`/`clubs:byId:<id>` não estavam cacheados; o padrão do dispatch `club:<id>:*` **não é a chave real** (a real é `clubs:titles:<id>`), sinalizado.
+
+**API pública:** `/clubs/420a0968-…/titles` → **200 · total=3** (estadual, 2025/2024/2023, `sourceUrl` RSSSF Brasil, sem segredos); `/champions` → 200 · 5 itens · **estadual → Atlético-MG**, sem regressão.
+
+**Resultado:** piloto MG 2023–2025 **ativo** com proveniência completa (RSSSF + atribuição ao autor da página). Próximo: T448b-2c (outros estados) / T448b-2d (municipal).
