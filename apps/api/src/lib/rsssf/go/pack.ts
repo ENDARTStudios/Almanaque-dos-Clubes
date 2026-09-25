@@ -33,7 +33,7 @@ const CandidateSchema = z.object({
     championPhrase: z.string().nullable(),
     tablePosition: z.number().nullable(),
     sourcePageUrlHash: z.string().min(1),
-    uf: z.literal('GO'),
+    uf: z.string().min(1),
     pilotScope: z.string().min(1),
   }),
 });

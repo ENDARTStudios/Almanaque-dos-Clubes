@@ -1,0 +1,17 @@
+{
+    "season":  2025,
+    "meta":  {
+                 "sourceUrl":  "https://rsssfbrasil.com/tablesfq/go2025.htm",
+                 "retrievedAt":  "2026-09-25T16:26:51Z",
+                 "authorCredit":  "(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2025.",
+                 "licenseText":  "You are free to copy this document in whole or part provided that proper acknowledgement is given to",
+                 "expectedSeason":  2025,
+                 "expectedCompetitionQid":  "Q931386",
+                 "expectedChampionQid":  "Q1513287",
+                 "genderEvidence":  "RSSSF Brasil distingue feminino pelo sufixo w; go2025.htm (sem sufixo) = masculino; clube Q1513287 (masculino).",
+                 "hierarchyEvidence":  "Titulo \"Goias State League 2025\" + URL tablesfq/go2025.htm + Q931386.",
+                 "notes":  "GO 2025 (Vila Nova). Excerpt minimo (UTF-8). APPLY BLOQUEADO ate seed de Q1513287."
+             },
+    "encoding":  "utf-8",
+    "rawText":  "Goiás State League 2025\nPrepared and maintained by Guillermo Alexander Rivera for the Rec.Sport.Soccer Statistics Foundation and RSSSF\n(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2025.\nYou are free to copy this document in whole or part provided that proper acknowledgement is given to\n*** VILA NOVA are Goiás State 2025 champions ***"
+}

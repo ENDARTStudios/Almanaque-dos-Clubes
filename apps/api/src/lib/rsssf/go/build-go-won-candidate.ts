@@ -10,7 +10,6 @@ import { sha256Hex } from '../build-won-candidate.js';
 import { makeGoPending } from './pending-review.js';
 import {
   GO_COMPETITION_QID,
-  GO_EXCLUDED_SEASONS,
   GO_PARSER_VERSION,
   GO_PILOT_SCOPE,
   type GoCandidate,
@@ -32,6 +31,16 @@ export interface BuildGoInput {
   meta: GoAttributionMeta;
   clubIndex: ClubIndexEntry[];
   competitionIndex: CompetitionIndexEntry[];
+  /** Configuração do piloto (reuso: GO 2023–2024 / GO 2025 / PR 2025). */
+  options?: {
+    expectedCompetitionQid?: string;
+    /** Se definido, EXIGE este QID no clube resolvido (senão `missing_club`). */
+    expectedChampionQid?: string;
+    excludedSeasons?: number[];
+    pilotScope?: string;
+    uf?: string;
+    parserVersion?: string;
+  };
 }
 
 export interface BuildGoResult {
@@ -49,11 +58,17 @@ function validIso(v: unknown): v is string {
 
 export function buildGoWonCandidate(input: BuildGoInput): BuildGoResult {
   const { season, competitionName, text, table, meta, clubIndex, competitionIndex } = input;
+  const opt = input.options ?? {};
+  const pilotScope = opt.pilotScope ?? GO_PILOT_SCOPE;
+  const uf = opt.uf ?? 'GO';
+  const parserVersion = opt.parserVersion ?? GO_PARSER_VERSION;
+  const excludedSeasons = opt.excludedSeasons ?? [];
+  const expectedCompetitionQid = opt.expectedCompetitionQid ?? GO_COMPETITION_QID;
   const pending: GoPendingReview[] = [];
   const base = { season, competitionName, sourceUrl: meta.sourceUrl };
 
-  // Temporada excluída (2025) nunca entra.
-  if (GO_EXCLUDED_SEASONS.includes(season)) {
+  // Temporada excluída do piloto nunca entra.
+  if (excludedSeasons.includes(season)) {
     pending.push(
       makeGoPending({
         ...base,
@@ -121,13 +136,13 @@ export function buildGoWonCandidate(input: BuildGoInput): BuildGoResult {
         details: comp.details,
       }),
     );
-  } else if (comp.competition && comp.competition.qid !== GO_COMPETITION_QID) {
+  } else if (comp.competition && comp.competition.qid !== expectedCompetitionQid) {
     pending.push(
       makeGoPending({
         ...base,
         reasonCode: 'missing_competition',
         teamName: null,
-        details: { expected: GO_COMPETITION_QID, got: comp.competition.qid },
+        details: { expected: expectedCompetitionQid, got: comp.competition.qid },
       }),
     );
   }
@@ -173,7 +188,8 @@ export function buildGoWonCandidate(input: BuildGoInput): BuildGoResult {
   if (pending.length > 0 || !champ.championTeam || !club || !comp.competition) {
     return { candidate: null, pending };
   }
-  if (club.qid !== 'Q198034') {
+  // Se o piloto exige um QID específico de campeão, ele deve casar (senão missing_club).
+  if (opt.expectedChampionQid && club.qid !== opt.expectedChampionQid) {
     return {
       candidate: null,
       pending: [
@@ -181,7 +197,7 @@ export function buildGoWonCandidate(input: BuildGoInput): BuildGoResult {
           ...base,
           reasonCode: 'missing_club',
           teamName: champ.championTeam,
-          details: { expected: 'Q198034', got: club.qid },
+          details: { expected: opt.expectedChampionQid, got: club.qid },
         }),
       ],
     };
@@ -208,13 +224,13 @@ export function buildGoWonCandidate(input: BuildGoInput): BuildGoResult {
       attributionRequired: true,
       externalId,
       dedupKey: dedupKeyOfGo(comp.competition.qid, season, club.qid),
-      parserVersion: GO_PARSER_VERSION,
+      parserVersion,
       metadataExtras: {
         championPhrase: champ.evidence.phraseText,
         tablePosition: pos1?.position ?? null,
         sourcePageUrlHash,
-        uf: 'GO',
-        pilotScope: GO_PILOT_SCOPE,
+        uf,
+        pilotScope,
       },
     },
     pending: [],
