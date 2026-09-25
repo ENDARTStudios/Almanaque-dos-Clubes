@@ -4,10 +4,12 @@
  * Default = DRY (transação revertida — contagens reais, zero persistência). `--apply` grava
  * (produção exige `--allow-production`). Requer Postgres.
  *
- * Packs: `--pack=mg` (default) | `--pack=go` (Campeonato Goiano 2023–2024).
+ * Packs: `--pack=mg` (default) | `--pack=go` (Campeonato Goiano 2023–2024)
+ *        | `--pack=go-2025` (Goiano 2025) | `--pack=pr-2025` (Paranaense 2025).
  * Uso:
  *   DATABASE_URL=... node dist/scripts/write-rsssf-won-edges.js --pack=go --dry-run
  *   DATABASE_URL=... node dist/scripts/write-rsssf-won-edges.js --pack=go --apply --allow-production
+ *   DATABASE_URL=... node dist/scripts/write-rsssf-won-edges.js --pack=go-2025 --dry-run
  */
 import { Prisma, PrismaClient } from '@prisma/client';
 import { dirname, resolve } from 'node:path';
@@ -18,6 +20,7 @@ import { loadClubIndex, loadCompetitionIndex, loadFixtures } from '../lib/rsssf/
 import type { WonCandidate } from '../lib/rsssf/types.js';
 import { loadPilotCandidates } from '../lib/rsssf/candidates-pack.js';
 import { loadGoPack } from '../lib/rsssf/go/index.js';
+import { loadEstadual2025Pack, type Estadual2025Scope } from '../lib/rsssf/estaduais-2025-pack.js';
 import {
   createPrismaRsssfWonRepo,
   syncRsssfWonEdges,
@@ -25,6 +28,8 @@ import {
 import {
   createPrismaGoWonRepo,
   syncGoWonEdges,
+  GO_PR_WRITER_VERSION,
+  GO_PR_WON_RESTORABLE_REASONS,
 } from '../modules/etl/rsssf-won-edges-go.service.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -112,6 +117,68 @@ async function main(): Promise<void> {
             clubsUpdated: [],
             errors: [],
           },
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  if (pack === 'go-2025' || pack === 'pr-2025') {
+    const scope = pack as Estadual2025Scope;
+    const loaded = loadEstadual2025Pack(scope);
+    const isGo = scope === 'go-2025';
+    const syncOpts = {
+      allowedYears: [2025] as readonly number[],
+      expectedCompetitionQid: isGo ? 'Q931386' : 'Q920397',
+      expectedClubQid: isGo ? 'Q1513287' : 'Q2580083',
+      writerVersion: GO_PR_WRITER_VERSION,
+      restorableReasons: GO_PR_WON_RESTORABLE_REASONS,
+    };
+    let res2025: Awaited<ReturnType<typeof syncGoWonEdges>> | undefined;
+    try {
+      const run = (client: PrismaClient) =>
+        syncGoWonEdges(loaded.candidates, createPrismaGoWonRepo(client), syncOpts);
+      if (apply) {
+        res2025 = await prisma.$transaction((tx) => run(tx as unknown as PrismaClient), {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        });
+      } else {
+        try {
+          await prisma.$transaction(async (tx) => {
+            res2025 = await run(tx as unknown as PrismaClient);
+            throw ROLLBACK;
+          });
+        } catch (err) {
+          if (err !== ROLLBACK) throw err;
+        }
+      }
+    } finally {
+      await prisma.$disconnect();
+    }
+    console.log(
+      JSON.stringify(
+        {
+          mode: apply ? 'APPLY' : 'DRY(rolled-back)',
+          pack: scope,
+          pilotScope: loaded.pilotScope,
+          candidates: loaded.candidates.length,
+          created: res2025!.counts.created,
+          updated: res2025!.counts.updated,
+          restored: res2025!.counts.restored,
+          skipped: res2025!.counts.skipped,
+          failed: res2025!.counts.failed,
+          attributionMissing: res2025!.counts.attributionMissing,
+          duplicatesInBatch: res2025!.counts.duplicatesInBatch,
+          competitionsCreated: [],
+          clubsCreated: [],
+          clubsUpdated: [],
+          hardDeletes: 0,
+          migrations: 0,
+          errors: [],
+          rows: { created: res2025!.created, restored: res2025!.restored },
+          failures: res2025!.failures,
         },
         null,
         2,

@@ -6,15 +6,23 @@
  * restore só para reasons de rollback do próprio piloto GO. Sem agora() em retrievedAt.
  */
 import { Prisma, PrismaClient } from '@prisma/client';
-import type { GoCandidate } from '../../lib/rsssf/go/types.js';
+import { GO_CHAMPION_QID, type GoCandidate } from '../../lib/rsssf/go/types.js';
 import { RSSSF_LICENSE } from './connectors/rsssf-tables.connector.js';
 
 export const GO_WRITER_VERSION = 't448b2d-writer-go-v1';
+/** T448b-2d — writer dos pilotos 2025 (GO 2025 + PR 2025). */
+export const GO_PR_WRITER_VERSION = 't448b2d-writer-go-pr-v1';
 export const GO_PILOT_SCOPE_VALUE = 'go-2023-2024';
 export const GO_WON_RESTORABLE_REASONS: readonly string[] = [
   'rollback_t448b2d_go_apply',
   'rollback_t448b2d_go_provenance',
   'rollback_t448b2d_go_failure',
+];
+export const GO_PR_WON_RESTORABLE_REASONS: readonly string[] = [
+  ...GO_WON_RESTORABLE_REASONS,
+  'rollback_t448b2d_go_2025_apply',
+  'rollback_t448b2d_pr_2025_apply',
+  'rollback_t448b2d_writers_failure',
 ];
 
 export interface GoWonEdgeMetadata {
@@ -35,7 +43,7 @@ export interface GoWonEdgeMetadata {
   dedupKey: string;
   externalId: string;
   pilotScope: string;
-  uf: 'GO';
+  uf: string;
   sourcePageUrlHash: string;
   championPhrase: string | null;
   tablePosition: number | null;
@@ -52,7 +60,16 @@ function assertIso(v: unknown, dedupKey: string): string {
   return v;
 }
 
-export function buildGoWonEdgeMetadata(c: GoCandidate, importedAt: Date): GoWonEdgeMetadata {
+export interface GoWonMetadataOptions {
+  writerVersion?: string;
+  uf?: string;
+}
+
+export function buildGoWonEdgeMetadata(
+  c: GoCandidate,
+  importedAt: Date,
+  opts: GoWonMetadataOptions = {},
+): GoWonEdgeMetadata {
   return {
     year: c.seasonYear,
     season: String(c.seasonYear),
@@ -67,11 +84,11 @@ export function buildGoWonEdgeMetadata(c: GoCandidate, importedAt: Date): GoWonE
     retrievedAt: assertIso(c.retrievedAt, c.dedupKey),
     attributionRequired: true,
     parserVersion: c.parserVersion,
-    writerVersion: GO_WRITER_VERSION,
+    writerVersion: opts.writerVersion ?? GO_WRITER_VERSION,
     dedupKey: c.dedupKey,
     externalId: c.externalId,
     pilotScope: c.metadataExtras.pilotScope,
-    uf: 'GO',
+    uf: opts.uf ?? c.metadataExtras.uf ?? 'GO',
     sourcePageUrlHash: c.metadataExtras.sourcePageUrlHash,
     championPhrase: c.metadataExtras.championPhrase,
     tablePosition: c.metadataExtras.tablePosition,
@@ -201,7 +218,23 @@ export interface GoWonFailure {
     | 'ambiguous_club'
     | 'soft_deleted_club'
     | 'unexpected_soft_deleted_edge'
-    | 'duplicate_factual_edges';
+    | 'duplicate_factual_edges'
+    | 'out_of_scope_season'
+    | 'out_of_scope_competition'
+    | 'out_of_scope_club';
+}
+
+export interface GoWonSyncOptions {
+  importedAt?: Date;
+  /** Temporadas aceitas pelo escopo (default GO 2023–2024). */
+  allowedYears?: readonly number[];
+  /** Se definido, exige este QID de competição no candidate. */
+  expectedCompetitionQid?: string;
+  /** Se definido, exige este QID de clube no candidate. Default = campeão GO histórico. */
+  expectedClubQid?: string;
+  writerVersion?: string;
+  uf?: string;
+  restorableReasons?: readonly string[];
 }
 export interface GoWonSyncResult {
   counts: GoWonCounts;
@@ -214,9 +247,12 @@ export interface GoWonSyncResult {
 export async function syncGoWonEdges(
   candidates: GoCandidate[],
   repo: GoWonRepo,
-  opts: { importedAt?: Date } = {},
+  opts: GoWonSyncOptions = {},
 ): Promise<GoWonSyncResult> {
   const importedAt = opts.importedAt ?? new Date();
+  const allowedYears = opts.allowedYears ?? [2023, 2024];
+  const expectedClubQid = opts.expectedClubQid ?? GO_CHAMPION_QID;
+  const restorableReasons = opts.restorableReasons ?? GO_WON_RESTORABLE_REASONS;
   const counts: GoWonCounts = {
     created: 0,
     updated: 0,
@@ -238,10 +274,20 @@ export async function syncGoWonEdges(
     }
     seen.add(c.dedupKey);
 
-    // Guardas do piloto GO.
-    if (c.seasonYear === 2025 || c.clubQid === 'Q1513287') {
+    // Guardas de escopo (fail-fast, zero escrita).
+    if (!allowedYears.includes(c.seasonYear)) {
       counts.failed += 1;
-      failures.push({ clubQid: c.clubQid, reason: 'missing_club' });
+      failures.push({ clubQid: c.clubQid, reason: 'out_of_scope_season' });
+      continue;
+    }
+    if (opts.expectedCompetitionQid && c.competitionQid !== opts.expectedCompetitionQid) {
+      counts.failed += 1;
+      failures.push({ clubQid: c.clubQid, reason: 'out_of_scope_competition' });
+      continue;
+    }
+    if (expectedClubQid && c.clubQid !== expectedClubQid) {
+      counts.failed += 1;
+      failures.push({ clubQid: c.clubQid, reason: 'out_of_scope_club' });
       continue;
     }
     if (!c.authorCredit?.trim() || !c.licenseText?.trim()) {
@@ -286,7 +332,10 @@ export async function syncGoWonEdges(
 
     let metadata: GoWonEdgeMetadata;
     try {
-      metadata = buildGoWonEdgeMetadata(c, importedAt);
+      metadata = buildGoWonEdgeMetadata(c, importedAt, {
+        writerVersion: opts.writerVersion,
+        uf: opts.uf,
+      });
     } catch {
       counts.failed += 1;
       failures.push({ clubQid: c.clubQid, reason: 'invalid_retrieved_at' });
@@ -305,7 +354,7 @@ export async function syncGoWonEdges(
       const isSoft = typeof prev.deletedAt === 'string' && prev.deletedAt.trim() !== '';
       if (isSoft) {
         const reason = typeof prev.deletionReason === 'string' ? prev.deletionReason : '';
-        if (!GO_WON_RESTORABLE_REASONS.includes(reason)) {
+        if (!restorableReasons.includes(reason)) {
           counts.failed += 1;
           failures.push({ clubQid: c.clubQid, reason: 'unexpected_soft_deleted_edge' });
           continue;
