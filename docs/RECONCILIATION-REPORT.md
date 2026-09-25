@@ -965,6 +965,18 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Estado:** **APPLY em produção pendente do gate** (dry→apply GO→apply PR→SQL→cache→smoke).
 
+### GATE 2 adendum 37 — T448b-2d: writers GO 2025 / PR 2025 APLICADOS em produção (concluído) (2026-09-25)
+
+**Deploy:** #216 (`e4ea209`) → Railway SUCCESS. Artefatos conferidos; `--pack=go-2025|pr-2025` DRY → `created=1`/zeros/`errors=[]`.
+
+**APPLY (`--allow-production`):** GO `created=1` (`Q931386|2025|Q1513287|WON`); PR `created=1` (`Q920397|2025|Q2580083|WON`); `hardDeletes=0`; `migrations=0`.
+
+**SQL Gate:** total estadual RSSSF ativo **5 → 7**; `missing_provenance=0`; `go_2025_link_ok=1`; `pr_2025_link_ok=1`; **MG=3 / GO 2023–24=2** intactos; `unexpected_soft_deleted=0`. Autores 2025: Rivera (GO), Moacir Dalpiaz de Souza (PR), Freati (MG). URLs 2025: `go2025.htm`, `pr2025.htm`, `mg2025.htm`. `writerVersion=t448b2d-writer-go-pr-v1`; `uf` GO/PR.
+
+**Cache:** DEL cirúrgico `champions:all` (1); `clubs:titles/byId` = no-op. **Smoke:** `/clubs/<VN GO>/titles` 200 (Campeonato Goiano 2025, `go2025.htm`); `/clubs/<OP PR>/titles` 200 (Campeonato Paranaense 2025, `pr2025.htm`); `/champions` 200. `/metodologia` 200 (GO vivo; **seção PR ausente = follow-up web**).
+
+**Resultado:** **7 arestas estaduais RSSSF auditáveis.** T448b-2d concluído para GO/PR 2025.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
