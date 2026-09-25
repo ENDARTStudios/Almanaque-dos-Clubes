@@ -166,8 +166,10 @@ describe('T448b-2d GO — parser', () => {
     expect(buildGoWonCandidate(input()).candidate).toEqual(buildGoWonCandidate(input()).candidate);
   });
 
-  it('T14 2025 nunca entra (excluded_season_in_candidates)', () => {
-    const { candidate, pending } = buildGoWonCandidate(input({ season: 2025 }));
+  it('T14 temporada excluída (excluded_seasons) nunca entra', () => {
+    const { candidate, pending } = buildGoWonCandidate(
+      input({ season: 2025, options: { excludedSeasons: [2025] } }),
+    );
     expect(candidate).toBeNull();
     expect(pending.some((p) => p.reasonCode === 'excluded_season_in_candidates')).toBe(true);
   });

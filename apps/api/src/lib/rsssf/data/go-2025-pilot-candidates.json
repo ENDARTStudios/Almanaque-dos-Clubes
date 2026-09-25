@@ -1,0 +1,38 @@
+{
+  "pilotScope": "go-2025",
+  "parserVersion": "t448b2d-go-parser-v1",
+  "source": "rsssf",
+  "attributionRequired": true,
+  "candidates": [
+    {
+      "relation": "WON",
+      "competitionQid": "Q931386",
+      "seasonYear": 2025,
+      "clubQid": "Q1513287",
+      "hierarchy": "estadual",
+      "gender": "men",
+      "source": "rsssf",
+      "sourceUrl": "https://rsssfbrasil.com/tablesfq/go2025.htm",
+      "retrievedAt": "2026-09-25T16:26:51Z",
+      "authorCredit": "(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2025.",
+      "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to",
+      "attributionRequired": true,
+      "externalId": "92058076686c04aa",
+      "dedupKey": "Q931386|2025|Q1513287|WON",
+      "parserVersion": "t448b2d-go-parser-v1",
+      "metadataExtras": {
+        "championPhrase": "VILA NOVA",
+        "tablePosition": null,
+        "sourcePageUrlHash": "797295d3e3e829c3622c4725c80ded4b3051454df2bac5533a09a01010ec5298",
+        "uf": "GO",
+        "pilotScope": "go-2025"
+      }
+    }
+  ],
+  "excluded": [],
+  "doNotTouch": ["Q10391045", "Q10391046"],
+  "seedRequired": "Q1513287",
+  "note": "Parser pronto (mock). APPLY bloqueado ate micro-seed de Q1513287 (Vila Nova/GO).",
+  "generatedFromMockIndex": true,
+  "pendingReview": []
+}

@@ -917,6 +917,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 2 LIBERADA:** parsers **GO 2025** (`Q1513287`) e **PR 2025** (`Q2580083`) desbloqueados (homônimos nacionais coexistem; identidade por QID; duplicata exata bloqueada). **T448b-2g** (backfill 9 clubes sem QID) autorizado como follow-up.
 
+### GATE 2 adendum 32 — T448b-2d GO 2025: parser pronto (apply bloqueado até seed) (2026-09-25)
+
+**FASE 0 (read-only):** `go2025.htm` 200; autor **Guillermo Alexander Rivera**; frase `*** VILA NOVA are Goiás State 2025 champions ***`. Wikidata `Q1513287` (Vila Nova Futebol Clube; P31=Q476028, P17=Q155, P641=Q2736). DB: mãe `Q931386`=1; **clube `Q1513287`=0 (ausente)**; homônimos=2.
+
+**Entrega:** `buildGoWonCandidate` generalizado (`options`: `expectedCompetitionQid`/`expectedChampionQid`/`excludedSeasons`/`uf`/`pilotScope`/`parserVersion`); fixture `tests/fixtures/rsssf/go/2025/` (mock index com `Q1513287`); script `parse-rsssf-go-2025-fixtures.ts` (offline); pack `data/go-2025-pilot-candidates.json` (**1 candidate** `Q931386|2025|Q1513287|WON`, `seedRequired=Q1513287`).
+
+**Testes:** T1 (mock⇒candidate Q1513287), T2 (ausente⇒`missing_club`), T3 (gender), T4 (determinismo) — unit GO (35) verdes. **APPLY BLOQUEADO** até micro-seed de `Q1513287`. Sem writer/produção/migration/cache.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

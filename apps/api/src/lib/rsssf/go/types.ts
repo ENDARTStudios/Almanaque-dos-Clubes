@@ -36,7 +36,7 @@ export interface GoCandidate {
     championPhrase: string | null;
     tablePosition: number | null;
     sourcePageUrlHash: string;
-    uf: 'GO';
+    uf: string;
     pilotScope: string;
   };
 }
