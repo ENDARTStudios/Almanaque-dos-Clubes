@@ -941,6 +941,20 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Testes:** unit **9/9**; integração **1/1** (cria 2 por QID; re-run noop; homônimos intactos). tsc/lint 0; prettier ok. **APPLY em produção pendente do gate (dry→apply→SQL→cache→smoke).**
 
+### GATE 2 adendum 35 — T448b-2d: gate de produção do micro-seed CONCLUÍDO (2026-09-25)
+
+**Contexto:** #214 (micro-seed de identidade GO/PR 2025) mergeado (`4372cd8`) → deploy Railway **SUCCESS**.
+
+**Execução (produção):** artefatos presentes (`dist/lib/rsssf/data/go-2025-seed-pack.json`, `pr-2025-seed-pack.json`, `dist/scripts/seed-go-pr-2025-clubs.js`). **DRY-run:** `go-2025 Q1513287 create` · `pr-2025 Q2580083 create` · `conflicts []` · `errors []`. **APPLY (`--allow-production`):** `created=2` · `noop=0` · `hardDeletes=0` · `migrations=0` · `errors=[]`.
+
+**SQL pós-apply (read-only):** `Q1513287`=1 (Vila Nova Futebol Clube, BR, `importedFrom=wikidata-go-2025-pre`, `sourceUrl` Wikidata) · `Q2580083`=1 (Operário Ferroviário Esporte Clube, BR, `importedFrom=wikidata-pr-2025-pre`) · homônimos `Q10391045`/`Q10391046`/`Q671621` **intactos** (`importedFrom=wikidata`) · dup por QID=**0** · clubes ativos **3878 → 3880 (+2)**.
+
+**Cache:** DEL cirúrgico `clubs:list:{...}` (1) + `clubs:geo-stats` (1); `clubs:byId:*`=0. **Sem FLUSHALL/FLUSHDB.**
+
+**Smoke API:** `/clubs?qid=Q1513287` · `/clubs?qid=Q2580083` → **200**; `search=Vila` → **Q1513287 + Q10391045** (+`Q10391046`) coexistindo; `search=Operário` → **Q2580083 + Q671621**; `/champions` **200** (sem regressão); `/clubs/<novos>/titles` **200** vazio (writers ainda não aplicados). **Observação (pré-existente, não-regressão):** o filtro `search` do repositório é **case-sensitive** (`name: { contains }`, sem `mode:'insensitive'`/`search_vector`) → termo em minúsculas retorna vazio; follow-up sugerido.
+
+**Resultado:** identidades `Q1513287` e `Q2580083` **ativas em produção**; writers GO 2025 / PR 2025 **destravados**.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
