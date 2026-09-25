@@ -879,6 +879,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Evidência (test DB):** dry-run `--pack=go` → `created=2 · updated=0 · restored=0 · skipped=0 · failed=0 · attributionMissing=0`. Unit **11/11**; integração **4/4** (create 2, re-run skip 2, 0 arestas 2025, homônimos intactos). Apply em produção **pendente** de #205+#206+#207 + verificação do `/champions`.
 
+### GATE 2 adendum 28 — T448b-2d GO: apply BLOQUEADO (rate limit Vercel) (2026-09-25)
+
+**Merges OK:** #205 (parser GO `63604ae`), #206 (writer GO `2450fa4`), #207 (atribuição web `928e5ce`) — `main=928e5ce`, `security-gate` verde. **Railway API deploy SUCCESS** (`928e5ce`), artefatos GO no container (`go-pilot-candidates.json` `pilotScope=go-2023-2024`; `write-rsssf-won-edges.js` com `t448b2d-writer-go-v1`).
+
+**BLOCKED_REASON:** `vercel_deploy_rate_limited_24h` — `vercel --prod` → *"Resource is limited - try again in 24 hours (more than 100, api-deployments-free-per-day)"*. O deploy de produção do web **não subiu** → `/metodologia` **sem** a seção GO (`Guillermo Alexander Rivera`/`Goiano` ausentes; cache MISS) → **apply GO abortado** (gate exige atribuição pública antes). **Sem contorno/bypass/preview-como-produção/divergência.**
+
+**Estado congelado (read-only):** `go_active_won=0` · `go_2025_edges=0` · `q1513287_club=0` · `q1513287_edges=0` · homônimos (`Q10391045/Q10391046`) presentes · `mg_active_won=3` · `total_estadual_rsssf_active=3`. **PASSO 3 (`/champions`) verificado:** determinístico (tipo → ano desc) → card `estadual` permanece Atlético-MG 2025.
+
+**Retomada:** quando o deploy de produção Vercel contiver o #207 → PASSO 1 (verificar `/metodologia` + hash) → PASSO 2 (container) → PASSO 3 dry-run → PASSO 4 apply → PASSO 5 SQL → PASSO 7 cache → PASSO 8 API. Falha persistente → `vercel_deploy_still_rate_limited_after_24h` (escalar infra).
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
