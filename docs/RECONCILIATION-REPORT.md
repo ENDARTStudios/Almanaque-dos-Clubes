@@ -925,6 +925,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Testes:** T1 (mock⇒candidate Q1513287), T2 (ausente⇒`missing_club`), T3 (gender), T4 (determinismo) — unit GO (35) verdes. **APPLY BLOQUEADO** até micro-seed de `Q1513287`. Sem writer/produção/migration/cache.
 
+### GATE 2 adendum 33 — T448b-2d PR 2025: parser pronto (apply bloqueado até seed) (2026-09-25)
+
+**FASE 0 (read-only):** `pr2025.htm` 200; autor **Moacir Dalpiaz de Souza**; frase `*** Operário are Champions ***`. Wikidata `Q2580083` (Operário Ferroviário Esporte Clube; P31=Q476028, P17=Q155, P641=Q2736) + mãe `Q920397`. DB: mãe `Q920397`=1; **clube `Q2580083`=0 (ausente)**; homônimo `Q671621`=1.
+
+**Entrega:** `lib/rsssf/pr/index.ts` (`buildPrWonCandidate`, reusa o builder GO generalizado com options PR); fixture `tests/fixtures/rsssf/pr/2025/` (mock com `Q2580083`); script `parse-rsssf-pr-2025-fixtures.ts` (offline); pack `data/pr-2025-pilot-candidates.json` (**1 candidate** `Q920397|2025|Q2580083|WON`, `seedRequired=Q2580083`).
+
+**Testes:** T1 (mock⇒candidate Q2580083), T2 (homônimo `Q671621` NÃO casa ⇒ `missing_club`), T3 (ausente ⇒ `missing_club`), T4 (determinismo) — **4/4**. **APPLY BLOQUEADO** até micro-seed de `Q2580083`. Empilhado no #211.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

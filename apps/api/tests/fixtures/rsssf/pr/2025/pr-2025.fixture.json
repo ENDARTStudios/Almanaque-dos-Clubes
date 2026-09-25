@@ -1,0 +1,17 @@
+{
+    "season":  2025,
+    "meta":  {
+                 "sourceUrl":  "https://rsssfbrasil.com/tablesfq/pr2025.htm",
+                 "retrievedAt":  "2026-09-25T16:32:38Z",
+                 "authorCredit":  "(C) Copyright Moacir Dalpiaz de Souza, RSSSF and RSSSF Brazil 2025",
+                 "licenseText":  "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+                 "expectedSeason":  2025,
+                 "expectedCompetitionQid":  "Q920397",
+                 "expectedChampionQid":  "Q2580083",
+                 "genderEvidence":  "Pagina masculina/elite (titulo Paranaense); clube Q2580083 masculino.",
+                 "hierarchyEvidence":  "Titulo Paranaense 2025 + URL tablesfq/pr2025.htm + Q920397 Campeonato Paranaense.",
+                 "notes":  "PR 2025 (Operario Ferroviario). Excerpt minimo (UTF-8). APPLY BLOQUEADO ate seed de Q2580083. Homonimo Q671621 NAO casa (QID estrito)."
+             },
+    "encoding":  "utf-8",
+    "rawText":  "CAMPEONATO PARANAENSE DE FUTEBOL - 2025\u003c\nPrepared and maintained by Moacir Dalpiaz de Souza for the Rec.Sport.Soccer StatisticsFoundation\n(C) Copyright Moacir Dalpiaz de Souza, RSSSF and RSSSF Brazil 2025\nYou are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.\n*** Operário are Champions ***"
+}
