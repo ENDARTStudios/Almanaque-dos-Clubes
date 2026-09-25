@@ -955,6 +955,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Resultado:** identidades `Q1513287` e `Q2580083` **ativas em produção**; writers GO 2025 / PR 2025 **destravados**.
 
+### GATE 2 adendum 36 — T448b-2d: writer estaduais 2025 (GO 2025 / PR 2025) implementado (2026-09-25)
+
+**Contexto:** seed de identidade verde (adendum 35) → clubes `Q1513287`/`Q2580083` ativos. Os packs (#211/#213) estavam prontos, mas o writer bloqueava 2025.
+
+**Entrega:** `write-rsssf-won-edges.ts` com `--pack=go-2025` / `--pack=pr-2025` (saída plana: `mode/pilotScope/candidates/created/updated/restored/skipped/failed/attributionMissing/duplicatesInBatch/…`). Generalização de `syncGoWonEdges` (options; defaults preservam GO 2023–2024). Loader `lib/rsssf/estaduais-2025-pack.ts`. Proveniência completa (`sourceUrl`, `authorCredit` do autor da página, `licenseText` verbatim, `retrievedAt` estático, `attributionRequired=true`, `hierarchy=estadual`, `gender=men`, `writerVersion=t448b2d-writer-go-pr-v1`).
+
+**Testes:** unit **20/20** (packs, escopo cruzado, attribution, retrievedAt, dedupKey, externalId estável, out-of-scope) + integração **8/8** (Postgres real; create/skip/restore/fail; transações revertidas — sem poluir a base). Regressão: GO 2023–2024 e MG verdes. tsc/lint 0.
+
+**Estado:** **APPLY em produção pendente do gate** (dry→apply GO→apply PR→SQL→cache→smoke).
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
