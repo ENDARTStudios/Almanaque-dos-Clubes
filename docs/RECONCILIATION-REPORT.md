@@ -933,6 +933,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Testes:** T1 (mock⇒candidate Q2580083), T2 (homônimo `Q671621` NÃO casa ⇒ `missing_club`), T3 (ausente ⇒ `missing_club`), T4 (determinismo) — **4/4**. **APPLY BLOQUEADO** até micro-seed de `Q2580083`. Empilhado no #211.
 
+### GATE 2 adendum 34 — T448b-2d: micro-seed de identidade GO/PR 2025 (2026-09-25)
+
+**Contexto:** parsers GO 2025 (`Q1513287`) e PR 2025 (`Q2580083`) mergeados (#211/#213), mas os clubes campeões **ausentes** no acervo → apply bloqueado. **FASE 0 read-only:** Wikidata `Q1513287` (Vila Nova Futebol Clube; P31=Q476028/P17=Q155/P641=Q2736) e `Q2580083` (Operário Ferroviário EC) validados; DB: ambos **0 rows**; homônimos `Q10391045`/`Q10391046`/`Q671621` presentes.
+
+**Entrega:** `lib/rsssf/seeds/club-seed.ts` (puro; upsert por QID; conflicts `ambiguous`/`soft_deleted`; sem link-by-name) + packs `go-2025-seed-pack.json`/`pr-2025-seed-pack.json` (Wikidata CC0; `retrievedAt` estático) + script `seed-go-pr-2025-clubs.ts` (DRY default; `--apply --allow-production`; **import estático** → packs no `dist`). `doNotTouch` de homônimos.
+
+**Testes:** unit **9/9**; integração **1/1** (cria 2 por QID; re-run noop; homônimos intactos). tsc/lint 0; prettier ok. **APPLY em produção pendente do gate (dry→apply→SQL→cache→smoke).**
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

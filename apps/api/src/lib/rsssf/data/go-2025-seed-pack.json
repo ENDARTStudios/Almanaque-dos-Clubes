@@ -1,0 +1,16 @@
+{
+  "pilotScope": "go-2025",
+  "source": "wikidata",
+  "license": "CC0",
+  "retrievedAt": "2026-09-25T16:26:51Z",
+  "clubs": [
+    {
+      "qid": "Q1513287",
+      "name": "Vila Nova Futebol Clube",
+      "country": "BR",
+      "importedFrom": "wikidata-go-2025-pre",
+      "sourceUrl": "https://www.wikidata.org/wiki/Q1513287"
+    }
+  ],
+  "doNotTouch": ["Q10391045", "Q10391046"]
+}
