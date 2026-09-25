@@ -16,6 +16,7 @@ import {
   type ListClubsParams,
 } from './repository.js';
 import { cache } from '../../services/cache.js';
+import { decideClubUniqueness } from './club-uniqueness.js';
 
 const CLUBS_LIST_TTL_SECONDS = 60;
 const CLUBS_BY_ID_TTL_SECONDS = 300;
@@ -29,10 +30,22 @@ export const clubsService = {
     // 1. Validação de entrada (Zod)
     const parsed = CreateClubSchema.parse(input);
 
-    // 2. Regra de negócio: unicidade (name, country)
-    if (await clubsRepository.existsByName(parsed.name, parsed.country)) {
+    // 2. Regra de negócio (T448b-2f): unicidade CONTEXTUAL — bloqueia só duplicata
+    //    EXATA (name+country+state+city); permite homônimos nacionais legítimos
+    //    (ex.: Vila Nova/GO vs /RN). Identidade canônica = QID.
+    const candidates = await clubsRepository.listActiveForDedup(parsed.country ?? null);
+    const verdict = decideClubUniqueness(
+      { name: parsed.name, country: parsed.country, state: parsed.state, city: parsed.city },
+      candidates,
+    );
+    if (verdict.decision === 'block') {
       throw new ConflictError(
-        `Já existe um clube com nome "${parsed.name}" no país ${parsed.country ?? '(sem país)'}`,
+        `Já existe um clube com o mesmo nome/país/estado/cidade (id ${verdict.conflictingClubId}).`,
+      );
+    }
+    if (verdict.decision === 'ambiguous') {
+      console.warn(
+        `[clubs.create] possível duplicata ambígua (id ${verdict.conflictingClubId}) — permitido, revisar.`,
       );
     }
 

@@ -163,11 +163,17 @@ export const clubsRepository = {
     };
   },
 
-  async existsByName(name: string, country?: string): Promise<boolean> {
-    const count = await prisma.club.count({
-      where: { name, country: country ?? null },
+  /**
+   * T448b-2f — candidatos ativos do mesmo país para validação CONTEXTUAL de
+   * unicidade (homônimos por state/city permitidos; duplicata exata bloqueada).
+   */
+  async listActiveForDedup(
+    country: string | null,
+  ): Promise<Array<{ id: string; name: string; state: string | null; city: string | null }>> {
+    return prisma.club.findMany({
+      where: { country: country ?? null, deletedAt: null },
+      select: { id: true, name: true, state: true, city: true },
     });
-    return count > 0;
   },
 
   /**
