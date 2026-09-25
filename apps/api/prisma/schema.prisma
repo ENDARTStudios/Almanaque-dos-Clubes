@@ -79,7 +79,10 @@ model Club {
   cityId    String?
   cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
 
-  @@unique([name, country])
+  // T448b-2f — homônimos nacionais legítimos (identidade = QID). O único global
+  // (name,country) impedia criar/linkar QIDs distintos (ex.: Vila Nova/GO vs /RN).
+  // Substituído por índice NÃO-único (busca) + validação de negócio contextual.
+  @@index([name, country])
   @@index([country])
   @@index([city])
   @@index([status])

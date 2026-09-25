@@ -901,6 +901,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Resultado:** **piloto GO 2023–2024 ATIVO** com proveniência completa (atribuição ao autor da página). GO 2025 = gap. Follow-up T448b-2f (identidade de clubes).
 
+### GATE 2 adendum 30 — T448b-2f: Identity Remediation (Opção A) (2026-09-25)
+
+**Problema (FASE 0 medida):** `clubs @@unique([name,country])` impedia homônimos nacionais com QIDs distintos (GO 2025 `Q1513287`, PR 2025 `Q2580083`). Produção: **0 homônimos** (a constraint impedia), **9 clubes sem qid**. Jev/TypeSafe no par homônimo → `noul=0.43` (**ambíguo**) ⇒ **identidade = QID**, nome não é chave.
+
+**Entrega:** migration `20261004120000_t448b2f_remove_name_country_unique` (**DROP INDEX** `clubs_name_country_key` + **CREATE INDEX** `clubs_name_country_idx`, idempotente; **down** documentado, recria o único só sem homônimos); `modules/clubs/club-uniqueness.ts` (puro: `normalizeClubContextKey`, `decideClubUniqueness` → `allow|block|ambiguous`, `DuplicateExactContextError`); `clubsService.create` (validação contextual; `clubsRepository.listActiveForDedup`); `prisma/seed.ts` ajustado (find-first, sem `name_country`).
+
+**Testes:** unit `club-uniqueness` **8/8**, `clubs` **6/6**; integração `club-identity-homonyms` **3/3** (coexistência GO/RN sem P2002; duplicata exata bloqueada; homônimo por state permitido); unit rsssf/clubs **92**. tsc 0; lint 0 erros; prettier ok.
+
+**Fora do escopo:** backfill dos 9 clubes sem qid (**T448b-2g**); parser GO 2025/PR 2025 (round subsequente). **DESTRAVA** os homônimos nacionais.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

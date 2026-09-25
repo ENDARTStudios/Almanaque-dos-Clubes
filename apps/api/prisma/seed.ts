@@ -248,20 +248,26 @@ async function seedClubs() {
   console.log('🌱 Criando clubes...');
   let created = 0;
   for (const club of CLUBS) {
-    const result = await prisma.club.upsert({
-      where: { name_country: { name: club.name, country: club.country } },
-      update: {
-        fullName: club.fullName,
-        shortName: club.shortName,
-        city: club.city,
-        state: club.state,
-        foundedYear: club.foundedYear,
-        primaryColor: club.primaryColor,
-        website: club.website,
-        status: 'ACTIVE',
-      },
-      create: club,
+    // T448b-2f — sem @@unique([name,country]): find-first escopado (seed de exemplo).
+    const existing = await prisma.club.findFirst({
+      where: { name: club.name, country: club.country },
+      select: { id: true },
     });
+    const result = existing
+      ? await prisma.club.update({
+          where: { id: existing.id },
+          data: {
+            fullName: club.fullName,
+            shortName: club.shortName,
+            city: club.city,
+            state: club.state,
+            foundedYear: club.foundedYear,
+            primaryColor: club.primaryColor,
+            website: club.website,
+            status: 'ACTIVE',
+          },
+        })
+      : await prisma.club.create({ data: club });
     if (result.createdAt.getTime() === result.updatedAt.getTime()) {
       created++;
     }
