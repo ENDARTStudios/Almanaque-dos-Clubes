@@ -911,6 +911,12 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Fora do escopo:** backfill dos 9 clubes sem qid (**T448b-2g**); parser GO 2025/PR 2025 (round subsequente). **DESTRAVA** os homônimos nacionais.
 
+### GATE 2 adendum 31 — T448b-2f: migration APLICADA em produção; FASE 2 liberada (2026-09-25)
+
+**Merge #209** (`85c0610`) → **Railway deploy SUCCESS** → entrypoint aplicou a migration no boot. **Verificação read-only (produção):** `_prisma_migrations` `20261004120000_t448b2f_remove_name_country_unique` **applied=t**; **`clubs_name_country_key` ausente**; **`clubs_name_country_idx`** (não-único) presente; **`clubs_qid_key` unique intacto**; **homônimos ativos = 0**; **estadual RSSSF ativo = 5** (MG 3 + GO 2). **Smoke:** `/clubs?country=BR` 200 · `/clubs/:id` 200 · `/champions` 200 (`estadual=Atlético-MG 2025`).
+
+**FASE 2 LIBERADA:** parsers **GO 2025** (`Q1513287`) e **PR 2025** (`Q2580083`) desbloqueados (homônimos nacionais coexistem; identidade por QID; duplicata exata bloqueada). **T448b-2g** (backfill 9 clubes sem QID) autorizado como follow-up.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
