@@ -291,6 +291,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 **Nota T449EN (09-23):** base EN para o piloto T449a — **universo mínimo** (só os faltantes do piloto; Wikidata CC0, dedup QID), **threshold 100%**, **migração `clubs.deletedAt`** + filtro default (nuído soft-deleted, nunca hard). DRY-RUN **115/115** nomes resolvidos. **T449a permanece [~] bloqueado** até a base EN bater o threshold em produção; **#185 não mergeado** (não publicar ranking parcial). WS-D base EN **[~]**.
 
+**Nota T448b-2d seed identidades GO/PR 2025 (09-25): [~] até gate produção.** Micro-seed só-clubes por QID (`Q1513287` Vila Nova/GO, `Q2580083` Operário Ferroviário/PR) via Wikidata CC0: `lib/rsssf/seeds/club-seed.ts` + packs + script (DRY/`--apply`). Homônimos `Q10391045/Q10391046/Q671621` intocados. Testes unit 9 + integração 1. **Writers GO/PR 2025 [ ]** após gate do seed.
+
 **Nota T448b-2d PR 2025 (09-25): parser [x] (código, mock); writer [ ] bloqueado seed.** Parser puro do Paranaense 2025 (Operário Ferroviário `Q2580083`; mãe `Q920397`): `lib/rsssf/pr/` (reusa builder GO generalizado) + fixture mock + script offline + pack `pr-2025-pilot-candidates.json` (1 candidate) + testes T1–T4 (homônimo `Q671621` NÃO casa). **APPLY bloqueado até micro-seed de `Q2580083`.** Empilhado no #211.
 
 **Nota T448b-2d GO 2025 (09-25): parser [x] (código, mock); writer [ ] bloqueado seed.** Parser puro do Goiano 2025 (Vila Nova `Q1513287`): fixture + mock index + pack `go-2025-pilot-candidates.json` (1 candidate) + testes T1–T4. **APPLY bloqueado até micro-seed de `Q1513287`** (writer/seed em round separado). `buildGoWonCandidate` generalizado (options).

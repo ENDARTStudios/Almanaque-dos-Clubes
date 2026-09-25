@@ -1,0 +1,16 @@
+{
+  "pilotScope": "pr-2025",
+  "source": "wikidata",
+  "license": "CC0",
+  "retrievedAt": "2026-09-25T16:32:38Z",
+  "clubs": [
+    {
+      "qid": "Q2580083",
+      "name": "Operário Ferroviário Esporte Clube",
+      "country": "BR",
+      "importedFrom": "wikidata-pr-2025-pre",
+      "sourceUrl": "https://www.wikidata.org/wiki/Q2580083"
+    }
+  ],
+  "doNotTouch": ["Q671621"]
+}

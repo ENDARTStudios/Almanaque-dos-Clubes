@@ -403,6 +403,7 @@ Toda interação entre Dev e Operador segue o `PROTOCOLO_MESTRE.md` — nada é 
 
 ## Lições recentes
 
+- **[2026-09-25 · T448b-2d seed GO/PR 2025] Micro-seed de identidade [~] (até gate).** Clubes `Q1513287` (Vila Nova/GO) e `Q2580083` (Operário Ferroviário/PR) via Wikidata CC0: `lib/rsssf/seeds/club-seed.ts` + packs + script. Homônimos intocados. Fila: **gate do seed** (dry→apply→SQL→cache→smoke) → **Writers GO 2025 / PR 2025**.
 - **[2026-09-25 · T448b-2d PR 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Paranaense 2025 (Operário Ferroviário `Q2580083`; mãe `Q920397`): `lib/rsssf/pr/` + fixture mock + pack + testes (homônimo `Q671621` NÃO casa). **Necessário micro-seed de `Q2580083`** antes do writer. Empilhado no #211 (GO 2025).
 - **[2026-09-25 · T448b-2d GO 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Goiano 2025 (Vila Nova `Q1513287`): fixture+mock+pack+testes T1–T4. **Necessário micro-seed de `Q1513287`** antes do writer (round separado). `buildGoWonCandidate` generalizado (options). PR 2025 análogo em seguida.
 - **[2026-09-25 · T448b-2f GATE] Migration APLICADA em produção; FASE 2 LIBERADA.** `clubs_name_country_key` removido (não-único no lugar); homônimos=0; estadual RSSSF=5; `/champions` ok. **Próximos (FASE 2):** parser **GO 2025** (`feat/t448b2d-parser-go-2025-vilanova`, clube `Q1513287`) e **PR 2025** (`feat/t448b2d-parser-pr-2025-operario`, clube `Q2580083` — pode exigir micro-seed antes do writer; parser deve falhar `missing_club`). **Follow-up:** **T448b-2g** backfill dos 9 clubes sem QID.
