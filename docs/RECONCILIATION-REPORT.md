@@ -889,6 +889,18 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Retomada:** quando o deploy de produção Vercel contiver o #207 → PASSO 1 (verificar `/metodologia` + hash) → PASSO 2 (container) → PASSO 3 dry-run → PASSO 4 apply → PASSO 5 SQL → PASSO 7 cache → PASSO 8 API. Falha persistente → `vercel_deploy_still_rate_limited_after_24h` (escalar infra).
 
+### GATE 2 adendum 29 — T448b-2d GO: gate de produção CONCLUÍDO (2026-09-25)
+
+**Rate limit Vercel RESOLVIDO:** deploy de produção do web **SUCCESS** (`qytfay2a1`, aliased `almanaquedosclubes.com`). **PASSO 1:** `/metodologia` ao vivo (cache-bypass, SHA-256 `9bca4898603f5aaac34bf8a231e319a8490b71e4efaff54031af335361ca457f`) contém `Guillermo Alexander Rivera`, `RSSSF Brasil`, `go2023/go2024.htm`, `2025`, gap explicado por `clubs @@unique([name,country])`, "não representa cobertura completa" e **"(Não é domínio público.)"** (sem falsa alegação).
+
+**PASSO 3 dry-run** (container `928e5ce`): `created=2 · failed=0 · competitionsCreated=[] · clubsCreated=[] · clubsUpdated=[]`.
+**PASSO 4 apply:** `created=2 · failed=0` (edgeIds 2023/2024).
+**PASSO 5 SQL:** 5.1 GO ativo=**2** · 5.2 `2023|1 · 2024|1` · 5.4 `missing_provenance=0` · 5.5 autor `(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2023/2024.` · 5.6 URLs `go2023/go2024.htm` · 5.7 `go_2025=0` · 5.8 `vila_nova_edges=0` · 5.9 homônimos=**2** · 5.10 MG=**3** · 5.11 total estadual RSSSF=**5**.
+**PASSO 7 cache:** `competitions:list:{…}` DEL 1; champions/titles/byId = 0 (no-op).
+**PASSO 8 API:** `/clubs/16a63050-…/titles` = 5 (2 GO estaduais 2023/2024 com fonte RSSSF + 3 nacionais Wikidata pré-existentes); `/clubs/420a0968-…/titles` = 3; `/champions` = **estadual Atlético-MG 2025** (determinístico; GO não desloca/duplica).
+
+**Resultado:** **piloto GO 2023–2024 ATIVO** com proveniência completa (atribuição ao autor da página). GO 2025 = gap. Follow-up T448b-2f (identidade de clubes).
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
