@@ -7,6 +7,22 @@ import type { Club } from '@almanaque/domain';
 import { hierarchyOfEdge } from '../etl/won-edges.service.js';
 import { isWomensCompetition, type RankHierarchy } from '../rankings/ranking-algorithm.service.js';
 import { excludeSoftDeleted } from '../graph/soft-delete.js';
+import { searchMatchedIds, idsInCondition } from '../../lib/search.js';
+
+/**
+ * T448b-2i — condição de busca case/acento-insensível. O matching roda em SQL
+ * nativo (translate+lower, sem extensão) e entra no where como ids; os demais
+ * filtros/paginação continuam Prisma puro.
+ */
+async function searchCondition(
+  search: string | undefined,
+): Promise<{ id: { in: string[] } } | Record<string, never>> {
+  if (!search) return {};
+  const ids = await searchMatchedIds(prisma, 'clubs', ['name', 'fullName', 'shortName'], search, {
+    softDeleteCol: 'deletedAt',
+  });
+  return idsInCondition(ids);
+}
 
 export interface ListClubsParams {
   country?: string;
@@ -73,6 +89,8 @@ export const clubsRepository = {
       offset = 0,
     } = params;
 
+    const searchCond = await searchCondition(search);
+
     return prisma.club.findMany({
       where: {
         deletedAt: null,
@@ -86,15 +104,7 @@ export const clubsRepository = {
           countryId ? { countryId } : {},
           stateId ? { stateId } : {},
           cityId ? { cityId } : {},
-          search
-            ? {
-                OR: [
-                  { name: { contains: search } },
-                  { fullName: { contains: search } },
-                  { shortName: { contains: search } },
-                ],
-              }
-            : {},
+          searchCond,
         ],
       },
       orderBy: { name: 'asc' },
@@ -106,6 +116,7 @@ export const clubsRepository = {
   async count(params: ListClubsParams = {}): Promise<number> {
     const { country, city, status, search, hasCoordinates, continent, countryId, stateId, cityId } =
       params;
+    const searchCond = await searchCondition(search);
     return prisma.club.count({
       where: {
         deletedAt: null,
@@ -119,15 +130,7 @@ export const clubsRepository = {
           countryId ? { countryId } : {},
           stateId ? { stateId } : {},
           cityId ? { cityId } : {},
-          search
-            ? {
-                OR: [
-                  { name: { contains: search } },
-                  { fullName: { contains: search } },
-                  { shortName: { contains: search } },
-                ],
-              }
-            : {},
+          searchCond,
         ],
       },
     });
