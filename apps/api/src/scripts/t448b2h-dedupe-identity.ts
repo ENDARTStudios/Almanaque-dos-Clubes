@@ -21,11 +21,9 @@
  * Reversão: o pack registra dupId↔canonId — restaurar = limpar deletedAt das
  * duplicatas (e re-redirect das referências pelo mapa inverso, se necessário).
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { T448B2H_PACK } from './data/t448b2h-dedupe-pack.js';
 
 const PackSchema = z.object({
   task: z.literal('T448b-2h'),
@@ -98,10 +96,7 @@ async function main(): Promise<void> {
   if (APPLY && !ALLOW_PRODUCTION) {
     throw new Error('--apply exige --allow-production (gate explícito de escrita em produção)');
   }
-  const here = dirname(fileURLToPath(import.meta.url));
-  const pack = PackSchema.parse(
-    JSON.parse(readFileSync(join(here, 'data', 't448b2h-dedupe-pack.json'), 'utf8')),
-  );
+  const pack = PackSchema.parse(T448B2H_PACK);
 
   console.log(
     `T448b-2h — dedupe de identidade (${APPLY ? 'APPLY' : 'DRY-RUN'}) · pack ${pack.retrievedAt}`,
