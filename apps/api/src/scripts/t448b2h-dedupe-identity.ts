@@ -61,7 +61,15 @@ export interface DedupePlanEntry {
  * reportada (decisão consciente: parcial segura > tudo-ou-nada cego).
  */
 export function buildDedupePlan(
-  pack: { mappings: Array<{ name: string; dupId: string; canonId: string; canonName: string; qid: string }> },
+  pack: {
+    mappings: Array<{
+      name: string;
+      dupId: string;
+      canonId: string;
+      canonName: string;
+      qid: string;
+    }>;
+  },
   refs: Map<string, { rankingEntries: number; favorites: number }>,
   checks: Map<string, { dupOk: boolean; canonOk: boolean }>,
 ): { plan: DedupePlanEntry[]; skipped: DedupePlanEntry[] } {
@@ -70,7 +78,12 @@ export function buildDedupePlan(
   for (const m of pack.mappings) {
     const r = refs.get(m.dupId) ?? { rankingEntries: 0, favorites: 0 };
     const c = checks.get(m.dupId) ?? { dupOk: false, canonOk: false };
-    const entry: DedupePlanEntry = { ...m, rankingEntries: r.rankingEntries, favorites: r.favorites, blockers: [] };
+    const entry: DedupePlanEntry = {
+      ...m,
+      rankingEntries: r.rankingEntries,
+      favorites: r.favorites,
+      blockers: [],
+    };
     if (!c.dupOk) entry.blockers.push('dup ausente/inativa');
     if (!c.canonOk) entry.blockers.push('canon ausente/inativo');
     if (entry.blockers.length > 0) skipped.push(entry);
@@ -90,7 +103,9 @@ async function main(): Promise<void> {
     JSON.parse(readFileSync(join(here, 'data', 't448b2h-dedupe-pack.json'), 'utf8')),
   );
 
-  console.log(`T448b-2h — dedupe de identidade (${APPLY ? 'APPLY' : 'DRY-RUN'}) · pack ${pack.retrievedAt}`);
+  console.log(
+    `T448b-2h — dedupe de identidade (${APPLY ? 'APPLY' : 'DRY-RUN'}) · pack ${pack.retrievedAt}`,
+  );
   const prisma = new PrismaClient();
 
   // Pré-condições lidas AO VIVO (nunca confiar só no pack).

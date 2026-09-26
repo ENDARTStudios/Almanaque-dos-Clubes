@@ -9,8 +9,20 @@ const PACK = {
   task: 'T448b-2h' as const,
   retrievedAt: '2026-09-26',
   mappings: [
-    { name: 'Clube A', dupId: '11111111-1111-4111-8111-111111111111', canonId: '22222222-2222-4222-8222-222222222222', canonName: 'Clube A Oficial', qid: 'Q1' },
-    { name: 'Clube B', dupId: '33333333-3333-4333-8333-333333333333', canonId: '44444444-4444-4444-8444-444444444444', canonName: 'Clube B Oficial', qid: 'Q2' },
+    {
+      name: 'Clube A',
+      dupId: '11111111-1111-4111-8111-111111111111',
+      canonId: '22222222-2222-4222-8222-222222222222',
+      canonName: 'Clube A Oficial',
+      qid: 'Q1',
+    },
+    {
+      name: 'Clube B',
+      dupId: '33333333-3333-4333-8333-333333333333',
+      canonId: '44444444-4444-4444-8444-444444444444',
+      canonName: 'Clube B Oficial',
+      qid: 'Q2',
+    },
   ],
 };
 
