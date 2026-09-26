@@ -42,41 +42,77 @@ afterAll(async () => {
 
 describe.skipIf(!isPostgres)('T448b-2i — busca translate+lower (sem extensão)', () => {
   it('case-insensitive: MAIÚSCULAS acha', async () => {
-    const ids = await searchMatchedIds(prisma, 'clubs', ['name', 'fullName', 'shortName'], `GRÊMIO ${SUFFIX}`, { softDeleteCol: 'deletedAt' });
+    const ids = await searchMatchedIds(
+      prisma,
+      'clubs',
+      ['name', 'fullName', 'shortName'],
+      `GRÊMIO ${SUFFIX}`,
+      { softDeleteCol: 'deletedAt' },
+    );
     expect(ids.length).toBeGreaterThanOrEqual(1);
   });
 
   it('acento-insensível: "Gremio" acha "Grêmio"', async () => {
-    const ids = await searchMatchedIds(prisma, 'clubs', ['name', 'fullName', 'shortName'], `Gremio ${SUFFIX.toLowerCase()}`, { softDeleteCol: 'deletedAt' });
+    const ids = await searchMatchedIds(
+      prisma,
+      'clubs',
+      ['name', 'fullName', 'shortName'],
+      `Gremio ${SUFFIX.toLowerCase()}`,
+      { softDeleteCol: 'deletedAt' },
+    );
     expect(ids).toContain(created[0]);
   });
 
   it('sem acento e sem case: "sao" acha "São..."', async () => {
     await prisma.club.create({ data: { name: `São Bento ${SUFFIX}`, country: 'BR' } });
-    const ids = await searchMatchedIds(prisma, 'clubs', ['name'], `sao bento ${SUFFIX.toLowerCase()}`, { softDeleteCol: 'deletedAt' });
+    const ids = await searchMatchedIds(
+      prisma,
+      'clubs',
+      ['name'],
+      `sao bento ${SUFFIX.toLowerCase()}`,
+      { softDeleteCol: 'deletedAt' },
+    );
     expect(ids.length).toBe(1);
     await prisma.club.deleteMany({ where: { name: `São Bento ${SUFFIX}` } });
   });
 
   it('competitions: acento-insensível', async () => {
-    const ids = await searchMatchedIds(prisma, 'competitions', ['name'], `Acoriano ${SUFFIX.toLowerCase()}`);
+    const ids = await searchMatchedIds(
+      prisma,
+      'competitions',
+      ['name'],
+      `Acoriano ${SUFFIX.toLowerCase()}`,
+    );
     expect(ids.length).toBe(1);
   });
 
   it('players: acento-insensível', async () => {
-    const ids = await searchMatchedIds(prisma, 'players', ['fullName'], `Joao Ninguem ${SUFFIX.toLowerCase()}`);
+    const ids = await searchMatchedIds(
+      prisma,
+      'players',
+      ['fullName'],
+      `Joao Ninguem ${SUFFIX.toLowerCase()}`,
+    );
     expect(ids.length).toBe(1);
   });
 
   it('LIKE-injection: termo com % não vira curinga', async () => {
-    const ids = await searchMatchedIds(prisma, 'clubs', ['name'], '%', { softDeleteCol: 'deletedAt' });
+    const ids = await searchMatchedIds(prisma, 'clubs', ['name'], '%', {
+      softDeleteCol: 'deletedAt',
+    });
     expect(ids).toHaveLength(0);
   });
 
   it('soft-delete: clube deletado não aparece', async () => {
     const club = await prisma.club.create({ data: { name: `Deletável ${SUFFIX}`, country: 'BR' } });
     await prisma.club.update({ where: { id: club.id }, data: { deletedAt: new Date() } });
-    const ids = await searchMatchedIds(prisma, 'clubs', ['name'], `deletavel ${SUFFIX.toLowerCase()}`, { softDeleteCol: 'deletedAt' });
+    const ids = await searchMatchedIds(
+      prisma,
+      'clubs',
+      ['name'],
+      `deletavel ${SUFFIX.toLowerCase()}`,
+      { softDeleteCol: 'deletedAt' },
+    );
     expect(ids).toHaveLength(0);
     await prisma.club.delete({ where: { id: club.id } });
   });
