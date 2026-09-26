@@ -977,6 +977,12 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Resultado:** **7 arestas estaduais RSSSF auditáveis.** T448b-2d concluído para GO/PR 2025.
 
+### GATE 2 adendum 38 — T448b-2d: conformidade pública do Paranaense 2025 em `/metodologia` (2026-09-25)
+
+**Dívida:** `/metodologia` tinha MG/GO/Inglaterra, sem seção **PR** (crédito a Moacir Dalpiaz de Souza só no JSONB). **Fix (texto):** seção `#campeonato-paranaense-2025` (fonte `pr2025.htm`; crédito ao autor; licença verbatim; "(Não é domínio público.)"; limitação; correção). **Consistência DB↔UI:** seção GO → **2023–2025** (+`go2025.htm`), removido o texto obsoleto "2025 não incluída". Datas → 25/09/2026.
+
+**Validação:** build web OK; render local (`next start`) → `Campeonato Paranaense`/`Moacir Dalpiaz de Souza`/`pr2025.htm`/`proper acknowledgement`/`All rights reserved`/âncora `campeonato-paranaense-2025`/`go2025.htm`/`Goiano (2023–2025)` = **presentes**. Credito DB (`metadata->>'authorCredit'` PR) ≡ UI. Lint/prettier 0. Sem regressão em MG/Inglaterra.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

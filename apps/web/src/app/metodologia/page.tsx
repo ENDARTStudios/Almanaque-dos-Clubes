@@ -22,7 +22,7 @@ export default function MetodologiaPage() {
         Metodologia e fontes
       </h1>
       <p className="text-sm text-foreground/50 mb-8">
-        Última atualização: 23/09/2026 · END ART Studios
+        Última atualização: 25/09/2026 · END ART Studios
       </p>
 
       <div className="space-y-8 text-foreground/70 leading-relaxed">
@@ -100,7 +100,7 @@ export default function MetodologiaPage() {
             dados históricos podem conter lacunas e divergências entre fontes.
           </p>
           <p className="mt-2">
-            <strong>Atualização e correções:</strong> última atualização em 23/09/2026. Encontrou um
+            <strong>Atualização e correções:</strong> última atualização em 25/09/2026. Encontrou um
             erro? Escreva para <strong>endart.studios@gmail.com</strong>.
           </p>
         </section>
@@ -165,8 +165,7 @@ export default function MetodologiaPage() {
             <strong>Licença/atribuição:</strong> o material da RSSSF é de uso condicionado à
             atribuição adequada ao autor. Conforme as páginas-fonte: &ldquo;(C) Copyright Claudio
             Freati, RSSSF and RSSSF Brazil. You are free to copy this document in whole or part
-            provided that proper acknowledgement is given to the author. All rights
-            reserved.&rdquo;
+            provided that proper acknowledgement is given to the author. All rights reserved.&rdquo;
           </p>
           <p className="mt-2">
             <strong>Limitação:</strong> esta seção cobre apenas o piloto do Campeonato Mineiro
@@ -177,10 +176,10 @@ export default function MetodologiaPage() {
 
         <section id="conquistas-estaduais-piloto-go" className="scroll-mt-20">
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
-            Conquistas estaduais — Piloto Campeonato Goiano (2023–2024)
+            Conquistas estaduais — Piloto Campeonato Goiano (2023–2025)
           </h2>
           <p>
-            Os títulos do piloto do Campeonato Goiano 2023–2024 foram obtidos a partir de tabelas
+            Os títulos do piloto do Campeonato Goiano 2023–2025 foram obtidos a partir de tabelas
             históricas publicadas pela{' '}
             <a
               href="https://rsssfbrasil.com"
@@ -218,22 +217,90 @@ export default function MetodologiaPage() {
                 rsssfbrasil.com/tablesfq/go2024.htm
               </a>
             </li>
+            <li>
+              Campeonato Goiano 2025 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/go2025.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/go2025.htm
+              </a>
+            </li>
           </ul>
           <p className="mt-2">
             <strong>Licença/atribuição:</strong> o material da RSSSF é de uso condicionado à
             atribuição adequada ao autor. Conforme as páginas-fonte: &ldquo;(C) Copyright Guillermo
             Alexander Rivera, RSSSF and RSSSF Brazil. You are free to copy this document in whole or
             part provided that proper acknowledgement is given to the author. All rights
-            reserved.&rdquo; O uso destes dados exige atribuição adequada <strong>ao autor da
-            página</strong>, não apenas à RSSSF/RSSSF Brasil. (Não é domínio público.)
+            reserved.&rdquo; O uso destes dados exige atribuição adequada{' '}
+            <strong>ao autor da página</strong>, não apenas à RSSSF/RSSSF Brasil. (Não é domínio
+            público.)
           </p>
           <p className="mt-2">
-            <strong>Limitação:</strong> este piloto cobre apenas o Campeonato Goiano <strong>2023 e
-            2024</strong>. A temporada <strong>2025</strong> não está incluída porque o clube campeão
-            (Vila Nova Futebol Clube / Q1513287) não pôde ser vinculado ao acervo sob a restrição
-            atual <code>clubs @@unique([name, country])</code> (sem autorização de renomeação, vínculo
-            por nome ou migração neste round). Não representa cobertura completa de campeonatos
-            estaduais, municipais ou nacionais do Brasil.
+            <strong>Limitação:</strong> este piloto cobre o Campeonato Goiano{' '}
+            <strong>2023, 2024 e 2025</strong> (elite masculina). O campeão de 2025 (Vila Nova
+            Futebol Clube / Q1513287) foi vinculado por Wikidata QID, sem vínculo por nome (evitando
+            homônimos nacionais). Não representa cobertura completa de campeonatos estaduais,
+            municipais ou nacionais do Brasil.
+          </p>
+          <p className="mt-2">
+            <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
+            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            fonte prevalecem no idioma original.
+          </p>
+        </section>
+
+        <section id="campeonato-paranaense-2025" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Conquistas estaduais — Piloto Campeonato Paranaense (2025)
+          </h2>
+          <p>
+            Os títulos do piloto do Campeonato Paranaense 2025 foram obtidos a partir de tabelas
+            históricas publicadas pela{' '}
+            <a
+              href="https://rsssfbrasil.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF / RSSSF Brasil
+            </a>
+            , na página mantida por <strong>Moacir Dalpiaz de Souza</strong>.
+          </p>
+          <p className="mt-2">
+            <strong>Fontes:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              Campeonato Paranaense 2025 —{' '}
+              <a
+                href="https://rsssfbrasil.com/tablesfq/pr2025.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                rsssfbrasil.com/tablesfq/pr2025.htm
+              </a>
+            </li>
+          </ul>
+          <p className="mt-2">
+            <strong>Licença/atribuição:</strong> o material da RSSSF é de uso condicionado à
+            atribuição adequada ao autor. Conforme a página-fonte: &ldquo;(C) Copyright Moacir
+            Dalpiaz de Souza, RSSSF and RSSSF Brazil 2025. You are free to copy this document in
+            whole or part provided that proper acknowledgement is given to the author. All rights
+            reserved.&rdquo; O uso destes dados exige atribuição adequada{' '}
+            <strong>ao autor da página</strong>, não apenas à RSSSF/RSSSF Brasil. (Não é domínio
+            público.)
+          </p>
+          <p className="mt-2">
+            <strong>Limitação:</strong> esta seção cobre exclusivamente a temporada{' '}
+            <strong>2025</strong> da elite masculina do Campeonato Paranaense. Não representa
+            cobertura completa de todas as divisões, temporadas anteriores ou futuras, nem
+            competições femininas ou juvenis. A identidade dos clubes foi resolvida estritamente por
+            Wikidata QID (Operário Ferroviário Esporte Clube / Q2580083), para evitar ambiguidades
+            homônimas nacionais.
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
@@ -281,8 +348,8 @@ export default function MetodologiaPage() {
             </li>
             <li>
               O ranking <strong>0-100 é um piloto (Inglaterra/RSSSF)</strong>, calculado a partir de
-              tabelas finais de classificação — não de partidas individuais — e sem títulos. Rankings
-              por jogos reais e para jogadores/técnicos aguardam ingestão granular. Não há
+              tabelas finais de classificação — não de partidas individuais — e sem títulos.
+              Rankings por jogos reais e para jogadores/técnicos aguardam ingestão granular. Não há
               inteligência artificial operacional na plataforma — quando houver, será marcada e
               documentada com fonte e citação.
             </li>
