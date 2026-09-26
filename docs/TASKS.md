@@ -4,6 +4,8 @@
 
 ## Fechadas recentemente (produção, com evidência no REPORT §22)
 
+- [x] T448b-2i — busca case/acento-insensível em clubs/players/competitions (#223, 09-26; translate nativo, sem extensão; 38 pares travados por unit)
+
 - [x] T448b-2h — dedupe de identidade: 9 duplicatas internas soft-deleted com redirect reversível de 19 refs (#220/#221, 09-26) — T448b-2g revelou-se inaplicável (QIDs já ocupados por canônicas)
 
 - [x] T448 — arestas WON no KG (#159/#163): 5.157→5.157 arestas, fonte por aresta
