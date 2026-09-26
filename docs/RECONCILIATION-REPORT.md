@@ -983,6 +983,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Validação:** build web OK; render local (`next start`) → `Campeonato Paranaense`/`Moacir Dalpiaz de Souza`/`pr2025.htm`/`proper acknowledgement`/`All rights reserved`/âncora `campeonato-paranaense-2025`/`go2025.htm`/`Goiano (2023–2025)` = **presentes**. Credito DB (`metadata->>'authorCredit'` PR) ≡ UI. Lint/prettier 0. Sem regressão em MG/Inglaterra.
 
+### GATE 2 adendum 39 — T448b-2d: `/metodologia` validada ao vivo; ciclo encerrado (2026-09-25)
+
+**Deploy:** #218 (`7411283`) → Vercel READY `l5iji0idn` (alias `almanaquedosclubes.com`/`www`). **Fetch cache-bypass:** HTTP **200**; SHA-256 `720695cc…d55805`.
+
+**Strings live:** PR (Paranaense/Dalpiaz/pr2025.htm/proper acknowledgement/All rights reserved/âncora) · GO (Rivera/go2025.htm/2023–2025) · MG (Freati/mg2025.htm) · “Não é domínio público” (negação) ×6 · “2025 não incluída” **ausente** · zero segredo.
+
+**DB↔UI:** MG `Claudio Freati` 2023–2025 (`uf` null — writer v1); GO `Guillermo Alexander Rivera` 2023–2025 (`uf` GO); PR `Moacir Dalpiaz de Souza` 2025 (`uf` PR). Autores/anos consistentes.
+
+**Fecho:** T448b-2d (MG+GO+PR) concluído técnica e documentalmente. Próximo: T448b-2g (backfill) ou Discovery Nova UF.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
