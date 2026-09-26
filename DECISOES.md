@@ -332,6 +332,12 @@ Motivo: o T469 (#172) foi mergeado antes de o Operador publicar os três deltas 
 **Counts re-ancorados em produção (W1):** clubs **3.857** · players **2.396** · competitions **1.563**; o "5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
 **Fora da superfície legal (registrado):** `pnpm lint` local acusa 122 erros **pré-existentes** em `apps/api`/`apps/worker` (o script `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório, por isso o CI fica verde; nenhum arquivo fora de `apps/web` foi tocado neste round) — não é regressão do T469b.
 
+### [2026-09-26] Decisão: D-2026-09-26-t448b2i-busca-acento-insensivel — Busca pública case/acento-insensível sem extensão (translate nativo)
+
+Motivo: probe em produção (R3) provou o item 8 do despacho — busca case-sensitive E acento-sensível ('flamengo'→0). Produção sem unaccent/pg_trgm/citext e app_user sem CREATE EXTENSION — a correção robusta (coluna normalizada + migration) fica caríssima; a possível e suficiente: translate()+lower() NATIVOS de ambos os lados, IDs matched via $queryRawUnsafe parameterizado alimentando o where Prisma (filtros/paginação intactos). Aplicado em clubs/players/competitions.
+Bug de literais (ç→u por desalinhamento de contagem o/u) foi pego pela INTEGRAÇÃO, não pelo unit — lição: teste de transliteração precisa exercer TODOS os pares; unit it.each dos 38 pares agora trava a invariante. Regra de arquivo novo reforçada: prettier --write ANTES do commit (2 gates de CI gastos com prettier neste run).
+Live verify: flamengo 0→2 · Sao Paulo 0→2 · gremio/Gremio 0→7 · palmeiras ✓.
+
 ### [2026-09-26] Decisão: D-2026-09-26-t448b2h-dedupe-identidade — Duplicatas internas sem QID viram soft-delete com redirect (T448b-2g inaplicável)
 
 Motivo: o despacho priorizou T448b-2g (backfill de QID nos 9 clubes sem qid), mas a FASE 0 provou que os 9 QIDs-alvo já estão ocupados 9/9 por linhas canônicas ATIVAS — as 9 linhas sem qid são duplicatas internas (nomes curtos, sem proveniência). Linkar seria criar dup-ref; semear seria violar a regra nunca-semear. Resolução correta: T448b-2h (classe D2 do despacho).

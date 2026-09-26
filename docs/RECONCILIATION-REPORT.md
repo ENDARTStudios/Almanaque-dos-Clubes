@@ -1024,3 +1024,24 @@ health 200, busca "Flamengo"/"Santos" retorna só canônicos com QID. Reversão 
 inline (compila junto; #221). Lições de processo reincidentes: `git add -A` capturou rascunho
 local (IDEA.md) e commit caiu na main local — branch protection REJEITOU o push (gate funcionou);
 corrigido pela regra D-2026-09-22-regra-processo-branch (reset + branch certa), zero perda.
+
+### Run autônomo 2026-09-26 — T448b-2i: busca case/acento-insensível
+
+**Probe em produção (R3):** `flamengo`/`Sao Paulo`/`gremio` → **0 resultados** (busca era
+case-sensitive E acento-sensível) — piorou com o T448b-2h, pois as linhas canônicas têm nomes
+oficiais acentuados. Produção só tem `plpgsql` (sem unaccent/pg_trgm/citext; app_user não pode
+CREATE EXTENSION).
+
+**Solução (#223):** helper `src/lib/search.ts` com `translate()+lower()` NATIVOS do Postgres de
+ambos os lados (coluna e termo) — sem extensão. IDs matched via `$queryRawUnsafe` parameterizado
+(LIKE-escape de %/_) alimentam o where Prisma: filtros estruturados e paginação intactos. Aplicado
+em clubs (name/fullName/shortName + soft-delete), players (fullName) e competitions (name); os
+dois OR-blocks duplicados do clubs unificados numa `searchCondition` única.
+
+**Bug pego pela integração (não pelo unit):** os literais de transliteração estavam
+desalinhados — PLAIN tinha 5 o's/3 u's → ç mapeava para u ("açoriano"→"auoriano"). Corrigido
+para 38/38 1:1 e TRAVADO por unit `it.each` dos 38 pares. Integração 7/7 estável ×3 (case,
+acento, ç, LIKE-injection, soft-delete).
+
+**Live verify:** fingerprint `66d5d44` + cache clubs:list invalidado por inventário →
+`flamengo` 0→2 (canônico primeiro) · `Sao Paulo` 0→2 · `gremio`/`Gremio` 0→7 · `palmeiras` ✓.
