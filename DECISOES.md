@@ -332,6 +332,13 @@ Motivo: o T469 (#172) foi mergeado antes de o Operador publicar os três deltas 
 **Counts re-ancorados em produção (W1):** clubs **3.857** · players **2.396** · competitions **1.563**; o "5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
 **Fora da superfície legal (registrado):** `pnpm lint` local acusa 122 erros **pré-existentes** em `apps/api`/`apps/worker` (o script `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório, por isso o CI fica verde; nenhum arquivo fora de `apps/web` foi tocado neste round) — não é regressão do T469b.
 
+### [2026-09-26] Decisão: D-2026-09-26-t448b2h-dedupe-identidade — Duplicatas internas sem QID viram soft-delete com redirect (T448b-2g inaplicável)
+
+Motivo: o despacho priorizou T448b-2g (backfill de QID nos 9 clubes sem qid), mas a FASE 0 provou que os 9 QIDs-alvo já estão ocupados 9/9 por linhas canônicas ATIVAS — as 9 linhas sem qid são duplicatas internas (nomes curtos, sem proveniência). Linkar seria criar dup-ref; semear seria violar a regra nunca-semear. Resolução correta: T448b-2h (classe D2 do despacho).
+Regra aplicada: identidade = QID (linha canônica mantida); redirect REVERSÍVEL de referências (19: 18 ranking_entries + 1 favorito) para o canônico; soft-delete das duplicatas (deletedAt; nunca hard delete); nunca renomear; homônimos intocados; pack determinístico versionado com evidência; script com dry-run default + --apply --allow-production + verificação pós que lança.
+Evidência: DRY-RUN 9/9 · APPLY 9/9 · pós: 0 ativos sem qid · 9 soft-deleted · 0 refs penduradas · MG/GO/PR intactos · re-run idempotente 9/9 SKIP · cache por inventário (3 chaves exatas) · smoke busca limpa. PRs #220/#221 (o segundo: pack inline como TS — tsc não copia assets JSON para dist/, 4ª lição de container).
+Lição de processo: branch protection REJEITOU push direto de main local (commit tinha caído na main com git add -A capturando rascunho IDEA.md) — o gate funcionou; correção pela regra de processo, zero perda. REGRA REFORÇADA: nunca git add -A; add explícito por arquivo.
+
 ### [2026-09-22] Decisão: D-2026-09-22-t469-legal-p0-autonomo — P0 jurídico-autônomo: re-ancoragem na produção, W1/W2/W3 e roteamento dos 21 achados
 
 Motivo: a auditoria jurídica externa (22/09/2026) cometeu o MESMO erro R3 que a regra combate: leu o snapshot "dados 1%" do PLANO_MESTRE 02/09 em vez de consultar produção ("10 clubes" vs 3.857 medidos). Lição registrada como caso-estudo: **review externo também precisa de query, não de documento**.

@@ -1000,3 +1000,27 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **PR bloqueado (T448b-2d PR):** `Q920397` existe, mas 2023 sem declaração de campeão; 2024 só tabela; **2025** com frase (`*** Operário are Champions ***`) porém clube **`Q2580083` ausente** → **0 ready (<2)**. Nenhum parser PR.
 
 **GO discovery (read-only):** `go2023/2024/2025.htm` = 200; autor **G. A. Rivera**; licença presente; **campeão explícito nos 3 anos** (`*** ATLÉTICO … 2023/2024 ***`, `*** VILA NOVA … 2025 ***`). Mãe **`Q931386`** (P31=Q1478437; P17=Q155) **ausente do DB** → seed. Campeões: **`Q198034`** (presente ACTIVE), **`Q1513287`** Vila Nova/GO (ausente; `missing_but_seedable_by_qid`). Homônimo: DB tem `Q10391045`/`Q10391046` (RN/ES) → resolver só por QID. **Veredito: GO seedable (3/3, zero blocked).** Seed gated na aprovação do Thinker. Doc: `docs/T448B2D-PR-BLOCK-GO-DISCOVERY.md`.
+
+### Run autônomo 2026-09-26 — T448b-2h: dedupe de identidade (9 clubes)
+
+**T448b-2g revelou-se inaplicável e virou T448b-2h (evidência FASE 0):** os 9 clubes ativos sem
+qid (Corinthians, Cruzeiro, Flamengo, Fluminense, Grêmio, Internacional, Palmeiras, Santos,
+São Paulo) são DUPLICATAS internas — os 9 QIDs-alvo já estão ocupados 9/9 por linhas canônicas
+ativas (Q35933/Q188277/Q17479/Q80987/Q221695/Q80845/Q80964/Q80955/Q38568, descobertos via
+wbsearchentities + P31 futebol + P17=Brasil, com rótulos no pack). Referências às duplicatas:
+18 ranking_entries (CBF/CONMEBOL 2023) + 1 favorito; 0 em KG/matches; 0 colisões canônicas.
+
+**Executado (#220 + #221):** pack determinístico versionado · redirect reversível dup→canon
+(19 refs) · soft-delete das 9 duplicatas (nunca hard delete; homônimos Q10391045/Q10391046/
+Q671621 intocados) · script com dry-run default, --apply --allow-production, transação e
+verificação pós-apply que LANÇA em resíduo.
+
+**Evidência de produção:** DRY-RUN 9/9 [OK] → APPLY 9/9 [APPLIED] → SQL pós: ativos sem qid=**0**,
+dups soft-deleted=**9**, refs penduradas=**0**, MG/GO/PR intactos=**7** → re-run idempotente
+9/9 SKIP → cache invalidado por inventário (SCAN, 3 chaves exatas, sem FLUSHALL) → smoke:
+health 200, busca "Flamengo"/"Santos" retorna só canônicos com QID. Reversão documentada no pack.
+
+**Lição de container (4ª):** tsc não copia assets JSON para dist/ — o pack virou módulo TS
+inline (compila junto; #221). Lições de processo reincidentes: `git add -A` capturou rascunho
+local (IDEA.md) e commit caiu na main local — branch protection REJEITOU o push (gate funcionou);
+corrigido pela regra D-2026-09-22-regra-processo-branch (reset + branch certa), zero perda.
