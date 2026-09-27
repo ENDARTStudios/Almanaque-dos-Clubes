@@ -8,6 +8,10 @@ import { hierarchyOfEdge } from '../etl/won-edges.service.js';
 import { isWomensCompetition, type RankHierarchy } from '../rankings/ranking-algorithm.service.js';
 import { excludeSoftDeleted } from '../graph/soft-delete.js';
 import { searchMatchedIds, idsInCondition } from '../../lib/search.js';
+import {
+  geoAttributionForMetadata,
+  type GeoAttribution,
+} from '../../lib/geocoding/geo-attribution.js';
 
 /**
  * T448b-2i — condição de busca case/acento-insensível. O matching roda em SQL
@@ -152,6 +156,7 @@ export const clubsRepository = {
       select: {
         latitude: true,
         longitude: true,
+        metadata: true,
         countryRef: { select: { id: true, iso2: true, name: true, continent: true } },
         stateRef: { select: { id: true, code: true, name: true } },
         cityRef: { select: { id: true, qid: true, name: true, latitude: true, longitude: true } },
@@ -163,6 +168,8 @@ export const clubsRepository = {
       state: club.stateRef,
       city: club.cityRef,
       coordinates: { latitude: club.latitude, longitude: club.longitude },
+      // WS-D M1a-3 — atribuição ODbL quando a coordenada vier de OSM/Nominatim (null p/ Wikidata).
+      attribution: geoAttributionForMetadata(club.metadata),
     };
   },
 
@@ -327,6 +334,8 @@ export interface ClubGeoView {
     longitude: number | null;
   } | null;
   coordinates: { latitude: number | null; longitude: number | null };
+  /** WS-D M1a-3 — atribuição ODbL quando a coordenada vem de OSM/Nominatim; null p/ Wikidata. */
+  attribution: GeoAttribution | null;
 }
 
 export interface ClubTitleView {
