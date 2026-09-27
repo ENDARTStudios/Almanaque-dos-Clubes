@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a2-gate-concluido — M1a-2 ATIVO: city/coords enriquecidos via P159/P115/P131
+
+Motivo: **merge #243** (`475dfcd`) → Railway SUCCESS. **DRY** `wouldUpdate={coordinates:2632, city:2171}` (>1500 ✓), `skipped.no_coordinates_found=1081`, `errors=[]`. **APPLY** `totalUpdated=2780` · `updated={coordinates:2632, city:2171}` · `errors=0` · `hardDeletes=0` · `migrations=0`. **Re-run idempotente** (0/0). **SQL:** `with_coords` 158→**2790** (>1658) · `with_city` 454→**2625** (>1954). Prioridade `P625`> `P159`> `P115`> `P131`. **hash entries EN `d2b117aa…` inalterado**; estadual=**7**; MG/GO/PR intactos. Cache no-op. API: `/clubs?country=BR` 200 com `city`/`lat`. **Próximo:** migration `Competition.deletedAt` → dedupe das competições → M1b.
+
 ### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a2-wikidata-coords — M1a-2: city/coords via P159/P115/P131 (Wikidata CC0)
 
 Motivo: a FASE 0.1 autorizou (P159=60%, P115=43%). **Entrega:** `lib/wikidata/extract-club-coordinates.ts` (**prioridade `P625` direto > `P159`(sede) > `P115`(estádio) > `P131`**; `confidence` por fonte; `cityLabel` do label da entidade de origem) + `extractClubCoordinatesBulk` (batch, para viabilizar o gate) + script `enrich-clubs-coordinates-m1a2.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; **só preenche nulos**; `importedFrom='wikidata-enrich-m1a2'`). Testes unit **11/11** + integração **2/2** (preenche só nulos; **não sobrescreve**; rollback). **Apply em produção = gate pós-merge.** **Dedupe de competições** segue pendente (migration `Competition.deletedAt`), fora deste round.
