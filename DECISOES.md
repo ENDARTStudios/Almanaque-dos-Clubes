@@ -1227,3 +1227,22 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **Gap de conformidade temporário (declarado):** o deploy de produção do **web** ficou **bloqueado pelo limite free-tier do Vercel** (`api-deployments-free-per-day`, ~24h) → a **atribuição ODbL** em `/metodologia` (© OpenStreetMap contributors) **ainda não publicou**, embora as 451 coords Nominatim já estejam vivas na API. Decisão do Thinker: **manter as coords**; a atribuição publica no próximo deploy possível. **Follow-up:** confirmar `/metodologia` com ODbL live quando o limite resetar (senão, escalar infra/Operador).
 
 **Rollback:** `UPDATE clubs SET latitude=NULL, longitude=NULL WHERE metadata->>'coordSource'='nominatim'` (e limpar as chaves de metadata) — reverte só o que o M1a-3 adicionou.
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-c-1-api-profile-search-carousel — WS-C-1 (API-only) ✅
+
+**Estado:** WS-C-1 **implementado e em produção** (perfil + busca global + carrossel). Merge `172b434`; deploy Railway SUCCESS; smoke verde. **API-only: nenhuma UI/mapa publicado; nenhum schema/migration/escrita.**
+
+**Motivo:** destravar produto sobre a base já higienizada (WS-D) sem violar a atribuição ODbL (web ainda bloqueado pela Vercel). Três endpoints **aditivos** (nada existente quebrou):
+- `GET /clubs/:id/profile` — perfil consolidado: `geo` (lat/lng/`coordSource`/`coordPrecision`/`attribution`), `provenance` (source CC0/RSSSF/seed + `sourceUrl`), `titles`/`rankings`/`competitions`/`related` (KG) e `gaps` (história/elenco/estádio/uniformes/hino/matches **não existem** — vazio-honesto, nunca inventado).
+- `GET /search/global` — clubes+competições, case/acento-insensível (reuso `lib/search.ts` translate+lower), homônimos **não colapsados** (identidade = QID), limitações declaradas (`players_not_indexed_yet`, `search_uses_existing_postgres_indexes`). `q` ausente → 400.
+- `GET /champions/carousel` — campeões por hierarquia a partir de **KG `WON` ativas com proveniência**; **ambíguo (`ambiguous_multiple_champions`) ou ausente (`no_active_provenanced_champion`) é OMITIDO**; gênero isolado; guarda de vigência (ano futuro ignorado).
+
+**Reuso (zero duplicação de lógica):** `lib/geocoding/geo-attribution.ts` (ODbL), `lib/search.ts`, camada de cache, `excludeSoftDeleted` do KG, `ranking-algorithm.service` (hierarquia/gênero).
+
+**Evidência (produção, `172b434`):** smoke — profile OSM→`attribution.license='ODbL'`; Wikidata/BR→`null`; piloto EN→`rankings`/`competitions` disponíveis; inexistente→404. `search` "Flamengo"=7 = "flamengo"=7 (caixa), "Sao Paulo"=14 (acento), "Libertadores"=1, `type=competition` só competição, sem `q`→400. `carousel` 418 scopes + 5 `unavailable` (ambíguos omitidos; `municipal` sem dado). **Integridade:** `ranking_entries` hash **`d2b117aa…` intacto**; estadual RSSSF=7; `country_pyramid`=1; 0 clubes/competições sem QID; MG/GO/PR intactos.
+
+**Cache (novo, read-through):** `clubs:profile:<id>` (300s) · `search:global:<type>:<country>:<q>` (60s) · `champions:carousel` (3600s). Sem invalidação dedicada (TTL curto); **sem FLUSHALL/FLUSHDB**.
+
+**Consequência:** `M1a-3` **segue [~]** (ODbL ainda não publicado — pendência Vercel, `PENDENCIAS_OPERADOR` item [2]). A UI pública (WS-C-2) e o mapa OSM **permanecem bloqueados** até M1a-3 `[x]`.

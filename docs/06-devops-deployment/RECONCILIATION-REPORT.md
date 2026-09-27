@@ -1215,6 +1215,34 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — WS-C-1: fundação de produto na API (perfil + busca global + carrossel)
+
+**FASE 0 (read-only):** main `debb68b`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem QID;
+dup QID 0/0; `ranking_entries` hash `d2b117aa…`; estadual RSSSF 7; `country_pyramid` 1). Falha da `main` no
+`deploy-vercel-frontend` é **ambiental** (rate-limit Vercel); `security-gate`/`migration-drift`/`gitleaks`/
+`dependency-audit` success.
+
+**Implementado (PR #262, `172b434`, API-only, aditivo):**
+- `GET /clubs/:id/profile` — `geo`(+`attribution`), `provenance`, `titles`/`rankings`/`competitions`/`related`,
+  `gaps` (história/elenco/estádio/uniformes/hino/matches = inexistentes, vazio-honesto).
+- `GET /search/global` — clubes+competições, case/acento-insensível (`translate`+`lower`), homônimos por QID
+  (não colapsados), limitações declaradas; `q` ausente → 400.
+- `GET /champions/carousel` — KG `WON` ativas com proveniência; **ambíguo/ausente omitido**; gênero isolado;
+  vigência (ano futuro ignorado); `rulesVersion=ws-c-1-carousel-v1`.
+- Reuso: `lib/geocoding/geo-attribution.ts`, `lib/search.ts`, cache, `excludeSoftDeleted`, `ranking-algorithm.service`.
+
+**Testes:** 481 unit (incl. 19 novos: profile/search/carousel) + integração `tests/integration/ws-c1.test.ts`
+(Postgres real; fixtures isoladas). `tsc`/eslint/prettier ok; `security-gate` + `migration-drift` verdes (sem migration).
+
+**Produção (`172b434`):** smoke — profile OSM→ODbL, Wikidata/BR→null, EN→rankings/comps, inexistente→404;
+search `Flamengo`=7=`flamengo`, `Sao Paulo`=14, `Libertadores`=1, `type=competition` ok, sem `q`→400; carousel
+418 scopes + 5 `unavailable`. **Integridade pós:** hash `d2b117aa…` intacto; estadual 7; `country_pyramid` 1;
+0 sem QID. **Cache novo:** `clubs:profile:<id>` 300s · `search:global:*` 60s · `champions:carousel` 3600s
+(read-through; sem FLUSHALL).
+
+**Bloqueio de UI:** nenhuma UI/mapa publicado. `M1a-3` segue `[~]` (ODbL pendente na Vercel) → **WS-C-2** e o
+mapa público só após `M1a-3 [x]`.
+
 **Mitigação API-only de conformidade (PR #259, `7e5e20c`): enquanto o web está bloqueado, a API expõe a atribuição.**
 Helper puro `lib/geocoding/geo-attribution.ts` (`geoAttributionForMetadata`): origem OSM/Nominatim → `{ geo: '©
 OpenStreetMap contributors (ODbL)', source: 'openstreetmap/nominatim', license: 'ODbL' }`; Wikidata → `null`.
