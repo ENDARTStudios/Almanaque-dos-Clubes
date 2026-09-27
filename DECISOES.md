@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-esquema-peso-decidido — esquema linear aprovado para o agregado cross-division
+
+Motivo: após a FASE 0 do v2 (design read-only, `docs/T449C-V2-FASE0-DESIGN.md`), **esquema linear** `L1=1.00 · L2=0.85 · L3=0.70 · L4=0.55 · L5=0.40` **aprovado** para o agregado `country_pyramid` (aplicado sobre a **nota 0-100 intra-divisão** já existente; MinMax global por país/temporada/gênero). **Decaimento `1/(1+α(l−1))` rejeitado** (calibração arbitrária de α). **Não** re-parsear RSSSF nem recalcular entries existentes neste round; ordem intra-divisão sempre preservada. Implementação **bloqueada** até o gate da correção documental (FASE 2). Modelo de dados: **B** (`Ranking.scope`/`country`/`tierVersion`/`formulaVersion`, migration aditiva, `competitionId=NULL`).
+
+### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-pre-metodologia-alignment — metodologia EN alinhada ao código (A+C)
+
+Motivo: a FASE 0 do v2 mediu **divergência material** entre o código e a página pública do piloto EN — a metodologia publicava “Vitórias×3 + Empates×1 + **Gols Pró×0.2**” e desempate “gols contra, saldo, gols pró, nome, id”, enquanto o código (`rankDivision`) usa **`points` da tabela (W×3+D×1)** normalizado MinMax por divisão, com desempate por **saldo (GF−GA)**. **Correção adotada A+C:** (A) alinhar o texto ao código; (C) declarar **duas fórmulas** — “piloto por divisão” (ativa) vs “agregado cross-division” (**proposto, não publicado**). Histórico registrado em nota de consistência (2026-09-27). **Não** altera score, **não** toca API/schema/migration; MG/GO/PR intocados. **v2 bloqueado** até o gate da correção.
+
 ### [2026-09-27] Decisão: D-2026-09-27-t449c-v1-concluido — tier/divisão aditivo ativo em API e UI; score inalterado
 
 Motivo: gate API/DB verde (`D-2026-09-27-t449c-v1-api-db-gate-concluido`) + **Web/UI verificada ao vivo**. O deploy de **produção** Vercel (`cts0o2qhg`, alias `almanaquedosclubes.com`/`www`) **já servia o #225** — o rate-limit atingiu apenas o **deploy de preview** do PR (não a produção). **UI smoke (Playwright, `https://almanaquedosclubes.com/rankings`):** HTTP **200**; badge `[data-testid=ranking-division-badge]` = **“National League”** (ranking EN exibido; level 5) + pilot badge; **24 linhas** (inalteradas). **Páginas:** `/` 200 · `/rankings` 200 · `/metodologia` 200. **Negativas:** nenhum ranking BR estadual publicado no carrossel ⇒ nenhum badge possível; API `level` NULL p/ MG/GO/PR (`Q731877`/`Q931386`/`Q920397`); **5/5** rankings EN com level. **Score/posição/base inalterados** (hashes pré=pós). **T449c-v1 ENCERRADO.** T449c-v2 (agregado cross-division) permanece `[ ]` (design/read-only primeiro; pode mudar score → checkpoint próprio).
