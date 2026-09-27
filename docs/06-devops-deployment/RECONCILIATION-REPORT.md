@@ -1215,6 +1215,19 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — GATE ODbL web: M1a-3 [x]
+
+O limite free-tier da Vercel destravou e um deploy de produção ficou `Ready`; o gate ODbL foi executado em
+https://almanaquedosclubes.com/metodologia (cache-bypass): **“© contribuidores do OpenStreetMap”**, **“Open
+Database License (ODbL)”**, **Nominatim**, **Wikidata CC0**, **RSSSF “não é domínio público”** e atribuições
+**MG (Freati)/GO (Rivera)/PR (Dalpiaz)/EN (Premier League)** presentes; negativas ok (nenhuma afirmação de
+RSSSF como domínio público; nenhum segredo). Smoke `/`,`/metodologia`,`/rankings`,`/clubs` = 200 + API `health`
+200; `ranking_entries` hash `d2b117aa…` intacto; estadual RSSSF 7; `country_pyramid` 1.
+
+**M1a-3 [x].** Desbloqueia **WS-C-2** (UI) e o **mapa público**. **Residual cosmético:** o literal EN canônico
+“© OpenStreetMap contributors” (PR #264, já na `main`) ainda não subiu — o limite voltou a estourar; registrar
+e subir no próximo deploy possível.
+
 ### Run autônomo 2026-09-28 — WS-C-1: fundação de produto na API (perfil + busca global + carrossel)
 
 **FASE 0 (read-only):** main `debb68b`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem QID;

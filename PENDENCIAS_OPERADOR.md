@@ -39,9 +39,14 @@ Domínio registrado: `almanaquedosclubes.com` na Vercel (14/08/2026), expira 14/
 
 ### Pendência ODbL / Vercel free-tier — WS-D M1a-3
 
-**Status:** bloqueada por limite diário de deploy da Vercel free-tier (`api-deployments-free-per-day`).
-**Impacto:** atribuição “© OpenStreetMap contributors” / **ODbL** ainda **não publicada** em
-https://almanaquedosclubes.com/metodologia (o merge está na `main`, mas o deploy de produção do web não sobe).
+**Status:** ✅ **RESOLVIDA (2026-09-28)** — a atribuição **ODbL está viva** em
+https://almanaquedosclubes.com/metodologia: “© contribuidores do OpenStreetMap … Open Database License
+(ODbL)”, com menção a Nominatim, Wikidata CC0 e RSSSF “não é domínio público” intactos. O deploy de produção
+da Vercel destravou e o **gate ODbL passou** → **WS-D M1a-3 [x]**.
+
+**Residual (cosmético, não bloqueia):** o literal canônico em inglês “© OpenStreetMap contributors” (PR #264,
+já na `main`) ainda não subiu por o limite free-tier ter voltado a estourar (`api-deployments-free-per-day`).
+Subirá no próximo deploy possível. Abaixo, o histórico original da pendência.
 **Dados já vivos:** coordenadas derivadas de **Nominatim/OSM** (451) estão em produção **via API**.
 **Risco:** conformidade de atribuição ODbL incompleta na superfície pública web.
 
