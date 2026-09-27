@@ -1015,6 +1015,16 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Pendente:** Web/UI (badge `/rankings`) bloqueada pelo **rate limit da Vercel** (~24h). T449c-v1 **não concluído** até o UI smoke.
 
+### GATE 2 adendum 42 — T449c-v1 CONCLUÍDO: badge tier/divisão live (API+UI); score inalterado (2026-09-27)
+
+**Descoberta:** o deploy de **produção** Vercel `cts0o2qhg` (alias `almanaquedosclubes.com`/`www`, Ready) **já servia o #225** — o rate-limit bloqueou só o **preview** do PR, não a produção.
+
+**UI smoke (Playwright live):** `https://almanaquedosclubes.com/rankings` → HTTP 200; `[data-testid=ranking-division-badge]` = **“National League”** (ranking EN exibido, level 5); `ranking-pilot-badge` presente; 24 linhas. **Páginas:** `/` 200 (31830B) · `/rankings` 200 (25911B) · `/metodologia` 200 (50865B). *(A tabela exibe 1 ranking por vez — o último publicado; os 5 níveis estão expostos pela API e são cobertos por `en-pyramid`/smoke de API.)*
+
+**Negativas:** `rankings` estaduais BR publicados = 0 ⇒ nenhum badge possível; API `level` NULL p/ `Q731877`/`Q931386`/`Q920397`; 5/5 rankings EN com level.
+
+**Score:** hashes pré=pós (rankings `f9edaf56…`, entries `16e0b210…`) — inalterado. **T449c-v1 [x].** T449c-v2 [ ] (design primeiro).
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
