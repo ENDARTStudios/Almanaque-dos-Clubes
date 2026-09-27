@@ -289,7 +289,7 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 **Nota WS-D M1a re-escopo (09-27, adendo 51): [~] `fullName` aplicado (3.512; with=3.535); `city`/`coords` = GAP** (P625/P131 não cobrem; FASE 0.1 P115=43%/P159=61% → **M1a-2 autorizado via P115/P159**). **Competições duplicadas:** dedupe exige `Competition.deletedAt` (migration) → **pendente**. Fundamentos intactos (entries `d2b117aa…`, estadual=7).
 
-**Nota WS-D M1a-2 (09-27, adendo 53): [x] ATIVO.** `with_coords` **2790** · `with_city` **2625** (P625>P159>P115>P131; apply 2780; idempotente). **Dedupe de competições [x]** (T448b-2i concluído: 3 duplicatas soft-deleted; canônicas por QID; `active_no_qid=0`). **WS-D M1b [ ] LIBERADO** (expansão ≥1.000 clubes).
+**Nota WS-D M1a-2 (09-27, adendo 53): [x] ATIVO.** `with_coords` **2790** · `with_city` **2625** (P625>P159>P115>P131; apply 2780; idempotente). **Dedupe de competições [x]** (T448b-2i concluído: 3 duplicatas soft-deleted; canônicas por QID; `active_no_qid=0`). **WS-D M1b [~] engine conservadora implementada** (insert-only; filtros; dedupe por QID; piloto pendente do gate). Meta final ≥1.000 clubes/≥50 competições/≥20 países.
 
 **Nota T469 (09-22):** P0 jurídico-autônomo executado (T469): prazos LGPD/GDPR harmonizados, retenção ancorada em config real, incidentes, menores, fornecedores com DPAs públicos, Google Fonts auto-hospedado, consentimento provado em produção (11/11), claims da home re-ancoradas, /metodologia publicada. Compliance Legal sobe de 10% para estrutura-P0 publicada; identidade/DPO/DPAs/advogado = [ ] dono Operador (gate distinto do técnico).
 

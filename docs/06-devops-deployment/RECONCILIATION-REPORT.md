@@ -1065,6 +1065,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 58 — WS-D M1b: engine conservadora implementada (2026-09-28)
+
+**FASE 0:** #249 (`632fa58`) mergeado; API/site 200; DB: clubes 3.871 (QID 100%, sem QID 0; coords 2.790; city 2.625; soft 10), competições 1.561 (QID 100%, sem QID 0; soft 3), qid dup 0, entries `d2b117aa…`, estadual 7, pyramid publicada 1. **Engine:** `lib/wikidata/expansion/*` + `scripts/expand-wikidata-conservative.ts` (DRY/`--apply --allow-production`; insert-only; filtros conservadores; whitelist de competição observada; coords P625>P159>P115>P131; dedupe por QID). Testes unit 21/21; tsc/lint 0. **Zero migration.** Apply/piloto = FASE 3 pós-merge.
+
 ### GATE 2 adendum 57 — T448b-2i: idempotência operacional do re-run (noop) (2026-09-28)
 
 **Correção:** re-run do `--pairs-only` pós-apply retornava erro falso. `validateHumanPair` agora retorna **`noop_already_soft_deleted`** quando a duplicate tem `deletionReason='dedupe_t448b2i_human_pair'`, canônica ativa com QID esperado e **stale_refs=0**; reasons inesperadas/stale_refs>0 continuam erro (`duplicate_soft_deleted_unexpected`). Contador `noop` exposto; sem reescrita/restore. Testes unit 17/17. **Gate: dry-run apenas** (sem write).

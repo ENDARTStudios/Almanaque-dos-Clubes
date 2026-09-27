@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-28] Decisão: D-2026-09-28-ws-d-m1b-conservative-engine — engine M1b-conservadora (insert-only)
+
+Motivo: aprovado M1b-conservadora (piloto primeiro). **Engine:** `lib/wikidata/expansion/{types,filters,extract-attributes,plan-builder,apply-plan}.ts` + `scripts/expand-wikidata-conservative.ts` (**DRY default**; `--apply --allow-production`; `--stage=PILOT|FULL`; `--country=<ISO2>`). **Filtros conservadores:** `P31=Q476028` direto; sem `P576`; exclusão por hints (feminino/reserva/juvenil/futsal/beach/seleção) **por campo**; país ISO mapeado; label útil. **Competições:** whitelist de classes P31 observada (`Q15991303`/`Q8463186`/`Q15991290`/`Q3270632`/`Q18608583`/`Q1478437`). **Coords:** P625 > P159 > P115 > P131 (cobertura reportada; gap declarado). **Dedupe por QID:** `existing_qid`/`soft_deleted_qid_reserved`/`possible_homonym`/`possible_competition_name_conflict` → **skip**. **Só INSERT** (nunca update/merge/rename/reativar); chunks 100 `Serializable`; manifest. Testes unit **21/21**; tsc/lint 0. **Zero migration.** **Apply em produção = piloto (FASE 3) após gate.**
+
 ### [2026-09-28] Decisão: D-2026-09-28-t448b2i-rerun-noop — idempotência operacional do dedupe (re-run = noop, não erro)
 
 Motivo: após o apply do par Libertadores, o re-run do `--pairs-only` retornava `duplicate_soft_deleted` como **erro** (falso-positivo). **Correção:** `validateHumanPair` passa a reconhecer **noop** quando a duplicate já está soft-deleted pela **reason esperada** (`HUMAN_PAIR_SOFT_DELETE_REASON='dedupe_t448b2i_human_pair'`), a canônica está ativa com o QID do mapping e **stale_refs=0** → status `noop_already_soft_deleted` (contador `noop`, `severity=info`, sem reescrita/restore). Reasons inesperadas e stale_refs>0 permanecem **erro** (`duplicate_soft_deleted_unexpected`). Testes unit **17/17**. Gate: só dry-run (sem write).
