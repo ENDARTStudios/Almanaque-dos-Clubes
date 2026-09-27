@@ -1039,6 +1039,18 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **API↔texto:** 5 rankings EN consistentes (1º=100, último=0, men, baseMatches 100%). **Smoke:** `/`,`/metodologia`,`/rankings` 200. **v2 desbloqueado.**
 
+### GATE 2 adendum 48 — T449c-v2 CONCLUÍDO: API + UI + metodologia publicada (2026-09-27)
+
+**Merges:** #235 (`a49abaa`) + #236 (`8dd1872`); **Railway SUCCESS** (`8dd1872`); **Vercel production `d9bded469` READY**.
+
+**Metodologia** (`/metodologia`, hash `5a8070dfa4…`): “**Piloto Inglaterra 2022/23 (publicado em 2026-09-27)**”, pesos `L1=1.00…L5=0.40`, “estimativa metodológica, não confronto oficial”, RSSSF; “proposto, não publicado” **ausente**.
+
+**UI smoke (Playwright):** abas `[division]`/`[pyramid]` presentes; disclaimer **só** no agregado; cabeçalhos **Posição/Clube/Pontos/Divisão/Nível/Multiplicador**; 1ª linha Man City 100 · Premier League · nível 1 · mult 1.
+
+**API:** `/rankings?scope=country_pyramid&country=GB` → agregado `b4db9d9e…` publicado; `/rankings/:id/entries` **116 entries** com `divisionLevel/divisionLabel/multiplier/intraScore/adjustedScore`; `/rankings` (sem scope) → 5 rankings EN por divisão intactos.
+
+**Integridade:** hash das entries das 5 divisões **= `d2b117aa…` (pré) ⇒ intactas**; MG/GO/PR intocados. **Cache:** DEL `rankings:*` (4). **Dívida de ordem zerada** (metodologia publicada após o apply; corrigido em #235).
+
 ### GATE 2 adendum 47 — T449c-v2: UI “Pirâmide nacional” + metodologia publicada + metadata por entry (2026-09-27)
 
 **UI:** `/rankings` com abas **“Por divisão” (default)** / **“Pirâmide nacional”** (`?scope=country_pyramid`), **disclaimer** e colunas Pos/Clube/Nota/Divisão/Nível/Multiplicador; i18n pt/en/es. **API:** agregado expõe `divisionLevel/divisionLabel/multiplier/intraScore/adjustedScore` por entry (derivado das divisões; sem novo campo em RankingEntry). **Metodologia:** seção do agregado → **“publicado em 2026-09-27”**. Testes web 18/18; tsc api/web 0. Sem mudança de score; divisões intactas.
