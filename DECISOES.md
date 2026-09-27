@@ -1246,3 +1246,27 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **Cache (novo, read-through):** `clubs:profile:<id>` (300s) · `search:global:<type>:<country>:<q>` (60s) · `champions:carousel` (3600s). Sem invalidação dedicada (TTL curto); **sem FLUSHALL/FLUSHDB**.
 
 **Consequência:** `M1a-3` **segue [~]** (ODbL ainda não publicado — pendência Vercel, `PENDENCIAS_OPERADOR` item [2]). A UI pública (WS-C-2) e o mapa OSM **permanecem bloqueados** até M1a-3 `[x]`.
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-d-m1a3-odbl-publicado — atribuição ODbL viva; M1a-3 [x] ✅
+
+**Estado:** **WS-D M1a-3 [x] CONCLUÍDO.** O deploy de produção da Vercel destravou (free-tier resetou) e a
+**atribuição ODbL está viva** em https://almanaquedosclubes.com/metodologia.
+
+**Evidência (gate ODbL, 2026-09-28):**
+- Deploy de produção Vercel `Ready` (target production).
+- `/metodologia` (cache-bypass) contém: **“© contribuidores do OpenStreetMap”**, **“Open Database License
+  (ODbL)”**, menção a **Nominatim**; **Wikidata CC0** intacto; **RSSSF “não é domínio público”** intacto;
+  atribuições **MG (Freati) / GO (Rivera) / PR (Dalpiaz) / EN (Premier League)** intactas.
+- Smoke: `/` 200 · `/metodologia` 200 · `/rankings` 200 · `/clubs` 200 · API `health` 200; `ranking_entries`
+  hash **`d2b117aa…` intacto**; estadual RSSSF **7**; `country_pyramid` 1.
+- Negativas: nenhuma afirmação de RSSSF como domínio público; nenhum segredo exposto.
+
+**Residual (cosmético, não bloqueia):** o literal canônico em inglês “© OpenStreetMap contributors” (PR #264,
+já na `main`) ainda não subiu — o limite `api-deployments-free-per-day` voltou a estourar. Subirá no próximo
+deploy possível (registrado em `PENDENCIAS_OPERADOR` item [2]).
+
+**Consequência:** `M1a-3` **[x]**. Desbloqueia **WS-C-2** (UI de perfil/busca/carrossel) e o **mapa público**
+(que, ao usar tiles OSM, agora tem a atribuição ODbL viva). A **mitigação API** (PR #259) permanece ativa e
+correta. Números M1a-3: coords 5.865 → **6.366** (+501: 50 Wikidata profundo + 451 Nominatim/OSM).
