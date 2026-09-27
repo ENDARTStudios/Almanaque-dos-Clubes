@@ -365,12 +365,12 @@ railway variable set CHAVE="valor"
 ### Documentação essencial (leia nesta ordem):
 1. `DECISOES.md` — decisões técnicas e porquês
 2. `PLANO_MESTRE.md` — o que foi feito e como foi verificado
-3. `docs/ROADMAP.md` — o que vem a seguir
+3. `./docs/01-product-discovery/ROADMAP.md` — o que vem a seguir
 4. `PENDENCIAS_OPERADOR.md` — o que só o Operador pode fazer
-5. `docs/MANUAL_DO_OPERADOR.md` — operação do dia a dia
-6. `docs/INCIDENT_RESPONSE.md` — resposta a incidentes
-7. `docs/CRITERIOS_DESENVOLVIMENTO.md` — critérios de qualidade
-8. `docs/seo-aeo-aio-geo-strategy.md` — estratégia de SEO/AEO
+5. `./docs/07-operations-marketing/MANUAL_DO_OPERADOR.md` — operação do dia a dia
+6. `./docs/05-security-compliance/INCIDENT_RESPONSE.md` — resposta a incidentes
+7. `./docs/03-development-process/CRITERIOS_DESENVOLVIMENTO.md` — critérios de qualidade
+8. `./docs/07-operations-marketing/SEO.md` — estratégia de SEO/AEO
 9. `SECURITY.md` — política de segurança
 10. `SKILL.md` — skill do Claude para trabalhar no projeto
 
@@ -403,7 +403,7 @@ Toda interação entre Dev e Operador segue o `PROTOCOLO_MESTRE.md` — nada é 
 
 ## Lições recentes
 
-- **[2026-09-25 · T448b-2d seed GO/PR 2025] Micro-seed de identidade [x] CONCLUÍDO — ativo em produção.** Clubes `Q1513287` (Vila Nova/GO) e `Q2580083` (Operário Ferroviário/PR) via Wikidata CC0: `lib/rsssf/seeds/club-seed.ts` + packs + script. #214 (`4372cd8`) → apply prod `created=2`; SQL QID únicos, homônimos `Q10391045/Q10391046/Q671621` **intocados**, clubes ativos 3878→3880; cache `clubs:list:*`/`clubs:geo-stats`; smoke `search=Vila`/`search=Operário` OK. **Writers GO 2025 / PR 2025 [x] CONCLUÍDOS — aplicados em produção.** `created=1` cada; total estadual RSSSF **5 → 7**; baseline MG(3)/GO 2023–24(2) intacto; smoke `/titles` GO/PR 200. **Conformidade pública [x]:** `/metodologia` validada ao vivo. **T448b-2d encerrado.** **T448b-2g/2h/2i fechados** (dedupe de identidade + busca case/acento-insensível). **Discovery Nova UF = bloqueada por fonte** (SP/CE/SC 2022–2025 = 404; índice não expõe). **Fila:** **T449c-v1 [x] CONCLUÍDO** (API/DB + Web/UI; badge tier/divisão live em `/rankings`; score inalterado; MG/GO/PR sem badge). **Fila:** **T449c-v2-pre (A+C) [x]** (merges #228/#229; `/metodologia` validada ao vivo, hash `8a3193d5…`) → **T449c-v2 [ ]** (modelo B + linear; **aguarda liberação explícita** do Thinker) → T450 → T451. Design: `docs/T449C-V2-FASE0-DESIGN.md`. **Canário:** teste `t449a-close` pegou a divergência — manter testes de metodologia como canário.
+- **[2026-09-25 · T448b-2d seed GO/PR 2025] Micro-seed de identidade [x] CONCLUÍDO — ativo em produção.** Clubes `Q1513287` (Vila Nova/GO) e `Q2580083` (Operário Ferroviário/PR) via Wikidata CC0: `lib/rsssf/seeds/club-seed.ts` + packs + script. #214 (`4372cd8`) → apply prod `created=2`; SQL QID únicos, homônimos `Q10391045/Q10391046/Q671621` **intocados**, clubes ativos 3878→3880; cache `clubs:list:*`/`clubs:geo-stats`; smoke `search=Vila`/`search=Operário` OK. **Writers GO 2025 / PR 2025 [x] CONCLUÍDOS — aplicados em produção.** `created=1` cada; total estadual RSSSF **5 → 7**; baseline MG(3)/GO 2023–24(2) intacto; smoke `/titles` GO/PR 200. **Conformidade pública [x]:** `/metodologia` validada ao vivo. **T448b-2d encerrado.** **T448b-2g/2h/2i fechados** (dedupe de identidade + busca case/acento-insensível). **Discovery Nova UF = bloqueada por fonte** (SP/CE/SC 2022–2025 = 404; índice não expõe). **Fila:** **T449c-v1 [x] CONCLUÍDO** (API/DB + Web/UI; badge tier/divisão live em `/rankings`; score inalterado; MG/GO/PR sem badge). **Fila:** **T449c-v2-pre (A+C) [x]** (merges #228/#229; `/metodologia` validada ao vivo, hash `8a3193d5…`) → **T449c-v2 [ ]** (modelo B + linear; **aguarda liberação explícita** do Thinker) → T450 → T451. Design: `./docs/09-references/T449C-V2-FASE0-DESIGN.md`. **Canário:** teste `t449a-close` pegou a divergência — manter testes de metodologia como canário.
 - **[2026-09-25 · T448b-2d PR 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Paranaense 2025 (Operário Ferroviário `Q2580083`; mãe `Q920397`): `lib/rsssf/pr/` + fixture mock + pack + testes (homônimo `Q671621` NÃO casa). **Necessário micro-seed de `Q2580083`** antes do writer. Empilhado no #211 (GO 2025).
 - **[2026-09-25 · T448b-2d GO 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Goiano 2025 (Vila Nova `Q1513287`): fixture+mock+pack+testes T1–T4. **Necessário micro-seed de `Q1513287`** antes do writer (round separado). `buildGoWonCandidate` generalizado (options). PR 2025 análogo em seguida.
 - **[2026-09-25 · T448b-2f GATE] Migration APLICADA em produção; FASE 2 LIBERADA.** `clubs_name_country_key` removido (não-único no lugar); homônimos=0; estadual RSSSF=5; `/champions` ok. **Próximos (FASE 2):** parser **GO 2025** (`feat/t448b2d-parser-go-2025-vilanova`, clube `Q1513287`) e **PR 2025** (`feat/t448b2d-parser-pr-2025-operario`, clube `Q2580083` — pode exigir micro-seed antes do writer; parser deve falhar `missing_club`). **Follow-up:** **T448b-2g** backfill dos 9 clubes sem QID.

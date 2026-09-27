@@ -111,7 +111,7 @@
 - [x] 3.7 Audit logging para auth. ✅
 - [x] 3.8 Rate limiting específico para /auth/* (5 tentativas/15min, lockout 1h). ✅ (implementado de fato em T002 — Redis + fallback memória, integrado em POST /auth/login)
 - [~] 3.9 Testes de integração — BLOQUEADO até migration PostgreSQL ser aplicada pelo Operador.
-- [x] 3.10 Documentação API Auth (`docs/api/auth.md`). ✅ (2026-08-10)
+- [x] 3.10 Documentação API Auth (`./docs/04-api-integrations/API.md`). ✅ (2026-08-10)
 
 **Verificação:** 313 asserções em 8 scripts de verificação (`apps/api/scripts/verify-*.ts`). Typecheck ✅ 0 erros (T002).
 
@@ -221,7 +221,7 @@ Stack: Next.js 16 + TypeScript + Tailwind.
 - [x] 9.5 Observabilidade — métricas em `/api/v1/metrics` + healthcheck. ✅
 - [x] 9.6 Healthcheck HTTP (`/api/v1/health`). ✅
 - [x] 9.7 Backup — script `scripts/backup-db.sh`. ✅ (2026-08-10)
-- [x] 9.8 Plano de resposta a incidentes (`docs/INCIDENT_RESPONSE.md`). ✅ (2026-08-10)
+- [x] 9.8 Plano de resposta a incidentes (`./docs/05-security-compliance/INCIDENT_RESPONSE.md`). ✅ (2026-08-10)
 - [x] 9.9 `MANUAL_DO_OPERADOR.md` entregue. ✅ (reescrito v2.0 em T379, 2026-08-27)
 - [ ] 9.3 Deploy blue-green ou rolling (zero downtime).
 - [x] 9.4 Plataforma de deploy — **DECIDIDA**: Railway (API, serviço `Almanaque-dos-Clubes`) + Vercel (web, Root Directory `apps/web`). Em produção desde T366–T380. ✅ (reconciliado T381)
@@ -264,7 +264,7 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 ## Estado Final do Projeto (reconciliado 2026-09-02)
 
 > Sobreposição/resumo executivo da base técnica concluída. O detalhamento por domínio e o backlog completo estão em
-> **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `docs/RECONCILIATION-REPORT.md`.
+> **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `./docs/06-devops-deployment/RECONCILIATION-REPORT.md`.
 
 | Dimensão                                                    | Status                           | % estimado                                                                                                                                                                                                                                |
 | ----------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -287,11 +287,11 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 **Nota T469b (09-22):** correção dos 3 deltas do Operador + achados da FASE 0 (D-2026-09-22-t469b-legal-deltas). **Age gate REMOVIDO** (D-2026-09-22-sem-age-gate): retirada a declaração de 18 anos do cadastro e §9 Menores reescrito para declarar a AUSÊNCIA de verificação, não prometer mecanismo. **T471 (geobloqueio UE) NÃO aplicado** (D-2026-09-22-t471-nao-aplicado; opcional-futuro). **Gate do beta pago ajustado** (D-2026-09-22-gate-beta-pago-ajustado): dependem de T470 (direitos do titular + DMCA) e T472 (checkout pt/en/es); advogado/representante UE/age gate = não exigidos por decisão do Operador (risco residual aceito e registrado). Corrigidos: `reembolso@almanaquedosclubes.com` → canal único `endart.studios@gmail.com`; claims do grid `home.features` ("História Completa"/"IA com Citações"/"cursor-based") em ×3 locales. Counts de produção re-ancorados: clubs 3.857 · players 2.396 · competitions 1.563.
 
-**Nota T449b (09-23):** motor 0-100 de **jogadores/técnicos** — infraestrutura lógica pura (`src/lib/scoring/**`: tipos, pesos, engines, normalização) + 14 testes (mocks sintéticos, **sem DB/rede**) + `docs/METODOLOGIA_RANKING.md`. **Estrutura pronta; dado real/ativação gated** (fontes granulares = Operador/futuro). Clubes seguem classificação federativa (0-100 calc. é de jogadores/técnicos).
+**Nota T449b (09-23):** motor 0-100 de **jogadores/técnicos** — infraestrutura lógica pura (`src/lib/scoring/**`: tipos, pesos, engines, normalização) + 14 testes (mocks sintéticos, **sem DB/rede**) + `./docs/02-architecture-design/METODOLOGIA_RANKING.md`. **Estrutura pronta; dado real/ativação gated** (fontes granulares = Operador/futuro). Clubes seguem classificação federativa (0-100 calc. é de jogadores/técnicos).
 
 **Nota T449a (09-23):** ranking 0-100 **por competição/temporada** a partir das **tabelas RSSSF** England 2022/23 (5 divisões) — **sem `matches`** (populá-los exigiria parser de resultados+abreviações). Fórmula `W×3 + D×1 + GF×0.2` (títulos=0; limitação) → MinMax por competição → **tier emerge** (sem agregado cross-division, dívida T449c). Sem migration; proveniência/atribuição RSSSF; cobertura 116/116. **M2/WS-C/WS-G rankings 0-100 [x]** (piloto EN por competição/temporada **fechado**: dado em produção + **superfície pública** com fórmula/atribuição RSSSF + badge honesto; cron=T451; dimensões=T449b; escopo "0-100 jogadores/técnicos" futuro).
 
-**Nota T449c-v1 (09-27): [~] tier/divisão como METADADO (aditivo, sem score).** `Competition.level Int?` (migration aditiva + índice) + mapeamento TS versionado `lib/rankings/tiers/en-pyramid.ts` (PL=1…National League=5) — fonte única importada pelo ingest EN; resolução pura `resolve-tier.ts`; backfill `backfill-en-competition-levels.ts` (DRY default; `--apply --allow-production`); API aditiva (`competition.level/divisionLabel`) + badge UI. **Sem mudança de fórmula/score/posição** (teste de integração prova). Rollback por `level=NULL`. **[x] CONCLUÍDO (adendos 41+42):** migration aplicada + backfill EN `updated=5`; score inalterado (hashes pré=pós); API smoke verde; **UI smoke live** — badge `National League` em `/rankings` (produção `cts0o2qhg` já servia #225; rate-limit só no preview). MG/GO/PR sem level/badge. **T449c-v2-pre (alinhamento metodologia A+C) [x]** (adendo 44: merges #228/#229; produção validada). **T449c-v2 implementação [ ]** (modelo B + linear 1.00/0.85/0.70/0.55/0.40; **aguarda liberação explícita**). Design em `docs/T449C-V2-FASE0-DESIGN.md`.
+**Nota T449c-v1 (09-27): [~] tier/divisão como METADADO (aditivo, sem score).** `Competition.level Int?` (migration aditiva + índice) + mapeamento TS versionado `lib/rankings/tiers/en-pyramid.ts` (PL=1…National League=5) — fonte única importada pelo ingest EN; resolução pura `resolve-tier.ts`; backfill `backfill-en-competition-levels.ts` (DRY default; `--apply --allow-production`); API aditiva (`competition.level/divisionLabel`) + badge UI. **Sem mudança de fórmula/score/posição** (teste de integração prova). Rollback por `level=NULL`. **[x] CONCLUÍDO (adendos 41+42):** migration aplicada + backfill EN `updated=5`; score inalterado (hashes pré=pós); API smoke verde; **UI smoke live** — badge `National League` em `/rankings` (produção `cts0o2qhg` já servia #225; rate-limit só no preview). MG/GO/PR sem level/badge. **T449c-v2-pre (alinhamento metodologia A+C) [x]** (adendo 44: merges #228/#229; produção validada). **T449c-v2 implementação [ ]** (modelo B + linear 1.00/0.85/0.70/0.55/0.40; **aguarda liberação explícita**). Design em `./docs/09-references/T449C-V2-FASE0-DESIGN.md`.
 
 **Nota T449EN (09-23):** base EN para o piloto T449a — **universo mínimo** (só os faltantes do piloto; Wikidata CC0, dedup QID), **threshold 100%**, **migração `clubs.deletedAt`** + filtro default (nuído soft-deleted, nunca hard). DRY-RUN **115/115** nomes resolvidos. **T449a permanece [~] bloqueado** até a base EN bater o threshold em produção; **#185 não mergeado** (não publicar ranking parcial). WS-D base EN **[~]**.
 
@@ -311,9 +311,9 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 **Nota T448b-2d GO (09-24, reduzido): mãe `Q931386` a criar; `Q198034` noop; 2025 = gap.** Seed de identidade (só competição) implementado no PR — sem parser/writer/arestas. **Blocker de schema:** `clubs @@unique([name,country])` impede criar `Q1513287` (Vila Nova/GO) → **piloto GO = 2023–2024 only**; **GO 2025 [blocked-schema-identity]**; follow-up **T448b-2f** (remediation de identidade). **Parser GO 2023–2024 [ ]** (após seed verde). Estaduais do Brasil = gap declarado.
 
-**Nota T448b-2d (09-24): PR [blocked-source]; GO [~] discovery seedable.** **PR bloqueado** (0 temporadas ready: 2023 sem declaração, 2024 só tabela, 2025 com clube `Q2580083` ausente) — nenhum parser PR. **GO aprovado no discovery read-only** (3/3 com frase de campeão + licença; mãe `Q931386` a semear; campeões `Q198034` presente e `Q1513287` seedable; homônimo Vila Nova → só QID). **Seed de identidade GO [ ]** gated na aprovação do Thinker. **Parser GO [ ]** só após seed. Doc: `docs/T448B2D-PR-BLOCK-GO-DISCOVERY.md`.
+**Nota T448b-2d (09-24): PR [blocked-source]; GO [~] discovery seedable.** **PR bloqueado** (0 temporadas ready: 2023 sem declaração, 2024 só tabela, 2025 com clube `Q2580083` ausente) — nenhum parser PR. **GO aprovado no discovery read-only** (3/3 com frase de campeão + licença; mãe `Q931386` a semear; campeões `Q198034` presente e `Q1513287` seedable; homônimo Vila Nova → só QID). **Seed de identidade GO [ ]** gated na aprovação do Thinker. **Parser GO [ ]** só após seed. Doc: `./docs/09-references/T448B2D-PR-BLOCK-GO-DISCOVERY.md`.
 
-**Nota T448b-2c (09-24): [x] DISCOVERY read-only de expansão estadual.** Medidas: RSSSF Brasil cobre SP/CE/PR/SC/GO (**RJ/RS/RO/RR ausentes = gap de fonte**); mães validadas ao vivo (SP `Q1348155`, CE `Q2469206`, PR `Q920397`, SC `Q2317199`, GO `Q931386`); no acervo, **SP/CE/PR já existem**, **SC/GO ausentes (gap)**; homônimos confirmados (Vila Nova, Operário). **Recomendação:** **PR** primária, **GO** secundária. **T448b-2d (parser 1ª UF) [ ]** condicionado à aprovação do Thinker. **Estaduais do Brasil = gap declarado** (só MG coberto). Doc: `docs/T448B2C-DISCOVERY-UFS.md`.
+**Nota T448b-2c (09-24): [x] DISCOVERY read-only de expansão estadual.** Medidas: RSSSF Brasil cobre SP/CE/PR/SC/GO (**RJ/RS/RO/RR ausentes = gap de fonte**); mães validadas ao vivo (SP `Q1348155`, CE `Q2469206`, PR `Q920397`, SC `Q2317199`, GO `Q931386`); no acervo, **SP/CE/PR já existem**, **SC/GO ausentes (gap)**; homônimos confirmados (Vila Nova, Operário). **Recomendação:** **PR** primária, **GO** secundária. **T448b-2d (parser 1ª UF) [ ]** condicionado à aprovação do Thinker. **Estaduais do Brasil = gap declarado** (só MG coberto). Doc: `./docs/09-references/T448B2C-DISCOVERY-UFS.md`.
 
 **Nota T448b-2b (09-24): [x] CONCLUÍDO — Piloto MG ATIVO em produção.** Pack congelado em `src/lib/rsssf/data/mg-pilot-candidates.json` + `candidates-pack.ts` (Zod/fail-fast); writer lê o pack por padrão. Gate de produção (#198, SHA `dfe6e5c`): dry-run/apply `created=0 · restored=3 · failed=0`; SQL verde (active=3, `missing_provenance=0`, `soft_deleted_remaining=0`, links=3, Q5028286=0); cache `champions:*`; API `/titles`=3 e `/champions` estadual=Atlético-MG. **Próximo:** expansão para **outros estados (T448b-2c)** ou **municipal (T448b-2d)**, conforme prioridade de conteúdo vs engenharia. **NÃO marcar conquistas estaduais completas** (só MG).
 
@@ -361,8 +361,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | `.prettierrc`                                         | ✅ Novo                        | 0.7           |
 | `.github/dependabot.yml`                              | ✅ Novo                        | 0.8           |
 | `SECURITY.md`                                         | ✅ Novo                        | 0.9           |
-| `docs/CRITERIOS_DESENVOLVIMENTO.md`                   | ✅ Novo                        | Documentação  |
-| `docs/api/auth.md`                                    | ✅ Novo                        | 3.10          |
+| `./docs/03-development-process/CRITERIOS_DESENVOLVIMENTO.md`                   | ✅ Novo                        | Documentação  |
+| `./docs/04-api-integrations/API.md`                                    | ✅ Novo                        | 3.10          |
 | `apps/api/src/routes/metrics.ts`                      | ✅ Novo                        | 1.8           |
 | `apps/api/src/modules/players/*.ts`                   | ✅ Novo (3 arquivos)           | 4.2           |
 | `apps/api/src/modules/competitions/*.ts`              | ✅ Novo (3 arquivos)           | 4.3           |
@@ -379,7 +379,7 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | `apps/web/*`                                          | ✅ Frontend Next.js 16         | 5.1–5.12      |
 | `apps/web/src/hooks/useGsap.ts`                       | ✅ Novo (GSAP hooks)           | 5.0           |
 | `apps/web/src/components/`                            | ✅ 6 componentes               | 5.0           |
-| `docs/seo-aeo-aio-geo-strategy.md`                    | ✅ Novo (estratégia completa)  | 5.0           |
+| `./docs/07-operations-marketing/SEO.md`                    | ✅ Novo (estratégia completa)  | 5.0           |
 | `packages/feature-flags/*`                            | ✅ Novo (3 arquivos)           | 6.7           |
 | `.github/workflows/ci.yml`                            | ✅ Novo                        | 9.1           |
 | `.github/workflows/dast.yml`                          | ✅ Novo                        | 8.6           |
@@ -413,7 +413,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 > ⚠️ **Obsoleto (reconciliado T381, 2026-08-27):** todos os itens abaixo já
 > foram concluídos nas Fases correspondentes (marcados `[x]` acima). Mantido
 > apenas como histórico. As pendências reais estão em
-> `docs/RECONCILIATION-REPORT.md` §6.
+> `./docs/06-devops-deployment/RECONCILIATION-REPORT.md` §6.
 
 1. **Fase 6.1** — Upload seguro (MinIO + ClamAV + validação MIME)
 2. **Fase 6.2** — Fila assíncrona BullMQ + Redis
@@ -573,7 +573,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 #### 📊 Produto — Dados Reais
 
-- [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `docs/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
+- [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `./docs/07-operations-marketing/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
 - [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
 - [~] **Arestas WON (títulos de clubes)** — T448 + T448b-1: conector P1346 + dedup idempotente + hierarquia/gênero congelados + fonte por aresta + galeria de honra + carrossel com tie-break determinístico (T448c); **produção: 5.157 arestas (mundial 16 · continental 268 · nacional 4.873), zero duplicação, proveniência 100%**; gap residual 514 (copas de onze/estaduais regionais) → T448b-2; refinamento de critério (edições futuras) com T449
 - [ ] **Ingestão RSSSF** (arquivo histórico global)
@@ -607,7 +607,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [ ] **Métricas** (Prometheus + Grafana)
 - [ ] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min)
 - [ ] **Uptime check externo** (UptimeRobot)
-- [~] **Backup automático** do PostgreSQL — **scripts backup/restore prontos e verificados** (round-trip, retenção 30d; `docs/BACKUP-RESTORE.md`). **Cron diário** a configurar no Railway (scheduled job); Railway tem backups nativos (snapshots/PITR) como camada extra
+- [~] **Backup automático** do PostgreSQL — **scripts backup/restore prontos e verificados** (round-trip, retenção 30d; `./docs/06-devops-deployment/BACKUP_DR.md`). **Cron diário** a configurar no Railway (scheduled job); Railway tem backups nativos (snapshots/PITR) como camada extra
 
 ### 📊 Resumo Executivo
 
