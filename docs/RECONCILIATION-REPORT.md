@@ -1001,6 +1001,20 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Testes:** unit tiers **14/14** (mapeamento, resolução, plano, validação); integração `t449c-v1-en-level-backfill` (Postgres real, transações revertidas: apply 5 / re-run noop 5 / parcial / **score inalterado** / rollback). tsc 0 · lint 0 erros. **Dry-run/apply de produção = gate pós-merge (FASE 9).**
 
+### GATE 2 adendum 41 — T449c-v1: gate API/DB verde (migration + backfill EN; score inalterado) (2026-09-27)
+
+**Merge/deploy:** #225 (`8a3c02b`) → Railway SUCCESS. Migration `20261005120000_t449c_v1_add_competition_level` aplicada; `competitions.level` integer NULL + índice `competitions_level_idx`. Artefatos no container OK.
+
+**Snapshot:** 5 competições EN (level NULL) + 5 rankings + entries (hash pré `entries=16e0b210…`, `rankings=f9edaf56…`).
+
+**DRY:** `totalMapped=5 wouldUpdate=5 noop=0 errors=[]`. **APPLY:** `updated=5 noop=0 errors=0 hardDeletes=0 migrations=0`. **Re-run:** `wouldUpdate=0 noop=5`.
+
+**SQL gate:** levels 1..5 (`Q9448`=1 · `Q19510`=2 · `Q19565`=3 · `Q48837`=4 · `Q18504`=5); `unexpected_level_updates=0`; `missing_levels=0`; **hashes pós = pré** (score/posição/base inalterados); MG/GO/PR `level` NULL; estadual RSSSF ativo=**7**.
+
+**Cache:** DEL `rankings:list:{…}` + `competitions:list:{…}` (SCAN; sem FLUSHALL). **API smoke:** `/rankings` EN `level`/`divisionLabel`/`tierSource`/`tierVersion`; `/rankings/entries?year=2023` meta competition `level=5`; `/rankings/clube/:id` (Wrexham, National League); `/champions` 200.
+
+**Pendente:** Web/UI (badge `/rankings`) bloqueada pelo **rate limit da Vercel** (~24h). T449c-v1 **não concluído** até o UI smoke.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
