@@ -7,6 +7,12 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { clubsService, CreateClubSchema } from './service.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
+import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
+
+/** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
+function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
+  return { ...entity, attribution: geoAttributionForMetadata(entity.metadata) };
+}
 
 export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   /**
@@ -48,7 +54,12 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       offset,
     });
 
-    return reply.send(result);
+    return reply.send({
+      ...result,
+      data: result.data.map((club) =>
+        withGeoAttribution(club as unknown as Record<string, unknown>),
+      ),
+    });
   });
 
   /**
@@ -69,7 +80,9 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       if (!club) {
         throw new NotFoundError('Clube', request.params.id);
       }
-      return reply.send({ data: club });
+      return reply.send({
+        data: withGeoAttribution(club as unknown as Record<string, unknown>),
+      });
     } catch (err) {
       return handleDomainError(err, reply);
     }

@@ -9,15 +9,19 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../../src/config/prisma.js';
 import { planGeo, syncGeo } from '../../src/modules/etl/connectors/wikidata-geo.connector.js';
 import { prismaGeoRepository } from '../../src/modules/etl/geo.repository.js';
+import { clubsRepository } from '../../src/modules/clubs/repository.js';
+import { OSM_GEO_ATTRIBUTION } from '../../src/lib/geocoding/geo-attribution.js';
 
 const ISO = 'ZZ';
 const CODE = 'ZZ-01';
 const CITY_QID = 'Q9999001';
 const CLUB_QID = 'Q9999002';
 const CLUB_NAME = 'T466 Test Club';
+const OSM_CLUB_QID = 'Q9999010';
+const WIKI_CLUB_QID = 'Q9999011';
 
 async function cleanup(): Promise<void> {
-  await prisma.club.deleteMany({ where: { qid: CLUB_QID } });
+  await prisma.club.deleteMany({ where: { qid: { in: [CLUB_QID, OSM_CLUB_QID, WIKI_CLUB_QID] } } });
   await prisma.city.deleteMany({ where: { qid: CITY_QID } });
   await prisma.state.deleteMany({ where: { code: CODE } });
   await prisma.country.deleteMany({ where: { iso2: ISO } });
@@ -77,5 +81,39 @@ describe('T466 — prismaGeoRepository + syncGeo (Postgres real)', () => {
     expect(second.states).toEqual({ created: 0, updated: 0, skipped: 1 });
     expect(second.cities).toEqual({ created: 0, updated: 0, skipped: 1 });
     expect(second.links).toEqual({ linked: 0, unchanged: 1, missing: 0 });
+  });
+});
+
+describe('WS-D M1a-3 — attribuição geo por origem (Postgres real)', () => {
+  it('coordenada Nominatim/OSM → attribution ODbL; Wikidata → null', async () => {
+    const osm = await prisma.club.create({
+      data: {
+        name: 'M1a3 OSM Club',
+        country: ISO,
+        qid: OSM_CLUB_QID,
+        latitude: 1.1,
+        longitude: 2.2,
+        metadata: { coordSource: 'nominatim', coordPrecision: 'approximate' },
+      },
+      select: { id: true },
+    });
+    const wiki = await prisma.club.create({
+      data: {
+        name: 'M1a3 Wiki Club',
+        country: ISO,
+        qid: WIKI_CLUB_QID,
+        latitude: 3.3,
+        longitude: 4.4,
+        metadata: { coordSource: 'P115_P131', coordPrecision: 'municipality' },
+      },
+      select: { id: true },
+    });
+
+    const osmGeo = await clubsRepository.findGeoById(osm.id);
+    expect(osmGeo?.coordinates.latitude).toBeCloseTo(1.1);
+    expect(osmGeo?.attribution).toEqual(OSM_GEO_ATTRIBUTION);
+
+    const wikiGeo = await clubsRepository.findGeoById(wiki.id);
+    expect(wikiGeo?.attribution).toBeNull();
   });
 });
