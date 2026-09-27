@@ -4,7 +4,7 @@
 -- knowledge_graph/clubs. Não altera dados existentes (ficam NULL). Reversível.
 --
 -- Reversível (DOWN):
---   DROP INDEX IF EXISTS "competitions_deleted_at_idx";
+--   DROP INDEX IF EXISTS "competitions_deletedAt_idx";
 --   ALTER TABLE "competitions" DROP COLUMN IF EXISTS "deletionReason";
 --   ALTER TABLE "competitions" DROP COLUMN IF EXISTS "deletedAt";
 --
@@ -15,4 +15,4 @@ ALTER TABLE "competitions" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3);
 ALTER TABLE "competitions" ADD COLUMN IF NOT EXISTS "deletionReason" TEXT;
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "competitions_deleted_at_idx" ON "competitions"("deletedAt");
+CREATE INDEX IF NOT EXISTS "competitions_deletedAt_idx" ON "competitions"("deletedAt");
