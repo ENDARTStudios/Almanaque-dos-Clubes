@@ -1065,6 +1065,12 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 49 — T448b-2g: encerrado via T448b-2h; despacho de backfill refutado (2026-09-27)
+
+**Medição read-only (produção):** clubes ativos sem QID = **0**; os 9 nomes de um despacho de backfill (`Corinthians`…`São Paulo`, BR) são **duplicatas legacy já soft-deleted** (`deletedAt` não-nulo, `qid` vazio); os **9 QIDs-alvo estão ocupados por clubes canônicos ATIVOS** (`Q35933`=S.C. Corinthians Paulista, `Q80955`=Santos F.C., `Q80845`=S.C. Internacional…). Homônimos `Q10391045/Q10391046/Q671621` intactos.
+
+**Decisão:** a premissa do despacho (“9 clubes ativos sem QID”) é **inválida**; o **T448b-2h** já cumpriu a identidade por QID (base higienizada). **R3 aplicado:** nenhum pack/script/código escrito; **zero escrita**; MG/GO/PR intactos (estadual RSSSF=7). **Regra reforçada:** medição read-only **antes** de qualquer despacho de execução (ver `RULES.md`/R3).
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
