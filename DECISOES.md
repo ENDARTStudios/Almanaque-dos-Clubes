@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-28] Decisão: D-2026-09-28-t448b2i-rerun-noop — idempotência operacional do dedupe (re-run = noop, não erro)
+
+Motivo: após o apply do par Libertadores, o re-run do `--pairs-only` retornava `duplicate_soft_deleted` como **erro** (falso-positivo). **Correção:** `validateHumanPair` passa a reconhecer **noop** quando a duplicate já está soft-deleted pela **reason esperada** (`HUMAN_PAIR_SOFT_DELETE_REASON='dedupe_t448b2i_human_pair'`), a canônica está ativa com o QID do mapping e **stale_refs=0** → status `noop_already_soft_deleted` (contador `noop`, `severity=info`, sem reescrita/restore). Reasons inesperadas e stale_refs>0 permanecem **erro** (`duplicate_soft_deleted_unexpected`). Testes unit **17/17**. Gate: só dry-run (sem write).
+
 ### [2026-09-28] Decisão: D-2026-09-28-t448b2i-concluded — T448b-2i ENCERRADO: 3 duplicatas de competição resolvidas por soft-delete reversível
 
 Motivo: **merge #246** (`567348b`) → Railway SUCCESS. Apply do par Libertadores: `duplicatesSoftDeleted=1` · `referencesRedirected=1` (rankings) · `errors=0` · `hardDeletes=0` · `migrations=0` · manifest `/tmp/t448b2i-libertadores-manifest.json`. **SQL:** `Q184795` (Copa Libertadores) **única ativa**; duplicate `28b0f5d4…` **soft-deleted** (`dedupe_t448b2i_human_pair`); Brasileirão Série A + Copa do Brasil já resolvidas (`dedupe_t448b2i`); **stale_refs=0**; **qid duplicado=0**; **competitions ativas sem QID = 0**; entries EN `d2b117aa…` (inalterado); estadual=**7**; MG/GO/PR intactos. Cache cirúrgico; API smoke 200. **Sem fuzzy, sem rename, sem hard delete.** **T448b-2i ENCERRADO. WS-D M1b liberado.**

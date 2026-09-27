@@ -16,7 +16,11 @@ export interface CompetitionRow {
   name: string;
   qid: string | null;
   deletedAt: Date | null;
+  deletionReason?: string | null;
 }
+
+/** Reason canônica do soft-delete por par humano (T448b-2i). */
+export const HUMAN_PAIR_SOFT_DELETE_REASON = 'dedupe_t448b2i_human_pair';
 
 export type CanonicalStatus =
   'ok' | 'ambiguous_no_qid' | 'ambiguous_multiple_qid' | 'duplicate_qid';
@@ -98,25 +102,39 @@ export function validatePairsFile(raw: unknown): { errors: string[]; file: Human
 
 export type PairStatus =
   | 'ok'
+  | 'noop_already_soft_deleted'
   | 'same_id'
   | 'missing_duplicate'
   | 'missing_canonical'
   | 'duplicate_has_qid'
-  | 'duplicate_soft_deleted'
+  | 'duplicate_soft_deleted_unexpected'
   | 'canonical_soft_deleted'
-  | 'canonical_qid_mismatch';
+  | 'canonical_qid_mismatch'
+  | 'stale_refs';
 
 /** Valida um par humano contra as rows atuais (sem usar nome). */
 export function validateHumanPair(
   pair: HumanPair,
   duplicate: CompetitionRow | null,
   canonical: CompetitionRow | null,
+  opts: { staleRefs?: number } = {},
 ): PairStatus {
   if (pair.duplicateId === pair.canonicalId) return 'same_id';
   if (!duplicate) return 'missing_duplicate';
   if (!canonical) return 'missing_canonical';
   if (duplicate.qid != null) return 'duplicate_has_qid';
-  if (duplicate.deletedAt != null) return 'duplicate_soft_deleted';
+  const staleRefs = opts.staleRefs ?? 0;
+  if (duplicate.deletedAt != null) {
+    // Re-run idempotente: já resolvido pelo par humano (reason esperada) e sem refs penduradas.
+    const canonicalOk = canonical.deletedAt == null && canonical.qid === pair.canonicalQid;
+    if (
+      duplicate.deletionReason === HUMAN_PAIR_SOFT_DELETE_REASON &&
+      canonicalOk &&
+      staleRefs === 0
+    )
+      return 'noop_already_soft_deleted';
+    return 'duplicate_soft_deleted_unexpected';
+  }
   if (canonical.deletedAt != null) return 'canonical_soft_deleted';
   if (canonical.qid !== pair.canonicalQid) return 'canonical_qid_mismatch';
   return 'ok';
