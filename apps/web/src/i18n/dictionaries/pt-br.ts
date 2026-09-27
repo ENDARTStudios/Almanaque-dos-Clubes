@@ -37,7 +37,7 @@ const pt: Dictionary = {
     telegram: 'Telegram',
     legalTitle: 'Legal',
     privacy: 'Privacidade',
-    methodology: "Metodologia e fontes",
+    methodology: 'Metodologia e fontes',
     cookies: 'Cookies',
     terms: 'Termos de Uso',
     security: 'Segurança',
@@ -242,6 +242,14 @@ const pt: Dictionary = {
       loadMore: 'Carregar mais',
       empty: 'Nenhum ranking publicado ainda para este filtro.',
       updated: 'Ranking: {name}',
+      viewDivision: 'Por divisão',
+      viewPyramid: 'Pirâmide nacional',
+      pyramidDisclaimer:
+        'Estimativa metodológica, não confronto oficial. Rankings por divisão permanecem ativos e auditáveis.',
+      colDivision: 'Divisão',
+      colLevel: 'Nível',
+      colMultiplier: 'Multiplicador',
+      pyramidEmpty: 'Agregado ainda não publicado.',
     },
     search: {
       title: 'Busca Avançada',
@@ -545,8 +553,8 @@ const pt: Dictionary = {
     updatedLabel: 'Última atualização',
     terms: {
       title: 'Termos de Uso e Serviço',
-        version: 'v1.3',
-        updated: '22/09/2026',
+      version: 'v1.3',
+      updated: '22/09/2026',
       intro:
         'Estes Termos de Uso e Serviço ("Termos") regulam o acesso e o uso da Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Ao criar uma conta, contratar um plano ou utilizar a Plataforma, o usuário declara ter lido e aceito estes Termos. Última atualização: 02 de setembro de 2026 · Versão 2.0.',
       sections: [
@@ -710,8 +718,8 @@ const pt: Dictionary = {
     },
     privacy: {
       title: 'Política de Privacidade',
-        version: 'v1.3',
-        updated: '22/09/2026',
+      version: 'v1.3',
+      updated: '22/09/2026',
       intro:
         'Esta Política de Privacidade descreve como a END ART Studios (CNPJ 45.370.930/0001-75) coleta, utiliza, armazena e protege os dados pessoais dos usuários da plataforma Almanaque dos Clubes, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD) e demais normas aplicáveis.',
       sections: [
@@ -744,16 +752,18 @@ const pt: Dictionary = {
             'Não vendemos dados pessoais. Dados podem ser compartilhados com provedores de infraestrutura e pagamento, estritamente necessários à operação, e com autoridades quando exigido por lei.',
             'Provedores atuais do ambiente: Vercel (hospedagem do frontend), Railway (hospedagem da API e do banco de dados PostgreSQL) e Cloudflare (DNS e proteção de rede). Desde 22/09/2026 as fontes tipográficas são auto-hospedadas (sem requisição a terceiros). Pagamentos são processados pelo Stripe, que atua como controlador dos dados de pagamento perante o titular. Esta lista é atualizada sempre que um fornecedor é contratado ou substituído.',
             'O processador de pagamentos Stripe (Stripe, Inc., EUA) trata dados de pagamento e antifraude, com transferência internacional para os EUA nos termos da LGPD (art. 33 e seguintes) e cláusulas-padrão contratuais quando aplicáveis; dados completos de cartão não tocam nossos servidores (PCI DSS do Stripe).',
-          
-            'Transferência internacional: como os provedores operam fora do Brasil, o compartilhamento envolve transferência internacional de dados, observados os Capítulos IV (LGPD) e V (GDPR, quando aplicável), com garantias contratuais. Não vendemos dados e não os utilizamos para treinamento de modelos de IA. Fornecedores de referência: Vercel (frontend e geolocalização de borda), Railway (API e banco PostgreSQL), Cloudflare (DNS/rede), Stripe (pagamentos — no ato do pagamento aplicam-se os termos do Stripe), Resend (e-mail transacional) e ipwho.is (geolocalização de IP apenas durante o checkout). Termos de processamento públicos: Stripe e Cloudflare publicam em seus sites; demais casos: mediante solicitação pelo canal de privacidade. (ref. T469-4)',],
+
+            'Transferência internacional: como os provedores operam fora do Brasil, o compartilhamento envolve transferência internacional de dados, observados os Capítulos IV (LGPD) e V (GDPR, quando aplicável), com garantias contratuais. Não vendemos dados e não os utilizamos para treinamento de modelos de IA. Fornecedores de referência: Vercel (frontend e geolocalização de borda), Railway (API e banco PostgreSQL), Cloudflare (DNS/rede), Stripe (pagamentos — no ato do pagamento aplicam-se os termos do Stripe), Resend (e-mail transacional) e ipwho.is (geolocalização de IP apenas durante o checkout). Termos de processamento públicos: Stripe e Cloudflare publicam em seus sites; demais casos: mediante solicitação pelo canal de privacidade. (ref. T469-4)',
+          ],
         },
         {
           title: '5. Direitos do titular (LGPD)',
           body: [
             'O usuário pode solicitar confirmação, acesso, correção, anonimização, portabilidade, eliminação e revogação do consentimento.',
             'Para exercer seus direitos, entre em contato com o canal de privacidade indicado abaixo.',
-          
-            'O recebimento do pedido é confirmado imediatamente. A resposta conclusiva ocorre em até 15 dias corridos no Brasil (LGPD, art. 18, §3º) ou em até 1 mês no Espaço Econômico Europeu/Reino Unido (GDPR, art. 12), prorrogáveis nos casos previstos em lei. (ref. T469-5)',],
+
+            'O recebimento do pedido é confirmado imediatamente. A resposta conclusiva ocorre em até 15 dias corridos no Brasil (LGPD, art. 18, §3º) ou em até 1 mês no Espaço Econômico Europeu/Reino Unido (GDPR, art. 12), prorrogáveis nos casos previstos em lei. (ref. T469-5)',
+          ],
         },
         {
           title: '6. Cookies',
@@ -765,22 +775,25 @@ const pt: Dictionary = {
           title: '7. Segurança',
           body: [
             'Adotamos medidas técnicas e organizacionais (criptografia de senha, controle de acesso, monitoramento) para proteger os dados. Nenhum sistema é infalível; guardamos a senha de forma hash e não em texto claro.',
-          
-            'Em caso de incidente de segurança que possa causar risco relevante a titulares, comunicaremos à ANPD e aos afetados em prazo compatível com a regulamentação (referência: 3 dias úteis, quando aplicável) e, quando aplicável o GDPR, em até 72 horas à autoridade competente. (ref. T469-7)',],
+
+            'Em caso de incidente de segurança que possa causar risco relevante a titulares, comunicaremos à ANPD e aos afetados em prazo compatível com a regulamentação (referência: 3 dias úteis, quando aplicável) e, quando aplicável o GDPR, em até 72 horas à autoridade competente. (ref. T469-7)',
+          ],
         },
         {
           title: '8. Retenção',
           body: [
             'Os dados são mantidos pelo tempo necessário às finalidades e obrigações legais, ou até a exclusão a pedido do titular ou encerramento da conta.',
-          
-            'Períodos de referência: backups criptografados por 30 dias (política de backup/restauração); registros de pagamento e faturamento por até 5 anos (obrigação fiscal e contábil); logs de segurança e acesso pelo prazo necessário à defesa em procedimentos; demais dados, enquanto a conta estiver ativa ou por prazo legal específico. (ref. T469-8)',],
+
+            'Períodos de referência: backups criptografados por 30 dias (política de backup/restauração); registros de pagamento e faturamento por até 5 anos (obrigação fiscal e contábil); logs de segurança e acesso pelo prazo necessário à defesa em procedimentos; demais dados, enquanto a conta estiver ativa ou por prazo legal específico. (ref. T469-8)',
+          ],
         },
         {
           title: '9. Menores',
           body: [
             'A plataforma não realiza verificação de idade e não coleta intencionalmente dados de crianças. Não direcionamos o serviço a crianças.',
-          
-            'Caso um responsável identifique coleta inadequada de dados de criança, contate o canal de privacidade para análise e providências. (ref. T469b-9)',],
+
+            'Caso um responsável identifique coleta inadequada de dados de criança, contate o canal de privacidade para análise e providências. (ref. T469b-9)',
+          ],
         },
         {
           title: '10. Encarregado (DPO) e contato',
@@ -851,7 +864,7 @@ const pt: Dictionary = {
     },
   },
   copyrightForm: {
-        title: 'Notificação de Direitos Autorais',
+    title: 'Notificação de Direitos Autorais',
     intro:
       'Titulares de direitos autorais podem notificar alegações de violação (Lei 9.610/98 e normas análogas). Notificações passam por triagem com decisão motivada; conteúdo inequivocamente infrator é removido.',
     materialLabel: 'Material alegadamente violado (descreva a obra)',

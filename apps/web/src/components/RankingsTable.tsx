@@ -36,6 +36,12 @@ interface RankingEntryRow {
   baseMatches: number | null;
   baseTitles: number | null;
   gender: string | null;
+  // T449c-v2 — presentes só na visão agregada (Pirâmide nacional).
+  divisionLevel?: number | null;
+  divisionLabel?: string | null;
+  multiplier?: number | null;
+  intraScore?: number | null;
+  adjustedScore?: number | null;
 }
 
 interface EntriesResponse {
@@ -57,6 +63,7 @@ export default function RankingsTable() {
   const { dict } = useI18n();
   const t = dict.pages.rankings;
 
+  const [view, setView] = useState<'division' | 'pyramid'>('division');
   const [year, setYear] = useState('');
   const [gender, setGender] = useState('');
   const [country, setCountry] = useState('');
@@ -74,11 +81,12 @@ export default function RankingsTable() {
       if (year) params.set('year', year);
       if (gender) params.set('gender', gender);
       if (country) params.set('country', country);
+      if (view === 'pyramid') params.set('scope', 'country_pyramid');
       params.set('limit', String(LIMIT));
       if (cursorPos !== null) params.set('cursor', String(cursorPos));
       return `/rankings/entries?${params.toString()}`;
     },
-    [year, gender, country],
+    [year, gender, country, view],
   );
 
   // Anos disponíveis (rankings publicados) para o filtro.
@@ -126,7 +134,7 @@ export default function RankingsTable() {
     setCursor(null);
     void load(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, gender, country]);
+  }, [year, gender, country, view]);
 
   const hasFilters = useMemo(
     () => year !== '' || gender !== '' || country !== '',
@@ -150,6 +158,34 @@ export default function RankingsTable() {
           {t.pilotMethodology}
         </Link>
       </div>
+      <div role="tablist" aria-label={t.title} className="mb-4 flex flex-wrap gap-2">
+        {(['division', 'pyramid'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            data-testid={`rankings-tab-${v}`}
+            onClick={() => setView(v)}
+            className={
+              'rounded-lg border px-3 py-1.5 text-sm font-semibold ' +
+              (view === v
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-foreground/70 hover:bg-foreground/5')
+            }
+          >
+            {v === 'division' ? t.viewDivision : t.viewPyramid}
+          </button>
+        ))}
+      </div>
+      {view === 'pyramid' ? (
+        <p
+          data-testid="pyramid-disclaimer"
+          className="mb-4 rounded-lg border border-border bg-foreground/5 px-3 py-2 text-xs text-foreground/70"
+        >
+          {t.pyramidDisclaimer}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <label className="flex flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterYear}</span>
@@ -231,9 +267,23 @@ export default function RankingsTable() {
                 <th scope="col" className="px-4 py-3 font-semibold">
                   {t.colPoints}
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  {t.colBase}
-                </th>
+                {view === 'pyramid' ? (
+                  <>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.colDivision}
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.colLevel}
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.colMultiplier}
+                    </th>
+                  </>
+                ) : (
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    {t.colBase}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -246,11 +296,19 @@ export default function RankingsTable() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 font-semibold">{r.points}</td>
-                  <td className="px-4 py-3 text-foreground/60">
-                    {t.baseOf
-                      .replace('{m}', String(r.baseMatches ?? 0))
-                      .replace('{t}', String(r.baseTitles ?? 0))}
-                  </td>
+                  {view === 'pyramid' ? (
+                    <>
+                      <td className="px-4 py-3">{r.divisionLabel ?? '—'}</td>
+                      <td className="px-4 py-3 font-mono">{r.divisionLevel ?? '—'}</td>
+                      <td className="px-4 py-3 font-mono">{r.multiplier ?? '—'}</td>
+                    </>
+                  ) : (
+                    <td className="px-4 py-3 text-foreground/60">
+                      {t.baseOf
+                        .replace('{m}', String(r.baseMatches ?? 0))
+                        .replace('{t}', String(r.baseTitles ?? 0))}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

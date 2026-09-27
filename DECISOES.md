@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-ui-publicada — aba “Pirâmide nacional” + metodologia publicada + metadata por entry
+
+Motivo: fechamento da superfície do T449c-v2. **UI:** `/rankings` ganha **abas “Por divisão” (default)** e **“Pirâmide nacional”** (`?scope=country_pyramid`) com **disclaimer** (“estimativa metodológica, não confronto oficial”) e colunas **Pos/Clube/Nota/Divisão/Nível/Multiplicador**; i18n **pt/en/es**. **API:** o agregado passa a expor por entry `divisionLevel`/`divisionLabel`/`multiplier`/`intraScore`/`adjustedScore` (derivados das divisões; **sem** novo campo em `RankingEntry`). **Metodologia:** seção do agregado passa de “proposto, não publicado” → **“publicado em 2026-09-27”** (fórmula, pesos, atribuição RSSSF, disclaimer). Sem mudança de score; divisões intactas; MG/GO/PR intocados.
+
 ### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-gate-concluido — agregado `country_pyramid` ATIVO em produção (API)
 
 Motivo: **merge #233** (`f36941c`) → Railway SUCCESS. Migration `20261006120000_t449c_v2_country_pyramid` aplicada; `rankings.scope/country/tierVersion/formulaVersion` + índice presentes. **DRY:** `rankedCount=116`, máximos por nível **100/85/70/55/40**, `excluded=0`. **APPLY:** ranking `b4db9d9e…` (scope `country_pyramid`, GB, 2023, `tierVersion=t449c-v1-en-pyramid-2026-09-27`, `formulaVersion=t449c-v2-country-pyramid-v1`, publicado) com **116 entries**; top: Man City 100 · Arsenal 92 · **Burnley(L2) 85** · Man Utd 78 · Newcastle 72. **SQL:** hash das entries das 5 divisões **idêntico ao pré** (`d2b117aa…`) ⇒ **divisões intactas**; estadual RSSSF=**7**; MG/GO/PR `level` NULL. **Cache:** DEL `rankings:list:{…}` (sem FLUSHALL). **API smoke:** `/rankings?scope=country_pyramid` e `/rankings/entries?scope=country_pyramid` retornam o agregado; **default (sem scope) segue por divisão** (`National League 2023`). v1 intacto. **UI (aba “Pirâmide nacional”) = follow-up em PR próprio.**

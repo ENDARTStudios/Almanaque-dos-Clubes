@@ -1039,6 +1039,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **API↔texto:** 5 rankings EN consistentes (1º=100, último=0, men, baseMatches 100%). **Smoke:** `/`,`/metodologia`,`/rankings` 200. **v2 desbloqueado.**
 
+### GATE 2 adendum 47 — T449c-v2: UI “Pirâmide nacional” + metodologia publicada + metadata por entry (2026-09-27)
+
+**UI:** `/rankings` com abas **“Por divisão” (default)** / **“Pirâmide nacional”** (`?scope=country_pyramid`), **disclaimer** e colunas Pos/Clube/Nota/Divisão/Nível/Multiplicador; i18n pt/en/es. **API:** agregado expõe `divisionLevel/divisionLabel/multiplier/intraScore/adjustedScore` por entry (derivado das divisões; sem novo campo em RankingEntry). **Metodologia:** seção do agregado → **“publicado em 2026-09-27”**. Testes web 18/18; tsc api/web 0. Sem mudança de score; divisões intactas.
+
 ### GATE 2 adendum 46 — T449c-v2: agregado `country_pyramid` ATIVO em produção (2026-09-27)
 
 **Merge #233 (`f36941c`) → Railway SUCCESS.** Migration `20261006120000_t449c_v2_country_pyramid` aplicada (colunas + índice). **DRY/APPLY:** `rankedCount=116`; máximos por nível 100/85/70/55/40; ranking `b4db9d9e…` (scope `country_pyramid`, GB, 2023, formulaVersion `t449c-v2-country-pyramid-v1`, publicado) com 116 entries. **Top:** Man City 100 · Arsenal 92 · Burnley(L2) 85 · Man Utd 78 · Newcastle 72.
