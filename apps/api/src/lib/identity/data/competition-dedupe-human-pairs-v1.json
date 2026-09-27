@@ -1,0 +1,23 @@
+{
+  "version": "competition-dedupe-human-pairs-v1",
+  "source": "human-review",
+  "reviewedBy": "DOER/T448b2i checkpoint",
+  "retrievedAt": "2026-09-27T00:00:00Z",
+  "pairs": [
+    {
+      "duplicateId": "28b0f5d4-e86b-4682-ad03-ed8eb6345477",
+      "canonicalId": "9d50e9fa-bc31-4ea8-af77-e429f451ff52",
+      "canonicalQid": "Q184795",
+      "duplicateName": "Copa Libertadores da América",
+      "canonicalName": "Copa Libertadores",
+      "reason": "human_confirmed_same_competition_name_divergence",
+      "evidence": {
+        "wikidataUrl": "https://www.wikidata.org/wiki/Q184795",
+        "wikidataLabels": ["Copa Libertadores"],
+        "wikidataDescriptions": ["competição entre clubes de futebol sul-americana"],
+        "p31": ["Q1478437", "Q18608583"],
+        "notes": "Canonical QID validated read-only; duplicate has qid NULL; no fuzzy match used."
+      }
+    }
+  ]
+}

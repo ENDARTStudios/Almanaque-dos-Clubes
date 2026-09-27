@@ -1065,6 +1065,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 55 — T448b-2i: par humano Libertadores (nomes divergentes) implementado (2026-09-28)
+
+**FASE 0:** Q184795 validada read-only (label “Copa Libertadores”; desc “competição entre clubes de futebol sul-americana”; P31 Q1478437/Q18608583). Canonical `9d50e9fa…` ativa; duplicate `28b0f5d4…` qid NULL ativa; refs = 1 (rankings). Pair versionado `competition-dedupe-human-pairs-v1.json`; script `--pairs-only`/`--pairs-file` (import estático) + `validatePairsFile`/`validateHumanPair`. Testes unit 15/15. tsc/lint 0. **Apply em produção = gate pós-merge.**
+
 ### GATE 2 adendum 54 — T448b-2i: soft-delete de Competition + dedupe por QID implementado (2026-09-28)
 
 **FASE 0 (read-only):** 3 duplicatas (qid NULL) — canônicas `Q206813`/`Q843989`/`Q184795`; refs a redirecionar = 2 (`rankings`); 0 qid dup global; entries EN `d2b117aa…`; estadual=7. **Migration** aditiva `20261007120000_t448b2i_competition_soft_delete` (`deletedAt`/`deletionReason` + índice). Módulo puro `lib/identity/competition-dedupe.ts` (canônica por QID) + `scripts/dedupe-competitions.ts` (DRY/`--apply --allow-production`; redirect reversível + soft-delete; manifest; Serializable). **Testes:** unit 7/7. tsc/lint 0. **Apply em produção = gate pós-merge.**
