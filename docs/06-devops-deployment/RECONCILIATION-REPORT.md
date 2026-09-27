@@ -1215,6 +1215,27 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — WS-G-1: scaffolding de orquestração ETL/cron (dry-run only)
+
+**Track A (WS-C-2 deploy):** revalidação ao vivo — produção ainda no SHA anterior ao #266 (`/clubs/:id` sem
+`geo-attribution`/gaps); deploy de produção `api-deployments-free-per-day` **ainda bloqueado**. **Sem retry**
+(conforme dispatch). PENDENCIAS [3] mantida.
+
+**Track B (WS-G-1, read-only):** inventário (BullMQ `etl/email/export/ranking`, `etl-worker.ts`, conectores,
+`http-resilience`, `won-edges`, cache) + `docs/WS-G-1-FASE0-DESIGN.md`. Scaffolding em
+`apps/api/src/lib/orchestration/*`:
+- planners puros (`planWikidataIdentityScan` dedupe-QID/skip-soft-deleted/sem-fuzzy; `planWikidataEnrichment`
+  only-fill; `planRsssfStateChampions` proveniência/ambíguo-omitido; `planRankingRefreshDiff` nunca-publica;
+  `auditGeoAttribution` OSM sem/inconsistente atribuição);
+- `schemas.ts` (Zod), `registry.ts`, `runner.ts` (dry-run; **recusa `apply:true`**), `flags.ts`
+  (`ORCHESTRATION_ENABLED` **default OFF**), `metrics.ts`, `redact.ts`.
+
+**Testes:** 19 unit novos network-free (500 no dir unit); `tsc`/eslint/prettier ok; `security-gate` +
+`migration-drift` verdes (sem migration). **Zero escrita · zero cron ativo · zero deploy web · zero mapa.**
+
+**Integridade:** inalterada (leitura apenas) — `ranking_entries` hash `d2b117aa…`, estadual RSSSF 7,
+`country_pyramid` EN 1, 0 sem QID, MG/GO/PR intactos.
+
 ### Run autônomo 2026-09-28 — WS-C-2: UI pública (perfil + busca global + carrossel) — deploy web pendente
 
 **FASE 0 (read-only):** `main` `ab01289`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem

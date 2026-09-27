@@ -1307,3 +1307,31 @@ payload do carrossel; `typecheck` (api+domain+web) ok; `security-gate`/`migratio
 
 **Consequência:** `WS-C-2` = `[~]` até o deploy web (PENDENCIAS item [3]). `WS-C-1` `[x]`, `M1a-3` `[x]`,
 `WS-C-3` (mapa público) `[ ]`.
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-g-1-etl-orchestration-scaffold — WS-G-1 FASE 0 (scaffolding dry-run) ✅
+
+**Estado:** **scaffolding read-only implementado e mergeado** (`29260a0`, PR #268). **Zero escrita, zero
+migration, zero cron ativo, zero deploy web, zero produção alterada.**
+
+**Motivo:** preparar a automação de ingestão/atualização/proveniência/refresh de ranking **sem** alterar dados
+públicos até gates específicos. A camada é **dry-run por contrato** — planeja e mede, nunca aplica.
+
+**Entregue:**
+- **Design + inventário:** `docs/WS-G-1-FASE0-DESIGN.md` (fontes/allowlist, pipelines A–D, idempotência,
+  rollback, observabilidade, rate limit, segurança, gates futuros, tabela de capacidades existentes×gap).
+- **Módulos puros:** `apps/api/src/lib/orchestration/{planners,types,schemas,redact,metrics,registry,runner,flags}.ts`.
+  - Planners: `wikidata-identity-scan` (dedupe QID, skip soft-deleted/dup/sem-qid, **sem fuzzy**),
+    `wikidata-enrichment-plan` (only-fill, nunca sobrescreve), `rsssf-state-champions-plan` (proveniência;
+    **ambíguo omitido**), `ranking-refresh-dry-run` (diff, **nunca publica**), `geo-attribution-audit`
+    (OSM sem/inconsistente atribuição ODbL).
+  - Runner dry-run com **trava dura** (recusa `apply:true`); handler de worker **fail-safe** com
+    `ORCHESTRATION_ENABLED` **default OFF**; métricas por job; redação de segredos.
+- **Testes:** 19 unit novos (network-free) — 500 no diretório unit; `tsc`/eslint/prettier ok.
+
+**Fora de escopo (não implementado):** apply, cron/schedule em produção, endpoint público novo, UI, migration,
+qualquer write. O primeiro pipeline **dry-run/apply** só após checkpoint e **aprovação explícita**.
+
+**Reuso:** BullMQ (`services/queue.ts`), conectores ETL, `http-resilience` (backoff), `won-edges`, cache,
+pgsql/Prisma (leitura). **Rollback:** revert do merge (não toca dados).
