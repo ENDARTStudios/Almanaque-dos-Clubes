@@ -137,7 +137,15 @@ export const rankingsService = {
   },
 
   async getEntries(rankingId: string): Promise<{
-    data: RankingEntry[];
+    data: Array<
+      RankingEntry & {
+        divisionLevel?: number | null;
+        divisionLabel?: string | null;
+        multiplier?: number | null;
+        intraScore?: number | null;
+        adjustedScore?: number | null;
+      }
+    >;
     competition: CompetitionTierPayload | null;
   }> {
     const ranking = await rankingsRepository.findById(rankingId);
@@ -146,6 +154,29 @@ export const rankingsService = {
     const comp = ranking.competitionId
       ? ((await rankingsRepository.findCompetitionsByIds([ranking.competitionId]))[0] ?? null)
       : null;
+
+    // T449c-v2 — no agregado, enriquece cada entry com divisão/nível/multiplicador/nota intra.
+    if (ranking.scope === COUNTRY_PYRAMID_SCOPE && ranking.season) {
+      const rows = await rankingsRepository.findDivisionTierByClub(
+        ranking.season,
+        EN_PYRAMID_TIERS.map((t) => t.competitionQid),
+      );
+      const byClub = new Map(rows.filter((r) => r.level != null).map((r) => [r.clubId, r]));
+      return {
+        data: entries.map((e) => {
+          const t = byClub.get(e.clubId);
+          return {
+            ...e,
+            divisionLevel: t?.level ?? null,
+            divisionLabel: getEnDivisionTierByCompetitionQid(t?.qid ?? null)?.divisionLabel ?? null,
+            multiplier: t?.level != null ? divisionWeight(t.level) : null,
+            intraScore: t?.points ?? null,
+            adjustedScore: e.points,
+          };
+        }),
+        competition: comp ? toCompetitionTier(comp) : null,
+      };
+    }
     return { data: entries, competition: comp ? toCompetitionTier(comp) : null };
   },
 
