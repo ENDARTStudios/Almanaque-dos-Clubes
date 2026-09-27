@@ -1159,3 +1159,31 @@ acento, ç, LIKE-injection, soft-delete).
 
 **Live verify:** fingerprint `66d5d44` + cache clubs:list invalidado por inventário →
 `flamengo` 0→2 (canônico primeiro) · `Sao Paulo` 0→2 · `gremio`/`Gremio` 0→7 · `palmeiras` ✓.
+
+### Run autônomo 2026-09-27 — WS-D M1b: expansão Wikidata conservadora (piloto PT + 24 países)
+
+**Engine (#250, `a9361e2`):** `lib/wikidata/expansion/{types,filters,extract-attributes,plan-builder,apply-plan}.ts`
++ `scripts/expand-wikidata-conservative.ts` (DRY default; `--apply --allow-production`; `--stage=PILOT|FULL`;
+`--country=<ISO2>`; insert-only; dedupe por QID; unit 21/21). Whitelist de competição refinada em **#251**
+(`15d194f`): removida a classe de temporada/edição `Q18608583` (over-inclusion → PT criava 81 comps > gate 50).
+Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
+
+**Piloto PT (dry-run → amostragem → apply):** `clubWouldCreate=364` (100–600 ✓), `competitionWouldCreate=5`
+(5–50 ✓), coords **56%** (≥35% ✓), `errors=[]`. Amostragem manual 25 clubes = 25/25 legítimos (0 FP).
+Apply: `createdClubs=364`, `createdCompetitions=5`, `errors=0`, `updatedExisting=0`, `reactivatedSoftDeleted=0`,
+`hardDeletes=0`, `migrations=0`; re-run **noop**; SQL: provenance 0/0, dup 0, ativos 3.871→4.235; API PT 212→576.
+
+**Lote (24 países, dry→apply por país):** BE 203/5 · SE 594/15 · NL 163/5 · PL 270/56 · DK 173/16 · HU 173/4 ·
+CH 146/17 · FI 169/7 · NO 281/31 · AT 150/7 · CZ 248/4 · GR 365/5 · TR 406/4 · JP 312 · KR 44 · AU 540 · NZ 160 ·
+AR 223 · UY 59 · CO 43 · CL 89 · PE 245 — todos com `errors=0`.
+
+**Gate final (produção):** criados **5.420 clubes / 344 competições** em **25 países** (meta ≥1.000/≥50/≥20 ✓);
+clubes ativos **9.291** (0 sem QID) · comps ativas **1.905** (0 sem QID) · proveniência 100% (0/0) · dup QID
+**0/0** · coords **3.075/5.420 = 56,7%** · `ranking_entries` hash **`d2b117aa537047efe96edbac844e4c40` intacto** ·
+estadual RSSSF **7** · `country_pyramid` **1** · cache `rankings:list:*` (2 chaves) invalidado por inventário
+(sem FLUSHALL). **API smoke:** health/clubs(?country=SE/JP)/competitions(?country=PL)/rankings(?scope=country_pyramid)/
+champions = **200**; web home + `/rankings` = 200.
+
+**Nota:** 2 países com 1 clube cada (DE, GH) são artefatos de P17 múltiplo (clube com mais de um país de origem);
+sem impacto material. Lição operacional: `Select-Object -First N` (PowerShell) encerra o pipe SSH — não usar para
+ler loops longos.
