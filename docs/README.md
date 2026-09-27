@@ -4,6 +4,12 @@
 > Documentação em pt-BR. Cada arquivo abaixo aponta para a fonte canônica quando existe — este índice
 > **NÃO duplica** conteúdo que drifta; ele **roteia**.
 
+## Acesso rápido
+
+- 🚀 [Onboarding](./08-knowledge-management/ONBOARDING.md) · [Setup](./03-development-process/SETUP.md) · [Regras](./03-development-process/RULES.md)
+- 🏛️ [Arquitetura](./02-architecture-design/ARCHITECTURE.md) · [Stack](./02-architecture-design/CHOOSE_TECH_STACK.md) · [API](./04-api-integrations/API.md)
+- 🧭 [Handoff (raiz)](../HANDOFF.md) · [Plano Mestre (raiz)](../PLANO_MESTRE.md) · [Decisões (raiz)](../DECISOES.md)
+
 ## Como navegar (9 domínios)
 
 | Domínio                                               | Propósito                                               |
@@ -78,6 +84,16 @@
 - [T449C-V2-FASE0-DESIGN.md](./09-references/T449C-V2-FASE0-DESIGN.md) · [T448B2C-DISCOVERY-UFS.md](./09-references/T448B2C-DISCOVERY-UFS.md) · [T448B2D-PR-BLOCK-GO-DISCOVERY.md](./09-references/T448B2D-PR-BLOCK-GO-DISCOVERY.md)
 - [FASE0-T448b-2b-rsssf-estaduais.md](./09-references/FASE0-T448b-2b-rsssf-estaduais.md) · [HANDOFF-T445.md](./09-references/HANDOFF-T445.md) · [VERIFICACAO-T387.md](./09-references/VERIFICACAO-T387.md) · [CI-ROOT-CAUSE.md](./09-references/CI-ROOT-CAUSE.md)
 
+## Skeletons a preencher (Backlog de Documentação)
+
+> Arquivos criados no `chore/docs-reorg` **sem conteúdo ainda** — a popular. Remova o item ao preencher (e o aviso de esqueleto no topo do arquivo).
+
+- **01:** [LEGAL_TERMS.md](./01-product-discovery/LEGAL_TERMS.md) · [PRICING_MONETIZATION.md](./01-product-discovery/PRICING_MONETIZATION.md)
+- **02:** [DATA_MODEL.md](./02-architecture-design/DATA_MODEL.md) · [GREEN_COMPUTING.md](./02-architecture-design/GREEN_COMPUTING.md)
+- **05:** [IAM_IGA.md](./05-security-compliance/IAM_IGA.md) · [MFA.md](./05-security-compliance/MFA.md) · [NAC.md](./05-security-compliance/NAC.md) · [THREAT_MODELING.md](./05-security-compliance/THREAT_MODELING.md) · [VULNERABILITY_DISCLOSURE.md](./05-security-compliance/VULNERABILITY_DISCLOSURE.md) · [ZTNA.md](./05-security-compliance/ZTNA.md)
+- **06:** [CI_CD_PIPELINE.md](./06-devops-deployment/CI_CD_PIPELINE.md) · [FINOPS.md](./06-devops-deployment/FINOPS.md)
+- **08:** [CODE_OF_CONDUCT.md](./08-knowledge-management/CODE_OF_CONDUCT.md) · [CONTRIBUTING.md](./08-knowledge-management/CONTRIBUTING.md) · [DEPRECATION_POLICY.md](./08-knowledge-management/DEPRECATION_POLICY.md)
+
 ## Estado do produto (verificado em produção, 2026-09-22)
 
 | Dimensão                                | Estado                                                                  |
@@ -94,7 +110,7 @@
 - **PLANO_MESTRE.md** (raiz) — estado consolidado do projeto e Estado Final.
 - **AGENTS.md** (raiz) — instruções para agentes (graft-first, navegação).
 - **SECURITY.md** (raiz) — política de segurança.
-- _*HANDOFF.md / PENDENCIAS_OPERADOR.md / PROMPT_* / worklog.md_* (raiz) — bastão, pendências e histórico de sessão do Operador.
+- _\*HANDOFF.md / PENDENCIAS_OPERADOR.md / PROMPT_* / worklog.md_* (raiz) — bastão, pendências e histórico de sessão do Operador.
 - **docs/06-devops-deployment/RECONCILIATION-REPORT.md** — snapshots de evidência por gate.
 
 ## Regra de manutenção
