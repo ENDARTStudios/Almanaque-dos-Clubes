@@ -149,7 +149,13 @@ export async function resolveDeepCoordinatesBulk(
       if (!c) continue;
       for (const { owner, source } of seeds) {
         if (out.has(owner)) continue;
-        out.set(owner, { lat: c.lat, lng: c.lng, source, precision: 'municipality', cityLabel: cityOf(ae) });
+        out.set(owner, {
+          lat: c.lat,
+          lng: c.lng,
+          source,
+          precision: 'municipality',
+          cityLabel: cityOf(ae),
+        });
       }
     }
     const next = new Map<string, Seed[]>();

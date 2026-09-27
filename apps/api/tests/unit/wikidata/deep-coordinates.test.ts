@@ -15,7 +15,9 @@ const ent = (
 
 function bulk(map: Record<string, WikidataEntity | null>) {
   return async (qids: string[]) =>
-    new Map<string, WikidataEntity | null>(qids.map((q) => [q, Object.prototype.hasOwnProperty.call(map, q) ? map[q] : null]));
+    new Map<string, WikidataEntity | null>(
+      qids.map((q) => [q, Object.prototype.hasOwnProperty.call(map, q) ? map[q] : null]),
+    );
 }
 
 async function resolveOne(q: string, map: Record<string, WikidataEntity | null>) {
@@ -62,7 +64,10 @@ describe('WS-D M1a-3 — resolveDeepCoordinatesBulk', () => {
 
   it('P937 (local de trabalho) com P625 → municipality', async () => {
     expect(
-      await resolveOne('Q1', { Q1: ent({ P937: [idc('QW')] }), QW: ent({ P625: [coord(10, 20)] }) }),
+      await resolveOne('Q1', {
+        Q1: ent({ P937: [idc('QW')] }),
+        QW: ent({ P625: [coord(10, 20)] }),
+      }),
     ).toMatchObject({ source: 'P937', precision: 'municipality' });
   });
 

@@ -125,7 +125,11 @@ async function main(): Promise<void> {
             meta.coordPrecision = r.precision;
             meta.coordResolvedAt = now;
             const res = await tx.club.updateMany({
-              where: { id: club.id, deletedAt: null, OR: [{ latitude: null }, { longitude: null }] },
+              where: {
+                id: club.id,
+                deletedAt: null,
+                OR: [{ latitude: null }, { longitude: null }],
+              },
               data: {
                 ...(club.latitude == null ? { latitude: r.lat } : {}),
                 ...(club.longitude == null ? { longitude: r.lng } : {}),
