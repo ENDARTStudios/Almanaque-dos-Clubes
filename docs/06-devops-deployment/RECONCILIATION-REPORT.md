@@ -1065,6 +1065,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 50 — WS-D M1a: enriquecimento de atributos (Wikidata) implementado (2026-09-27)
+
+**Contexto:** FASE 0 mediu 3.871 clubes 100% com QID; lacunas de atributo (city 88%, latitude 96%, fullName ~99% nulos) + 3 competições sem QID. **Entrega:** `lib/wikidata/wikidata-client.ts` (backoff/timeout/retry/cache/batch 50), `enrich-attributes.ts` (puros), `scripts/enrich-clubs-attributes.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; só preenche nulos; `importedFrom='wikidata-enrich-v1'`), `scripts/enrich-competitions-qid.ts` + `competitions-qid-mapping.json` (Q206813/Q843989/Q184795 validados). **Testes:** unit 6/6; integração 1/1 (preenche só nulos; não sobrescreve; rollback). tsc 0; lint 0. **Apply em produção = gate pós-merge.**
+
 ### GATE 2 adendum 49 — T448b-2g: encerrado via T448b-2h; despacho de backfill refutado (2026-09-27)
 
 **Medição read-only (produção):** clubes ativos sem QID = **0**; os 9 nomes de um despacho de backfill (`Corinthians`…`São Paulo`, BR) são **duplicatas legacy já soft-deleted** (`deletedAt` não-nulo, `qid` vazio); os **9 QIDs-alvo estão ocupados por clubes canônicos ATIVOS** (`Q35933`=S.C. Corinthians Paulista, `Q80955`=Santos F.C., `Q80845`=S.C. Internacional…). Homônimos `Q10391045/Q10391046/Q671621` intactos.

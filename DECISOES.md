@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a-wikidata-enrich — M1a: enriquecimento de atributos por QID (Wikidata CC0)
+
+Motivo: a FASE 0 do M1 mediu **100% de cobertura de QID** nos clubes → o valor está em **enriquecimento** (`city`/`latitude`/`fullName`) + **QID das 3 competições**. **Entrega:** cliente Wikidata com **backoff/timeout/retry + cache (TTL 1h) + batch** (`lib/wikidata/wikidata-client.ts`), extratores **puros** (`enrich-attributes.ts`: `P625`/`P131`/labels), script `enrich-clubs-attributes.ts` (DRY/`--apply --allow-production`; **chunks 100 Serializable**; **só preenche campos nulos**; proveniência `wikidata-enrich-v1`) e `enrich-competitions-qid.ts` + `competitions-qid-mapping.json` (**Q206813** Campeonato Brasileiro · **Q843989** Copa do Brasil · **Q184795** Copa Libertadores — validados manualmente por `wbsearchentities`). Testes unit **6/6** + integração (preenche só nulos; **não sobrescreve**; idempotente; rollback lógico) **1/1**. **Apply em produção = gate pós-merge.** **M1b pendente** (só após M1a verde).
+
 ### [2026-09-27] Decisão: D-2026-09-27-t448b2g-encerrado-via-2h — T448b-2g encerrado via T448b-2h (premissa de backfill refutada pela medição)
 
 Motivo: um despacho pediu executar o **backfill de QID** dos “9 clubes brasileiros ativos sem QID”. A **medição read-only** em produção **refutou a premissa**: clubes ativos sem QID = **0**; os 9 nomes são **duplicatas legacy já soft-deleted** e os 9 **QIDs-alvo estão ocupados por clubes canônicos ATIVOS** (`Q35933`=S.C. Corinthians Paulista, etc.). O **T448b-2h** já havia cumprido o objetivo (identidade por QID; base higienizada). **R3 aplicado:** nenhum pack/script/código escrito; zero escrita; homônimos e MG/GO/PR intactos. **Regra operacional reforçada:** **medição read-only antes de qualquer despacho de execução**. Próximo: **WS-D M1 (seed massivo Wikidata)**.
