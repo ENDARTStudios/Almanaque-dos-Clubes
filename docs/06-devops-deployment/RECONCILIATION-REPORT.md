@@ -1215,6 +1215,35 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — WS-C-2: UI pública (perfil + busca global + carrossel) — deploy web pendente
+
+**FASE 0 (read-only):** `main` `ab01289`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem
+QID; dup 0/0; hash `d2b117aa…`; estadual 7; EN pyramid 1). **Gate #264 (ODbL EN) verde** — `/metodologia`
+passou a exibir “OpenStreetMap contributors” (o literal canônico). Sem PR WS-C-2 pré-existente.
+
+**Implementado (PR #266, `27e98e5`, UI read-only, aditivo):**
+- Perfil `apps/web/src/app/clubs/[id]/page.tsx` → `GET /clubs/:id/profile` (geo + **attribution ODbL visível**,
+  proveniência, títulos/rankings/competições/`related`, **gaps** declarados, SEO/canonical/OG + JSON-LD).
+- Busca `components/GlobalSearch.tsx` + `app/search/page.tsx` → `GET /search/global` (tipada, case/acento,
+  homônimos por QID, URL state, a11y; página `noindex`).
+- Carrossel `components/ChampionsCarousel.tsx` + `lib/carousel.ts` → `GET /champions/carousel`
+  (**subconjunto ≤16**, não renderiza 418; `unavailable` nunca vira card; a11y).
+- Mapa `app/map/page.tsx` → `robots: noindex,nofollow` + fora do nav (**não público**).
+- i18n pt/en/es aditivo (`i18n/wsC2.ts`).
+
+**Testes/qualidade:** web unit 22/22 (4 novos `selectCarouselSubset`); `champions.spec.ts` (e2e) atualizado;
+`pnpm typecheck` (api+domain+web) ok; **`security-gate`/`migration-drift`/`gitleaks`/`dependency-audit`
+verdes**; sem migration.
+
+**Deploy (FASE 4):** merge na `main` ok, mas o **deploy de produção do web falhou por
+`api-deployments-free-per-day`** (limite free-tier da Vercel) → `blocked_reason:
+vercel_rate_limit_blocks_ws_c2_deploy`. **Sem repetir tentativas** (conforme dispatch). Último deploy de
+produção (anterior) permanece no ar com a compliance ODbL viva. **Smoke web pendente** até o reset
+(PENDENCIAS item [3]).
+
+**Integridade:** nenhuma escrita/migration; MG/GO/PR intactos; estadual RSSSF 7; `ranking_entries` hash
+`d2b117aa…` intacto.
+
 ### Run autônomo 2026-09-28 — GATE ODbL web: M1a-3 [x]
 
 O limite free-tier da Vercel destravou e um deploy de produção ficou `Ready`; o gate ODbL foi executado em

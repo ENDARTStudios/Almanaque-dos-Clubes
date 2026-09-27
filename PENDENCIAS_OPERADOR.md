@@ -44,9 +44,14 @@ https://almanaquedosclubes.com/metodologia: “© contribuidores do OpenStreetMa
 (ODbL)”, com menção a Nominatim, Wikidata CC0 e RSSSF “não é domínio público” intactos. O deploy de produção
 da Vercel destravou e o **gate ODbL passou** → **WS-D M1a-3 [x]**.
 
-**Residual (cosmético, não bloqueia):** o literal canônico em inglês “© OpenStreetMap contributors” (PR #264,
-já na `main`) ainda não subiu por o limite free-tier ter voltado a estourar (`api-deployments-free-per-day`).
-Subirá no próximo deploy possível. Abaixo, o histórico original da pendência.
+**Residual:** ✅ **encerrado (2026-09-28)** — o literal canônico em inglês “© OpenStreetMap contributors”
+(PR #264) **já está vivo**: `/metodologia` foi confirmada com “OpenStreetMap contributors” + “Open Database
+License (ODbL)” + “Nominatim”, com Wikidata CC0, RSSSF “não é domínio público” e MG/GO/PR/EN intactos.
+
+**Trava de mapa:** com a ODbL completa (PT+EN) publicada, a trava de mapa público pode ser removida **apenas
+com aprovação explícita do Thinker (WS-C-3)** — o mapa segue `noindex/nofollow` e fora do nav.
+
+Abaixo, o histórico original da pendência.
 **Dados já vivos:** coordenadas derivadas de **Nominatim/OSM** (451) estão em produção **via API**.
 **Risco:** conformidade de atribuição ODbL incompleta na superfície pública web.
 
@@ -69,6 +74,18 @@ publicar o mapa como feature pronta**.
 
 **Trava permanente:** nenhum lançamento público do mapa-múndi ou promoção de dados geográficos OSM antes da
 atribuição ODbL viva em `/metodologia`.
+
+```
+### [3] Destravar o deploy de produção do web (Vercel free-tier) para publicar o WS-C-2
+Por quê: o WS-C-2 (perfil público, busca global e carrossel) está mergeado na main com CI verde, mas o limite diário de deploys da Vercel free-tier impede o deploy de produção.
+Onde: Vercel — painel do projeto almanaque-dos-clubes (https://vercel.com/end-art-studios/almanaque-dos-clubes)
+Passo a passo:
+1. Aguardar o reset do limite (~24h) OU autorizar upgrade de plano / aumento de limite / alternativa de hosting.
+2. Um push para a main dispara o deploy de produção (job deploy-vercel-frontend) no SHA mais recente.
+3. Abrir /clubs/<id> (perfil), /search (busca) e a home (carrossel) e confirmar 200.
+Como saber que deu certo: o perfil mostra a atribuição ODbL quando houver coordenada OSM; a busca retorna clubes/competições; o carrossel mostra um subconjunto de campeões.
+Depois de feito: responda "feito o item Nº 3"
+```
 
 ```
 ### [2] Destravar deploy de produção do web (Vercel free-tier) para publicar a atribuição ODbL

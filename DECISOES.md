@@ -1270,3 +1270,40 @@ deploy possível (registrado em `PENDENCIAS_OPERADOR` item [2]).
 **Consequência:** `M1a-3` **[x]**. Desbloqueia **WS-C-2** (UI de perfil/busca/carrossel) e o **mapa público**
 (que, ao usar tiles OSM, agora tem a atribuição ODbL viva). A **mitigação API** (PR #259) permanece ativa e
 correta. Números M1a-3: coords 5.865 → **6.366** (+501: 50 Wikidata profundo + 451 Nominatim/OSM).
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-c-2-public-profile-search-carousel — WS-C-2 (UI pública) `[~]` deploy pendente
+
+**Estado:** WS-C-2 **implementado, CI verde e mergeado** (`27e98e5`, PR #266). **Deploy de produção do web
+BLOQUEADO** pelo limite free-tier da Vercel (`api-deployments-free-per-day`) → `blocked_reason:
+vercel_rate_limit_blocks_ws_c2_deploy`. UI **não publicada ainda**; sem smoke web. **Zero escrita / zero
+migration / integridade intacta.**
+
+**Motivo:** a camada pública de produto consome os endpoints API-only já vivos (WS-C-1), sem inventar dado e
+respeitando a atribuição ODbL. Pré-requisito de compliance (#264, ODbL EN) **já estava vivo** (deploy de
+produção anterior), então a autorização de UI estava satisfeita.
+
+**Entregue (código em `main`):**
+- **Perfil** `apps/web/src/app/clubs/[id]/page.tsx` — consome `GET /api/v1/clubs/:id/profile`; exibe geo +
+  **atribuição ODbL visível** (`data-testid="geo-attribution"`), proveniência, títulos/rankings/competições/
+  `related` e **`gaps` declarados**; SEO (`generateMetadata` + canonical + OG) e JSON-LD `SportsTeam` (só dados
+  existentes).
+- **Busca global** `components/GlobalSearch.tsx` + `app/search/page.tsx` — consome `GET /api/v1/search/global`;
+  tipada (all/club/competition), case/acento-insensível, **homônimos por QID não colapsados**, URL state
+  (`?q&type`), `aria-live`/combobox, estados loading/empty/error; página `noindex`.
+- **Carrossel** `components/ChampionsCarousel.tsx` (+ `lib/carousel.ts` puro) — consome
+  `GET /api/v1/champions/carousel`; **subconjunto determinístico ≤16** (mundial→continental→nacional→estadual),
+  **não renderiza os 418 scopes**; `unavailable` nunca vira card; gênero isolado; a11y (teclado/tabs/aria).
+- **Mapa** `app/map/page.tsx` — `robots: noindex,nofollow` e **removido do nav**; permanece preparado, **não
+  público** (WS-C-3 exige aprovação explícita).
+- **i18n** pt/en/es aditivo (`i18n/wsC2.ts`), sem mexer no `Dictionary` global.
+
+**Testes:** web unit 22/22 (4 novos: `selectCarouselSubset`); e2e `champions.spec.ts` atualizado para o
+payload do carrossel; `typecheck` (api+domain+web) ok; `security-gate`/`migration-drift`/`gitleaks`/
+`dependency-audit` verdes no CI.
+
+**Rollback:** revert do merge (UI é read-only; sem efeito em banco/dados).
+
+**Consequência:** `WS-C-2` = `[~]` até o deploy web (PENDENCIAS item [3]). `WS-C-1` `[x]`, `M1a-3` `[x]`,
+`WS-C-3` (mapa público) `[ ]`.
