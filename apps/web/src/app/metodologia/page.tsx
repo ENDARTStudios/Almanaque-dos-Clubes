@@ -69,7 +69,7 @@ export default function MetodologiaPage() {
             (Nominatim). Coordenadas de geocodificação são <strong>aproximadas</strong> (nível
             município) e marcadas como tal.{' '}
             <strong>
-              Geocodificação: © contribuidores do OpenStreetMap, disponibilizada sob a Open Database
+              Geocodificação: © OpenStreetMap contributors, disponibilizada sob a Open Database
               License (ODbL).
             </strong>
           </p>
