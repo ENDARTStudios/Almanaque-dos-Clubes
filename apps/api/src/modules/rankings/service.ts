@@ -10,6 +10,36 @@ import {
 } from '@almanaque/domain';
 import { rankingsRepository, type ListRankingsParams } from './repository.js';
 import { cache } from '../../services/cache.js';
+import { resolveCompetitionTier } from '../../lib/rankings/tiers/resolve-tier.js';
+
+/** T449c-v1 — visão aditiva de tier/divisão de uma competição (nunca quebra contrato). */
+export interface CompetitionTierPayload {
+  id: string;
+  qid: string | null;
+  name: string | null;
+  level: number | null;
+  divisionLabel: string | null;
+  tierSource: string | null;
+  tierVersion: string | null;
+}
+
+function toCompetitionTier(c: {
+  id: string;
+  qid: string | null;
+  name: string | null;
+  level: number | null;
+}): CompetitionTierPayload {
+  const t = resolveCompetitionTier(c);
+  return {
+    id: c.id,
+    qid: c.qid,
+    name: c.name,
+    level: t.level,
+    divisionLabel: t.divisionLabel,
+    tierSource: t.tierSource,
+    tierVersion: t.tierVersion,
+  };
+}
 
 const RANKING_TTL_SECONDS = 60 * 60; // 1h (rankings publicados são imutáveis)
 
@@ -33,15 +63,25 @@ export const rankingsService = {
     return ranking;
   },
 
-  async list(
-    params: ListRankingsParams,
-  ): Promise<{ data: Ranking[]; total: number; limit: number; offset: number }> {
+  async list(params: ListRankingsParams): Promise<{
+    data: Array<Ranking & { competition: CompetitionTierPayload | null }>;
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
     return cache.remember(listCacheKey(params), RANKING_TTL_SECONDS, async () => {
       const [data, total] = await Promise.all([
         rankingsRepository.findMany(params),
         rankingsRepository.count(params),
       ]);
-      return { data, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
+      const compIds = [...new Set(data.map((r) => r.competitionId).filter(Boolean))] as string[];
+      const comps = await rankingsRepository.findCompetitionsByIds(compIds);
+      const byId = new Map(comps.map((c) => [c.id, c]));
+      const enriched = data.map((r) => {
+        const comp = r.competitionId ? byId.get(r.competitionId) : undefined;
+        return { ...r, competition: comp ? toCompetitionTier(comp) : null };
+      });
+      return { data: enriched, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
     });
   },
 
@@ -88,10 +128,17 @@ export const rankingsService = {
     return published;
   },
 
-  async getEntries(rankingId: string): Promise<RankingEntry[]> {
+  async getEntries(rankingId: string): Promise<{
+    data: RankingEntry[];
+    competition: CompetitionTierPayload | null;
+  }> {
     const ranking = await rankingsRepository.findById(rankingId);
     if (!ranking) throw new NotFoundError('Ranking', rankingId);
-    return rankingsRepository.findEntries(rankingId);
+    const entries = await rankingsRepository.findEntries(rankingId);
+    const comp = ranking.competitionId
+      ? ((await rankingsRepository.findCompetitionsByIds([ranking.competitionId]))[0] ?? null)
+      : null;
+    return { data: entries, competition: comp ? toCompetitionTier(comp) : null };
   },
 
   async addEntry(rankingId: string, input: unknown): Promise<RankingEntry> {
@@ -148,6 +195,7 @@ export const rankingsService = {
       name: string;
       season: string | null;
       competitionId: string | null;
+      competition: CompetitionTierPayload | null;
     } | null;
     data: Array<{
       position: number | null;
@@ -177,12 +225,16 @@ export const rankingsService = {
       city: params.city,
       gender: params.gender,
     });
+    const comp = ranking.competitionId
+      ? ((await rankingsRepository.findCompetitionsByIds([ranking.competitionId]))[0] ?? null)
+      : null;
     return {
       ranking: {
         id: ranking.id,
         name: ranking.name,
         season: ranking.season,
         competitionId: ranking.competitionId,
+        competition: comp ? toCompetitionTier(comp) : null,
       },
       data: entries.map((e) => ({
         position: e.position,
@@ -211,6 +263,7 @@ export const rankingsService = {
       rankingName: string;
       season: string | null;
       competitionId: string | null;
+      competition: CompetitionTierPayload | null;
       position: number | null;
       points: number | null;
       baseMatches: number | null;
@@ -221,21 +274,31 @@ export const rankingsService = {
     const exists = await rankingsRepository.clubExists(clubId);
     if (!exists) throw new NotFoundError('Clube', clubId);
     const entries = await rankingsRepository.findClubHistory(clubId, year);
+    const compIds = [
+      ...new Set(entries.map((e) => e.ranking.competitionId).filter(Boolean)),
+    ] as string[];
+    const byId = new Map(
+      (await rankingsRepository.findCompetitionsByIds(compIds)).map((c) => [c.id, c]),
+    );
     return {
       club: entries[0]
         ? { id: entries[0].club.id, name: entries[0].club.name }
         : { id: clubId, name: '' },
-      data: entries.map((e) => ({
-        rankingId: e.ranking.id,
-        rankingName: e.ranking.name,
-        season: e.ranking.season,
-        competitionId: e.ranking.competitionId,
-        position: e.position,
-        points: e.points,
-        baseMatches: e.baseMatches,
-        baseTitles: e.baseTitles,
-        publishedAt: e.ranking.publishedAt,
-      })),
+      data: entries.map((e) => {
+        const comp = e.ranking.competitionId ? byId.get(e.ranking.competitionId) : undefined;
+        return {
+          rankingId: e.ranking.id,
+          rankingName: e.ranking.name,
+          season: e.ranking.season,
+          competitionId: e.ranking.competitionId,
+          competition: comp ? toCompetitionTier(comp) : null,
+          position: e.position,
+          points: e.points,
+          baseMatches: e.baseMatches,
+          baseTitles: e.baseTitles,
+          publishedAt: e.ranking.publishedAt,
+        };
+      }),
     };
   },
 };

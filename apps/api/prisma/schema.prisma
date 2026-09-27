@@ -141,6 +141,7 @@ model Competition {
   name         String
   country      String?  @db.VarChar(2)
   type         CompetitionType?
+  level        Int? // T449c-v1 — degrau na pirâmide nacional (1 = elite); NULL = desconhecido
   qid          String?  @unique // Wikidata Q-identifier
   importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
@@ -157,6 +158,7 @@ model Competition {
   @@index([country])
   @@index([type])
   @@index([qid])
+  @@index([level])
   @@map("competitions")
 }
 

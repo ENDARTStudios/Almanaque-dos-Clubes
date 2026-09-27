@@ -55,6 +55,17 @@ export const rankingsRepository = {
     return prisma.ranking.findUnique({ where: { id } }) as Promise<Ranking | null>;
   },
 
+  /** T449c-v1 — competições (com `level`) para enriquecer rankings (sem N+1). */
+  async findCompetitionsByIds(
+    ids: string[],
+  ): Promise<Array<{ id: string; qid: string | null; name: string | null; level: number | null }>> {
+    if (ids.length === 0) return [];
+    return prisma.competition.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, qid: true, name: true, level: true },
+    });
+  },
+
   async update(
     id: string,
     data: Partial<Omit<Ranking, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'>>,
