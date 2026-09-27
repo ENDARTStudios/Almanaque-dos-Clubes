@@ -1214,3 +1214,11 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 **Bloqueio infra (declarado):** Vercel free-tier (`api-deployments-free-per-day`, ~24h) travou o deploy de produção
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
+
+**Mitigação API-only de conformidade (PR #259, `7e5e20c`): enquanto o web está bloqueado, a API expõe a atribuição.**
+Helper puro `lib/geocoding/geo-attribution.ts` (`geoAttributionForMetadata`): origem OSM/Nominatim → `{ geo: '©
+OpenStreetMap contributors (ODbL)', source: 'openstreetmap/nominatim', license: 'ODbL' }`; Wikidata → `null`.
+**Aditivo**: `/clubs/:id/geo` ganha `attribution`; `/clubs` (lista) e `/clubs/:id` ganham `attribution` por item.
+Testes: 5 unit + 1 integração (Postgres real). Smoke de produção: clube OSM → ODbL; Wikidata/sem-metadata → null.
+**M1a-3 permanece [~]** até `/metodologia` publicar ODbL (pendência externa registrada em `PENDENCIAS_OPERADOR.md`
+item [2]).
