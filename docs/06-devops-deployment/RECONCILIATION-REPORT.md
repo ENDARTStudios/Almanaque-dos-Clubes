@@ -1065,6 +1065,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 54 — T448b-2i: soft-delete de Competition + dedupe por QID implementado (2026-09-28)
+
+**FASE 0 (read-only):** 3 duplicatas (qid NULL) — canônicas `Q206813`/`Q843989`/`Q184795`; refs a redirecionar = 2 (`rankings`); 0 qid dup global; entries EN `d2b117aa…`; estadual=7. **Migration** aditiva `20261007120000_t448b2i_competition_soft_delete` (`deletedAt`/`deletionReason` + índice). Módulo puro `lib/identity/competition-dedupe.ts` (canônica por QID) + `scripts/dedupe-competitions.ts` (DRY/`--apply --allow-production`; redirect reversível + soft-delete; manifest; Serializable). **Testes:** unit 7/7. tsc/lint 0. **Apply em produção = gate pós-merge.**
+
 ### GATE 2 adendum 53 — WS-D M1a-2 ATIVO: coords/city enriquecidos (2026-09-27)
 
 **Merge #243 (`475dfcd`) → Railway SUCCESS.** DRY `wouldUpdate={coordinates:2632, city:2171}`; APPLY `totalUpdated=2780` (errors 0; hardDeletes 0; migrations 0); re-run idempotente (0/0). SQL: `with_coords` **2790** · `with_city` **2625**. hash entries EN `d2b117aa…` inalterado; estadual=7. Cache no-op. API smoke `/clubs?country=BR` 200 com city/lat. Próximo: migration `Competition.deletedAt` → dedupe.

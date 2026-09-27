@@ -121,6 +121,9 @@ model Competition {
   sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  // T448b-2i — soft-delete de duplicatas legacy (identidade canônica = qid). Sem hard delete.
+  deletedAt      DateTime?
+  deletionReason String?
 
   rankings Ranking[]
 
@@ -128,6 +131,7 @@ model Competition {
   @@index([type])
   @@index([qid])
   @@index([level])
+  @@index([deletedAt])
   @@map("competitions")
 }
 
