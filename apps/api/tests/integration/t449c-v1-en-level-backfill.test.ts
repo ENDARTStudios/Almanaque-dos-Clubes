@@ -93,10 +93,13 @@ describe('T449c-v1 — backfill EN levels (Postgres real, rollback)', () => {
     if (!dbOk || !isPostgres) return;
     const res = await inTx(async (tx) => {
       await ensureCompsAtLevelNull(tx);
-      await tx.competition.update({
-        where: { qid: EN_PYRAMID_TIERS[0].competitionQid },
-        data: { level: EN_PYRAMID_TIERS[0].level },
-      });
+      // aplica todos corretos e depois corrompe um (só ele deve ser atualizado)
+      for (const t of EN_PYRAMID_TIERS) {
+        await tx.competition.update({
+          where: { qid: t.competitionQid },
+          data: { level: t.level },
+        });
+      }
       await tx.competition.update({
         where: { qid: EN_PYRAMID_TIERS[1].competitionQid },
         data: { level: 7 },
@@ -110,8 +113,9 @@ describe('T449c-v1 — backfill EN levels (Postgres real, rollback)', () => {
       return { plan, applied };
     });
     expect(res.plan.wouldUpdate).toBe(1);
-    expect(res.plan.noop).toBe(1);
+    expect(res.plan.noop).toBe(4);
     expect(res.applied.updated).toBe(1);
+    expect(res.applied.noop).toBe(4);
   });
 
   it('SCORE INALTERADO: apply de levels não muda points/position/base do ranking', async () => {
