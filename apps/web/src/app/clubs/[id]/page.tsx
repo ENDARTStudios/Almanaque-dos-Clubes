@@ -1,47 +1,111 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
 
-async function getClub(id: string) {
+// WS-C-2 — perfil público consolidado. Fonte única: GET /api/v1/clubs/:id/profile.
+// Renderiza SOMENTE o que a API entrega; lacunas declaradas como lacunas (nunca inventadas).
+
+interface GeoAttribution {
+  geo: string;
+  source: string;
+  license: string;
+}
+interface ClubProfile {
+  id: string;
+  qid: string | null;
+  name: string;
+  fullName: string | null;
+  shortName: string | null;
+  status: string;
+  country: string | null;
+  state: string | null;
+  city: string | null;
+  foundedYear: number | null;
+  geo: {
+    latitude: number | null;
+    longitude: number | null;
+    coordSource: string | null;
+    coordPrecision: string | null;
+    attribution: GeoAttribution | null;
+  };
+  provenance: {
+    source: 'wikidata' | 'rsssf' | 'seed' | null;
+    sourceUrl: string | null;
+    importedFrom: string | null;
+    retrievedAt: string | null;
+  };
+  titles: {
+    available: boolean;
+    items: Array<{
+      year: number | null;
+      season: string | null;
+      competition: { id: string; name: string | null } | null;
+      hierarchy: string;
+      gender: 'men' | 'women';
+      sourceUrl: string | null;
+    }>;
+    limitations: string[];
+  };
+  rankings: {
+    available: boolean;
+    items: Array<{
+      rankingId: string;
+      rankingName: string;
+      scope: string | null;
+      season: string | null;
+      competitionId: string | null;
+      competitionName: string | null;
+      position: number | null;
+      points: number | null;
+      publishedAt: string | null;
+    }>;
+    limitations: string[];
+  };
+  competitions: {
+    available: boolean;
+    items: Array<{
+      id: string;
+      qid: string | null;
+      name: string | null;
+      type: string | null;
+      country: string | null;
+    }>;
+    limitations: string[];
+  };
+  related: {
+    available: boolean;
+    items: Array<{
+      relation: string;
+      direction: 'source' | 'target';
+      otherId: string;
+      otherType: string;
+      sourceUrl: string | null;
+    }>;
+    limitations: string[];
+  };
+  gaps: string[];
+}
+
+async function getProfile(id: string): Promise<ClubProfile | null> {
   try {
-    const res = await fetch(`${getApiBase()}/clubs/${id}`, { cache: 'no-store' });
+    const res = await fetch(`${getApiBase()}/clubs/${id}/profile`, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const json = await res.json();
-    return json.data;
+    return json.data as ClubProfile;
   } catch {
     return null;
   }
 }
 
-interface ClubTitle {
-  year: number | null;
-  season: string | null;
-  competition: { id: string; name: string | null } | null;
-  hierarchy: string;
-  gender: 'men' | 'women';
-  sourceUrl: string | null;
+async function getLocale() {
+  const store = await cookies();
+  return normalizeLocale(store.get(LOCALE_COOKIE)?.value);
 }
-
-// T448 — galeria de honra: arestas WON do clube (KnowledgeGraph), com fonte.
-async function getClubTitles(id: string): Promise<{ data: ClubTitle[]; total: number } | null> {
-  try {
-    const res = await fetch(`${getApiBase()}/clubs/${id}/titles`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
-const HIERARCHY_LABELS: Record<string, string> = {
-  mundial: 'Mundial',
-  continental: 'Continental',
-  nacional: 'Nacional',
-  estadual: 'Estadual',
-  municipal: 'Municipal',
-};
 
 export async function generateMetadata({
   params,
@@ -49,27 +113,36 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const club = await getClub(id);
-  if (!club) return { title: 'Clube não encontrado' };
+  const club = await getProfile(id);
+  if (!club) return { title: 'Clube não encontrado', robots: { index: false } };
+  const place = [club.city, club.state, club.country].filter(Boolean).join(', ');
   return {
-    title: club.name,
-    description: `${club.name} — ${club.city ? `${club.city}, ` : ''}${club.country ?? ''}`,
+    title: `{name}${place ? ` — ${place}` : ''}`.replace('{name}', club.name),
+    description: `${club.name}${club.fullName ? ` (${club.fullName})` : ''}${place ? ` — ${place}` : ''}. Perfil auditável com proveniência (Wikidata/RSSSF).`,
+    alternates: { canonical: `/clubs/${club.id}` },
+    openGraph: {
+      title: club.name,
+      description: place ? `${club.name} — ${place}` : club.name,
+      type: 'profile',
+    },
   };
 }
 
 export default async function ClubDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const club = await getClub(id);
+  const club = await getProfile(id);
   if (!club) notFound();
-  const titles = await getClubTitles(id);
-  const titleList = titles?.data ?? [];
+  const locale = await getLocale();
+  const s = wsC2Strings[locale].profile;
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsTeam',
     name: club.name,
+    alternateName: club.fullName ?? undefined,
+    sameAs: club.provenance.sourceUrl ?? undefined,
     location: club.city ? { '@type': 'City', name: club.city } : undefined,
-    country: club.country,
+    country: club.country ?? undefined,
     foundingDate: club.foundedYear ? `${club.foundedYear}` : undefined,
   };
 
@@ -83,134 +156,290 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         href="/clubs"
         className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
       >
-        &larr; Voltar para Clubes
+        &larr; {s.backToClubs}
       </Link>
-      <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
+
+      <header className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
+          <div
+            aria-hidden="true"
+            className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0"
+          >
             {club.name.slice(0, 2).toUpperCase()}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {club.name}
             </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
             {club.shortName && <p className="text-sm text-foreground/40">({club.shortName})</p>}
+            <div className="flex flex-wrap gap-3 mt-3 text-sm">
+              {club.qid && (
+                <a
+                  href={`https://www.wikidata.org/wiki/${club.qid}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {club.qid} · {s.wikidata}
+                </a>
+              )}
+            </div>
           </div>
           <div className="shrink-0">
             <FavoriteButton clubId={club.id} />
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
-          {club.country && <InfoItem label="País" value={club.country} />}
-          {club.city && <InfoItem label="Cidade" value={club.city} />}
-          {club.state && <InfoItem label="Estado" value={club.state} />}
-          {club.foundedYear && <InfoItem label="Fundação" value={String(club.foundedYear)} />}
-          {club.status && <InfoItem label="Status" value={club.status} />}
-          {club.website && (
-            <div>
-              <p className="text-xs text-foreground/40 uppercase tracking-wider">Site</p>
-              <a
-                href={club.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline cursor-pointer"
-              >
-                {club.website}
-              </a>
-            </div>
-          )}
-          {club.sourceUrl && (
-            <div>
-              <p className="text-xs text-foreground/40 uppercase tracking-wider">
-                Fonte (Wikidata)
-              </p>
-              <a
-                href={club.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline cursor-pointer"
-              >
-                Ver no Wikidata
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {titleList.length > 0 ? (
-        <section
-          className="mt-8 bg-background rounded-2xl p-8 shadow-md border border-border/50"
-          aria-label="Galeria de honra"
-          data-testid="club-honour-gallery"
-        >
-          <h2 className="text-xl font-heading font-bold text-foreground flex items-center gap-2">
-            <span aria-hidden="true">🏆</span> Galeria de honra
-          </h2>
-          <p className="text-xs text-foreground/40 mt-1">
-            {titleList.length > 1 ? `${titleList.length} títulos auditáveis` : '1 título auditável'}{' '}
-            no acervo (fonte por título)
-          </p>
-          <ul className="mt-5 divide-y divide-border/50">
-            {titleList.map((t, i) => (
+        <dl className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
+          {club.country && <InfoItem label={s.country} value={club.country} />}
+          {club.city && <InfoItem label={s.city} value={club.city} />}
+          {club.state && <InfoItem label={s.state} value={club.state} />}
+          {club.foundedYear && <InfoItem label={s.founded} value={String(club.foundedYear)} />}
+          {club.status && <InfoItem label={s.status} value={club.status} />}
+        </dl>
+      </header>
+
+      <Section title={s.provenance}>
+        <ul className="text-sm space-y-1">
+          {club.provenance.source && (
+            <li>
+              {s.source}: <span className="font-medium uppercase">{club.provenance.source}</span>
+              {club.provenance.sourceUrl && (
+                <>
+                  {' · '}
+                  <a
+                    href={club.provenance.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {club.provenance.sourceUrl}
+                  </a>
+                </>
+              )}
+            </li>
+          )}
+          {club.provenance.importedFrom && (
+            <li className="text-foreground/60">
+              {s.importedFrom}: {club.provenance.importedFrom}
+            </li>
+          )}
+          {club.provenance.retrievedAt && (
+            <li className="text-foreground/60">
+              {s.retrievedAt}: {club.provenance.retrievedAt}
+            </li>
+          )}
+          {!club.provenance.source && !club.provenance.sourceUrl && (
+            <li className="text-foreground/50">{s.notAvailable}</li>
+          )}
+        </ul>
+      </Section>
+
+      <Section title={s.geography}>
+        {club.geo.latitude != null && club.geo.longitude != null ? (
+          <div className="text-sm space-y-2">
+            <p>
+              {s.coordinates}:{' '}
+              <span className="font-mono tabular-nums">
+                {club.geo.latitude.toFixed(4)}, {club.geo.longitude.toFixed(4)}
+              </span>
+              {club.geo.coordPrecision === 'municipality' ||
+              club.geo.coordPrecision === 'approximate' ? (
+                <span className="text-foreground/50"> · {s.coordApprox}</span>
+              ) : null}
+            </p>
+            {club.geo.attribution && (
+              <p
+                data-testid="geo-attribution"
+                className="text-xs text-foreground/60 border border-border/60 rounded-lg px-3 py-2 inline-block"
+              >
+                {club.geo.attribution.geo}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-foreground/50">{s.noGeo}</p>
+        )}
+      </Section>
+
+      <Section title={s.titles} testid="club-honour-gallery">
+        {club.titles.available ? (
+          <ul className="divide-y divide-border/50">
+            {club.titles.items.map((tl, i) => (
               <li
-                key={`${t.competition?.id ?? 'x'}-${t.year ?? i}-${i}`}
-                className="flex items-center justify-between gap-4 py-3"
+                key={`${tl.competition?.id ?? 'x'}-${tl.year ?? i}`}
                 data-testid="club-honour-title"
+                className="flex items-center justify-between gap-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
-                    {t.competition?.id ? (
+                    {tl.competition?.id ? (
                       <Link
-                        href={`/competitions/${t.competition.id}`}
+                        href={`/competitions/${tl.competition.id}`}
                         className="hover:text-primary transition-colors"
                       >
-                        {t.competition.name ?? 'Competição'}
+                        {tl.competition.name ?? '—'}
                       </Link>
                     ) : (
-                      (t.competition?.name ?? 'Competição')
+                      (tl.competition?.name ?? '—')
                     )}
                   </p>
                   <p className="text-xs text-foreground/40 mt-0.5">
-                    {HIERARCHY_LABELS[t.hierarchy] ?? t.hierarchy}
-                    {t.gender === 'women' ? ' · Feminino' : ''}
+                    {tl.hierarchy}
+                    {tl.gender === 'women' ? ` · ${s.genderWomen}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-sm font-heading font-semibold text-primary tabular-nums">
-                    {t.year ?? '—'}
+                    {tl.year ?? '—'}
                   </span>
-                  {t.sourceUrl && (
+                  {tl.sourceUrl && (
                     <a
-                      href={t.sourceUrl}
+                      href={tl.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Fonte da conquista de ${t.year ?? 'ano desconhecido'}`}
-                      className="text-xs text-foreground/40 hover:text-primary transition-colors underline decoration-dotted underline-offset-2"
+                      className="text-xs text-foreground/40 hover:text-primary underline decoration-dotted underline-offset-2"
                     >
-                      fonte
+                      {s.source}
                     </a>
                   )}
                 </div>
               </li>
             ))}
           </ul>
-        </section>
-      ) : (
-        <p className="mt-6 text-sm text-foreground/50" data-testid="club-honour-empty">
-          Nenhuma conquista auditável registrada para este clube ainda — o acervo de títulos está em
-          crescimento.
-        </p>
+        ) : (
+          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+        )}
+      </Section>
+
+      <Section title={s.rankings}>
+        {club.rankings.available ? (
+          <ul className="divide-y divide-border/50">
+            {club.rankings.items.map((r) => (
+              <li
+                key={`${r.rankingId}-${r.position ?? ''}`}
+                className="flex items-center justify-between gap-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{r.rankingName}</p>
+                  <p className="text-xs text-foreground/40 mt-0.5">
+                    {r.competitionName ?? r.scope ?? ''}
+                    {r.season ? ` · ${s.season} ${r.season}` : ''}
+                  </p>
+                </div>
+                <div className="text-right shrink-0 text-sm tabular-nums">
+                  {r.position != null && (
+                    <span className="font-heading font-semibold text-primary">
+                      {s.position} {r.position}
+                    </span>
+                  )}
+                  {r.points != null && (
+                    <span className="text-foreground/50 block text-xs">
+                      {r.points} {s.points}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+        )}
+      </Section>
+
+      <Section title={s.competitions}>
+        {club.competitions.available ? (
+          <ul className="flex flex-wrap gap-2">
+            {club.competitions.items.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/competitions/${c.id}`}
+                  className="inline-block text-sm rounded-lg border border-border px-3 py-1.5 hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  {c.name ?? '—'}
+                  {c.country ? <span className="text-foreground/40"> · {c.country}</span> : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+        )}
+      </Section>
+
+      <Section title={s.related}>
+        {club.related.available ? (
+          <ul className="text-sm space-y-1">
+            {club.related.items.slice(0, 50).map((e, i) => (
+              <li key={`${e.relation}-${e.otherId}-${i}`} className="text-foreground/70">
+                <span className="font-medium">{e.relation}</span> · {e.otherType} ·{' '}
+                <span className="font-mono text-xs">{e.otherId}</span>
+                {e.sourceUrl && (
+                  <>
+                    {' '}
+                    <a
+                      href={e.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {s.source}
+                    </a>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+        )}
+      </Section>
+
+      {club.gaps.length > 0 && (
+        <Section title={s.gaps} testid="club-gaps">
+          <p className="text-sm text-foreground/60 mb-3">{s.gapsIntro}</p>
+          <ul className="flex flex-wrap gap-2">
+            {club.gaps.map((g) => (
+              <li
+                key={g}
+                className="text-xs rounded-full border border-dashed border-border px-3 py-1 text-foreground/50"
+              >
+                {s.gapLabels[g] ?? g}
+              </li>
+            ))}
+          </ul>
+        </Section>
       )}
     </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+  testid,
+}: {
+  title: string;
+  children: React.ReactNode;
+  testid?: string;
+}) {
+  return (
+    <section
+      className="mt-8 bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50"
+      data-testid={testid}
+    >
+      <h2 className="text-xl font-heading font-bold text-foreground mb-4">{title}</h2>
+      {children}
+    </section>
   );
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-foreground/40 uppercase tracking-wider">{label}</p>
-      <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
+      <dt className="text-xs text-foreground/40 uppercase tracking-wider">{label}</dt>
+      <dd className="text-sm font-medium text-foreground mt-0.5">{value}</dd>
     </div>
   );
 }

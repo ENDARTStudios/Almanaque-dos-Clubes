@@ -3,36 +3,34 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
+import { wsC2Strings } from '@/i18n/wsC2';
+import { selectCarouselSubset, type CarouselScope } from '@/lib/carousel';
 
-// T441 — Carrossel de campeões: slider horizontal com scroll-snap (CSS puro),
-// setas + teclado (ArrowLeft/Right), dots indicadores, aria-live="polite".
-// Sem autoplay (respeita prefers-reduced-motion e foco do usuário).
-// Honestidade 1.3: sem campeão auditável no acervo → estado vazio explícito.
+// WS-C-2 — Carrossel determinístico sobre GET /api/v1/champions/carousel.
+// Regras: usa somente KG WON ativas com proveniência; ambíguos/ausentes são OMITIDOS pela API.
+// Performance: NÃO renderiza os ~418 scopes de uma vez — subconjunto determinístico (≤ MAX_CARDS),
+// priorizando mundial → continental → nacional → estadual. Sem autoplay (prefers-reduced-motion).
 
-interface ChampionEntry {
+interface CarouselUnavailable {
   hierarchy: string;
-  champion: {
-    club: { id: string; name: string; country: string | null };
-    competition: { id: string; name: string | null };
-    season: number | null;
-    trophy: string | null;
-    gender: 'men' | 'women' | null;
-    ranking: { name: string; position: number; points: number | null } | null;
-    sourceUrl?: string | null;
-  } | null;
-  reason?: string;
+  season: number | null;
+  gender: string | null;
+  competitionId: string | null;
+  reason: string;
 }
-
-interface ChampionsResponse {
-  data: ChampionEntry[];
+interface CarouselResponse {
   generatedAt: string;
+  rulesVersion: string;
+  scopes: CarouselScope[];
+  unavailable: CarouselUnavailable[];
+  limitations: string[];
 }
 
 function TrophyIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-10 w-10 text-primary/70"
+      className="h-9 w-9 text-primary/70"
       aria-hidden="true"
       fill="currentColor"
     >
@@ -42,17 +40,18 @@ function TrophyIcon() {
 }
 
 export default function ChampionsCarousel() {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const t = dict.pages.champions;
+  const c2 = wsC2Strings[locale].carousel;
   const trackRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<ChampionsResponse | null>(null);
+  const [data, setData] = useState<CarouselResponse | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     let active = true;
     api
-      .get<ChampionsResponse>('/champions')
+      .get<CarouselResponse>('/champions/carousel')
       .then((res) => {
         if (active) {
           setData(res);
@@ -67,7 +66,8 @@ export default function ChampionsCarousel() {
     };
   }, []);
 
-  const champions = (data?.data ?? []).filter((d) => d.champion !== null);
+  const cards = data ? selectCarouselSubset(data.scopes) : [];
+  const municipalGap = data?.unavailable.some((u) => u.hierarchy === 'municipal');
 
   function scrollTo(index: number): void {
     const track = trackRef.current;
@@ -82,7 +82,7 @@ export default function ChampionsCarousel() {
   function onKeyNav(e: React.KeyboardEvent): void {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      scrollTo(Math.min(current + 1, champions.length - 1));
+      scrollTo(Math.min(current + 1, cards.length - 1));
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       scrollTo(Math.max(current - 1, 0));
@@ -93,10 +93,9 @@ export default function ChampionsCarousel() {
     <section
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
       role="region"
-      aria-label={t.title}
-      aria-live="polite"
+      aria-label={c2.title}
     >
-      <h2 className="text-2xl sm:text-3xl font-heading font-bold mb-6">{t.title}</h2>
+      <h2 className="text-2xl sm:text-3xl font-heading font-bold mb-6">{c2.title}</h2>
 
       {!loaded ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" aria-hidden="true">
@@ -108,9 +107,9 @@ export default function ChampionsCarousel() {
             />
           ))}
         </div>
-      ) : champions.length === 0 ? (
+      ) : cards.length === 0 ? (
         <p className="text-sm text-foreground/60 py-6" data-testid="champions-empty">
-          {t.empty}
+          {c2.empty}
         </p>
       ) : (
         <>
@@ -119,71 +118,77 @@ export default function ChampionsCarousel() {
             onKeyDown={onKeyNav}
             tabIndex={0}
             role="group"
-            aria-label={t.title}
+            aria-label={c2.title}
+            aria-live="polite"
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
           >
-            {champions.map((entry) => {
-              const c = entry.champion!;
-              return (
-                <article
-                  key={entry.hierarchy}
-                  className="snap-start shrink-0 w-72 rounded-xl border border-border bg-background p-5 shadow-sm"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                      {t[`hierarchy_${entry.hierarchy}` as keyof typeof t] ?? entry.hierarchy}
-                    </span>
-                    <TrophyIcon />
-                  </div>
-                  <Link
-                    href={`/clubs/${c.club.id}?season=${c.season ?? ''}`}
-                    className="block group"
-                  >
-                    <p className="text-lg font-heading font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {c.club.name}
-                    </p>
-                  </Link>
-                  <p className="text-sm text-foreground/60 mt-1">{c.competition.name ?? '—'}</p>
-                  <p className="text-xs text-foreground/40 mt-0.5">
-                    {t.season}: {c.season ?? '—'}
-                    {c.club.country ? ` · ${c.club.country}` : ''}
+            {cards.map((scope) => (
+              <article
+                key={`${scope.hierarchy}-${scope.competition.id}-${scope.gender}-${scope.season}`}
+                data-testid="champion-card"
+                className="snap-start shrink-0 w-72 rounded-xl border border-border bg-background p-5 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                    {t[`hierarchy_${scope.hierarchy}` as keyof typeof t] ?? scope.hierarchy}
+                    {scope.gender === 'women' ? ` · ${dict.pages.rankings.genderWomen}` : ''}
+                  </span>
+                  <TrophyIcon />
+                </div>
+                <Link href={`/clubs/${scope.champion.id}`} className="block group">
+                  <p className="text-lg font-heading font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {scope.champion.name}
                   </p>
-                  {c.ranking ? (
-                    <p className="text-xs text-primary mt-2">
-                      {t.rankingBadge
-                        .replace('{position}', String(c.ranking.position))
-                        .replace('{name}', c.ranking.name)}
-                    </p>
-                  ) : null}
-                  {c.sourceUrl ? (
-                    <a
-                      href={c.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-testid={`champion-source-${entry.hierarchy}`}
-                      className="inline-block text-xs text-foreground/50 hover:text-primary transition-colors mt-2 underline decoration-dotted underline-offset-2"
+                </Link>
+                <p className="text-sm text-foreground/60 mt-1">
+                  {scope.competition.id ? (
+                    <Link
+                      href={`/competitions/${scope.competition.id}`}
+                      className="hover:text-primary transition-colors"
                     >
-                      {t.source}
-                    </a>
-                  ) : null}
-                </article>
-              );
-            })}
+                      {scope.competition.name ?? '—'}
+                    </Link>
+                  ) : (
+                    (scope.competition.name ?? '—')
+                  )}
+                </p>
+                <p className="text-xs text-foreground/40 mt-0.5">
+                  {c2.season}: {scope.season}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[11px] uppercase tracking-wide text-foreground/40">
+                    {scope.source.type}
+                  </span>
+                  {scope.source.license && (
+                    <span className="text-[11px] text-foreground/40">· {scope.source.license}</span>
+                  )}
+                </div>
+                {scope.source.sourceUrl && (
+                  <a
+                    href={scope.source.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`champion-source-${scope.hierarchy}`}
+                    className="inline-block text-xs text-foreground/50 hover:text-primary transition-colors mt-1 underline decoration-dotted underline-offset-2"
+                  >
+                    {c2.source}
+                  </a>
+                )}
+              </article>
+            ))}
           </div>
 
           <div className="flex items-center justify-between mt-3">
             <div className="flex gap-1.5" role="tablist" aria-label={t.dots}>
-              {champions.map((entry, i) => (
+              {cards.map((scope, i) => (
                 <button
-                  key={entry.hierarchy}
+                  key={`${scope.hierarchy}-${scope.competition.id}-${i}`}
                   type="button"
                   role="tab"
                   aria-selected={current === i}
                   aria-label={`${t.dots} ${i + 1}`}
                   onClick={() => scrollTo(i)}
-                  className={`h-2 rounded-full transition-all ${
-                    current === i ? 'w-6 bg-primary' : 'w-2 bg-foreground/25'
-                  }`}
+                  className={`h-2 rounded-full transition-all ${current === i ? 'w-6 bg-primary' : 'w-2 bg-foreground/25'}`}
                 />
               ))}
             </div>
@@ -199,13 +204,18 @@ export default function ChampionsCarousel() {
               <button
                 type="button"
                 aria-label={t.next}
-                onClick={() => scrollTo(Math.min(current + 1, champions.length - 1))}
+                onClick={() => scrollTo(Math.min(current + 1, cards.length - 1))}
                 className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-primary/50"
               >
                 →
               </button>
             </div>
           </div>
+
+          <p className="text-xs text-foreground/40 mt-3">
+            {c2.gapsNote}
+            {municipalGap ? ` · ${c2.municipalGap}` : ''}
+          </p>
         </>
       )}
     </section>
