@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a2-wikidata-coords — M1a-2: city/coords via P159/P115/P131 (Wikidata CC0)
+
+Motivo: a FASE 0.1 autorizou (P159=60%, P115=43%). **Entrega:** `lib/wikidata/extract-club-coordinates.ts` (**prioridade `P625` direto > `P159`(sede) > `P115`(estádio) > `P131`**; `confidence` por fonte; `cityLabel` do label da entidade de origem) + `extractClubCoordinatesBulk` (batch, para viabilizar o gate) + script `enrich-clubs-coordinates-m1a2.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; **só preenche nulos**; `importedFrom='wikidata-enrich-m1a2'`). Testes unit **11/11** + integração **2/2** (preenche só nulos; **não sobrescreve**; rollback). **Apply em produção = gate pós-merge.** **Dedupe de competições** segue pendente (migration `Competition.deletedAt`), fora deste round.
+
 ### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a-rescoped — M1a re-escopado: `fullName` aplicado; `city`/`coords` = gap; competições = dedupe (pendente migration)
 
 Motivo: o gate do M1a **reprovou o apply combinado** (dry-run: `city=0`, `coordinates=604` ≪ alvos 3.000). **Aplicado com segurança:** `fullName` em **3.512 clubes** (`enrich-clubs-attributes.js --fields=fullName`; re-run **idempotente**, `wouldUpdate=0`; `with_fullname` **3.535** ≥90%). **Gap declarado:** `city`/`coordinates` via `P625/P131` **não funciona** neste acervo (entidades Wikidata sem `P625`/`P131`; municípios BR não são `P515`). **FASE 0.1 (amostra 100):** `P115` (estádio) = **43%**, `P159` (sede) = **61%**, cobertura combinada **>50%** ⇒ **autoriza M1a-2** via `P115/P159`. **Competições:** as 3 sem QID são **duplicatas legacy** (os QIDs pertencem às canônicas); o dedupe exige **`deletedAt` em `Competition`** (migration aditiva) → **round próprio, não executado**. Fundamentos intactos (entries `d2b117aa…`, estadual=7). Novos: flag `--fields` + `measure-wikidata-coords-coverage` (read-only).
