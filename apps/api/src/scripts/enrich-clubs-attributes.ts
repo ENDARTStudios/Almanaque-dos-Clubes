@@ -27,6 +27,20 @@ function argNum(name: string, def: number): number {
   return Number.isFinite(n) && n > 0 ? n : def;
 }
 
+/** Campos a enriquecer: `--fields=city,coordinates,fullName` (default: todos). */
+function parseFields(): { city: boolean; coordinates: boolean; fullName: boolean } {
+  const a = process.argv.find((x) => x.startsWith('--fields='));
+  const list = (a ? a.slice('--fields='.length) : 'city,coordinates,fullName')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return {
+    city: list.includes('city'),
+    coordinates: list.includes('coordinates'),
+    fullName: list.includes('fullName'),
+  };
+}
+
 interface Plan {
   clubId: string;
   qid: string;
@@ -51,13 +65,18 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const fields = parseFields();
   const prisma = new PrismaClient();
   try {
+    const orFields: Array<Record<string, null>> = [];
+    if (fields.city) orFields.push({ city: null });
+    if (fields.coordinates) orFields.push({ latitude: null });
+    if (fields.fullName) orFields.push({ fullName: null });
     let clubs = await prisma.club.findMany({
       where: {
         deletedAt: null,
         qid: { not: null },
-        OR: [{ city: null }, { latitude: null }, { fullName: null }],
+        OR: orFields.length ? orFields : [{ id: { not: '' } }],
       },
       select: { id: true, qid: true, city: true, latitude: true, fullName: true },
       orderBy: { id: 'asc' },
@@ -84,12 +103,14 @@ async function main(): Promise<void> {
       const p131 = extractP131Qid(e);
       const admin: WikidataEntity | null = p131 ? (adminEntities.get(p131) ?? null) : null;
       if (!coord && admin) coord = extractCoordinate(admin);
-      const city = !c.city && admin && isCity(admin) ? extractCityLabel(admin) : null;
-      const fullName = !c.fullName ? extractFullName(e) : null;
-      if (!coord) skipped.no_coordinates += 1;
-      if (!city) skipped.no_city += 1;
-      if (!fullName) skipped.no_fullname += 1;
-      if (city || coord || fullName) plans.push({ clubId: c.id, qid, city, coord, fullName });
+      const city =
+        fields.city && !c.city && admin && isCity(admin) ? extractCityLabel(admin) : null;
+      const fullName = fields.fullName && !c.fullName ? extractFullName(e) : null;
+      if (fields.coordinates && !coord) skipped.no_coordinates += 1;
+      if (fields.city && !city) skipped.no_city += 1;
+      if (fields.fullName && !fullName) skipped.no_fullname += 1;
+      if (city || (fields.coordinates && coord) || fullName)
+        plans.push({ clubId: c.id, qid, city, coord: fields.coordinates ? coord : null, fullName });
     }
 
     const wouldUpdate = {
@@ -123,11 +144,15 @@ async function main(): Promise<void> {
       await prisma.$transaction(
         async (tx) => {
           for (const p of chunk) {
+            const orW: Array<Record<string, null>> = [];
+            if (fields.city) orW.push({ city: null });
+            if (fields.coordinates) orW.push({ latitude: null });
+            if (fields.fullName) orW.push({ fullName: null });
             const res = await tx.club.updateMany({
               where: {
                 id: p.clubId,
                 deletedAt: null,
-                OR: [{ city: null }, { latitude: null }, { fullName: null }],
+                OR: orW.length ? orW : [{ id: { not: '' } }],
               },
               data: {
                 ...(p.city ? { city: p.city } : {}),
