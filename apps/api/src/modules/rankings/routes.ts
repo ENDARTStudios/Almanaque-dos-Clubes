@@ -121,8 +121,8 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
 
   app.get<{ Params: { id: string } }>('/rankings/:id/entries', async (request, reply) => {
     try {
-      const entries = await rankingsService.getEntries(request.params.id);
-      return reply.send({ data: entries });
+      // T449c-v1 — `{ data, competition }` (competition aditiva com tier/divisão).
+      return reply.send(await rankingsService.getEntries(request.params.id));
     } catch (err) {
       return handleDomainError(err, reply);
     }

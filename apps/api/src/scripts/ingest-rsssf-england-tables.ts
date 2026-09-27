@@ -16,6 +16,7 @@ import {
 } from '../modules/etl/connectors/rsssf-tables.connector.js';
 import { normalizeClubName } from '../modules/etl/connectors/wikidata-en-clubs.connector.js';
 import { fetchWithRetry } from '../lib/http-resilience.js';
+import { EN_DIVISION_QID_BY_RSSSF_NAME } from '../lib/rankings/tiers/en-pyramid.js';
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes('--apply');
@@ -25,14 +26,11 @@ const METHOD_VERSION = 't449a-rsssf-tables-v1';
 const UA =
   'AlmanaqueDosClubes/0.1 (t449a rsssf; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 
-/** Divisões RSSSF → QID da competição JÁ existente (não duplicar por nome). */
-export const DIVISION_QID: Record<string, string> = {
-  'Premier League': 'Q9448',
-  Championship: 'Q19510',
-  'Division 1': 'Q19565',
-  'Division 2': 'Q48837',
-  'National League': 'Q18504',
-};
+/**
+ * Divisões RSSSF → QID da competição JÁ existente (fonte única: módulo TS versionado
+ * `lib/rankings/tiers/en-pyramid.ts`, compartilhado com o backfill do T449c-v1).
+ */
+export const DIVISION_QID: Record<string, string> = { ...EN_DIVISION_QID_BY_RSSSF_NAME };
 
 async function main(): Promise<void> {
   const url = rsssfSeasonUrl(SEASON);

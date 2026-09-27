@@ -6,11 +6,23 @@ import { useI18n } from '@/i18n/Provider';
 
 // T438 — Tabela de Rankings 0-100 (cursor-based, filtros ano/gênero/país).
 
+interface CompetitionTier {
+  id: string;
+  qid: string | null;
+  name: string | null;
+  level: number | null;
+  divisionLabel: string | null;
+  tierSource: string | null;
+  tierVersion: string | null;
+}
+
 interface RankingMeta {
   id: string;
   name: string;
   season: string | null;
   competitionId: string | null;
+  // T449c-v1 — tier/divisão (aditivo; pode ser null).
+  competition?: CompetitionTier | null;
 }
 
 interface RankingEntryRow {
@@ -184,6 +196,14 @@ export default function RankingsTable() {
             ))}
           </select>
         </label>
+        {meta?.competition?.divisionLabel ? (
+          <span
+            data-testid="ranking-division-badge"
+            className="rounded-full border border-border bg-white px-2 py-0.5 text-xs font-semibold text-foreground/70"
+          >
+            {meta.competition.divisionLabel}
+          </span>
+        ) : null}
         {meta ? (
           <p className="ml-auto text-xs text-foreground/50">
             {t.updated.replace('{name}', meta.name)}

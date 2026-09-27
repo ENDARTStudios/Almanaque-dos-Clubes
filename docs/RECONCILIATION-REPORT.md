@@ -993,6 +993,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Fecho:** T448b-2d (MG+GO+PR) concluído técnica e documentalmente. Próximo: T448b-2g (backfill) ou Discovery Nova UF.
 
+### GATE 2 adendum 40 — T449c-v1: tier/divisão como metadado (aditivo, sem score) (2026-09-27)
+
+**Dívida:** rankings de clube sem campo tier/divisão; piloto EN normalizado por divisão isolada.
+
+**Entrega (v1):** migration aditiva `competitions.level INTEGER NULL` + índice `competitions_level_idx`; módulo TS versionado `lib/rankings/tiers/en-pyramid.ts` (mapper nome-RSSSF→QID **fonte única**, importado pelo ingest EN); `resolve-tier.ts` (puro; `level` do banco canônico; label só com level+QID); `plan-backfill.ts`/`apply-backfill.ts` (puro; rowcount==1); script `backfill-en-competition-levels.ts` (DRY/`--apply --allow-production`/`--validate-only`); API aditiva (`competition` com level/divisionLabel nos 4 endpoints de rankings); badge na tabela de rankings (web). **Sem mudança de fórmula/score/posição.** Rollback por `level=NULL`.
+
+**Testes:** unit tiers **14/14** (mapeamento, resolução, plano, validação); integração `t449c-v1-en-level-backfill` (Postgres real, transações revertidas: apply 5 / re-run noop 5 / parcial / **score inalterado** / rollback). tsc 0 · lint 0 erros. **Dry-run/apply de produção = gate pós-merge (FASE 9).**
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

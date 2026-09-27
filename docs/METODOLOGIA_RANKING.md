@@ -83,7 +83,7 @@ Normalização: mesma regra (MinMax/percentil no grupo comparável).
 ## Limitações da versão stubbed
 - **Sem dados reais**: o motor não é alimentado; nada é público.
 - **Sem xG/PPDA/passes por distância** (dependem de fonte granular).
-- **Sem campo tier/divisão no ranking de clube** (dívida separada — T449c/T449b).
+- **Tier/divisão (T449c-v1):** `Competition.level` + `divisionLabel` agora são **metadado exposto** (mapeamento TS versionado da pirâmide EN). Os rankings **continuam normalizados por divisão/gênero** (sem mudança de fórmula/score/posição); o **agregado cross-division é pendência T449c-v2**.
 - **Equidade de gênero**: pools **isolados** por gênero+divisão+nível; nunca comparar
   masculino×feminino sem normalização explícita.
 - Pesos **ilustrativos** até haver benchmark.
