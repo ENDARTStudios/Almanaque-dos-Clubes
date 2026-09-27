@@ -50,6 +50,9 @@ model Club {
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
   sourceUrl    String?    // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  // WS-D M1a-3 — proveniência de coordenadas geocodificadas (JSONB livre).
+  // Ex.: { coordSource, coordPrecision: "exact"|"municipality", coordResolvedAt }.
+  metadata     Json?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   // T449EN — remoção por admin/ruído (NÃO é clube extinto: o acervo histórico
