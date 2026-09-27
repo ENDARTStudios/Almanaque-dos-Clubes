@@ -1188,3 +1188,23 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 
 **Pós-estado:** RLS **efetiva** em produção (defesa em profundidade ativa em `sessions`); gate **D-2026-08-24 aberto**;
 `D-2026-08-24-v5c-rls-inerte` superado. Conta de teste do smoke (`smoke.t401.*@example.com`) soft-desabilitada (INACTIVE).
+
+---
+
+### [2026-09-27] Decisão: D-2026-09-27-m1b-expansao-wikidata-go — Expansão Wikidata conservadora aplicada (WS-D M1b) ✅
+
+**Estado:** **WS-D M1b CONCLUÍDO** — engine `#250` (`a9361e2`) + whitelist `#251` (`15d194f`) mergeados; piloto PT + lote de 24 países aplicados em produção sob gates.
+
+**Motivo:** ampliar o acervo (clubes/competições) com fonte **aberta Wikidata (CC0)**, de forma conservadora e reversível: **insert-only**, dedupe por **QID**, nunca tocar/atualizar/reativar/renomear existentes, sem hard delete, sem match fuzzy. Cada país passa por dry-run (clubs 100–600, comps 5–50, coords ≥35%, `errors=[]`) antes do apply, com re-run idempotente (noop) e gate SQL.
+
+**Números de produção (pós-apply):**
+
+- Clubes ativos **3.871 → 9.291** (0 sem QID); competições ativas **1.561 → 1.905** (0 sem QID).
+- Criados por `wikidata-expansion-v1`: **5.420 clubes / 344 competições** em **25 países** (PT piloto 364/5 + 24 países: BE 203 · SE 594 · NL 163 · PL 270 · DK 173 · HU 173 · CH 146 · FI 169 · NO 281 · AT 150 · CZ 248 · GR 365 · TR 406 · JP 312 · KR 44 · AU 540 · NZ 160 · AR 223 · UY 59 · CO 43 · CL 89 · PE 245).
+- Meta **≥1.000 clubes / ≥50 competições / ≥20 países** superada com folga.
+- Gates: proveniência 100% (`sourceUrl`=`https://www.wikidata.org/wiki/Q…`) · dups QID **0 clubes / 0 comps** · `ranking_entries` hash **`d2b117aa537047efe96edbac844e4c40` intacto** · estadual RSSSF **7** · `country_pyramid` **1** · coords 3.075/5.420 (**56,7%**) · cache de rankings purgado por inventário (sem FLUSHALL).
+- Amostragem manual do piloto PT: 25/25 clubes legítimos (0 falsos positivos, ≤2%).
+
+**Refinamento (tentativa 1):** o whitelist de competição original incluía a classe de temporada/edição `Q18608583`, causando over-inclusion (81 comps > gate de 50 no PT); removida em `#251` → PT 5 comps. Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
+
+**Rollback:** soft-delete por `importedFrom='wikidata-expansion-v1'` (+ manifests `/tmp/m1b-*-manifest.json`); engine nunca atualiza/reativa.
