@@ -58,12 +58,15 @@ export function validFoundedYear(year: number | null | undefined): number | null
 }
 
 /** Classes P31 aceitas para COMPETIÇÃO (observadas em competições reais; versionado). */
+/**
+ * Classes P31 aceitas para COMPETIÇÃO. Exclui classes de TEMPORADA/EDIÇÃO (ex.: Q18608583)
+ * para não criar "edições" como competições.
+ */
 export const COMPETITION_CLASS_WHITELIST: ReadonlyArray<string> = [
   'Q15991303', // liga/competição de futebol
   'Q8463186', // copa de futebol
   'Q15991290',
   'Q3270632',
-  'Q18608583',
   'Q1478437', // competição desportiva recorrente
 ];
 
