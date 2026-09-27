@@ -1039,6 +1039,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **API↔texto:** 5 rankings EN consistentes (1º=100, último=0, men, baseMatches 100%). **Smoke:** `/`,`/metodologia`,`/rankings` 200. **v2 desbloqueado.**
 
+### GATE 2 adendum 45 — T449c-v2: agregado `country_pyramid` implementado (2026-09-27)
+
+**FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

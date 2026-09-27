@@ -143,6 +143,11 @@ model Ranking {
   competitionId  String?
   competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   season         String?
+  // T449c-v2 — escopo do ranking (NULL = por competição/divisão; 'country_pyramid' = agregado país+temporada)
+  scope          String?
+  country        String? // país do agregado (ex.: 'GB')
+  tierVersion    String? // versão do mapeamento de tier usado
+  formulaVersion String? // versão da fórmula do agregado
   publishedAt    DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -151,6 +156,7 @@ model Ranking {
 
   @@index([competitionId])
   @@index([season])
+  @@index([scope, country, season])
   @@map("rankings")
 }
 
