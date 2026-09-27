@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import MapExplorer, { type GeoStats } from '@/components/MapExplorer';
 import { getApiBase } from '@/lib/api-base';
 
+// WS-C-2 — mapa permanece preparado mas NÃO público: noindex/nofollow e fora do nav
+// enquanto a atribuição ODbL não estiver completa em todos os idiomas ativos
+// (PENDENCIAS_OPERADOR). A promoção pública do mapa é WS-C-3 (aprovação explícita).
 export const metadata: Metadata = {
   title: 'Mapa-múndi',
   description:
     'Clubes de futebol por continente, país e estado — navegação read-only sobre a hierarquia geográfica auditável.',
+  robots: { index: false, follow: false },
 };
 
 // T467 — choropleth por região (COUNT real derivado do banco via T466). O número
