@@ -33,7 +33,8 @@ describe('T449a-close — /metodologia', () => {
   it('declara o agregado cross-division como proposto/não publicado (T449c-v2-pre C)', () => {
     expect(metodologia).toContain('id="agregado-cross-division-inglaterra"');
     expect(metodologia).toContain('Agregado cross-division');
-    expect(metodologia).toContain('proposto, não publicado');
+    // T449c-v2 — agora PUBLICADO (não mais "proposto, não publicado").
+    expect(metodologia).toContain('Piloto Inglaterra 2022/23 (publicado em 2026-09-27)');
     expect(metodologia).toContain('L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40');
     expect(metodologia).toContain('estimativa metodológica, não confronto oficial');
     expect(metodologia).toContain('Nota de consistência (2026-09-27)');

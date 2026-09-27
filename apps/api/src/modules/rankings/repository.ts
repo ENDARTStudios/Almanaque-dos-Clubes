@@ -70,6 +70,32 @@ export const rankingsRepository = {
     return prisma.ranking.findUnique({ where: { id } }) as Promise<Ranking | null>;
   },
 
+  /**
+   * T449c-v2 — mapa clube→(level, qid) a partir das entries dos rankings POR DIVISÃO (scope NULL)
+   * de uma temporada nas competições dadas. Usado para enriquecer o agregado `country_pyramid`.
+   */
+  async findDivisionTierByClub(
+    season: string,
+    competitionQids: string[],
+  ): Promise<
+    Array<{ clubId: string; level: number | null; qid: string | null; points: number | null }>
+  > {
+    const rows = await prisma.rankingEntry.findMany({
+      where: { ranking: { season, scope: null, competition: { qid: { in: competitionQids } } } },
+      select: {
+        clubId: true,
+        points: true,
+        ranking: { select: { competition: { select: { level: true, qid: true } } } },
+      },
+    });
+    return rows.map((r) => ({
+      clubId: r.clubId,
+      level: r.ranking.competition?.level ?? null,
+      qid: r.ranking.competition?.qid ?? null,
+      points: r.points,
+    }));
+  },
+
   /** T449c-v1 — competições (com `level`) para enriquecer rankings (sem N+1). */
   async findCompetitionsByIds(
     ids: string[],

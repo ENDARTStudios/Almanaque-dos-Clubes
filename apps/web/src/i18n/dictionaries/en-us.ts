@@ -37,7 +37,7 @@ const en: Dictionary = {
     telegram: 'Telegram',
     legalTitle: 'Legal',
     privacy: 'Privacy',
-    methodology: "Methodology & sources",
+    methodology: 'Methodology & sources',
     cookies: 'Cookies',
     terms: 'Terms of Use',
     security: 'Security',
@@ -240,6 +240,14 @@ const en: Dictionary = {
       loadMore: 'Load more',
       empty: 'No ranking published yet for this filter.',
       updated: 'Ranking: {name}',
+      viewDivision: 'By division',
+      viewPyramid: 'National pyramid',
+      pyramidDisclaimer:
+        'Methodological estimate, not an official head-to-head. Division rankings remain active and auditable.',
+      colDivision: 'Division',
+      colLevel: 'Level',
+      colMultiplier: 'Multiplier',
+      pyramidEmpty: 'Aggregate not published yet.',
     },
     search: {
       title: 'Advanced Search',
@@ -543,8 +551,8 @@ const en: Dictionary = {
     updatedLabel: 'Last updated',
     terms: {
       title: 'Terms of Use and Service',
-        version: 'v1.3',
-        updated: '2026-09-22',
+      version: 'v1.3',
+      updated: '2026-09-22',
       intro:
         'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 2, 2026 · Version 2.0.',
       sections: [
@@ -708,8 +716,8 @@ const en: Dictionary = {
     },
     privacy: {
       title: 'Privacy Policy',
-        version: 'v1.3',
-        updated: '2026-09-22',
+      version: 'v1.3',
+      updated: '2026-09-22',
       intro:
         'This Privacy Policy describes how END ART Studios (CNPJ 45.370.930/0001-75) collects, uses, stores and protects the personal data of users of the Almanaque dos Clubes platform, in accordance with the Brazilian General Data Protection Law (Law No. 13,709/2018 — LGPD) and other applicable rules.',
       sections: [
@@ -742,16 +750,18 @@ const en: Dictionary = {
             'We do not sell personal data. Data may be shared with infrastructure and payment providers, strictly necessary for operation, and with authorities when required by law.',
             'Current environment providers: Vercel (frontend hosting), Railway (API and PostgreSQL database hosting) and Cloudflare (DNS and network protection). Since 2026-09-22, typographic fonts are self-hosted (no third-party request). Payments are processed by Stripe, which acts as an independent controller of payment data towards the data subject. This list is updated whenever a provider is contracted or replaced.',
             'The payment processor Stripe (Stripe, Inc., USA) processes payment and fraud-prevention data, with international transfer to the USA under the LGPD (art. 33 et seq.) and standard contractual clauses where applicable; full card data never touches our servers (Stripe PCI DSS).',
-          
-            'International transfer: as our providers operate outside Brazil, sharing involves international data transfer, in accordance with Chapters IV (LGPD) and V (GDPR, where applicable), with contractual guarantees. We do not sell data and do not use it to train AI models. Reference providers: Vercel (frontend and edge geolocation), Railway (API and PostgreSQL database), Cloudflare (DNS/network), Stripe (payments — Stripe’s own terms apply at payment time), Resend (transactional e-mail) and ipwho.is (IP geolocation only during checkout). Public processing terms: Stripe and Cloudflare publish them on their websites; other cases: upon request via the privacy channel. (ref. T469-4)',],
+
+            'International transfer: as our providers operate outside Brazil, sharing involves international data transfer, in accordance with Chapters IV (LGPD) and V (GDPR, where applicable), with contractual guarantees. We do not sell data and do not use it to train AI models. Reference providers: Vercel (frontend and edge geolocation), Railway (API and PostgreSQL database), Cloudflare (DNS/network), Stripe (payments — Stripe’s own terms apply at payment time), Resend (transactional e-mail) and ipwho.is (IP geolocation only during checkout). Public processing terms: Stripe and Cloudflare publish them on their websites; other cases: upon request via the privacy channel. (ref. T469-4)',
+          ],
         },
         {
           title: '5. Data subject rights (LGPD)',
           body: [
             'Users may request confirmation, access, correction, anonymization, portability, deletion and withdrawal of consent.',
             'To exercise your rights, contact the privacy channel indicated below.',
-          
-            'Receipt of the request is confirmed immediately. A conclusive response is provided within 15 days in Brazil (LGPD, art. 18, §3) or within one month in the EEA/UK (GDPR, art. 12), extendable as provided by law. (ref. T469-5)',],
+
+            'Receipt of the request is confirmed immediately. A conclusive response is provided within 15 days in Brazil (LGPD, art. 18, §3) or within one month in the EEA/UK (GDPR, art. 12), extendable as provided by law. (ref. T469-5)',
+          ],
         },
         {
           title: '6. Cookies',
@@ -763,22 +773,25 @@ const en: Dictionary = {
           title: '7. Security',
           body: [
             'We adopt technical and organizational measures (password encryption, access control, monitoring) to protect data. No system is infallible; we store passwords hashed and never in clear text.',
-          
-            'In the event of a security incident that may pose a relevant risk to data subjects, we will notify the ANPD (Brazilian DPA) and affected users within a timeframe consistent with applicable regulation (reference: 3 business days, where applicable) and, where the GDPR applies, the competent authority within 72 hours. (ref. T469-7)',],
+
+            'In the event of a security incident that may pose a relevant risk to data subjects, we will notify the ANPD (Brazilian DPA) and affected users within a timeframe consistent with applicable regulation (reference: 3 business days, where applicable) and, where the GDPR applies, the competent authority within 72 hours. (ref. T469-7)',
+          ],
         },
         {
           title: '8. Retention',
           body: [
             'Data is kept for as long as necessary for the purposes and legal obligations, or until deletion at the request of the data subject or account closure.',
-          
-            'Reference periods: encrypted backups for 30 days (backup/restore policy); payment and billing records for up to 5 years (tax and accounting obligations); security and access logs for as long as needed for legal defense; other data while the account remains active or as required by specific law. (ref. T469-8)',],
+
+            'Reference periods: encrypted backups for 30 days (backup/restore policy); payment and billing records for up to 5 years (tax and accounting obligations); security and access logs for as long as needed for legal defense; other data while the account remains active or as required by specific law. (ref. T469-8)',
+          ],
         },
         {
           title: '9. Minors',
           body: [
             'The platform does not perform age verification and does not intentionally collect data from children. We do not direct the service to children.',
-          
-            'If a guardian identifies inadequate collection of data from a child, contact the privacy channel for review and appropriate measures. (ref. T469b-9)',],
+
+            'If a guardian identifies inadequate collection of data from a child, contact the privacy channel for review and appropriate measures. (ref. T469b-9)',
+          ],
         },
         {
           title: '10. Data Protection Officer (DPO) and contact',
@@ -848,9 +861,9 @@ const en: Dictionary = {
     },
   },
   copyrightForm: {
-        title: 'Copyright Notice',
+    title: 'Copyright Notice',
     intro:
-        'Copyright holders may report alleged infringement (Brazilian Law 9.610/98 and analogous rules). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
+      'Copyright holders may report alleged infringement (Brazilian Law 9.610/98 and analogous rules). Notices go through triage with a reasoned decision; unequivocally infringing content is removed.',
     materialLabel: 'Allegedly infringed material (describe the work)',
     locationLabel: 'Location on the platform (URL)',
     fundamentLabel: 'Legal grounds and good-faith statement',

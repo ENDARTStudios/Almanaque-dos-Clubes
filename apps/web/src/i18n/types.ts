@@ -269,6 +269,13 @@ export interface Dictionary {
       loadMore: string;
       empty: string;
       updated: string;
+      viewDivision: string;
+      viewPyramid: string;
+      pyramidDisclaimer: string;
+      colDivision: string;
+      colLevel: string;
+      colMultiplier: string;
+      pyramidEmpty: string;
     };
     search: { title: string; subtitle: string; placeholder: string };
     sobre: { title: string; intro: string; sections: LegalSection[] };

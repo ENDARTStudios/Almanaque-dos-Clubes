@@ -116,27 +116,34 @@ export default function MetodologiaPage() {
 
         <section id="agregado-cross-division-inglaterra" className="scroll-mt-20">
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
-            Agregado cross-division — Piloto Inglaterra (proposto, não publicado)
+            Agregado cross-division — Piloto Inglaterra 2022/23 (publicado em 2026-09-27)
           </h2>
           <p>
-            <strong>Status:</strong> em fase de desenho. <strong>Não publicado em produção.</strong>{' '}
-            Não há ranking unificado ativo.
+            <strong>Status:</strong> <strong>publicado</strong> — disponível via API (
+            <code>/rankings?scope=country_pyramid</code>). Os rankings por divisão continuam ativos
+            e auditáveis.
           </p>
           <p className="mt-2">
-            <strong>Proposta em avaliação:</strong> novo escopo <code>country_pyramid</code>{' '}
-            agregando as 5 divisões inglesas; <strong>fator de divisão linear</strong>{' '}
-            <code>{'L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40'}</code>; aplicado sobre a{' '}
-            <em>nota 0-100 intra-divisão</em> já existente; normalização MinMax global dentro do
-            país/temporada/gênero.
+            <strong>Fórmula:</strong> aplica um <strong>fator de divisão linear</strong>{' '}
+            <code>{'L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40'}</code> sobre a{' '}
+            <em>nota 0-100 intra-divisão</em> já existente e, em seguida, normaliza (MinMax) dentro
+            do país/temporada/gênero. A ordem intra-divisão é preservada.
           </p>
           <p className="mt-2">
-            <strong>Quando publicado, terá:</strong> metodologia própria com fórmula exata;
-            atribuição RSSSF adequada à fonte; um <em>disclaimer</em> explícito de que é{' '}
-            <strong>{'estimativa metodológica, não confronto oficial'}</strong>; e os rankings por
-            divisão continuarão existindo e ativos.
+            <strong>Fonte e atribuição:</strong> derivado das mesmas tabelas finais da RSSSF do
+            piloto por divisão (Inglaterra 2022/23). Uso condicionado à atribuição adequada (não é
+            domínio público).
           </p>
           <p className="mt-2">
-            Esta seção será atualizada quando o agregado sair da fase de desenho.
+            <strong>Limitações:</strong> é uma{' '}
+            <strong>{'estimativa metodológica, não confronto oficial'}</strong> — não representa
+            resultados de partidas entre divisões; baseia-se em tabelas finais (não em partidas
+            individuais); sem títulos; concentra-se na pirâmide masculina da Inglaterra 2022/23.
+          </p>
+          <p className="mt-2">
+            <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
+            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            fonte prevalecem no idioma original.
           </p>
         </section>
 

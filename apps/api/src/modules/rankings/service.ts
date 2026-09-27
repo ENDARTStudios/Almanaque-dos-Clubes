@@ -10,7 +10,15 @@ import {
 } from '@almanaque/domain';
 import { rankingsRepository, type ListRankingsParams } from './repository.js';
 import { cache } from '../../services/cache.js';
-import { resolveCompetitionTier } from '../../lib/rankings/tiers/resolve-tier.js';
+import {
+  resolveCompetitionTier,
+  getEnDivisionTierByCompetitionQid,
+} from '../../lib/rankings/tiers/resolve-tier.js';
+import {
+  COUNTRY_PYRAMID_SCOPE,
+  divisionWeight,
+} from '../../lib/rankings/pyramid/country-pyramid.js';
+import { EN_PYRAMID_TIERS } from '../../lib/rankings/tiers/en-pyramid.js';
 
 /** T449c-v1 — visão aditiva de tier/divisão de uma competição (nunca quebra contrato). */
 export interface CompetitionTierPayload {
@@ -213,6 +221,12 @@ export const rankingsService = {
       baseMatches: number | null;
       baseTitles: number | null;
       gender: string | null;
+      // T449c-v2 — só no agregado `country_pyramid` (derivado das divisões).
+      divisionLevel?: number | null;
+      divisionLabel?: string | null;
+      multiplier?: number | null;
+      intraScore?: number | null;
+      adjustedScore?: number | null;
     }>;
     cursor: number | null;
   }> {
@@ -234,6 +248,30 @@ export const rankingsService = {
     const comp = ranking.competitionId
       ? ((await rankingsRepository.findCompetitionsByIds([ranking.competitionId]))[0] ?? null)
       : null;
+
+    // T449c-v2 — no agregado, deriva divisão/nível/multiplicador/nota intra-divisão por clube.
+    const tierByClub = new Map<
+      string,
+      { level: number | null; qid: string | null; points: number | null }
+    >();
+    if (ranking.scope === COUNTRY_PYRAMID_SCOPE && ranking.season) {
+      const rows = await rankingsRepository.findDivisionTierByClub(
+        ranking.season,
+        EN_PYRAMID_TIERS.map((t) => t.competitionQid),
+      );
+      for (const r of rows) if (r.level != null) tierByClub.set(r.clubId, r);
+    }
+    const tierOf = (clubId: string) => {
+      const t = tierByClub.get(clubId);
+      if (!t) return {};
+      return {
+        divisionLevel: t.level,
+        divisionLabel: getEnDivisionTierByCompetitionQid(t.qid)?.divisionLabel ?? null,
+        multiplier: t.level != null ? divisionWeight(t.level) : null,
+        intraScore: t.points,
+      };
+    };
+
     return {
       ranking: {
         id: ranking.id,
@@ -257,6 +295,9 @@ export const rankingsService = {
         baseMatches: e.baseMatches,
         baseTitles: e.baseTitles,
         gender: e.gender,
+        ...(ranking.scope === COUNTRY_PYRAMID_SCOPE
+          ? { ...tierOf(e.club.id), adjustedScore: e.points }
+          : {}),
       })),
       cursor: entries.length > 0 ? entries[entries.length - 1].position : null,
     };
