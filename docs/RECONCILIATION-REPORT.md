@@ -1031,6 +1031,14 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Correção A+C (docs-only):** `/metodologia` — seção EN passa a publicar `Pontos brutos = Vitórias × 3 + Empates × 1`, MinMax intra-divisão (1º=100, último=0), desempate por **saldo (GF − GA)**, limitações atualizadas e **nota de consistência (2026-09-27)**; nova seção **“Agregado cross-division — Piloto Inglaterra (proposto, não publicado)”** (linear L1..L5 + disclaimer “estimativa metodológica”). Sem código de API/schema/migration; score inalterado.
 
+### GATE 2 adendum 44 — T449c-v2-pre: correção A+C validada em produção (2026-09-27)
+
+**Merges:** #228 (`00fd74f`, design) + #229 (`914caf5`, A+C). **Deploy:** Vercel production `d2in7qho7` READY. **`/metodologia` hash:** `8a3193d5…014d5` (HTTP 200).
+
+**Strings:** presentes — `Pontos brutos = Vitórias × 3 + Empates × 1`, `maior saldo de gols (GF - GA)`, `Agregado cross-division`, `proposto, não publicado`, `L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40`, `estimativa metodológica, não confronto oficial`, `Nota de consistência (2026-09-27)`, RSSSF, “Não é domínio público”. **Ausentes** como afirmação: `gols contra, saldo, gols pró, nome, id`; “Gols Pró × 0.2” só na **nota histórica**; “ranking unificado ativo” só em **negação**.
+
+**API↔texto:** 5 rankings EN consistentes (1º=100, último=0, men, baseMatches 100%). **Smoke:** `/`,`/metodologia`,`/rankings` 200. **v2 desbloqueado.**
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

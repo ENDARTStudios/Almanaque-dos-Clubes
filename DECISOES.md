@@ -19,6 +19,14 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-pre-gate-concluido — correção A+C validada em produção; v2 desbloqueado
+
+Motivo: **#228** (`00fd74f`, design doc) + **#229** (`914caf5`, correção A+C) mergeados → Vercel production **`d2in7qho7` READY** (alias `almanaquedosclubes.com`). `/metodologia` (cache-bypass) HTTP **200**; SHA-256 `8a3193d533b503e0c8167b09f25a24c28d30fa87812e5ae4db0760cfbad014d5`. **Strings obrigatórias** presentes; **proibidas** ausentes — o termo “Gols Pró × 0.2” aparece **apenas** na nota histórica (visível + payload RSC) e “ranking unificado ativo” só em **negação**. **API↔texto** consistente (5 rankings EN: 1º=100, último=0, `gender=men`, `baseMatches` 100%, level/label corretos). Smoke `/`,`/metodologia`,`/rankings` = **200** (`/champions` é rota de **API**, não web → 404 esperado). Sem escrita em banco; score inalterado; MG/GO/PR intactos. **v2 desbloqueado** (aguarda liberação explícita do Thinker).
+
+### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-test-canary — teste de metodologia como canário de consistência
+
+Motivo: o teste web `t449a-close` **detectou a divergência** código×metodologia (codificava a fórmula antiga `GF×0.2`) e foi atualizado para a fórmula real (`W×3+D×1`, desempate por saldo) + a seção “agregado proposto”. **Regra:** testes de UI/metodologia permanecem **canário de consistência** — toda mudança de fórmula/atribuição pública deve atualizá-los no mesmo PR.
+
 ### [2026-09-27] Decisão: D-2026-09-27-t449c-v2-esquema-peso-decidido — esquema linear aprovado para o agregado cross-division
 
 Motivo: após a FASE 0 do v2 (design read-only, `docs/T449C-V2-FASE0-DESIGN.md`), **esquema linear** `L1=1.00 · L2=0.85 · L3=0.70 · L4=0.55 · L5=0.40` **aprovado** para o agregado `country_pyramid` (aplicado sobre a **nota 0-100 intra-divisão** já existente; MinMax global por país/temporada/gênero). **Decaimento `1/(1+α(l−1))` rejeitado** (calibração arbitrária de α). **Não** re-parsear RSSSF nem recalcular entries existentes neste round; ordem intra-divisão sempre preservada. Implementação **bloqueada** até o gate da correção documental (FASE 2). Modelo de dados: **B** (`Ranking.scope`/`country`/`tierVersion`/`formulaVersion`, migration aditiva, `competitionId=NULL`).
