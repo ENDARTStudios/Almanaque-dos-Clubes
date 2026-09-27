@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-28] Decisão: D-2026-09-28-t448b2i-competition-dedupe — soft-delete de `Competition` + dedupe por QID (apply pendente do gate)
+
+Motivo: a FASE 0 (read-only) mediu **3 duplicatas** (todas `qid` NULL) com **canônicas por QID** — `Q206813` Brasileirão Série A · `Q843989` Copa do Brasil · `Q184795` Copa Libertadores; refs a redirecionar = **2** (todas em `rankings`); 0 qid duplicado global. **Migration aditiva** `20261007120000_t448b2i_competition_soft_delete` (`competitions.deletedAt`/`deletionReason` + `competitions_deleted_at_idx`; down trivial). Módulo puro `lib/identity/competition-dedupe.ts` (**canônica por QID, nunca nome fuzzy**) + script `dedupe-competitions.ts` (DRY/`--apply --allow-production`; **redirect reversível** de refs (`rankings.competitionId`/`matches.competitionId`/`knowledge_graph.targetId`) → canônica; **soft-delete** das duplicatas (`dedupe_t448b2i`); manifest opcional; transação Serializable; **sem hard delete**). Testes unit **7/7**. **Apply em produção = gate pós-merge.** M1b liberado após gate.
+
 ### [2026-09-27] Decisão: D-2026-09-27-ws-d-m1a2-gate-concluido — M1a-2 ATIVO: city/coords enriquecidos via P159/P115/P131
 
 Motivo: **merge #243** (`475dfcd`) → Railway SUCCESS. **DRY** `wouldUpdate={coordinates:2632, city:2171}` (>1500 ✓), `skipped.no_coordinates_found=1081`, `errors=[]`. **APPLY** `totalUpdated=2780` · `updated={coordinates:2632, city:2171}` · `errors=0` · `hardDeletes=0` · `migrations=0`. **Re-run idempotente** (0/0). **SQL:** `with_coords` 158→**2790** (>1658) · `with_city` 454→**2625** (>1954). Prioridade `P625`> `P159`> `P115`> `P131`. **hash entries EN `d2b117aa…` inalterado**; estadual=**7**; MG/GO/PR intactos. Cache no-op. API: `/clubs?country=BR` 200 com `city`/`lat`. **Próximo:** migration `Competition.deletedAt` → dedupe das competições → M1b.
