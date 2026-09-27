@@ -55,6 +55,24 @@ export default function MetodologiaPage() {
             </strong>{' '}
             (Não é domínio público.)
           </p>
+          <p className="mt-2">
+            Coordenadas geográficas são derivadas do Wikidata (CC0) e, quando ausentes, de
+            geocodificação aproximada via{' '}
+            <a
+              href="https://www.openstreetmap.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              OpenStreetMap
+            </a>{' '}
+            (Nominatim). Coordenadas de geocodificação são <strong>aproximadas</strong> (nível
+            município) e marcadas como tal.{' '}
+            <strong>
+              Geocodificação: © contribuidores do OpenStreetMap, disponibilizada sob a Open Database
+              License (ODbL).
+            </strong>
+          </p>
         </section>
 
         <section id="ranking-piloto-inglaterra" className="scroll-mt-20">
