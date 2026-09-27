@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   validatePairsFile,
   validateHumanPair,
+  HUMAN_PAIR_SOFT_DELETE_REASON,
   type HumanPair,
   type CompetitionRow,
 } from '../../../src/lib/identity/competition-dedupe.js';
@@ -9,12 +10,12 @@ import {
 const UUID_A = '28b0f5d4-e86b-4682-ad03-ed8eb6345477';
 const UUID_B = '9d50e9fa-bc31-4ea8-af77-e429f451ff52';
 
-const row = (id: string, qid: string | null, deletedAt: Date | null = null): CompetitionRow => ({
-  id,
-  name: 'x',
-  qid,
-  deletedAt,
-});
+const row = (
+  id: string,
+  qid: string | null,
+  deletedAt: Date | null = null,
+  deletionReason: string | null = null,
+): CompetitionRow => ({ id, name: 'x', qid, deletedAt, deletionReason });
 
 const pair: HumanPair = {
   duplicateId: UUID_A,
@@ -82,14 +83,28 @@ describe('T448b-2i — validateHumanPair', () => {
     expect(validateHumanPair(pair, row(UUID_A, 'Qx'), row(UUID_B, 'Q184795'))).toBe(
       'duplicate_has_qid',
     );
-    expect(validateHumanPair(pair, row(UUID_A, null, new Date()), row(UUID_B, 'Q184795'))).toBe(
-      'duplicate_soft_deleted',
-    );
+    expect(
+      validateHumanPair(pair, row(UUID_A, null, new Date(), 'other'), row(UUID_B, 'Q184795')),
+    ).toBe('duplicate_soft_deleted_unexpected');
     expect(validateHumanPair(pair, row(UUID_A, null), row(UUID_B, 'Q184795', new Date()))).toBe(
       'canonical_soft_deleted',
     );
     expect(validateHumanPair(pair, row(UUID_A, null), row(UUID_B, 'Q999'))).toBe(
       'canonical_qid_mismatch',
+    );
+  });
+
+  it('re-run idempotente: já soft-deleted pela reason esperada + sem stale refs → noop', () => {
+    const dup = row(UUID_A, null, new Date(), HUMAN_PAIR_SOFT_DELETE_REASON);
+    expect(validateHumanPair(pair, dup, row(UUID_B, 'Q184795'), { staleRefs: 0 })).toBe(
+      'noop_already_soft_deleted',
+    );
+  });
+
+  it('reason esperada mas com stale refs → erro', () => {
+    const dup = row(UUID_A, null, new Date(), HUMAN_PAIR_SOFT_DELETE_REASON);
+    expect(validateHumanPair(pair, dup, row(UUID_B, 'Q184795'), { staleRefs: 1 })).toBe(
+      'duplicate_soft_deleted_unexpected',
     );
   });
 });

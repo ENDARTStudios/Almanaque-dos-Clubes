@@ -109,6 +109,7 @@ async function main(): Promise<void> {
     let duplicatesTotal = 0;
     let referencesTotal = 0;
     let groupsByName = 0;
+    let noop = 0;
 
     // ---- via 1: NOME EXATO ----
     if (!pairsOnly) {
@@ -173,24 +174,37 @@ async function main(): Promise<void> {
       for (const pair of file.pairs as HumanPair[]) {
         const dup = (await prisma.competition.findUnique({
           where: { id: pair.duplicateId },
-          select: { id: true, name: true, qid: true, deletedAt: true },
+          select: { id: true, name: true, qid: true, deletedAt: true, deletionReason: true },
         })) as CompetitionRow | null;
         const canon = (await prisma.competition.findUnique({
           where: { id: pair.canonicalId },
-          select: { id: true, name: true, qid: true, deletedAt: true },
+          select: { id: true, name: true, qid: true, deletedAt: true, deletionReason: true },
         })) as CompetitionRow | null;
-        const status = validateHumanPair(pair, dup, canon);
+        const refs: ReferenceCount[] = [];
+        if (dup)
+          for (const r of REFS)
+            refs.push({
+              table: r.table,
+              column: r.column,
+              count: await countRef(prisma, r.table, r.column, dup.id),
+            });
+        const staleRefs = refs.reduce((a, r) => a + r.count, 0);
+        const status = validateHumanPair(pair, dup, canon, { staleRefs });
+        if (status === 'noop_already_soft_deleted') {
+          noop += 1;
+          pairsOut.push({
+            duplicateId: pair.duplicateId,
+            canonicalId: pair.canonicalId,
+            canonicalQid: pair.canonicalQid,
+            status: 'noop',
+            reason: 'duplicate_already_soft_deleted',
+          });
+          continue;
+        }
         if (status !== 'ok' || !dup || !canon) {
           errors.push(`${status}:${pair.duplicateId}`);
           continue;
         }
-        const refs: ReferenceCount[] = [];
-        for (const r of REFS)
-          refs.push({
-            table: r.table,
-            column: r.column,
-            count: await countRef(prisma, r.table, r.column, dup.id),
-          });
         const plan = buildRedirectPlan(dup, canon.id, pair.canonicalQid, refs);
         groupsByHumanPair += 1;
         duplicatesTotal += 1;
@@ -218,10 +232,11 @@ async function main(): Promise<void> {
     }
 
     const totals = {
-      groups: groups.length + pairsOut.length,
+      groups: groupsByName + groupsByHumanPair,
       groupsByName,
       groupsByHumanPair,
       duplicates: duplicatesTotal,
+      noop,
       referencesToRedirect: referencesTotal,
       ambiguous: errors.length,
       errors: errors.length,
@@ -230,7 +245,15 @@ async function main(): Promise<void> {
     if (errors.length) {
       console.log(
         JSON.stringify(
-          { mode: apply ? 'APPLY' : 'DRY', groups, pairs: pairsOut, totals, errors },
+          {
+            mode: apply ? 'APPLY' : 'DRY',
+            groups,
+            pairs: pairsOut,
+            details: pairsOut,
+            noop,
+            totals,
+            errors,
+          },
           null,
           2,
         ),
@@ -239,7 +262,11 @@ async function main(): Promise<void> {
     }
     if (!apply) {
       console.log(
-        JSON.stringify({ mode: 'DRY', groups, pairs: pairsOut, totals, errors: [] }, null, 2),
+        JSON.stringify(
+          { mode: 'DRY', groups, pairs: pairsOut, details: pairsOut, noop, totals, errors: [] },
+          null,
+          2,
+        ),
       );
       return;
     }
