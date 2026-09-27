@@ -1208,3 +1208,22 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **Refinamento (tentativa 1):** o whitelist de competição original incluía a classe de temporada/edição `Q18608583`, causando over-inclusion (81 comps > gate de 50 no PT); removida em `#251` → PT 5 comps. Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
 
 **Rollback:** soft-delete por `importedFrom='wikidata-expansion-v1'` (+ manifests `/tmp/m1b-*-manifest.json`); engine nunca atualiza/reativa.
+
+---
+
+### [2026-09-27] Decisão: D-2026-09-27-m1a3-geocodificacao — Coordenadas por fallback profundo + Nominatim (WS-D M1a-3) ✅
+
+**Estado:** M1a-3 aplicado (Opção A + Opção C). Coords **5.865 → 6.366** (**+501**: 50 por Wikidata profundo + 451 por Nominatim). Decisões do Thinker: Opção A; sem centroide de país; proveniência em metadata; Opção C para o residual.
+
+**Motivo:** após o M1b, 3.426 clubes ativos ficaram sem coordenada. O extractor de 1 nível (`P625>P159>P115>P131`) já estava esgotado. Medição read-only mostrou teto baixo da Opção A (**50/3.426 = 1,5%**) → autorizada a Opção C (geocoder externo) para o residual.
+
+**O que foi feito:**
+- **Opção A** (`lib/wikidata/deep-coordinates.ts` + `scripts/resolve-club-coordinates-m1a3.ts`): `P625`/`P115`/`P159` (exact) e `P131`/`P276`/`P937`/cadeia `P131` (municipality). Nunca usa `P17`. Migration **aditiva** `20261008120000_m1a3_club_metadata` (`clubs.metadata JSONB`) para proveniência.
+- **Opção C** (`lib/geocoding/{nominatim-client,geocode-clubs}.ts` + `scripts/geocode-clubs-nominatim.ts`): Nominatim/OSM com **1 req/s**, UA com contato, retry/backoff, 403 aborta, cache em arquivo (resumível). Filtro por **`type`** (o `class` do jsonv2 costuma vir vazio) — rejeita `path`/`road`/etc. (match espúrio observado e corrigido).
+- Nunca sobrescreve coordenada existente; só preenche `NULL`. Não toca `importedFrom`/`sourceUrl`. Proveniência: `metadata.coordSource` (`P115_P131`/`P276`/`P159_P131`/`nominatim`), `coordPrecision` (`exact`/`municipality`/`approximate`), `nominatimPlaceId`, `coordAttribution`.
+
+**Gates (produção):** `metadata` 501/501; `bad=0`; `overwroteExistingCoords=0`; expansão M1b 5.420 intacta; `ranking_entries` hash **`d2b117aa…` intacto**; estadual RSSSF=7; cache sem chaves; API smoke 200.
+
+**Gap de conformidade temporário (declarado):** o deploy de produção do **web** ficou **bloqueado pelo limite free-tier do Vercel** (`api-deployments-free-per-day`, ~24h) → a **atribuição ODbL** em `/metodologia` (© OpenStreetMap contributors) **ainda não publicou**, embora as 451 coords Nominatim já estejam vivas na API. Decisão do Thinker: **manter as coords**; a atribuição publica no próximo deploy possível. **Follow-up:** confirmar `/metodologia` com ODbL live quando o limite resetar (senão, escalar infra/Operador).
+
+**Rollback:** `UPDATE clubs SET latitude=NULL, longitude=NULL WHERE metadata->>'coordSource'='nominatim'` (e limpar as chaves de metadata) — reverte só o que o M1a-3 adicionou.
