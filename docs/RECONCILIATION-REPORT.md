@@ -1025,6 +1025,12 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Score:** hashes pré=pós (rankings `f9edaf56…`, entries `16e0b210…`) — inalterado. **T449c-v1 [x].** T449c-v2 [ ] (design primeiro).
 
+### GATE 2 adendum 43 — T449c-v2: FASE 0 (design) + alinhamento documental A+C do piloto EN (2026-09-27)
+
+**Divergência medida (código × metodologia):** texto publicava `W×3+D×1+GF×0.2` e desempate extenso; código usa `MinMax(points)` por divisão com desempate por saldo. **FASE 0 do v2** entregue em `docs/T449C-V2-FASE0-DESIGN.md` (read-only): inventário (5 rankings, 116 entries, all men; hashes pré `bfb6c485…`/`d2b117aa…`), diagnóstico de comparabilidade, opções de modelo A/B/C/D (**B recomendada**), 3 esquemas tier-aware com simulações (ordem intra-divisão preservada; Wrexham=40 acima de 10/20 PL no linear; α=0.15 inflaria p/ 15/20), rascunho de metodologia, API/UI, testes/gates e rollback.
+
+**Correção A+C (docs-only):** `/metodologia` — seção EN passa a publicar `Pontos brutos = Vitórias × 3 + Empates × 1`, MinMax intra-divisão (1º=100, último=0), desempate por **saldo (GF − GA)**, limitações atualizadas e **nota de consistência (2026-09-27)**; nova seção **“Agregado cross-division — Piloto Inglaterra (proposto, não publicado)”** (linear L1..L5 + disclaimer “estimativa metodológica”). Sem código de API/schema/migration; score inalterado.
+
 ### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
 
 **Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.

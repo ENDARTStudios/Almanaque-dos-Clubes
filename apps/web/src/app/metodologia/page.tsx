@@ -66,19 +66,21 @@ export default function MetodologiaPage() {
             2022/23 (Premier League, Championship, League One, League Two e National League).
           </p>
           <p className="mt-2">
-            <strong>Fórmula (pontos brutos):</strong> Vitórias×3 + Empates×1 + Gols Pró×0.2. Nesta
-            fase <strong>títulos = 0</strong> (sem integração com o grafo de conquistas) — limitação
-            declarada.
+            <strong>Fórmula piloto (por divisão, temporada 2023):</strong>{' '}
+            <span>{'Pontos brutos = Vitórias × 3 + Empates × 1'}</span> (os pontos da tabela de
+            classificação).
           </p>
           <p className="mt-2">
             <strong>Peso:</strong> hierarquia <em>nacional</em> (3.0) para todas as divisões do
             piloto.
           </p>
           <p className="mt-2">
-            <strong>Normalização:</strong> MinMax <em>por competição/temporada/divisão</em> (maior
-            pontuação bruta = 100; menor = 0; demais proporcionais, arredondamento determinístico;
-            desempate por gols contra, saldo, gols pró, nome, id). As divisões são normalizadas{' '}
-            <strong>isoladamente</strong> — não há ranking único cross-division.
+            <strong>Normalização:</strong> MinMax <em>dentro de cada divisão, separadamente</em> —
+            1º lugar da divisão = 100; último = 0; demais proporcionais (arredondamento
+            determinístico). <strong>Desempate</strong> (apenas quando os pontos brutos são iguais):{' '}
+            <strong>{'maior saldo de gols (GF - GA)'}</strong>. As divisões são normalizadas{' '}
+            <strong>isoladamente</strong> — o 100 da Premier League <strong>não</strong> é
+            comparável ao 100 da National League (ver &ldquo;Agregado cross-division&rdquo; abaixo).
           </p>
           <p className="mt-2">
             <strong>Fonte e atribuição:</strong> baseado nas tabelas finais de classificação das
@@ -96,12 +98,45 @@ export default function MetodologiaPage() {
           <p className="mt-2">
             <strong>Limitações conhecidas:</strong> (i) restrito à Inglaterra 2022/23; (ii) baseado
             apenas em <em>tabelas finais de classificação</em> (não em partidas individuais); (iii)
-            sem integração com o grafo de títulos (títulos=0); (iv) sem ranking cross-division; (v)
-            dados históricos podem conter lacunas e divergências entre fontes.
+            títulos não incluídos nesta fase (limite do dado RSSSF tabelado); (iv) pontuação
+            normalizada por divisão — não há ranking único cross-division ativo; (v) dados
+            históricos podem conter lacunas e divergências entre fontes.
+          </p>
+          <p className="mt-2">
+            <strong>{'Nota de consistência (2026-09-27)'}:</strong> a versão anterior desta seção
+            listava um termo &ldquo;Gols Pró × 0.2&rdquo; e uma sequência de desempate mais extensa
+            do que o código implementado. O texto acima agora reflete o código real em produção.
+            Regras de agregado cross-division permanecem em fase de desenho e não estão ativas.
           </p>
           <p className="mt-2">
             <strong>Atualização e correções:</strong> última atualização em 25/09/2026. Encontrou um
             erro? Escreva para <strong>endart.studios@gmail.com</strong>.
+          </p>
+        </section>
+
+        <section id="agregado-cross-division-inglaterra" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Agregado cross-division — Piloto Inglaterra (proposto, não publicado)
+          </h2>
+          <p>
+            <strong>Status:</strong> em fase de desenho. <strong>Não publicado em produção.</strong>{' '}
+            Não há ranking unificado ativo.
+          </p>
+          <p className="mt-2">
+            <strong>Proposta em avaliação:</strong> novo escopo <code>country_pyramid</code>{' '}
+            agregando as 5 divisões inglesas; <strong>fator de divisão linear</strong>{' '}
+            <code>{'L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40'}</code>; aplicado sobre a{' '}
+            <em>nota 0-100 intra-divisão</em> já existente; normalização MinMax global dentro do
+            país/temporada/gênero.
+          </p>
+          <p className="mt-2">
+            <strong>Quando publicado, terá:</strong> metodologia própria com fórmula exata;
+            atribuição RSSSF adequada à fonte; um <em>disclaimer</em> explícito de que é{' '}
+            <strong>{'estimativa metodológica, não confronto oficial'}</strong>; e os rankings por
+            divisão continuarão existindo e ativos.
+          </p>
+          <p className="mt-2">
+            Esta seção será atualizada quando o agregado sair da fase de desenho.
           </p>
         </section>
 
