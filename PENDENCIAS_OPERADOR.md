@@ -34,3 +34,45 @@ Domínio registrado: `almanaquedosclubes.com` na Vercel (14/08/2026), expira 14/
 - CORS da API atualizado para aceitar o novo domínio.
 
 <!-- Novas pendências são adicionadas abaixo, com numeração sequencial. -->
+
+---
+
+### Pendência ODbL / Vercel free-tier — WS-D M1a-3
+
+**Status:** bloqueada por limite diário de deploy da Vercel free-tier (`api-deployments-free-per-day`).
+**Impacto:** atribuição “© OpenStreetMap contributors” / **ODbL** ainda **não publicada** em
+https://almanaquedosclubes.com/metodologia (o merge está na `main`, mas o deploy de produção do web não sobe).
+**Dados já vivos:** coordenadas derivadas de **Nominatim/OSM** (451) estão em produção **via API**.
+**Risco:** conformidade de atribuição ODbL incompleta na superfície pública web.
+
+**Ação obrigatória após o reset do limite (~24h):**
+
+1. Confirmar deploy de produção da Vercel no SHA mais recente da `main` (target `production`, aliases
+   `almanaquedosclubes.com` + `www.almanaquedosclubes.com`, status READY/SUCCESS).
+2. Fetch cache-bypass de `/metodologia`.
+3. Verificar strings obrigatórias:
+   - “© OpenStreetMap contributors”
+   - “ODbL” ou “Open Database License”
+   - menção clara de que coordenadas/cidades complementares podem derivar de OpenStreetMap/Nominatim
+4. Verificar ausência de regressão em `/metodologia`: Wikidata CC0; RSSSF “não é domínio público”;
+   atribuições MG/GO/PR/EN intactas; metodologia de ranking intacta.
+5. Somente após verde, marcar **WS-D M1a-3 [x]**.
+
+**Se após ~24h o limite persistir:** escalar ao Operador para decisão de infraestrutura (upgrade de plano
+Vercel, aumento de limite, janela de deploy ou alternativa de hosting). **Não contornar o rate limit** e **não
+publicar o mapa como feature pronta**.
+
+**Trava permanente:** nenhum lançamento público do mapa-múndi ou promoção de dados geográficos OSM antes da
+atribuição ODbL viva em `/metodologia`.
+
+```
+### [2] Destravar deploy de produção do web (Vercel free-tier) para publicar a atribuição ODbL
+Por quê: o limite diário de deploys da Vercel free-tier impede publicar a atribuição OpenStreetMap/ODbL em /metodologia.
+Onde: Vercel — painel do projeto almanaque-dos-clubes (https://vercel.com/end-art-studios/almanaque-dos-clubes)
+Passo a passo:
+1. Aguardar o reset do limite (~24h) OU autorizar upgrade de plano / aumento de limite / alternativa de hosting.
+2. Garantir um deploy de produção no SHA mais recente da main (git push já dispara; se o limite persistir, aguardar).
+3. Abrir https://almanaquedosclubes.com/metodologia e confirmar a seção de coordenadas com “© OpenStreetMap contributors (ODbL)”.
+Como saber que deu certo: a página /metodologia exibe a atribuição OpenStreetMap/ODbL sem perder Wikidata CC0 nem RSSSF.
+Depois de feito: responda "feito o item Nº 2"
+```
