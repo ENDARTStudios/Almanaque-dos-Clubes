@@ -8,6 +8,7 @@ import { ZodError } from 'zod';
 import { clubsService, CreateClubSchema } from './service.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
+import { getClubProfile } from './profile.service.js';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
 function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
@@ -99,6 +100,23 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         throw new NotFoundError('Clube', request.params.id);
       }
       return reply.send({ data: geo });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
+   * GET /clubs/:id/profile — WS-C-1, perfil consolidado read-only (geo+attribution,
+   * proveniência, títulos, rankings, competições relacionadas). Vazio-honesto: o que
+   * não existe vira null/false e é declarado em `gaps`.
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/profile', async (request, reply) => {
+    try {
+      const profile = await getClubProfile(request.params.id);
+      if (!profile) {
+        throw new NotFoundError('Clube', request.params.id);
+      }
+      return reply.send({ data: profile });
     } catch (err) {
       return handleDomainError(err, reply);
     }
