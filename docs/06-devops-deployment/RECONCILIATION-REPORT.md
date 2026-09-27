@@ -1187,3 +1187,30 @@ champions = **200**; web home + `/rankings` = 200.
 **Nota:** 2 países com 1 clube cada (DE, GH) são artefatos de P17 múltiplo (clube com mais de um país de origem);
 sem impacto material. Lição operacional: `Select-Object -First N` (PowerShell) encerra o pipe SSH — não usar para
 ler loops longos.
+
+### Run autônomo 2026-09-27 — WS-D M1a-3: geocodificação (Wikidata profundo + Nominatim/OSM)
+
+**Medição read-only (FASE 0, #253):** 3.426 de 9.291 clubes ativos sem coordenada (36,9%); 0 deles com `city`.
+O extractor de 1 nível já estava esgotado. Opções A (Wikidata profundo), B (geocoder externo), C (híbrido).
+
+**Opção A (#254, `48dde06`):** `lib/wikidata/deep-coordinates.ts` + `scripts/resolve-club-coordinates-m1a3.ts`
+(1: `P625`; 2-4: `P115`/`P159` exact e `P131`/`P276`/`P937` municipality; 5-6: `P115`/`P159`→`P131` e cadeia
+`P131` até 3 níveis). Migration aditiva `20261008120000_m1a3_club_metadata` (`clubs.metadata JSONB`). Dry-run:
+`wouldResolve=50/3.426` (1,5%) → **teto baixo de A confirmado**. Aplicado: `totalUpdated=50` (P115_P131 34 ·
+P276 12 · P159_P131 4), `city +11`, `overwroteExistingCoords=0`, re-run noop; `with_coords 5.865→5.915`.
+
+**Opção C (#255 `593375d` + fix #256 `03929a5`):** `lib/geocoding/{nominatim-client,geocode-clubs}.ts` +
+`scripts/geocode-clubs-nominatim.ts`. Cliente com 1 req/s, UA com contato, retry/backoff, 403 aborta, cache em
+arquivo. Filtro endurecido por **`type`** (o `class` do jsonv2 vem vazio) — rejeita `path`/`road` (match espúrio
+`RP IF`→path, corrigido em #256). Atribuição **ODbL** adicionada em `/metodologia` (web). Aplicado por grupos de
+países (resumível): SE 38 · AU 53 · PT 41 · BR 9 · TR 6 · JP 9 · HU 30 · PL 38 · NO 6 · BE 16 · PE 10 · NZ 10 ·
+AR 40 · FI 8 · ES 20 · IQ 19 · US 5 · GB 2 · CL 2 · AT 6 · DK 8 · CH 12 · CA 4 · DE 2 · UY 2 · MX 2 · RO 2 ·
+IT 1 · CZ 16 = **451**.
+
+**Gate final (produção):** coords **5.865 → 6.366** (**+501**); `metadata` 501/501 (`nominatim` 451, `P115_P131`
+34, `P276` 12, `P159_P131` 4); `bad=0`; `overwroteExistingCoords=0`; expansão M1b 5.420 intacta; `ranking_entries`
+hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 200. Residual 2.925 sem pista.
+
+**Bloqueio infra (declarado):** Vercel free-tier (`api-deployments-free-per-day`, ~24h) travou o deploy de produção
+do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
+coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
