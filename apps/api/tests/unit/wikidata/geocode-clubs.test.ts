@@ -23,9 +23,15 @@ describe('isPlausibleResult', () => {
     class: 'place',
     countryCode: 'se',
   };
-  it('aceita classe place', () => expect(isPlausibleResult(base)).toBe(true));
-  it('rejeita classe não-plausível', () =>
-    expect(isPlausibleResult({ ...base, class: 'highway' })).toBe(false));
+  it('aceita type city/town/sports_centre', () => {
+    expect(isPlausibleResult(base)).toBe(true);
+    expect(isPlausibleResult({ ...base, type: 'sports_centre' })).toBe(true);
+  });
+  it('rejeita type path/road (match espúrio)', () => {
+    expect(isPlausibleResult({ ...base, type: 'path' })).toBe(false);
+    expect(isPlausibleResult({ ...base, type: 'road' })).toBe(false);
+  });
+  it('rejeita type vazio', () => expect(isPlausibleResult({ ...base, type: '' })).toBe(false));
   it('rejeita coordenada fora do range', () =>
     expect(isPlausibleResult({ ...base, lat: 999 })).toBe(false));
   it('rejeita null', () => expect(isPlausibleResult(null)).toBe(false));
