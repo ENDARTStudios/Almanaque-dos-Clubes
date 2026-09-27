@@ -15,7 +15,7 @@ Work Log:
 - Estado do schema.prisma: apenas Club, Player, Competition existem (sem AuditLog, Session, User, Role, Permission, Subscription, Billing)
 - apps/api/src/modules/auth/ não existe
 - apps/api/src/types/fastify.d.ts não existe
-- docs/evidence/ não existe
+- docs/06-devops-deployment/evidence/ não existe
 - .env.example existe (DATABASE_URL=sqlite, sem variáveis JWT)
 - pnpm install OK após ajustar pnpm-workspace.yaml com allowBuilds + onlyBuiltDependencies
 - Prisma 5.22, tsx 4.23, tsc 5.9.3 funcionando
@@ -36,7 +36,7 @@ Work Log:
 - Adicionados enums: CompetitionType, UserStatus, SubscriptionPlan, SubscriptionStatus, BillingStatus
 - Mantido schema SQLite espelho funcional (enums viram String, sem Unsupported tsvector)
 - Gerado migration SQLite para validar (14 tabelas)
-- Criada evidência docs/evidence/2.3-domain-models-verification.md
+- Criada evidência docs/06-devops-deployment/evidence/2.3-domain-models-verification.md
 - Commit: 9291f83
 
 Stage Summary:
