@@ -19,6 +19,10 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-09-28] Decisão: D-2026-09-28-t448b2i-concluded — T448b-2i ENCERRADO: 3 duplicatas de competição resolvidas por soft-delete reversível
+
+Motivo: **merge #246** (`567348b`) → Railway SUCCESS. Apply do par Libertadores: `duplicatesSoftDeleted=1` · `referencesRedirected=1` (rankings) · `errors=0` · `hardDeletes=0` · `migrations=0` · manifest `/tmp/t448b2i-libertadores-manifest.json`. **SQL:** `Q184795` (Copa Libertadores) **única ativa**; duplicate `28b0f5d4…` **soft-deleted** (`dedupe_t448b2i_human_pair`); Brasileirão Série A + Copa do Brasil já resolvidas (`dedupe_t448b2i`); **stale_refs=0**; **qid duplicado=0**; **competitions ativas sem QID = 0**; entries EN `d2b117aa…` (inalterado); estadual=**7**; MG/GO/PR intactos. Cache cirúrgico; API smoke 200. **Sem fuzzy, sem rename, sem hard delete.** **T448b-2i ENCERRADO. WS-D M1b liberado.**
+
 ### [2026-09-28] Decisão: D-2026-09-28-t448b2i-libertadores-human-pair — Libertadores resolvida por par humano explícito (sem fuzzy)
 
 Motivo: a duplicata **“Copa Libertadores da América”** (`28b0f5d4…`, qid NULL) **diverge por NOME** da canônica **“Copa Libertadores”** (`9d50e9fa…`, `Q184795`) — casar automaticamente seria *fuzzy* (**proibido**). **Solução:** par humano versionado `lib/identity/data/competition-dedupe-human-pairs-v1.json` (UUIDs completos + evidência Wikidata validada read-only: label “Copa Libertadores”, P31 `Q1478437`/`Q18608583`; **retrievedAt estático**). Script `dedupe-competitions.ts` ganhou `--pairs-only`/`--pairs-file` (**import estático** do pair → sem ENOENT) + `validatePairsFile`/`validateHumanPair`. Refs a redirecionar: **1** (`rankings.competitionId`); soft-delete reason `dedupe_t448b2i_human_pair`. Testes unit **15/15**. **Apply em produção = gate pós-merge.**
