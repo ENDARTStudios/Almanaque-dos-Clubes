@@ -1065,6 +1065,10 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
 
+### GATE 2 adendum 53 — WS-D M1a-2 ATIVO: coords/city enriquecidos (2026-09-27)
+
+**Merge #243 (`475dfcd`) → Railway SUCCESS.** DRY `wouldUpdate={coordinates:2632, city:2171}`; APPLY `totalUpdated=2780` (errors 0; hardDeletes 0; migrations 0); re-run idempotente (0/0). SQL: `with_coords` **2790** · `with_city` **2625**. hash entries EN `d2b117aa…` inalterado; estadual=7. Cache no-op. API smoke `/clubs?country=BR` 200 com city/lat. Próximo: migration `Competition.deletedAt` → dedupe.
+
 ### GATE 2 adendum 52 — WS-D M1a-2: city/coords via P159/P115/P131 implementado (2026-09-27)
 
 **FASE 0.1:** P159=60% · P115=43% · P131=0% (amostra 100). **Entrega:** `extract-club-coordinates.ts` (prioridade `P625` > `P159` > `P115` > `P131`; confidence por fonte) + bulk + script `enrich-clubs-coordinates-m1a2.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; só preenche nulos; `importedFrom='wikidata-enrich-m1a2'`). **Testes:** unit 11/11; integração 2/2 (não sobrescreve; rollback). tsc 0; lint 0. **Apply em produção = gate pós-merge.**
