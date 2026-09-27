@@ -5,6 +5,8 @@ import type { Ranking, RankingEntry } from '@almanaque/domain';
 export interface ListRankingsParams {
   competitionId?: string;
   season?: string;
+  scope?: string;
+  country?: string;
   published?: boolean;
   search?: string;
   limit?: number;
@@ -19,12 +21,23 @@ export const rankingsRepository = {
   },
 
   async findMany(params: ListRankingsParams = {}): Promise<Ranking[]> {
-    const { competitionId, season, published, search, limit = 50, offset = 0 } = params;
+    const {
+      competitionId,
+      season,
+      scope,
+      country,
+      published,
+      search,
+      limit = 50,
+      offset = 0,
+    } = params;
     return prisma.ranking.findMany({
       where: {
         AND: [
           competitionId ? { competitionId } : {},
           season ? { season } : {},
+          scope ? { scope } : {},
+          country ? { country } : {},
           published === true ? { publishedAt: { not: null } } : {},
           published === false ? { publishedAt: null } : {},
           search ? { name: { contains: search } } : {},
@@ -37,12 +50,14 @@ export const rankingsRepository = {
   },
 
   async count(params: ListRankingsParams = {}): Promise<number> {
-    const { competitionId, season, published, search } = params;
+    const { competitionId, season, scope, country, published, search } = params;
     return prisma.ranking.count({
       where: {
         AND: [
           competitionId ? { competitionId } : {},
           season ? { season } : {},
+          scope ? { scope } : {},
+          country ? { country } : {},
           published === true ? { publishedAt: { not: null } } : {},
           published === false ? { publishedAt: null } : {},
           search ? { name: { contains: search } } : {},
@@ -93,15 +108,18 @@ export const rankingsRepository = {
 
   // --- T438 — leitura pública otimizada (cursor-based) ---
 
-  /** Último Ranking publicado que casa com os filtros (ano/competição). */
+  /** Último Ranking publicado que casa com os filtros (ano/competição/escopo/país). */
   async findLatestPublished(
-    filter: { season?: string; competitionId?: string } = {},
+    filter: { season?: string; competitionId?: string; scope?: string; country?: string } = {},
   ): Promise<Ranking | null> {
     return prisma.ranking.findFirst({
       where: {
         publishedAt: { not: null },
         ...(filter.season ? { season: filter.season } : {}),
         ...(filter.competitionId ? { competitionId: filter.competitionId } : {}),
+        // Default: ranking por competição/divisão (scope NULL). Só troca com `scope` explícito.
+        ...(filter.scope ? { scope: filter.scope } : { scope: null }),
+        ...(filter.country ? { country: filter.country } : {}),
       },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
     }) as Promise<Ranking | null>;

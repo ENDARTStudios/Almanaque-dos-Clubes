@@ -183,6 +183,7 @@ export const rankingsService = {
   async getLatestRankedEntries(params: {
     year?: string;
     competitionId?: string;
+    scope?: string;
     gender?: string;
     country?: string;
     state?: string;
@@ -196,6 +197,10 @@ export const rankingsService = {
       season: string | null;
       competitionId: string | null;
       competition: CompetitionTierPayload | null;
+      scope: string | null;
+      country: string | null;
+      tierVersion: string | null;
+      formulaVersion: string | null;
     } | null;
     data: Array<{
       position: number | null;
@@ -214,6 +219,7 @@ export const rankingsService = {
     const ranking = await rankingsRepository.findLatestPublished({
       season: params.year,
       competitionId: params.competitionId,
+      scope: params.scope,
     });
     if (!ranking) return { ranking: null, data: [], cursor: null };
     const entries = await rankingsRepository.findRankedEntries({
@@ -235,6 +241,10 @@ export const rankingsService = {
         season: ranking.season,
         competitionId: ranking.competitionId,
         competition: comp ? toCompetitionTier(comp) : null,
+        scope: ranking.scope ?? null,
+        country: ranking.country ?? null,
+        tierVersion: ranking.tierVersion ?? null,
+        formulaVersion: ranking.formulaVersion ?? null,
       },
       data: entries.map((e) => ({
         position: e.position,

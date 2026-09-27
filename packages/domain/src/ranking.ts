@@ -28,6 +28,11 @@ export interface Ranking {
   name: string;
   competitionId: string | null;
   season: string | null;
+  // T449c-v2 — escopo do ranking (NULL = por competição/divisão; 'country_pyramid' = agregado).
+  scope?: string | null;
+  country?: string | null;
+  tierVersion?: string | null;
+  formulaVersion?: string | null;
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
