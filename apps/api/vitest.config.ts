@@ -4,6 +4,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Unit tests importam módulos que carregam o singleton Prisma no import; sem uma
+    // URL definida o construtor lança antes de qualquer query (não conecta aqui).
+    // Integration tests usam a DATABASE_URL real do ambiente (CI/sandbox).
+    env: {
+      DATABASE_URL:
+        process.env.DATABASE_URL ??
+        'postgresql://almanaque:almanaque@localhost:5432/almanaque_test',
+    },
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     exclude: [
       '**/node_modules/**',

@@ -42,6 +42,7 @@ import { favoritesRoutes } from './modules/favorites/routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.js';
 import { compareRoutes } from './modules/compare/routes.js';
 import { championsRoutes } from './modules/champions/routes.js';
+import { searchRoutes } from './modules/search/routes.js';
 import { backupRoutes } from './modules/admin/backup.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
@@ -219,6 +220,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(wsTicketRoutes);
       await api.register(compareRoutes);
       await api.register(championsRoutes);
+      await api.register(searchRoutes);
       await api.register(backupRoutes);
     },
     { prefix: '/api/v1' },
