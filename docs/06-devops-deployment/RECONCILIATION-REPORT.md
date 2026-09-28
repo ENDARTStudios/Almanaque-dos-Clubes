@@ -1215,6 +1215,30 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — WS-G-1.1: auditoria dry-run em produção (sem escrita)
+
+**Guarda Vercel:** produção web ainda no SHA anterior ao #266; `api-deployments-free-per-day` **ainda
+bloqueado**; **sem retry** (PENDENCIAS [3] atualizada com SHA/erro/sem-retry).
+
+**Execução (Railway `39ca6e7`, `ORCHESTRATION_ENABLED` `<unset>`=OFF):** entrypoint seguro via
+`node --input-type=module` importando `dist/lib/orchestration/runner.js` (opção B; sem endpoint/comando novo).
+
+| job | resultado |
+| --- | --- |
+| `geo-attribution-audit` | 9.291 clubes · coords 6.366 · OSM 451 · **missing 0 · wrong 0** · wikidata 50 · unknown `[]` · errors 0 |
+| `identity-integrity-dry-run` (SQL) | 0 sem QID (clubs/comps) · dup 0/0 · canônicos `Q206813/Q843989/Q184795` ativos · homônimos `Q10391045/Q10391046/Q671621` presentes · comps soft-deleted 3 |
+| `ranking-refresh-dry-run` (por ranking) | 10 rankings · 256 entries · **0/0/0/0** (create/update/points/positions) · errors 0 |
+| `wikidata-sample-validation` (FASE 3, ≤5) | 5/5 HTTP 200 com `P31`+`P17` |
+
+*(1ª passagem do ranking chaveada por `clubId` acusou 124 diffs — artefato do harness com entradas duplicadas
+entre rankings; reconduzida por ranking = 0. RSSSF não raspado nesta etapa.)*
+
+**Integridade:** inalterada — `ranking_entries` hash `d2b117aa…`, estadual RSSSF 7, `country_pyramid` EN 1,
+MG/GO/PR intactos. **writes 0 · migrations 0 · schedulers 0 · hard deletes 0 · secrets echoed 0.**
+
+**Estado:** WS-G-1 FASE 0 `[x]`, WS-G-1.1 `[x]`; **WS-G-1.2 (apply) `[ ]` não autorizado**. `WS-C-2` `[~]`
+(deploy web pendente).
+
 ### Run autônomo 2026-09-28 — WS-G-1: scaffolding de orquestração ETL/cron (dry-run only)
 
 **Track A (WS-C-2 deploy):** revalidação ao vivo — produção ainda no SHA anterior ao #266 (`/clubs/:id` sem

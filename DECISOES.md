@@ -1335,3 +1335,34 @@ qualquer write. O primeiro pipeline **dry-run/apply** só após checkpoint e **a
 
 **Reuso:** BullMQ (`services/queue.ts`), conectores ETL, `http-resilience` (backoff), `won-edges`, cache,
 pgsql/Prisma (leitura). **Rollback:** revert do merge (não toca dados).
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-g1-1-dry-run-only — WS-G-1.1 auditoria dry-run (sem escrita) ✅
+
+**Estado:** **WS-G-1.1 executado em produção (Railway `39ca6e7`) em modo DRY-RUN.** `ORCHESTRATION_ENABLED`
+**OFF** (`<unset>`). **Zero escrita, zero migration, zero scheduler ativado, zero hard delete, zero segredo.**
+
+**Como:** entrypoint seguro = `node --input-type=module` importando o runner compilado
+(`/app/apps/api/dist/lib/orchestration/runner.js`) com deps lidas read-only via Prisma. Nenhum endpoint novo,
+nenhum comando inventado.
+
+**Resultados (dry-run):**
+- `geo-attribution-audit`: clubs varridos 9.291 · com coords 6.366 · fonte OSM 451 · **missing 0 · wrong 0** ·
+  wikidata 50 · unknown `[]` · errors 0. ✅
+- `identity-integrity-dry-run` (SQL): clubs ativos 9.291 (**0 sem QID**) · comps ativas 1.905 (**0 sem QID**) ·
+  dup QID clubs 0 / comps 0 · canônicos `Q206813`/`Q843989`/`Q184795` **ativos** · homônimos `Q10391045`/
+  `Q10391046`/`Q671621` **presentes** · comps soft-deleted 3 (dedupe preservada). ✅
+- `ranking-refresh-dry-run` (escopado por ranking, chave única): 10 rankings · 256 entries ·
+  **wouldCreateRankings 0 · wouldUpdateEntries 0 · wouldChangePoints 0 · wouldChangePositions 0** · errors 0. ✅
+  *(Uma primeira passagem chaveada por `clubId` acusou 124 diffs — **artefato do harness** com entradas
+  duplicadas entre rankings, não drift; reconduzida por ranking.)*
+- `wikidata-sample-validation` (FASE 3, ≤5 entidades, EntityData read-only, UA+timeout): **5/5 HTTP 200** com
+  `P31`+`P17` (Zamora FC, Colón FC, Q10526510, Q1030761, Kyoto Univ FC). (Contador de erro do harness
+  comparou número×string — os 5 obtiveram 200.) RSSSF **não** raspado nesta etapa (declarado).
+
+**Integridade:** inalterada — `ranking_entries` hash **`d2b117aa…`**, estadual RSSSF **7**, `country_pyramid`
+EN **1**, MG/GO/PR intactos.
+
+**Consequência:** `WS-G-1 FASE 0 [x]` (scaffolding completo) e **`WS-G-1.1 [x]`** (dry-run verde). **`WS-G-1.2`
+(apply) permanece `[ ]` — não autorizado.** `WS-C-2` segue `[~]` (deploy web pendente, PENDENCIAS [3]).
