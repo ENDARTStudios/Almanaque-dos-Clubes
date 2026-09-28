@@ -100,3 +100,45 @@ describe('buildMapViewModel', () => {
     expect(vm.withoutLocationCount).toBe(42);
   });
 });
+
+describe('buildMapViewModel — estados degradados (FASE 4)', () => {
+  const base = {
+    type: 'club' as const,
+    qid: 'Q',
+    name: 'X',
+    city: null,
+    state: null,
+    country: 'BR',
+    lat: 0,
+    lng: 0,
+  };
+
+  it('OSM sem attribution → NÃO plota; marca missing_attribution', () => {
+    const vm = buildMapViewModel({
+      ...resp,
+      features: [{ ...base, id: 'x', coordSource: 'nominatim', attribution: null }],
+    });
+    expect(vm.clusters).toHaveLength(0);
+    expect(vm.degradedPoints).toHaveLength(1);
+    expect(vm.degradedPoints[0].reason).toBe('missing_attribution');
+  });
+
+  it('origem desconhecida → NÃO plota; marca unknown_source', () => {
+    const vm = buildMapViewModel({
+      ...resp,
+      features: [{ ...base, id: 'y', coordSource: 'algo-estranho', attribution: null }],
+    });
+    expect(vm.clusters).toHaveLength(0);
+    expect(vm.degradedPoints[0].reason).toBe('unknown_source');
+  });
+
+  it('Wikidata sem attribution → plota (CC0 é a proveniência)', () => {
+    const vm = buildMapViewModel({
+      ...resp,
+      features: [{ ...base, id: 'z', coordSource: 'P115_P131', attribution: null }],
+    });
+    expect(vm.degradedPoints).toHaveLength(0);
+    expect(vm.clusters.reduce((s, c) => s + c.count, 0)).toBe(1);
+    expect(vm.attributionsBySource.find((a) => a.source === 'wikidata')?.license).toBe('CC0');
+  });
+});

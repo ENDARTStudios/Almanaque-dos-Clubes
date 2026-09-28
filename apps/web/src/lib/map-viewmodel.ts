@@ -55,13 +55,27 @@ export interface MapViewModelPoint {
   attribution: GeoAttributionDto | null;
 }
 
+export type DegradedReason = 'missing_attribution' | 'unknown_source';
+
 export interface MapViewModel {
   points: MapViewModelPoint[];
+  /** Pontos NÃO plotados por segurança (origem desconhecida ou OSM sem atribuição). */
+  degradedPoints: Array<MapViewModelPoint & { reason: DegradedReason }>;
   clusters: Cluster[];
   withoutLocationCount: number;
   attributionsBySource: Array<{ source: GeoSource; label: string; license: string }>;
   limitations: string[];
   rulesVersion: string;
+}
+
+/** Só é plotável com origem reconhecida; OSM/Nominatim EXIGE atribuição ODbL resolvida. */
+function isSafelyPlottable(p: MapViewModelPoint): boolean {
+  if (p.source === 'osm') return p.attribution != null;
+  return p.source === 'wikidata';
+}
+
+function degradeReason(p: MapViewModelPoint): DegradedReason {
+  return p.source === 'osm' && p.attribution == null ? 'missing_attribution' : 'unknown_source';
 }
 
 function subtitleOf(f: GeoPointFeatureDto): string | null {
@@ -86,17 +100,23 @@ export function buildMapViewModel(
     attribution: f.attribution,
   }));
 
-  const mapPoints = points.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, source: p.source }));
+  const plottable = points.filter(isSafelyPlottable);
+  const degradedPoints = points
+    .filter((p) => !isSafelyPlottable(p))
+    .map((p) => ({ ...p, reason: degradeReason(p) }));
+
+  const mapPoints = plottable.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, source: p.source }));
   const clusters = limitPerViewport(
     clusterPoints(mapPoints, opts.cellSizeDeg ?? 1),
     opts.max ?? MAX_MARKERS_PER_VIEWPORT,
   );
 
-  const sources = [...new Set(points.map((p) => p.source))].filter((s) => s !== 'none');
+  const sources = [...new Set(plottable.map((p) => p.source))];
   const attributionsBySource = sources.map((source) => ({ source, ...layerAttribution(source) }));
 
   return {
     points,
+    degradedPoints,
     clusters,
     withoutLocationCount: resp.withoutLocation.count,
     attributionsBySource,
