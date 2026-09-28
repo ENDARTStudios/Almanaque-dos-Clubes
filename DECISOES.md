@@ -1366,3 +1366,27 @@ EN **1**, MG/GO/PR intactos.
 
 **Consequência:** `WS-G-1 FASE 0 [x]` (scaffolding completo) e **`WS-G-1.1 [x]`** (dry-run verde). **`WS-G-1.2`
 (apply) permanece `[ ]` — não autorizado.** `WS-C-2` segue `[~]` (deploy web pendente, PENDENCIAS [3]).
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-ws-c-2-deploy-smoke-concluido — WS-C-2 [x] ✅
+
+**Estado:** o limite da Vercel resetou; a **produção web publicou o WS-C-2** — deployment
+`almanaque-dos-clubes-3x3ywwmeo` (target `production`, `Ready`, aliases `almanaquedosclubes.com` /
+`www.almanaquedosclubes.com`). **Smoke verde.** PENDENCIAS [3] **fechada**.
+
+**Evidência (produção, cache-bypass):**
+- Páginas: `/` 200 (seção de campeões; **sem link `/map`**) · `/rankings` 200 · `/metodologia` 200 · `/map`
+  200 com **`robots noindex`** (fora do nav, não promovido) · `/search?...` 200 (input `global-search-input`,
+  `combobox`).
+- Perfil: clube **OSM** → `data-testid="geo-attribution"` presente + seção de **gaps**; clube **Wikidata** →
+  **sem** ODbL indevido; BR/EN 200 (EN com Rankings); id inexistente → **404**.
+- API: `health`/`rankings` 200 · `/clubs/:id/profile` `attribution.license=ODbL` · `/champions/carousel` 200
+  (`rulesVersion=ws-c-1-carousel-v1`, 418 scopes + 5 unavailable — a UI mostra subconjunto ≤16) ·
+  `/search/global` (`Flamengo`=7; `type=competition` `Libertadores`=1).
+- **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 · `ranking_entries` hash
+  **`d2b117aa…`** · estadual RSSSF **7** · `country_pyramid` EN **1** · MG/GO/PR intactos.
+
+**Consequência:** **`WS-C-2 [x]`**. Mapa público **segue off** (`noindex`/fora do nav) — promoção é **WS-C-3**
+(aprovação explícita). Próximo: **checkpoint WS-G-1.2** (fix de chave + testes) para autorização de push/PR/merge
+— **apply/write continua proibido**.
