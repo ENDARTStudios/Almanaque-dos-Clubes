@@ -34,7 +34,7 @@ gap documentado; `[ ]` sem evidência/não iniciado.
 | T370/T371           | Fase 2/3 (sessions)     | `rls-context.ts` + adoção `withRlsContext`                    |
 | T373/T374/T375/T378 | Fase 9.1                | CI: fix Redis + oracle + gitleaks + dependency-audit          |
 | T376/T380           | Fase 9.4                | merges via exceção governada; produção verde                  |
-| T379                | Fase 9.9                | `../07-operations-marketing/MANUAL_DO_OPERADOR.md` reescrito                             |
+| T379                | Fase 9.9                | `../07-operations-marketing/MANUAL_DO_OPERADOR.md` reescrito  |
 
 ## 4. Itens `[ ]` (6) — status
 
@@ -668,18 +668,18 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Validação viva (amostra real de produção; Wikidata ao vivo):**
 
-| medida | valor |
-|---|---|
-| clubes resolvidos | **60/60** |
-| países / estados / cidades | 23 / 6 / 17 |
-| clubes vinculados (país / estado / cidade) | 60 / 6 / 17 |
-| re-run (2ª execução) | **created=0, updated=0, unchanged=60** (zero escrita) |
-| spot-check 20 clubes (P625 + ISO via P17→P297) | **20/20** |
-| spot-check 17 cidades (P625 na fonte) | **17/17** |
-| spot-check 6 estados (P300 == code) | **6/6** |
-| coordenada fora de faixa | **0** |
-| BR fora do bounding-box | **0** |
-| órfão/ciclo de hierarquia | **0** |
+| medida                                         | valor                                                 |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| clubes resolvidos                              | **60/60**                                             |
+| países / estados / cidades                     | 23 / 6 / 17                                           |
+| clubes vinculados (país / estado / cidade)     | 60 / 6 / 17                                           |
+| re-run (2ª execução)                           | **created=0, updated=0, unchanged=60** (zero escrita) |
+| spot-check 20 clubes (P625 + ISO via P17→P297) | **20/20**                                             |
+| spot-check 17 cidades (P625 na fonte)          | **17/17**                                             |
+| spot-check 6 estados (P300 == code)            | **6/6**                                               |
+| coordenada fora de faixa                       | **0**                                                 |
+| BR fora do bounding-box                        | **0**                                                 |
+| órfão/ciclo de hierarquia                      | **0**                                                 |
 
 **GAP DECLARADO:** apenas ~3% dos clubes têm P625 direto (produção 113/3.857; amostra 2/60) — mapa será esparso por clube; cidades (com P625 via P131) podem servir de fallback no T467. `stadiums` vazio (sem seed nesta rodada).
 
@@ -792,6 +792,7 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 **Ponte de identidade (provada):** competição-mãe ausente → **upsert idempotente por `qid`** (criou `Q731877` "Campeonato Mineiro", `country=BR`, `type=LEAGUE`, `importedFrom=rsssf`, `sourceUrl`); clube resolvido por `qid` (produção) **ou** por **nome exato** → vincula `qid` (testado); ausente → **fail-fast** (`club_missing`, sem órfão).
 
 **Evidência (logs reais):**
+
 - `apply` (1ª vez): **created=3** (2023/2024/2025), `failed=0`, `attributionMissing=0`.
 - `apply` (2ª vez): **created=0 / skipped=3** → **idempotência provada**.
 - `GET /api/v1/clubs/:id/titles`: **200** · `total=3` · `hierarchy=estadual` · `sourceUrl=https://rsssfbrasil.com/tablesfq/mg2023|2024|2025.htm`.
@@ -883,7 +884,7 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Merges OK:** #205 (parser GO `63604ae`), #206 (writer GO `2450fa4`), #207 (atribuição web `928e5ce`) — `main=928e5ce`, `security-gate` verde. **Railway API deploy SUCCESS** (`928e5ce`), artefatos GO no container (`../go-pilot-candidates.json` `pilotScope=go-2023-2024`; `write-rsssf-won-edges.js` com `t448b2d-writer-go-v1`).
 
-**BLOCKED_REASON:** `vercel_deploy_rate_limited_24h` — `vercel --prod` → *"Resource is limited - try again in 24 hours (more than 100, api-deployments-free-per-day)"*. O deploy de produção do web **não subiu** → `/metodologia` **sem** a seção GO (`Guillermo Alexander Rivera`/`Goiano` ausentes; cache MISS) → **apply GO abortado** (gate exige atribuição pública antes). **Sem contorno/bypass/preview-como-produção/divergência.**
+**BLOCKED_REASON:** `vercel_deploy_rate_limited_24h` — `vercel --prod` → _"Resource is limited - try again in 24 hours (more than 100, api-deployments-free-per-day)"_. O deploy de produção do web **não subiu** → `/metodologia` **sem** a seção GO (`Guillermo Alexander Rivera`/`Goiano` ausentes; cache MISS) → **apply GO abortado** (gate exige atribuição pública antes). **Sem contorno/bypass/preview-como-produção/divergência.**
 
 **Estado congelado (read-only):** `go_active_won=0` · `go_2025_edges=0` · `q1513287_club=0` · `q1513287_edges=0` · homônimos (`Q10391045/Q10391046`) presentes · `mg_active_won=3` · `total_estadual_rsssf_active=3`. **PASSO 3 (`/champions`) verificado:** determinístico (tipo → ano desc) → card `estadual` permanece Atlético-MG 2025.
 
@@ -1019,7 +1020,7 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 **Descoberta:** o deploy de **produção** Vercel `cts0o2qhg` (alias `almanaquedosclubes.com`/`www`, Ready) **já servia o #225** — o rate-limit bloqueou só o **preview** do PR, não a produção.
 
-**UI smoke (Playwright live):** `https://almanaquedosclubes.com/rankings` → HTTP 200; `[data-testid=ranking-division-badge]` = **“National League”** (ranking EN exibido, level 5); `ranking-pilot-badge` presente; 24 linhas. **Páginas:** `/` 200 (31830B) · `/rankings` 200 (25911B) · `/metodologia` 200 (50865B). *(A tabela exibe 1 ranking por vez — o último publicado; os 5 níveis estão expostos pela API e são cobertos por `en-pyramid`/smoke de API.)*
+**UI smoke (Playwright live):** `https://almanaquedosclubes.com/rankings` → HTTP 200; `[data-testid=ranking-division-badge]` = **“National League”** (ranking EN exibido, level 5); `ranking-pilot-badge` presente; 24 linhas. **Páginas:** `/` 200 (31830B) · `/rankings` 200 (25911B) · `/metodologia` 200 (50865B). _(A tabela exibe 1 ranking por vez — o último publicado; os 5 níveis estão expostos pela API e são cobertos por `en-pyramid`/smoke de API.)_
 
 **Negativas:** `rankings` estaduais BR publicados = 0 ⇒ nenhum badge possível; API `level` NULL p/ `Q731877`/`Q931386`/`Q920397`; 5/5 rankings EN com level.
 
@@ -1075,7 +1076,7 @@ nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pa
 
 ### GATE 2 adendum 56 — T448b-2i CONCLUÍDO: 3 competições duplicadas resolvidas (2026-09-28)
 
-**Merge #246 (`567348b`) → Railway SUCCESS.** Par Libertadores: DRY `groupsByHumanPair=1`/`duplicates=1`/`referencesToRedirect=1`; APPLY `duplicatesSoftDeleted=1`/`referencesRedirected=1` (rankings)/`errors=0`; manifest `/tmp/t448b2i-libertadores-manifest.json`. **SQL:** `Q184795` única ativa; duplicate `28b0f5d4…` soft-deleted (`dedupe_t448b2i_human_pair`); stale_refs=0; qid dup=0; **active competitions sem QID=0**; entries EN `d2b117aa…`; estadual=7; MG/GO/PR intactos. Cache cirúrgico; API smoke 200. **T448b-2i [x]. WS-D M1b liberado.** *(Ressalva: re-run do `--pairs-only` retorna `duplicate_soft_deleted` como erro — fail-safe por design; nenhuma reescrita.)*
+**Merge #246 (`567348b`) → Railway SUCCESS.** Par Libertadores: DRY `groupsByHumanPair=1`/`duplicates=1`/`referencesToRedirect=1`; APPLY `duplicatesSoftDeleted=1`/`referencesRedirected=1` (rankings)/`errors=0`; manifest `/tmp/t448b2i-libertadores-manifest.json`. **SQL:** `Q184795` única ativa; duplicate `28b0f5d4…` soft-deleted (`dedupe_t448b2i_human_pair`); stale_refs=0; qid dup=0; **active competitions sem QID=0**; entries EN `d2b117aa…`; estadual=7; MG/GO/PR intactos. Cache cirúrgico; API smoke 200. **T448b-2i [x]. WS-D M1b liberado.** _(Ressalva: re-run do `--pairs-only` retorna `duplicate_soft_deleted` como erro — fail-safe por design; nenhuma reescrita.)_
 
 ### GATE 2 adendum 55 — T448b-2i: par humano Libertadores (nomes divergentes) implementado (2026-09-28)
 
@@ -1163,10 +1164,11 @@ acento, ç, LIKE-injection, soft-delete).
 ### Run autônomo 2026-09-27 — WS-D M1b: expansão Wikidata conservadora (piloto PT + 24 países)
 
 **Engine (#250, `a9361e2`):** `lib/wikidata/expansion/{types,filters,extract-attributes,plan-builder,apply-plan}.ts`
-+ `scripts/expand-wikidata-conservative.ts` (DRY default; `--apply --allow-production`; `--stage=PILOT|FULL`;
-`--country=<ISO2>`; insert-only; dedupe por QID; unit 21/21). Whitelist de competição refinada em **#251**
-(`15d194f`): removida a classe de temporada/edição `Q18608583` (over-inclusion → PT criava 81 comps > gate 50).
-Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
+
+- `scripts/expand-wikidata-conservative.ts` (DRY default; `--apply --allow-production`; `--stage=PILOT|FULL`;
+  `--country=<ISO2>`; insert-only; dedupe por QID; unit 21/21). Whitelist de competição refinada em **#251**
+  (`15d194f`): removida a classe de temporada/edição `Q18608583` (over-inclusion → PT criava 81 comps > gate 50).
+  Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
 
 **Piloto PT (dry-run → amostragem → apply):** `clubWouldCreate=364` (100–600 ✓), `competitionWouldCreate=5`
 (5–50 ✓), coords **56%** (≥35% ✓), `errors=[]`. Amostragem manual 25 clubes = 25/25 legítimos (0 FP).
@@ -1215,6 +1217,25 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-29 — Release única: WS-G-1.2-A + WS-C-3 FASE 0 + guarda de deploy
+
+**Autorização:** Operador (Vercel Hobby) autorizou condicionalmente `apps/web/vercel.json`
+(`git.deploymentEnabled.main=false`) **dentro de uma release única**. Gate de segredos OK: `gh secret list` =
+`VERCEL_TOKEN`; `deploy-web.yml` só referencia `VERCEL_TOKEN` (+ `--project`). `.env` gitignored e não versionado.
+
+**Merge:** `6d0d728` (PR #273, squash). **Deploy:** `Deploy Web` workflow **success**; produção Vercel
+`almanaque-dos-clubes-dkyyfz4qd` (`Ready`, target production).
+
+**Conteúdo:** WS-G-1.2-A (chave composta `rankingId+clubId` + testes anti-falso-positivo) · `docs/WS-C-3-FASE0-DESIGN.md` ·
+guarda (`deploy-vercel-frontend` fora do `ci.yml`; `.github/workflows/deploy-web.yml` com `paths`+`environment`+`concurrency`;
+`apps/web/vercel.json` nativa-main off) · docs.
+
+**Smoke pós-release:** web `/`,`/rankings`,`/metodologia`,`/search?q=Flamengo`,`/map` 200 · perfil OSM
+`geo-attribution` ✓ · Wikidata sem ODbL ✓ · inexistente 404 · `/map` `noindex` + fora do nav · API
+`health`/`rankings`/`champions/carousel`/`search/global` 200 · `/metodologia` “Pontos brutos = Vitórias × 3 +
+Empates × 1” + saldo. **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · `ranking_entries`
+`d2b117aa…` · estadual 7 · EN pyramid 1 · MG/GO/PR intactos. **#272 fechado como superseded.**
+
 ### Run autônomo 2026-09-28 — TRACK A: WS-C-2 publicado + smoke verde (WS-C-2 [x])
 
 O limite da Vercel resetou e a produção web publicou o WS-C-2 — deployment
@@ -1243,15 +1264,15 @@ bloqueado**; **sem retry** (PENDENCIAS [3] atualizada com SHA/erro/sem-retry).
 **Execução (Railway `39ca6e7`, `ORCHESTRATION_ENABLED` `<unset>`=OFF):** entrypoint seguro via
 `node --input-type=module` importando `dist/lib/orchestration/runner.js` (opção B; sem endpoint/comando novo).
 
-| job | resultado |
-| --- | --- |
-| `geo-attribution-audit` | 9.291 clubes · coords 6.366 · OSM 451 · **missing 0 · wrong 0** · wikidata 50 · unknown `[]` · errors 0 |
-| `identity-integrity-dry-run` (SQL) | 0 sem QID (clubs/comps) · dup 0/0 · canônicos `Q206813/Q843989/Q184795` ativos · homônimos `Q10391045/Q10391046/Q671621` presentes · comps soft-deleted 3 |
-| `ranking-refresh-dry-run` (por ranking) | 10 rankings · 256 entries · **0/0/0/0** (create/update/points/positions) · errors 0 |
-| `wikidata-sample-validation` (FASE 3, ≤5) | 5/5 HTTP 200 com `P31`+`P17` |
+| job                                       | resultado                                                                                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `geo-attribution-audit`                   | 9.291 clubes · coords 6.366 · OSM 451 · **missing 0 · wrong 0** · wikidata 50 · unknown `[]` · errors 0                                                   |
+| `identity-integrity-dry-run` (SQL)        | 0 sem QID (clubs/comps) · dup 0/0 · canônicos `Q206813/Q843989/Q184795` ativos · homônimos `Q10391045/Q10391046/Q671621` presentes · comps soft-deleted 3 |
+| `ranking-refresh-dry-run` (por ranking)   | 10 rankings · 256 entries · **0/0/0/0** (create/update/points/positions) · errors 0                                                                       |
+| `wikidata-sample-validation` (FASE 3, ≤5) | 5/5 HTTP 200 com `P31`+`P17`                                                                                                                              |
 
-*(1ª passagem do ranking chaveada por `clubId` acusou 124 diffs — artefato do harness com entradas duplicadas
-entre rankings; reconduzida por ranking = 0. RSSSF não raspado nesta etapa.)*
+_(1ª passagem do ranking chaveada por `clubId` acusou 124 diffs — artefato do harness com entradas duplicadas
+entre rankings; reconduzida por ranking = 0. RSSSF não raspado nesta etapa.)_
 
 **Integridade:** inalterada — `ranking_entries` hash `d2b117aa…`, estadual RSSSF 7, `country_pyramid` EN 1,
 MG/GO/PR intactos. **writes 0 · migrations 0 · schedulers 0 · hard deletes 0 · secrets echoed 0.**
@@ -1268,6 +1289,7 @@ MG/GO/PR intactos. **writes 0 · migrations 0 · schedulers 0 · hard deletes 0 
 **Track B (WS-G-1, read-only):** inventário (BullMQ `etl/email/export/ranking`, `etl-worker.ts`, conectores,
 `http-resilience`, `won-edges`, cache) + `docs/WS-G-1-FASE0-DESIGN.md`. Scaffolding em
 `apps/api/src/lib/orchestration/*`:
+
 - planners puros (`planWikidataIdentityScan` dedupe-QID/skip-soft-deleted/sem-fuzzy; `planWikidataEnrichment`
   only-fill; `planRsssfStateChampions` proveniência/ambíguo-omitido; `planRankingRefreshDiff` nunca-publica;
   `auditGeoAttribution` OSM sem/inconsistente atribuição);
@@ -1287,6 +1309,7 @@ QID; dup 0/0; hash `d2b117aa…`; estadual 7; EN pyramid 1). **Gate #264 (ODbL E
 passou a exibir “OpenStreetMap contributors” (o literal canônico). Sem PR WS-C-2 pré-existente.
 
 **Implementado (PR #266, `27e98e5`, UI read-only, aditivo):**
+
 - Perfil `apps/web/src/app/clubs/[id]/page.tsx` → `GET /clubs/:id/profile` (geo + **attribution ODbL visível**,
   proveniência, títulos/rankings/competições/`related`, **gaps** declarados, SEO/canonical/OG + JSON-LD).
 - Busca `components/GlobalSearch.tsx` + `app/search/page.tsx` → `GET /search/global` (tipada, case/acento,
@@ -1330,6 +1353,7 @@ dup QID 0/0; `ranking_entries` hash `d2b117aa…`; estadual RSSSF 7; `country_py
 `dependency-audit` success.
 
 **Implementado (PR #262, `172b434`, API-only, aditivo):**
+
 - `GET /clubs/:id/profile` — `geo`(+`attribution`), `provenance`, `titles`/`rankings`/`competitions`/`related`,
   `gaps` (história/elenco/estádio/uniformes/hino/matches = inexistentes, vazio-honesto).
 - `GET /search/global` — clubes+competições, case/acento-insensível (`translate`+`lower`), homônimos por QID
