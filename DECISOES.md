@@ -1472,3 +1472,32 @@ e aguardar reset (não ocorreu).
 
 **Consequência:** `WS-G-1.2-A [x]`; `WS-C-3 FASE 0 [x]` (design); **guarda de deploy ativa** → merges
 API-only/docs-only **não** disparam mais produção web. PR **#272 fechado como superseded**. Mapa **off**.
+
+---
+
+### [2026-09-29] Decisão: D-2026-09-29-ws-c3-fase2-geo-api — Contratos geo API-only ✅
+
+**Estado:** **`GET /api/v1/geo/points`** implantado (merge `ab603e1`, PR #275; Railway SUCCESS). **API-only,
+read-only, sem UI/mapa, sem schema/migration/escrita.** Merge **não** disparou deploy web (guarda confirmada:
+`Deploy Web` permaneceu no `6d0d728`).
+
+**Contrato:** `GET /geo/points?country=<ISO2>&minLat/maxLat/minLng/maxLng=&limit=`
+→ `{ generatedAt, rulesVersion:'ws-c3-geo-v1', viewport, features[], withoutLocation{available,count}, attributions{osm,wikidata,naturalEarth,rsssf}, limitations[] }`.
+
+- `features`: apenas clubes **com coordenada válida** (`deletedAt null`, `qid not null`), com `coordSource` e
+  `attribution` (OSM/Nominatim → **ODbL**; Wikidata → **null**, não mistura).
+- `withoutLocation`: clubes sem coord no escopo (não plotados).
+- Validação: `country` ISO2, `bbox` ordenada, `limit ≤ 500`; inválidos → **400**.
+- Cache read-through 300s; rate limit global do app.
+
+**Evidência (produção):** `?country=BR&limit=3` → 200 (`withoutLoc=212`); `?limit=500` → 200 (500 features,
+`withoutLoc=2925`); `attributions.osm = © OpenStreetMap contributors (ODbL)`; `country=BRA` → 400; bbox
+invertida → 400; bbox válida → 200. **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 · `ranking_entries`
+`d2b117aa…` · estadual 7 · EN pyramid 1.
+
+**Testes:** 11 unit (`geo.service`) + integração Postgres (`geo-points.test.ts`, fixtures 'WSC3').
+
+**FASE 3 (UI interna/local) e FASE 4 (mapa público)** permanecem **não publicadas**. `WS-C-3 implementação [ ]`.
+
+**Gap declarado:** `category`/clusterização por viewport no servidor não implementada (clustering feito no
+cliente/protótipo puro `map-geo.ts`); evolução só sob demanda.

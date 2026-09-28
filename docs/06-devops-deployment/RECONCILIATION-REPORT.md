@@ -1217,6 +1217,24 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-29 — WS-C-3 FASE 1 (local/off) + FASE 2 (geo API-only)
+
+**FASE 1 (local/off, branch `proto/ws-c-3-map-lib`, não pushada):** lib pura `apps/web/src/lib/map-geo.ts`
+(`isPlotable`/`filterPlotable` — nunca pino falso; `bboxFilter`; `clusterPoints` determinístico; `limitPerViewport`;
+`layerAttribution`; `resolveGeoSource`; `buildWithoutLocation`; `selectViewport`) + `map-geojson.ts`
+(parser/normalizador GeoJSON; TopoJSON declarado não suportado) + 21 testes unit network-free. Sem rota pública.
+
+**FASE 2 (API-only, publicada):** `GET /api/v1/geo/points?country=&minLat/maxLat/minLng/maxLng=&limit=`
+(merge `ab603e1`, PR #275; Railway SUCCESS). Contrato `ws-c3-geo-v1`: `features` (só coord válida + `attribution`),
+`withoutLocation`, `attributions` por camada, `limitations`, `viewport`; validação country/bbox/limit (400);
+cache 300s. **Merge não disparou deploy web** (guarda: `Deploy Web` permaneceu em `6d0d728`).
+
+**Smoke produção:** `?country=BR&limit=3` 200 (withoutLoc 212); `?limit=500` 200 (500 features, withoutLoc 2925);
+`attributions.osm = © OpenStreetMap contributors (ODbL)`; `country=BRA` 400; bbox invertida 400. **Integridade:**
+clubs 9.291 (0 sem QID) · comps 1.905 · `ranking_entries` `d2b117aa…` · estadual 7 · EN pyramid 1.
+
+**FASE 3 (UI interna) e FASE 4 (mapa público): não publicadas.** Mapa **off**.
+
 ### Run autônomo 2026-09-29 — Release única: WS-G-1.2-A + WS-C-3 FASE 0 + guarda de deploy
 
 **Autorização:** Operador (Vercel Hobby) autorizou condicionalmente `apps/web/vercel.json`
