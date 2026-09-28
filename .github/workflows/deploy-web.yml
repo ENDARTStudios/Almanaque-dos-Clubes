@@ -1,0 +1,47 @@
+name: Deploy Web (Vercel)
+
+# WS-G-1.3 — Deploy de produção do WEB, SEPARADO do CI e com filtro de paths.
+#
+# Antes: `deploy-vercel-frontend` vivia no ci.yml e rodava em QUALQUER push em main
+# (inclui mudanças apenas em apps/api/**, docs/**, orquestração), disparando
+# `vercel deploy --prod` sem necessidade e queimando `api-deployments-free-per-day`
+# (bloqueou o WS-C-2 por ~24h). O CI (security-gate/migration-drift) continua no ci.yml.
+#
+# Este workflow dispara APENAS quando algo que afeta o build do web muda. Reversível:
+# para voltar ao comportamento antigo, é só reintroduzir o job no ci.yml.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - 'apps/web/package.json'
+      - 'apps/web/vercel.json'
+      - 'tsconfig*.json'
+      - 'apps/web/tsconfig*.json'
+      - 'apps/web/next.config.*'
+      - 'apps/web/postcss.config.*'
+      - 'apps/web/tailwind.config.*'
+      - '.github/workflows/deploy-web.yml'
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: 'pnpm' }
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Vercel (production)
+        run: npx vercel deploy --prod --project almanaque-dos-clubes --token=${{ secrets.VERCEL_TOKEN }} --yes

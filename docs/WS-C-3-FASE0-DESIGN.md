@@ -22,13 +22,13 @@
 
 ## 1. Biblioteca de mapa
 
-| Opção | Prós | Contras | Veredito |
-| --- | --- | --- | --- |
+| Opção                  | Prós                                                              | Contras                                              | Veredito                      |
+| ---------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------- |
 | **Leaflet** (já usado) | já integrado (`MapExplorer`/`WorldChoropleth`), leve, OSS, mobile | para "pinos" exige tiles (OSM→ODbL) ou GeoJSON local | **Preferida** (zero dep nova) |
-| MapLibre GL | vetorial/GPU, zoom fluido | bundle maior, estilo a hospedar | 2ª opção (se vetorial) |
-| OpenLayers | completo | pesado p/ o caso | Não |
-| D3 + GeoJSON/TopoJSON | zero tile; já há Natural Earth local | menos "slippy map" | Fallback p/ choropleth puro |
-| React Simple Maps | simples | menos flexível | Fallback |
+| MapLibre GL            | vetorial/GPU, zoom fluido                                         | bundle maior, estilo a hospedar                      | 2ª opção (se vetorial)        |
+| OpenLayers             | completo                                                          | pesado p/ o caso                                     | Não                           |
+| D3 + GeoJSON/TopoJSON  | zero tile; já há Natural Earth local                              | menos "slippy map"                                   | Fallback p/ choropleth puro   |
+| React Simple Maps      | simples                                                           | menos flexível                                       | Fallback                      |
 
 **Recomendação:** permanecer **Leaflet + GeoJSON local (Natural Earth)** para a camada-base (sem tiles
 externos → **sem dependência de terceiros/ToS**). Pinos por clube ficam atrás de decisão de camada (item 2).
@@ -53,7 +53,7 @@ externos → **sem dependência de terceiros/ToS**). Pinos por clube ficam atrá
 
 ## 4. Atribuição (por camada)
 
-- **Camada-base:** Natural Earth — *domínio público* (crédito de cortesia).
+- **Camada-base:** Natural Earth — _domínio público_ (crédito de cortesia).
 - **Pontos/cidade OSM/Nominatim:** **`© OpenStreetMap contributors (ODbL)`** visível (não só tooltip).
 - **Identidade/atributos:** Wikidata **CC0** (fonte em `provenance.sourceUrl` do perfil).
 - **Títulos/histórico RSSSF:** atribuição **ao autor da página** (não é domínio público).
