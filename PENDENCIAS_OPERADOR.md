@@ -87,6 +87,13 @@ Como saber que deu certo: o perfil mostra a atribuição ODbL quando houver coor
 Depois de feito: responda "feito o item Nº 3"
 ```
 
+**Status (2026-09-28, últimas verificações — sem retry):**
+- `main` = `39ca6e7` (inclui #266/#267 UI + #268/#269 WS-G-1); **produção web ainda no SHA anterior ao #266**.
+- Erro exato: `Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day")`.
+- **Nenhum retry forçado**; cada merge na `main` dispara 1 tentativa automática de deploy (job `deploy-vercel-frontend`), que falha pelo limite.
+- Railway (API) em `39ca6e7` OK (não afetado).
+- **Próxima ação:** aguardar o reset (~24h) → 1 push publica o `main` atual numa **release única**; smoke; fechar este item. Se persistir **>24h** da primeira falha, escalar ao Operador (upgrade de plano / ajustar trigger de deploy para ignorar mudanças não-web / janela manual / hosting alternativo). **Não** contornar o rate limit.
+
 ```
 ### [2] Destravar deploy de produção do web (Vercel free-tier) para publicar a atribuição ODbL
 Por quê: o limite diário de deploys da Vercel free-tier impede publicar a atribuição OpenStreetMap/ODbL em /metodologia.
