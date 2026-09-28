@@ -1215,6 +1215,26 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-28 — TRACK A: WS-C-2 publicado + smoke verde (WS-C-2 [x])
+
+O limite da Vercel resetou e a produção web publicou o WS-C-2 — deployment
+`almanaque-dos-clubes-3x3ywwmeo` (target `production`, `Ready`, aliases `almanaquedosclubes.com`/`www`).
+**Sem novo deploy disparado** (a produção já continha o WS-C-2 → fui direto ao smoke).
+
+**Smoke web (cache-bypass):** `/` 200 (seção de campeões; **sem link `/map`**) · `/rankings` 200 ·
+`/metodologia` 200 (ODbL vivo) · `/map` 200 **`noindex`** · `/search` 200 (`global-search-input`+`combobox`).
+Perfil: OSM → `geo-attribution` + gaps; Wikidata → **sem** ODbL; BR/EN 200; inexistente → **404**.
+
+**API smoke:** `health`/`rankings` 200 · `/clubs/:id/profile` `attribution.license='ODbL'` ·
+`/champions/carousel` 200 (`rulesVersion=ws-c-1-carousel-v1`) · `/search/global` `Flamengo`=7,
+`type=competition` `Libertadores`=1.
+
+**Integridade (SQL read-only):** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 ·
+`ranking_entries` hash `d2b117aa…` · estadual RSSSF 7 · `country_pyramid` EN 1 · MG/GO/PR intactos.
+
+**Estado:** **WS-C-2 [x]**; PENDENCIAS [3] fechada. Mapa **off**. `WS-G-1.2` aguarda checkpoint/decisão.
+`writes 0 · migrations 0 · schedulers 0`.
+
 ### Run autônomo 2026-09-28 — WS-G-1.1: auditoria dry-run em produção (sem escrita)
 
 **Guarda Vercel:** produção web ainda no SHA anterior ao #266; `api-deployments-free-per-day` **ainda

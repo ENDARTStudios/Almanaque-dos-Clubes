@@ -87,12 +87,15 @@ Como saber que deu certo: o perfil mostra a atribuição ODbL quando houver coor
 Depois de feito: responda "feito o item Nº 3"
 ```
 
-**Status (2026-09-28, últimas verificações — sem retry):**
-- `main` = `39ca6e7` (inclui #266/#267 UI + #268/#269 WS-G-1); **produção web ainda no SHA anterior ao #266**.
-- Erro exato: `Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day")`.
-- **Nenhum retry forçado**; cada merge na `main` dispara 1 tentativa automática de deploy (job `deploy-vercel-frontend`), que falha pelo limite.
-- Railway (API) em `39ca6e7` OK (não afetado).
-- **Próxima ação:** aguardar o reset (~24h) → 1 push publica o `main` atual numa **release única**; smoke; fechar este item. Se persistir **>24h** da primeira falha, escalar ao Operador (upgrade de plano / ajustar trigger de deploy para ignorar mudanças não-web / janela manual / hosting alternativo). **Não** contornar o rate limit.
+**Status:** ✅ **RESOLVIDA (2026-09-28)** — o limite resetou e a **produção web publicou o WS-C-2**
+(deployment `almanaque-dos-clubes-3x3ywwmeo`, target `production`, `Ready`). Smoke verde:
+`/`,`/rankings`,`/metodologia`,`/map` 200 · perfil OSM com `geo-attribution` e gaps · perfil Wikidata **sem**
+ODbL indevido · inexistente → 404 · `/map` `noindex` e fora do nav · `/search` com input+combobox ·
+API `/clubs/:id/profile` `attribution.license=ODbL` · `/champions/carousel` 200 · `/search/global` 200.
+Integridade intacta (`ranking_entries` `d2b117aa…`, estadual 7, EN pyramid 1, 0 sem QID). **WS-C-2 [x]**.
+
+**Histórico:** bloqueio `api-deployments-free-per-day`, **sem retry forçado**; cada merge na `main` dispara 1
+tentativa automática do job `deploy-vercel-frontend`. Escalação (>24h) não foi necessária.
 
 ```
 ### [2] Destravar deploy de produção do web (Vercel free-tier) para publicar a atribuição ODbL
