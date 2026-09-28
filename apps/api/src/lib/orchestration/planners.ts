@@ -173,62 +173,60 @@ export function planRsssfStateChampions(input: { rows: RsssfRow[] }): PlanResult
 }
 
 // ── 4. ranking-refresh-dry-run ───────────────────────────────────────────────
+/**
+ * WS-G-1.2 — chave COMPOSTA estável. NUNCA comparar por `clubId` isolado: o mesmo clube
+ * aparece em vários rankings (divisões, agregado cross-division, temporadas, gêneros).
+ * A identidade de uma entrada de ranking é `rankingId + clubId` (posição é única por ranking;
+ * o agregado `country_pyramid` é um ranking próprio — logo não colide com os de divisão).
+ */
 export interface RankingEntryInput {
+  rankingId: string;
   clubId: string;
   position: number | null;
   points: number | null;
+}
+
+export interface RankingDiffEntity {
+  rankingId: string;
+  clubId: string;
+  from: RankingEntryInput | null;
+  to: RankingEntryInput | null;
+}
+
+export function rankingEntryKey(e: Pick<RankingEntryInput, 'rankingId' | 'clubId'>): string {
+  return `${e.rankingId}|${e.clubId}`;
 }
 
 export function planRankingRefreshDiff(input: {
   current: RankingEntryInput[];
   proposed: RankingEntryInput[];
 }): {
-  plan: PlanResult<{ clubId: string; from: RankingEntryInput; to: RankingEntryInput }>;
+  plan: PlanResult<RankingDiffEntity>;
   hasChanges: boolean;
 } {
-  const curBy = new Map(input.current.map((e) => [e.clubId, e]));
-  const propBy = new Map(input.proposed.map((e) => [e.clubId, e]));
-  const planned: PlanResult<{
-    clubId: string;
-    from: RankingEntryInput;
-    to: RankingEntryInput;
-  }>['planned'] = [];
-  const skipped: PlanResult<{
-    clubId: string;
-    from: RankingEntryInput;
-    to: RankingEntryInput;
-  }>['skipped'] = [];
+  const curBy = new Map(input.current.map((e) => [rankingEntryKey(e), e]));
+  const propBy = new Map(input.proposed.map((e) => [rankingEntryKey(e), e]));
+  const planned: PlanResult<RankingDiffEntity>['planned'] = [];
+  const skipped: PlanResult<RankingDiffEntity>['skipped'] = [];
 
-  for (const to of input.proposed) {
-    const from = curBy.get(to.clubId);
-    if (!from) {
-      planned.push({
-        action: 'update',
-        entity: {
-          clubId: to.clubId,
-          from: { clubId: to.clubId, position: null, points: null },
-          to,
-        },
-        source: 'wikidata',
-      });
+  for (const [key, to] of propBy) {
+    const from = curBy.get(key) ?? null;
+    if (from && from.position === to.position && from.points === to.points) {
+      skipped.push({ key, reason: 'unchanged' });
       continue;
     }
-    if (from.position === to.position && from.points === to.points) {
-      skipped.push({ key: to.clubId, reason: 'unchanged' });
-      continue;
-    }
-    planned.push({ action: 'update', entity: { clubId: to.clubId, from, to }, source: 'wikidata' });
+    planned.push({
+      action: 'update',
+      entity: { rankingId: to.rankingId, clubId: to.clubId, from, to },
+      source: 'wikidata',
+    });
   }
-  // Remoção: clubes que existiam e sumiram da proposta.
-  for (const from of input.current) {
-    if (!propBy.has(from.clubId)) {
+  // Remoção: entradas (mesmo ranking+clube) que existiam e sumiram da proposta.
+  for (const [key, from] of curBy) {
+    if (!propBy.has(key)) {
       planned.push({
         action: 'update',
-        entity: {
-          clubId: from.clubId,
-          from,
-          to: { clubId: from.clubId, position: null, points: null },
-        },
+        entity: { rankingId: from.rankingId, clubId: from.clubId, from, to: null },
         source: 'wikidata',
       });
     }

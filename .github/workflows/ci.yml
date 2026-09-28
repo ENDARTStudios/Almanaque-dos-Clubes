@@ -94,25 +94,15 @@ jobs:
       - name: Check audit
         run: pnpm audit --audit-level=high || true
 
-  deploy-vercel-frontend:
-    needs: [security-gate]
-    if: github.ref == 'refs/heads/main' && success()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: 'pnpm' }
-
       - name: Entrypoint image-path guard (T435)
-        # Sem Docker e sem rede: garante que todo caminho usado em
-        # apps/api/entrypoint.sh existe na imagem descrita pelo Dockerfile.
-        # Teria barrado o incidente 2026-09-14 (prisma path fora da imagem).
+        # Movido do antigo job de deploy (WS-G-1.3): valida que todo caminho usado em
+        # apps/api/entrypoint.sh existe na imagem (sem Docker/rede). Roda no CI.
         run: node scripts/ci/check-entrypoint.mjs
 
-      - run: pnpm install --frozen-lockfile
-      - name: Deploy to Vercel
-        run: npx vercel deploy --prod --project almanaque-dos-clubes --token=${{ secrets.VERCEL_TOKEN }} --yes
+  # WS-G-1.3 — Deploy web SEPARADO do CI, com filtro de paths (deploy-web.yml).
+  # Motivo: sem filtro, QUALQUER push em main (inclui API-only/docs-only) disparava
+  # `vercel deploy --prod`, queimando `api-deployments-free-per-day` sem necessidade.
+  # O CI (security-gate/migration-drift) continua rodando em todo push/PR.
 
   migration-drift:
     # T430 — detecta a classe P2022 (coluna no schema.prisma sem migration que

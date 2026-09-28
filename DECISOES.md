@@ -1390,3 +1390,34 @@ EN **1**, MG/GO/PR intactos.
 **Consequência:** **`WS-C-2 [x]`**. Mapa público **segue off** (`noindex`/fora do nav) — promoção é **WS-C-3**
 (aprovação explícita). Próximo: **checkpoint WS-G-1.2** (fix de chave + testes) para autorização de push/PR/merge
 — **apply/write continua proibido**.
+
+---
+
+### [2026-09-28] Decisão: D-2026-09-28-web-deploy-guard — separar deploy web do CI (paths) `[~]` local
+
+**Estado:** guarda **preparada localmente** (branch `release/ws-c3-docs-g12-fix-deploy-guard`), **não pushada**.
+
+**Motivo (Cenário C):** o `ci.yml` tinha o job `deploy-vercel-frontend`
+(`if: github.ref == 'refs/heads/main'`, **sem `paths`**) → **qualquer** push em `main` (mesmo API-only/docs-only)
+disparava `vercel deploy --prod`, consumindo `api-deployments-free-per-day` (que bloqueou o WS-C-2 por ~24h).
+Além do Action, há **integração nativa da Vercel** (checks "Vercel"/"Vercel Preview Comments" nos PRs;
+`.vercel`/`apps/web/.vercel` linkados) — parte da produção pode vir dela (não confirmável read-only → tratada
+como insegura).
+
+**Guarda (reversível, local):**
+- `deploy-vercel-frontend` **removido** do `ci.yml`;
+- novo `.github/workflows/deploy-web.yml` com `on.push.branches[main].paths` = `apps/web/**`, `packages/**`,
+  `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `package.json`, `apps/web/package.json`, `apps/web/vercel.json`,
+  `tsconfig*.json`, `next.config.*`, `postcss.config.*`, `tailwind.config.*`, o próprio workflow;
+- o guard `scripts/ci/check-entrypoint.mjs` **movido** para o job `security-gate` (roda no CI);
+- o CI (`security-gate`/`migration-drift`) **continua** em todo push/PR.
+
+**Limitação declarada:** se a **nativa** auto-deployar produção em `main`, só o Action guardado **não** basta →
+requer **Ignored Build Step/Ignored Paths** na Vercel (config do Operador) ou desativar a nativa. Enquanto não
+confirmável, **não mergear change API-only** só para “testar”.
+
+**Reversibilidade:** reintroduzir o job no `ci.yml` restaura o comportamento anterior.
+
+**Consequência:** faz parte do **pacote de release única** (fix WS-G-1.2-A + docs WS-C-3 FASE 0 + guarda),
+que só vai a remoto quando houver **janela segura** ou **release web legítima**. `WS-G-1.2-A [~]` (PR #272
+aberto, não mergeado).
