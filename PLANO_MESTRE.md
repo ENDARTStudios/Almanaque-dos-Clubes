@@ -295,6 +295,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 **Nota WS-D M1a-3 (09-28): [x] CONCLUÍDO.** Coords **5.865 → 6.366** (+501: 50 Wikidata profundo + 451 Nominatim/OSM; `clubs.metadata` com `coordSource/coordPrecision/coordAttribution`; atribuição ODbL exposta na API). **Gate ODbL web passou:** `/metodologia` exibe “© OpenStreetMap contributors + Open Database License (ODbL) + Nominatim” (Wikidata CC0/RSSSF/MG/GO/PR/EN intactos). `ranking_entries` hash `d2b117aa…` intacto; estadual RSSSF 7; EN pyramid 1.
 
+**Nota Release única (09-29): WS-G-1.2-A [x] · WS-C-3 FASE 0 [x] (design) · guarda de deploy ativa.** Merge `6d0d728` (PR #273), deploy `dkyyfz4qd`. Guarda: `deploy-web.yml` (só `push.main` + `paths` web) e `apps/web/vercel.json` `git.deploymentEnabled.main=false` (nativa no `main` off; previews mantidas) → merges API-only/docs-only não disparam produção. `WS-G-1.2-B (apply) [ ]`; `WS-C-3 implementação [ ]`. **Acervo (reconciliado):** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 · `ranking_entries` `d2b117aa…` · estadual 7 · EN pyramid 1 · MG/GO/PR intactos.
+
 **Nota WS-C-2 (09-28): [x] PUBLICADO em produção.** `27e98e5` (PR #266), deploy production `3x3ywwmeo` (Ready). Perfil `/clubs/[id]` consome `/profile` (atribuição ODbL visível, gaps declarados, SEO/JSON-LD); `/search` consome `/search/global` (tipada, acento/caixa, homônimos por QID, URL state); carrossel consome `/champions/carousel` (subconjunto determinístico ≤16; ambíguos omitidos); `/map` `noindex` + fora do nav (**não público**). i18n pt/en/es aditivo; zero schema/migration/escrita. PENDENCIAS [3] fechada. **WS-C-3 (mapa público) [ ] — só com aprovação explícita.**
 
 **Nota WS-G-1 (09-28): [~] scaffolding de orquestração ETL/cron (dry-run only).** `29260a0` (PR #268). Módulos puros em `apps/api/src/lib/orchestration/*` (planners identity/enrichment/rsssf/ranking/geo-audit; registry; runner dry-run com trava `apply:true`; handler fail-safe com flag **OFF**; métricas; redação de segredos) + `docs/WS-G-1-FASE0-DESIGN.md`. **Zero migration/escrita/cron ativo/deploy web/mapa.** **WS-G-1.1 (09-28): [x] auditoria dry-run em produção** (Railway `39ca6e7`, flag OFF) — geo-attribution-audit (missing/wrong 0), identity-integrity (0 sem QID, dup 0, canônicos/homônimos ok), ranking-refresh-dry-run (0/0/0/0), amostra Wikidata 5/5; integridade intacta. **WS-G-1.2 (apply) [ ] — não autorizado.**
@@ -371,43 +373,43 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 ## Resumo de Arquivos Criados/Modificados (2026-08-10)
 
-| Arquivo                                               | Tipo                           | Fase          |
-| ----------------------------------------------------- | ------------------------------ | ------------- |
-| `.eslintrc.cjs`                                       | ✅ Novo                        | 0.7           |
-| `.prettierrc`                                         | ✅ Novo                        | 0.7           |
-| `.github/dependabot.yml`                              | ✅ Novo                        | 0.8           |
-| `SECURITY.md`                                         | ✅ Novo                        | 0.9           |
-| `./docs/03-development-process/CRITERIOS_DESENVOLVIMENTO.md`                   | ✅ Novo                        | Documentação  |
-| `./docs/04-api-integrations/API.md`                                    | ✅ Novo                        | 3.10          |
-| `apps/api/src/routes/metrics.ts`                      | ✅ Novo                        | 1.8           |
-| `apps/api/src/modules/players/*.ts`                   | ✅ Novo (3 arquivos)           | 4.2           |
-| `apps/api/src/modules/competitions/*.ts`              | ✅ Novo (3 arquivos)           | 4.3           |
-| `packages/domain/src/player.ts`                       | ✅ Novo                        | 4.2           |
-| `packages/domain/src/competition.ts`                  | ✅ Novo                        | 4.3           |
-| `apps/api/src/app.ts`                                 | 🔄 Modificado                  | 1.3, 4.2, 4.3 |
-| `packages/domain/src/index.ts`                        | 🔄 Modificado                  | 4.2, 4.3      |
-| `apps/api/src/modules/auth/password-reset.service.ts` | 🔄 Modificado                  | 3.6           |
-| `package.json`                                        | 🔄 Modificado                  | 0.7           |
-| `.env`                                                | Pré-existente                  | —             |
-| `.env.example`                                        | Pré-existente                  | —             |
-| `PENDENCIAS_OPERADOR.md`                              | Pré-existente                  | —             |
-| `DECISOES.md`                                         | Pré-existente                  | —             |
-| `apps/web/*`                                          | ✅ Frontend Next.js 16         | 5.1–5.12      |
-| `apps/web/src/hooks/useGsap.ts`                       | ✅ Novo (GSAP hooks)           | 5.0           |
-| `apps/web/src/components/`                            | ✅ 6 componentes               | 5.0           |
-| `./docs/07-operations-marketing/SEO.md`                    | ✅ Novo (estratégia completa)  | 5.0           |
-| `packages/feature-flags/*`                            | ✅ Novo (3 arquivos)           | 6.7           |
-| `.github/workflows/ci.yml`                            | ✅ Novo                        | 9.1           |
-| `.github/workflows/dast.yml`                          | ✅ Novo                        | 8.6           |
-| `apps/api/vitest.config.ts`                           | ✅ Novo                        | 8.1           |
-| `apps/api/tests/`                                     | ✅ Novo (2 suites, 11 testes)  | 8.1           |
-| `packages/domain/tests/`                              | ✅ Novo (1 suite, 4 testes)    | 8.1           |
-| `apps/api/src/modules/matches/`                       | ✅ Novo (3 arquivos)           | 4.5           |
-| `apps/api/src/modules/seasons/`                       | ✅ Novo (3 arquivos)           | 4.5           |
-| `apps/api/src/modules/rankings/`                      | ✅ Novo (arquivos atualizados) | 4.4           |
-| `apps/api/src/modules/billing/routes.ts`              | ✅ Novo (webhook + rotas)      | 4.6           |
-| `apps/api/src/modules/admin/routes.ts`                | ✅ Novo (CRUD users + roles)   | 4.7           |
-| `apps/api/src/middleware/idempotency.ts`              | ✅ Novo                        | 4.12          |
+| Arquivo                                                      | Tipo                           | Fase          |
+| ------------------------------------------------------------ | ------------------------------ | ------------- |
+| `.eslintrc.cjs`                                              | ✅ Novo                        | 0.7           |
+| `.prettierrc`                                                | ✅ Novo                        | 0.7           |
+| `.github/dependabot.yml`                                     | ✅ Novo                        | 0.8           |
+| `SECURITY.md`                                                | ✅ Novo                        | 0.9           |
+| `./docs/03-development-process/CRITERIOS_DESENVOLVIMENTO.md` | ✅ Novo                        | Documentação  |
+| `./docs/04-api-integrations/API.md`                          | ✅ Novo                        | 3.10          |
+| `apps/api/src/routes/metrics.ts`                             | ✅ Novo                        | 1.8           |
+| `apps/api/src/modules/players/*.ts`                          | ✅ Novo (3 arquivos)           | 4.2           |
+| `apps/api/src/modules/competitions/*.ts`                     | ✅ Novo (3 arquivos)           | 4.3           |
+| `packages/domain/src/player.ts`                              | ✅ Novo                        | 4.2           |
+| `packages/domain/src/competition.ts`                         | ✅ Novo                        | 4.3           |
+| `apps/api/src/app.ts`                                        | 🔄 Modificado                  | 1.3, 4.2, 4.3 |
+| `packages/domain/src/index.ts`                               | 🔄 Modificado                  | 4.2, 4.3      |
+| `apps/api/src/modules/auth/password-reset.service.ts`        | 🔄 Modificado                  | 3.6           |
+| `package.json`                                               | 🔄 Modificado                  | 0.7           |
+| `.env`                                                       | Pré-existente                  | —             |
+| `.env.example`                                               | Pré-existente                  | —             |
+| `PENDENCIAS_OPERADOR.md`                                     | Pré-existente                  | —             |
+| `DECISOES.md`                                                | Pré-existente                  | —             |
+| `apps/web/*`                                                 | ✅ Frontend Next.js 16         | 5.1–5.12      |
+| `apps/web/src/hooks/useGsap.ts`                              | ✅ Novo (GSAP hooks)           | 5.0           |
+| `apps/web/src/components/`                                   | ✅ 6 componentes               | 5.0           |
+| `./docs/07-operations-marketing/SEO.md`                      | ✅ Novo (estratégia completa)  | 5.0           |
+| `packages/feature-flags/*`                                   | ✅ Novo (3 arquivos)           | 6.7           |
+| `.github/workflows/ci.yml`                                   | ✅ Novo                        | 9.1           |
+| `.github/workflows/dast.yml`                                 | ✅ Novo                        | 8.6           |
+| `apps/api/vitest.config.ts`                                  | ✅ Novo                        | 8.1           |
+| `apps/api/tests/`                                            | ✅ Novo (2 suites, 11 testes)  | 8.1           |
+| `packages/domain/tests/`                                     | ✅ Novo (1 suite, 4 testes)    | 8.1           |
+| `apps/api/src/modules/matches/`                              | ✅ Novo (3 arquivos)           | 4.5           |
+| `apps/api/src/modules/seasons/`                              | ✅ Novo (3 arquivos)           | 4.5           |
+| `apps/api/src/modules/rankings/`                             | ✅ Novo (arquivos atualizados) | 4.4           |
+| `apps/api/src/modules/billing/routes.ts`                     | ✅ Novo (webhook + rotas)      | 4.6           |
+| `apps/api/src/modules/admin/routes.ts`                       | ✅ Novo (CRUD users + roles)   | 4.7           |
+| `apps/api/src/middleware/idempotency.ts`                     | ✅ Novo                        | 4.12          |
 
 ---
 

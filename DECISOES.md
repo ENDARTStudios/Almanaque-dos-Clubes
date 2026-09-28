@@ -33,7 +33,7 @@ Motivo: **merge #246** (`567348b`) → Railway SUCCESS. Apply do par Libertadore
 
 ### [2026-09-28] Decisão: D-2026-09-28-t448b2i-libertadores-human-pair — Libertadores resolvida por par humano explícito (sem fuzzy)
 
-Motivo: a duplicata **“Copa Libertadores da América”** (`28b0f5d4…`, qid NULL) **diverge por NOME** da canônica **“Copa Libertadores”** (`9d50e9fa…`, `Q184795`) — casar automaticamente seria *fuzzy* (**proibido**). **Solução:** par humano versionado `lib/identity/data/competition-dedupe-human-pairs-v1.json` (UUIDs completos + evidência Wikidata validada read-only: label “Copa Libertadores”, P31 `Q1478437`/`Q18608583`; **retrievedAt estático**). Script `dedupe-competitions.ts` ganhou `--pairs-only`/`--pairs-file` (**import estático** do pair → sem ENOENT) + `validatePairsFile`/`validateHumanPair`. Refs a redirecionar: **1** (`rankings.competitionId`); soft-delete reason `dedupe_t448b2i_human_pair`. Testes unit **15/15**. **Apply em produção = gate pós-merge.**
+Motivo: a duplicata **“Copa Libertadores da América”** (`28b0f5d4…`, qid NULL) **diverge por NOME** da canônica **“Copa Libertadores”** (`9d50e9fa…`, `Q184795`) — casar automaticamente seria _fuzzy_ (**proibido**). **Solução:** par humano versionado `lib/identity/data/competition-dedupe-human-pairs-v1.json` (UUIDs completos + evidência Wikidata validada read-only: label “Copa Libertadores”, P31 `Q1478437`/`Q18608583`; **retrievedAt estático**). Script `dedupe-competitions.ts` ganhou `--pairs-only`/`--pairs-file` (**import estático** do pair → sem ENOENT) + `validatePairsFile`/`validateHumanPair`. Refs a redirecionar: **1** (`rankings.competitionId`); soft-delete reason `dedupe_t448b2i_human_pair`. Testes unit **15/15**. **Apply em produção = gate pós-merge.**
 
 ### [2026-09-28] Decisão: D-2026-09-28-t448b2i-competition-dedupe — soft-delete de `Competition` + dedupe por QID (apply pendente do gate)
 
@@ -101,7 +101,7 @@ Motivo: **merge #225** (`8a3c02b`) → Railway **SUCCESS**. Migration `202610051
 
 ### [2026-09-27] Decisão: D-2026-09-27-t449c-v1-tier-division-additive — `Competition.level` + `divisionLabel` (v1, aditivo, sem mudança de score)
 
-Motivo: dívida declarada *"sem campo tier/divisão no ranking de clube"* (`docs/02-architecture-design/METODOLOGIA_RANKING.md:86`). **v1 = metadado, sem tocar fórmula/pontos/posições/normalização.** Migration aditiva `20261005120000_t449c_v1_add_competition_level`: `competitions.level INTEGER NULL` + índice `competitions_level_idx` (down trivial `DROP COLUMN`/`DROP INDEX`). Mapeamento **TS versionado** `lib/rankings/tiers/en-pyramid.ts` (`EN_PYRAMID_TIERS`; PL=1 · Championship=2 · League One=3 · League Two=4 · National League=5) — **fonte única** importada pelo ingest EN (sem asset JSON). Resolução pura `resolve-tier.ts`: `level` do banco é canônico; `divisionLabel`/`tierSource`/`tierVersion` só quando `level` persistido E QID mapeado → **rollback por `level=NULL` zera o display**. Backfill `backfill-en-competition-levels.ts` (DRY default; `--apply` exige `--allow-production`; transação Serializable; `updateMany` com rowcount==1; nunca cria/renomeia; não usa `now()`). API **aditiva** (`competition{ level, divisionLabel }` em `/rankings`, `/rankings/entries`, `/rankings/:id/entries`, `/rankings/clube/:id`) + badge na UI. **T449c-v2 (agregado cross-division) adiada.** Sem hard delete; MG/GO/PR intocados; reversível.
+Motivo: dívida declarada _"sem campo tier/divisão no ranking de clube"_ (`docs/02-architecture-design/METODOLOGIA_RANKING.md:86`). **v1 = metadado, sem tocar fórmula/pontos/posições/normalização.** Migration aditiva `20261005120000_t449c_v1_add_competition_level`: `competitions.level INTEGER NULL` + índice `competitions_level_idx` (down trivial `DROP COLUMN`/`DROP INDEX`). Mapeamento **TS versionado** `lib/rankings/tiers/en-pyramid.ts` (`EN_PYRAMID_TIERS`; PL=1 · Championship=2 · League One=3 · League Two=4 · National League=5) — **fonte única** importada pelo ingest EN (sem asset JSON). Resolução pura `resolve-tier.ts`: `level` do banco é canônico; `divisionLabel`/`tierSource`/`tierVersion` só quando `level` persistido E QID mapeado → **rollback por `level=NULL` zera o display**. Backfill `backfill-en-competition-levels.ts` (DRY default; `--apply` exige `--allow-production`; transação Serializable; `updateMany` com rowcount==1; nunca cria/renomeia; não usa `now()`). API **aditiva** (`competition{ level, divisionLabel }` em `/rankings`, `/rankings/entries`, `/rankings/:id/entries`, `/rankings/clube/:id`) + badge na UI. **T449c-v2 (agregado cross-division) adiada.** Sem hard delete; MG/GO/PR intocados; reversível.
 
 ### [2026-09-25] Decisão: D-2026-09-25-t448b2d-conformidade-publica-fechada — `/metodologia` validada ao vivo (MG + GO 2023–2025 + PR 2025); ciclo T448b-2d encerrado
 
@@ -305,11 +305,12 @@ Motivo: o `authenticate` (#180) faz **fail-open na leitura** da blocklist Redis.
 
 ### [2026-09-22] Decisão: D-2026-09-22-t467-licenca-fronteiras — Fronteiras: Natural Earth (domínio público) só até país; estado/cidade vazio-honesto
 
-Motivo (FASE 0.3, verificada antes de baixar — não "open source = ok"): 
-| nível | fonte | licença | decisão |
-|---|---|---|---|
-| continente/país | Natural Earth 1:110m | **domínio público** | **usar** (asset versionado + `LICENSE.md`/proveniência) |
-| estado/cidade | OSM admin-borders (ODbL) / IBGE (a verificar) | **ODbL = share-alike** | **NÃO usar ODbL** (contamina o acervo); nível **vazio-honesto** via **lista clicável** |
+Motivo (FASE 0.3, verificada antes de baixar — não "open source = ok"):
+
+| nível           | fonte                                         | licença                | decisão                                                                                |
+| --------------- | --------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
+| continente/país | Natural Earth 1:110m                          | **domínio público**    | **usar** (asset versionado + `LICENSE.md`/proveniência)                                |
+| estado/cidade   | OSM admin-borders (ODbL) / IBGE (a verificar) | **ODbL = share-alike** | **NÃO usar ODbL** (contamina o acervo); nível **vazio-honesto** via **lista clicável** |
 
 Asset estático versionado (`apps/web/public/geo/ne_110m_admin_0_countries.geojson`, 816 KB, 177 features) + `LICENSE.md` (fonte/versão/data/URL). Teste garante presença + licença.
 
@@ -344,7 +345,7 @@ Motivo (ressalva R1-CONSENT da revisão do #177, aceita e não bloqueante): o `/
 
 ### [2026-09-22] Decisão: D-2026-09-22-t470-ressalvas-rastreadas — Cobertura de integração do admin (R2) e o gate de produção que fecha o T470 (R3)
 
-Motivo (ressalvas R2/R3 da revisão do #177): 
+Motivo (ressalvas R2/R3 da revisão do #177):
 **R2-ADMIN:** a cobertura de **integração** dos endpoints admin (`/admin/legal/*` — HTTP + RBAC `USERS_MANAGE` + audit + transições de status) é **unit-only**. O caminho de escrita do **titular** (o que protege o usuário) está coberto por **RLS real como `app_user`**. O admin é interno → aceito, mas **não declarar T470 “completo em admin”** até o E2E do gate de produção (ou follow-up WS-L) cobrir admin HTTP+RBAC+audit.
 **R3-PROD-GATE:** o **merge do #177 não fecha o T470 em produção** — a página ao vivo ainda é a antiga até o gate de produção passar. Ordem obrigatória (trava destrutiva): (1) deploy + fingerprint SHA + rota `/legal/rights/*` viva; (2) **E2E de leitura** em produção (cookies reais) + confirmar que a página saiu do “resposta imediata”; (3) **E2E destrutivo** (DELETE account) em **staging/preview**, 2× (idempotência), verde; (4) só então `LEGAL_PAGES_ENABLED=true` em produção + smoke destrutivo em conta de teste dedicada (nunca a do Operador). **Passo 4 depende do passo 3 verde** — expor caminho destrutivo sem prova isolada repete o erro do T462 (logout que fingia sucesso).
 
@@ -408,13 +409,14 @@ Motivo: decisão explícita do Operador ("não tem restrição de idade"; conte�
 ### [2026-09-22] Decisão: D-2026-09-22-t469b-legal-deltas — Correção dos 3 deltas do Operador + fechamento dos achados da FASE 0 do T469
 
 Motivo: o T469 (#172) foi mergeado antes de o Operador publicar os três deltas que resolvem parâmetros antes "[a confirmar]". A re-auditoria de FASE 0 (fonte + produção) mediu:
+
 - **Delta 1 (age gate)** — removido conforme D-2026-09-22-sem-age-gate.
 - **Delta 2 (T471)** — fora do crítico conforme D-2026-09-22-t471-nao-aplicado.
 - **Delta 3 (gate beta pago)** — ajustado conforme D-2026-09-22-gate-beta-pago-ajustado.
 - **G-W2 (caixa de domínio inexistente):** `reembolso@almanaquedosclubes.com` estava publicado em `/checkout` e `SubscriptionManager` (×3 locales) → trocado pelo canal único `endart.studios@gmail.com` (migração p/ domínio = M5 do Operador; não afirmar caixa inexistente).
 - **G-W1/FASE 4 (claims públicas):** EN/ES mantinham "largest/mayor colección … with artificial intelligence"; e o grid `home.features` (renderizado em `HeroSection.tsx`, público) seguia com "História Completa", "IA com Citações" e "paginação cursor-based" nos 3 idiomas → "acervo em construção"/proveniência documentada, IA "(em breve)", "cursor-based"→"paginação" (a API usa OFFSET, não cursor).
-**Counts re-ancorados em produção (W1):** clubs **3.857** · players **2.396** · competitions **1.563**; o "5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
-**Fora da superfície legal (registrado):** `pnpm lint` local acusa 122 erros **pré-existentes** em `apps/api`/`apps/worker` (o script `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório, por isso o CI fica verde; nenhum arquivo fora de `apps/web` foi tocado neste round) — não é regressão do T469b.
+  **Counts re-ancorados em produção (W1):** clubs **3.857** · players **2.396** · competitions **1.563**; o "5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
+  **Fora da superfície legal (registrado):** `pnpm lint` local acusa 122 erros **pré-existentes** em `apps/api`/`apps/worker` (o script `eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório, por isso o CI fica verde; nenhum arquivo fora de `apps/web` foi tocado neste round) — não é regressão do T469b.
 
 ### [2026-09-26] Decisão: D-2026-09-26-t448b2i-busca-acento-insensivel — Busca pública case/acento-insensível sem extensão (translate nativo)
 
@@ -1218,6 +1220,7 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **Motivo:** após o M1b, 3.426 clubes ativos ficaram sem coordenada. O extractor de 1 nível (`P625>P159>P115>P131`) já estava esgotado. Medição read-only mostrou teto baixo da Opção A (**50/3.426 = 1,5%**) → autorizada a Opção C (geocoder externo) para o residual.
 
 **O que foi feito:**
+
 - **Opção A** (`lib/wikidata/deep-coordinates.ts` + `scripts/resolve-club-coordinates-m1a3.ts`): `P625`/`P115`/`P159` (exact) e `P131`/`P276`/`P937`/cadeia `P131` (municipality). Nunca usa `P17`. Migration **aditiva** `20261008120000_m1a3_club_metadata` (`clubs.metadata JSONB`) para proveniência.
 - **Opção C** (`lib/geocoding/{nominatim-client,geocode-clubs}.ts` + `scripts/geocode-clubs-nominatim.ts`): Nominatim/OSM com **1 req/s**, UA com contato, retry/backoff, 403 aborta, cache em arquivo (resumível). Filtro por **`type`** (o `class` do jsonv2 costuma vir vazio) — rejeita `path`/`road`/etc. (match espúrio observado e corrigido).
 - Nunca sobrescreve coordenada existente; só preenche `NULL`. Não toca `importedFrom`/`sourceUrl`. Proveniência: `metadata.coordSource` (`P115_P131`/`P276`/`P159_P131`/`nominatim`), `coordPrecision` (`exact`/`municipality`/`approximate`), `nominatimPlaceId`, `coordAttribution`.
@@ -1235,6 +1238,7 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **Estado:** WS-C-1 **implementado e em produção** (perfil + busca global + carrossel). Merge `172b434`; deploy Railway SUCCESS; smoke verde. **API-only: nenhuma UI/mapa publicado; nenhum schema/migration/escrita.**
 
 **Motivo:** destravar produto sobre a base já higienizada (WS-D) sem violar a atribuição ODbL (web ainda bloqueado pela Vercel). Três endpoints **aditivos** (nada existente quebrou):
+
 - `GET /clubs/:id/profile` — perfil consolidado: `geo` (lat/lng/`coordSource`/`coordPrecision`/`attribution`), `provenance` (source CC0/RSSSF/seed + `sourceUrl`), `titles`/`rankings`/`competitions`/`related` (KG) e `gaps` (história/elenco/estádio/uniformes/hino/matches **não existem** — vazio-honesto, nunca inventado).
 - `GET /search/global` — clubes+competições, case/acento-insensível (reuso `lib/search.ts` translate+lower), homônimos **não colapsados** (identidade = QID), limitações declaradas (`players_not_indexed_yet`, `search_uses_existing_postgres_indexes`). `q` ausente → 400.
 - `GET /champions/carousel` — campeões por hierarquia a partir de **KG `WON` ativas com proveniência**; **ambíguo (`ambiguous_multiple_champions`) ou ausente (`no_active_provenanced_champion`) é OMITIDO**; gênero isolado; guarda de vigência (ano futuro ignorado).
@@ -1255,6 +1259,7 @@ A role `app_user` (não-superusuária) foi criada em produção e a conexão da 
 **atribuição ODbL está viva** em https://almanaquedosclubes.com/metodologia.
 
 **Evidência (gate ODbL, 2026-09-28):**
+
 - Deploy de produção Vercel `Ready` (target production).
 - `/metodologia` (cache-bypass) contém: **“© contribuidores do OpenStreetMap”**, **“Open Database License
   (ODbL)”**, menção a **Nominatim**; **Wikidata CC0** intacto; **RSSSF “não é domínio público”** intacto;
@@ -1285,6 +1290,7 @@ respeitando a atribuição ODbL. Pré-requisito de compliance (#264, ODbL EN) **
 produção anterior), então a autorização de UI estava satisfeita.
 
 **Entregue (código em `main`):**
+
 - **Perfil** `apps/web/src/app/clubs/[id]/page.tsx` — consome `GET /api/v1/clubs/:id/profile`; exibe geo +
   **atribuição ODbL visível** (`data-testid="geo-attribution"`), proveniência, títulos/rankings/competições/
   `related` e **`gaps` declarados**; SEO (`generateMetadata` + canonical + OG) e JSON-LD `SportsTeam` (só dados
@@ -1319,6 +1325,7 @@ migration, zero cron ativo, zero deploy web, zero produção alterada.**
 públicos até gates específicos. A camada é **dry-run por contrato** — planeja e mede, nunca aplica.
 
 **Entregue:**
+
 - **Design + inventário:** `docs/WS-G-1-FASE0-DESIGN.md` (fontes/allowlist, pipelines A–D, idempotência,
   rollback, observabilidade, rate limit, segurança, gates futuros, tabela de capacidades existentes×gap).
 - **Módulos puros:** `apps/api/src/lib/orchestration/{planners,types,schemas,redact,metrics,registry,runner,flags}.ts`.
@@ -1348,6 +1355,7 @@ pgsql/Prisma (leitura). **Rollback:** revert do merge (não toca dados).
 nenhum comando inventado.
 
 **Resultados (dry-run):**
+
 - `geo-attribution-audit`: clubs varridos 9.291 · com coords 6.366 · fonte OSM 451 · **missing 0 · wrong 0** ·
   wikidata 50 · unknown `[]` · errors 0. ✅
 - `identity-integrity-dry-run` (SQL): clubs ativos 9.291 (**0 sem QID**) · comps ativas 1.905 (**0 sem QID**) ·
@@ -1355,8 +1363,8 @@ nenhum comando inventado.
   `Q10391046`/`Q671621` **presentes** · comps soft-deleted 3 (dedupe preservada). ✅
 - `ranking-refresh-dry-run` (escopado por ranking, chave única): 10 rankings · 256 entries ·
   **wouldCreateRankings 0 · wouldUpdateEntries 0 · wouldChangePoints 0 · wouldChangePositions 0** · errors 0. ✅
-  *(Uma primeira passagem chaveada por `clubId` acusou 124 diffs — **artefato do harness** com entradas
-  duplicadas entre rankings, não drift; reconduzida por ranking.)*
+  _(Uma primeira passagem chaveada por `clubId` acusou 124 diffs — **artefato do harness** com entradas
+  duplicadas entre rankings, não drift; reconduzida por ranking.)_
 - `wikidata-sample-validation` (FASE 3, ≤5 entidades, EntityData read-only, UA+timeout): **5/5 HTTP 200** com
   `P31`+`P17` (Zamora FC, Colón FC, Q10526510, Q1030761, Kyoto Univ FC). (Contador de erro do harness
   comparou número×string — os 5 obtiveram 200.) RSSSF **não** raspado nesta etapa (declarado).
@@ -1376,6 +1384,7 @@ EN **1**, MG/GO/PR intactos.
 `www.almanaquedosclubes.com`). **Smoke verde.** PENDENCIAS [3] **fechada**.
 
 **Evidência (produção, cache-bypass):**
+
 - Páginas: `/` 200 (seção de campeões; **sem link `/map`**) · `/rankings` 200 · `/metodologia` 200 · `/map`
   200 com **`robots noindex`** (fora do nav, não promovido) · `/search?...` 200 (input `global-search-input`,
   `combobox`).
@@ -1405,6 +1414,7 @@ Além do Action, há **integração nativa da Vercel** (checks "Vercel"/"Vercel 
 como insegura).
 
 **Guarda (reversível, local):**
+
 - `deploy-vercel-frontend` **removido** do `ci.yml`;
 - novo `.github/workflows/deploy-web.yml` com `on.push.branches[main].paths` = `apps/web/**`, `packages/**`,
   `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `package.json`, `apps/web/package.json`, `apps/web/vercel.json`,
@@ -1421,3 +1431,44 @@ confirmável, **não mergear change API-only** só para “testar”.
 **Consequência:** faz parte do **pacote de release única** (fix WS-G-1.2-A + docs WS-C-3 FASE 0 + guarda),
 que só vai a remoto quando houver **janela segura** ou **release web legítima**. `WS-G-1.2-A [~]` (PR #272
 aberto, não mergeado).
+
+---
+
+### [2026-09-29] Decisão: D-2026-09-29-release-ws-g1-2-a-ws-c3-fase0-web-deploy-guard — Release única ✅
+
+**Estado:** **mergeada e implantada** (merge `6d0d728`, PR #273); deploy de produção Vercel
+`almanaque-dos-clubes-dkyyfz4qd` (`Ready`); workflow `Deploy Web` **executou com sucesso**.
+
+**Autorização:** o Operador (Vercel **Hobby**) autorizou **condicionalmente** publicar
+`apps/web/vercel.json` com `git.deploymentEnabled.main=false` **dentro de uma release única** (nunca isolado).
+Gate 0.3 satisfeito: `gh secret list` mostra **`VERCEL_TOKEN`** e o workflow **só** referencia `VERCEL_TOKEN`
+(+ `--project`), conforme o job anterior que já deployava.
+
+**Conteúdo (escopo autorizado):**
+
+- **WS-G-1.2-A [x]** — fix do planner de ranking (`rankingEntryKey` composta `rankingId+clubId`; `RankingEntryInput`
+  com `rankingId`; `from`/`to` nulos) + 5 testes anti-falso-positivo (o falso positivo de 124 diffs do WS-G-1.1
+  fica coberto). Rebase sobre `main` para não regredir docs.
+- **WS-C-3 FASE 0 [x] (design)** — `docs/WS-C-3-FASE0-DESIGN.md` (mapa público read-only: Leaflet + Natural Earth
+  local, sem tiles externos; sem padding de pino falso; atribuição por camada).
+- **D-2026-09-29-web-deploy-guard-enabled** — `deploy-vercel-frontend` **removido** do `ci.yml`; novo
+  `.github/workflows/deploy-web.yml` (só `push.main`, `paths` web, `environment: production`, `concurrency`,
+  token via `env`); `check-entrypoint` movido para o `security-gate`.
+- **D-2026-09-29-vercel-native-main-disabled-for-quota-protection** — `apps/web/vercel.json`:
+  `git.deploymentEnabled.main=false` (desliga a produção **nativa** automática no `main`; **previews de PR
+  mantidas**). Produção web passa a ser **exclusivamente** o workflow `deploy-web.yml`.
+- **WS-G-1.2-B (apply)** permanece **`[ ]`** — não autorizado.
+
+**Evidência (smoke pós-release):** web `/`,`/rankings`,`/metodologia`,`/search?q=Flamengo`,`/map` **200**; perfil
+OSM `geo-attribution` ✓; Wikidata sem ODbL ✓; inexistente **404**; `/map` `noindex` + fora do nav; API
+`health`/`rankings`/`champions/carousel`/`search/global` **200**; `/metodologia` com “Pontos brutos = Vitórias × 3
+
+- Empates × 1” + saldo (GF - GA) + ODbL/CC0/RSSSF. **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905
+  (0 sem QID) · `ranking_entries` hash **`d2b117aa…`** · estadual **7** · `country_pyramid` EN **1**.
+
+**Rollback (documentado):** reverter o merge; reativar produção nativa removendo o bloco `git` (com aval do
+Operador); banco intocado. Se o deploy falhasse por rate-limit → `blocked_reason: vercel_rate_limit_after_guard_merge`
+e aguardar reset (não ocorreu).
+
+**Consequência:** `WS-G-1.2-A [x]`; `WS-C-3 FASE 0 [x]` (design); **guarda de deploy ativa** → merges
+API-only/docs-only **não** disparam mais produção web. PR **#272 fechado como superseded**. Mapa **off**.
