@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   bboxFilter,
+  buildWithoutLocation,
   clusterPoints,
   filterPlotable,
   inBbox,
@@ -9,6 +10,8 @@ import {
   layerAttribution,
   limitPerViewport,
   MAX_MARKERS_PER_VIEWPORT,
+  resolveGeoSource,
+  selectViewport,
   type MapPoint,
 } from '@/lib/map-geo';
 
@@ -106,5 +109,44 @@ describe('layerAttribution', () => {
     expect(layerAttribution('rsssf').license).toMatch(/autor/i);
     expect(layerAttribution('naturalearth').license).toBe('Domínio público');
     expect(layerAttribution('none').url).toBeNull();
+  });
+});
+
+describe('resolveGeoSource', () => {
+  it('mapeia coordSource real → GeoSource (desconhecido = none)', () => {
+    expect(resolveGeoSource('nominatim')).toBe('osm');
+    expect(resolveGeoSource('OSM')).toBe('osm');
+    expect(resolveGeoSource('p115_p131')).toBe('wikidata');
+    expect(resolveGeoSource('wikidata')).toBe('wikidata');
+    expect(resolveGeoSource(null)).toBe('none');
+    expect(resolveGeoSource('algo-desconhecido')).toBe('none');
+  });
+});
+
+describe('buildWithoutLocation', () => {
+  it('lista apenas os sem coordenada válida (não plotáveis)', () => {
+    const out = buildWithoutLocation([p('a', null, null), p('b', 1, 2), p('c', 3, null)]);
+    expect(out.map((x) => x.id)).toEqual(['a', 'c']);
+  });
+});
+
+describe('selectViewport', () => {
+  const bbox = { minLat: -30, maxLat: -20, minLng: -50, maxLng: -40 };
+  it('filtra por bbox, clusteriza, limita e conta sem-localização', () => {
+    const pts = [
+      p('in1', -23.5, -46.6),
+      p('in2', -23.6, -46.7),
+      p('out', 10, 10),
+      p('nocoord', null, null),
+    ];
+    const sel = selectViewport(pts, bbox, 1, 500);
+    expect(sel.plottedInViewport).toBe(2);
+    expect(sel.withoutLocation).toBe(1);
+    expect(sel.clusters.reduce((s, c) => s + c.count, 0)).toBe(2);
+  });
+
+  it('respeita o teto por viewport', () => {
+    const pts = Array.from({ length: 100 }, (_, i) => p(`c${i}`, -23 + i * 0.001, -46 + i * 0.001));
+    expect(selectViewport(pts, bbox, 0.0001, 10).clusters).toHaveLength(10);
   });
 });

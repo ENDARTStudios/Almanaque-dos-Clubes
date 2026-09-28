@@ -142,3 +142,45 @@ export function layerAttribution(source: GeoSource): LayerAttribution {
       return { label: '—', license: '—', url: null };
   }
 }
+
+/**
+ * Resolve o `GeoSource` a partir do `coordSource` real do acervo (metadata.coordSource).
+ * Desconhecido → 'none' (vira gap, nunca inventa atribuição).
+ */
+export function resolveGeoSource(coordSource: string | null | undefined): GeoSource {
+  const s = (coordSource ?? '').trim().toLowerCase();
+  if (s === 'nominatim' || s === 'osm' || s === 'openstreetmap') return 'osm';
+  if (s === 'wikidata' || s.startsWith('p')) return 'wikidata';
+  return 'none';
+}
+
+/** Clubes SEM coordenada válida — vão para a listagem alternativa (nunca viram pino). */
+export function buildWithoutLocation(points: MapPoint[]): MapPoint[] {
+  return points.filter((p) => !isPlotable(p));
+}
+
+export interface ViewportSelection {
+  clusters: Cluster[];
+  /** Total de clubes plotáveis dentro da bbox (antes do limite por viewport). */
+  plottedInViewport: number;
+  /** Clubes sem coordenada válida (não plotados). */
+  withoutLocation: number;
+}
+
+/**
+ * Seleção determinística de um viewport: filtra plotáveis na bbox, clusteriza e limita
+ * ao teto por viewport. Nunca renderiza ~9k markers crus; sem coords não entram.
+ */
+export function selectViewport(
+  points: MapPoint[],
+  bbox: Bbox,
+  cellSizeDeg = 1,
+  max = MAX_MARKERS_PER_VIEWPORT,
+): ViewportSelection {
+  const inView = bboxFilter(points, bbox);
+  return {
+    clusters: limitPerViewport(clusterPoints(inView, cellSizeDeg), max),
+    plottedInViewport: inView.length,
+    withoutLocation: buildWithoutLocation(points).length,
+  };
+}
