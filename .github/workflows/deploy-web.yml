@@ -7,8 +7,12 @@ name: Deploy Web (Vercel)
 # `vercel deploy --prod` sem necessidade e queimando `api-deployments-free-per-day`
 # (bloqueou o WS-C-2 por ~24h). O CI (security-gate/migration-drift) continua no ci.yml.
 #
-# Este workflow dispara APENAS quando algo que afeta o build do web muda. Reversível:
-# para voltar ao comportamento antigo, é só reintroduzir o job no ci.yml.
+# Dispara APENAS quando algo que afeta o build do web muda. Reversível: para voltar ao
+# comportamento antigo, reintroduza o job no ci.yml.
+#
+# LIMITAÇÃO DECLARADA: isto neutraliza o deploy via GitHub Actions. Se a integração
+# NATIVA da Vercel auto-deployar produção em push para `main`, é preciso configurar
+# "Ignored Build Step"/"Ignored Paths" no projeto (Operador) — ou desativar a nativa.
 
 on:
   push:
@@ -29,12 +33,13 @@ on:
       - '.github/workflows/deploy-web.yml'
 
 concurrency:
-  group: deploy-web-${{ github.ref }}
+  group: deploy-web-production
   cancel-in-progress: false
 
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -44,4 +49,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Deploy to Vercel (production)
-        run: npx vercel deploy --prod --project almanaque-dos-clubes --token=${{ secrets.VERCEL_TOKEN }} --yes
+        # Token via env (não em flag de linha de comando). O `vercel` lê VERCEL_TOKEN.
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel deploy --prod --project almanaque-dos-clubes --yes
