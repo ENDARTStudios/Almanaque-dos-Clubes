@@ -1217,6 +1217,28 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-29 — WS-C-3 mapa-múndi PÚBLICO (release única aprovada) + WS-G-1.2-B.1
+
+**Aprovação:** Operador aprovou o **mapa público** e confirmou **janela Vercel segura**. **Merge** `9e56c61`
+(PR #277, squash); **`Deploy Web` SUCCESS** (production). RC `release/ws-c-3-map-public-rc` (base FASE 3+4 +
+docs), rebase na `main`; escopo de 18 arquivos (`apps/web/**` + docs), zero migration/escrita/scheduler.
+
+**Smoke público:** `/map` 200 (`noindex=False`, link “Mapa” no nav, lista presente) · `/preview/mapa`
+`noindex=True` · `/`,`/rankings`,`/metodologia`,`/search` 200 · perfil OSM `geo-attribution` ✓ / Wikidata sem
+ODbL ✓ / inexistente 404 · API `geo/points` **BR/PT/GB 200** (`withoutLocation` 212/223/31;
+`attributions.osm="© OpenStreetMap contributors (ODbL)"`), bbox inválida 400, country inválido 400 · `health`/
+`rankings`/`champions/carousel` 200.
+
+**Integridade pós-release:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · coords 6.366 · dup 0/0 ·
+`ranking_entries` hash `d2b117aa…` · estadual 7 · EN pyramid 1 · MG/GO/PR intactos.
+
+**WS-G-1.2-B.1 (dry-run-only, Railway):** 10 rankings · 256 entries · wouldCreate/ wouldUpdate / Points /
+Positions = **0** · `hashBefore == hashAfter == d2b117aa…` · flags OFF · **zero escrita**. **WS-G-1.2-B apply
+permanece `[ ]`.**
+
+**Guarda de deploy validada em produção:** merges API-only/docs-only não dispararam `Deploy Web`; apenas a
+release web disparou.
+
 ### Run autônomo 2026-09-29 — Hold Local: WS-C-3 FASE 3 (local/off) + FASE 4 readiness + WS-G-1.2-B proposal
 
 **FASE 0 (read-only):** `main` `0bab01b`; guarda ativa; `/map` `noindex`; API `health` 200; `geo/points?country=PT`

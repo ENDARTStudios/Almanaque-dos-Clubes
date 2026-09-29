@@ -1528,3 +1528,40 @@ apply/write/scheduler/migration.
 
 **Próxima ação remota:** só com **readiness verde + aprovação explícita do Operador + janela Vercel segura**
 (release web única da FASE 3+4). Não publicar FASE 3 isoladamente.
+
+---
+
+### [2026-09-29] Decisão: D-2026-09-29-ws-c3-map-public-released — Mapa-múndi público ✅ (+ B.1 dry-run + guarda validada)
+
+**Estado:** **WS-C-3 concluída** — mapa **público** em `/map`. Merge **`9e56c61`** (PR #277, aprovado pelo
+Operador: mapa público + janela Vercel segura); **`Deploy Web` SUCCESS**; produção web publicada.
+
+**Lançamento:** `/map` passa a rota **pública** (UI consome `GET /api/v1/geo/points`), **`noindex` removido**,
+link **“Mapa”** discreto no nav; **`/preview/mapa` permanece `noindex/nofollow`**; **sitemap NÃO inclui `/map`**
+(avaliar pós-24–72h); home sem bloco dominante de mapa. API geo **read-only**.
+
+**Evidência (smoke público, `9e56c61`):** `/map` 200 (`noindex=False`, `navMap=True`, lista presente) ·
+`/preview/mapa` `noindex=True` · `/`,`/rankings`,`/metodologia`,`/search` 200 · perfil **OSM** `geo-attribution`
+✓ · **Wikidata** sem ODbL ✓ · inexistente 404 · API `geo/points` **BR/PT/GB 200** (`withoutLocation` 212/223/31;
+`attributions.osm="© OpenStreetMap contributors (ODbL)"`), bbox inválida **400**, country inválido **400** ·
+`health`/`rankings`/`champions/carousel` 200. **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID)
+· coords **6.366** · dup **0/0** · `ranking_entries` **`d2b117aa…`** · estadual **7** · EN pyramid **1**.
+
+**Honestidade geográfica (garantida na UI):** clube sem coord **não é plotado** (contador “sem localização”);
+OSM sem atribuição e origem desconhecida ⇒ **não plotam** (estados degradados); homônimos separados por
+id/QID.
+
+**D-2026-09-29-ws-g1-2-b1-dry-run-evidence:** `ranking-refresh-dry-run` **dry-run-only** em produção Railway —
+10 rankings · 256 entries · **wouldCreate/wouldUpdate/wouldChangePoints/wouldChangePositions = 0** · hash
+`d2b117aa…` inalterado · flags OFF · **zero escrita**. **WS-G-1.2-B.1 `[x]`**; **WS-G-1.2-B apply `[ ]` (proibido)**.
+
+**D-2026-09-29-web-deploy-guard-validated-in-production:** a guarda (`ci.yml` sem `deploy-vercel-frontend`;
+`.github/workflows/deploy-web.yml` com paths; `apps/web/vercel.json` `git.deploymentEnabled.main=false`)
+**funcionou**: merges **API-only** (`ab603e1`) e **docs-only** (`0bab01b`, `c927b8e`) **não** dispararam produção;
+apenas a release web (que toca `apps/web/**`) disparou `Deploy Web`.
+
+**Rollback (documentado):** revert do merge **ou** patch emergencial recolocando `/map` em `noindex/nofollow` +
+removendo o link do nav (API geo permanece); banco intocado; nunca hard delete / FLUSHALL.
+
+**Consequência:** `WS-C-3 FASE 3 [x]` (publicada) · `WS-C-3 FASE 4 [x]` (mapa público) · `WS-G-1.2-B.1 [x]` ·
+`WS-G-1.2-B apply [ ]` · banco intocado · scheduler off · beta pago dormente.
