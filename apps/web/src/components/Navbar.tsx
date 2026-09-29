@@ -15,11 +15,12 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
 
-  // WS-C-2 — `/map` removido do nav: preparado mas não promovido (WS-C-3).
+  // WS-C-3 FASE 4 — `/map` entra no nav (link discreto) como parte da release pública do mapa.
   const navLinks = [
     { href: '/clubs', label: t('nav.clubs') },
     { href: '/players', label: t('nav.players') },
     { href: '/competitions', label: t('nav.competitions') },
+    { href: '/map', label: t('nav.map') },
     { href: '/rankings', label: t('nav.rankings') },
     { href: '/favoritos', label: t('pages.favoritos.title') },
     { href: '/search', label: t('nav.search') },
