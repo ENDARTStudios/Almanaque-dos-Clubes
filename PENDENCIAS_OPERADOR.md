@@ -108,3 +108,13 @@ Passo a passo:
 Como saber que deu certo: a página /metodologia exibe a atribuição OpenStreetMap/ODbL sem perder Wikidata CC0 nem RSSSF.
 Depois de feito: responda "feito o item Nº 2"
 ```
+
+### [4] Concluir (ou cancelar) a janela "Setup - Screaming Frog SEO Spider 24.3" parada na tela
+Por quê: o instalador do Screaming Frog exige elevação (UAC), que só o Operador pode autorizar; a automação instalou tudo o resto, mas o wizard de desktop ficou parado na página "Select Destination Location" aguardando clique.
+Onde: janela local do Windows "Setup - Screaming Frog SEO Spider 24.3" (aberta em 29/09/2026). Instalador salvo em `C:\Users\edina\AppData\Local\Temp\ScreamingFrogSEOSpider-24.3.exe` caso a janela tenha sido fechada.
+Passo a passo:
+1. Se a janela "Setup - Screaming Frog SEO Spider 24.3" estiver aberta: clicar Next → I Agree → Install → Finish (não precisa licença; o tier gratuito crawla até 500 URLs).
+2. Se houver um prompt do UAC pendente de uma segunda tentativa, autorizar ou cancelar (a instância extra já foi encerrada pela automação; só a janela original deve restar).
+3. Alternativa: cancelar o wizard e rodar depois `MSYS_NO_PATHCONV=1 /tmp/ScreamingFrogSEOSpider-24.3.exe /VERYSILENT /NORESTART` num shell admin.
+Como saber que deu certo: existe a pasta `C:\Program Files (x86)\Screaming Frog SEO Spider` com `screamingfrogseospider.exe`.
+Depois de feito: responder "feito o item Nº 4" — o MCP `screaming-frog-mcp` (já instalado via uv) passa a funcionar e o crawl de 500 URLs pode ser re-executado com o Spider.
