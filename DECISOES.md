@@ -1501,3 +1501,30 @@ invertida → 400; bbox válida → 200. **Integridade:** clubs 9.291 (0 sem QID
 
 **Gap declarado:** `category`/clusterização por viewport no servidor não implementada (clustering feito no
 cliente/protótipo puro `map-geo.ts`); evolução só sob demanda.
+
+---
+
+### [2026-09-29] Decisão: D-2026-09-29-ws-c3-fase3-fase4-readiness-local — FASE 3 local/off + FASE 4 readiness + WS-G-1.2-B proposal (Hold Local)
+
+**Estado:** trabalho **local/off** (branches **não pushadas**); **mapa público PROIBIDO**; banco intocado;
+scheduler off; beta pago dormente.
+
+**FASE 3 `[x]` (local/off):** UI interna do mapa sobre `GET /geo/points` — `map-viewmodel.ts`, `GeoMapCanvas.tsx`
+(Leaflet sem tiles, Natural Earth local), `GeoMapInternal.tsx` (lista acessível = caminho principal + attribution
+por camada + "sem localização"), rota `preview/mapa` **`noindex/nofollow`** (fora do nav/sitemap). 47/47 web unit.
+
+**FASE 4 `[~]` (readiness local):** `docs/WS-C-3-FASE4-RELEASE-READINESS.md` — critérios A–H, matriz de decisão,
+plano de smoke, checklists de performance/acessibilidade, **blockers** (aprovação do Operador + janela Vercel).
+Reforço: **OSM sem atribuição** e **origem desconhecida** ⇒ **não plotar** (estado degradado declarado)
+(`missing_attribution`/`unknown_source`).
+
+**WS-G-1.2-B `[ ]` (proposal):** `docs/WS-G-1-2-B-DESIGN.md` (escopo, entradas/saídas dry-run, regras
+inegociáveis, plano gated A–I, rollback, gates) + `tests/unit/orchestration/ranking-refresh.test.ts`. **Sem**
+apply/write/scheduler/migration.
+
+**Estado vivo reconciliado:** produção web `dkyyfz4qd`; **guarda de deploy ativa**; `/metodologia` live verde
+(hash `24024e16…`); integridade clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 · `ranking_entries`
+`d2b117aa…` · estadual 7 · EN pyramid 1 · coords 6.366.
+
+**Próxima ação remota:** só com **readiness verde + aprovação explícita do Operador + janela Vercel segura**
+(release web única da FASE 3+4). Não publicar FASE 3 isoladamente.

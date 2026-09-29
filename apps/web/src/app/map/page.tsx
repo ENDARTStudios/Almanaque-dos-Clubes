@@ -1,55 +1,26 @@
 import type { Metadata } from 'next';
-import MapExplorer, { type GeoStats } from '@/components/MapExplorer';
-import { getApiBase } from '@/lib/api-base';
+import GeoMapInternal from '@/components/GeoMapInternal';
 
-// WS-C-2 — mapa permanece preparado mas NÃO público: noindex/nofollow e fora do nav
-// enquanto a atribuição ODbL não estiver completa em todos os idiomas ativos
-// (PENDENCIAS_OPERADOR). A promoção pública do mapa é WS-C-3 (aprovação explícita).
+// WS-C-3 FASE 3+4 — /map como rota PÚBLICA do mapa (configuração aplicada na release).
+// Honestidade geográfica: só clubes com coordenada são plotados; a lista é o caminho principal;
+// atribuição por camada visível. Fonte dos pontos: GET /api/v1/geo/points (read-only).
 export const metadata: Metadata = {
   title: 'Mapa-múndi',
   description:
-    'Clubes de futebol por continente, país e estado — navegação read-only sobre a hierarquia geográfica auditável.',
-  robots: { index: false, follow: false },
+    'Clubes de futebol por país, com coordenada auditável e atribuição por fonte (OpenStreetMap/ODbL, Wikidata CC0, Natural Earth). Clubes sem coordenada aparecem em lista (vazio-honesto).',
+  alternates: { canonical: '/map' },
 };
 
-// T467 — choropleth por região (COUNT real derivado do banco via T466). O número
-// público vem da agregação server-side (`/clubs/geo-stats`), não de valor assado.
-async function getStats(): Promise<GeoStats | null> {
-  try {
-    const res = await fetch(`${getApiBase()}/clubs/geo-stats`, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
-    return ((await res.json()) as { data: GeoStats }).data;
-  } catch {
-    return null;
-  }
-}
-
-export default async function MapPage() {
-  const stats = await getStats();
+export default function MapPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground text-center">
-        Mapa-múndi
-      </h1>
-      {stats ? (
-        <p className="text-center text-foreground/60 max-w-2xl mx-auto mt-2 mb-6">
-          {stats.totals.clubsWithCountry} clubes em {stats.totals.countries} países e{' '}
-          {stats.totals.states} estados. Mapa por região (read-only); clique para descer de nível e
-          ver os clubes abaixo. Onde não há fronteira/coordenada, a navegação é pela lista —
-          vazio-honesto.
-        </p>
-      ) : (
-        <p className="text-center text-foreground/60 mt-2 mb-6">
-          Agregação indisponível no momento.
-        </p>
-      )}
-      {stats ? (
-        <MapExplorer stats={stats} />
-      ) : (
-        <div className="rounded-2xl border border-border p-6 text-sm text-foreground/60">
-          Não foi possível carregar o mapa agora. Tente novamente.
-        </div>
-      )}
+      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">Mapa-múndi</h1>
+      <p className="text-foreground/60 max-w-3xl mt-2 mb-6">
+        Clubes com coordenada auditável, por país. A <strong>lista</strong> é o caminho principal; o
+        mapa é acessório. Clubes sem coordenada <strong>não</strong> são plotados — aparecem no
+        contador de “sem localização” (vazio-honesto). Atribuição por fonte logo abaixo do mapa.
+      </p>
+      <GeoMapInternal />
     </div>
   );
 }

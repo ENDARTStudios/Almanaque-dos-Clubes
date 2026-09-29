@@ -1217,6 +1217,24 @@ hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 20
 do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
 coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
 
+### Run autônomo 2026-09-29 — Hold Local: WS-C-3 FASE 3 (local/off) + FASE 4 readiness + WS-G-1.2-B proposal
+
+**FASE 0 (read-only):** `main` `0bab01b`; guarda ativa; `/map` `noindex`; API `health` 200; `geo/points?country=PT`
+200 (`ws-c3-geo-v1`); integridade `d2b117aa…`/estadual 7/EN pyramid 1. Backup bundle local criado.
+
+**WS-C-3 FASE 3 [x] local/off:** branch `proto/ws-c-3-fase3-map-ui-local` (NÃO pushada) — `map-viewmodel.ts`,
+`GeoMapCanvas.tsx`, `GeoMapInternal.tsx`, rota `preview/mapa` (**noindex/nofollow**); 47/47 web unit; sem
+publicação.
+
+**WS-C-3 FASE 4 readiness [~] local:** `docs/WS-C-3-FASE4-RELEASE-READINESS.md` (critérios A–H, matriz, smoke,
+a11y/perf, blockers) + estados **degradados** no viewmodel (OSM sem attribution e origem desconhecida **não
+plotam**; 28/28 testes de mapa). **Mapa público PROIBIDO.**
+
+**WS-G-1.2-B [ ] proposal:** `docs/WS-G-1-2-B-DESIGN.md` + testes (`ranking-refresh.test.ts`); **sem**
+apply/write/scheduler.
+
+**Governança reconciliada** com o estado vivo (DECISOES/PLANO_MESTRE/HANDOFF/REPORT).
+
 ### Run autônomo 2026-09-29 — WS-C-3 FASE 1 (local/off) + FASE 2 (geo API-only)
 
 **FASE 1 (local/off, branch `proto/ws-c-3-map-lib`, não pushada):** lib pura `apps/web/src/lib/map-geo.ts`
