@@ -7,6 +7,8 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { clubsService, CreateClubSchema } from './service.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
+import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
+import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
 import { getClubProfile } from './profile.service.js';
 
@@ -18,19 +20,24 @@ function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
 export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   /**
    * POST /clubs
-   * Cria um novo clube.
+   * Cria um novo clube. Escrita autenticada (J-16/C-01): o nome persistido
+   * alimenta JSON-LD público — criação anônima é vetor de XSS armazenado.
    */
-  app.post('/clubs', async (request, reply) => {
-    try {
-      const input = CreateClubSchema.parse(request.body);
-      const club = await clubsService.create(input);
-      return reply.status(201).send({
-        data: club,
-      });
-    } catch (err) {
-      return handleDomainError(err, reply);
-    }
-  });
+  app.post(
+    '/clubs',
+    { preHandler: [authenticate, requirePermission(PERMISSIONS.CLUBS_WRITE)] },
+    async (request, reply) => {
+      try {
+        const input = CreateClubSchema.parse(request.body);
+        const club = await clubsService.create(input);
+        return reply.status(201).send({
+          data: club,
+        });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
 
   /**
    * GET /clubs

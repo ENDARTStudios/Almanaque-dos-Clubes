@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
+import { safeJsonLd } from '@/lib/json-ld';
 
 interface Competition {
   id: string;
@@ -51,7 +52,7 @@ export default async function CompetitionDetailPage({ params }: { params: Promis
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link href="/competitions" className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer">
         &larr; Voltar para Competições
       </Link>

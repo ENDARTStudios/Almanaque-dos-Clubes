@@ -460,7 +460,7 @@ const pt: Dictionary = {
           form: 'Header HTTP',
         },
       ],
-      note: 'Classificação e inventário seguem a função real de cada cookie, não o nome comercial do fornecedor. Nenhum cookie de analytics ou marketing está instalado hoje; esta tabela é atualizada a cada mudança de inventário (última revisão: 15/09/2026 — versão 1.0 da política).',
+      note: 'Classificação e inventário seguem a função real de cada cookie, não o nome comercial do fornecedor. Nenhum cookie de analytics ou marketing está instalado hoje; esta tabela é atualizada a cada mudança de inventário (última revisão: 22/09/2026 — versão 1.0 da política).',
     },
     ia: {
       title: 'Como usamos IA',

@@ -461,7 +461,7 @@ const es: Dictionary = {
           form: 'Cabecera HTTP',
         },
       ],
-      note: 'La clasificación y el inventario siguen la función real de cada cookie, no el nombre comercial del proveedor. Hoy no hay cookies de analítica ni de publicidad instaladas; esta tabla se actualiza a cada cambio de inventario (última revisión: 15/09/2026 — versión 1.0 de la política).',
+      note: 'La clasificación y el inventario siguen la función real de cada cookie, no el nombre comercial del proveedor. Hoy no hay cookies de analítica ni de publicidad instaladas; esta tabla se actualiza a cada cambio de inventario (última revisión: 22/09/2026 — versión 1.0 de la política).',
     },
     ia: {
       title: 'Cómo usamos la IA',

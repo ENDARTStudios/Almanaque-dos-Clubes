@@ -5,7 +5,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
-import { rateLimitByUserOrIp, AUTH_WINDOW } from './config/rate-limit.js';
+import { rateLimitByUserOrIp, AUTH_WINDOW, SENSITIVE_AUTH_WINDOW } from './config/rate-limit.js';
 import {
   DEFAULT_BODY_LIMIT_BYTES,
   PAYLOAD_TOO_LARGE_ERROR,
@@ -112,11 +112,40 @@ export async function buildApp(): Promise<FastifyInstance> {
       '/api/v1/auth/csrf-token',
       '/api/v1/auth/refresh',
     ]);
+    // T448b-2j — rotas sensíveis ANÔNIMAS (10/min por IP): diretriz do
+    // Operador (5-10/min em login/cadastro/recuperação). Complementa o
+    // brute-force do login (5/15min por IP+email).
+    const SENSITIVE_AUTH_PATHS = new Set([
+      '/api/v1/auth/login',
+      '/api/v1/auth/register',
+      '/api/v1/auth/forgot-password',
+      '/api/v1/auth/reset-password',
+      '/api/v1/auth/verify-email',
+    ]);
+    // T448b-2j — keying por usuário REAL: em onRequest o JWT ainda não foi
+    // verificado (request.user indefinido), então decodificamos o cookie
+    // access_token (decode SEM verify é suficiente para CHAVE — um sub
+    // forjado só cria uma chave distinta, mesmo efeito de um IP novo).
+    const getUserIdFromToken = (request: FastifyRequest): string | undefined => {
+      const token = (request as unknown as { cookies?: Record<string, string> }).cookies
+        ?.access_token;
+      if (!token) return undefined;
+      try {
+        const payload = app.jwt.decode(token) as { sub?: string } | null;
+        return payload?.sub;
+      } catch {
+        return undefined;
+      }
+    };
     app.addHook('onRequest', async (request, reply) => {
       const path = (request.raw.url ?? '').split('?')[0] ?? '';
       if (!path.startsWith('/api/v1/auth/')) return;
       if (SESSION_READ_PATHS.has(path)) return;
-      await rateLimitByUserOrIp(AUTH_WINDOW)(request, reply);
+      if (SENSITIVE_AUTH_PATHS.has(path)) {
+        await rateLimitByUserOrIp(SENSITIVE_AUTH_WINDOW)(request, reply);
+        return;
+      }
+      await rateLimitByUserOrIp(AUTH_WINDOW, getUserIdFromToken)(request, reply);
     });
   }
 
