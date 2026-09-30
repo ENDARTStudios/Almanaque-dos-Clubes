@@ -1,13 +1,12 @@
-# Resposta às Auditorias Jurídicas Externas — 29/09/2026 (duas rodadas)
+# Resposta às Auditorias Jurídicas Externas — 29/09/2026 (três rodadas)
 
-> Objeto: verificação item a item de **duas** auditorias jurídicas recebidas em 29/09/2026.
-> **Auditoria 1**: 12 achados (J-01..J-12). **Auditoria 2**: 15 achados (J-01..J-15 renumerados,
-> sobre a `main` remota `63dfa3e`), com 4 achados novos e a incorporação do **ECA Digital
-> (Lei 15.211/2025)**. Método: **estado vivo prevalece sobre anexos** — cada achado re-verificado
-> no código local com evidência `file:line`. Os commits locais de correção **não estão na `main`
-> remota** (hold até validação/release, por decisão do Operador) — portanto, para o estado remoto,
-> J-01 permanece aberto, como a Auditoria 2 corretamente registra. Cruzamento com a auditoria de
-> segurança interna passada 1 (`docs/05-security-compliance/security-audit-2026-09-29/`).
+> Objeto: verificação item a item de **três** auditorias jurídicas recebidas entre 29/09 e 30/09/2026.
+> **Auditoria 1**: 12 achados (J-01..J-12). **Auditoria 2**: 15 achados (renumerados, sobre `63dfa3e`),
+> com 4 novos + **ECA Digital (Lei 15.211/2025)**. **Auditoria 3** (sobre `439b37d`, pós-merge do
+> PR #279): **fecha J-01 e J-10** (confirmados no remoto), renumera os técnicos (J-16 XSS, J-17
+> backup, J-18 rate-limit) e confirma os demais como já mapeados. Método: **estado vivo prevalece
+> sobre anexos** — cada achado re-verificado no código com evidência `file:line`. Cruzamento com a
+> auditoria de segurança interna passada 1 (`docs/05-security-compliance/security-audit-2026-09-29/`).
 
 ## Disposição por achado
 
@@ -47,6 +46,20 @@ verificação local:
 | **J-10-novo** (EN/ES sem disclaimer de prevalência) | **CONFIRMADO** | `DECISOES.md` D-2026-09-22-t472b prescreve o disclaimer "Versão informativa… prevalece a versão em português (Brasil)" como condição para EN/ES, marcado "NÃO executado"; zero ocorrências de disclaimer em `en-us.ts`/`es-es.ts` | **CORRIGIDO localmente**: disclaimer adicionado aos intros de Termos, Privacidade e Cookies em EN e ES (redação prescrita pela própria decisão). Validar na release | Doer → jurídico valida |
 | **J-11-novo** (ECA Digital — Lei 15.211/2025, em vigor desde 03/2026) | **MUDANÇA REGULATÓRIA MATERIAL — reavaliação obrigatória** | A decisão "sem age gate" (#173) é de 22/09 e **não analisou o ECA Digital**; conteúdo esportivo-histórico tem acesso plausível por menores | **Não é bug técnico** — é decisão regulatória a reabrir: o serviço é "de acesso provável por crianças/adolescentes" para fins da lei? Se sim, aferição de idade e configurações protetivas entram no caminho do beta pago. **Elevado a item da fila jurídica** | **Jurídico/Operador** |
 | **J-15-novo** (data do inventário de cookies inconsistente) | **CONFIRMADO — só no EN** | `en-us.ts:461` "last reviewed: **2026-09-15**" vs intros pt-br `:387`/es-es `:388`/en `:385` "verificado em produção em **22/09/2026**"; a "policy version 1.0" está **correta** (`consent.service.ts:8` `CURRENT_COOKIE_POLICY_VERSION = '1.0'`) | **CORRIGIDO localmente**: `en-us.ts:461` → 2026-09-22 | Doer |
+
+## Auditoria 3 (30/09, sobre `439b37d`) — fechamentos e achados técnicos novos
+
+| ID (Aud. 3) | Verificação local | Evidência | Status/Ação | Dono |
+|---|---|---|---|---|
+| J-01, J-10 | **FECHADOS pela Auditoria 3 no remoto** — confirma exatamente as correções do PR #279 | `main` `439b37d` | Fechados | — |
+| **J-15-novo** (inventário PT ainda "15/09") | **CONFIRMADO — e mais amplo**: PT (`pt-br.ts:463`) **e ES** (`es-es.ts:464`) tinham "15/09/2026" na nota da tabela (o intro já dizia 22/09 — inconsistência interna por documento). A Auditoria 3 viu o PT; o ES foi encontrado na verificação local. Minha correção anterior (Aud. 2) só pegou o EN — o grep usava "revisado", não "revisão" | `pt-br.ts:463` · `es-es.ts:464` | **CORRIGIDO localmente**: 15/09 → 22/09 (versão 1.0 mantida — correta, `consent.service.ts:8`) | Doer |
+| **J-16** (POST /clubs anônimo + XSS armazenado via JSON-LD) | **CONFIRMADO — equivale aos candidatos High C-01+C-02 da passada 1** (escrita anônima confirmada estaticamente em `clubs/routes.ts:23`; vetor `JSON.stringify`→`dangerouslySetInnerHTML` sem escape de `<`) | `clubs/routes.ts` · `clubs/[id]/page.tsx:153` (+ players/competitions/layout) | **CORRIGIDO localmente**: (1) `preHandler: [authenticate, requirePermission(CLUBS_WRITE)]` espelhando players/competitions; (2) util `safeJsonLd()` (`apps/web/src/lib/json-ld.ts`) aplicado nos 4 JSON-LDs — escapa `<`,`>`,`&`,U+2028/9 com round-trip JSON idêntico (PoC: `</script>` vira `\u003c/script\u003e`, zero `</script>` literal no output). Typecheck ✅, testes web 50/50 ✅. CSP hardening (J-13/C-08) segue como camada futura | Doer |
+| **J-17** (segredo de backup sem timing-safe) | **CONFIRMADO — equivale ao C-03 da passada 1** | `backup.routes.ts:16` (`provided !== secret`); endpoint retorna emails de users | **CORRIGIDO localmente**: hash SHA-256 dos dois lados + `timingSafeEqual` — normaliza comprimento e elimina sinal de timing | Doer |
+| **J-18** (rate-limit: fallback em memória fragmenta o limite entre instâncias) | **CONFIRMADO — família C-04/C-12 da passada 1** | `rate-limit.service.ts` (fallback `Map` documentado no código) | **Documentado, sem fix apressada**: exige decisão de arquitetura (fail-closed p/ auth em prod vs Redis obrigatório) — entrar no batch de hardening com C-04 | Doer (design) |
+
+Sequência da Auditoria 3 aceita como ordem de execução: J-16 → J-17/J-18 → J-02/J-03 → J-04 →
+J-05/J-06/J-07/J-08 → J-09/J-11/J-12 → J-13/J-14/J-15. J-16 e J-17 já estão corrigidos nesta
+branch; J-18 vai para o batch de hardening.
 
 ## Matriz executiva unificada (formato: achado → evidência atual → status → responsável → ação)
 
