@@ -287,7 +287,7 @@ const es: Dictionary = {
     planos: {
       title: 'Planes',
       intro:
-        'Almanaque dos Clubes ofrece una modalidad gratuita y dos suscripciones de pago. Para visitantes en Brasil, los precios se muestran en reales ({free}, {proMonthly}, {eliteMonthly}). El precio total, las funciones, los límites, la periodicidad y el próximo cobro se presentarán antes de la confirmación del pago. Última actualización: 2 de septiembre de 2026.',
+        'Almanaque dos Clubes ofrece una modalidad gratuita y dos suscripciones de pago. Para visitantes en Brasil, los precios se muestran en reales ({free}, {proMonthly}, {eliteMonthly}). El precio total, las funciones, los límites, la periodicidad y el próximo cobro se presentarán antes de la confirmación del pago. Última actualización: 22 de septiembre de 2026.',
       sections: [
         {
           title: 'Free',
@@ -385,7 +385,7 @@ const es: Dictionary = {
     cookiePolicy: {
       title: 'Política de Cookies',
       intro:
-        'Esta Política de Cookies explica cómo END ART Studios (CNPJ 45.370.930/0001-75) utiliza cookies y tecnologías similares en Almanaque dos Clubes. Inventario verificado en producción el 22/09/2026 (contexto limpio, antes de cualquier elección: no se instala ninguna cookie sin acción del titular).',
+        'Esta Política de Cookies explica cómo END ART Studios (CNPJ 45.370.930/0001-75) utiliza cookies y tecnologías similares en Almanaque dos Clubes. Inventario verificado en producción el 22/09/2026 (contexto limpio, antes de cualquier elección: no se instala ninguna cookie sin acción del titular). Esta es una versión informativa en español; la versión vigente y prevaleciente es la de portugués (Brasil).',
       sections: [
         {
           title: 'Qué son las cookies',
@@ -557,7 +557,7 @@ const es: Dictionary = {
       version: 'v1.3',
       updated: '22/09/2026',
       intro:
-        'Estos Términos de Uso y Servicio ("Términos") regulan el acceso y uso de la Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Al crear una cuenta, contratar un plan o usar la Plataforma, el usuario declara haber leído y aceptado estos Términos. Última actualización: 2 de septiembre de 2026 · Versión 2.0.',
+        'Estos Términos de Uso y Servicio ("Términos") regulan el acceso y uso de la Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Al crear una cuenta, contratar un plan o usar la Plataforma, el usuario declara haber leído y aceptado estos Términos. Última actualización: 22 de septiembre de 2026 · Versión 1.3. Esta es una versión informativa en español; la versión vigente y prevaleciente es la de portugués (Brasil).',
       sections: [
         {
           title: 'Identificación del proveedor',
@@ -722,7 +722,7 @@ const es: Dictionary = {
       version: 'v1.3',
       updated: '22/09/2026',
       intro:
-        'Esta Política de Privacidad describe cómo END ART Studios (CNPJ 45.370.930/0001-75) recopila, utiliza, almacena y protege los datos personales de los usuarios de la plataforma Almanaque dos Clubes, de conformidad con la Ley General de Protección de Datos (Ley n.º 13.709/2018 — LGPD) y demás normas aplicables.',
+        'Esta Política de Privacidad describe cómo END ART Studios (CNPJ 45.370.930/0001-75) recopila, utiliza, almacena y protege los datos personales de los usuarios de la plataforma Almanaque dos Clubes, de conformidad con la Ley General de Protección de Datos (Ley n.º 13.709/2018 — LGPD) y demás normas aplicables. Esta es una versión informativa en español; la versión vigente y prevaleciente es la de portugués (Brasil).',
       sections: [
         {
           title: '1. Datos recopilados',

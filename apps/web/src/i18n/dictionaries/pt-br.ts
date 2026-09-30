@@ -286,7 +286,7 @@ const pt: Dictionary = {
     planos: {
       title: 'Planos',
       intro:
-        'O Almanaque dos Clubes oferece uma modalidade gratuita e duas assinaturas pagas. Para visitantes no Brasil, os preços são exibidos em reais ({free}, {proMonthly}, {eliteMonthly}). O preço total, os recursos, os limites, a periodicidade e a próxima cobrança serão apresentados antes da confirmação do pagamento. Última atualização: 02 de setembro de 2026.',
+        'O Almanaque dos Clubes oferece uma modalidade gratuita e duas assinaturas pagas. Para visitantes no Brasil, os preços são exibidos em reais ({free}, {proMonthly}, {eliteMonthly}). O preço total, os recursos, os limites, a periodicidade e a próxima cobrança serão apresentados antes da confirmação do pagamento. Última atualização: 22 de setembro de 2026.',
       sections: [
         {
           title: 'Free',
@@ -556,7 +556,7 @@ const pt: Dictionary = {
       version: 'v1.3',
       updated: '22/09/2026',
       intro:
-        'Estes Termos de Uso e Serviço ("Termos") regulam o acesso e o uso da Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Ao criar uma conta, contratar um plano ou utilizar a Plataforma, o usuário declara ter lido e aceito estes Termos. Última atualização: 02 de setembro de 2026 · Versão 2.0.',
+        'Estes Termos de Uso e Serviço ("Termos") regulam o acesso e o uso da Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Ao criar uma conta, contratar um plano ou utilizar a Plataforma, o usuário declara ter lido e aceito estes Termos. Última atualização: 22 de setembro de 2026 · Versão 1.3.',
       sections: [
         {
           title: 'Identificação do fornecedor',
