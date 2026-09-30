@@ -6,6 +6,7 @@ import { AuthProvider } from '@/components/AuthProvider';
 import Footer from '@/components/Footer';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { cookieBannerEnabled } from '@/lib/flags';
+import { safeJsonLd } from '@/lib/json-ld';
 import { I18nProvider } from '@/i18n/Provider';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
@@ -83,7 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </head>
       <body className="min-h-full flex flex-col bg-white text-foreground antialiased">

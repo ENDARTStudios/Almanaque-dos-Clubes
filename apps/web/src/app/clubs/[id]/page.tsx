@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
+import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
@@ -150,7 +151,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <Link
         href="/clubs"
