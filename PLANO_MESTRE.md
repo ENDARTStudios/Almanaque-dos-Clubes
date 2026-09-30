@@ -281,6 +281,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 | Testes avançados                                            | 🟡 Parcial                       | 40%                                                                                                                                                                                                                                       |
 | Observabilidade                                             | 🟡 Parcial                       | 30%                                                                                                                                                                                                                                       |
 
+**Nota T448b-2j (09-26):** segurança — rate-limit por usuário REAL (decode do cookie em onRequest; antes caía sempre em IP) + bucket 10/min em login/register/forgot/reset/verify-email (diretriz do Operador; sessão isenta, T458 intacto). 429 + Retry-After padronizados.
+
 **Nota T448b-2h (09-26):** identidade — 0 clubes ativos sem QID (9 duplicatas internas soft-deleted com redirect reversível de 19 refs; canônicas por QID mantidas; MG/GO/PR intactos). Pilotos estaduais RSSSF MG/GO/PR ativos com atribuição em /metodologia.
 
 **Nota T448b-2g (09-27): [x] ENCERRADO via T448b-2h — sem escopo remanescente.** Medição read-only em produção confirmou: **0 clubes ativos sem QID**; os 9 nomes de um despacho de backfill (`Corinthians`…`São Paulo`) são **duplicatas legacy já soft-deleted**; os 9 QIDs-alvo estão **ocupados por clubes canônicos ATIVOS**. Nenhum pack/script escrito. **Próximo: WS-D M1 — seed massivo Wikidata** → T451 (cron ETL) → T450 (feminino).

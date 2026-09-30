@@ -1439,3 +1439,27 @@ OpenStreetMap contributors (ODbL)', source: 'openstreetmap/nominatim', license: 
 Testes: 5 unit + 1 integração (Postgres real). Smoke de produção: clube OSM → ODbL; Wikidata/sem-metadata → null.
 **M1a-3 permanece [~]** até `/metodologia` publicar ODbL (pendência externa registrada em `PENDENCIAS_OPERADOR.md`
 item [2]).
+
+### Run autônomo 2026-09-26 — T448b-2j: rate-limit por usuário + bucket restritivo (diretriz do Operador)
+
+**FASE 0 (medido):** sliding window REAL em Redis (ZADD/ZREMRANGEBYSCORE, T384/7.3) com Retry-After
+já existia; brute-force login já era 5/15min por IP+email (rate-limit.service). **Buracos provados:**
+(1) keying "por usuário" era INEFETIVO — hook onRequest roda ANTES do verify do JWT, request.user
+sempre indefinido → sempre chave IP; (2) login/register/forgot/reset/verify-email sem bucket
+restritivo dedicado (10/min do global).
+
+**Entregue (#280, `3c50614`):**
+- `rateLimitByUserOrIp(options, getUserId?)` — caller injeta resolvedor de usuário; em onRequest o
+  cookie access_token é DECODIFICADO sem verify (suficiente para CHAVE; request.user vence quando
+  presente — rotas autenticadas). Sub forjado só cria chave distinta = mesmo efeito de IP novo.
+- `SENSITIVE_AUTH_WINDOW` 10/min por IP para login/register/forgot/reset/verify-email (diretriz
+  5-10/min), complementando o brute-force do login em camada. Sessão (me/csrf/refresh) permanece
+  isenta — lição T458 (self-DoS) intacta.
+- Algoritmo: sliding window Redis (ZSET) com fallback em memória — já era Token-Bucket-adequado;
+  429 + Retry-After padronizados no limiter custom E no plugin global (@fastify/rate-limit já
+  setava retry-after — verificado no fonte do plugin).
+
+**Evidência:** unit keying 4/4 (usuário compartilha cota entre IPs; usuários distintos no mesmo IP
+independentes; fallback IP; request.user vence e não roda getUserId) + integração (10× 422 consomem
+a cota, 11ª = 429 RATE_LIMIT_EXCEEDED com retry-after; me isento). CI Postgres real. Live verify:
+12 POSTs /auth/register → 10×422 + 429 com `retry-after: 60`; /auth/me → 401 (isento).
