@@ -284,7 +284,7 @@ const en: Dictionary = {
     planos: {
       title: 'Plans',
       intro:
-        'Almanaque dos Clubes offers one free tier and two paid subscriptions. For visitors in Brazil, prices are shown in reais ({free}, {proMonthly}, {eliteMonthly}). The total price, features, limits, period and next charge will be presented before payment confirmation. Last updated: September 2, 2026.',
+        'Almanaque dos Clubes offers one free tier and two paid subscriptions. For visitors in Brazil, prices are shown in reais ({free}, {proMonthly}, {eliteMonthly}). The total price, features, limits, period and next charge will be presented before payment confirmation. Last updated: September 22, 2026.',
       sections: [
         {
           title: 'Free',
@@ -554,7 +554,7 @@ const en: Dictionary = {
       version: 'v1.3',
       updated: '2026-09-22',
       intro:
-        'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 2, 2026 · Version 2.0.',
+        'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 22, 2026 · Version 1.3.',
       sections: [
         {
           title: 'Provider identification',

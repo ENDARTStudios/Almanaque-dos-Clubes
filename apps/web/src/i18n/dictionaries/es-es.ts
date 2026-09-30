@@ -287,7 +287,7 @@ const es: Dictionary = {
     planos: {
       title: 'Planes',
       intro:
-        'Almanaque dos Clubes ofrece una modalidad gratuita y dos suscripciones de pago. Para visitantes en Brasil, los precios se muestran en reales ({free}, {proMonthly}, {eliteMonthly}). El precio total, las funciones, los límites, la periodicidad y el próximo cobro se presentarán antes de la confirmación del pago. Última actualización: 2 de septiembre de 2026.',
+        'Almanaque dos Clubes ofrece una modalidad gratuita y dos suscripciones de pago. Para visitantes en Brasil, los precios se muestran en reales ({free}, {proMonthly}, {eliteMonthly}). El precio total, las funciones, los límites, la periodicidad y el próximo cobro se presentarán antes de la confirmación del pago. Última actualización: 22 de septiembre de 2026.',
       sections: [
         {
           title: 'Free',
@@ -557,7 +557,7 @@ const es: Dictionary = {
       version: 'v1.3',
       updated: '22/09/2026',
       intro:
-        'Estos Términos de Uso y Servicio ("Términos") regulan el acceso y uso de la Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Al crear una cuenta, contratar un plan o usar la Plataforma, el usuario declara haber leído y aceptado estos Términos. Última actualización: 2 de septiembre de 2026 · Versión 2.0.',
+        'Estos Términos de Uso y Servicio ("Términos") regulan el acceso y uso de la Plataforma Almanaque dos Clubes, operada por END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). Al crear una cuenta, contratar un plan o usar la Plataforma, el usuario declara haber leído y aceptado estos Términos. Última actualización: 22 de septiembre de 2026 · Versión 1.3.',
       sections: [
         {
           title: 'Identificación del proveedor',
