@@ -382,7 +382,7 @@ const en: Dictionary = {
     cookiePolicy: {
       title: 'Cookie Policy',
       intro:
-        'This Cookie Policy explains how END ART Studios (CNPJ 45.370.930/0001-75) uses cookies and similar technologies on Almanaque dos Clubes. Inventory verified in production on 2026-09-22 (clean context, before any choice: no cookie is set without the data subject’s action).',
+        'This Cookie Policy explains how END ART Studios (CNPJ 45.370.930/0001-75) uses cookies and similar technologies on Almanaque dos Clubes. Inventory verified in production on 2026-09-22 (clean context, before any choice: no cookie is set without the data subject’s action). This is an informative translation into English; the current and prevailing version is the Portuguese (Brazil) one.',
       sections: [
         {
           title: 'What are cookies',
@@ -458,7 +458,7 @@ const en: Dictionary = {
           form: 'HTTP header',
         },
       ],
-      note: 'Classification and inventory follow the real function of each cookie, not the vendor commercial name. No analytics or advertising cookies are installed today; this table is updated on every inventory change (last reviewed: 2026-09-15 — policy version 1.0).',
+      note: 'Classification and inventory follow the real function of each cookie, not the vendor commercial name. No analytics or advertising cookies are installed today; this table is updated on every inventory change (last reviewed: 2026-09-22 — policy version 1.0).',
     },
     ia: {
       title: 'How we use AI',
@@ -554,7 +554,7 @@ const en: Dictionary = {
       version: 'v1.3',
       updated: '2026-09-22',
       intro:
-        'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 22, 2026 · Version 1.3.',
+        'These Terms of Use and Service ("Terms") govern access to and use of the Almanaque dos Clubes Platform, operated by END ART Studios, CNPJ nº 45.370.930/0001-75 ("END ART"). By creating an account, contracting a plan or using the Platform, the user declares they have read and accepted these Terms. Last updated: September 22, 2026 · Version 1.3. This is an informative translation into English; the current and prevailing version is the Portuguese (Brazil) one.',
       sections: [
         {
           title: 'Provider identification',
@@ -719,7 +719,7 @@ const en: Dictionary = {
       version: 'v1.3',
       updated: '2026-09-22',
       intro:
-        'This Privacy Policy describes how END ART Studios (CNPJ 45.370.930/0001-75) collects, uses, stores and protects the personal data of users of the Almanaque dos Clubes platform, in accordance with the Brazilian General Data Protection Law (Law No. 13,709/2018 — LGPD) and other applicable rules.',
+        'This Privacy Policy describes how END ART Studios (CNPJ 45.370.930/0001-75) collects, uses, stores and protects the personal data of users of the Almanaque dos Clubes platform, in accordance with the Brazilian General Data Protection Law (Law No. 13,709/2018 — LGPD) and other applicable rules. This is an informative translation into English; the current and prevailing version is the Portuguese (Brazil) one.',
       sections: [
         {
           title: '1. Data collected',

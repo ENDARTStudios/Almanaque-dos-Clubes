@@ -1,11 +1,13 @@
-# Resposta à Auditoria Jurídica Externa — 29/09/2026
+# Resposta às Auditorias Jurídicas Externas — 29/09/2026 (duas rodadas)
 
-> Objeto: verificação item a item da auditoria jurídica recebida em 29/09/2026 (elaborada sobre a
-> `main` do mesmo dia). Método: **estado vivo prevalece sobre anexos** — cada achado foi
-> re-verificado no código local com evidência `file:line`. Cruzamento com a auditoria de segurança
-> interna passada 1 (`docs/05-security-compliance/security-audit-2026-09-29/`).
-> Veredicto geral da auditoria externa é **corroborado**: a implementação técnica está mais madura
-> que a governança jurídica formal; nada aqui é "LGPD compliant" por declaração.
+> Objeto: verificação item a item de **duas** auditorias jurídicas recebidas em 29/09/2026.
+> **Auditoria 1**: 12 achados (J-01..J-12). **Auditoria 2**: 15 achados (J-01..J-15 renumerados,
+> sobre a `main` remota `63dfa3e`), com 4 achados novos e a incorporação do **ECA Digital
+> (Lei 15.211/2025)**. Método: **estado vivo prevalece sobre anexos** — cada achado re-verificado
+> no código local com evidência `file:line`. Os commits locais de correção **não estão na `main`
+> remota** (hold até validação/release, por decisão do Operador) — portanto, para o estado remoto,
+> J-01 permanece aberto, como a Auditoria 2 corretamente registra. Cruzamento com a auditoria de
+> segurança interna passada 1 (`docs/05-security-compliance/security-audit-2026-09-29/`).
 
 ## Disposição por achado
 
@@ -32,9 +34,46 @@
 3. **Governança documental**: J-08 (ROPA rascunho) + design FASE0 do J-04 (`legal_acceptances`) — migration para release futura, após janela T454.
 4. **Operador/jurídico (paralelo, já na fila)**: J-02, J-03, J-06, J-07, decisão J-15.
 
-## Integridade do achado externo
+## Auditoria 2 — mapeamento de numeração e achados novos
 
-Dos 12 achados auditedos, **11 confirmados** na verificação local (J-01 com 1 ponto adicional) e
-1 confirmado-parcial (J-09, já tratado como dependência operacional). Nenhum refutado. O achado
-externo é confiável como base de planejamento, com a ressalva de que a auditoria não tinha acesso
-a contratos externos — itens J-02/J-03/J-06/J-07 exigem material que só existe fora do repositório.
+Mapeamento Auditoria 1 → Auditoria 2: J-01..J-08 **idênticos**; J-10 (copyright) → **J-12**;
+J-11 (CSP) → **J-13**; J-12 (CORS) → **J-14**; J-09 (canal manual) → incorporado ao **J-09-novo**;
+J-15 (idade/age gate) → reaberto como **J-11-novo (ECA Digital)**. **Novos na Auditoria 2**, com
+verificação local:
+
+| ID (Aud. 2) | Verificação local | Evidência | Status/Ação | Dono |
+|---|---|---|---|---|
+| **J-09-novo** (export do titular não inclui consentimentos de cookies) | **CONFIRMADO** | `legal/repository.ts:123-165` — `gatherPersonalData` retorna account, subscription, billings, favorites, sessions, requests, notices; **sem** `CookieConsent`; schema `:657-665` — consent é chaveado por `visitorId` anônimo, sem `userId` | Gap real de completude do art. 18. **Não é fix trivial**: correlacionar `visitorId`↔`userId` tem implicação de anonimato por design — exige FASE0 (opções: registrar userId hasheado no consent quando logado; coleta do `visitorId` no fluxo de export; ou declaração explícita na Política). Após janela T454 | Doer (design) + jurídico |
+| **J-10-novo** (EN/ES sem disclaimer de prevalência) | **CONFIRMADO** | `DECISOES.md` D-2026-09-22-t472b prescreve o disclaimer "Versão informativa… prevalece a versão em português (Brasil)" como condição para EN/ES, marcado "NÃO executado"; zero ocorrências de disclaimer em `en-us.ts`/`es-es.ts` | **CORRIGIDO localmente**: disclaimer adicionado aos intros de Termos, Privacidade e Cookies em EN e ES (redação prescrita pela própria decisão). Validar na release | Doer → jurídico valida |
+| **J-11-novo** (ECA Digital — Lei 15.211/2025, em vigor desde 03/2026) | **MUDANÇA REGULATÓRIA MATERIAL — reavaliação obrigatória** | A decisão "sem age gate" (#173) é de 22/09 e **não analisou o ECA Digital**; conteúdo esportivo-histórico tem acesso plausível por menores | **Não é bug técnico** — é decisão regulatória a reabrir: o serviço é "de acesso provável por crianças/adolescentes" para fins da lei? Se sim, aferição de idade e configurações protetivas entram no caminho do beta pago. **Elevado a item da fila jurídica** | **Jurídico/Operador** |
+| **J-15-novo** (data do inventário de cookies inconsistente) | **CONFIRMADO — só no EN** | `en-us.ts:461` "last reviewed: **2026-09-15**" vs intros pt-br `:387`/es-es `:388`/en `:385` "verificado em produção em **22/09/2026**"; a "policy version 1.0" está **correta** (`consent.service.ts:8` `CURRENT_COOKIE_POLICY_VERSION = '1.0'`) | **CORRIGIDO localmente**: `en-us.ts:461` → 2026-09-22 | Doer |
+
+## Matriz executiva unificada (formato: achado → evidência atual → status → responsável → ação)
+
+| Achado | Evidência atual | Status | Responsável | Ação |
+|---|---|---|---|---|
+| J-01 versão contraditória | 6 pontos/3 locales (`pt-br.ts:559,289` · `en-us.ts:557,287` · `es-es.ts:560,290`) | **CORRIGIDO localmente**; aberto na `main` remota | Doer → release | Publicar em release web de copy |
+| J-02 endereço físico | Só Osasco/SP + CNPJ | Confirmado; bloqueador **condicional** ao checkout ativo | Operador/Jurídico | Definir e publicar endereço antes de `PAYMENTS_ENABLED` |
+| J-03 DPO/enquadramento | `pt-br.ts:799-801` (e-mail apenas) | Confirmado | Operador/Jurídico | Nomear DPO ou formalizar ATPP (Res. 2/2022) |
+| J-04 trilha de aceite | Gate sim (`auth.schemas.ts:32-36`); trilha não | Confirmado | Doer | Design `legal_acceptances`; migration após T454 |
+| J-05 bases legais | `pt-br.ts:746` genérico | Confirmado | Doer/Jurídico | Matriz tratamento×base na Política (modelo `:809`) |
+| J-06 transferência internacional | Fornecedores listados; instrumentos não | Confirmado | Operador/Jurídico (+Doer publica) | Coletar DPAs por fornecedor e linkar |
+| J-07 retenção Marco Civil | Sem âncora de 6 meses; purga 30d não mapeada | Confirmado | Jurídico → Doer | Definir registros de acesso + prazo; depois copy |
+| J-08 ROPA | Zero em `docs/` | Confirmado | Doer | Rascunho ROPA simplificado (ATPP) |
+| J-09 canal manual (Aud. 1) / export sem consents (Aud. 2) | Canal documentado; export sem `CookieConsent` | Ambos confirmados | Doer (+Jurídico p/ desenho) | J-09-novo: design de correlação visitorId↔userId |
+| J-10 prevalência EN/ES (Aud. 2) | Disclaimer ausente | Confirmado → **CORRIGIDO localmente** | Doer → jurídico valida | Validar na release |
+| J-11 ECA Digital/idade (Aud. 2) | Decisão #173 anterior à lei | **Reavaliação regulatória aberta** | Operador/Jurídico | Analisar enquadramento; reabrir decisão se aplicável |
+| J-12 licenciamento de assets | Proveniência existe; auditoria por asset não | Confirmado como gap documental | Doer | Script de auditoria por asset exibido |
+| J-13 CSP (residual Google Fonts incluído) | `next.config.ts:32` | Confirmado (= C-08 da passada 1) | Doer | Hardening: remover `unsafe-*` + resíduo fonts.googleapis |
+| J-14 CORS | `app.ts:160-165` + `*.vercel.app` | Confirmado (= C-06) | Doer | CORS por ambiente |
+| J-15 data do inventário de cookies | `en-us.ts:461` stale | Confirmado → **CORRIGIDO localmente** | Doer | Publicar na release de copy |
+
+## Conclusão operacional (alinhada ao Operador)
+
+- **J-01 encerrado tecnicamente** (local, 6 pontos/3 locales); aberto no remoto até a release —
+  os commits `7d9acd0`, `2f3bcd7` e os desta rodada permanecem fora da `main` até validação.
+- **Nenhum achado é bug do desenho J-15**: a ausência de age gate é decisão deliberada (#173) que
+  agora precisa ser **re-validada sob o ECA Digital** (J-11-novo), não revertida automaticamente.
+- Diagnóstico defensável: **implementação de controles relevante; governança jurídica/documental
+  incompleta** — não "não conforme com a LGPD", não "conforme".
+- Banco intocado, zero migration durante T454, zero push, T454 intacto.
