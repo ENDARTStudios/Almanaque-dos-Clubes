@@ -24,7 +24,7 @@
 | Server | Para quê | Onde | Caveat |
 |---|---|---|---|
 | `crystaldba/postgres-mcp` (modo restricted/read-only) | Inspeção de schema Prisma, queries de integridade read-only sem copiar SQL à mão | `.mcp.json` do repo com `${DATABASE_URL}` | Testar expansão de env no cliente antes de commitar; **nunca** modo rw; RLS FORCE em prod |
-| `screaming-frog-mcp` (instalado 2026-09-29) | Crawl SEO headless (até 500 URLs no tier free) para auditoria pré-release | Config de **usuário** (depende do SF instalado no desktop) | Requer SF v16+ fechado em GUI; `SF_ALLOWED_DOMAINS` restringindo ao nosso domínio |
+| ~~`screaming-frog-mcp`~~ (avaliado e **descartado** 2026-09-29) | Crawl SEO headless para auditoria pré-release | — | **Requer licença PAGA do Screaming Frog**: a CLI headless exige `licence.txt` (username+chave, £199/ano); tier free só GUI (500 URLs manuais). Entrada removida do config de usuário. Custo zero equivalente: `scripts/local/seo-crawl.mjs` (crawler Node próprio) |
 
 ## Avaliados e descartados (por ora)
 
