@@ -92,12 +92,22 @@ export function createSlidingWindowLimiter(options: RateLimitOptions) {
 /**
  * Middleware (preHandler/onRequest) com chave usuário+IP.
  * Usuário autenticado → `u:<userId>`; anônimo → `ip:<ip>`.
+ *
+ * T448b-2j — o hook roda em onRequest, ANTES do verify do JWT (que acontece
+ * no preHandler das rotas): `request.user` está sempre indefinido nesse
+ * estágio e o keying "por usuário" era inefetivo na prática. O caller pode
+ * agora injetar `getUserId` (ex.: decode do cookie access_token — decode sem
+ * verify é suficiente para CHAVE; um sub forjado só cria uma chave distinta).
  */
-export function rateLimitByUserOrIp(options: RateLimitOptions) {
+export function rateLimitByUserOrIp(
+  options: RateLimitOptions,
+  getUserId?: (request: FastifyRequest) => string | undefined,
+) {
   const limiter = createSlidingWindowLimiter(options);
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const user = (request as { user?: { id: string } }).user;
-    const key = user ? `u:${user.id}` : `ip:${request.ip}`;
+    const userId = user?.id ?? getUserId?.(request);
+    const key = userId ? `u:${userId}` : `ip:${request.ip}`;
     const { allowed, retryAfterMs } = await limiter.consume(key);
     if (!allowed) {
       reply.header('Retry-After', Math.ceil(retryAfterMs / 1000));
@@ -109,3 +119,12 @@ export function rateLimitByUserOrIp(options: RateLimitOptions) {
 }
 
 export const AUTH_WINDOW = { windowMs: 60 * 1000, max: 20, prefix: 'auth' };
+
+/**
+ * T448b-2j — bucket RESTRITIVO para as rotas sensíveis ANÔNIMAS (login,
+ * register, forgot/reset-password, verify-email): 10/min por IP. Complementa
+ * o brute-force de login (5/15min por IP+email — rate-limit.service.ts).
+ * O Operador pediu 5-10/min para essas rotas; 10/min + brute-force 5/15min
+ * em camada. Rotas de sessão (me/csrf/refresh) NÃO passam aqui (T458).
+ */
+export const SENSITIVE_AUTH_WINDOW = { windowMs: 60 * 1000, max: 10, prefix: 'auth-sensitive' };
