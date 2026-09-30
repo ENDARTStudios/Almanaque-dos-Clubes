@@ -1,4 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { timingSafeEqual } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { prisma } from '../../config/prisma.js';
 import { metrics } from '../observability/metrics.js';
 
@@ -13,7 +15,16 @@ export const backupRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
   app.post('/admin/backup', async (request, reply) => {
     const secret = process.env.BACKUP_SECRET;
     const provided = request.headers['x-backup-secret'];
-    if (!secret || provided !== secret) {
+    // Comparação timing-safe (J-17/C-03): hash dos dois lados normaliza o
+    // comprimento e esconde qualquer info de timing sobre o segredo.
+    const providedStr = typeof provided === 'string' ? provided : '';
+    const valid =
+      !!secret &&
+      timingSafeEqual(
+        createHash('sha256').update(providedStr, 'utf8').digest(),
+        createHash('sha256').update(secret, 'utf8').digest(),
+      );
+    if (!valid) {
       return reply.status(403).send({ error: { code: 'FORBIDDEN', message: 'Segredo inválido' } });
     }
 
