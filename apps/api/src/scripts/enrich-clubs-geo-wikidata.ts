@@ -285,10 +285,11 @@ async function main(): Promise<void> {
       }
     }
     console.log(
-      `coordenadas: ${APPLY ? 'aplicadas' : 'encontradas'} por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
+      `coordenadas de clubes preenchidas: ${updated} · por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
     );
     if (notFound.length > 0)
       console.log('  sem geo na fonte (amostra):', notFound.slice(0, 10).join(', '));
+    if (APPLY && stadiumsCreated > 0) console.log(`stadiums criados: ${stadiumsCreated}`);
   }
 
   if (!APPLY) {
