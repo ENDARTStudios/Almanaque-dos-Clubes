@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildFeed, FEED_LIMIT, type FavoriteFeedItem } from '../../../src/modules/favorites/service.js';
+import {
+  buildFeed,
+  FEED_LIMIT,
+  type FavoriteFeedItem,
+} from '../../../src/modules/favorites/service.js';
 
 // WS-C-6 — feed de conquistas: ordenação por ano DESC (nulos por último) e teto 20.
 
@@ -34,7 +38,9 @@ describe('buildFeed (WS-C-6)', () => {
   });
 
   it('corta no teto de 20', () => {
-    const many = Array.from({ length: 35 }, (_, i) => item({ year: 2000 + i, competitionId: `k${i}` }));
+    const many = Array.from({ length: 35 }, (_, i) =>
+      item({ year: 2000 + i, competitionId: `k${i}` }),
+    );
     expect(buildFeed(many)).toHaveLength(FEED_LIMIT);
     expect(buildFeed(many)[0].year).toBe(2034);
   });

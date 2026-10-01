@@ -79,10 +79,31 @@ beforeAll(async () => {
   await prisma.knowledgeGraph.createMany({
     data: [
       // Alfa campeão 2020 e 2023 → feed ordena 2023 primeiro
-      { sourceId: c1.id, sourceType: 'Club', targetId: comp.id, targetType: 'Competition', relation: 'WON', metadata: { year: 2020, hierarchy: 'nacional', ...provenance } },
-      { sourceId: c1.id, sourceType: 'Club', targetId: comp.id, targetType: 'Competition', relation: 'WON', metadata: { year: 2023, hierarchy: 'nacional', ...provenance } },
+      {
+        sourceId: c1.id,
+        sourceType: 'Club',
+        targetId: comp.id,
+        targetType: 'Competition',
+        relation: 'WON',
+        metadata: { year: 2020, hierarchy: 'nacional', ...provenance },
+      },
+      {
+        sourceId: c1.id,
+        sourceType: 'Club',
+        targetId: comp.id,
+        targetType: 'Competition',
+        relation: 'WON',
+        metadata: { year: 2023, hierarchy: 'nacional', ...provenance },
+      },
       // Beta campeão 2021
-      { sourceId: c2.id, sourceType: 'Club', targetId: comp.id, targetType: 'Competition', relation: 'WON', metadata: { year: 2021, hierarchy: 'nacional', ...provenance } },
+      {
+        sourceId: c2.id,
+        sourceType: 'Club',
+        targetId: comp.id,
+        targetType: 'Competition',
+        relation: 'WON',
+        metadata: { year: 2021, hierarchy: 'nacional', ...provenance },
+      },
     ],
   });
 
@@ -99,7 +120,14 @@ afterAll(async () => {
   if (dbOk) {
     const clubIds = [clubA1, clubA2].filter(Boolean);
     await prisma.knowledgeGraph.deleteMany({
-      where: { OR: [{ sourceId: { in: clubIds } }, { targetId: { in: clubIds } }, { sourceId: compId }, { targetId: compId }] },
+      where: {
+        OR: [
+          { sourceId: { in: clubIds } },
+          { targetId: { in: clubIds } },
+          { sourceId: compId },
+          { targetId: compId },
+        ],
+      },
     });
     await prisma.favorite.deleteMany({ where: { userId: { in: [userA, userB] } } });
     await prisma.club.deleteMany({ where: { id: { in: clubIds } } });
@@ -110,39 +138,50 @@ afterAll(async () => {
 });
 
 describe('WS-C-6 — GET /favorites (totalTitles + paginação)', () => {
-  it('lista com qid, totalTitles e total; paginação offset-based', { timeout: 20_000 }, async () => {
-    const res = await get('/api/v1/favorites', tokenA);
-    expect(res.statusCode).toBe(200);
-    const body = JSON.parse(res.body);
-    expect(body.total).toBe(2);
-    expect(body.limit).toBe(50);
-    expect(body.offset).toBe(0);
-    const alfa = body.data.find((f: { clubId: string }) => f.clubId === clubA1);
-    expect(alfa.totalTitles).toBe(2);
-    const beta = body.data.find((f: { clubId: string }) => f.clubId === clubA2);
-    expect(beta.totalTitles).toBe(1);
+  it(
+    'lista com qid, totalTitles e total; paginação offset-based',
+    { timeout: 20_000 },
+    async () => {
+      const res = await get('/api/v1/favorites', tokenA);
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body);
+      expect(body.total).toBe(2);
+      expect(body.limit).toBe(50);
+      expect(body.offset).toBe(0);
+      const alfa = body.data.find((f: { clubId: string }) => f.clubId === clubA1);
+      expect(alfa.totalTitles).toBe(2);
+      const beta = body.data.find((f: { clubId: string }) => f.clubId === clubA2);
+      expect(beta.totalTitles).toBe(1);
 
-    const page = await get('/api/v1/favorites?limit=1&offset=1', tokenA);
-    const pbody = JSON.parse(page.body);
-    expect(pbody.data).toHaveLength(1);
-    expect(pbody.total).toBe(2);
-    expect(pbody.offset).toBe(1);
-  });
+      const page = await get('/api/v1/favorites?limit=1&offset=1', tokenA);
+      const pbody = JSON.parse(page.body);
+      expect(pbody.data).toHaveLength(1);
+      expect(pbody.total).toBe(2);
+      expect(pbody.offset).toBe(1);
+    },
+  );
 
-  it('fluxo completo: remover favorito tira do total e do totalTitles', { timeout: 20_000 }, async () => {
-    const del = await app.inject({
-      method: 'DELETE',
-      url: `/api/v1/favorites/${clubA2}`,
-      headers: { ...authHeader(tokenA), 'x-csrf-token': generateCsrfToken('test-favorites-feed') },
-    });
-    expect(del.statusCode).toBe(200);
-    const after = JSON.parse((await get('/api/v1/favorites', tokenA)).body);
-    expect(after.total).toBe(1);
-    expect(after.data.some((f: { clubId: string }) => f.clubId === clubA2)).toBe(false);
-    // re-favorita para os testes seguintes
-    const re = await post('/api/v1/favorites', tokenA, { clubId: clubA2 });
-    expect(re.statusCode).toBe(200);
-  });
+  it(
+    'fluxo completo: remover favorito tira do total e do totalTitles',
+    { timeout: 20_000 },
+    async () => {
+      const del = await app.inject({
+        method: 'DELETE',
+        url: `/api/v1/favorites/${clubA2}`,
+        headers: {
+          ...authHeader(tokenA),
+          'x-csrf-token': generateCsrfToken('test-favorites-feed'),
+        },
+      });
+      expect(del.statusCode).toBe(200);
+      const after = JSON.parse((await get('/api/v1/favorites', tokenA)).body);
+      expect(after.total).toBe(1);
+      expect(after.data.some((f: { clubId: string }) => f.clubId === clubA2)).toBe(false);
+      // re-favorita para os testes seguintes
+      const re = await post('/api/v1/favorites', tokenA, { clubId: clubA2 });
+      expect(re.statusCode).toBe(200);
+    },
+  );
 });
 
 describe('WS-C-6 — GET /favorites/feed', () => {
@@ -158,16 +197,22 @@ describe('WS-C-6 — GET /favorites/feed', () => {
     expect(body.data[0].hierarchy).toBe('nacional');
   });
 
-  it('isolamento: usuário B não vê conquistas dos clubes que só A favorita', { timeout: 20_000 }, async () => {
-    const res = await get('/api/v1/favorites/feed', tokenB);
-    const body = JSON.parse(res.body);
-    expect(body.total).toBe(1);
-    expect(body.data[0].clubId).toBe(clubA2);
-    expect(body.data.some((f: { clubId: string }) => f.clubId === clubA1)).toBe(false);
-  });
+  it(
+    'isolamento: usuário B não vê conquistas dos clubes que só A favorita',
+    { timeout: 20_000 },
+    async () => {
+      const res = await get('/api/v1/favorites/feed', tokenB);
+      const body = JSON.parse(res.body);
+      expect(body.total).toBe(1);
+      expect(body.data[0].clubId).toBe(clubA2);
+      expect(body.data.some((f: { clubId: string }) => f.clubId === clubA1)).toBe(false);
+    },
+  );
 
   it('401 sem token', async () => {
-    expect((await app.inject({ method: 'GET', url: '/api/v1/favorites/feed' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v1/favorites/feed' })).statusCode).toBe(
+      401,
+    );
   });
 });
 
