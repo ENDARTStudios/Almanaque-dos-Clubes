@@ -7,6 +7,8 @@ import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
+import ClubTimeline from '@/components/ClubTimeline';
+import RelatedClubs from '@/components/RelatedClubs';
 
 // WS-C-2 — perfil público consolidado. Fonte única: GET /api/v1/clubs/:id/profile.
 // Renderiza SOMENTE o que a API entrega; lacunas declaradas como lacunas (nunca inventadas).
@@ -349,6 +351,9 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         )}
       </Section>
 
+      {/* WS-C-5 — timeline cronológica (ARESTAS WON ordenadas por ano, proveniência por aresta). */}
+      <ClubTimeline clubId={club.id} locale={locale} />
+
       <Section title={s.competitions}>
         {club.competitions.available ? (
           <ul className="flex flex-wrap gap-2">
@@ -368,6 +373,9 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           <p className="text-sm text-foreground/50">{s.notAvailable}</p>
         )}
       </Section>
+
+      {/* WS-C-5 — clubes relacionados (same_city/same_state/same_competition/rival explícito). */}
+      <RelatedClubs clubId={club.id} locale={locale} />
 
       <Section title={s.related}>
         {club.related.available ? (
