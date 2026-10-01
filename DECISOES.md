@@ -1572,3 +1572,13 @@ removendo o link do nav (API geo permanece); banco intocado; nunca hard delete /
 
 **Consequência:** `WS-C-3 FASE 3 [x]` (publicada) · `WS-C-3 FASE 4 [x]` (mapa público) · `WS-G-1.2-B.1 [x]` ·
 `WS-G-1.2-B apply [ ]` · banco intocado · scheduler off · beta pago dormente.
+
+### [2026-10-01] Decisão: D-2026-10-01-t471-wave1-geo-wikidata — T471 onda 1 aplicada em produção; dado sem label não entra; gap PostGIS de prod declarado
+
+**O que:** onda 1 do enriquecimento geográfico via Wikidata (despacho T475 Frente B) aplicada em produção — clubs sem coordenada com QID (P625 → P131 → P115 venue, **zero overwrite**) + stadiums via P115 (dedupe por QID, proveniência CC0). **Distinto do T471 geobloqueio UE** (D-2026-09-22-t471-nao-aplicado, que segue opcional-futuro).
+
+**Resultado (gates em produção):** DRY-RUN 17 resolvíveis/2908 não · PRE gate capturado · APPLY +17 coords (zero overwrite) + 7 stadiums · POST gate pré=pós exceto alvo (kg_won 5164 · proveniência 100% · RSSSF 7 · EN pyramid 1 · **hash ranking `3e93aba9…` idêntico**) · noop provado · smoke `/geo/points` e `/clubs/geo-stats` 200. Evidência completa: REPORT adendum 56.
+
+**Incidente documentado (sem dano):** o APPLY-1 falhou no EWKT — `42883 st_makepoint(numeric,numeric)` (params Prisma raw = numeric; fix: cast `::double precision`) mascarando `42703 column location does not exist`: **a migration `20260905_stadiums_postgis` nunca foi aplicada no banco de produção**. Fix com guarda `information_schema` + degradação declarada (#290/#291/#292). Aplicar PostGIS em prod (CREATE EXTENSION) = decisão de infra do **OPERADOR**.
+
+**Decisões de dado (honestidade > volume):** (1) **R4-t471-dado-sem-label-nao-entra** — venues sem label pt/en NÃO viram rows (`name=QID` é ruído, não dado); 10 stadiums ficaram para a onda 2 com labels; (2) stadiums em prod sem geometria = entregável escalar (gap declarado); (3) 2908 clubes sem geo na fonte = gap estrutural do Wikidata (estratégia própria na onda 2).

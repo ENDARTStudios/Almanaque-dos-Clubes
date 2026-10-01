@@ -737,3 +737,15 @@ REPORT §22); RSSSF estadual/municipal + semeadura de mães ausentes = T448b; pa
 feminino = T450; cron = T451.
 
 Regras permanentes: + **R3-t448-dispatch-ancora-em-query**.
+
+**Nota T471 onda 1 (10-01):** enriquecimento geo-Wikidata aplicado em produção (despacho T475 Frente B;
+D-2026-10-01-t471-wave1-geo-wikidata · REPORT adendum 56): **+17 coordenadas** de clubes (zero overwrite,
+6366→6383; todas via venue P115 — poloneses) · **+7 stadiums** (dedupe por QID, proveniência CC0) ·
+integridade total (kg_won 5164 · proveniência 100% · RSSSF MG/GO/PR 7 · EN pyramid 1 · hash ranking
+`3e93aba9…` pré=pós) · noop provado · smoke `/geo/points`+`/clubs/geo-stats` 200 · sitemap Frente A
+re-ancorado (`/map` 1×). **Gaps onda 2:** 2908 clubes sem geo na fonte · 10 stadiums sem label
+(R4-t471-dado-sem-label-nao-entra) · `stadiums.location`/PostGIS ausente em prod (decisão de infra do
+Operador) · harvest total de venues. T471 geobloqueio UE segue opcional-futuro (D-2026-09-22-t471-nao-aplicado).
+
+Regras permanentes: + **R4-t471-dado-sem-label-nao-entra** (row cujo nome humano falta na fonte não
+entra; fallback de QID como name é ruído, não dado).
