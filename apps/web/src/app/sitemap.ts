@@ -17,6 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    // WS-C-3 — `/map` público (aprovado). Só entra no sitemap após observação 24–72h verdes
+    // + aprovação explícita do Operador (patch local em `feat/ws-c-3-sitemap-map`).
+    {
+      url: `${baseUrl}/map`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
     // WS-C-2 — `/search` é noindex (queries dinâmicas); fora do sitemap.
     {
       url: `${baseUrl}/auth/login`,
