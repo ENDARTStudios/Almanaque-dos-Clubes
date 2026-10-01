@@ -22,10 +22,8 @@
 import { PrismaClient } from '@prisma/client';
 
 const UA = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclubes.com)';
-// wbgetentities (Action API) aceita batch de 50 ids; Special:EntityData NÃO
-// aceita múltiplos ids (404 medido no T471 onda 1).
 const ENTITY_URL = (qids: string[]) =>
-  `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=labels%7Cclaims&languages=pt%7Cen&format=json`;
+  `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=labels%7Cclaims&languages=pt%7Cen&format=json`; // Special:EntityData rejeita batch (404 medido no T471)
 const CHUNK = 50;
 const PAUSE_MS = 1500;
 const MAX_RETRIES = 5;
@@ -286,7 +284,6 @@ async function main(): Promise<void> {
         );
       }
     }
-    if (APPLY) console.log(`coordenadas preenchidas: ${updated}`);
     console.log(
       `coordenadas: ${APPLY ? 'aplicadas' : 'encontradas'} por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
     );
