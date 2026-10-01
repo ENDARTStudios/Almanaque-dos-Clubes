@@ -233,7 +233,15 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient();
 
   const clubs = await prisma.club.findMany({
-    where: { deletedAt: null, qid: { not: null }, latitude: null },
+    where: {
+      deletedAt: null,
+      qid: { not: null },
+      // Sem coordenada OU com coordenada vinda de venue P115 (marcada no sourceUrl).
+      // O segundo ramo mantém o clube no escopo em re-runs: a escrita de coords é
+      // protegida por `where latitude: null` (zero overwrite), mas o registro do
+      // estádio precisa do clube como alvo mesmo após a coordenada preenchida.
+      OR: [{ latitude: null }, { sourceUrl: { endsWith: '(P115 venue)' } }],
+    },
     select: { id: true, qid: true, name: true },
     orderBy: { name: 'asc' },
     ...(limit ? { take: limit } : {}),
