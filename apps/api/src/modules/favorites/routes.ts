@@ -73,7 +73,24 @@ export const favoritesRoutes: FastifyPluginAsync = async (app: FastifyInstance) 
 
   app.get('/favorites', { preHandler: [authenticate] }, async (request, reply) => {
     try {
-      const result = await favoritesService.list(request.user!.id);
+      // WS-C-6 — paginação offset-based (limit 50 default, teto 100).
+      const q = (request.query as Record<string, string | undefined>) ?? {};
+      const limit = Math.min(Math.max(parseInt(q.limit ?? '50', 10) || 50, 1), 100);
+      const offset = Math.max(parseInt(q.offset ?? '0', 10) || 0, 0);
+      const result = await favoritesService.list(request.user!.id, { limit, offset });
+      return reply.send(result);
+    } catch (err) {
+      return handleFavoriteError(err, reply);
+    }
+  });
+
+  /**
+   * GET /favorites/feed — WS-C-6, conquistas recentes dos clubes favoritados
+   * (arestas WON vivas, ano DESC, cap 20). Autenticado; RLS owner-only.
+   */
+  app.get('/favorites/feed', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const result = await favoritesService.feed(request.user!.id);
       return reply.send(result);
     } catch (err) {
       return handleFavoriteError(err, reply);

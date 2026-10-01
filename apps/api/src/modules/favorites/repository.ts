@@ -16,6 +16,8 @@ export interface FavoriteWithClub {
   club: {
     id: string;
     name: string;
+    /** WS-C-6 — identidade Wikidata do clube (aditivo). */
+    qid: string | null;
     country: string | null;
     state: string | null;
     city: string | null;
@@ -52,16 +54,53 @@ export const favoritesRepository = {
     return tx.favorite.update({ where: { id }, data: { deletedAt: new Date() } });
   },
 
-  async listActiveWithClub(tx: Tx, userId: string): Promise<FavoriteWithClub[]> {
+  async listActiveWithClub(
+    tx: Tx,
+    userId: string,
+    opts?: { take?: number; skip?: number },
+  ): Promise<FavoriteWithClub[]> {
     return tx.favorite.findMany({
       where: { userId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      ...(opts?.take != null ? { take: opts.take } : {}),
+      ...(opts?.skip != null ? { skip: opts.skip } : {}),
       select: {
         id: true,
         clubId: true,
         notificationsActive: true,
         createdAt: true,
-        club: { select: { id: true, name: true, country: true, state: true, city: true } },
+        club: {
+          select: { id: true, qid: true, name: true, country: true, state: true, city: true },
+        },
+      },
+    });
+  },
+
+  /** WS-C-6 — total de favoritos ativos (paginação offset-based). */
+  async countActive(tx: Tx, userId: string): Promise<number> {
+    return tx.favorite.count({ where: { userId, deletedAt: null } });
+  },
+
+  /**
+   * WS-C-6 — arestas WON dos clubes favoritados (feed de conquistas e
+   * totalTitles). Exclusão de soft-deleted fica no chamador (excludeSoftDeleted).
+   */
+  async listWonEdgesForClubs(tx: Tx, clubIds: string[]) {
+    if (clubIds.length === 0) return [];
+    return tx.knowledgeGraph.findMany({
+      where: {
+        relation: 'WON',
+        OR: [
+          { sourceType: 'Club', sourceId: { in: clubIds } },
+          { targetType: 'Club', targetId: { in: clubIds } },
+        ],
+      },
+      select: {
+        sourceId: true,
+        sourceType: true,
+        targetId: true,
+        targetType: true,
+        metadata: true,
       },
     });
   },
