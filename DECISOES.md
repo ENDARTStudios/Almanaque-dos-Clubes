@@ -1582,3 +1582,13 @@ removendo o link do nav (API geo permanece); banco intocado; nunca hard delete /
 **Incidente documentado (sem dano):** o APPLY-1 falhou no EWKT — `42883 st_makepoint(numeric,numeric)` (params Prisma raw = numeric; fix: cast `::double precision`) mascarando `42703 column location does not exist`: **a migration `20260905_stadiums_postgis` nunca foi aplicada no banco de produção**. Fix com guarda `information_schema` + degradação declarada (#290/#291/#292). Aplicar PostGIS em prod (CREATE EXTENSION) = decisão de infra do **OPERADOR**.
 
 **Decisões de dado (honestidade > volume):** (1) **R4-t471-dado-sem-label-nao-entra** — venues sem label pt/en NÃO viram rows (`name=QID` é ruído, não dado); 10 stadiums ficaram para a onda 2 com labels; (2) stadiums em prod sem geometria = entregável escalar (gap declarado); (3) 2908 clubes sem geo na fonte = gap estrutural do Wikidata (estratégia própria na onda 2).
+
+### [2026-10-01] Decisão: D-2026-10-01-postgis-production-deferred — PostGIS em produção é débito técnico declarado, não aplicado
+
+**O que:** a migration `20260905_stadiums_postgis` (extensão PostGIS + coluna `stadiums.location` geometry(Point,4326)) **não é aplicada no banco de produção** — descoberto no T471 onda 1 (REPORT adendum 56: `42703 column location does not exist`). **Permanece assim por decisão, não por esquecimento.**
+
+**Motivo:** (1) nenhuma feature ativa consulta geoespacialmente — a API lê `latitude`/`longitude` escalares (clubs e stadiums) e a agregação T467/T466 usa a hierarquia Country/State/City; (2) nenhuma query em `src/` referencia `stadiums.location` (grep provado no adendum 56); (3) `CREATE EXTENSION postgis` em produção é operação de infra com custo operacional (imagem/extensão) que só se paga com demanda real.
+
+**Estado de degradação ativo:** o script `enrich-clubs-geo-wikidata.ts` detecta a ausência da coluna via `information_schema.columns` e degrada com log declarado (R-no-engage: gap explícito, não catch silencioso) — os campos escalares são o entregável.
+
+**Reativar quando:** surgir necessidade real de query geoespacial (raio/distância/KNN — ex.: "clubes a X km", clusterização de mapa em servidor). Aí: aplicar migration em janela + decisor do Operador. **Não aplicar preventivamente.**
