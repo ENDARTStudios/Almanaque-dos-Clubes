@@ -291,7 +291,7 @@ async function main(): Promise<void> {
           data: {
             latitude: resolved.latitude,
             longitude: resolved.longitude,
-            ...(resolved.source === 'P115' && resolved.venueName
+            ...(resolved.source === 'P115' && resolved.venueQid
               ? { sourceUrl: `https://www.wikidata.org/wiki/${resolved.venueQid} (P115 venue)` }
               : {}),
           },
