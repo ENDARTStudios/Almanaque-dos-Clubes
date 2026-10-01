@@ -284,6 +284,7 @@ async function main(): Promise<void> {
         );
       }
     }
+    if (APPLY) console.log(`coordenadas preenchidas: ${updated}`);
     console.log(
       `coordenadas: ${APPLY ? 'aplicadas' : 'encontradas'} por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
     );
