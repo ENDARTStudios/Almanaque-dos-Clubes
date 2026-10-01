@@ -22,8 +22,10 @@
 import { PrismaClient } from '@prisma/client';
 
 const UA = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclubes.com)';
+// wbgetentities (Action API) aceita batch de 50 ids; Special:EntityData NÃO
+// aceita múltiplos ids (404 medido no T471 onda 1).
 const ENTITY_URL = (qids: string[]) =>
-  `https://www.wikidata.org/wiki/Special:EntityData/${qids.join('|')}.json`;
+  `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=labels%7Cclaims&languages=pt%7Cen&format=json`;
 const CHUNK = 50;
 const PAUSE_MS = 1500;
 const MAX_RETRIES = 5;
