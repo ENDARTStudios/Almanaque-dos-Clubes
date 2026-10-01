@@ -5,7 +5,9 @@
  *  - clubs com qid e SEM coordenada (~2.925): P625 direto → fallback P131 (território) →
  *    fallback P115 (venue) → P625 do venue. NUNCA sobrescreve coordenada existente.
  *  - stadiums (tabela vazia): P115 do clube → entidade do estádio (name/P625/P1083),
- *    dedupe por QID, proveniência Wikidata CC0.
+ *    dedupe por QID, proveniência Wikidata CC0. A geometria `location` (PostGIS) é
+ *    opcional por banco: sem a migration 20260905_stadiums_postgis, fica como gap
+ *    declarado (campos escalares são o entregável).
  *
  * Contratos:
  *  - default DRY-RUN; escrita só com --apply --allow-production;
@@ -320,6 +322,20 @@ async function main(): Promise<void> {
       `stadiums: ${deduped.length} venues P115 distintos · ${existingQids.size} já existentes · ${news.length} novos`,
     );
     const venueEntities = news.length ? await fetchEntities(news.map((v) => v.venueQid)) : {};
+    // A coluna geometry `location` (migration 20260905_stadiums_postgis) não existe em
+    // todo banco (produção nunca aplicou essa migration). Detecta e degrada com log
+    // declarado — campos escalares (name/qid/lat/long/capacity/proveniência) são o
+    // entregável; sem coluna, a geometria é gap declarado, não falha.
+    const locationCol = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
+      `SELECT count(*)::int AS n FROM information_schema.columns
+       WHERE table_name = 'stadiums' AND column_name = 'location'`,
+    );
+    const hasLocation = (locationCol[0]?.n ?? 0) > 0;
+    if (APPLY && news.length > 0 && !hasLocation) {
+      console.log(
+        'location: coluna geometry ausente neste banco (migration 20260905_stadiums_postgis não aplicada) — stadiums ficam só com campos escalares (gap declarado)',
+      );
+    }
     for (const v of news) {
       const row = extractStadium(v.venueQid, venueEntities[v.venueQid], v.clubId);
       if (!row) continue;
@@ -339,10 +355,10 @@ async function main(): Promise<void> {
           },
           select: { id: true },
         });
-        if (row.latitude != null && row.longitude != null) {
+        if (hasLocation && row.latitude != null && row.longitude != null) {
           await prisma.$executeRaw`
             UPDATE stadiums
-            SET location = ST_SetSRID(ST_MakePoint(${row.longitude}, ${row.latitude}), 4326)
+            SET location = ST_SetSRID(ST_MakePoint(${row.longitude}::double precision, ${row.latitude}::double precision), 4326)
             WHERE id = ${created.id}
           `;
         }
