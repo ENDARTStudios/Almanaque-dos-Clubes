@@ -225,6 +225,7 @@ async function main(): Promise<void> {
   const chunkSize = argValue('chunk-size') ?? CHUNK;
   const limit = argValue('limit');
   const onlyStadiums = process.argv.includes('--only-stadiums');
+  const onlyClubs = process.argv.includes('--only-clubs');
 
   console.log(`T471 onda 1 — enriquecimento geo Wikidata (${APPLY ? 'APPLY' : 'DRY-RUN'})`);
   const prisma = new PrismaClient();
@@ -251,47 +252,105 @@ async function main(): Promise<void> {
   };
 
   let updated = 0;
+  let stadiumsCreated = 0;
   const bySource: Record<string, number> = {};
   const notFound: string[] = [];
+  const venueCandidates: Array<{ venueQid: string; clubId: string; clubName: string }> = [];
 
-  if (!onlyStadiums) {
-    for (const part of chunked(
-      targets.map((c) => c.qid),
-      chunkSize,
-    )) {
-      const entities = await fetchEntities(part);
-      await new Promise((r) => setTimeout(r, PAUSE_MS));
-      for (const c of targets.filter((t) => entities[t.qid])) {
-        const resolved = await resolveClubGeo(c.qid, entities, provider);
-        if (resolved.source === null) {
-          notFound.push(c.name);
-          continue;
-        }
-        bySource[resolved.source] = (bySource[resolved.source] ?? 0) + 1;
-        if (APPLY) {
-          const res = await prisma.club.updateMany({
-            where: { id: c.id, latitude: null, longitude: null },
-            data: {
-              latitude: resolved.latitude,
-              longitude: resolved.longitude,
-              ...(resolved.source === 'P115' && resolved.venueName
-                ? { sourceUrl: `https://www.wikidata.org/wiki/${resolved.venueQid} (P115 venue)` }
-                : {}),
-            },
-          });
-          updated += res.count;
-        }
-        console.log(
-          `  [${resolved.source}] ${c.name} (${c.qid}) → ${resolved.latitude.toFixed(4)}, ${resolved.longitude.toFixed(4)}`,
-        );
+  // A varredura (leitura) SEMPRE roda — é ela que descobre venues P115. A escrita de
+  // coordenadas é que fica sob --only-stadiums off; stadiums sob --only-clubs off.
+  for (const part of chunked(
+    targets.map((c) => c.qid),
+    chunkSize,
+  )) {
+    const entities = await fetchEntities(part);
+    await new Promise((r) => setTimeout(r, PAUSE_MS));
+    for (const c of targets.filter((t) => entities[t.qid])) {
+      const resolved = await resolveClubGeo(c.qid, entities, provider);
+      if (resolved.source === null) {
+        notFound.push(c.name);
+        continue;
       }
+      bySource[resolved.source] = (bySource[resolved.source] ?? 0) + 1;
+      if (resolved.source === 'P115' && resolved.venueQid) {
+        venueCandidates.push({ venueQid: resolved.venueQid, clubId: c.id, clubName: c.name });
+      }
+      if (APPLY && !onlyStadiums) {
+        const res = await prisma.club.updateMany({
+          where: { id: c.id, latitude: null, longitude: null },
+          data: {
+            latitude: resolved.latitude,
+            longitude: resolved.longitude,
+            ...(resolved.source === 'P115' && resolved.venueName
+              ? { sourceUrl: `https://www.wikidata.org/wiki/${resolved.venueQid} (P115 venue)` }
+              : {}),
+          },
+        });
+        updated += res.count;
+      }
+      console.log(
+        `  [${resolved.source}] ${c.name} (${c.qid}) → ${resolved.latitude.toFixed(4)}, ${resolved.longitude.toFixed(4)}`,
+      );
     }
-    if (APPLY) console.log(`coordenadas preenchidas: ${updated}`);
+  }
+  if (APPLY && !onlyStadiums) console.log(`coordenadas preenchidas: ${updated}`);
+  console.log(
+    `coordenadas: ${APPLY && !onlyStadiums ? 'aplicadas' : 'encontradas'} por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
+  );
+  if (notFound.length > 0)
+    console.log('  sem geo na fonte (amostra):', notFound.slice(0, 10).join(', '));
+
+  if (!onlyClubs) {
+    // Dedupe por QID (in-run) + já existentes no banco; INSERT com proveniência CC0.
+    const seen = new Set<string>();
+    const deduped = venueCandidates.filter((v) => {
+      if (seen.has(v.venueQid)) return false;
+      seen.add(v.venueQid);
+      return true;
+    });
+    const existing = deduped.length
+      ? await prisma.stadium.findMany({
+          where: { qid: { in: deduped.map((v) => v.venueQid) } },
+          select: { qid: true },
+        })
+      : [];
+    const existingQids = new Set(existing.map((s) => s.qid));
+    const news = deduped.filter((v) => !existingQids.has(v.venueQid));
     console.log(
-      `coordenadas: ${APPLY ? 'aplicadas' : 'encontradas'} por fonte: ${JSON.stringify(bySource)} · não resolvidos: ${notFound.length}`,
+      `stadiums: ${deduped.length} venues P115 distintos · ${existingQids.size} já existentes · ${news.length} novos`,
     );
-    if (notFound.length > 0)
-      console.log('  sem geo na fonte (amostra):', notFound.slice(0, 10).join(', '));
+    const venueEntities = news.length ? await fetchEntities(news.map((v) => v.venueQid)) : {};
+    for (const v of news) {
+      const row = extractStadium(v.venueQid, venueEntities[v.venueQid], v.clubId);
+      if (!row) continue;
+      if (APPLY) {
+        const created = await prisma.stadium.create({
+          data: {
+            name: row.name,
+            qid: row.qid,
+            latitude: row.latitude,
+            longitude: row.longitude,
+            capacity: row.capacity,
+            country: row.country,
+            clubId: row.clubId,
+            importedFrom: 'wikidata',
+            importedAt: new Date(),
+            sourceUrl: `https://www.wikidata.org/wiki/${row.qid}`,
+          },
+          select: { id: true },
+        });
+        if (row.latitude != null && row.longitude != null) {
+          await prisma.$executeRaw`
+            UPDATE stadiums
+            SET location = ST_SetSRID(ST_MakePoint(${row.longitude}, ${row.latitude}), 4326)
+            WHERE id = ${created.id}
+          `;
+        }
+        stadiumsCreated += 1;
+      }
+      console.log(`  [stadium] ${row.name} (${row.qid}) → clube ${v.clubName}`);
+    }
+    if (APPLY) console.log(`stadiums criados: ${stadiumsCreated}`);
   }
 
   if (!APPLY) {
@@ -301,7 +360,7 @@ async function main(): Promise<void> {
   }
 
   await prisma.$disconnect();
-  console.log('concluído');
+  console.log(`concluído: coords de clubes=${updated} · stadiums criados=${stadiumsCreated}`);
 }
 
 main().catch((err) => {
