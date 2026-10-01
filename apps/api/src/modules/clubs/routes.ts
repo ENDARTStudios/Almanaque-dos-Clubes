@@ -11,6 +11,7 @@ import { authenticate, requirePermission } from '../auth/authenticate.middleware
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
 import { getClubProfile } from './profile.service.js';
+import { getClubRelated, getClubTimeline } from './insights.service.js';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
 function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
@@ -141,6 +142,40 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       }
       const data = await clubsService.titles(request.params.id);
       return reply.send({ data, total: data.length });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
+   * GET /clubs/:id/timeline — WS-C-5, conquistas ordenadas por ano (ARESTAS WON do
+   * KG, proveniência por aresta). Vazio-honesto: sem conquista auditável →
+   * timeline: [], totalTitles: 0, byHierarchy zerado.
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/timeline', async (request, reply) => {
+    try {
+      const data = await getClubTimeline(request.params.id);
+      if (!data) {
+        throw new NotFoundError('Clube', request.params.id);
+      }
+      return reply.send({ data });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
+   * GET /clubs/:id/related — WS-C-5, clubes relacionados (same_city/same_state/
+   * same_competition; rival SOMENTE com aresta RIVAL explícita no KG — nunca
+   * inferido). Teto de 12; exclui o próprio clube e soft-deletados.
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/related', async (request, reply) => {
+    try {
+      const data = await getClubRelated(request.params.id);
+      if (!data) {
+        throw new NotFoundError('Clube', request.params.id);
+      }
+      return reply.send({ data });
     } catch (err) {
       return handleDomainError(err, reply);
     }

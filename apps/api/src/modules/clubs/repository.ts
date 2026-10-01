@@ -235,9 +235,11 @@ export const clubsRepository = {
         year: typeof meta.year === 'number' ? meta.year : null,
         season: typeof meta.season === 'string' ? meta.season : null,
         competition: comp ? { id: comp.id, name: comp.name } : null,
+        competitionQid: comp?.qid ?? null,
         hierarchy: hierarchyOfEdge(e.metadata, comp),
         gender: isWomen ? ('women' as const) : ('men' as const),
         sourceUrl: typeof meta.sourceUrl === 'string' ? meta.sourceUrl : null,
+        source: typeof meta.dataSource === 'string' ? meta.dataSource : null,
       };
     });
 
@@ -342,7 +344,11 @@ export interface ClubTitleView {
   year: number | null;
   season: string | null;
   competition: { id: string; name: string | null } | null;
+  /** WS-C-5 — identidade e fonte da competição (aditivo; timeline consome). */
+  competitionQid: string | null;
   hierarchy: RankHierarchy;
   gender: 'men' | 'women';
   sourceUrl: string | null;
+  /** dataSource congelado na escrita da aresta (ex.: 'wikidata', 'rsssf'). */
+  source: string | null;
 }
