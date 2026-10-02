@@ -749,3 +749,12 @@ Operador) · harvest total de venues. T471 geobloqueio UE segue opcional-futuro 
 
 Regras permanentes: + **R4-t471-dado-sem-label-nao-entra** (row cujo nome humano falta na fonte não
 entra; fallback de QID como name é ruído, não dado).
+
+**Nota T451 (10-02):** cron/ETL Wikidata + integridade **ATIVO em produção** (D-2026-10-02-etl-scheduler-activated;
+REPORT adendum 57): `wikidata-incremental` diário 03:00 UTC (batch 50, amostragem aleatória, dry-run desligado
+pelo Operador) · `integrity-check` semanal dom 04:00 UTC · `GET /jobs/health` (admin). **T451 [x] ativo.**
+Primeiro run + drenos: 74 cities preenchidas (P131, CC0, zero overwrite) · 0 erros · coords 6383 intocado
+(fonte esgotada p/ coords — gap estrutural T471) · integridade total (`3e93aba9…`/RSSSF 7/pyramid 1).
+4 hotfixes de ativação (#301 414-chunk · #302 BullMQ maxRetries · #303 nome de fila no createWorker — ranking
+cron T425 provavelmente nunca consumiu; monitorar `rankings_last_run_*` · #305 anti-starving). Fila: Operador
+acompanha health; geo onda 2 = despacho novo.

@@ -1592,3 +1592,15 @@ removendo o link do nav (API geo permanece); banco intocado; nunca hard delete /
 **Estado de degradação ativo:** o script `enrich-clubs-geo-wikidata.ts` detecta a ausência da coluna via `information_schema.columns` e degrada com log declarado (R-no-engage: gap explícito, não catch silencioso) — os campos escalares são o entregável.
 
 **Reativar quando:** surgir necessidade real de query geoespacial (raio/distância/KNN — ex.: "clubes a X km", clusterização de mapa em servidor). Aí: aplicar migration em janela + decisor do Operador. **Não aplicar preventivamente.**
+
+### [2026-10-02] Decisão: D-2026-10-02-etl-scheduler-activated — Scheduler ETL Wikidata ATIVADO em produção (flags ON, escrita real) após 4 hotfixes de ativação
+
+**O que:** `ETL_SCHEDULER_ENABLED=1` + `WIKIDATA_DRY_RUN=false` setados no serviço da API (production) pelo Operador (despacho de ativação). Agendas ativas: `wikidata-incremental` diário 03:00 UTC (batch 50, amostragem aleatória) · `integrity-check` semanal domingo 04:00 UTC. Log de boot: `data-refresh scheduler agendado (UTC) wikidata="0 3 * * *" integrity="0 4 * * 0"`.
+
+**Primeiro run (via fila, worker do processo API):** `scanned=50 · updated=4 · errors=0` + drenos de validação: **74 cities preenchidas** via P131 ( Wikidata CC0), **zero overwrite** (coords 6383 intactas; `where` re-verifica nulos), **0 erros** em ~105 runs. **Integridade pós-run:** hash `ranking_entries` `3e93aba9…` inalterado · RSSSF 7 · EN pyramid 1 · kg_won 5164 proveniência 100%.
+
+**Por que coords NÃO aumentou (esperado ~56 do despacho):** os ~56 do dry-run eram preenchimentos de **city** (não coords) — os 17 clubes coords-resolvíveis via P115 já haviam sido colhidos pelo T471 onda 1; os 2.908 restantes sem coordenada são **gap estrutural da fonte** (declarado no REPORT adendum 56). A fonte Wikidata está **esgotada para coords**; o produto real do job neste acervo é city (74 novas) e, adiante, novos clubes ingestado sem dados.
+
+**4 hotfixes da ativação (todos analysis-backed, CI verde):** #301 fetch chunkado 50 (414 no dry-run 1000 — lição T471 não migrada) · #302 conexão BullMQ `maxRetriesPerRequest:null` (Worker sem consumir — exigência documentada do BullMQ) + `worker.on('error')` fail-loud · #303 **causa raiz real: `createWorker` usava a CHAVE do registry (`dataRefresh`) como nome de fila no Redis em vez de `queues[queue].name` (`data-refresh`)** — worker ouvia a fila errada; no ranking a coincidência chave==nome escondeu o bug desde o T388 (cron diário do ranking provavelmente nunca consumiu em produção) · #305 amostragem aleatória de candidatos (starving determinístico 2×: clubes não-resolvíveis nunca saem da piscina e ordem fixa re-varria os mesmos 50).
+
+**Nota aberta para o Operador:** o cron diário do **ranking** (T425) usava o mesmo `createWorker` — com o fix #303 ele deve começar a consumir de fato; acompanhar `rankings_last_run_timestamp` nos próximos dias. `/jobs/health` (admin) disponível para verificação via browser (counters em memória zeram a cada redeploy — padrão metrics; estado da fila é persistente no Redis).
