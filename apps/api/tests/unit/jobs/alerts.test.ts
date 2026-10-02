@@ -1,5 +1,9 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { checkJobFailure, checkStaleJob, getAlerts } from '../../../src/lib/observability/alerts.js';
+import {
+  checkJobFailure,
+  checkStaleJob,
+  getAlerts,
+} from '../../../src/lib/observability/alerts.js';
 import { recordJobRun } from '../../../src/jobs/data-refresh.scheduler.js';
 
 // WS-O-1 — alertas internos: falhas consecutivas disparam; estado fresco não.
