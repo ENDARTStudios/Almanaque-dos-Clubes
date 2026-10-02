@@ -181,6 +181,8 @@ const es: Dictionary = {
       offline: 'Conectando…',
       error: 'Error al cargar favoritos.',
       rankingBadge: '#{position} en {name}',
+      feedTitle: 'Títulos recientes',
+      feedEmpty: 'Sin títulos recientes de tus favoritos.',
     },
     champions: {
       title: 'Campeones actuales',

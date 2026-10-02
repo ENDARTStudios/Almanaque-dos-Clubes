@@ -178,6 +178,8 @@ const en: Dictionary = {
       offline: 'Connecting…',
       error: 'Error loading favorites.',
       rankingBadge: '#{position} in {name}',
+      feedTitle: 'Recent titles',
+      feedEmpty: 'No recent titles from your favorites.',
     },
     champions: {
       title: 'Current champions',

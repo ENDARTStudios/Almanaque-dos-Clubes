@@ -180,6 +180,8 @@ const pt: Dictionary = {
       offline: 'Conectando…',
       error: 'Erro ao carregar favoritos.',
       rankingBadge: '{position}º no {name}',
+      feedTitle: 'Conquistas recentes',
+      feedEmpty: 'Sem conquistas recentes nos seus favoritos.',
     },
     champions: {
       title: 'Campeões atuais',

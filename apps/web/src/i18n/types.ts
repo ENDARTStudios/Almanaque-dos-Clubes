@@ -208,6 +208,8 @@ export interface Dictionary {
       offline: string;
       error: string;
       rankingBadge: string;
+      feedTitle: string;
+      feedEmpty: string;
     };
     champions: {
       title: string;
