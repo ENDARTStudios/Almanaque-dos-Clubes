@@ -11,7 +11,8 @@
 --
 CREATE TABLE "notifications" (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "userId" UUID NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+  -- TEXT (não UUID): users.id é String no Prisma → TEXT no Postgres.
+  "userId" TEXT NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL,
   payload JSONB NOT NULL DEFAULT '{}',
   read BOOLEAN NOT NULL DEFAULT false,
