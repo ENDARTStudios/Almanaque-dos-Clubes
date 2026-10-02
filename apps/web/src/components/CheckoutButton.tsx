@@ -3,21 +3,31 @@ import { useState } from 'react';
 import { useI18n } from '@/i18n/Provider';
 import { api } from '@/lib/api';
 
-const CURRENCY_BY_LOCALE: Record<string, 'BRL' | 'USD' | 'EUR'> = {
-  'pt-br': 'BRL',
-  'en-us': 'USD',
-  'es-es': 'EUR',
+// A moeda NÃO é determinada aqui. A API deriva a moeda da localização real do
+// usuário (país do IP) e NUNCA aceita a moeda vinda do cliente ou do idioma.
+const LABELS: Record<
+  string,
+  {
+    subscribe: string;
+    monthly: string;
+    yearly: string;
+    pro: string;
+    elite: string;
+    error: string;
+    soon: string;
+  }
+> = {
+  'pt-br': { subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite', error: 'Não foi possível iniciar o pagamento.', soon: 'Pagamentos em breve.' },
+  'en-us': { subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite', error: 'Could not start checkout.', soon: 'Payments coming soon.' },
+  'es-es': { subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite', error: 'No se pudo iniciar el pago.', soon: 'Pagos muy pronto.' },
 };
 
-const LABELS: Record<string, { subscribe: string; monthly: string; yearly: string; pro: string; elite: string; error: string }> = {
-  'pt-br': { subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite', error: 'Não foi possível iniciar o pagamento.' },
-  'en-us': { subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite', error: 'Could not start checkout.' },
-  'es-es': { subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite', error: 'No se pudo iniciar el pago.' },
-};
-
-export default function CheckoutButton() {
+export default function CheckoutButton({
+  paymentsEnabled = true,
+}: {
+  paymentsEnabled?: boolean;
+} = {}) {
   const { locale } = useI18n();
-  const currency = CURRENCY_BY_LOCALE[locale] ?? 'BRL';
   const l = LABELS[locale] ?? LABELS['pt-br'];
   const [interval, setInterval] = useState<'month' | 'year'>('month');
   const [loading, setLoading] = useState<string | null>(null);
@@ -27,7 +37,8 @@ export default function CheckoutButton() {
     setLoading(plan);
     setError('');
     try {
-      const res = await api.post<{ data: { url: string } }>('/billing/checkout', { plan, interval, currency });
+      // A moeda é resolvida no servidor pela localização real; não a enviamos.
+      const res = await api.post<{ data: { url: string } }>('/billing/checkout', { plan, interval });
       window.location.href = res.data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : l.error);
@@ -56,12 +67,13 @@ export default function CheckoutButton() {
         </button>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button onClick={() => start('PRO')} disabled={!!loading} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer">
+        <button onClick={() => start('PRO')} disabled={!!loading || !paymentsEnabled} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer">
           {loading === 'PRO' ? '...' : l.subscribe + ' ' + l.pro}
         </button>
-        <button onClick={() => start('ELITE')} disabled={!!loading} className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
+        <button onClick={() => start('ELITE')} disabled={!!loading || !paymentsEnabled} className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
           {loading === 'ELITE' ? '...' : l.subscribe + ' ' + l.elite}
         </button>
+        {!paymentsEnabled && <p className="w-full text-sm text-foreground/50">{l.soon}</p>}
       </div>
       <p className="mt-4 text-xs text-foreground/50">Stripe · {l.monthly} / {l.yearly}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

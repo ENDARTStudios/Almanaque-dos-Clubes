@@ -5,7 +5,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
-import { rateLimitByUserOrIp, AUTH_WINDOW } from './config/rate-limit.js';
+import { rateLimitByUserOrIp, AUTH_WINDOW, SENSITIVE_AUTH_WINDOW } from './config/rate-limit.js';
 import {
   DEFAULT_BODY_LIMIT_BYTES,
   PAYLOAD_TOO_LARGE_ERROR,
@@ -17,6 +17,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { helmetOptions } from './config/security.js';
 import { logger } from './config/logger.js';
+import { metrics } from './modules/observability/metrics.js';
 import { healthRoutes } from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
@@ -33,6 +34,18 @@ import { graphRoutes } from './modules/graph/routes.js';
 import { ragRoutes } from './modules/rag/routes.js';
 import { exportRoutes } from './modules/export/routes.js';
 import { etlRoutes } from './modules/etl/routes.js';
+import { jobsRoutes } from './modules/jobs/routes.js';
+import { consentRoutes } from './modules/consent/routes.js';
+import { privacyRoutes } from './modules/privacy/privacy.routes.js';
+import { copyrightRoutes } from './modules/copyright/copyright.routes.js';
+import { legalRoutes } from './modules/legal/routes.js';
+import { favoritesRoutes } from './modules/favorites/routes.js';
+import { wsTicketRoutes } from './routes/ws-ticket.js';
+import { compareRoutes } from './modules/compare/routes.js';
+import { championsRoutes } from './modules/champions/routes.js';
+import { searchRoutes } from './modules/search/routes.js';
+import { geoRoutes } from './modules/geo/routes.js';
+import { backupRoutes } from './modules/admin/backup.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 
@@ -90,11 +103,50 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Rate limiting avançado (7.3): janela deslizante por usuário+IP em /auth/*
   // (complementa o brute-force por IP+email do login — rate-limit.service.ts).
+  // T458 — re-checks de sessão (me/csrf/refresh) têm bucket próprio de
+  // 600/15min (config.rateLimit nas rotas) e NÃO consomem o AUTH_WINDOW:
+  // era o self-DoS do 09-20 (re-checks de navegação/focus competindo com a
+  // navegação do usuário no mesmo orçamento).
   if (!env.rateLimitDisabled) {
+    const SESSION_READ_PATHS = new Set([
+      '/api/v1/auth/me',
+      '/api/v1/auth/csrf-token',
+      '/api/v1/auth/refresh',
+    ]);
+    // T448b-2j — rotas sensíveis ANÔNIMAS (10/min por IP): diretriz do
+    // Operador (5-10/min em login/cadastro/recuperação). Complementa o
+    // brute-force do login (5/15min por IP+email).
+    const SENSITIVE_AUTH_PATHS = new Set([
+      '/api/v1/auth/login',
+      '/api/v1/auth/register',
+      '/api/v1/auth/forgot-password',
+      '/api/v1/auth/reset-password',
+      '/api/v1/auth/verify-email',
+    ]);
+    // T448b-2j — keying por usuário REAL: em onRequest o JWT ainda não foi
+    // verificado (request.user indefinido), então decodificamos o cookie
+    // access_token (decode SEM verify é suficiente para CHAVE — um sub
+    // forjado só cria uma chave distinta, mesmo efeito de um IP novo).
+    const getUserIdFromToken = (request: FastifyRequest): string | undefined => {
+      const token = (request as unknown as { cookies?: Record<string, string> }).cookies
+        ?.access_token;
+      if (!token) return undefined;
+      try {
+        const payload = app.jwt.decode(token) as { sub?: string } | null;
+        return payload?.sub;
+      } catch {
+        return undefined;
+      }
+    };
     app.addHook('onRequest', async (request, reply) => {
-      const url = request.raw.url ?? '';
-      if (!url.startsWith('/api/v1/auth/')) return;
-      await rateLimitByUserOrIp(AUTH_WINDOW)(request, reply);
+      const path = (request.raw.url ?? '').split('?')[0] ?? '';
+      if (!path.startsWith('/api/v1/auth/')) return;
+      if (SESSION_READ_PATHS.has(path)) return;
+      if (SENSITIVE_AUTH_PATHS.has(path)) {
+        await rateLimitByUserOrIp(SENSITIVE_AUTH_WINDOW)(request, reply);
+        return;
+      }
+      await rateLimitByUserOrIp(AUTH_WINDOW, getUserIdFromToken)(request, reply);
     });
   }
 
@@ -128,9 +180,19 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(helmet, helmetOptions(env.isProd));
 
   await app.register(cors, {
-    origin: env.isProd
-      ? ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com']
-      : true,
+    origin: async (origin: string | undefined) => {
+      if (!origin) return true; // server-to-server (ex.: webhook Stripe)
+      const prod = ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com'];
+      const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
+      if (
+        prod.includes(origin) ||
+        isVercelPreview ||
+        origin === 'http://localhost:3000' ||
+        origin === 'http://localhost:3001'
+      )
+        return true;
+      throw new Error('Not allowed by CORS');
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
@@ -155,6 +217,16 @@ export async function buildApp(): Promise<FastifyInstance> {
       // (instâncias filhas não herdam o do root — ver buildErrorHandler do Fastify).
       api.setErrorHandler(errorHandler);
 
+      // T422: observabilidade — contagem de requisicoes/5xx/auth em todas as rotas /api/v1.
+      api.addHook('onResponse', async (request, reply) => {
+        const status = reply.statusCode;
+        const rawUrl = request.raw.url ?? '';
+        metrics.inc('http_requests_total', { method: request.method, status: String(status) });
+        if (status >= 500) metrics.inc('http_5xx_total', {});
+        if ((status === 401 || status === 403) && rawUrl.includes('/auth/'))
+          metrics.inc('auth_failures_total', {});
+      });
+
       await api.register(healthRoutes);
       await api.register(metricsRoutes);
       await api.register(playersRoutes);
@@ -169,8 +241,20 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(ragRoutes);
       await api.register(exportRoutes);
       await api.register(etlRoutes);
+      await api.register(jobsRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
+      await api.register(consentRoutes);
+      await api.register(privacyRoutes);
+      await api.register(copyrightRoutes);
+      await api.register(legalRoutes);
+      await api.register(favoritesRoutes);
+      await api.register(wsTicketRoutes);
+      await api.register(compareRoutes);
+      await api.register(championsRoutes);
+      await api.register(searchRoutes);
+      await api.register(geoRoutes);
+      await api.register(backupRoutes);
     },
     { prefix: '/api/v1' },
   );

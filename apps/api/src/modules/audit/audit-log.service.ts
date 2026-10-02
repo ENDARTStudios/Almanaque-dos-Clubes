@@ -44,6 +44,20 @@ export const AuditAction = {
   ENTITY_CREATE: 'entity.create',
   ENTITY_UPDATE: 'entity.update',
   ENTITY_DELETE: 'entity.delete',
+  // T445 — direitos do titular + copyright claims
+  PRIVACY_REQUEST_CREATED: 'privacy.request_created',
+  PRIVACY_REQUEST_TRANSITIONED: 'privacy.request_transitioned',
+  PRIVACY_USER_ANONYMIZED: 'privacy.user_anonymized',
+  COPYRIGHT_CLAIM_CREATED: 'copyright.claim_created',
+  COPYRIGHT_CLAIM_TRANSITIONED: 'copyright.claim_transitioned',
+  // T470 — WS-L: direitos do titular + notificação autoral (protocolo rastreável)
+  LEGAL_REQUEST_CREATED: 'legal.request_created',
+  LEGAL_REQUEST_CANCELLED: 'legal.request_cancelled',
+  LEGAL_REQUEST_UPDATED: 'legal.request_updated',
+  LEGAL_EXPORT_GENERATED: 'legal.export_generated',
+  LEGAL_ACCOUNT_DELETED: 'legal.account_deleted',
+  LEGAL_NOTICE_CREATED: 'legal.notice_created',
+  LEGAL_NOTICE_UPDATED: 'legal.notice_updated',
 } as const;
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];
@@ -62,6 +76,10 @@ export const EntityType = {
   BILLING: 'Billing',
   ROLE: 'Role',
   PERMISSION: 'Permission',
+  PRIVACY_REQUEST: 'PrivacyRequest',
+  COPYRIGHT_CLAIM: 'CopyrightClaim',
+  DATA_SUBJECT_REQUEST: 'DataSubjectRequest',
+  COPYRIGHT_NOTICE: 'CopyrightNotice',
 } as const;
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType];

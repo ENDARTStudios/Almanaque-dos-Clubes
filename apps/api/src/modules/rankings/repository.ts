@@ -1,9 +1,12 @@
 import { prisma } from '../../config/prisma.js';
+import type { Prisma } from '@prisma/client';
 import type { Ranking, RankingEntry } from '@almanaque/domain';
 
 export interface ListRankingsParams {
   competitionId?: string;
   season?: string;
+  scope?: string;
+  country?: string;
   published?: boolean;
   search?: string;
   limit?: number;
@@ -18,12 +21,23 @@ export const rankingsRepository = {
   },
 
   async findMany(params: ListRankingsParams = {}): Promise<Ranking[]> {
-    const { competitionId, season, published, search, limit = 50, offset = 0 } = params;
+    const {
+      competitionId,
+      season,
+      scope,
+      country,
+      published,
+      search,
+      limit = 50,
+      offset = 0,
+    } = params;
     return prisma.ranking.findMany({
       where: {
         AND: [
           competitionId ? { competitionId } : {},
           season ? { season } : {},
+          scope ? { scope } : {},
+          country ? { country } : {},
           published === true ? { publishedAt: { not: null } } : {},
           published === false ? { publishedAt: null } : {},
           search ? { name: { contains: search } } : {},
@@ -36,12 +50,14 @@ export const rankingsRepository = {
   },
 
   async count(params: ListRankingsParams = {}): Promise<number> {
-    const { competitionId, season, published, search } = params;
+    const { competitionId, season, scope, country, published, search } = params;
     return prisma.ranking.count({
       where: {
         AND: [
           competitionId ? { competitionId } : {},
           season ? { season } : {},
+          scope ? { scope } : {},
+          country ? { country } : {},
           published === true ? { publishedAt: { not: null } } : {},
           published === false ? { publishedAt: null } : {},
           search ? { name: { contains: search } } : {},
@@ -52,6 +68,43 @@ export const rankingsRepository = {
 
   async findById(id: string): Promise<Ranking | null> {
     return prisma.ranking.findUnique({ where: { id } }) as Promise<Ranking | null>;
+  },
+
+  /**
+   * T449c-v2 — mapa clube→(level, qid) a partir das entries dos rankings POR DIVISÃO (scope NULL)
+   * de uma temporada nas competições dadas. Usado para enriquecer o agregado `country_pyramid`.
+   */
+  async findDivisionTierByClub(
+    season: string,
+    competitionQids: string[],
+  ): Promise<
+    Array<{ clubId: string; level: number | null; qid: string | null; points: number | null }>
+  > {
+    const rows = await prisma.rankingEntry.findMany({
+      where: { ranking: { season, scope: null, competition: { qid: { in: competitionQids } } } },
+      select: {
+        clubId: true,
+        points: true,
+        ranking: { select: { competition: { select: { level: true, qid: true } } } },
+      },
+    });
+    return rows.map((r) => ({
+      clubId: r.clubId,
+      level: r.ranking.competition?.level ?? null,
+      qid: r.ranking.competition?.qid ?? null,
+      points: r.points,
+    }));
+  },
+
+  /** T449c-v1 — competições (com `level`) para enriquecer rankings (sem N+1). */
+  async findCompetitionsByIds(
+    ids: string[],
+  ): Promise<Array<{ id: string; qid: string | null; name: string | null; level: number | null }>> {
+    if (ids.length === 0) return [];
+    return prisma.competition.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, qid: true, name: true, level: true },
+    });
   },
 
   async update(
@@ -79,15 +132,94 @@ export const rankingsRepository = {
     }) as Promise<RankingEntry[]>;
   },
 
-  async addEntry(
-    data: Omit<RankingEntry, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<RankingEntry> {
+  // --- T438 — leitura pública otimizada (cursor-based) ---
+
+  /** Último Ranking publicado que casa com os filtros (ano/competição/escopo/país). */
+  async findLatestPublished(
+    filter: { season?: string; competitionId?: string; scope?: string; country?: string } = {},
+  ): Promise<Ranking | null> {
+    return prisma.ranking.findFirst({
+      where: {
+        publishedAt: { not: null },
+        ...(filter.season ? { season: filter.season } : {}),
+        ...(filter.competitionId ? { competitionId: filter.competitionId } : {}),
+        // Default: ranking por competição/divisão (scope NULL). Só troca com `scope` explícito.
+        ...(filter.scope ? { scope: filter.scope } : { scope: null }),
+        ...(filter.country ? { country: filter.country } : {}),
+      },
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+    }) as Promise<Ranking | null>;
+  },
+
+  /** Entradas RANQUEADAS (position não-nula) em ordem de posição; cursor = última posição. */
+  async findRankedEntries(params: {
+    rankingId: string;
+    cursorPosition?: number | null;
+    limit: number;
+    country?: string;
+    state?: string;
+    city?: string;
+    gender?: string;
+  }) {
+    return prisma.rankingEntry.findMany({
+      where: {
+        rankingId: params.rankingId,
+        position: {
+          not: null,
+          ...(params.cursorPosition ? { gt: params.cursorPosition } : {}),
+        },
+        ...(params.gender ? { gender: params.gender } : {}),
+        ...(params.country || params.state || params.city
+          ? {
+              club: {
+                ...(params.country ? { country: params.country } : {}),
+                ...(params.state ? { state: params.state } : {}),
+                ...(params.city ? { city: params.city } : {}),
+              },
+            }
+          : {}),
+      },
+      orderBy: { position: 'asc' },
+      take: params.limit,
+      include: {
+        club: { select: { id: true, name: true, country: true, state: true, city: true } },
+      },
+    });
+  },
+
+  async clubExists(clubId: string): Promise<boolean> {
+    const c = await prisma.club.findUnique({ where: { id: clubId }, select: { id: true } });
+    return c !== null;
+  },
+
+  /** Histórico de rankings de um clube (entradas publicadas, mais recente primeiro). */
+  async findClubHistory(clubId: string, year?: string) {
+    return prisma.rankingEntry.findMany({
+      where: {
+        clubId,
+        position: { not: null },
+        ranking: {
+          publishedAt: { not: null },
+          ...(year ? { season: year } : {}),
+        },
+      },
+      orderBy: [{ ranking: { season: 'desc' } }, { ranking: { publishedAt: 'desc' } }],
+      include: {
+        club: { select: { id: true, name: true } },
+        ranking: {
+          select: { id: true, name: true, season: true, competitionId: true, publishedAt: true },
+        },
+      },
+    });
+  },
+
+  async addEntry(data: Prisma.RankingEntryUncheckedCreateInput): Promise<RankingEntry> {
     return prisma.rankingEntry.create({ data }) as Promise<RankingEntry>;
   },
 
   async updateEntry(
     id: string,
-    data: Partial<Omit<RankingEntry, 'id' | 'rankingId' | 'createdAt' | 'updatedAt'>>,
+    data: Prisma.RankingEntryUncheckedUpdateInput,
   ): Promise<RankingEntry> {
     return prisma.rankingEntry.update({ where: { id }, data }) as Promise<RankingEntry>;
   },

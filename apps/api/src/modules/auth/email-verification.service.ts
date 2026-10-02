@@ -14,7 +14,7 @@
  * - Store em memória (padrão existente). Multi-instance exigiria tabela
  *   própria — backlog futuro, sem mudança de schema nesta tarefa.
  */
-import { prisma } from '../../config/prisma.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import { generateToken, hashToken } from '../../config/crypto.js';
 
 export const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -78,9 +78,8 @@ export async function consumeEmailVerificationToken(token: string): Promise<stri
     return null;
   }
   stored.used = true;
-  await prisma.user.update({
-    where: { id: stored.userId },
-    data: { emailVerified: new Date() },
+  await withRlsContext({ userId: stored.userId, role: 'USER' }, async (tx) => {
+    await tx.user.update({ where: { id: stored.userId }, data: { emailVerified: new Date() } });
   });
   return stored.userId;
 }

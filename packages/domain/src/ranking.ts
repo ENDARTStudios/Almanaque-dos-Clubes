@@ -28,6 +28,11 @@ export interface Ranking {
   name: string;
   competitionId: string | null;
   season: string | null;
+  // T449c-v2 — escopo do ranking (NULL = por competição/divisão; 'country_pyramid' = agregado).
+  scope?: string | null;
+  country?: string | null;
+  tierVersion?: string | null;
+  formulaVersion?: string | null;
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -37,8 +42,15 @@ export interface RankingEntry {
   id: string;
   rankingId: string;
   clubId: string;
-  position: number;
+  // position NULL = registro sem posição publicada (dados insuficientes) — T425
+  position: number | null;
   points: number | null;
+  // Base auditável do ranking (T425) — a UI exibe "com base em N partidas / T títulos".
+  baseMatches: number | null;
+  baseTitles: number | null;
+  dataSourceIds: string[] | null;
+  reason: string | null;
+  gender: 'men' | 'women' | null;
   createdAt: Date;
   updatedAt: Date;
 }
