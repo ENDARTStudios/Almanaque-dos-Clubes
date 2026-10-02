@@ -21,6 +21,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "copyright_notices" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "countries" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "data_subject_requests" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "favorites" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "notifications" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "permissions" TO app_user;
