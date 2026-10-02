@@ -15,6 +15,7 @@ import { logger } from '../config/logger.js';
 import { runWikidataIncremental } from './wikidata-incremental.js';
 import { runIntegrityCheck } from './integrity-check.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
+import { cache } from '../services/cache.js';
 import { checkJobFailure } from '../lib/observability/alerts.js';
 import { notifyNewTitlesSince } from '../modules/notifications/title-notification.generator.js';
 
@@ -125,10 +126,17 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
           dryRun: out.dryRun,
         },
       });
-      // WS-C-8 — arestas WON criadas neste run viram notificações new_title
-      // para favoritantes (falha de notificação NÃO falha o ETL).
+      // WS-C-8 — arestas WON criadas DESDE O ÚLTIMO CHECK viram notificações
+      // new_title para favoritantes. O marcador persiste no Redis (sobrevive a
+      // redeploy) e avança só após processar — arestas criadas ENTRE runs não
+      // são perdidas (primeira tentativa usava o início do job e perdeu as
+      // criadas antes dele). Falha de notificação NÃO falha o ETL.
       if (!out.dryRun) {
-        const gen = await notifyNewTitlesSince(new Date(startedAt));
+        const markerKey = 'data-refresh:new-titles-last-check';
+        const lastCheck = await cache.get<string>(markerKey);
+        const since = lastCheck ? new Date(lastCheck) : new Date(startedAt);
+        const gen = await notifyNewTitlesSince(since);
+        await cache.set(markerKey, new Date().toISOString(), 30 * 24 * 3600);
         if (gen) {
           pushLog({ level: 'info', job: job.name, event: 'notifications', data: { ...gen } });
         }
