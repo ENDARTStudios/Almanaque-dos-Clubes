@@ -1,4 +1,12 @@
 import { prisma } from '../../config/prisma.js';
+import { searchMatchedIds, idsInCondition } from '../../lib/search.js';
+
+// T448b-2i — busca case/acento-insensível (translate nativo, sem extensão).
+async function searchCondition(search: string | undefined) {
+  if (!search) return {};
+  const ids = await searchMatchedIds(prisma, 'players', ['fullName'], search);
+  return idsInCondition(ids);
+}
 import type { Player } from '@almanaque/domain';
 
 export interface ListPlayersParams {
@@ -23,7 +31,7 @@ export const playersRepository = {
           country ? { country } : {},
           position ? { position } : {},
           clubId ? { clubId } : {},
-          search ? { fullName: { contains: search } } : {},
+          ...(search ? [await searchCondition(search)] : []),
         ],
       },
       orderBy: { fullName: 'asc' },
@@ -40,7 +48,7 @@ export const playersRepository = {
           country ? { country } : {},
           position ? { position } : {},
           clubId ? { clubId } : {},
-          search ? { fullName: { contains: search } } : {},
+          ...(search ? [await searchCondition(search)] : []),
         ],
       },
     });

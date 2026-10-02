@@ -1,0 +1,38 @@
+{
+  "pilotScope": "pr-2025",
+  "parserVersion": "t448b2d-pr-parser-v1",
+  "source": "rsssf",
+  "attributionRequired": true,
+  "candidates": [
+    {
+      "relation": "WON",
+      "competitionQid": "Q920397",
+      "seasonYear": 2025,
+      "clubQid": "Q2580083",
+      "hierarchy": "estadual",
+      "gender": "men",
+      "source": "rsssf",
+      "sourceUrl": "https://rsssfbrasil.com/tablesfq/pr2025.htm",
+      "retrievedAt": "2026-09-25T16:32:38Z",
+      "authorCredit": "(C) Copyright Moacir Dalpiaz de Souza, RSSSF and RSSSF Brazil 2025",
+      "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+      "attributionRequired": true,
+      "externalId": "69af8cca4c70f04d",
+      "dedupKey": "Q920397|2025|Q2580083|WON",
+      "parserVersion": "t448b2d-pr-parser-v1",
+      "metadataExtras": {
+        "championPhrase": "Operário",
+        "tablePosition": null,
+        "sourcePageUrlHash": "7c2131a39d0549b340d1df45f2324f428a69346ac788b8760e5aa37cf102d364",
+        "uf": "PR",
+        "pilotScope": "pr-2025"
+      }
+    }
+  ],
+  "excluded": [],
+  "doNotTouch": ["Q671621"],
+  "seedRequired": "Q2580083",
+  "note": "Parser pronto (mock). APPLY bloqueado ate micro-seed de Q2580083 (Operario Ferroviario/PR). Homonimo Q671621 NAO casa.",
+  "generatedFromMockIndex": true,
+  "pendingReview": []
+}

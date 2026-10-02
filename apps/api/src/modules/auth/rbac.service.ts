@@ -17,6 +17,7 @@
  * Para multi-instance: usar Redis pub/sub (Fase 6.3).
  */
 import { prisma } from '../../config/prisma.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import type { Role, Permission } from '@prisma/client';
 
 // =============================================================================
@@ -143,22 +144,27 @@ export async function getUserPermissions(userId: string): Promise<Set<string>> {
   }
 
   // Query: User → UserRoles → Roles → RolePermissions → Permissions
-  const userWithRoles = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      userRoles: {
-        include: {
-          role: {
-            include: {
-              rolePermissions: {
-                include: { permission: true },
+  // T442 — lookup interno de roles/permissions roda como SERVICE (pode ser de
+  // qualquer usuário: login, /auth/me, admin). Com FORCE RLS, SELECT direto
+  // fora de contexto seria negado.
+  const userWithRoles = await withRlsContext({ userId, role: 'SERVICE' }, async (tx) =>
+    tx.user.findUnique({
+      where: { id: userId },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: { permission: true },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+  );
 
   if (!userWithRoles) {
     return new Set();

@@ -14,7 +14,64 @@
  *   pnpm --filter @almanaque/api exec tsx prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client';
-import { PERMISSIONS, ROLE_NAMES, ROLE_PERMISSIONS } from '../src/modules/auth/rbac.service.js';
+// ==== RBAC constants (inline para o seed ser autônomo e rodar sem depender de src/ em runtime) ====
+const ROLE_NAMES = {
+  ADMIN: 'admin',
+  PRO: 'pro',
+  FREE: 'free',
+} as const;
+
+const PERMISSIONS = {
+  // Clubs
+  CLUBS_READ: 'clubs:read',
+  CLUBS_WRITE: 'clubs:write',
+  CLUBS_MANAGE: 'clubs:manage',
+  CLUBS_DELETE: 'clubs:delete',
+  // Players
+  PLAYERS_READ: 'players:read',
+  PLAYERS_WRITE: 'players:write',
+  PLAYERS_MANAGE: 'players:manage',
+  // Competitions
+  COMPETITIONS_READ: 'competitions:read',
+  COMPETITIONS_WRITE: 'competitions:write',
+  COMPETITIONS_MANAGE: 'competitions:manage',
+  // Rankings
+  RANKINGS_READ: 'rankings:read',
+  RANKINGS_WRITE: 'rankings:write',
+  RANKINGS_PUBLISH: 'rankings:publish',
+  // Users
+  USERS_READ: 'users:read',
+  USERS_MANAGE: 'users:manage',
+  // Billing
+  BILLINGS_READ: 'billings:read',
+  BILLINGS_REFUND: 'billings:refund',
+  // Admin
+  AUDIT_LOGS_READ: 'audit_logs:read',
+  // Export
+  EXPORT_CSV: 'export:csv',
+} as const;
+
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  [ROLE_NAMES.ADMIN]: Object.values(PERMISSIONS),
+  [ROLE_NAMES.PRO]: [
+    PERMISSIONS.CLUBS_READ,
+    PERMISSIONS.CLUBS_WRITE,
+    PERMISSIONS.PLAYERS_READ,
+    PERMISSIONS.PLAYERS_WRITE,
+    PERMISSIONS.COMPETITIONS_READ,
+    PERMISSIONS.RANKINGS_READ,
+    PERMISSIONS.USERS_READ,
+    PERMISSIONS.BILLINGS_READ,
+    PERMISSIONS.EXPORT_CSV,
+  ],
+  [ROLE_NAMES.FREE]: [
+    PERMISSIONS.CLUBS_READ,
+    PERMISSIONS.COMPETITIONS_READ,
+    PERMISSIONS.RANKINGS_READ,
+    PERMISSIONS.USERS_READ,
+    PERMISSIONS.BILLINGS_READ,
+  ],
+};
 
 const prisma = new PrismaClient();
 
@@ -191,20 +248,26 @@ async function seedClubs() {
   console.log('🌱 Criando clubes...');
   let created = 0;
   for (const club of CLUBS) {
-    const result = await prisma.club.upsert({
-      where: { name_country: { name: club.name, country: club.country } },
-      update: {
-        fullName: club.fullName,
-        shortName: club.shortName,
-        city: club.city,
-        state: club.state,
-        foundedYear: club.foundedYear,
-        primaryColor: club.primaryColor,
-        website: club.website,
-        status: 'ACTIVE',
-      },
-      create: club,
+    // T448b-2f — sem @@unique([name,country]): find-first escopado (seed de exemplo).
+    const existing = await prisma.club.findFirst({
+      where: { name: club.name, country: club.country },
+      select: { id: true },
     });
+    const result = existing
+      ? await prisma.club.update({
+          where: { id: existing.id },
+          data: {
+            fullName: club.fullName,
+            shortName: club.shortName,
+            city: club.city,
+            state: club.state,
+            foundedYear: club.foundedYear,
+            primaryColor: club.primaryColor,
+            website: club.website,
+            status: 'ACTIVE',
+          },
+        })
+      : await prisma.club.create({ data: club });
     if (result.createdAt.getTime() === result.updatedAt.getTime()) {
       created++;
     }

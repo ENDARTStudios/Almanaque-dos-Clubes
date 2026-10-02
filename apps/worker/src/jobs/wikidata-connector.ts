@@ -1,5 +1,11 @@
 // Wikidata SPARQL connector — fetches football entities from Wikidata
 // Endpoint: https://query.wikidata.org/sparql
+//
+// T428 — resiliência HTTP (retry/backoff/timeout) centralizada no helper
+// compartilhado da API (scripts/lib/http-resilience.ts); aqui ficam apenas
+// o throttle (máx 5 req/s) e o contrato "falha → []" dos consumers.
+
+import { fetchWithTimeout } from '../../../api/scripts/lib/http-resilience.js';
 
 export interface WikidataClub {
   qid: string;
@@ -105,6 +111,23 @@ function mapCountryToIso(countryUri?: string): string | undefined {
   return COUNTRY_QID_MAP[extractQid(countryUri)];
 }
 
+// Mapa reverso ISO → QID (T428/3.5): derivado de COUNTRY_QID_MAP, sem duplicar tabela.
+const ISO_TO_QID_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(COUNTRY_QID_MAP).map(([qid, iso]) => [iso, qid]),
+);
+
+/**
+ * T428/3.5 — resolve o filtro-país para QID da Wikidata.
+ * Aceita QID pronto ("Q155") ou ISO 3166-1 alpha-2 ("BR"). Antes do fix,
+ * "BR" virava "QBR" (QID inexistente) e a query retornava 0 em silêncio.
+ * ISO não mapeado → null (chamador não filtra por país em vez de quebrar).
+ */
+export function countryToQid(country: string): string | null {
+  const c = country.trim().toUpperCase();
+  if (/^Q\d+$/.test(c)) return c;
+  return ISO_TO_QID_MAP[c] ?? null;
+}
+
 function bindingValue(binding: { type: string; value: string } | undefined): string | undefined {
   return binding?.value;
 }
@@ -112,28 +135,56 @@ function bindingValue(binding: { type: string; value: string } | undefined): str
 type SparqlBinding = { type: string; value: string };
 type SparqlRow = Record<string, SparqlBinding>;
 
+// T426 — política de robustez: timeout de 30s por request e throttle de
+// 200ms entre chamadas (máx 5 req/s no endpoint SPARQL). Retry/backoff vem
+// do helper compartilhado (http-resilience.ts). Em falha definitiva
+// retorna [] (contrato preservado: os consumidores iteram sobre o resultado).
+const SPARQL_TIMEOUT_MS = 30_000;
+const SPARQL_RETRY_DELAYS_MS = [1000, 2000, 4000];
+const SPARQL_MIN_INTERVAL_MS = 200;
+let lastSparqlAt = 0;
+
+async function sparqlThrottle(): Promise<void> {
+  const elapsed = Date.now() - lastSparqlAt;
+  if (elapsed < SPARQL_MIN_INTERVAL_MS) {
+    await new Promise((resolve) => setTimeout(resolve, SPARQL_MIN_INTERVAL_MS - elapsed));
+  }
+  lastSparqlAt = Date.now();
+}
+
 async function sparqlQuery(query: string): Promise<SparqlRow[]> {
   const url = `${WIKIDATA_ENDPOINT}?format=json&query=${encodeURIComponent(query)}`;
-  try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'AlmanaqueDosClubes/1.0 (ETL worker)' },
-    });
-    if (!response.ok) {
-      console.error(`[Wikidata] SPARQL query failed: HTTP ${response.status}`);
-      return [];
+  await sparqlThrottle();
+  for (let attempt = 0; attempt <= SPARQL_RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const response = await fetchWithTimeout(
+        url,
+        { headers: { 'User-Agent': 'AlmanaqueDosClubes/1.0 (ETL worker)' } },
+        SPARQL_TIMEOUT_MS,
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as { results?: { bindings?: SparqlRow[] } };
+      return data?.results?.bindings ?? [];
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (attempt === SPARQL_RETRY_DELAYS_MS.length) {
+        console.error(`[Wikidata] SPARQL query failed after ${attempt + 1} attempts: ${message}`);
+        return [];
+      }
+      const delay = SPARQL_RETRY_DELAYS_MS[attempt];
+      console.warn(
+        `[Wikidata] SPARQL attempt ${attempt + 1} failed (${message}) — retrying in ${delay}ms`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    const data = (await response.json()) as { results?: { bindings?: SparqlRow[] } };
-    return data?.results?.bindings ?? [];
-  } catch (error) {
-    console.error('[Wikidata] SPARQL query error:', error instanceof Error ? error.message : error);
-    return [];
   }
+  return [];
 }
 
 export async function fetchWikidataClubs(country?: string): Promise<WikidataClub[]> {
-  const countryFilter = country
-    ? `?club wdt:P17 wd:${country.toUpperCase().startsWith('Q') ? country.toUpperCase() : `Q${country}`}.`
-    : '';
+  // T428/3.5 — aceita ISO ("BR") ou QID ("Q155"); ISO não mapeado não filtra.
+  const countryQid = country ? countryToQid(country) : null;
+  const countryFilter = countryQid ? `?club wdt:P17 wd:${countryQid}.` : '';
 
   const query = `
     SELECT ?club ?clubLabel ?officialName ?shortName ?city ?cityLabel ?country ?foundedYear ?website WHERE {
@@ -226,9 +277,9 @@ export async function fetchWikidataCompetitions(): Promise<WikidataCompetition[]
 }
 
 export async function fetchWikidataStadiums(country?: string): Promise<WikidataStadium[]> {
-  const countryFilter = country
-    ? `?stadium wdt:P17 wd:${country.toUpperCase().startsWith('Q') ? country.toUpperCase() : `Q${country}`}.`
-    : '';
+  // T428/3.5 — mesmo fix de fetchWikidataClubs: ISO ou QID, sem "QBR".
+  const countryQid = country ? countryToQid(country) : null;
+  const countryFilter = countryQid ? `?stadium wdt:P17 wd:${countryQid}.` : '';
 
   const query = `
     SELECT ?stadium ?stadiumLabel ?city ?cityLabel ?country ?lat ?lon ?capacity ?surface ?surfaceLabel WHERE {
