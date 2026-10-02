@@ -12,6 +12,8 @@ import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
 import { getClubProfile } from './profile.service.js';
 import { getClubRelated, getClubTimeline } from './insights.service.js';
+import { getClubComparison } from './compare.service.js';
+import { z } from 'zod';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
 function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
@@ -77,6 +79,44 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.get('/clubs/geo-stats', async (_request, reply) => {
     return reply.send({ data: await clubsService.geoStats() });
+  });
+
+  /**
+   * GET /clubs/compare?a=<uuid>&b=<uuid> — WS-C-7, comparação lado a lado
+   * (read-only). a == b → 400; clube inexistente/inativo → 404. Declarada
+   * ANTES de /clubs/:id (rota estática).
+   */
+  app.get('/clubs/compare', async (request, reply) => {
+    try {
+      const query = z
+        .object({ a: z.string().uuid(), b: z.string().uuid() })
+        .safeParse((request.query as Record<string, string | undefined>) ?? {});
+      if (!query.success) {
+        return reply.status(400).send({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Parâmetros a e b são obrigatórios (uuid)',
+            details: query.error.issues.map((i) => ({
+              path: i.path.join('.'),
+              message: i.message,
+            })),
+          },
+        });
+      }
+      const { a, b } = query.data;
+      if (a === b) {
+        return reply.status(400).send({
+          error: { code: 'SAME_CLUB', message: 'Os dois clubes da comparação são iguais' },
+        });
+      }
+      const data = await getClubComparison(a, b);
+      if (!data) {
+        throw new NotFoundError('Clube', 'compare');
+      }
+      return reply.send({ data });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
   });
 
   /**
