@@ -23,6 +23,14 @@ async function main() {
       await registerRankingCron();
     }
 
+    // T451 — cron/ETL Wikidata + integridade (BullMQ, fila data-refresh). Opt-in
+    // via ETL_SCHEDULER_ENABLED=1 (default OFF). Mesmo ativo, o job incremental
+    // só escreve com WIKIDATA_DRY_RUN=false (default dry-run).
+    if (process.env.ETL_SCHEDULER_ENABLED === '1') {
+      const { registerDataRefreshCron } = await import('./jobs/data-refresh.scheduler.js');
+      await registerDataRefreshCron();
+    }
+
     await app.listen({ port: env.port, host: env.host });
     setupWebSocket(app);
     logger.info(`🚀 Servidor ouvindo em http://${env.host}:${env.port}/api/v1`);

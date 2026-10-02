@@ -46,6 +46,16 @@ export const queues = {
   export: new Queue('export', { connection }),
   // T425 — fila do Ranking 0-100 (job diário 03:00 UTC, idempotente por ano+escopo).
   ranking: new Queue('ranking', { connection }),
+  // T451 — ingestão Wikidata incremental + verificação de integridade.
+  // Scheduler opt-in (ETL_SCHEDULER_ENABLED=1); o job incremental só ESCREVE
+  // com WIKIDATA_DRY_RUN=false (default 'true' = dry-run).
+  dataRefresh: new Queue('data-refresh', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: { count: 50 },
+      removeOnFail: { count: 100 },
+    },
+  }),
 } as const;
 
 export type QueueName = keyof typeof queues;
