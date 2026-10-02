@@ -27,9 +27,18 @@ function redisConnectionFromUrl(url: string): {
     ...(password ? { password } : {}),
   };
 }
-const connection = redisUrl
-  ? redisConnectionFromUrl(redisUrl)
-  : { host: process.env.REDIS_HOST || 'localhost', port: Number(process.env.REDIS_PORT) || 6379 };
+const connection = {
+  ...(redisUrl
+    ? redisConnectionFromUrl(redisUrl)
+    : {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      }),
+  // BullMQ EXIGE maxRetriesPerRequest: null na conexão compartilhada — sem isto,
+  // o Worker não consome (blocking commands falham silenciosamente; T451: job
+  // ficou 'waiting' em produção com worker "registrado").
+  maxRetriesPerRequest: null,
+} as const;
 
 export const queues = {
   etl: new Queue('etl', { connection }),
@@ -77,6 +86,11 @@ export function createWorker(queue: QueueName, handler: (job: Job) => Promise<vo
     },
     { connection },
   );
+  // Fail-loud: erro de conexão do worker NÃO pode ficar silencioso (T451 —
+  // worker sem consumir só foi percebido porque o job não saía de 'waiting').
+  worker.on('error', (err) => {
+    console.error(`[Worker/${queue}] erro de conexão/execução:`, err);
+  });
   worker.on('failed', (job, err) => {
     console.error(`[Worker/${queue}] Job ${job?.id} failed:`, err);
   });
