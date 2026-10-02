@@ -2,39 +2,34 @@ import { Redis } from 'ioredis';
 import { logger } from '../config/logger.js';
 
 function createRedisClient() {
+  // lazyConnect=false (conecta no boot) + enableOfflineQueue default (true):
+  // a combinação anterior (lazyConnect:true + enableOfflineQueue:false) deixava
+  // o client em DEAD-SILENT em produção — todo get/set falhava sem log e o
+  // cache inteiro operava como no-op (T451: marcador de new-titles nunca
+  // gravado; T471: inventário de cache sempre 0). Falha agora é logada.
+  const options = {
+    maxRetriesPerRequest: 3,
+    connectTimeout: 10_000,
+  };
   const url = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
-  if (url) {
-    try {
-      const client = new Redis(url, {
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-        enableOfflineQueue: false,
+  const client = url
+    ? new Redis(url, options)
+    : new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+        ...options,
       });
-      client.on('error', () => {
-        /* fallback silencioso */
-      });
-      return client;
-    } catch {
-      logger.warn('[cache] REDIS_URL inválida — cache desabilitado');
-      return null;
+  let warned = false;
+  client.on('error', (err) => {
+    if (!warned) {
+      warned = true;
+      logger.warn(
+        { err: err.message },
+        '[cache] erro de Redis (warn único; fallback ao banco permanece)',
+      );
     }
-  }
-  try {
-    const client = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: Number(process.env.REDIS_PORT) || 6379,
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-      enableOfflineQueue: false,
-    });
-    client.on('error', () => {
-      /* fallback silencioso */
-    });
-    return client;
-  } catch {
-    logger.warn('[cache] Redis indisponível — cache desabilitado');
-    return null;
-  }
+  });
+  return client;
 }
 
 let redis: Redis | null = createRedisClient();
