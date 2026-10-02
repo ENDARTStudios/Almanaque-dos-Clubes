@@ -49,7 +49,11 @@ const UA_DEFAULT = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclu
 const MAX_RETRIES = 3;
 const TIMEOUT_MS = 30_000;
 
-/** Seleção de candidatos: ativos com QID e (sem coord OU sem city OU sem título WON). */
+/** Seleção de candidatos: ativos com QID e (sem coord OU sem city OU sem título WON).
+ * ORDER BY random(): clubes não-resolvíveis NUNCA saem da piscina (o job não cria
+ * títulos nem coords que a fonte não tem) — qualquer ordem determinística re-varre
+ * os mesmos primeiros para sempre (starving medido 2× no primeiro dia: por nome e
+ * por prioridade geo). Amostra aleatória cobre o pool estocasticamente. */
 export async function pickCandidates(batchSize: number): Promise<IncrementalCandidate[]> {
   const rows = await prisma.$queryRawUnsafe<
     Array<{
@@ -71,12 +75,7 @@ export async function pickCandidates(batchSize: number): Promise<IncrementalCand
            WHERE k."sourceId" = c.id AND k."sourceType" = 'Club' AND k.relation = 'WON'
          )
        )
-     ORDER BY
-       -- Prioriza quem o job PODE ajudar (falta geo/city): clubes completos mas
-       -- sem título WON nunca saem da piscina (o job não cria títulos) e, sem
-       -- esta prioridade, monopolizam o LIMIT (starving medido no primeiro run).
-       (CASE WHEN c.latitude IS NULL OR c.city IS NULL THEN 0 ELSE 1 END),
-       c.name ASC
+     ORDER BY random()
      LIMIT $1`,
     batchSize,
   );
