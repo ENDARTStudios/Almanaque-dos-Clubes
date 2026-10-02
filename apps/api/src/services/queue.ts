@@ -79,8 +79,12 @@ export async function addJob(
 }
 
 export function createWorker(queue: QueueName, handler: (job: Job) => Promise<void>) {
+  // Worker usa o NOME REAL da fila no Redis (`queues[queue].name`), não a chave do
+  // registry — para 'dataRefresh' a chave é camelCase mas a fila é 'data-refresh'
+  // (T451: worker na fila errada = jobs 'waiting' para sempre; no ranking a
+  // coincidência chave==nome escondeu o bug desde o T388).
   const worker = new Worker(
-    queue,
+    queues[queue].name,
     async (job) => {
       await handler(job);
     },
