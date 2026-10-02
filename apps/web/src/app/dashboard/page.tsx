@@ -16,6 +16,10 @@ export default function DashboardPage() {
           <h2 className="text-lg font-heading font-semibold text-foreground">Assinatura</h2>
           <p className="text-sm text-foreground/60 mt-1">Verifique seu plano e histórico de cobranças.</p>
         </Link>
+        <Link href="/admin/observability" className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer">
+          <h2 className="text-lg font-heading font-semibold text-foreground">Observabilidade</h2>
+          <p className="text-sm text-foreground/60 mt-1">Crons, fila e alertas (admin).</p>
+        </Link>
         <Link href="/favoritos" className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer">
           <h2 className="text-lg font-heading font-semibold text-foreground">Favoritos</h2>
           <p className="text-sm text-foreground/60 mt-1">Seus clubes e conquistas recentes.</p>
