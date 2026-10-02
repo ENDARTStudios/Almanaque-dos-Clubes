@@ -62,7 +62,11 @@ afterAll(async () => {
 describe('WS-O-1 GET /jobs/health (admin)', () => {
   it('admin: 200 com jobs/alerts/schedulerEnabled', { timeout: 20_000 }, async () => {
     if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: '/api/v1/jobs/health', headers: auth(adminToken) });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/jobs/health',
+      headers: auth(adminToken),
+    });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body).data;
     expect(body.schedulerEnabled).toBe(false); // default OFF no ambiente de teste
@@ -73,7 +77,11 @@ describe('WS-O-1 GET /jobs/health (admin)', () => {
 
   it('não-admin: 403; sem token: 401', async () => {
     if (!dbOk) return;
-    const forbidden = await app.inject({ method: 'GET', url: '/api/v1/jobs/health', headers: auth(userToken) });
+    const forbidden = await app.inject({
+      method: 'GET',
+      url: '/api/v1/jobs/health',
+      headers: auth(userToken),
+    });
     expect(forbidden.statusCode).toBe(403);
     const anon = await app.inject({ method: 'GET', url: '/api/v1/jobs/health' });
     expect(anon.statusCode).toBe(401);
@@ -81,20 +89,32 @@ describe('WS-O-1 GET /jobs/health (admin)', () => {
 });
 
 describe('WS-O-1 GET /jobs/logs (admin)', () => {
-  it('admin: 200 com entries (buffer) e queueJobs (Redis quando disponível)', { timeout: 20_000 }, async () => {
-    if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: '/api/v1/jobs/logs?limit=50', headers: auth(adminToken) });
-    expect(res.statusCode).toBe(200);
-    const body = JSON.parse(res.body).data;
-    expect(Array.isArray(body.entries)).toBe(true);
-    expect(Array.isArray(body.queueJobs)).toBe(true);
-  });
+  it(
+    'admin: 200 com entries (buffer) e queueJobs (Redis quando disponível)',
+    { timeout: 20_000 },
+    async () => {
+      if (!dbOk) return;
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/jobs/logs?limit=50',
+        headers: auth(adminToken),
+      });
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body).data;
+      expect(Array.isArray(body.entries)).toBe(true);
+      expect(Array.isArray(body.queueJobs)).toBe(true);
+    },
+  );
 });
 
 describe('WS-O-1 GET /observability/slo (admin)', () => {
   it('admin: 200 com 3 jobs alvo, lastRunAge e successRate', { timeout: 20_000 }, async () => {
     if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: '/api/v1/observability/slo', headers: auth(adminToken) });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/observability/slo',
+      headers: auth(adminToken),
+    });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body).data;
     const names = body.slo.map((s: { job: string }) => s.job);
@@ -109,7 +129,11 @@ describe('WS-O-1 GET /observability/slo (admin)', () => {
 
   it('não-admin: 403', async () => {
     if (!dbOk) return;
-    const res = await app.inject({ method: 'GET', url: '/api/v1/observability/slo', headers: auth(userToken) });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/observability/slo',
+      headers: auth(userToken),
+    });
     expect(res.statusCode).toBe(403);
   });
 });
