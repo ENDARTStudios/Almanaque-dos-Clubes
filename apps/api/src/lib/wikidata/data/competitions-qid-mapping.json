@@ -1,0 +1,24 @@
+{
+  "version": "competitions-qid-mapping-v1",
+  "source": "wikidata",
+  "license": "CC0",
+  "generatedAt": "2026-09-27T00:00:00Z",
+  "note": "Mapeamento VALIDADO MANUALMENTE via wbsearchentities (2026-09-27). Conferir masculino (não feminino/edição).",
+  "items": [
+    {
+      "name": "Campeonato Brasileiro Série A",
+      "qid": "Q206813",
+      "label": "Campeonato Brasileiro de Futebol"
+    },
+    {
+      "name": "Copa do Brasil",
+      "qid": "Q843989",
+      "label": "Copa do Brasil de Futebol"
+    },
+    {
+      "name": "Copa Libertadores da América",
+      "qid": "Q184795",
+      "label": "Copa Libertadores"
+    }
+  ]
+}

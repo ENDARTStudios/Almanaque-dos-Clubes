@@ -6,6 +6,15 @@ import Stripe from 'stripe';
  */
 const secretKey = process.env.STRIPE_SECRET_KEY;
 
+// Incidente 2026-09-20 — keys live em ambiente de dev são revólver carregado:
+// cobrança real nunca pode partir de um servidor que não seja produção.
+if (secretKey?.startsWith('sk_live_') && process.env.NODE_ENV !== 'production') {
+  throw new Error(
+    `STRIPE_SECRET_KEY live detectada fora de produção (NODE_ENV=${process.env.NODE_ENV ?? 'indefinido'}). ` +
+      'Remova a key live deste ambiente — dev/test usa apenas test mode (D-2026-09-20-checkout-app-url-e-guard-live).',
+  );
+}
+
 let _client: Stripe | null = null;
 
 export function isStripeConfigured(): boolean {

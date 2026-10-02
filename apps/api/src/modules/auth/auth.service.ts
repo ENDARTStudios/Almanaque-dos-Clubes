@@ -14,11 +14,13 @@
  * - Toda operação sensível é registrada no AuditLog
  * - Senha NUNCA aparece em logs, respostas, ou serializações (redaction automática em audit)
  */
-import { prisma } from '../../config/prisma.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import { hashPassword, verifyPassword } from '../../config/crypto.js';
-import { createSession, revokeSession, type SessionMetadata } from './session.service.js';
+import { createSession, type SessionMetadata } from './session.service.js';
 import { assignRole, getUserPermissions, getUserRoles, ROLE_NAMES } from './rbac.service.js';
 import { createFreeSubscription } from '../billing/subscription.service.js';
+import { usersFindByEmail } from './users-auth.queries.js';
+import { randomUUID } from 'node:crypto';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
 import type { AuthUser } from './jwt.service.js';
 
@@ -116,8 +118,8 @@ export async function register(
   const email = input.email.toLowerCase().trim();
   const name = input.name?.trim() || null;
 
-  // 1. Verifica se email já existe
-  const existing = await prisma.user.findUnique({ where: { email } });
+  // 1. Verifica se email já existe (pre-auth: função SECURITY DEFINER — T442)
+  const existing = await usersFindByEmail(email);
   if (existing) {
     throw new ConflictAuthError(`Email já cadastrado: ${email}`);
   }
@@ -125,15 +127,20 @@ export async function register(
   // 2. Hash da senha (argon2id)
   const passwordHash = await hashPassword(input.password);
 
-  // 3. Cria usuário
-  const user = await prisma.user.create({
-    data: {
-      email,
-      name,
-      passwordHash,
-      status: 'ACTIVE',
-    },
-  });
+  // 3. Cria usuário — id gerado no servidor e setado no contexto RLS
+  //    (policy users_insert_register: WITH CHECK id = current_user_id).
+  const newUserId = randomUUID();
+  const user = await withRlsContext({ userId: newUserId, role: 'USER' }, async (tx) =>
+    tx.user.create({
+      data: {
+        id: newUserId,
+        email,
+        name,
+        passwordHash,
+        status: 'ACTIVE',
+      },
+    }),
+  );
 
   // 4. Atribui role FREE (idempotente)
   await assignRole(user.id, ROLE_NAMES.FREE);
@@ -193,8 +200,8 @@ export async function login(
 ): Promise<AuthResult> {
   const email = input.email.toLowerCase().trim();
 
-  // 1. Busca usuário por email
-  const user = await prisma.user.findUnique({ where: { email } });
+  // 1. Busca usuário por email (pre-auth: função SECURITY DEFINER — T442)
+  const user = await usersFindByEmail(email);
 
   // Hash dummy para timing attack prevention
   // (se usuário não existe, ainda assim executamos verifyPassword)
@@ -236,10 +243,9 @@ export async function login(
     throw new AuthError('Credenciais inválidas');
   }
 
-  // 5. Sucesso: atualiza lastLoginAt
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { lastLoginAt: new Date() },
+  // 5. Sucesso: atualiza lastLoginAt (contexto owner — T442)
+  await withRlsContext({ userId: user.id, role: 'USER' }, async (tx) => {
+    await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
   });
 
   // 6. Cria sessão
@@ -290,19 +296,21 @@ export async function logout(refreshToken: string | undefined): Promise<boolean>
     return true;
   }
 
-  // Tenta encontrar a sessão para auditoria
-  // (verifySession não revela o motivo — usamos revokeSession que é idempotente)
-  await revokeSession(refreshToken);
+  // T456 — "Sair" encerra a FAMÍLIA de sessão: resolve a sessão pelo token
+  // ANTES de revogar e revoga TODAS as sessões do usuário. Sem isso, uma
+  // rotação em voo (refresh concorrente de outra aba) deixa uma sessão filha
+  // B ativa com cookies novos — a ressurreição pós-logout (incidente 09-20).
+  const { findSessionByToken, revokeAllUserSessions } = await import('./session.service.js');
+  const session = await findSessionByToken(refreshToken);
 
-  // Auditoria: não temos mais userId aqui (sessão foi revogada)
-  // Em produção, poderíamos buscar session por tokenHash ANTES de revogar
-  // para registrar userId no audit log. Por ora, registramos ação genérica.
+  await revokeAllUserSessions(session?.userId ?? '');
+
   await auditLog.record({
     entityType: EntityType.SESSION,
-    entityId: 'logout',
+    entityId: session?.id ?? 'logout',
     action: AuditAction.USER_LOGOUT,
-    userId: null,
-    metadata: { timestamp: new Date().toISOString() },
+    userId: session?.userId ?? null,
+    metadata: { sessionsRevoked: session ? 'all' : 'none' },
   });
 
   return true;
@@ -353,8 +361,10 @@ export async function refreshSession(
     throw new AuthError('Credenciais inválidas');
   }
 
-  // 2. Carrega usuário
-  const user = await prisma.user.findUnique({ where: { id: session.userId } });
+  // 2. Carrega usuário (contexto owner — T442)
+  const user = await withRlsContext({ userId: session.userId, role: 'USER' }, async (tx) =>
+    tx.user.findUnique({ where: { id: session.userId } }),
+  );
   if (!user || user.status !== 'ACTIVE') {
     throw new AuthError('Credenciais inválidas');
   }

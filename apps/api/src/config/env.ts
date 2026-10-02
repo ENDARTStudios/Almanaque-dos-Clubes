@@ -144,6 +144,10 @@ const envSchema = z.object({
   host: z.string().default('0.0.0.0'),
   logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   databaseUrl: z.string().min(1, 'DATABASE_URL não definida'),
+  // T447 — base dos success_url/cancel_url do checkout. Obrigatória em
+  // produção (incidente 2026-09-20: ausente → pós-pagamento aterrissou em
+  // localhost). Opcional fora de produção (dev usa localhost:3001).
+  appUrl: z.string().url().optional(),
   prismaSchemaProvider: z.enum(['sqlite', 'postgres']).default('sqlite'),
   // Desabilita o rate-limit GLOBAL por IP (testes de carga k6 de máquina única).
   // NÃO afeta o brute-force de /auth/login (rate-limit.service.ts), que é por IP+email.
@@ -159,6 +163,7 @@ const parsed = envSchema.parse({
   host: process.env.HOST,
   logLevel: process.env.LOG_LEVEL,
   databaseUrl: process.env.DATABASE_URL,
+  appUrl: process.env.APP_URL,
   prismaSchemaProvider: process.env.PRISMA_SCHEMA_PROVIDER,
   rateLimitDisabled: process.env.RATE_LIMIT_DISABLED,
 });
@@ -166,6 +171,18 @@ const parsed = envSchema.parse({
 // Guarda de produção (T385): RATE_LIMIT_DISABLED é escape hatch de dev/teste
 // e não pode existir com NODE_ENV=production — falha o boot com erro claro.
 assertRateLimitGuard(parsed.nodeEnv, parsed.rateLimitDisabled);
+
+// Guarda de produção (T447, incidente 2026-09-20): sem APP_URL, os
+// success_url/cancel_url do checkout caem em localhost — dinheiro entra,
+// pós-pagamento aterrissa no lugar errado.
+if (parsed.nodeEnv === 'production') {
+  if (!parsed.appUrl) {
+    throw new Error('APP_URL é obrigatória em produção (base dos redirects do checkout).');
+  }
+  if (!parsed.appUrl.startsWith('https://')) {
+    throw new Error('APP_URL deve começar com https:// em produção.');
+  }
+}
 
 // =============================================================================
 // EXPORT
@@ -183,6 +200,7 @@ export const env = {
 
   // Banco
   databaseUrl: parsed.databaseUrl,
+  appUrl: parsed.appUrl,
   prismaSchemaProvider: parsed.prismaSchemaProvider,
   rateLimitDisabled: parsed.rateLimitDisabled,
 

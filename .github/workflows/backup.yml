@@ -1,0 +1,28 @@
+# T443 / WS-O — Backup diário do banco (JSON auditável, sem hashes/sessões).
+# Retenção 30 dias (artifact privado do repositório). Falha do job = e-mail
+# de alerta para o Operador. Restore: apps/api/scripts/restore-json-backup.ts
+name: WS-O — backup diário
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump via endpoint autenticado
+        run: |
+          code=$(curl -s -o backup.json -w "%{http_code}" \
+            -X POST https://api.almanaquedosclubes.com/api/v1/admin/backup \
+            -H "x-backup-secret: ${{ secrets.BACKUP_SECRET }}" \
+            --max-time 300)
+          echo "status=$code bytes=$(wc -c < backup.json)"
+          [ "$code" = "200" ] || { echo "::error::backup falhou ($code)"; exit 1; }
+      - name: Validar estrutura mínima
+        run: |
+          node -e "const b=require('./backup.json'); if(!b.tables||!b.tables.clubs) { process.exit(1); } console.log('clubs:', b.tables.clubs.length)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_id }}
+          path: backup.json
+          retention-days: 30
