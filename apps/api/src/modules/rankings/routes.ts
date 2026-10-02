@@ -30,12 +30,44 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
     const result = await rankingsService.list({
       competitionId: query.competitionId,
       season: query.season,
+      scope: query.scope,
+      country: query.country,
       published,
       search: query.search,
       limit,
       offset,
     });
     return reply.send(result);
+  });
+
+  // --- T438 — leitura pública otimizada (cursor-based) ---
+
+  app.get('/rankings/entries', async (request, reply) => {
+    const query = (request.query as Record<string, string | undefined>) ?? {};
+    const limit = Math.min(Math.max(parseInt(query.limit ?? '50', 10) || 50, 1), 100);
+    const cursorRaw = parseInt(query.cursor ?? '', 10);
+    const result = await rankingsService.getLatestRankedEntries({
+      year: query.year,
+      competitionId: query.competitionId,
+      scope: query.scope,
+      gender: query.gender,
+      country: query.country,
+      state: query.state,
+      city: query.city,
+      limit,
+      cursor: Number.isFinite(cursorRaw) ? cursorRaw : null,
+    });
+    return reply.send(result);
+  });
+
+  app.get<{ Params: { clubId: string } }>('/rankings/clube/:clubId', async (request, reply) => {
+    try {
+      const query = (request.query as Record<string, string | undefined>) ?? {};
+      const result = await rankingsService.getClubHistory(request.params.clubId, query.year);
+      return reply.send(result);
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
   });
 
   app.get<{ Params: { id: string } }>('/rankings/:id', async (request, reply) => {
@@ -92,8 +124,8 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
 
   app.get<{ Params: { id: string } }>('/rankings/:id/entries', async (request, reply) => {
     try {
-      const entries = await rankingsService.getEntries(request.params.id);
-      return reply.send({ data: entries });
+      // T449c-v1 — `{ data, competition }` (competition aditiva com tier/divisão).
+      return reply.send(await rankingsService.getEntries(request.params.id));
     } catch (err) {
       return handleDomainError(err, reply);
     }

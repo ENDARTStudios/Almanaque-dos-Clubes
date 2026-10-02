@@ -6,7 +6,7 @@ import prettierPlugin from 'eslint-plugin-prettier';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist/', 'node_modules/', '*.js', '*.mjs', 'apps/web/', '**/*.config.*'] },
+  { ignores: ['**/dist/', 'node_modules/', '*.js', '*.mjs', 'apps/web/', '**/*.config.*'] },
   eslint.configs.recommended,
   {
     files: ['apps/**/*.ts', 'packages/**/*.ts'],
@@ -24,6 +24,11 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       ...securityPlugin.configs.recommended.rules,
       'prettier/prettier': 'error',
+      // T476 — FP documentado: core `no-undef` não entende namespaces de TIPO do TS
+      // (ex.: `NodeJS.ProcessEnv`), embora o parser TS os resolva. typescript-eslint
+      // recomenda desligar core `no-undef` em arquivos TS (o compilador já cobre
+      // identificadores indefinidos). Ver D-2026-09-22-t476-ci-glob-recursivo.
+      'no-undef': 'off',
       'no-redeclare': 'off',
       '@typescript-eslint/no-redeclare': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

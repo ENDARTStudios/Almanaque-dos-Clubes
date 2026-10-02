@@ -1,22 +1,40 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth } from '@/components/AuthProvider';
 import { useI18n } from '@/i18n/Provider';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useAuth();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // T455 — usuário já logado não vê o formulário (a "segunda verdade" do
+  // screenshot: navbar logado + form renderizado).
+  useEffect(() => {
+    if (status === 'authed') router.replace('/');
+  }, [status, router]);
+
+  // enquanto o estado é indeterminado, não renderiza o form (evita flash)
+  if (status === 'loading') {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     try {
       await api.post('/auth/login', { email, password });
+      // T455 — o AuthProvider re-verifica na navegação (router.push abaixo).
       router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginErrorDefault'));
@@ -38,6 +56,9 @@ export default function LoginPage() {
           <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.password')}</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required />
+        </div>
+        <div className="flex justify-end mb-4 -mt-2">
+          <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline cursor-pointer">{t('auth.forgotPasswordLink')}</Link>
         </div>
         <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer">
           {t('auth.loginSubmit')}

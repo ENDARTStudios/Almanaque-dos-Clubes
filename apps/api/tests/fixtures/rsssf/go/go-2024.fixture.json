@@ -1,0 +1,17 @@
+{
+    "season":  2024,
+    "meta":  {
+                 "sourceUrl":  "https://rsssfbrasil.com/tablesfq/go2024.htm",
+                 "retrievedAt":  "2026-09-24T20:03:52Z",
+                 "authorCredit":  "(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2024.",
+                 "licenseText":  "You are free to copy this document in whole or part provided that proper acknowledgement is given to",
+                 "expectedSeason":  2024,
+                 "expectedCompetitionQid":  "Q931386",
+                 "expectedChampionQid":  "Q198034",
+                 "genderEvidence":  "RSSSF Brasil distingue pagina feminina pelo sufixo w (go2023w.htm = 200); goYYYY.htm (sem sufixo) = masculino; clube campeao Q198034 = masculino; mae Q931386 = Goiano canonico nao-feminino.",
+                 "hierarchyEvidence":  "Titulo \"\u003cState\u003e State League \u003cano\u003e\" + URL tablesfq/go\u003cano\u003e.htm + Q931386 Campeonato Goiano.",
+                 "notes":  "Excerpt minimo real (UTF-8: pagina declara windows-1252 mas os bytes sao UTF-8, confirmado por hex c3 89)."
+             },
+    "encoding":  "utf-8",
+    "rawText":  "Goiás State League 2024\nPrepared and maintained by Guillermo Alexander Rivera for the Rec.Sport.Soccer Statistics Foundation and RSSSF\n(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2024.\nYou are free to copy this document in whole or part provided that proper acknowledgement is given to\n*** ATLÉTICO are Goiás State 2024 champions ***"
+}

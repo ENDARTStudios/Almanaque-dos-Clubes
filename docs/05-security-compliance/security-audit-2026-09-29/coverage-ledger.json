@@ -1,0 +1,1049 @@
+[
+  {
+    "coverage_id": ".github%2Fworkflows%2Fsecurity-gate.yml%23security-gate::.github%2Fworkflows%2Fsecurity-gate.yml%23security-gate::ci::ATTACK-CLASSES.md%23Obvious%20things",
+    "canonical_refs": {
+      "surface": ".github/workflows/security-gate.yml#security-gate",
+      "boundary": ".github/workflows/security-gate.yml#security-gate",
+      "subsystem": "ci",
+      "attack_class": "ATTACK-CLASSES.md#Obvious things"
+    },
+    "surface": ".github/workflows/security-gate.yml#security-gate",
+    "boundary": ".github/workflows/security-gate.yml#security-gate",
+    "subsystem": "ci",
+    "attack_class": "ATTACK-CLASSES.md#Obvious things",
+    "starting_paths": [
+      ".github/workflows/security-gate.yml"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: workflows CI (gitleaks, migration-drift, dependency-audit) — passada 2"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%23static%20file%20serving::apps%2Fapi%23static%20file%20serving::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "apps/api#static file serving",
+      "boundary": "apps/api#static file serving",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "apps/api#static file serving",
+    "boundary": "apps/api#static file serving",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Resource and file handling",
+    "starting_paths": [
+      "apps/api/src"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "not_applicable",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "not_applicable: sem @fastify/static, sendFile ou createReadStream na API (grep em apps/api/src) — não há servidor de estáticos sujeito a path traversal. SSRF de ingestão verificado por leitura: endpoints fixos (nominatim-client.ts:48, wikidata-client.ts), QIDs filtrados por /^Q\\d+$/; baseUrl do NominatimClient é injetável apenas em CLI operator-side (scripts/geocode-clubs-nominatim.ts), não em superfície atacamável."
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fapp.ts%23cors%20origin::apps%2Fapi%2Fsrc%2Fapp.ts%23cors%20origin::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/app.ts#cors origin",
+      "boundary": "apps/api/src/app.ts#cors origin",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/app.ts#cors origin",
+    "boundary": "apps/api/src/app.ts#cors origin",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/modules/auth/jwt.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline"
+    ],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/modules/auth/jwt.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/app.ts",
+          "apps/api/src/modules/auth/jwt.service.ts"
+        ],
+        "invariant": "origens refletidas com credentials são de confiança",
+        "method": "source",
+        "result": "Regex ^https://[\\w-]+\\.vercel\\.app$ aceita qualquer deploy Vercel (origem possuída por terceiros) com credentials:true; mitigado para fluxo de cookie por sameSite:strict (jwt.service.ts), mas o controle de origem fica derrotado.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.cors.vercel-app-wildcard-allowlist"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fapp.ts%23errorHandler::apps%2Fapi%2Fsrc%2Fapp.ts%23errorHandler::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Obvious%20things",
+    "canonical_refs": {
+      "surface": "apps/api/src/app.ts#errorHandler",
+      "boundary": "apps/api/src/app.ts#errorHandler",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Obvious things"
+    },
+    "surface": "apps/api/src/app.ts#errorHandler",
+    "boundary": "apps/api/src/app.ts#errorHandler",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Obvious things",
+    "starting_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/modules/clubs/routes.ts",
+      "apps/api/src/modules/rankings/routes.ts",
+      "apps/api/src/modules/champions/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/modules/clubs/routes.ts",
+      "apps/api/src/modules/rankings/routes.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/app.ts",
+          "apps/api/src/modules/clubs/routes.ts",
+          "apps/api/src/modules/rankings/routes.ts"
+        ],
+        "invariant": "500 em produção não vaza stack/mensagem interna",
+        "method": "source",
+        "result": "statusCode>=500 && isProd → mensagem genérica; 413 padronizado sem detalhes (http-hardening.ts); catch-all por módulo devolve INTERNAL_ERROR genérico. err.message exposto apenas para statusCode<500 (DomainError/Zod — intencional). Sem achado.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fapp.ts%23rateLimit%20global::apps%2Fapi%2Fsrc%2Fapp.ts%23trustProxy%3A%20true::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/app.ts#rateLimit global",
+      "boundary": "apps/api/src/app.ts#trustProxy: true",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/app.ts#rateLimit global",
+    "boundary": "apps/api/src/app.ts#trustProxy: true",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/config/rate-limit.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Host and forwarded-header trust"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "WEB-PROTOCOL-AND-AUTH.md#Request framing and desynchronization",
+        "reason": "sem proxy/custom parser em fonte; Fastify padrão"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/app.ts",
+      "apps/api/src/config/rate-limit.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/app.ts",
+          "apps/api/src/config/rate-limit.ts"
+        ],
+        "invariant": "rate limit por IP não pode ser contornado pelo cliente",
+        "method": "source",
+        "result": "trustProxy:true incondicional (app.ts:75) faz request.ip derivar de X-Forwarded-For; keyGenerator usa request.ip (100/min); fallback em memória cresce sem teto (Map com cleanup só após 24h).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.trustproxy.xff-rate-limit-bypass"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fapp.ts%23swaggerUi%20%2Fdocs::apps%2Fapi%2Fsrc%2Fapp.ts%23%2Fapi%2Fv1%20prefix%20%28sem%20hook%20de%20auth%29::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Obvious%20things",
+    "canonical_refs": {
+      "surface": "apps/api/src/app.ts#swaggerUi /docs",
+      "boundary": "apps/api/src/app.ts#/api/v1 prefix (sem hook de auth)",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Obvious things"
+    },
+    "surface": "apps/api/src/app.ts#swaggerUi /docs",
+    "boundary": "apps/api/src/app.ts#/api/v1 prefix (sem hook de auth)",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Obvious things",
+    "starting_paths": [
+      "apps/api/src/app.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/app.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/app.ts"
+        ],
+        "invariant": "documentação OpenAPI exposta não amplia superfície para anônimos",
+        "method": "source",
+        "result": "Swagger UI em /docs público em todos os ambientes (app.ts:139-142) — enumeração completa de rotas para recon; CSP prod restringe scripts da UI.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.docs.swagger-public"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fconfig%2Fenv.ts%23env%20export::apps%2Fapi%2Fsrc%2Fconfig%2Fenv.ts%23validateJwtSecret::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+    "canonical_refs": {
+      "surface": "apps/api/src/config/env.ts#env export",
+      "boundary": "apps/api/src/config/env.ts#validateJwtSecret",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets"
+    },
+    "surface": "apps/api/src/config/env.ts#env export",
+    "boundary": "apps/api/src/config/env.ts#validateJwtSecret",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "starting_paths": [
+      "apps/api/src/config/env.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/config/env.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/config/env.ts"
+        ],
+        "invariant": "segredos obrigatórios não têm fallback hardcoded em produção",
+        "method": "source",
+        "result": "JWT_SECRET/JWT_REFRESH_SECRET validados (min 32 em prod, placeholders proibidos, distintos); S3_SECRET_ACCESS_KEY cai para default hardcoded almanaque_dev_2025 e S3_ACCESS_KEY_ID para almanaque se ausentes em qualquer ambiente (env.ts:216-217).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "env.s3.default-credentials-fallback"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmiddleware%2Fcsrf.ts%23csrfMiddleware::apps%2Fapi%2Fsrc%2Fmodules%2Fauth%2Fauth.routes.ts%23GET%20%2Fauth%2Fcsrf-token::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "apps/api/src/middleware/csrf.ts#csrfMiddleware",
+      "boundary": "apps/api/src/modules/auth/auth.routes.ts#GET /auth/csrf-token",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "apps/api/src/middleware/csrf.ts#csrfMiddleware",
+    "boundary": "apps/api/src/modules/auth/auth.routes.ts#GET /auth/csrf-token",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Business logic",
+    "starting_paths": [
+      "apps/api/src/middleware/csrf.ts",
+      "apps/api/src/modules/auth/auth.routes.ts",
+      "apps/api/src/modules/auth/jwt.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/middleware/csrf.ts",
+      "apps/api/src/modules/auth/auth.routes.ts",
+      "apps/api/src/modules/auth/jwt.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/middleware/csrf.ts",
+          "apps/api/src/modules/auth/auth.routes.ts",
+          "apps/api/src/modules/auth/jwt.service.ts"
+        ],
+        "invariant": "escrita exige token de uso único não legível cross-site",
+        "method": "source",
+        "result": "Token single-use em store com cleanup; emissão pública (anônima) mas resposta ilegível cross-origin (CORS allowlist) e cookies sameSite:strict — fluxo CSRF residual fechado. Hardening: token não vinculado a sessão/usuário (store anônimo).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmiddleware%2Fidempotency.ts%23idempotencyMiddleware::apps%2Fapi%2Fsrc%2Fmiddleware%2Fidempotency.ts%23idempotencyMiddleware::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "apps/api/src/middleware/idempotency.ts#idempotencyMiddleware",
+      "boundary": "apps/api/src/middleware/idempotency.ts#idempotencyMiddleware",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "apps/api/src/middleware/idempotency.ts#idempotencyMiddleware",
+    "boundary": "apps/api/src/middleware/idempotency.ts#idempotencyMiddleware",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Business logic",
+    "starting_paths": [
+      "apps/api/src/middleware/idempotency.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/middleware/idempotency.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/middleware/idempotency.ts"
+        ],
+        "invariant": "replay de idempotência é escopado e o store é limitado",
+        "method": "source",
+        "result": "Store global Map keyed apenas pelo header idempotency-key, sem escopo de usuário/rota; replay devolve corpo anterior a qualquer requester com a mesma key; sem limite de tamanho/quantidade (TTL 24h).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.idempotency.store-unscoped-unbounded"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fadmin%2Fbackup.routes.ts%23POST%20%2Fadmin%2Fbackup::apps%2Fapi%2Fsrc%2Fmodules%2Fadmin%2Fbackup.routes.ts%23x-backup-secret::apps%2Fapi%2Fmodules%2Fadmin::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/admin/backup.routes.ts#POST /admin/backup",
+      "boundary": "apps/api/src/modules/admin/backup.routes.ts#x-backup-secret",
+      "subsystem": "apps/api/modules/admin",
+      "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets"
+    },
+    "surface": "apps/api/src/modules/admin/backup.routes.ts#POST /admin/backup",
+    "boundary": "apps/api/src/modules/admin/backup.routes.ts#x-backup-secret",
+    "subsystem": "apps/api/modules/admin",
+    "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "starting_paths": [
+      "apps/api/src/modules/admin/backup.routes.ts",
+      "apps/api/src/config/crypto.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/admin/backup.routes.ts",
+      "apps/api/src/config/crypto.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/admin/backup.routes.ts",
+          "apps/api/src/config/crypto.ts"
+        ],
+        "invariant": "segredo de backup comparado de forma timing-safe; dump minimizado e auditável",
+        "method": "source",
+        "result": "Comparação provided !== secret (não timing-safe) apesar de helper timingSafeEqual existente (config/crypto.ts); sucesso devolve dump completo do banco (users com email) sem audit log nem rate limit dedicado; rota isenta de CSRF por design (prefixo).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.backup.secret-nontiming-compare"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fadmin%2Froutes.ts%23adminRoutes::apps%2Fapi%2Fsrc%2Fmodules%2Fadmin%2Froutes.ts%23adminRoutes::apps%2Fapi%2Fmodules%2Fadmin::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/admin/routes.ts#adminRoutes",
+      "boundary": "apps/api/src/modules/admin/routes.ts#adminRoutes",
+      "subsystem": "apps/api/modules/admin",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/modules/admin/routes.ts#adminRoutes",
+    "boundary": "apps/api/src/modules/admin/routes.ts#adminRoutes",
+    "subsystem": "apps/api/modules/admin",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/modules/admin/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: demais rotas admin + RBAC (requirePermission) — passada 2"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fauth%2Fauth.routes.ts%23POST%20%2Fauth%2Flogin::apps%2Fapi%2Fsrc%2Fmodules%2Fauth%2Fauth.routes.ts%23POST%20%2Fauth%2Flogin::apps%2Fapi%2Fmodules%2Fauth::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/auth/auth.routes.ts#POST /auth/login",
+      "boundary": "apps/api/src/modules/auth/auth.routes.ts#POST /auth/login",
+      "subsystem": "apps/api/modules/auth",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "apps/api/src/modules/auth/auth.routes.ts#POST /auth/login",
+    "boundary": "apps/api/src/modules/auth/auth.routes.ts#POST /auth/login",
+    "subsystem": "apps/api/modules/auth",
+    "attack_class": "ATTACK-CLASSES.md#Business logic",
+    "starting_paths": [
+      "apps/api/src/modules/auth/auth.routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: módulo auth completo (brute-force em rate-limit.service.ts, refresh rotation, password reset, email verification) — fora do escopo da superfície pública desta passada"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fauth%2Fusers-auth.queries.ts%23usersFindByEmail::apps%2Fapi%2Fsrc%2Flib%2Fsearch.ts%23searchMatchedIds::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/auth/users-auth.queries.ts#usersFindByEmail",
+      "boundary": "apps/api/src/lib/search.ts#searchMatchedIds",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "apps/api/src/modules/auth/users-auth.queries.ts#usersFindByEmail",
+    "boundary": "apps/api/src/lib/search.ts#searchMatchedIds",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Injection",
+    "starting_paths": [
+      "apps/api/src/modules/auth/users-auth.queries.ts",
+      "apps/api/src/lib/search.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/auth/users-auth.queries.ts",
+      "apps/api/src/lib/search.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/auth/users-auth.queries.ts",
+          "apps/api/src/lib/search.ts"
+        ],
+        "invariant": "nenhum $queryRawUnsafe com input interpolado",
+        "method": "source",
+        "result": "graft grep: únicos $queryRawUnsafe do repo são searchMatchedIds (param $1, tabela/colunas fixas de call-site) e usersFindByEmail (função PG parametrizada $1). Sem achado.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fbilling%2Froutes.ts%23POST%20%2Fbilling%2Fwebhook::apps%2Fapi%2Fsrc%2Fmodules%2Fbilling%2Froutes.ts%23POST%20%2Fbilling%2Fwebhook::apps%2Fapi%2Fmodules%2Fbilling::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/billing/routes.ts#POST /billing/webhook",
+      "boundary": "apps/api/src/modules/billing/routes.ts#POST /billing/webhook",
+      "subsystem": "apps/api/modules/billing",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "apps/api/src/modules/billing/routes.ts#POST /billing/webhook",
+    "boundary": "apps/api/src/modules/billing/routes.ts#POST /billing/webhook",
+    "subsystem": "apps/api/modules/billing",
+    "attack_class": "ATTACK-CLASSES.md#Business logic",
+    "starting_paths": [
+      "apps/api/src/modules/billing/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: webhook Stripe (HMAC com timingSafeEqual presente em payment-provider.ts:63 — revalidar fluxo completo) — passada 2"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fclubs%2Froutes.ts%23POST%20%2Fclubs::apps%2Fapi%2Fsrc%2Fmodules%2Fauth%2Fauthenticate.middleware.ts%23authenticate::apps%2Fapi%2Fmodules%2Fclubs::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/clubs/routes.ts#POST /clubs",
+      "boundary": "apps/api/src/modules/auth/authenticate.middleware.ts#authenticate",
+      "subsystem": "apps/api/modules/clubs",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/modules/clubs/routes.ts#POST /clubs",
+    "boundary": "apps/api/src/modules/auth/authenticate.middleware.ts#authenticate",
+    "subsystem": "apps/api/modules/clubs",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/modules/clubs/routes.ts",
+      "apps/api/src/modules/clubs/service.ts",
+      "apps/api/src/modules/players/routes.ts",
+      "apps/api/src/modules/competitions/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/clubs/routes.ts",
+      "apps/api/src/modules/clubs/service.ts",
+      "apps/api/src/modules/players/routes.ts",
+      "apps/api/src/modules/competitions/routes.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/clubs/routes.ts",
+          "apps/api/src/modules/clubs/service.ts",
+          "apps/api/src/modules/players/routes.ts",
+          "apps/api/src/modules/competitions/routes.ts"
+        ],
+        "invariant": "escrita no catálogo exige autenticação como em players/competitions",
+        "method": "source",
+        "result": "POST /clubs sem preHandler authenticate; players e competitions usam [authenticate, requirePermission(...)]. Token CSRF é emitido anonimamente (auth.routes.ts:79 userId anonymous). CreateClubSchema valida formato, não autoriza.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.clubs.create-unauthenticated-write"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fexport%2Froutes.ts%23exportRoutes::apps%2Fapi%2Fsrc%2Fmodules%2Fexport%2Froutes.ts%23exportRoutes::apps%2Fapi%2Fmodules%2Fexport%2Betl%2Bgraph%2Brag::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/export/routes.ts#exportRoutes",
+      "boundary": "apps/api/src/modules/export/routes.ts#exportRoutes",
+      "subsystem": "apps/api/modules/export+etl+graph+rag",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/modules/export/routes.ts#exportRoutes",
+    "boundary": "apps/api/src/modules/export/routes.ts#exportRoutes",
+    "subsystem": "apps/api/modules/export+etl+graph+rag",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/modules/export/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: módulos export/etl/graph/rag/consent/privacy/copyright/legal/favorites/compare/seasons/matches — passada 2"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fgeo%2Froutes.ts%23GET%20%2Fgeo%2Fpoints::apps%2Fapi%2Fsrc%2Fmodules%2Fgeo%2Fgeo.service.ts%23isValidBbox::apps%2Fapi%2Fmodules%2Fgeo::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/geo/routes.ts#GET /geo/points",
+      "boundary": "apps/api/src/modules/geo/geo.service.ts#isValidBbox",
+      "subsystem": "apps/api/modules/geo",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "apps/api/src/modules/geo/routes.ts#GET /geo/points",
+    "boundary": "apps/api/src/modules/geo/geo.service.ts#isValidBbox",
+    "subsystem": "apps/api/modules/geo",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "apps/api/src/modules/geo/routes.ts",
+      "apps/api/src/modules/geo/geo.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/geo/routes.ts",
+      "apps/api/src/modules/geo/geo.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/geo/routes.ts",
+          "apps/api/src/modules/geo/geo.service.ts"
+        ],
+        "invariant": "bbox/ISO2/limit rejeitados antes de qualquer uso em query Prisma",
+        "method": "source",
+        "result": "parseBbox exige os 4 params (present.length!==4 => invalid), Number()+Number.isFinite + limites [-90,90]/[-180,180] e ordem min<=max; isValidCountry exige ^[A-Za-z]{2}$ antes de toUpperCase; clampGeoLimit trunca para [1,500]. Query Prisma parametrizada (findMany/count). Sem achado.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Frankings%2Froutes.ts%23GET%20%2Frankings%2Fentries::apps%2Fapi%2Fsrc%2Fapp.ts%23errorHandler::apps%2Fapi%2Fmodules%2Frankings%2Bchampions%2Bclubs::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/rankings/routes.ts#GET /rankings/entries",
+      "boundary": "apps/api/src/app.ts#errorHandler",
+      "subsystem": "apps/api/modules/rankings+champions+clubs",
+      "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage"
+    },
+    "surface": "apps/api/src/modules/rankings/routes.ts#GET /rankings/entries",
+    "boundary": "apps/api/src/app.ts#errorHandler",
+    "subsystem": "apps/api/modules/rankings+champions+clubs",
+    "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "starting_paths": [
+      "apps/api/src/modules/rankings/routes.ts",
+      "apps/api/src/modules/champions/routes.ts",
+      "apps/api/src/modules/champions/schema.ts",
+      "apps/api/src/modules/clubs/profile.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/rankings/routes.ts",
+      "apps/api/src/modules/champions/routes.ts",
+      "apps/api/src/modules/champions/schema.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/rankings/routes.ts",
+          "apps/api/src/modules/champions/routes.ts",
+          "apps/api/src/modules/champions/schema.ts"
+        ],
+        "invariant": "limites de paginação e validação de query nas rotas públicas de leitura",
+        "method": "source",
+        "result": "limit clamp 1..100, cursor inteiro (Number.isFinite), ChampionsQuerySchema enum men|women, erros 500 genéricos sem stack. Sem achado.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fsearch%2Froutes.ts%23GET%20%2Fsearch%2Fglobal::apps%2Fapi%2Fsrc%2Flib%2Fsearch.ts%23searchMatchedIds::apps%2Fapi%2Fmodules%2Fsearch::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/search/routes.ts#GET /search/global",
+      "boundary": "apps/api/src/lib/search.ts#searchMatchedIds",
+      "subsystem": "apps/api/modules/search",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "apps/api/src/modules/search/routes.ts#GET /search/global",
+    "boundary": "apps/api/src/lib/search.ts#searchMatchedIds",
+    "subsystem": "apps/api/modules/search",
+    "attack_class": "ATTACK-CLASSES.md#Injection",
+    "starting_paths": [
+      "apps/api/src/modules/search/routes.ts",
+      "apps/api/src/modules/search/global-search.service.ts",
+      "apps/api/src/lib/search.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/lib/search.ts",
+      "apps/api/src/modules/search/global-search.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/lib/search.ts",
+          "apps/api/src/modules/search/global-search.service.ts"
+        ],
+        "invariant": "termo de busca não interpola SQL; LIKE escapado; limit clamp",
+        "method": "source",
+        "result": "Termo vira $1 via $queryRawUnsafe; escapeLike() trata %/_/barra invertida; tabela/colunas fixas de call-site; clampLimit 1..50. Hardening: q sem maxLength (até ~8KB de URL) — custo de DB/cache, coberto por api.cache.key-cardinality-unbounded.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fmodules%2Fupload%2Froutes.ts%23POST%20%2Fupload::apps%2Fapi%2Fsrc%2Fmodules%2Fupload%2Froutes.ts%23POST%20%2Fupload::apps%2Fapi%2Fmodules%2Fupload::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "apps/api/src/modules/upload/routes.ts#POST /upload",
+      "boundary": "apps/api/src/modules/upload/routes.ts#POST /upload",
+      "subsystem": "apps/api/modules/upload",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "apps/api/src/modules/upload/routes.ts#POST /upload",
+    "boundary": "apps/api/src/modules/upload/routes.ts#POST /upload",
+    "subsystem": "apps/api/modules/upload",
+    "attack_class": "ATTACK-CLASSES.md#Resource and file handling",
+    "starting_paths": [
+      "apps/api/src/modules/upload/routes.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: upload/S3 (mime allowlist, chave de objeto, credenciais) — passada 2"
+    ]
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Froutes%2Fmetrics.ts%23GET%20%2Fmetrics::apps%2Fapi%2Fsrc%2Fapp.ts%23%2Fapi%2Fv1%20prefix%20%28sem%20hook%20de%20auth%29::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+    "canonical_refs": {
+      "surface": "apps/api/src/routes/metrics.ts#GET /metrics",
+      "boundary": "apps/api/src/app.ts#/api/v1 prefix (sem hook de auth)",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage"
+    },
+    "surface": "apps/api/src/routes/metrics.ts#GET /metrics",
+    "boundary": "apps/api/src/app.ts#/api/v1 prefix (sem hook de auth)",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "starting_paths": [
+      "apps/api/src/routes/metrics.ts",
+      "apps/api/src/routes/health.ts",
+      "apps/api/src/modules/observability/metrics.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/routes/metrics.ts",
+      "apps/api/src/routes/health.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/routes/metrics.ts",
+          "apps/api/src/routes/health.ts"
+        ],
+        "invariant": "métricas/beacon não expõem internals nem aceitam injeção de log",
+        "method": "source",
+        "result": "/metrics público (Prometheus: http_requests_total, auth_failures_total, backup_last_success_timestamp); /health escreve q.m/q.st direto em stdout sem sanitização (injeção de linha/flooding de log).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.metrics.public-endpoint",
+      "api.health.log-injection"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fapi%2Fsrc%2Fservices%2Fcache.ts%23remember::apps%2Fapi%2Fsrc%2Fservices%2Fcache.ts%23remember::apps%2Fapi%2Fcore::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "apps/api/src/services/cache.ts#remember",
+      "boundary": "apps/api/src/services/cache.ts#remember",
+      "subsystem": "apps/api/core",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "apps/api/src/services/cache.ts#remember",
+    "boundary": "apps/api/src/services/cache.ts#remember",
+    "subsystem": "apps/api/core",
+    "attack_class": "ATTACK-CLASSES.md#Resource and file handling",
+    "starting_paths": [
+      "apps/api/src/services/cache.ts",
+      "apps/api/src/modules/geo/geo.service.ts",
+      "apps/api/src/modules/search/global-search.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/api/src/modules/geo/geo.service.ts",
+      "apps/api/src/modules/search/global-search.service.ts",
+      "apps/api/src/services/cache.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/api/src/modules/geo/geo.service.ts",
+          "apps/api/src/modules/search/global-search.service.ts",
+          "apps/api/src/services/cache.ts"
+        ],
+        "invariant": "chaves de cache têm cardinalidade/tamanho limitados sob entrada anônima",
+        "method": "source",
+        "result": "Chave geo:points inclui bbox com floats arbitrários (JSON.stringify) e search:global inclui q normalizado sem limite de tamanho — chave Redis distinta por request, TTL 300s/60s, sem teto de cardinalidade ou tamanho de chave.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "api.cache.key-cardinality-unbounded"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fweb%2Fnext.config.ts%23headers%28%29::apps%2Fweb%2Fnext.config.ts%23headers%28%29::apps%2Fweb::ATTACK-CLASSES.md%23Chained%20vulnerabilities%20and%20trust%20boundaries",
+    "canonical_refs": {
+      "surface": "apps/web/next.config.ts#headers()",
+      "boundary": "apps/web/next.config.ts#headers()",
+      "subsystem": "apps/web",
+      "attack_class": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries"
+    },
+    "surface": "apps/web/next.config.ts#headers()",
+    "boundary": "apps/web/next.config.ts#headers()",
+    "subsystem": "apps/web",
+    "attack_class": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries",
+    "starting_paths": [
+      "apps/web/next.config.ts",
+      "apps/web/vercel.json"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/web/next.config.ts",
+      "apps/web/vercel.json"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/web/next.config.ts",
+          "apps/web/vercel.json"
+        ],
+        "invariant": "CSP/HSTS/XFO/Referrer-Policy constituem controle efetivo no browser",
+        "method": "source",
+        "result": "XFO DENY + frame-ancestors self + nosniff + Referrer-Policy strict-origin-when-cross-origin ok; script-src com unsafe-inline+unsafe-eval neutraliza a mitigação de XSS do CSP; HSTS ausente do next.config (edge Vercel pode prover por padrão — fato de deploy).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "web.csp.unsafe-inline-eval",
+      "web.hsts.absent-next-config"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fweb%2Fsrc%2Fapp%2Fclubs%2F%5Bid%5D%2Fpage.tsx%23JSON-LD%20dangerouslySetInnerHTML::apps%2Fweb%2Fnext.config.ts%23Content-Security-Policy::apps%2Fweb::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "apps/web/src/app/clubs/[id]/page.tsx#JSON-LD dangerouslySetInnerHTML",
+      "boundary": "apps/web/next.config.ts#Content-Security-Policy",
+      "subsystem": "apps/web",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "apps/web/src/app/clubs/[id]/page.tsx#JSON-LD dangerouslySetInnerHTML",
+    "boundary": "apps/web/next.config.ts#Content-Security-Policy",
+    "subsystem": "apps/web",
+    "attack_class": "ATTACK-CLASSES.md#Injection",
+    "starting_paths": [
+      "apps/web/src/app/clubs/[id]/page.tsx",
+      "apps/web/src/app/layout.tsx",
+      "apps/web/src/app/players/[id]/page.tsx",
+      "apps/web/src/app/competitions/[id]/page.tsx"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "WEB-PROTOCOL-AND-AUTH.md#Response-header injection",
+        "reason": "nenhum valor de request refletido em header de resposta em fonte"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-pass1",
+    "reviewed_paths": [
+      "apps/web/src/app/clubs/[id]/page.tsx",
+      "apps/web/src/app/layout.tsx",
+      "apps/web/src/app/players/[id]/page.tsx",
+      "apps/web/src/app/competitions/[id]/page.tsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pass1",
+        "reviewed_paths": [
+          "apps/web/src/app/clubs/[id]/page.tsx",
+          "apps/web/src/app/layout.tsx",
+          "apps/web/src/app/players/[id]/page.tsx",
+          "apps/web/src/app/competitions/[id]/page.tsx"
+        ],
+        "invariant": "dados do banco serializados em script ld+json não quebram o contexto HTML",
+        "method": "source",
+        "result": "JSON.stringify não escapa </script>; campo name/alternateName/location do jsonLd vêm do banco (nome de clube criável via POST /clubs público, ou dados de ingestão de terceiros); </script><script>… quebra o contexto — XSS armazenado em página pública. CSP com unsafe-inline não mitiga (ver web.csp.unsafe-inline-eval).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "web.jsonld.script-breakout"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "apps%2Fworker%2Fsrc%2Femail-worker.ts%23emailWorker::apps%2Fworker%2Fsrc%2Femail-worker.ts%23emailWorker::apps%2Fworker::ATTACK-CLASSES.md%23Wildcard",
+    "canonical_refs": {
+      "surface": "apps/worker/src/email-worker.ts#emailWorker",
+      "boundary": "apps/worker/src/email-worker.ts#emailWorker",
+      "subsystem": "apps/worker",
+      "attack_class": "ATTACK-CLASSES.md#Wildcard"
+    },
+    "surface": "apps/worker/src/email-worker.ts#emailWorker",
+    "boundary": "apps/worker/src/email-worker.ts#emailWorker",
+    "subsystem": "apps/worker",
+    "attack_class": "ATTACK-CLASSES.md#Wildcard",
+    "starting_paths": [
+      "apps/worker/src/email-worker.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Wildcard",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "out_of_scope: worker email/ETL (fila, templates) — passada 2"
+    ]
+  }
+]

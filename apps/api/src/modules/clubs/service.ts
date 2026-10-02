@@ -8,8 +8,15 @@ import {
   type Club,
   type CreateClubInput,
 } from '@almanaque/domain';
-import { clubsRepository, type ListClubsParams } from './repository.js';
+import {
+  clubsRepository,
+  type ClubGeoView,
+  type ClubTitleView,
+  type GeoStats,
+  type ListClubsParams,
+} from './repository.js';
 import { cache } from '../../services/cache.js';
+import { decideClubUniqueness } from './club-uniqueness.js';
 
 const CLUBS_LIST_TTL_SECONDS = 60;
 const CLUBS_BY_ID_TTL_SECONDS = 300;
@@ -23,10 +30,22 @@ export const clubsService = {
     // 1. Validação de entrada (Zod)
     const parsed = CreateClubSchema.parse(input);
 
-    // 2. Regra de negócio: unicidade (name, country)
-    if (await clubsRepository.existsByName(parsed.name, parsed.country)) {
+    // 2. Regra de negócio (T448b-2f): unicidade CONTEXTUAL — bloqueia só duplicata
+    //    EXATA (name+country+state+city); permite homônimos nacionais legítimos
+    //    (ex.: Vila Nova/GO vs /RN). Identidade canônica = QID.
+    const candidates = await clubsRepository.listActiveForDedup(parsed.country ?? null);
+    const verdict = decideClubUniqueness(
+      { name: parsed.name, country: parsed.country, state: parsed.state, city: parsed.city },
+      candidates,
+    );
+    if (verdict.decision === 'block') {
       throw new ConflictError(
-        `Já existe um clube com nome "${parsed.name}" no país ${parsed.country ?? '(sem país)'}`,
+        `Já existe um clube com o mesmo nome/país/estado/cidade (id ${verdict.conflictingClubId}).`,
+      );
+    }
+    if (verdict.decision === 'ambiguous') {
+      console.warn(
+        `[clubs.create] possível duplicata ambígua (id ${verdict.conflictingClubId}) — permitido, revisar.`,
       );
     }
 
@@ -44,6 +63,8 @@ export const clubsService = {
       website: parsed.website ?? null,
       qid: parsed.qid ?? null,
       importedFrom: parsed.importedFrom ?? null,
+      latitude: parsed.latitude ?? null,
+      longitude: parsed.longitude ?? null,
       importedAt: null,
     });
 
@@ -72,6 +93,33 @@ export const clubsService = {
   async getById(id: string): Promise<Club | null> {
     return cache.remember(`clubs:byId:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findById(id),
+    );
+  },
+
+  /**
+   * T467 — agregação por região (COUNT real) para o mapa. Cache read-through
+   * curto; leitura derivada do banco (não é fonte de terceiro).
+   */
+  async geoStats(): Promise<GeoStats> {
+    return cache.remember('clubs:geo-stats', CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.geoStats(),
+    );
+  },
+
+  /** T466 — geografia resolvida (país/estado/cidade + coordenadas) para o mapa T467. */
+  async geo(id: string): Promise<ClubGeoView | null> {
+    return cache.remember(`clubs:geo:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
+      clubsRepository.findGeoById(id),
+    );
+  },
+
+  /**
+   * T448 — Galeria de honra do clube (arestas WON do KnowledgeGraph).
+   * Lista vazia = ainda não há conquista auditável (honestidade 1.3).
+   */
+  async titles(id: string): Promise<ClubTitleView[]> {
+    return cache.remember(`clubs:titles:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
+      clubsRepository.listTitlesByClub(id),
     );
   },
 };
