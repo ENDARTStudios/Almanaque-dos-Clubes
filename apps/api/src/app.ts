@@ -34,6 +34,7 @@ import { graphRoutes } from './modules/graph/routes.js';
 import { ragRoutes } from './modules/rag/routes.js';
 import { exportRoutes } from './modules/export/routes.js';
 import { etlRoutes } from './modules/etl/routes.js';
+import { jobsRoutes } from './modules/jobs/routes.js';
 import { consentRoutes } from './modules/consent/routes.js';
 import { privacyRoutes } from './modules/privacy/privacy.routes.js';
 import { copyrightRoutes } from './modules/copyright/copyright.routes.js';
@@ -240,6 +241,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(ragRoutes);
       await api.register(exportRoutes);
       await api.register(etlRoutes);
+      await api.register(jobsRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
       await api.register(consentRoutes);
