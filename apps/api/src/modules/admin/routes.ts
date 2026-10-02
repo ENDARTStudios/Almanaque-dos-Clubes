@@ -1,26 +1,28 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { DomainError } from '@almanaque/domain';
-import { prisma } from '../../config/prisma.js';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
 import { assignRole, revokeRole, getUserRoles, listAllRoles } from '../auth/rbac.service.js';
+import { withRlsContext } from '../../config/rls-context.js';
 
 export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.get(
     '/admin/users',
     { preHandler: [authenticate, requireRole('admin')] },
     async (_request, reply) => {
-      const users = await prisma.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          status: true,
-          createdAt: true,
-          lastLoginAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      const users = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
+        tx.user.findMany({
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            status: true,
+            createdAt: true,
+            lastLoginAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
       return reply.send({ data: users });
     },
   );
@@ -29,17 +31,19 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     '/admin/users/:id',
     { preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
-      const user = await prisma.user.findUnique({
-        where: { id: request.params.id },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          status: true,
-          createdAt: true,
-          lastLoginAt: true,
-        },
-      });
+      const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
+        tx.user.findUnique({
+          where: { id: request.params.id },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            status: true,
+            createdAt: true,
+            lastLoginAt: true,
+          },
+        }),
+      );
       if (!user)
         return reply
           .status(404)
@@ -53,10 +57,9 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     '/admin/users/:id/suspend',
     { preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
-      const user = await prisma.user.update({
-        where: { id: request.params.id },
-        data: { status: 'SUSPENDED' },
-      });
+      const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
+        tx.user.update({ where: { id: request.params.id }, data: { status: 'SUSPENDED' } }),
+      );
       return reply.send({ data: { id: user.id, status: user.status } });
     },
   );
@@ -65,10 +68,9 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     '/admin/users/:id/reactivate',
     { preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
-      const user = await prisma.user.update({
-        where: { id: request.params.id },
-        data: { status: 'ACTIVE' },
-      });
+      const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
+        tx.user.update({ where: { id: request.params.id }, data: { status: 'ACTIVE' } }),
+      );
       return reply.send({ data: { id: user.id, status: user.status } });
     },
   );

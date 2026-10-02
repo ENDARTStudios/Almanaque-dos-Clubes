@@ -5,10 +5,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1.0 },
     { url: `${baseUrl}/clubs`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${baseUrl}/players`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${baseUrl}/rankings`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${baseUrl}/auth/login`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${baseUrl}/auth/register`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    {
+      url: `${baseUrl}/players`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/rankings`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    // WS-C-3 — `/map` público (aprovado). Só entra no sitemap após observação 24–72h verdes
+    // + aprovação explícita do Operador (patch local em `feat/ws-c-3-sitemap-map`).
+    {
+      url: `${baseUrl}/map`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    // WS-C-2 — `/search` é noindex (queries dinâmicas); fora do sitemap.
+    {
+      url: `${baseUrl}/auth/login`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/auth/register`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
   ];
 }

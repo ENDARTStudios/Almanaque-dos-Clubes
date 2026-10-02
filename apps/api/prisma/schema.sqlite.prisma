@@ -30,6 +30,7 @@ datasource db {
 // -----------------------------------------------------------------------------
 
 model Club {
+  favorites Favorite[]
   id           String   @id @default(uuid())
   name         String
   fullName     String?
@@ -42,10 +43,15 @@ model Club {
   primaryColor String? // #RRGGBB
   website      String?
   qid          String?  @unique // Wikidata Q-identifier
+  latitude     Float?   // Coordenada (P625) — paridade com schema.prisma (T426)
+  longitude    Float?   // Coordenada (P625) — paridade com schema.prisma (T426)
   importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  // T449EN — remoção por admin/ruído (NÃO é clube extinto); exclui das views públicas.
+  deletedAt    DateTime?
 
   // Relações
   players       Player[]
@@ -58,6 +64,14 @@ model Club {
   createdBy     String?
   createdByUser User?    @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
 
+  // T466 — geografia normalizada (FKs nullable; campos texto legados preservados)
+  countryId String?
+  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  stateId   String?
+  stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  cityId    String?
+  cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+
   @@unique([name, country])
   @@index([country])
   @@index([city])
@@ -65,6 +79,9 @@ model Club {
   @@index([qid])
   @@index([country, status])
   @@index([city, state])
+  @@index([countryId])
+  @@index([stateId])
+  @@index([cityId])
   @@map("clubs")
 }
 
@@ -80,6 +97,7 @@ model Player {
   qid          String?  @unique // Wikidata Q-identifier
   importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -96,17 +114,24 @@ model Competition {
   name         String
   country      String?
   type         String? // LEAGUE | CUP | TOURNAMENT | SUPER_CUP
+  level        Int? // T449c-v1 — degrau na pirâmide nacional (1 = elite); NULL = desconhecido
   qid          String?  @unique // Wikidata Q-identifier
   importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  // T448b-2i — soft-delete de duplicatas legacy (identidade canônica = qid). Sem hard delete.
+  deletedAt      DateTime?
+  deletionReason String?
 
   rankings Ranking[]
 
   @@index([country])
   @@index([type])
   @@index([qid])
+  @@index([level])
+  @@index([deletedAt])
   @@map("competitions")
 }
 
@@ -122,6 +147,11 @@ model Ranking {
   competitionId  String?
   competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   season         String?
+  // T449c-v2 — escopo do ranking (NULL = por competição/divisão; 'country_pyramid' = agregado país+temporada)
+  scope          String?
+  country        String? // país do agregado (ex.: 'GB')
+  tierVersion    String? // versão do mapeamento de tier usado
+  formulaVersion String? // versão da fórmula do agregado
   publishedAt    DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -130,6 +160,7 @@ model Ranking {
 
   @@index([competitionId])
   @@index([season])
+  @@index([scope, country, season])
   @@map("rankings")
 }
 
@@ -143,8 +174,14 @@ model RankingEntry {
   ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
   clubId      String
   club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  position    Int
-  points      Int?
+  // position NULL = registro sem posição publicada (dados insuficientes) — T425
+  position    Int?
+  points      Int?     // 0-100 normalizado por gênero; NULL se dados insuficientes
+  baseMatches Int?     // nº de partidas que compõem a base do clube-ano (T425)
+  baseTitles  Int?     // nº de títulos auditáveis que compõem a base
+  dataSourceIds String? // JSON.stringify(proveniência) — espelho sqlite de Json (T425)
+  reason      String?  // NULL ou motivo de não-publicação (ex.: "dados insuficientes")
+  gender      String?  // "men" | "women" — isolamento por gênero (T425)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -161,6 +198,7 @@ model RankingEntry {
 // -----------------------------------------------------------------------------
 
 model User {
+  favorites Favorite[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -170,6 +208,7 @@ model User {
   lastLoginAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime? // T470 — soft-delete (titular); e-mail anonimizado
 
   sessions      Session[]
   auditLogs     AuditLog[]
@@ -177,6 +216,8 @@ model User {
   billings      Billing[]
   userRoles     UserRole[]
   clubsCreated  Club[]   @relation("ClubCreatedByUser")
+  dataSubjectRequests DataSubjectRequest[]
+  copyrightNotices    CopyrightNotice[]
 
   @@index([status])
   @@index([createdAt])
@@ -304,6 +345,25 @@ model Billing {
   @@map("billings")
 }
 
+// WS-C 2ª CAMADA — Favoritos (T439). Espelho sqlite: sem índice parcial
+// (sqlite/Prisma não suportam) — idempotência garantida no service; RLS é
+// exclusiva de Postgres (scripts/sql/rls_favorites_setup.sql).
+model Favorite {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId              String
+  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  notificationsActive Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  deletedAt           DateTime?
+
+  @@index([userId])
+  @@index([clubId])
+  @@index([userId, deletedAt])
+  @@map("favorites")
+}
+
 // -----------------------------------------------------------------------------
 // AUDIT LOG — append-only
 // -----------------------------------------------------------------------------
@@ -337,8 +397,18 @@ model Stadium {
   qid          String?  @unique // Wikidata Q-identifier
   clubId       String?
   club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+
+  // T466 — geografia normalizada (FKs nullable)
+  countryId String?
+  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  stateId   String?
+  stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  cityId    String?
+  cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+
   importedFrom String?
   importedAt   DateTime?
+  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -347,7 +417,85 @@ model Stadium {
   @@index([clubId])
   @@index([country])
   @@index([qid])
+  @@index([countryId])
+  @@index([stateId])
+  @@index([cityId])
   @@map("stadiums")
+}
+
+// -----------------------------------------------------------------------------
+// GEOGRAFIA (T466) — paridade com schema.prisma (SQLite: String em vez de enum/@db.*)
+// -----------------------------------------------------------------------------
+
+model Country {
+  id           String   @id @default(uuid())
+  iso2         String   @unique
+  iso3         String?
+  name         String
+  continent    String?
+  latitude     Float?
+  longitude    Float?
+  qid          String?  @unique
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  states   State[]
+  cities   City[]
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([continent])
+  @@map("countries")
+}
+
+model State {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String
+  countryId    String
+  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  latitude     Float?
+  longitude    Float?
+  qid          String?  @unique
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cities   City[]
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([countryId])
+  @@map("states")
+}
+
+model City {
+  id           String   @id @default(uuid())
+  qid          String?  @unique
+  name         String
+  countryId    String
+  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  stateId      String?
+  state        State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  latitude     Float?
+  longitude    Float?
+  importedFrom String?
+  importedAt   DateTime?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clubs    Club[]
+  stadiums Stadium[]
+
+  @@index([countryId])
+  @@index([stateId])
+  @@map("cities")
 }
 
 model Match {
@@ -367,6 +515,12 @@ model Match {
   stadiumId     String?
   stadium       Stadium? @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
   status        String   @default("SCHEDULED")
+  qid           String?  @unique
+  importedFrom  String?
+  importedAt    DateTime?
+  sourceUrl     String?
+  license       String?
+  dedupKey      String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -398,6 +552,35 @@ model KnowledgeGraph {
   @@map("knowledge_graph")
 }
 
+// WS-L 1ª CAMADA — Consentimento de cookies (LGPD) — T436
+// Espelho SQLite do modelo em schema.prisma (Json → String serializado).
+model CookieConsent {
+  id          String   @id @default(uuid())
+  visitorId   String
+  version     String
+  categories  String // JSON.stringify({ necessary, preferences, analytics, personalization, marketing })
+  consentedAt DateTime @default(now())
+  userAgent   String?
+  ipHash      String?
+  revokedAt   DateTime?
+  metadata    String? // JSON.stringify({ source, ... })
+
+  @@index([visitorId])
+  @@index([version])
+  @@index([consentedAt])
+  @@map("cookie_consents")
+}
+
+model CookiePolicyVersion {
+  id          String   @id @default(uuid())
+  version     String   @unique
+  effectiveAt DateTime @default(now())
+  checksum    String?
+  createdAt   DateTime @default(now())
+
+  @@map("cookie_policy_versions")
+}
+
 model AuditLog {
   id         String   @id @default(uuid())
   entityType String
@@ -415,4 +598,106 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// -----------------------------------------------------------------------------
+// T445 — Direitos do titular (LGPD art. 18) e DMCA (espelho sqlite)
+// -----------------------------------------------------------------------------
+
+model PrivacyRequest {
+  id            String    @id @default(uuid())
+  requesterId   String?
+  email         String
+  rightType     String
+  status        String    @default("recebido")
+  token         String?   @unique
+  slaDueAt      DateTime
+  fulfilledAt   DateTime?
+  deferredUntil DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status, slaDueAt])
+  @@map("privacy_requests")
+}
+
+model CopyrightClaim {
+  id           String    @id @default(uuid())
+  material     String
+  location     String
+  fundament    String
+  contactEmail String
+  status       String    @default("recebida")
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@map("copyright_claims")
+}
+
+// -----------------------------------------------------------------------------
+// T470 — Direitos do titular + notificação autoral (espelho sqlite; enums = String,
+// Json = String serializado — mesma convenção do AuditLog acima).
+// -----------------------------------------------------------------------------
+
+model DataSubjectRequest {
+  id              String    @id @default(uuid())
+  protocol        String    @unique
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String // DsrType
+  jurisdiction    String    @default("BR")
+  status          String    @default("received")
+  description     String?
+  requestedFields String? // JSON.stringify(…) — lido via JSON.parse
+  deadlineAt      DateTime?
+  completedAt     DateTime?
+  responseSummary String?
+  internalNote    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([deadlineAt])
+  @@index([protocol])
+  @@map("data_subject_requests")
+}
+
+model CopyrightNotice {
+  id                   String    @id @default(uuid())
+  protocol             String    @unique
+  type                 String // CopyrightNoticeType
+  status               String    @default("received")
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalNoticeId     String?
+  originalNotice       CopyrightNotice? @relation("NoticeCounter", fields: [originalNoticeId], references: [id], onDelete: SetNull)
+  counterNotices       CopyrightNotice[] @relation("NoticeCounter")
+  workTitle            String
+  workUrl              String?
+  materialUrl          String
+  description          String
+  goodFaithDeclaration Boolean
+  accuracyDeclaration  Boolean
+  signatureText        String
+  jurisdiction         String    @default("BR")
+  responseSummary      String?
+  internalNote         String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([originalNoticeId])
+  @@index([protocol])
+  @@map("copyright_notices")
 }

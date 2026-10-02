@@ -1,18 +1,19 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import SearchBar from '@/components/SearchBar';
-import PageHeading from '@/components/PageHeading';
-import { SearchResults } from '@/components/SearchResults';
+import GlobalSearch from '@/components/GlobalSearch';
 
-export const metadata: Metadata = { title: 'Busca Avançada', description: 'Busca avançada em todo o acervo do futebol mundial.' };
+export const metadata: Metadata = {
+  title: 'Busca global',
+  description: 'Busque clubes e competições em todo o acervo auditável do futebol mundial.',
+  robots: { index: false, follow: true },
+};
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q } = await searchParams;
-
+export default async function SearchPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading titleKey="pages.search.title" subtitleKey="pages.search.subtitle" />
-      <SearchBar placeholderKey="pages.search.placeholder" />
-      {q && <SearchResults query={q} />}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <Suspense fallback={<div className="h-12 rounded-xl bg-foreground/5 animate-pulse" />}>
+        <GlobalSearch />
+      </Suspense>
     </div>
   );
 }

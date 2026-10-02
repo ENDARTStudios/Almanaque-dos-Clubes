@@ -1,0 +1,80 @@
+[
+  {
+    "relation": "WON",
+    "competitionQid": "Q731877",
+    "competitionName": "Campeonato Mineiro",
+    "competitionId": null,
+    "seasonYear": 2023,
+    "clubQid": "Q270995",
+    "clubName": "Atlético",
+    "clubId": null,
+    "hierarchy": "estadual",
+    "gender": "men",
+    "source": "rsssf",
+    "sourceUrl": "https://rsssfbrasil.com/tablesfq/mg2023.htm",
+    "retrievedAt": "2026-09-23T22:59:09Z",
+    "authorCredit": "(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2022-2023.",
+    "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+    "attributionRequired": true,
+    "externalId": "2f4334dace1c2050",
+    "dedupKey": "Q731877|2023|Q270995|WON",
+    "metadataExtras": {
+      "pageChampionPhrase": "Atlético",
+      "tablePosition": null,
+      "sourcePageUrlHash": "5ec51f8a15143fa7c9ddaf966b213d0910464be017ee5d39d3b51785744dab9e",
+      "parserVersion": "t448b2b-fase1-v1"
+    }
+  },
+  {
+    "relation": "WON",
+    "competitionQid": "Q731877",
+    "competitionName": "Campeonato Mineiro",
+    "competitionId": null,
+    "seasonYear": 2024,
+    "clubQid": "Q270995",
+    "clubName": "ATLÉTICO",
+    "clubId": null,
+    "hierarchy": "estadual",
+    "gender": "men",
+    "source": "rsssf",
+    "sourceUrl": "https://rsssfbrasil.com/tablesfq/mg2024.htm",
+    "retrievedAt": "2026-09-23T22:59:09Z",
+    "authorCredit": "(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2023-2024.",
+    "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+    "attributionRequired": true,
+    "externalId": "da2fc5e4b55a4e45",
+    "dedupKey": "Q731877|2024|Q270995|WON",
+    "metadataExtras": {
+      "pageChampionPhrase": "ATLÉTICO",
+      "tablePosition": null,
+      "sourcePageUrlHash": "f20353554af2e2602d63f89d96371afd8106adcd633fc79b1d6899041814d968",
+      "parserVersion": "t448b2b-fase1-v1"
+    }
+  },
+  {
+    "relation": "WON",
+    "competitionQid": "Q731877",
+    "competitionName": "Campeonato Mineiro",
+    "competitionId": null,
+    "seasonYear": 2025,
+    "clubQid": "Q270995",
+    "clubName": "ATLÉTICO",
+    "clubId": null,
+    "hierarchy": "estadual",
+    "gender": "men",
+    "source": "rsssf",
+    "sourceUrl": "https://rsssfbrasil.com/tablesfq/mg2025.htm",
+    "retrievedAt": "2026-09-23T22:59:09Z",
+    "authorCredit": "(C) Copyright Claudio Freati, RSSSF and RSSSF Brazil 2024-2025.",
+    "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to the author. All rights reserved.",
+    "attributionRequired": true,
+    "externalId": "20a1f5a0586acaa6",
+    "dedupKey": "Q731877|2025|Q270995|WON",
+    "metadataExtras": {
+      "pageChampionPhrase": "ATLÉTICO",
+      "tablePosition": null,
+      "sourcePageUrlHash": "e2897d4609556e97fb3d54606e56eee2ed88a3c03e017a68ecd4208544a58ed0",
+      "parserVersion": "t448b2b-fase1-v1"
+    }
+  }
+]

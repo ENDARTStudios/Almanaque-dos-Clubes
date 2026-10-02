@@ -46,6 +46,9 @@ import {
 } from './jwt.service.js';
 import { env } from '../../config/env.js';
 import { generateCsrfToken } from '../../middleware/csrf.js';
+import { withRlsContext } from '../../config/rls-context.js';
+import { authenticate } from './authenticate.middleware.js';
+import { getUserRoles } from './rbac.service.js';
 import { sendWelcomeEmail } from '../../services/email.js';
 import { mailerService } from '../mailer/mailer.service.js';
 import {
@@ -65,11 +68,19 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
    * GET /auth/csrf-token — emite token CSRF de uso único (24h).
    * Cliente deve enviá-lo no header `x-csrf-token` em rotas de escrita.
    */
-  app.get('/auth/csrf-token', async (request, reply) => {
-    const userId = (request.user as { sub?: string } | undefined)?.sub ?? 'anonymous';
-    const token = generateCsrfToken(userId);
-    return reply.status(200).send({ data: { csrfToken: token } });
-  });
+  app.get(
+    '/auth/csrf-token',
+    // T458 — bucket próprio folgado (o client o busca a cada renovação de
+    // sessão; não deve competir com o orçamento global do usuário).
+    {
+      config: { rateLimit: { max: 600, timeWindow: '15 minutes' } },
+    },
+    async (request, reply) => {
+      const userId = (request.user as { sub?: string } | undefined)?.sub ?? 'anonymous';
+      const token = generateCsrfToken(userId);
+      return reply.status(200).send({ data: { csrfToken: token } });
+    },
+  );
 
   /**
    * Helper: setar cookies httpOnly com access e refresh tokens.
@@ -90,11 +101,15 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * Helper: limpar cookies (logout).
+   * T452 — os atributos PRECISAM espelhar a criação: browsers (Chrome) rejeitam
+   * Set-Cookie com prefixo __Host- sem Secure/SameSite — sem isso o logout
+   * não apaga o cookie no browser (logout cosmético, incidente 2026-09-20).
    */
   function clearAuthCookies(reply: FastifyReply): void {
     const isProd = env.isProd;
-    reply.clearCookie(getAccessCookieName(isProd), { path: '/' });
-    reply.clearCookie(getRefreshCookieName(isProd), { path: '/' });
+    const base = { path: '/', httpOnly: true, secure: isProd, sameSite: 'strict' as const };
+    reply.clearCookie(getAccessCookieName(isProd), base);
+    reply.clearCookie(getRefreshCookieName(isProd), base);
   }
 
   /**
@@ -207,6 +222,52 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   });
 
   // -----------------------------------------------------------------
+  // GET /auth/me (T439 — ProtectedRoute): perfil resumido do usuário da
+  // sessão atual. 401 sem token; nunca expõe passwordHash.
+  // -----------------------------------------------------------------
+  app.get(
+    '/auth/me',
+    {
+      preHandler: [authenticate],
+      // T458 — orçamento de sessão: re-checks do client (navegação/focus) têm
+      // bucket próprio folgado e não competem com o orçamento global de API.
+      config: { rateLimit: { max: 600, timeWindow: '15 minutes' } },
+    },
+    async (request, reply) => {
+      const userId = request.user!.id;
+      const user = await withRlsContext({ userId, role: 'USER' }, async (tx) =>
+        tx.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            status: true,
+            emailVerified: true,
+            createdAt: true,
+          },
+        }),
+      );
+      if (!user || user.status !== 'ACTIVE') {
+        return reply.status(401).send({
+          error: { code: 'UNAUTHORIZED', message: 'Sessão inválida' },
+        });
+      }
+      const roles = (await getUserRoles(userId)).map((r) => r.name);
+      return reply.send({
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified != null,
+          createdAt: user.createdAt,
+          roles,
+        },
+      });
+    },
+  );
+
+  // -----------------------------------------------------------------
   // POST /auth/login
   // -----------------------------------------------------------------
   app.post('/auth/login', async (request, reply) => {
@@ -276,34 +337,40 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   // -----------------------------------------------------------------
   // POST /auth/refresh
   // -----------------------------------------------------------------
-  app.post('/auth/refresh', async (request, reply) => {
-    try {
-      RefreshSchema.parse(request.body);
+  app.post(
+    '/auth/refresh',
+    // T458 — bucket próprio: 1 refresh silencioso por expiração nunca deve
+    // competir com o orçamento global (429 no refresh = ressurreição/pilha).
+    { config: { rateLimit: { max: 600, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
+      try {
+        RefreshSchema.parse(request.body);
 
-      const oldRefreshToken = getRefreshTokenFromRequest(request);
-      if (!oldRefreshToken) {
-        throw new AuthError('Credenciais inválidas');
-      }
+        const oldRefreshToken = getRefreshTokenFromRequest(request);
+        if (!oldRefreshToken) {
+          throw new AuthError('Credenciais inválidas');
+        }
 
-      const metadata = extractMetadata(request);
-      const result = await refreshSession(oldRefreshToken, metadata);
+        const metadata = extractMetadata(request);
+        const result = await refreshSession(oldRefreshToken, metadata);
 
-      const { accessToken } = jwt.signTokens(result.user, result.sessionId);
-      setAuthCookies(reply, accessToken, result.refreshToken);
+        const { accessToken } = jwt.signTokens(result.user, result.sessionId);
+        setAuthCookies(reply, accessToken, result.refreshToken);
 
-      return reply.status(200).send({
-        data: {
-          user: {
-            id: result.user.id,
-            email: result.user.email,
-            roles: result.user.roles,
+        return reply.status(200).send({
+          data: {
+            user: {
+              id: result.user.id,
+              email: result.user.email,
+              roles: result.user.roles,
+            },
           },
-        },
-      });
-    } catch (err) {
-      handleAuthError(err, reply);
-    }
-  });
+        });
+      } catch (err) {
+        handleAuthError(err, reply);
+      }
+    },
+  );
 
   // -----------------------------------------------------------------
   // POST /auth/forgot-password

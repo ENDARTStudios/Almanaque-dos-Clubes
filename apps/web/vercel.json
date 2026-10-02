@@ -1,0 +1,9 @@
+{
+  "installCommand": "cd .. && pnpm install --frozen-lockfile",
+  "buildCommand": "next build",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  }
+}

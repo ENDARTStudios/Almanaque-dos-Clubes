@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { AuthProvider } from '@/components/AuthProvider';
 import Footer from '@/components/Footer';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
+import { cookieBannerEnabled } from '@/lib/flags';
+import { safeJsonLd } from '@/lib/json-ld';
 import { I18nProvider } from '@/i18n/Provider';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
@@ -11,10 +14,22 @@ const siteUrl = 'https://almanaquedosclubes.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: 'Almanaque dos Clubes — História do Futebol Mundial', template: '%s | Almanaque dos Clubes' },
+  title: {
+    default: 'Almanaque dos Clubes — História do Futebol Mundial',
+    template: '%s | Almanaque dos Clubes',
+  },
   description:
-    'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA e fontes verificadas.',
-  keywords: ['futebol', 'clubes', 'história do futebol', 'ranking futebol', 'jogadores', 'competições', 'almanaque', 'estatísticas futebol'],
+    'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas.',
+  keywords: [
+    'futebol',
+    'clubes',
+    'história do futebol',
+    'ranking futebol',
+    'jogadores',
+    'competições',
+    'almanaque',
+    'estatísticas futebol',
+  ],
   authors: [{ name: 'Almanaque dos Clubes' }],
   creator: 'Almanaque dos Clubes',
   publisher: 'Almanaque dos Clubes',
@@ -24,14 +39,14 @@ export const metadata: Metadata = {
     siteName: 'Almanaque dos Clubes',
     title: 'Almanaque dos Clubes — História do Futebol Mundial',
     description:
-      'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA.',
+      'Acervo histórico do futebol em construção. Pesquise clubes, jogadores, competições e rankings.',
     url: siteUrl,
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Almanaque dos Clubes' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Almanaque dos Clubes — História do Futebol Mundial',
-    description: 'O maior acervo de dados históricos do futebol mundial.',
+    description: 'Acervo histórico do futebol em construção, com proveniência documentada.',
     images: ['/og-image.png'],
   },
   robots: { index: true, follow: true },
@@ -53,7 +68,7 @@ const jsonLd = {
   applicationCategory: 'SportsApplication',
   operatingSystem: 'Web',
   description:
-    'O maior acervo de dados históricos do futebol mundial. Pesquise clubes, jogadores, competições e rankings com IA e fontes verificadas.',
+    'Acervo histórico do futebol em construção, com proveniência documentada. Pesquise clubes, jogadores, competições e rankings com fontes verificadas.',
   url: siteUrl,
   author: { '@type': 'Organization', name: 'END ART Studios' },
   publisher: { '@type': 'Organization', name: 'END ART Studios' },
@@ -67,14 +82,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} className="h-full scroll-smooth">
       <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-white text-foreground antialiased">
         <I18nProvider initialLocale={locale}>
+          <AuthProvider>
           <Navbar />
           <main className="flex-1 pt-16">{children}</main>
           <Footer />
-          <CookieConsentBanner />
+          {cookieBannerEnabled() && <CookieConsentBanner />}
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>

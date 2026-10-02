@@ -19,42 +19,42 @@
 
 ## 2. Produção — URLs
 
-| Serviço | URL | Plataforma | Status |
-|---|---|---|---|
-| **Frontend** | `https://almanaquedosclubes.com` | Vercel | Online |
-| **Frontend (www)** | `https://www.almanaquedosclubes.com` | Vercel | Online |
-| **API** | `https://api.almanaquedosclubes.com` | Railway | Online |
-| **API Health** | `https://api.almanaquedosclubes.com/api/v1/health` | Railway | 200 |
+| Serviço            | URL                                                | Plataforma | Status |
+| ------------------ | -------------------------------------------------- | ---------- | ------ |
+| **Frontend**       | `https://almanaquedosclubes.com`                   | Vercel     | Online |
+| **Frontend (www)** | `https://www.almanaquedosclubes.com`               | Vercel     | Online |
+| **API**            | `https://api.almanaquedosclubes.com`               | Railway    | Online |
+| **API Health**     | `https://api.almanaquedosclubes.com/api/v1/health` | Railway    | 200    |
 
 ### Detalhes das plataformas
 
-| Plataforma | Projeto | Detalhes |
-|---|---|---|
-| **Vercel** | `almanaque-dos-clubes` (org: `end-art-studios`) | Next.js 16, autodeploy via CI |
-| **Railway** | `Almanaque dos Clubes` (workspace: `END ART Studios's Projects`) | GitHub auto-deploy, região `sfo` |
-| **DNS** | Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) | Domínio expira 14/08/2027 |
-| **Domínio** | `almanaquedosclubes.com` | Comprado na Vercel, renovação $11.25/ano |
+| Plataforma  | Projeto                                                          | Detalhes                                 |
+| ----------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| **Vercel**  | `almanaque-dos-clubes` (org: `end-art-studios`)                  | Next.js 16, autodeploy via CI            |
+| **Railway** | `Almanaque dos Clubes` (workspace: `END ART Studios's Projects`) | GitHub auto-deploy, região `sfo`         |
+| **DNS**     | Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`)          | Domínio expira 14/08/2027                |
+| **Domínio** | `almanaquedosclubes.com`                                         | Comprado na Vercel, renovação $11.25/ano |
 
 ### Serviços Railway
 
-| Serviço | Tipo | Status |
-|---|---|---|
+| Serviço                | Tipo                     | Status |
+| ---------------------- | ------------------------ | ------ |
 | `Almanaque-dos-Clubes` | Web Service (porta 3000) | Online |
-| `Postgres` | Database | Online |
-| `Redis` | Database | Online |
+| `Postgres`             | Database                 | Online |
+| `Redis`                | Database                 | Online |
 
 ### Variáveis de ambiente críticas (Railway)
 
-| Variável | Definida? | Nota |
-|---|---|---|
-| `JWT_SECRET` | Sim (64 chars) | Gerado via `openssl rand -base64 48` |
-| `JWT_REFRESH_SECRET` | Sim (64 chars, ≠ JWT_SECRET) | Gerado via `openssl rand -base64 48` |
-| `DATABASE_URL` | Sim | PostgreSQL no Railway internal |
-| `REDIS_URL` | Sim | Redis no Railway internal |
-| `PRISMA_SCHEMA_PROVIDER` | `postgres` | Configurado 2026-08-14 |
-| `NODE_ENV` | `production` | — |
-| `S3_*` | **Faltando** | Upload depende de MinIO/S3 externo |
-| `RESEND_API_KEY` | **Faltando** | Email worker não funcional sem isso |
+| Variável                 | Definida?                    | Nota                                 |
+| ------------------------ | ---------------------------- | ------------------------------------ |
+| `JWT_SECRET`             | Sim (64 chars)               | Gerado via `openssl rand -base64 48` |
+| `JWT_REFRESH_SECRET`     | Sim (64 chars, ≠ JWT_SECRET) | Gerado via `openssl rand -base64 48` |
+| `DATABASE_URL`           | Sim                          | PostgreSQL no Railway internal       |
+| `REDIS_URL`              | Sim                          | Redis no Railway internal            |
+| `PRISMA_SCHEMA_PROVIDER` | `postgres`                   | Configurado 2026-08-14               |
+| `NODE_ENV`               | `production`                 | —                                    |
+| `S3_*`                   | **Faltando**                 | Upload depende de MinIO/S3 externo   |
+| `RESEND_API_KEY`         | **Faltando**                 | Email worker não funcional sem isso  |
 
 ---
 
@@ -81,22 +81,22 @@ raiz/
 
 ### Módulos da API (`apps/api/src/modules/`)
 
-| Módulo | Rotas | Propósito |
-|--------|-------|-----------|
-| `auth/` | register, login, logout, refresh, reset-password | JWT + refresh rotation + RBAC (18 permissões) + rate-limit + sessão |
-| `admin/` | CRUD de usuários | Listar, suspender, reativar, alterar papel |
-| `clubs/` | CRUD de clubes | Dados históricos de clubes |
-| `players/` | CRUD de jogadores | Vínculo com clubes |
-| `competitions/` | CRUD de competições | Liga, Copa, Torneio, Supercopa |
-| `seasons/` | CRUD de temporadas | Edições de competições |
-| `matches/` | CRUD de partidas | Confrontos com placar |
-| `rankings/` | CRUD de rankings | Publicação com imutabilidade |
-| `billing/` | Webhook + planos | FREE/PRO/ELITE (2900/9900 centavos) |
-| `upload/` | Upload MinIO | Validação MIME por magic bytes, max 50 MiB |
-| `export/` | CSV/JSON export | Clubes, players, competitions, rankings |
-| `rag/` | `/api/v1/ai/ask` | RAG endpoint (estrutura criada, Ollama pendente) |
-| `graph/` | CRUD knowledge graph | Relações entre entidades |
-| `etl/` | Pipeline ETL | Conectores RSSSF + FBref (pendente scraping real) |
+| Módulo          | Rotas                                            | Propósito                                                           |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| `auth/`         | register, login, logout, refresh, reset-password | JWT + refresh rotation + RBAC (18 permissões) + rate-limit + sessão |
+| `admin/`        | CRUD de usuários                                 | Listar, suspender, reativar, alterar papel                          |
+| `clubs/`        | CRUD de clubes                                   | Dados históricos de clubes                                          |
+| `players/`      | CRUD de jogadores                                | Vínculo com clubes                                                  |
+| `competitions/` | CRUD de competições                              | Liga, Copa, Torneio, Supercopa                                      |
+| `seasons/`      | CRUD de temporadas                               | Edições de competições                                              |
+| `matches/`      | CRUD de partidas                                 | Confrontos com placar                                               |
+| `rankings/`     | CRUD de rankings                                 | Publicação com imutabilidade                                        |
+| `billing/`      | Webhook + planos                                 | FREE/PRO/ELITE (2900/9900 centavos)                                 |
+| `upload/`       | Upload MinIO                                     | Validação MIME por magic bytes, max 50 MiB                          |
+| `export/`       | CSV/JSON export                                  | Clubes, players, competitions, rankings                             |
+| `rag/`          | `/api/v1/ai/ask`                                 | RAG endpoint (estrutura criada, Ollama pendente)                    |
+| `graph/`        | CRUD knowledge graph                             | Relações entre entidades                                            |
+| `etl/`          | Pipeline ETL                                     | Conectores RSSSF + FBref (pendente scraping real)                   |
 
 ---
 
@@ -104,17 +104,17 @@ raiz/
 
 ### O que mudou desde o handoff anterior (2026-08-11)
 
-| Item | Antes | Agora |
-|---|---|---|
-| **Domínio** | Não registrado | `almanaquedosclubes.com` (Vercel, expira 08/2027) |
-| **Plataforma backend** | Fly.io vs Railway (indeciso) | **Railway** (GitHub auto-deploy) |
-| **Frontend** | Vercel (projeto `web`) | Vercel (projeto `almanaque-dos-clubes`) |
-| **JWT Secrets** | Valores dev placeholder | Secrets reais de 64 chars (rodados em produção) |
-| **PRISMA_SCHEMA_PROVIDER** | Não definido (default sqlite) | `postgres` |
-| **CORS** | `https://almanaque.app` (placeholder) | `almanaquedosclubes.com` + `www` |
-| **Metadados web** | `almanaque.app` (placeholder) | `almanaquedosclubes.com` |
-| **DAST target** | `staging.almanaque.app` | `staging.almanaquedosclubes.com` |
-| **Email worker** | `noreply@almanaque.app` | `noreply@almanaquedosclubes.com` |
+| Item                       | Antes                                 | Agora                                             |
+| -------------------------- | ------------------------------------- | ------------------------------------------------- |
+| **Domínio**                | Não registrado                        | `almanaquedosclubes.com` (Vercel, expira 08/2027) |
+| **Plataforma backend**     | Fly.io vs Railway (indeciso)          | **Railway** (GitHub auto-deploy)                  |
+| **Frontend**               | Vercel (projeto `web`)                | Vercel (projeto `almanaque-dos-clubes`)           |
+| **JWT Secrets**            | Valores dev placeholder               | Secrets reais de 64 chars (rodados em produção)   |
+| **PRISMA_SCHEMA_PROVIDER** | Não definido (default sqlite)         | `postgres`                                        |
+| **CORS**                   | `https://almanaque.app` (placeholder) | `almanaquedosclubes.com` + `www`                  |
+| **Metadados web**          | `almanaque.app` (placeholder)         | `almanaquedosclubes.com`                          |
+| **DAST target**            | `staging.almanaque.app`               | `staging.almanaquedosclubes.com`                  |
+| **Email worker**           | `noreply@almanaque.app`               | `noreply@almanaquedosclubes.com`                  |
 
 ### Concluído (10 fases do Plano Mestre)
 
@@ -131,26 +131,27 @@ raiz/
 
 ### Pendente / Bloqueado
 
-| # | Item | Responsável | Bloqueia? | Nota |
-|---|------|-------------|-----------|------|
-| 1 | ~~Registrar domínio~~ ✅ | Operador | — | `almanaquedosclubes.com` na Vercel |
-| 2 | ~~Escolher plataforma backend~~ ✅ | Operador | — | Railway com GitHub auto-deploy |
-| 3 | **S3/MinIO para upload** | Operador | 🟡 Upload | Variáveis `S3_*` não configuradas no Railway |
-| 4 | **Resend API key** | Operador | 🟡 Email | Worker de email não funcional |
-| 5 | **Stripe/PagSeguro — criar conta e configurar webhook** | Operador | 🟡 Billing real | — |
-| 6 | **Ollama + pgvector — instalar e configurar** | Dev | 🟡 RAG | — |
-| 7 | **ETL — scrapers reais (RSSSF, FBref)** | Dev | 🟡 Dados | — |
-| 8 | **Executar migration PostgreSQL** (já tem DB) | Dev | 🟢 | Railway já tem PostgreSQL, verificar schema |
-| 9 | **Blue-green / zero-downtime deploy** | Dev | 🟡 Qualidade | — |
-| 10 | **Observabilidade (Loki/Prometheus/Grafana)** | Dev | 🟢 Desejável | Fase 14 |
-| 11 | **2FA TOTP** | Dev | 🟢 Desejável | Fase 3.9 opcional |
-| 12 | **HSTS preload + DNSSEC** | Operador | 🟡 Segurança | Agora possível com domínio próprio |
+| #   | Item                                                    | Responsável | Bloqueia?       | Nota                                         |
+| --- | ------------------------------------------------------- | ----------- | --------------- | -------------------------------------------- |
+| 1   | ~~Registrar domínio~~ ✅                                | Operador    | —               | `almanaquedosclubes.com` na Vercel           |
+| 2   | ~~Escolher plataforma backend~~ ✅                      | Operador    | —               | Railway com GitHub auto-deploy               |
+| 3   | **S3/MinIO para upload**                                | Operador    | 🟡 Upload       | Variáveis `S3_*` não configuradas no Railway |
+| 4   | **Resend API key**                                      | Operador    | 🟡 Email        | Worker de email não funcional                |
+| 5   | **Stripe/PagSeguro — criar conta e configurar webhook** | Operador    | 🟡 Billing real | —                                            |
+| 6   | **Ollama + pgvector — instalar e configurar**           | Dev         | 🟡 RAG          | —                                            |
+| 7   | **ETL — scrapers reais (RSSSF, FBref)**                 | Dev         | 🟡 Dados        | —                                            |
+| 8   | **Executar migration PostgreSQL** (já tem DB)           | Dev         | 🟢              | Railway já tem PostgreSQL, verificar schema  |
+| 9   | **Blue-green / zero-downtime deploy**                   | Dev         | 🟡 Qualidade    | —                                            |
+| 10  | **Observabilidade (Loki/Prometheus/Grafana)**           | Dev         | 🟢 Desejável    | Fase 14                                      |
+| 11  | **2FA TOTP**                                            | Dev         | 🟢 Desejável    | Fase 3.9 opcional                            |
+| 12  | **HSTS preload + DNSSEC**                               | Operador    | 🟡 Segurança    | Agora possível com domínio próprio           |
 
 ---
 
 ## 5. Como Executar Localmente
 
 ### Pré-requisitos
+
 - Node.js 20+ (CI usa 22)
 - pnpm 11.13.1+
 - Docker Desktop (para PostgreSQL, MinIO, Redis)
@@ -187,14 +188,18 @@ pnpm dev
 
 ### Scripts úteis
 
-| Comando | Descrição |
-|---------|-----------|
-| `pnpm lint` | ESLint em todo o monorepo |
-| `pnpm typecheck` | TypeScript strict check |
-| `pnpm test:unit` | Vitest (unit + integration, 27 testes) |
-| `pnpm test:e2e` | Playwright E2E |
-| `pnpm test:k6` | k6 load test (100 users) |
-| `pnpm db:seed` | Seed: 10 clubes, 3 competições, 2 rankings, RBAC |
+| Comando          | Descrição                                        |
+| ---------------- | ------------------------------------------------ |
+| `pnpm lint`      | ESLint em todo o monorepo                        |
+| `pnpm typecheck` | TypeScript strict check                          |
+| `pnpm test:unit` | Vitest (unit + integration, 27 testes)           |
+| `pnpm test:e2e`  | Playwright E2E                                   |
+| `pnpm test:k6`   | k6 load test (100 users)                         |
+| `pnpm db:seed`   | Seed: 10 clubes, 3 competições, 2 rankings, RBAC |
+
+**⚠️ Ressalva R1 — lint recursivo (T476, 2026-09-22):** até o T476, `pnpm lint` no CI varria só **1 nível** de `apps/api` (**27/186** arquivos); `src/modules/**`, `tests/**` e `src/scripts/**` **não eram lintados** (falso verde). Corrigido (aspas no glob → eslint expande recursivo). A partir daqui, **"CI verde" cobre lint recursivamente** de `apps/api`/`apps/worker`/`packages`. O `format:check` (prettier standalone) **ainda NÃO roda no CI** (954 arquivos, majoritariamente `apps/web`, ignorado pelo eslint) — dívida rastreada.
+
+**⚠️ Ressalva E2E-CI (2026-09-22, achado do G1):** o **"CI verde" NÃO cobre E2E Playwright**. O `security-gate` roda unit+integração (vitest, **inclui `apps/web`**), lint recursivo e typecheck — mas **`tests/e2e/**` não roda no CI de PR**. Logo os E2E de cada round (champions-stability, oferta-honesta, galeria, acessibilidade do mapa T467, direitos titular T470, T472a en/es) são **validação LOCAL/manual por round** — não contam como "CI verde". Dívida **T476c** (opcional-futuro, pré-M5): job Playwright contra preview/staging OU manter esta ressalva permanentemente.
 
 ---
 
@@ -240,6 +245,7 @@ docker compose up -d
 ## 7. Database
 
 **14 modelos Prisma** (PostgreSQL em produção, SQLite em dev sandbox):
+
 - clubs, players, competitions, seasons, matches, rankings, ranking_entries
 - users, roles, permissions, user_roles, role_permissions
 - sessions, subscriptions, billings, audit_logs, knowledge_graph
@@ -254,16 +260,16 @@ Para migrar: `npx prisma migrate deploy --schema=prisma/schema.prisma`.
 
 ## 8. Testes
 
-| Suite | Framework | Qtd | O que cobre |
-|-------|-----------|-----|-------------|
-| Unit (API) | Vitest | 5+ | Clubs service (create, validation, duplicate, getById) |
-| Unit (Domain) | Vitest | 4 | Zod schemas validation |
-| Unit (Feature Flags) | Vitest | 6 | Gating por plano Free/Pro/Elite |
-| Integration (API) | Vitest | 12 | Health, clubs, auth, 404 |
-| E2E (Web) | Playwright | 5 | Auth flow + clubs list |
-| Load | k6 | 1 | 100 concurrent users |
-| Stress | k6 | 1 | 1000 concurrent users |
-| Verification | TS scripts | 8 | 313 asserções (auth, JWT, crypto, session, RBAC, audit, billing) |
+| Suite                | Framework  | Qtd | O que cobre                                                      |
+| -------------------- | ---------- | --- | ---------------------------------------------------------------- |
+| Unit (API)           | Vitest     | 5+  | Clubs service (create, validation, duplicate, getById)           |
+| Unit (Domain)        | Vitest     | 4   | Zod schemas validation                                           |
+| Unit (Feature Flags) | Vitest     | 6   | Gating por plano Free/Pro/Elite                                  |
+| Integration (API)    | Vitest     | 12  | Health, clubs, auth, 404                                         |
+| E2E (Web)            | Playwright | 5   | Auth flow + clubs list                                           |
+| Load                 | k6         | 1   | 100 concurrent users                                             |
+| Stress               | k6         | 1   | 1000 concurrent users                                            |
+| Verification         | TS scripts | 8   | 313 asserções (auth, JWT, crypto, session, RBAC, audit, billing) |
 
 **Total: 27 testes unitários/integração passando. Typecheck limpo. Lint: 0 erros, 57 warnings (pré-existentes, sem impacto funcional).**
 
@@ -273,16 +279,16 @@ Para migrar: `npx prisma migrate deploy --schema=prisma/schema.prisma`.
 
 Registradas em `DECISOES.md`. As principais:
 
-| Decisão | Motivo |
-|---------|--------|
-| **Monolito modular** (não microsserviços) | <50k usuários no Ano 1, complexidade desnecessária |
-| **Argon2id para senhas, SHA-256 para tokens** | Senhas são baixa-entropia (KDF memory-hard); tokens já são 256bits |
-| **AuditLog polimórfico** (entityType + entityId) | Evita explosão de tabelas, índice composto garante performance |
-| **Cache RBAC em memória (TTL 5min)** | Monolito single-instance, Redis adicionaria complexidade sem benefício |
-| **Full-text via SQL raw (GIN/tsvector)** | Prisma 5.22 não suporta GIN indexes declarativamente |
-| **Valores em centavos (int)** | Float tem problema de precisão; Stripe/PagSeguro usam centavos |
-| **Feature flags por plano** | FREE (0), PRO (2900¢/mês), ELITE (9900¢/mês) |
-| **Vercel + Railway** (não Fly.io) | Vercel: domínio + frontend Next.js otimizado; Railway: backend + DB + Redis integrados |
+| Decisão                                          | Motivo                                                                                 |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **Monolito modular** (não microsserviços)        | <50k usuários no Ano 1, complexidade desnecessária                                     |
+| **Argon2id para senhas, SHA-256 para tokens**    | Senhas são baixa-entropia (KDF memory-hard); tokens já são 256bits                     |
+| **AuditLog polimórfico** (entityType + entityId) | Evita explosão de tabelas, índice composto garante performance                         |
+| **Cache RBAC em memória (TTL 5min)**             | Monolito single-instance, Redis adicionaria complexidade sem benefício                 |
+| **Full-text via SQL raw (GIN/tsvector)**         | Prisma 5.22 não suporta GIN indexes declarativamente                                   |
+| **Valores em centavos (int)**                    | Float tem problema de precisão; Stripe/PagSeguro usam centavos                         |
+| **Feature flags por plano**                      | FREE (0), PRO (2900¢/mês), ELITE (9900¢/mês)                                           |
+| **Vercel + Railway** (não Fly.io)                | Vercel: domínio + frontend Next.js otimizado; Railway: backend + DB + Redis integrados |
 
 ---
 
@@ -329,7 +335,10 @@ railway variable set CHAVE="valor"
 
 ## 12. Roadmap (Próximos Passos)
 
+> **Fila WS (atualizada 2026-09-22):** T470 **[x]** + T470b **[x]** + T464 **[x]** + T467/M1·WS-C **[x]** (smoke pós-deploy verde) + **T472a (i18n checkout/UI assinatura) [x]** → **M4** (T448b-2 RSSSF estaduais/auditoria de cobertura → T449 partidas/rankings 0-100 → T450 feminino → T451 ETL cron). **T472b (i18n das páginas legais) = [condicionado: disclaimer de prevalência do PT OU advogado] — NÃO é gate.** Beta pago = T465 + T469/T469b + T470(+T470b) + T464 + T472a + identidade Operador → **gate técnico COMPLETO após T472a**; abertura de fato é decisão do Operador. G1: "verde do web (vitest)" é confiável; "E2E web" (Playwright) **não** roda no CI de PR.
+
 ### Imediato (travar produção)
+
 1. ~~Registrar domínio~~ ✅
 2. ~~Escolher plataforma de deploy~~ ✅ (Railway)
 3. ~~Gerar JWT secrets reais~~ ✅
@@ -339,6 +348,7 @@ railway variable set CHAVE="valor"
 7. Executar migration no banco Railway (se necessário)
 
 ### Curto prazo (Fases 11-12)
+
 8. Scrapers RSSSF + FBref para dados reais
 9. Ollama + pgvector + pipeline RAG completo
 10. Stripe integrado com prorrotação
@@ -346,6 +356,7 @@ railway variable set CHAVE="valor"
 12. SEO: blog, páginas de clubes, rich snippets
 
 ### Médio prazo (Fases 13-14)
+
 13. HSTS preload + DNSSEC com domínio próprio
 14. Compress, HTTP/2, CDN
 15. Observabilidade (Loki + Grafana)
@@ -357,18 +368,20 @@ railway variable set CHAVE="valor"
 ## 13. Para Quem Assumir
 
 ### Documentação essencial (leia nesta ordem):
+
 1. `DECISOES.md` — decisões técnicas e porquês
 2. `PLANO_MESTRE.md` — o que foi feito e como foi verificado
-3. `docs/ROADMAP.md` — o que vem a seguir
+3. `./docs/01-product-discovery/ROADMAP.md` — o que vem a seguir
 4. `PENDENCIAS_OPERADOR.md` — o que só o Operador pode fazer
-5. `docs/MANUAL_DO_OPERADOR.md` — operação do dia a dia
-6. `docs/INCIDENT_RESPONSE.md` — resposta a incidentes
-7. `docs/CRITERIOS_DESENVOLVIMENTO.md` — critérios de qualidade
-8. `docs/seo-aeo-aio-geo-strategy.md` — estratégia de SEO/AEO
+5. `./docs/07-operations-marketing/MANUAL_DO_OPERADOR.md` — operação do dia a dia
+6. `./docs/05-security-compliance/INCIDENT_RESPONSE.md` — resposta a incidentes
+7. `./docs/03-development-process/CRITERIOS_DESENVOLVIMENTO.md` — critérios de qualidade
+8. `./docs/07-operations-marketing/SEO.md` — estratégia de SEO/AEO
 9. `SECURITY.md` — política de segurança
 10. `SKILL.md` — skill do Claude para trabalhar no projeto
 
 ### Arquivos de configuração críticos:
+
 - `.env.example` — template de variáveis de ambiente
 - `docker-compose.yml` — infraestrutura local
 - `.github/workflows/ci.yml` — pipeline de CI
@@ -382,13 +395,48 @@ railway variable set CHAVE="valor"
 
 ## 14. Contatos e Responsabilidades
 
-| Papel | Responsabilidade |
-|-------|------------------|
-| **Operador** (humano) | Domínio, deploy, Stripe, secrets, DNS, decisões de negócio |
-| **Desenvolvedor** (IA ou humano) | Código, testes, infra como código, documentação técnica |
+| Papel                            | Responsabilidade                                           |
+| -------------------------------- | ---------------------------------------------------------- |
+| **Operador** (humano)            | Domínio, deploy, Stripe, secrets, DNS, decisões de negócio |
+| **Desenvolvedor** (IA ou humano) | Código, testes, infra como código, documentação técnica    |
 
 Toda interação entre Dev e Operador segue o `PROTOCOLO_MESTRE.md` — nada é decidido por prosa livre no chat. Decisões vão para `DECISOES.md`. Pendências do Operador vão para `PENDENCIAS_OPERADOR.md`.
 
 ---
 
-*Handoff gerado em 2026-08-14. Último commit: `a37f0c0`. Todos os serviços em produção respondendo 200.*
+_Handoff gerado em 2026-08-14. Último commit: `a37f0c0`. Todos os serviços em produção respondendo 200._
+
+---
+
+## Lições recentes
+
+- **[2026-09-29 · WS-C-3] ✅ MAPA-MÚNDI PÚBLICO publicado em `/map`.** Merge `9e56c61` (PR #277, aprovado pelo Operador); `Deploy Web` SUCCESS. `/map` público (UI sobre `GET /geo/points`), `noindex` removido, link “Mapa” discreto no nav; `/preview/mapa` segue `noindex`; sitemap sem `/map` por ora. Smoke verde: attribution OSM→ODbL visível, Wikidata sem ODbL, sem-coord não plotado (contador), API geo BR/PT/GB 200 (400 em inválidos), WS-C-2 intacto, integridade `d2b117aa…`/estadual 7/EN pyramid 1/coords 6.366. **WS-G-1.2-B.1 [x]** (dry-run-only 0/0/0/0, hash intacto). **Guarda de deploy validada** (API-only/docs-only não disparam produção). **Fila:** observar mapa 24–72h → decidir sitemap → WS-G-1.2-B.2 proposal de apply (ainda sem write) → T451 cron → T450 feminino → WS-L/WS-P (Operador). **Banco intocado · scheduler off · beta pago dormente.**
+- **[2026-09-29 · Hold Local] WS-C-3 FASE 3 [x] local/off · FASE 4 readiness [~] · WS-G-1.2-B [ ] proposal.** Estado vivo: **produção web = `dkyyfz4qd`** (WS-C-2 vivo); **guarda ativa** (`ci.yml` sem `deploy-vercel-frontend`; `deploy-web.yml` com paths; `vercel.json` `deploymentEnabled.main=false`); **`/metodologia` live verde** (hash `24024e16…`, fórmula `W×3+D×1`/saldo/MinMax, ODbL/CC0/RSSSF/MG/GO/PR/EN). **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 · `ranking_entries` `d2b117aa…` · estadual 7 · EN pyramid 1 · coords 6.366. **Branches locais (NÃO pushadas):** `proto/ws-c-3-fase3-map-ui-local`, `proto/ws-c-3-fase4-release-readiness`, `proposal/ws-g-1-2-ranking-refresh`. **Mapa off/noindex**; banco intocado; scheduler off; beta pago dormente. **Fila:** release web única (FASE 3+4) só com readiness+aprovação+janela Vercel → WS-G-1.2-B apply (após checkpoint) → T451 → T450 → WS-L/WS-P.
+- **[2026-09-29 · WS-C-3 FASE 2] ✅ `GET /geo/points` API-only publicado.** Merge `ab603e1` (PR #275); Railway SUCCESS; **merge não disparou deploy web** (guarda OK). Contrato `rulesVersion=ws-c3-geo-v1`: features só com coord válida + `attribution` (OSM→ODbL, Wikidata→null), `withoutLocation`, `attributions` por camada, `limitations`; validação country/bbox/limit; 400 em inválidos; cache 300s. **FASE 1 (local/off):** lib pura `map-geo.ts`/`map-geojson.ts` + testes (branch `proto/ws-c-3-map-lib`, NÃO pushada). **FASE 3/4 não publicadas.** Fila: WS-C-3 FASE 3 (UI interna/off) → FASE 4 (mapa público, aprovação+janela) → WS-G-1.2-B proposal → T451 → T450 → WS-L/WS-P. **Mapa off; `WS-G-1.2-B` apply proibido.**
+- **[2026-09-29 · Release única] ✅ WS-G-1.2-A + WS-C-3 FASE 0 + guarda de deploy publicados.** Merge `6d0d728` (PR #273), deploy `dkyyfz4qd`. **Guarda ativa:** `deploy-vercel-frontend` fora do `ci.yml`; `.github/workflows/deploy-web.yml` (só `push.main`, `paths` web); `apps/web/vercel.json` `git.deploymentEnabled.main=false` (nativa no `main` desligada; previews mantidas) → **merges API-only/docs-only não queimam mais cota**. #272 **superseded/fechado**. Smoke web/API/integridade verde (`d2b117aa…`, estadual 7, EN pyramid 1). **Fila:** WS-C-3 FASE 1 (protótipo local/off) → FASE 2 (API geo contracts) → FASE 3 (UI interna) → FASE 4 (release pública, aprovação) → WS-G-1.2-B proposal (sem apply) → T451 cron → T450 feminino → WS-L/WS-P (Operador).
+- **[2026-09-28 · WS-G-1.3 · guarda de deploy] Deploy web separado do CI (paths).** Cenário C (Action `deploy-vercel-frontend` sem `paths` **+** integração nativa Vercel). Local: `deploy-vercel-frontend` removido do `ci.yml`; novo `.github/workflows/deploy-web.yml` com `paths` (só mudanças que afetam o web disparam produção); `check-entrypoint` movido para `security-gate`. **Objetivo:** parar de queimar `api-deployments-free-per-day` com pushes API-only/docs-only. **Limitação:** se a nativa auto-deployar produção, requer Ignored Paths/desativar nativa (Operador). **Pacote de release única (local, NÃO pushado):** `release/ws-c3-docs-g12-fix-deploy-guard` = fix WS-G-1.2-A + `docs/WS-C-3-FASE0-DESIGN.md` + guarda. **PR #272 retido** (proteção de cota). Fila: janela segura → release única → merge WS-G-1.2-A + WS-C-3 FASE 0; depois WS-C-3 FASE 1 (protótipo local/off) → FASE 2 (API geo) → FASE 3 (UI interna) → FASE 4 (release pública, aprovação). **Apply/write do ranking continua proibido.**
+- **[2026-09-28 · WS-C-2] ✅ PUBLICADO em produção — WS-C-2 [x].** O limite da Vercel resetou; deploy production `3x3ywwmeo` (`Ready`, aliases ok). Smoke verde: perfil (OSM `geo-attribution`+gaps; Wikidata **sem** ODbL; inexistente 404), busca (`global-search-input`/combobox; case/acento), carrossel (subconjunto ≤16), `/map` **noindex + fora do nav**. Integridade intacta (`d2b117aa…`, estadual 7, EN pyramid 1, 0 sem QID). PENDENCIAS [3] **fechada**. **Fila:** checkpoint WS-G-1.2 (fix chave ranking) → decisão de push/PR/merge → WS-C-3 (mapa público, release separada) → T451 cron → T450 feminino → WS-L/WS-P (Operador). **Apply/write do ranking continua proibido.**
+- **[2026-09-28 · WS-G-1.1] Auditoria dry-run verde em produção (sem escrita).** Railway `39ca6e7`, `ORCHESTRATION_ENABLED` **OFF**. `geo-attribution-audit` (9.291 clubes; OSM 451; **missing/wrong 0**), `identity-integrity` (0 sem QID; dup 0; canônicos/homônimos ok), `ranking-refresh-dry-run` (**0/0/0/0**) e amostra Wikidata 5/5. Integridade intacta (`d2b117aa…`, estadual 7, EN pyramid 1). **Fila:** aguardar Vercel → **Track A** WS-C-2 deploy único + smoke → WS-G-1.2 (apply) proposal → WS-L/WS-P (Operador). **WS-G-1 FASE 0 [x] · WS-G-1.1 [x] · WS-G-1.2 [ ] (não autorizado).**
+- **[2026-09-28 · WS-G-1] Scaffolding de orquestração ETL/cron (dry-run only) mergeado.** `29260a0` (PR #268), CI verde. `apps/api/src/lib/orchestration/*`: planners puros (identity/enrichment/rsssf/ranking/geo-audit), schemas Zod, registry, runner dry-run (recusa `apply:true`), handler fail-safe (`ORCHESTRATION_ENABLED` **default OFF**), métricas e redação de segredos; design+inventário em `docs/WS-G-1-FASE0-DESIGN.md`. **Zero migration/escrita/cron/deploy web/mapa.** Próximo: primeiro pipeline **dry-run/apply** só com checkpoint + aprovação explícita. **Fila:** WS-C-2 deploy (PENDENCIAS [3]) → WS-C-3 mapa público → WS-G-1 apply gated → T450 feminino → WS-L/WS-P (Operador).
+- **[2026-09-28 · WS-C-2] UI pública (perfil/busca/carrossel) mergeada, deploy Vercel bloqueado.** `27e98e5` (PR #266), CI verde. Perfil `/clubs/[id]` consome `/profile` (atribuição ODbL visível, gaps declarados, SEO/JSON-LD); `/search` consome `/search/global` (tipada, acento/caixa, homônimos por QID, URL state); carrossel consome `/champions/carousel` (subconjunto ≤16, não renderiza 418; ambíguos omitidos); `/map` `noindex` + fora do nav. i18n pt/en/es aditivo. **Sem schema/migration/escrita.** Deploy web pendente: `api-deployments-free-per-day` (PENDENCIAS item [3]). **Fila:** WS-C-2 deploy/smoke → WS-C-3 mapa público (aprovação explícita) → favoritos/tempo real → rankings jogadores/técnicos → feminino → ETL/cron → legal/pagamento (Operador).
+- **[2026-09-28 · WS-D M1a-3 · GATE ODbL] ✅ CONCLUÍDO — atribuição ODbL viva; M1a-3 [x].** O deploy de produção da Vercel destravou e `/metodologia` (cache-bypass) agora exibe **“© contribuidores do OpenStreetMap” + “Open Database License (ODbL)” + Nominatim**, com **Wikidata CC0**, **RSSSF “não é domínio público”** e atribuições **MG/GO/PR/EN** intactas. Smoke `/`,`/metodologia`,`/rankings`,`/clubs` 200 + API `health` 200; `ranking_entries` hash `d2b117aa…` intacto; estadual RSSSF 7. Coords M1a-3: 5.865 → **6.366** (+501). **Residual cosmético:** literal EN “© OpenStreetMap contributors” (PR #264) sobe no próximo deploy (limite Vercel re-estourou). **Fila:** WS-C-2 (UI perfil/busca/carrossel) → mapa público (agora destravado) → T451 → T450.
+- **[2026-09-28 · WS-C-1] Fundação de produto na API (perfil + busca global + carrossel) — API-only.** `GET /clubs/:id/profile` (geo+ODbL, proveniência, títulos/rankings/competições/related, `gaps`), `GET /search/global` (case/acento via `translate`, homônimos por QID) e `GET /champions/carousel` (KG `WON` ativas; ambíguo/ausente **omitido**). Aditivo, sem schema/migration/escrita. Merge `172b434`, deploy Railway SUCCESS, smoke verde, integridade intacta (`d2b117aa…`, estadual 7). **Fila:** `M1a-3 [x]` quando o ODbL publicar (Vercel) → **WS-C-2** (UI de perfil/busca/carrossel) → **mapa público só após M1a-3 [x]**.
+- **[2026-09-27 · WS-D M1a-3 · mitigação API] Atribuição ODbL exposta na API enquanto o web está bloqueado.** Helper puro `lib/geocoding/geo-attribution.ts` (`geoAttributionForMetadata`): `coordSource` ∈ {nominatim, osm, openstreetmap} (ou `coordAttribution` com OSM/ODbL) → `{ geo: '© OpenStreetMap contributors (ODbL)', source: 'openstreetmap/nominatim', license: 'ODbL' }`; Wikidata → `null` (não mistura). **Aditivo** (sem quebra): `/clubs/:id/geo` ganha `attribution`; `/clubs` (lista) e `/clubs/:id` ganham `attribution` por item. Smoke de produção: clube OSM → ODbL; Wikidata/sem-metadata → null. **M1a-3 segue [~]** até `/metodologia` publicar ODbL (pendência Vercel, item Nº 2).
+- **[2026-09-27 · WS-D M1a-3] Geocodificação (Wikidata profundo + Nominatim) aplicada — com gap ODbL temporário.** Coords 5.865 → **6.366** (+501: 50 Opção A + 451 Opção C). Opção A (Wikidata profundo: `P131`/`P276`/cadeia `P131`, exact/municipality) tem **teto baixo (1,5%)** — os restantes não têm pista geográfica. Opção C (Nominatim/OSM, 1 req/s, `type`-filter) cobre o residual (~5–10%/país). `clubs.metadata` (JSONB, migration aditiva) guarda proveniência/precisão. **Bloqueio infra:** Vercel free-tier (`api-deployments-free-per-day`) travou o deploy do web → **atribuição ODbL em `/metodologia` ainda não publicou** (coords já vivas na API). Thinker decidiu **manter as coords** (gap declarado). **Follow-up:** confirmar ODbL live no reset do Vercel (~24h). **Lição:** nohup NÃO sobrevive ao fim da sessão SSH (usar invocações por país, resumíveis via cache em arquivo).
+- **[2026-09-27 · WS-D M1b] Expansão Wikidata conservadora CONCLUÍDA em produção.** Piloto PT + lote de 24 países → criados **5.420 clubes / 344 competições** em **25 países** (`importedFrom='wikidata-expansion-v1'`). Clubes ativos **3.871 → 9.291** e comps **1.561 → 1.905** (ambos 0 sem QID). Gates: proveniência 100%, dup QID 0/0, entries hash `d2b117aa…` intacto, estadual RSSSF=7, `country_pyramid`=1, coords 56,7%. Engine `#250` (`a9361e2`, insert-only/dedupe-QID) + whitelist `#251` (`15d194f`). **Lição:** whitelist de competição não pode incluir classe de temporada/edição (`Q18608583`) — causa over-inclusion; dry-run gate por país (clubs 100–600, comps 5–50) pega isso antes do apply. **Lição operacional:** `Select-Object -First N` no PowerShell encerra o pipe SSH e pode truncar loops longos — usar `-Last`/arquivo, não `-First`, ao ler saída de loops. Próximo: M1a-3 (geocodificação opcional) → T451 → T450.
+- **[2026-09-25 · T448b-2d seed GO/PR 2025] Micro-seed de identidade [x] CONCLUÍDO — ativo em produção.** Clubes `Q1513287` (Vila Nova/GO) e `Q2580083` (Operário Ferroviário/PR) via Wikidata CC0: `lib/rsssf/seeds/club-seed.ts` + packs + script. #214 (`4372cd8`) → apply prod `created=2`; SQL QID únicos, homônimos `Q10391045/Q10391046/Q671621` **intocados**, clubes ativos 3878→3880; cache `clubs:list:*`/`clubs:geo-stats`; smoke `search=Vila`/`search=Operário` OK. **Writers GO 2025 / PR 2025 [x] CONCLUÍDOS — aplicados em produção.** `created=1` cada; total estadual RSSSF **5 → 7**; baseline MG(3)/GO 2023–24(2) intacto; smoke `/titles` GO/PR 200. **Conformidade pública [x]:** `/metodologia` validada ao vivo. **T448b-2d encerrado.** **T448b-2g/2h/2i fechados** (dedupe de identidade + busca case/acento-insensível). **Discovery Nova UF = bloqueada por fonte** (SP/CE/SC 2022–2025 = 404; índice não expõe). **Fila:** **T449c-v1 [x] CONCLUÍDO** (API/DB + Web/UI; badge tier/divisão live em `/rankings`; score inalterado; MG/GO/PR sem badge). **Fila:** **T449c-v2-pre (A+C) [x]** (merges #228/#229; `/metodologia` validada ao vivo, hash `8a3193d5…`) → **T449c-v2 [x] COMPLETO** (agregado `country_pyramid` + aba UI “Pirâmide nacional” com disclaimer + metadata por entry; divisões intactas) → **WS-D M1a-2 [x] ATIVO** (coords 2790 · city 2625) → **T448b-2i [x] CONCLUÍDO + idempotência de re-run (noop) corrigida** (3 duplicatas soft-deleted; canônicas por QID; `active_no_qid=0`) → **WS-D M1b [~] engine conservadora** (piloto PT pendente do gate) → expansão por lotes (≥1.000/≥50/≥20) → M1a-3 (geocodificação opcional) → T451 → T450. **T448b-2g [x] = encerrado via T448b-2h** (0 clubes ativos sem QID; o despacho de backfill foi **refutado pela medição read-only** — os 9 nomes são duplicatas legacy soft-deleted e os 9 QIDs pertencem a clubes canônicos ativos; nenhum código escrito). Design do agregado: `./docs/09-references/T449C-V2-FASE0-DESIGN.md`. **Regra operacional reforçada:** medição read-only **antes** de qualquer despacho de execução. **Canário:** teste `t449a-close` pegou a divergência de metodologia — manter testes como canário.
+- **[2026-09-25 · T448b-2d PR 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Paranaense 2025 (Operário Ferroviário `Q2580083`; mãe `Q920397`): `lib/rsssf/pr/` + fixture mock + pack + testes (homônimo `Q671621` NÃO casa). **Necessário micro-seed de `Q2580083`** antes do writer. Empilhado no #211 (GO 2025).
+- **[2026-09-25 · T448b-2d GO 2025] Parser [x] (mock); apply bloqueado.** Parser puro do Goiano 2025 (Vila Nova `Q1513287`): fixture+mock+pack+testes T1–T4. **Necessário micro-seed de `Q1513287`** antes do writer (round separado). `buildGoWonCandidate` generalizado (options). PR 2025 análogo em seguida.
+- **[2026-09-25 · T448b-2f GATE] Migration APLICADA em produção; FASE 2 LIBERADA.** `clubs_name_country_key` removido (não-único no lugar); homônimos=0; estadual RSSSF=5; `/champions` ok. **Próximos (FASE 2):** parser **GO 2025** (`feat/t448b2d-parser-go-2025-vilanova`, clube `Q1513287`) e **PR 2025** (`feat/t448b2d-parser-pr-2025-operario`, clube `Q2580083` — pode exigir micro-seed antes do writer; parser deve falhar `missing_club`). **Follow-up:** **T448b-2g** backfill dos 9 clubes sem QID.
+- **[2026-09-25 · T448b-2f] Identidade de clubes destravada.** `@@unique([name,country])` **removido** (índice não-único + validação contextual). Homônimos nacionais (GO/RN, PR) agora coexistem; duplicata exata bloqueada. **Próximo:** parser **GO 2025** (agora viável) / PR 2025. **Follow-up:** **T448b-2g** = backfill dos 9 clubes sem QID. Regra: **identidade = QID**; nome ≠ chave.
+- **[2026-09-25 · T448b-2d GO] CONCLUÍDO:** piloto **GO 2023–2024 ATIVO** (rate limit Vercel resetou → deploy web #207 → `/metodologia` com atribuição GO → apply `--pack=go` created=2). SQL: GO=2/MG=3/total=5. `/champions` estadual=Atlético-MG 2025. **Próximo: T448b-2f** (identidade/homônimos) → reavaliar GO 2025/PR/outras UFs → T449c → T450 → T451.
+- **[2026-09-25 · T448b-2d GO gate] BLOQUEADO por rate limit Vercel.** Parser GO + writer GO + atribuição web (#205/#206/#207) **mergeados**; Railway API em `928e5ce`; falta o **deploy de produção do web** (Vercel `api-deployments-free-per-day`, ~24h) → `/metodologia` sem GO → **apply GO abortado** (atribuição pública é pré-condição). **Retomar** após o deploy conter o #207: `/metodologia`+hash → container → dry-run `--pack=go` → apply → SQL (GO=2/MG=3/total=5) → cache → API. Sem contorno/bypass. Falha persistente → `vercel_deploy_still_rate_limited_after_24h` (escalar infra/Operador).
+- **[2026-09-25 · T448b-2d writer GO] Fila:** parser GO **[x]** → writer GO **[~]** (#206; dry=2) → **atribuição pública GO (#207)** → verificar **/champions** → gate produção GO → **T448b-2f**. Writer GO usa `--pack=go` (MG inalterado); resolve só por QID; **não cria/linka**; restore só de reasons `rollback_t448b2d_go_*`.
+- **[2026-09-25 · T448b-2d GO] Fila:** parser GO 2023–2024 **[x]** (2 candidates, pronto) → **checkpoint/aprovação** → **writer GO** (idempotência) → gate produção GO → **T448b-2f** (identidade/homônimos) → próxima UF só após T448b-2f ou piloto sem homônimos. **GO 2025 = gap.** **Encoding:** páginas de estadual variam (MG=cp1252; GO=utf-8 apesar do meta) → **sempre medir por hex** antes de codar fixture.
+- **[2026-09-24 · T448b-2d GO regras] Homônimos e identidade.** Identidade é **QID**; nome duplicado com QID diferente **não** bloqueia create-by-qid — **exceto** quando existe constraint de schema (`clubs @@unique([name,country])`), caso em que **bloqueia de verdade** (não contornar com rename/sufixo/link/migration silenciosos). Quando isso ocorre: **reduzir o piloto** ou abrir follow-up de schema (**T448b-2f**). Ordem: seed de identidade → parser → writer → produção → expansão.
+- **[2026-09-24 · T448b-2d] Fila atualizada:** **PR bloqueado** (0 temporadas ready; `Q2580083` ausente) → **GO seedable** (discovery ok; mãe `Q931386` a semear + clube `Q1513287`) → **seed de identidade GO [ ]** (gated) → **parser GO puro** → writer/gate → outras UFs. **T470c no-op** (SHA `6faa117e…`, sem "resposta imediata"). Homônimo **Vila Nova**: resolver só por QID (`Q1513287`), nunca por nome (DB tem `Q10391045` RN de mesmo nome).
+- **[2026-09-24 · T448b-2c discovery] Fila:** T448b-2b MG **[x]** → **T448b-2c discovery [x]** → **aprovação do Thinker** → **T448b-2d parser 1ª UF nova** (recomendadas: **PR** primária, **GO** secundária) → writer/idempotência → gate produção → expansão gradual (T449c tier/carrossel → T450 feminino → T451 cron). **Estaduais do Brasil = gap declarado** (só MG). **RJ/RS sem fonte RSSSF Brasil** (exigiria outra fonte).
+- **[2026-09-24 · T448b-2b cache] Não supor nomenclatura de chave.** O padrão do dispatch `club:<clubId>:*` **não** correspondeu às chaves reais (as reais são `clubs:titles:<id>` e `clubs:byId:<id>`; carrossel = `champions:<gender|all>`). A invalidação foi considerada suficiente porque `champions:all` foi deletada, as chaves de titles/byId **não estavam presentes** e a **API respondeu fresca** (3 títulos). **Regra:** antes de declarar cache invalidado, fazer **inventário real via `SCAN`/patterns do serviço**; **nunca** `FLUSHALL`/`FLUSHDB`; documentar a **chave exata + TTL** no round que tocar cache.
+- **[2026-09-24 · T448b-2b GATE PROD] Fila atualizada:** piloto **MG 2023–2025 ATIVO em produção** (3 arestas WON estaduais RSSSF, proveniência completa, idempotência/restore validados). Próximo: **T448b-2e** (atribuição/metodologia, se necessário) → **T448b-2c** (outros estados) → **T448b-2d** (municipal) → T449b/c → T450 → T451.
+- **[2026-09-25 · T448b-2b #198] Proveniência se testa CONTRA O DB, não só contra o candidate.** O writer v1 gravava `sourceUrl/authorCredit/licenseText` mas descartava `candidate.retrievedAt` (usava `importedAt`) — passou em dry-run/pack mas o **gate SQL** (`missing_provenance`) abortou em produção. Todo campo de proveniência exigido por gate **precisa de teste de integração que assevere presença no `knowledge_graph`** (Postgres real). Rollback lógico (`metadata.deletedAt`) + read-filter funcionaram e são o padrão de reversão; restore idempotente só para reasons de rollback do próprio piloto.
+- **[2026-09-25 · T448b-2b #197] Ingestão containerizada nunca depende de `tests/`.** Scripts que rodam em produção (`node dist/scripts/*.js`) devem ler dados de **dentro de `src/`** (ou `prisma/`) — o Dockerfile copia esses diretórios, **não** `tests/`. Antes de prometer um gate de produção, validar `COPY` do Dockerfile × imports/paths relativos do script (ex.: `resolve(here,'../../tests/...')` = ENOENT no container). Padrão adotado: **pack congelado em `src/.../data/*.json`** + **validação Zod + fail-fast** + build que **emite o asset ao `dist/`** (`resolveJsonModule` + import `with { type:'json' }`). DRY/rolled-back é read-only e pode ser permitido em produção; a trava (`--allow-production`) fica **só no `--apply`**.

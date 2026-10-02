@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: almanaque-api
+    metrics_path: /api/v1/metrics
+    static_configs:
+      - targets: ['api:3000']
+
+rule_files:
+  - /etc/prometheus/alerting.yml
