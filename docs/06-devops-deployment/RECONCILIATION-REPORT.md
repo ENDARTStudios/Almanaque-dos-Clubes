@@ -1,0 +1,1481 @@
+# RECONCILIATION-REPORT.md — Reconciliação do PLANO_MESTRE (T381)
+
+> Auditoria do `../PLANO_MESTRE.md` contra as tarefas T3xx executadas e o estado
+> real do repositório. Fase F14-reconciliacao-plano, 2026-08-27.
+
+## 1. Metodologia
+
+Cada item do plano foi cruzado com: (a) tarefas T3xx executadas (com commits),
+(b) arquivos reais no repositório, (c) comandos de verificação quando
+executáveis localmente. Marcação: `[x]` somente com evidência real; `[~]` com
+gap documentado; `[ ]` sem evidência/não iniciado.
+
+## 2. Estado real (números)
+
+| Marcação | Contagem |
+| -------- | -------- |
+| `[x]`    | 111      |
+| `[~]`    | 7        |
+| `[ ]`    | 6        |
+
+> **Correção de premissa:** o handoff citava "~80 itens `[ ]`". O arquivo real
+> tem **6 `[ ]`** e **7 `[~]`**. O débito de governança é bem menor do que o
+> alegado — o plano já estava majoritariamente fechado (T001/T002/T003).
+
+## 3. Mapeamento T3xx → Fase (principais)
+
+| T3xx                | Fase/Item               | Efeito no plano                                               |
+| ------------------- | ----------------------- | ------------------------------------------------------------- |
+| T341/T342           | Fase 3 (auth), Fase 6.2 | mailer transacional + verificação de email + reset via mailer |
+| T344/T345/T377      | Fase 2/3 (sessions)     | RLS de `sessions` desenhada e validada em teste (aditivo)     |
+| T347/T348/T349      | Fase 4 (domain)         | reconciliação docs + quarentena de `uml.ts`/`rbac-matrix.ts`  |
+| T350/T351/T366/T368 | Fase 9.4                | Root Directory Vercel + deploy web destravado                 |
+| T359                | Fase 2 (billing)        | coluna `trial_used_at` + migration                            |
+| T370/T371           | Fase 2/3 (sessions)     | `rls-context.ts` + adoção `withRlsContext`                    |
+| T373/T374/T375/T378 | Fase 9.1                | CI: fix Redis + oracle + gitleaks + dependency-audit          |
+| T376/T380           | Fase 9.4                | merges via exceção governada; produção verde                  |
+| T379                | Fase 9.9                | `../07-operations-marketing/MANUAL_DO_OPERADOR.md` reescrito  |
+
+## 4. Itens `[ ]` (6) — status
+
+| Item                                                           | Status real                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 2.7 Tabelas de governança (`data_sources`, `entity_revisions`) | ❌ não existem no schema; "rankings auditáveis" depende de ETL futuro      |
+| 2.10 Criptografia a nível de coluna                            | ❌ não implementada (condicional a Vault/Infisical)                        |
+| 7.9 Vault/Infisical (CONDICIONAL)                              | ❌ não implementado                                                        |
+| 7.10 DNSSEC + CAA + HSTS preload (CONDICIONAL, domínio)        | ❌ pendente de domínio próprio                                             |
+| 9.3 Deploy blue-green/rolling (zero downtime)                  | ❌ pendente (deploys atuais são recriação simples)                         |
+| 9.4 Plataforma de deploy (decidir)                             | ✅ **DECIDIDA** — Railway (API) + Vercel (web), em produção → propor `[x]` |
+
+## 5. Itens `[~]` (7) — status
+
+| Item                       | Estado real                                               |
+| -------------------------- | --------------------------------------------------------- |
+| Fase 2 (resumo 13/15)      | 2.7/2.10 seguem pendentes                                 |
+| 3.9 Testes de integração   | escritos; rodam em CI quando o Actions voltar (Caminho A) |
+| Fase 7 (resumo)            | 7.9/7.10 condicionais                                     |
+| Fase 9 (resumo)            | 9.4 decidida; 9.3 pendente                                |
+| 8.3 E2E (Playwright)       | 5/5 passando (T003); execução manual                      |
+| 8.8 Regressão de segurança | CI configurado; expandir cenários                         |
+| 8.9 Testes pipeline IA     | pendente (Ollama/pgvector operacional)                    |
+
+## 6. Gaps consolidados (candidatas, NÃO executadas)
+
+1. **2.7** — criar `data_sources`/`entity_revisions` se o Operador quiser
+   "rankings auditáveis" completos.
+2. **2.10/7.9** — adotar Vault/Infisical para criptografia de coluna.
+3. **7.10** — DNSSEC/CAA/HSTS preload após domínio próprio.
+4. **9.3** — deploy blue-green/rolling.
+5. **8.8/8.9** — expandir regressão de segurança + pipeline IA.
+6. **Caminho A** — restaurar GitHub Actions (billing) para reativar o CI como
+   gate real; **revogar o token antigo** (pendência do Operador).
+7. **FORCE RLS em produção** — gateado por `D-2026-08-24-rls-enforcement-exige-app-user`
+   (conexão `app_user` + staging verde + decisão do Operador).
+
+## 7. Conclusão
+
+O projeto está **funcionalmente completo** para os marcos Beta/Open Beta: todas
+as Fases obrigatórias (0–9) estão `[x]` ou `[~]` com gaps pequenos e
+documentados. As pendências restantes são: 2 itens de dados/segurança
+condicionais (2.7/2.10), 2 condicionais de hardening (7.9/7.10), 1 de deploy
+avançado (9.3), e a reativação do CI (account-level) — todas decisões do
+Operador, não trabalho de implementação.
+
+---
+
+## 8. Snapshot T436 — WS-L 1ª camada (2026-09-15)
+
+Atualização do snapshot M1 após o fechamento do T436 (cookie banner +
+consentimento + páginas legais), referente a
+`D-2026-09-15-t436-fechamento`.
+
+### Critérios técnicos do M1 — 6/6 atendidos
+
+| Critério                                | Status                                                          |
+| --------------------------------------- | --------------------------------------------------------------- |
+| Seed ≥ 1.000 clubes                     | ✅ 3.857 em produção (T429)                                     |
+| Mapa-múndi read-only                    | ✅                                                              |
+| Perfis clube/jogador                    | ✅                                                              |
+| Busca global                            | ✅                                                              |
+| Hero dinâmico (1.3)                     | ✅ (T435)                                                       |
+| Cookie banner + consentimento publicado | ✅ estrutura completa (T436) — ver pendência de ativação abaixo |
+
+### Pendência única (externa, decisão do Operador)
+
+A ativação em produção segue gateada por
+`D-2026-09-14-ws-l-gated-by-operator`: as feature flags
+`LEGAL_PAGES_ENABLED`/`COOKIE_BANNER_ENABLED` (default OFF, comportamento
+default verificado em build de produção — páginas legais 404 e sem banner) só
+são ligadas em produção **após o merge**, via runbook do Operador
+(`vercel env add ... production true` + redeploy + smoke). O escopo **preview**
+já recebeu as flags (envs de preview) para aceitação; produção está intocada.
+
+**Consequência:** M1 permanece formalmente NÃO declarado até o smoke da
+ativação chegar verde. Nenhum trabalho de implementação pendente para o
+critério de cookie banner/páginas legais.
+
+### Evidências (docs/06-devops-deployment/evidence/t436/)
+
+- `banner-home.png` / `banner-search.png` — banner com 3 botões de mesmo
+  destaque (same-visual-weight também assegurado por teste E2E de computed
+  styles).
+- `banner-preferences.png` — centro de preferências granular (sem checkbox de
+  categoria necessária).
+- `page-privacidade.png` / `page-termos.png` / `page-cookies.png` /
+  `page-seguranca.png` — páginas legais com dados reais (fornecedores,
+  inventário de cookies, referência a /planos, medidas de segurança) em pt-br
+  (en-us/es-es via seletor de idioma).
+- `../consent-loader-tests.txt` — 4/4 testes unitários do script loader
+  (analytics/marketing bloqueados sem consentimento; necessários sempre).
+- `../flags-off-default.txt` — comportamento default em build de produção.
+- Testes: integração API 8/8 (`POST/GET /consent`, CSRF, IP como hash);
+  E2E 11/11 (banner → gerenciar → salvar → prova; persistência; páginas 200).
+
+---
+
+## 9. Snapshot T438 — M2 iniciado: Rankings 0-100 em cron (2026-09-15)
+
+Pipeline de Rankings 0-100 ATIVO (`D-2026-09-15-t438-rankings-cron`, PR #107):
+cron BullMQ diário 03:00 UTC no processo da API (`RANKING_CRON_AUTO=1`,
+deploy `8058f8f4`), job idempotente com guarda anti-ranking-vazio, filtro por
+gênero (bug latente do T425 corrigido), CLI compilada em dist, métricas
+`rankings_last_run_*` em /metrics, endpoints públicos com paginação cursor e
+página /rankings real com filtros (E2E 3/3 em produção).
+
+Honesto: matches=0 e wonEdges=0 em produção — o cron roda, registra
+"ranking vazio — não publicado" e só publicará quando houver clubes
+ranqueáveis (ETL de partidas/títulos, janela M4). Rankings exibidos hoje
+vêm do seed manual (2 rankings, 20 entradas).
+
+---
+
+## 10. Snapshot T439 — M2 2/4: Favoritos em tempo real (2026-09-15)
+
+Favoritos ativos (`D-2026-09-15-t439-favorites`, PRs #109–#113): model com
+soft-delete + índice parcial único; RLS owner-only FORCE com matriz cross-user
+verde no CI (como `app_user`); API idempotente com rate-limit por usuário;
+`/ws` corrigido (ticket curto single-use substitui userId anônimo por query;
+CSP `connect-src` agora permite `wss://`); frontend com `FavoriteButton`
+(otimista, `aria-pressed`) e painel `/favoritos` com badge de ranking e
+indicador "Ao vivo" — E2E cross-user verde em produção.
+
+Gaps de produção corrigidos no mesmo ciclo: `GET /auth/me` inexistente
+(ProtectedRoute quebrado para qualquer página protegida), GRANT `app_user`
+da tabela nova (regra grants), CSP `wss://`.
+
+M2: rankings ✅ (T438) · favoritos ✅ (T439) · comparadores ⏳ (T440) ·
+carrossel ⏳ (T441). T437 (rotação `app_user`) em paralelo.
+
+---
+
+## 11. Snapshot T440 — M2 3/4: Comparadores (2026-09-16)
+
+Comparadores ativos (`D-2026-09-16-t440-comparators`, PRs #115+#116):
+`/compare/clubs` e `/compare/players` com validação Zod, cache Redis 5min e
+métricas auditáveis (títulos por hierarquia via KnowledgeGraph, histórico de
+rankings, fundação, estádio representativo); frontend `/compare` com
+autocompletes, tabela com líder por métrica, gráficos recharts acessíveis,
+deep-link com SEO dinâmico; E2E 4/4 contra produção (seleção por autocomplete,
+deep-link, mobile, teclado).
+
+Honesto: títulos em produção = 0 (WON edges vazios) e métricas de
+partidas/gols `null` com reason — preenchidos automaticamente quando o ETL M4
+chegar. M2: rankings ✅ · favoritos ✅ · comparadores ✅ · carrossel ⏳ (T441).
+
+---
+
+## 12. Snapshot T441 — M2 COMPLETO 4/4 (2026-09-16)
+
+Carrossel de campeões ativo (`D-2026-09-16-t441-champions-carousel`, PR #118):
+`GET /champions` por hierarquia (KnowledgeGraph WON, ano mais recente, cache
+1h, honestidade 1.3) + carrossel scroll-snap CSS puro na home com teclado,
+dots e aria-live. Em produção o estado é honestamente vazio (wonEdges=0) e
+os cards aparecem automaticamente quando o ETL M4 popular títulos.
+
+**M2 — Beta Fechada (engajar): COMPLETO (4/4)**
+
+- T438 rankings 0-100 em cron ✅
+- T439 favoritos em tempo real ✅
+- T440 comparadores ✅
+- T441 carrossel de campeões ✅
+
+Fila pós-M2: M3 (gateway — Operador) · T437 (rotação app_user) · WS-S/WS-O.
+
+---
+
+## 13. Snapshot T442 — WS-S: RLS em users (2026-09-16)
+
+`users` sob ENABLE+FORCE RLS (`D-2026-09-16-t442-rls-users`, PR #120):
+owner select/update, INSERT com id gerado no servidor + WITH CHECK, sem
+DELETE (soft-disable), SERVICE pleno, função SECURITY DEFINER para os
+lookups pre-auth por email. Matriz cross-user verde no CI (como app_user);
+aplicado em produção com smoke verde (register/login/me/health). O gap de
+segurança mais alto do premortem está fechado.
+
+Fila: T437 (rotação app_user) · T443 (WS-O) · M3 (gateway — Operador).
+
+---
+
+## 14. Snapshot T437 — Credencial app_user rotacionada (2026-09-16)
+
+Rotação com papel duplo (`D-2026-09-16-t437-rotacao-app-user`): v2 criada com
+grants idênticos (script parametrizado via sed remoto + GRANT EXECUTE),
+`DATABASE_URL_APP` trocada com redeploy, smoke completo verde (health/
+register/login/me/favoritos 200), corte do papel velho (zero conexões em
+pg_stat_activity, REASSIGN/DROP/RENAME) e segundo redeploy com smoke final.
+Encerra o incidente de credenciais ecoadas (postgres em 09-15, app_user agora).
+Registro honesto: mismatch de senha entre chamadas derrubou a API por ~8min
+(fail-fast do entrypoint funcionou); correção via ALTER ROLE no container do
+Postgres + variável + redeploy.
+
+Fila: T443 (WS-O: backup diário 30d + alertas + uptime) · M3 (gateway —
+Operador) · T444 (checkout provider-agnostic).
+
+---
+
+## 15. Snapshot T443 — WS-O: confiabilidade de produção (2026-09-16)
+
+- **Deploy seguro**: healthcheck gate no `../railway.json` (tráfego só troca após
+  /health passar) + `./PRODUCTION_DEPLOY.md`. Teste de fogo: replay do modo
+  de falha do T437 → deployment novo FAILED isolado, produção 200 em toda a
+  janela (evidência: docs/06-devops-deployment/evidence/t443/fire-test.md). Gap 9.3 (deploy sem
+  fallback) deixa de ser teórico.
+- **Backup diário automatizado**: `backup.yml` (04:00 UTC, artifact privado
+  30d) via `POST /admin/backup` (x-backup-secret) — JSON auditável sem
+  passwordHash/sessions. Backup real: 200, 3.2MB, artifact expira 2026-10-17.
+- **RESTORE DRILL executado**: pg_dump in-container → restore_drill → counts
+  idênticos (clubs 3857 · players 2396 · users 39 · rankings 2) → DRILL-OK.
+- **Alertas**: `alerts.yml` 5min — health (uptime externo), 5xx e auth
+  failures (deltas com cache), rankings-stale (warn se gauge zerado pós-
+  redeploy). Canal: e-mail de falha do GitHub Actions.
+- **FASE 0**: re-rotação do `app_user` sob a regra no-echo (ALTER in-container
+  via stdin, sem eco; redeploy SUCCESS + health 200).
+
+Fila: T444 (checkout provider-agnostic) · M3 (gateway — Operador) ·
+WS-L 2ª camada (processo titular/DMCA) · M5 (Loki/Grafana, Vault).
+
+---
+
+## 16. Snapshot T446 — WS-O: backup remoto R2 + restore drill (2026-09-17)
+
+Backup remoto ATIVO e RESTAURÁVEL (`D-2026-09-17-t446-backup-silencioso`,
+PRs #128+#129+#130+#131+#132+#133+#134): pg_dump format custom → R2 via
+spawnSync/env (credencial nunca em argv); auto-validação (clubs=0 aborta);
+HEAD pós-upload; postgresql-client-18 via PGDG repo no Dockerfile; drill
+in-container com counts idênticos. O incidente do backup vazio (tsvector
+P2010 engolido por catch silencioso) provou que o drill é o único controle
+que pega backup mentiroso — drill semanal automatizado (workflow).
+Fila: T445 (WS-L 2ª camada) · M3 gateway (Operador) · T447 (Stripe test-mode).
+
+---
+
+## 17. Snapshot T445 — WS-L 2ª camada: direitos do titular + copyright claims (2026-09-18)
+
+`D-2026-09-18-t445-direitos-titular` (PR #137, CI verde, F1–F5):
+
+- **API**: `POST/GET /privacy-requests` (token de acompanhamento p/ não-usuários,
+  SLA imediato/15d ANPD, deferredUntil art. 18 §3, cadeia ESTRITA auditada,
+  decisão motivada obrigatória) + `POST /copyright-claims` (honeypot +
+  rate-limit 5/h) + admin `users:manage` com transições. Fulfillment de
+  eliminação: anonimização + revogação de sessões; workflow e financeiro
+  preservados — soft-delete SEMPRE (sem rota DELETE).
+- **UI**: `/direitos-titular` + `/direitos-autorais` (gate LEGAL_PAGES_ENABLED),
+  rodapé com 2 links, políticas v1.1 com links cruzados e histórico de
+  versões, i18n pt/en/es (Dictionary type prova paridade).
+- **Testes**: 12 de integração reais no CI (postgres) + E2E manual em preview
+  (protocolo → status → atendimento; honeypot descarta com 0 registros;
+  409 em atalho; transições auditadas).
+- **Regras novas**: `D-2026-09-18-testes-sem-skip-silencioso` (R1:
+  TEST_REQUIRE_DB=true no CI — guard dbOk lança em vez de pular; 8 arquivos)
+  e `D-2026-09-18-fixtures-escopados` (R2: temporada 2038 isolada + cleanup
+  scoped — flake rankings-read×ranking-algorithm eliminado).
+- **Achados de infra**: provisionamento fresh via `migrate deploy` é
+  impossível (3 migrations de julho criam as mesmas tabelas) — workaround de
+  baseline+mark-applied usado no preview; candidato a squash/DR no M3.
+  Dockerfile normaliza CRLF do entrypoint (checkouts Windows quebravam shebang).
+
+Fila: T447 merge (#138, 6 fixes do T444 + e2e aprovado) · Operador:
+STRIPE_PRICE_* prod = price_live (hoje prod_ → 500) + FASE 5 keys live +
+compra/estorno real · políticas v1.2 (Stripe no compartilhamento) · M3.
+
+---
+
+## 18. Snapshot T452/T453 — logout efetivo + histórico de cobranças (2026-09-20)
+
+Uso real (primeiro cliente pagante) endureceu a borda final: (1) **logout** — forense
+provou revogação server-side e limpeza de cookies corretas desde sempre; o sintoma
+era o **indicador de sessão inexistente no client** (navbar "Entrar" hardcoded) →
+T450/#145 (AuthProvider fonte única + menu do usuário). (2) **histórico +
+transparência** → T453: painel lista billings owner-scoped (valor/moeda, status,
+externalId) + bloco permanente de condições de reembolso (CDC art. 49, prazo do
+adquirente, canal) em pt/en/es. (3) **estorno fail-loud** → T451/#146: refund real
+antes de REFUNDED local (incidente do "Feito." mentiroso resolvido na raiz;
+`D-2026-09-20-refund-fail-loud`). Anti-duplicidade verificada: exatamente 1 refund
+live (re_3UHZeZ…, succeeded, R$9,90). Pendência de provider: e-mail transacional
+(Operador escolhe SMTP/Resend; protocolo na tela cumpre Termos 3.5 até lá).
+Fila: re-teste do loop CDC no painel com o código final (Operador) · **M3** · M4.
+
+---
+
+## 19. Snapshot T457 — cadeia de sessão sempre assenta (2026-09-20)
+
+`D-2026-09-20-sessao-sempre-assenta` (PR #151): P0 de navegabilidade — 3 navegadores
+travados em "Verificando sessão…" por 429 do rate-limit global (IP compartilhado) +
+semântica do T455 que mantinha loading em não-401. Hotfix: qualquer HTTP assenta
+(401/403/429/5xx → anon navegável) + teto de 8s (AbortController). Postmortem da
+saga: uma causa, cinco sintomas (T455 pill, área indisponível, não-desloga, login
+sem renderizar, inavegável). Pendências: bucket próprio p/ auth endpoints
+(Operador/config) · e-mail transacional (provider).
+
+---
+
+## 21. 🎉 M3 — Open Beta (monetizar) — DECLARADO (2026-09-21)
+
+Stripe LIVE + checkout + webhook HMAC idempotente + assinatura funcional +
+CDC art. 49 (estorno real com fail-loud) + compliance completo (T445 +
+políticas v1.2) + smoke live verde. Compra real Pro R$4,90 + estorno pelo
+painel com protocolo re_3UHwb… Saga de sessão fechada (oito PRs, uma causa
+por camada — postmortem no PLANO_MESTRE). PRs #127–#155. Fila: M4 (conteúdo
+WS-D) · pendências: SMTP, currentPeriodEnd anual, audit-events, bucket
+próprio p/ auth rate-limit.
+
+---
+
+## 22. Snapshot T448 — WS-D: arestas WON no Knowledge Graph (2026-09-22)
+
+**Escopo executado (dispatch refinado pós-FASE 0):** conector de conquistas estendendo o padrão
+Wikidata do acervo (SPARQL + retry/backoff + dedup + proveniência + Zod), idempotência por
+`(competitionId, seasonYear, clubId, WON)`, validação de dado por contagem POR HIERARQUIA +
+spot-check independente + gap declarado, efeito de produto (carrossel/galeria/comparador) e
+reconciliação no mesmo PR.
+
+### Critérios de aceite — evidência por linha
+
+| Critério                                  | Evidência                                                                                                                                           | Veredito      |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Arestas WON com proveniência 100%         | 235/235 com `metadata.{dataSource='wikidata', sourceUrl=URL da EDIÇÃO, license='CC0', importedAt}` (integração confere campo a campo)               | ✅            |
+| Contagem POR HIERARQUIA antes/depois      | antes `0×5`; depois `235` = continental 40 + nacional 195 (tabelas no output do script)                                                             | ✅            |
+| Spot-check 20 com veredito por linha      | re-busca da EDIÇÃO via `Special:EntityData` (não confia no pipeline): P1346=vencedor ∧ P3450=mãe ∧ ano ∈ P585/P580/P582 → **20/20 OK**              | ✅            |
+| Re-run idempotente                        | 2ª rodada completa: `0 criar · 235 skip · 0 atualizar`; `count(*)` estável                                                                          | ✅            |
+| Gap medido e reportado (não limado)       | 277 gaps: mundial 17 · continental 18 · nacional 242; top mães ausentes listadas com QID (FA Cup, Ligue 1, Coppa Italia, FIFA Club World Cup…)      | ✅            |
+| Carrossel com campeão real + link + fonte | `/champions` ao vivo: PSG (UEFA Champions League, fonte `Q124024430`) · Arsenal (Premier League, fonte `Q132674557`); fonte = link Wikidata no card | ✅            |
+| CI verde real (R1) + tsc/lint/prettier 0  | tsc api/web 0 erros; eslint 0 erros nos arquivos do PR; CI roda no PR                                                                               | ✅ (CI no PR) |
+| Estado Final corrigido (duas camadas)     | PLANO_MESTRE: identidade=ALTA (T429) · conquistas=PARCIAL com gap declarado; "dados 1%" aposentado                                                  | ✅            |
+| R2 — sem corrida/estado compartilhado     | fixture com ano 1901 (não desbancra T441); contagens escopadas ao fixture; leitura congelada testada com prisma mockado                             | ✅            |
+
+### Onde o dado foi buscado e onde vive
+
+- **Fonte:** Wikidata SPARQL (CC0), janelas de 5 anos (1870→ano corrente), User-Agent identificado,
+  retry/backoff via `http-resilience`. Query validada ao vivo (forma union-first + filtro nativo de
+  dateTime; label service em query separada — 504/431 medidos e contornados, chunk 200).
+- **Prova executada no corpus-piloto LOCAL (declarado):** 12 competição-mães mais frequentes dos
+  candidatos reais 2005–2026 + 101 clubes vencedores, no Postgres docker da máquina
+  (`almanaque-postgis-test`). Motivo honesto: esta máquina NÃO alcança o Postgres de produção
+  (`postgres.railway.internal`, sem Railway CLI) e o dump do repo é só estrutura
+  (`prisma/baseline/prod-structure-*.sql`). Gap/counts são funções do corpus em que o script roda.
+- **Bug encontrado e corrigido durante a validação:** UNION sobre P585/P580/P582 fazia temporada
+  cross-year (ex. 2. Bundesliga 2022-23) virar DOIS títulos → colapso `uma edição = um ano`
+  (ano inicial) — 424→235 no piloto; testes unit + integração cobrem.
+
+### 📋 RUNBOOK DO OPERADOR — rodada de produção (T448, ~20-40 min)
+
+```bash
+# No Railway (ambiente da API de produção), uma única vez:
+pnpm --filter @almanaque/api exec tsx scripts/ingest-won-edges-wikidata.ts --apply
+# Dry-run antes (não grava, mostra plano + gap):
+pnpm --filter @almanaque/api exec tsx scripts/ingest-won-edges-wikidata.ts
+# Opcionais: --min-year=1870 --max-year=<ano atual> --spot-check=20
+
+# Reversão (dados importados são aditivos e reversíveis por proveniência):
+# DELETE FROM knowledge_graph WHERE relation='WON' AND metadata->>'dataSource'='wikidata';
+
+# Pós-rodada: cache de campeões (chave champions:*) expira em 1h sozinho,
+# ou reinicie a API para invalidar. O carrossel e a galeria acordam sozinhos.
+```
+
+Espera-se em produção: órbita de ~15-25k candidatos (universo completo do futebol em Wikidata),
+criação limitada pelos 1.263 mothers + 3.857 clubes do acervo, gap material para o T448b.
+Job recorrente: `POST /admin/etl/ingest/wikidata-titles` (admin) ou cron no T451.
+
+Regras permanentes: + **R3-t448-dispatch-ancora-em-query** (dispatch ancora em query, não em documento).
+
+### GATE 1 — Rodada de PRODUÇÃO executada (2026-09-21, mesma sessão do #159)
+
+**Passo 0 (R3):** o #159 estava OPEN e o container de produção rodava `f9fcabb` (#158) — o script não
+existia no servidor. Resolvido na ordem: merge #159 → o auto-deploy Railway EXISTE (dispara no merge) mas
+falhou 2× por dois defeitos reais que o CI não pega (na Actions o repo inteiro é checkoutado; o build
+Docker não): (1) builder sem `apps/api/scripts` → TS2307 no import de `src`→`scripts` (#160); (2) com
+`scripts/` no grafo do tsc o rootDir inferido migra e o output vira `dist/src/server.js` → boot sem
+módulo → healthcheck falha (#161 — helper movido para `src/lib/` com shim em `scripts/lib/`). Terceira
+camada: a imagem não tem `apps/api/src`, então o script migrou para `src/scripts/` (padrão T430) e roda
+compilado com `node` puro (#162). Deploy final verificado por fingerprint: `RAILWAY_GIT_COMMIT_SHA =
+7fda267` + rota nova `GET /clubs/:id/titles` respondendo com o handler do T448.
+
+**Números reais de produção (acervo 3.857 clubes · 1.263 competições):**
+
+| Métrica                                                           | Valor                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fetch (janela 1870–2026, 32 janelas)                              | 17.470 linhas · **13.436 candidatos únicos** · 217s                                                                                                                                                                        |
+| Arestas WON criadas                                               | **2.809** (nacional 2.808 · continental 1) — ANTES 0                                                                                                                                                                       |
+| Gap de mãe ausente (input T448b)                                  | **2.832** (mundial 16 · continental 286 · nacional 2.530)                                                                                                                                                                  |
+| Órfãos (vencedor fora do acervo — seleções/clubes não importados) | 7.795                                                                                                                                                                                                                      |
+| Re-run idempotente (janela 2005–2026)                             | `1.087 skip · 17 criar · 2 atualizar` — grafo vivo do Wikidata (claims novas/editadas entre rodadas); **zero duplicação**: total evoluiu exatamente +17 (2.809→2.826), duplicados por (clube,competição,ano) = **0** no DB |
+| Proveniência                                                      | **2.826/2.826 (100%)** com dataSource=wikidata + license=CC0 + sourceUrl da EDIÇÃO                                                                                                                                         |
+| Spot-check independente                                           | **20/20 OK** (re-busca da EDIção: P1346 vencedor + P3450 mãe + ano)                                                                                                                                                        |
+| Carrossel vivo                                                    | `/champions` respondendo campeões reais com fonte Wikidata por card                                                                                                                                                        |
+
+**Top mães ausentes (T448b):** Q15804 (124) · Scottish Cup (102) · **Campeonato Carioca (85)** ·
+Coppa Italia (73) · Norwegian Cup (69) · Scottish League Cup (69) · FA Cup (66) · Copa del Rey (65) ·
+DFB-Pokal (60) · UEFA Champions League (54) · **Copa Libertadores (51)** — copas nacionais/continentais
+e estaduais são o grosso do gap (o corpus tem 893 LEAGUE e quase nenhuma COPA).
+
+**Achado de produto (para o Thinker):** com 2.825 arestas "nacionais" de ligas do mundo inteiro, o
+desempate do campeão vigente por ano-mais-recente empata com frequência (vários 2025) e a ordem de
+iteração decide — produziu Elitettan (2ª divisão sueca feminina) como campeã nacional no ar. É
+determinístico e auditável, mas a QUALIDADE da escolha pede tie-break de produto (ex.: peso da liga /
+competições principais) — candidato a refinamento no T448b/T465.
+
+**Comando de produção (uma linha, Console Railway do serviço `Almanaque-dos-Clubes`):**
+
+```
+cd /app/apps/api && node dist/scripts/ingest-won-edges-wikidata.js --apply --spot-check=20
+```
+
+### GATE 2 — T448c (tie-break) + T448b-1 (copas) em produção (2026-09-21, PRs #164/#165)
+
+**T448c — tie-break determinístico do carrossel.** Defeito de apresentação: com 2.825 arestas
+"nacionais", o desempate ano-mais-recente empataba (vários 2025) e a ordem do `findMany` decidia —
+Elitettan (2ª divisão sueca feminina) exposta como campeã nacional. Critério escolhido após
+REPROVAR os proxies sugeridos contra o dado real: "mais edições" elegeria Campeonato Paulista
+(estadual congelado como nacional, arquivo parado em 2020) e "mais campeões distintos" elegeria
+Serie B (paridade de divisão de acesso). Adotado: **vigência → edições → campeões distintos →
+nome asc → id asc** (comparador total; seleção nunca lê gênero; unit embaralha a entrada para
+provar independência de ordem; resposta expõe `editions` para auditoria). Verificação viva:
+fingerprint `c95e4d3` + invalidação de cache + nacional = **PSG | Ligue 1 | 2025 | 75 edições**,
+estável entre chamadas. Unit 10/10.
+
+**T448b-1 — mães-COPA semeadas + WON re-rodado.** Classe de copa validada AO VIVO (P31 das mães
+reais do gap): Q8463186 national cup · Q1824674 league cup · Q34262807 super cup · Q34542757
+international clubs cup · Q123856943 club world championship + fallback por rótulo (Coppa Italia e
+Libertadores estão com classe genérica no Wikidata). 300 mães-copa semeadas
+(`importedFrom='wikidata-cups'`, type='CUP'; 1.263 → 1.563 competições; spot-check 10/10).
+
+| Métrica                                                  | Antes | Depois                                                                               |
+| -------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------ |
+| Arestas WON totais                                       | 2.826 | **5.157**                                                                            |
+| Mundial                                                  | 0     | **16** (Real Madrid, FIFA Club World Cup na vitrine)                                 |
+| Continental                                              | 1     | **268** (PSG, UEFA Champions League 2025 na vitrine)                                 |
+| Nacional                                                 | 2.825 | 4.873                                                                                |
+| Gap de mãe ausente                                       | 2.832 | **514** (mundial **0** · continental 20 · nacional 494 → T448b-2)                    |
+| Zero duplicação (GROUP BY clube+competição+ano HAVING>1) | —     | **0**                                                                                |
+| Proveniência (dataSource+CC0+sourceUrl da edição)        | —     | **5.157/5.157 (100%)**                                                               |
+| Re-run idempotente (2005–2026)                           | —     | `2.051 skip · 13 criar (claims novas do grafo vivo) · 3 atualizar` — zero duplicação |
+| Spot-check independente                                  | —     | 20/20 arestas + 10/10 mães-copa                                                      |
+
+**Cache:** invalidação por padrão (`cache.invalidate('champions:*')`) falhou silenciosamente 2× —
+`DEL` com chave exata resolveu; invalidação efetiva do carrossel pós-ingestão deve usar DEL por
+chave exata ou aguardar TTL de 1h (correção estrutural candidata: logar falha de Redis em vez de
+engolir — follow-up).
+
+**Nuance de dado declarada:** o card nacional passou por Johan Cruijff Shield 2026 (edição
+futurada com vencedor pré-atribuído no Wikidata) — consequência legítima do critério de vigência
+sobre dado da fonte; documentado como refinamento (ex.: desconsiderar edições futuras) quando o
+critério for revisado com T449.
+
+### GATE 2 adendum — T448d: guarda de vigência + cache fail-loud (2026-09-21, #164-#167 na sequência)
+
+**Correção de registro (R3 contra o próprio relato):** a query de produção de TODAS as arestas com
+`year > current_year` retornou **0 linhas** — o "universo futuro" estava vazio; a aresta do Johan
+Cruijff Shield tem `year=2026` (ano corrente; a edição de agosto/2026 já foi disputada). O card
+nacional atual é dado real do ano corrente — não "campeão do futuro". A guarda implementada
+(`selectRepresentatives` descarta `year > currentYear` UTC, calculado no momento) protege a CLASSE:
+pré-atribuições de 2027+ deixam de virar "vigente" a partir de janeiro/2027.
+
+**Cache fail-loud:** `cache.invalidate` agora retorna `CacheInvalidationResult {ok, keysDeleted,
+error?}` e loga warn no próprio módulo (12 call sites ganham visibilidade sem churn). Anti-padrão
+nomeado (3ª instância): catch silencioso em caminho de escrita/invalidação = logout-400 (#156) +
+refund-skip (#146) + cache-stale (este). Testes com Redis mockado lançando em `keys` e `del` →
+`ok:false` + warn chamado. Operação pós-ingestão: DEL com chave exata (`DEL champions:all`).
+
+Evidência: unit 14/14 tie-break (incl. guarda com `currentYear` injetável — sem relógio no teste) +
+4/4 cache fail-loud + 24/24 won-edges; query R3 de futuros = 0 linhas; live verify pós-deploy com
+`generatedAt` fresco e DEL exato das chaves champions (men/women/all).
+
+### GATE 2 adendum 2 — T448e: representante nacional = LEAGUE, não supercopa (2026-09-21, #164-#168 na sequência)
+
+**FASE 0 (R3):** types em produção: LEAGUE 893 · CUP 301 · nulo 368; competições COM arestas WON:
+LEAGUE 218 · CUP 183 · **nulo 18** — as 18 eram ligas reais (Allsvenskan 75 ed, Eliteserien 50,
+Scottish Premiership, 2. Bundesliga, Elitettan, VFF CL…) → backfill idempotente
+`type='LEAGUE'` executado ANTES da regra (0 nulas restantes com aresta; proveniência preservada).
+Spot-check: Eredivisie=LEAGUE, Johan Cruijff Shield=CUP.
+
+**Cards antes/depois (Holanda):** antes = AZ Alkmaar | Johan Cruijff Shield | 2026 (CUP);
+depois (alvo) = campeão da Eredivisie (LEAGUE) — critério: **tipo (LEAGUE→CUP→NULL) → vigência →
+edições → campeões → nome → id**. Nenhum país perde representante: hierarquia só com CUP segue
+representada pela CUP.
+
+**Regra de processo (3ª ocorrência):** commit nasce NA branch do PR; se caiu na main local,
+`reset --hard origin/main` antes de tudo; stash alheio preserva-se. DECISOES
+`D-2026-09-22-regra-processo-branch`.
+
+### GATE 2 adendum 3 — T448f: type-first CONDICIONAL por grupo de flagship (2026-09-22, #169 na sequência)
+
+O checkpoint FASE 3 do T448e expôs a interação nº 4: type-first GLOBAL derrubou a UCL (CUP, 2025,
+54 ed) abaixo da VFF Champions League (LEAGUE, 2012, 1 ed — liga nacional de Vanuatu miscategorizada
+como continental pelo keyword do nome, congelada na escrita). Arbitragem do Thinker: **type-first só
+onde a liga é flagship**.
+
+**Mapeamento REAL de `RANKING_HIERARCHIES` (lido do fonte, conjunto completo):**
+
+| Hierarquia                    | Grupo                        | Comparador                                                             |
+| ----------------------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| nacional, estadual, municipal | GRUPO-LIGA (flagship = liga) | **tipo (LEAGUE>CUP>NULL) → vigência → edições → campeões → nome → id** |
+| mundial, continental          | GRUPO-COPA (flagship = copa) | **vigência (guarda T448d) → edições → campeões → nome → id**           |
+
+Fora do mapa (futuro do enum): default GRUPO-COPA, registrado (nunca em silêncio). Backfill de type
+do T448e PRESERVADO; dado do VFF INTACTO (reclassificação = T448b-2/T449 com auditoria R3 do
+universo miscategorizado por keyword).
+
+**Live verify (fingerprint `d624e5f`, DEL exato, generatedAt fresco):**
+
+- nacional = **PSG | Ligue 1 | 2025 | LEAGUE | 75 ed** (mantido do T448e)
+- continental = **PSG | UEFA Champions League | 2025 | CUP | 54 ed** (RESTAURADO — não é VFF)
+- mundial = **Real Madrid | FIFA Club World Cup | 2023 | CUP | 15 ed** (mantido)
+- Nenhum país/hierarquia perdeu representante; `type` correto em cada card; gender-blind em ambos
+  os grupos; unit de TRANSIÇÃO prova a partição por hierarquia (mesma entrada, regras diferentes).
+
+**Dívida declarada:** supertaça-continentais com vigência mais recente que UCL/Libertadores venceriam
+o card em GRUPO-COPA — não observado hoje; solução = campo tier/flagship no T449 (D-…-divida-tier-flagship).
+
+### GATE 2 adendum 4 — T465: integridade de oferta (2026-09-22, na sequência de #170)
+
+**FASE 0 (R3 — lido do FONTE, não de prints):** a oferta tinha TRÊS superfícies divergentes:
+`plan-features.ts` (T444, **sem nenhum consumidor** — código morto), `/checkout` com listas
+hardcoded que já tinham divergido (Pro sem "Suporte prioritário por e-mail"; Elite sem "Exportações
+estendidas"), e `/planos` com texto soft que delega a tabela ao checkout. **Tabela-veredicto:**
+
+| Recurso (fonte)                         | /planos                  | /checkout     | Estado real                                                                                | Veredicto                                                                                               |
+| --------------------------------------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Busca avançada ilimitada (PRO)          | soft                     | hardcoded     | busca textual tsvector existe; "ilimitada" sem alcance (viola política do próprio /planos) | ENTREGA renomeada: "Busca textual avançada"                                                             |
+| IA assistida com citações (PRO)         | soft condicional         | hardcoded     | 8.9 [ ] — não operacional                                                                  | **EM BREVE** ("(em breve)")                                                                             |
+| Exportações CSV (PRO)                   | —                        | hardcoded     | GET /export?format=csv existe                                                              | ENTREGA                                                                                                 |
+| Suporte prioritário por e-mail (PRO)    | —                        | hardcoded     | canal e-mail existe, sem SLA                                                               | ENTREGA renomeada: "Suporte por e-mail dedicado"                                                        |
+| Tudo do Pro (ELITE)                     | —                        | hardcoded     | estrutural                                                                                 | ENTREGA                                                                                                 |
+| API com limites estendidos (ELITE)      | —                        | hardcoded     | **nenhuma emissão de key no backend**                                                      | **EM BREVE** ("API de dados (em breve)")                                                                |
+| Exportações estendidas (ELITE)          | —                        | hardcoded     | /export format=json existe                                                                 | ENTREGA precisa: "Exportações em CSV e JSON"                                                            |
+| Suporte prioritário (ELITE)             | —                        | hardcoded     | idem PRO                                                                                   | coberto por "Tudo do Pro" (duplicata removida)                                                          |
+| Knowledge Graph (ELITE)                 | não declarado            | não declarado | **5.157 arestas, vitrine corrigida, fonte por aresta**                                     | **ENTREGA — entra na ELITE** (promessa do Escopo 6.6 tornada verdade pelo T448; autorizada no despacho) |
+| Rankings (recurso de plano)             | menção soft no marketing | não listado   | página existe; 2 rankings seed (CONMEBOL/CBF 2023); 0-100 por jogo aguarda T449            | N/A na oferta (não listado) — flag                                                                      |
+| Escrita PRO (clubes/jogadores)          | não declarado            | não declarado | CRUD admin/RBAC                                                                            | N/A (não ofertado)                                                                                      |
+| Home hero "com inteligência artificial" | marketing                | —             | IA não operacional                                                                         | **FLAG** (fora da superfície T465 — /planos+/checkout; seguir para decisão de marketing)                |
+
+**FASE 1:** `plan-features.ts` virou FONTE ÚNICA consumida pelo /checkout (hardcode removido — a
+divergência não pode voltar por construção). **FASE 2:** IA e API marcados "(em breve)"; "ilimitada"
+removida; "estendidas" preciseada para "CSV e JSON"; suporte descrito como canal dedicado; KG entrou
+como entregue. Preço/periodicidade INTACTOS; nenhuma promessa adicionada além do KG autorizado.
+**i18n:** os dicionários pt/en/es NÃO carregam listas de recursos (o checkout é PT-only hoje, e as
+seções soft dos 3 locales são consistentes entre si — condicionais ao checkout) — paridade mantida
+por construção; checkout PT-only para falantes não-PT = flag para o gate legal do Operador.
+
+### GATE 2 adendum 5 — T469: P0 jurídico-autônomo (2026-09-22)
+
+**FASE 0 (W1 — re-ancoragem em produção):** counts ao vivo: clubs 3.857 · players 2.396 ·
+competitions 1.563 · arestas WON 5.157 (proveniência 100%) · rankings publicados 2 (seed
+CONMEBOL/CBF 2023 — produto 0-100 por jogo aguarda T449) · IA não operacional. Leitura do FONTE
+das 6 páginas legais + home: claims medidas ("maior acervo", "IA", "história completa", numeração
+da privacidade 1-12 SEM salto — o 5→7 da auditoria não existe na versão atual; "v2.0 órfã" também
+não existe no fonte — históricos v1.0→v1.2 coerentes; a linha de versão era hardcode compartilhado
+no LegalDocument para termos e privacidade).
+
+**W2 cumprido:** nenhum PII da auditoria (razão social, endereço Cajamar, e-mail Yahoo do DPO)
+foi publicado ou preenchido; o bloco de identificação permaneceu como estava (CNPJ já publicado
+pelo Operador); endereço/DPO nominal = escalação.
+
+**Entregas (×3 locales nas seções existentes):**
+
+- Direitos (§5): prazos harmonizados — recebimento imediato; conclusiva 15d BR (LGPD art. 18 §3) /
+  1 mês EEE-UK (GDPR art. 12), prorrogável.
+- Segurança (§7): comunicação de incidentes — ANPD referência 3 dias úteis; GDPR 72h.
+- Retenção (§8): períodos concretos — backups 30d (T446), pagamento 5 anos (fiscal), logs,
+  conta ativa.
+- Menores (§9) + cadastro: declaração proporcional de 18 anos no formulário (sem KYC).
+- Compartilhamento (§4): cláusula de transferência internacional (LGPD Cap. IV / GDPR Cap. V),
+  fornecedores nomeados (Vercel, Railway, Cloudflare, Stripe, Resend, ipwho.is), "não vendemos
+  dados e não os usamos para treinamento de IA", DPAs públicos citados (Stripe/Cloudflare);
+  demais = "mediante solicitação — Operador coleta".
+- **Google Fonts auto-hospedado** (27 woff2, Barlow/Barlow Condensed OFL em /fonts; @import
+  runtime removido) — fornecedor eliminado; removido das listas de terceiros nos 3 idiomas.
+- ipwho.is: MANTIDO em runtime (invariante documentado "moeda pela localização REAL" — schema do
+  checkout proíbe cliente de escolher moeda; substituição por header alteraria comportamento de
+  pagamento, território T471) e DOCUMENTADO: §11 já o nomeia + tabela do REPORT.
+- almanaque_locale (achado 14): **ESTRITAMENTE NECESSÁRIO** — set SOMENTE em escolha explícita do
+  usuário (5 controles de UI; zero auto-detect; server só lê), first-party, 1 ano, sem rastreamento.
+- Inventário de cookies: **verificado em produção com contexto limpo — ZERO cookies antes de
+  qualquer escolha do titular**; consent_v/locale/__Host-* somente após ações; sem analytics/
+  marketing; intro da Política de Cookies atualizada de "será atualizado" para "verificado em
+  22/09/2026"; nota Stripe no ato do pagamento.
+- Consent E2E contra PRODUÇÃO: **11/11** (destaque equivalente, revogação, prova registrada,
+  inventário real, fornecedores).
+- Home claims re-ancoradas (×3 locales + layout): "maior acervo"→"acervo em construção, com
+  proveniência documentada"; "com IA"→removido (coerente com T465); "história completa"→"em
+  construção e com fontes verificadas".
+- **/metodologia** publicada (fontes, licenças, critério de verificação, divergências→revisão,
+  correções, limitações declaradas: gap de coordenadas, gap 514, IA em breve) + link no rodapé.
+  "Fontes verificadas" agora é verdade-por-método-publicado.
+
+**Fora (roteado):** direitos do titular/DMCA fluxos reais → T470 · Opção B geo-restrição → T471 ·
+i18n legal + checkout → T472/T468 · cursor-based pagination → WS-S/C · disclosure cheio de IA →
+quando IA shippar · identidade/DPO/DPAs/advogado/agente-EUA → OPERADOR (escalação).
+
+### GATE 2 adendum 6 — T469b: correção dos deltas do Operador + achados da FASE 0 (2026-09-22)
+
+**FASE 0 (re-auditoria do T469 mergeado, ANTES de editar texto):** produção medida — clubs **3.857** ·
+players **2.396** · competitions **1.563**; matches 0 / rankings 4 (não citáveis como verificados);
+"5.157" é comentário de código (`plan-features.ts` — arestas do grafo), NÃO claim público.
+locale/ipwho: runtime usa SÓ `ipwho.is` no checkout (`apps/api/src/modules/billing/geo.ts`), sem header
+CF/Vercel → decisão da FASE 2 mantida. Identidade publicada já conforme a lista confirmada
+(END ART Studios · CNPJ 45.370.930/0001-75 · Osasco/SP · endart.studios@gmail.com), sem razão social,
+rua/CEP, Yahoo ou nome pessoal de DPO.
+
+**Achados corrigidos neste round:**
+
+- **Delta 1 / age gate (D-2026-09-22-sem-age-gate):** removida `auth.ageDeclaration` (3 locales +
+  `types.ts` + `register/page.tsx`); §9 Menores reescrito para declarar a **ausência** de verificação
+  ("não realiza verificação de idade e não coleta intencionalmente dados de crianças … canal de
+  privacidade para o responsável"), sem prometer suspensão/eliminação de conta.
+- **G-W2 (caixa de domínio inexistente):** `reembolso@almanaquedosclubes.com` → `endart.studios@gmail.com`
+  em `/checkout` e `SubscriptionManager` (×3). Nenhuma caixa de domínio restante em `apps/web/src`.
+- **G-W1/FASE 4 (claims públicas):** EN/ES "largest/mayor colección … with AI" → claim honesta (acervo em
+  construção, proveniência documentada, IA em breve); grid `home.features` (renderizado em
+  `HeroSection.tsx`) ×3 locales — "História Completa"→"em Construção", "IA com Citações"→"IA (em breve)",
+  "cursor-based"→"paginação" (a API usa OFFSET, não cursor).
+
+**Delta 2 (T471) e Delta 3 (gate beta pago):** T471 (geobloqueio UE) não aplicado — opcional-futuro
+(D-2026-09-22-t471-nao-aplicado); gate do beta pago reescrito em D-2026-09-22-gate-beta-pago-ajustado
+(pendem T470 + T472; advogado/representante UE/age gate = riscos residuais aceitos e registrados).
+
+**Verificação:** `pnpm typecheck` 0 erros. Sem regressão de lint/prettier: os 122 erros de lint e as
+falhas de prettier são **pré-existentes** em `apps/api`/`apps/worker`/`apps/web` (o script
+`eslint apps/api/**/*.ts` expande no bash do CI só até 1 nível de diretório — por isso o CI fica verde;
+nenhum arquivo fora de `apps/web` foi alterado neste round). Declaração W3: pacote autônomo e honesto,
+**sem revisão jurídica externa e sem representante UE** — NUNCA "conforme/GDPR-ready/pronto global".
+
+### GATE 2 adendum 7 — T466: dado geográfico (WS-D) — hierarquia + coordenadas (2026-09-22)
+
+**FASE 0 (R3 medida, não assumida) — veredicto (a):** não existem models geográficos (só `Club.city/state/country` texto + `latitude/longitude`; `Stadium` idem). Produção: clubs **3.857** · com `country` **3.857 (100%)** (169 distintos) · com `city` **463** · com `state` **10** · com coordenada **113 (2,9%)**; `stadiums` **0**; `PostGIS` ausente (`20260905_stadiums_postgis` = no-op documentado, **não** drift). → T466 = migration versionada + seed.
+
+**Entregas:** migration `20261001120000_t466_geo_hierarchy` (`Country`/`State`/`City` + FKs nullable em `clubs`/`stadiums`; PostgreSQL + paridade SQLite; grants) · conector puro `wikidata-geo.connector.ts` (P17→ISO-2/P30; P131→cidade; P131-pai/P300→estado; Zod) · `planGeo`/`syncGeo` (idempotente) · script `ingest-geo-wikidata.ts` (DRY-RUN/`--apply`) · `GET /clubs/:id/geo` (contrato T467).
+
+**Validação viva (amostra real de produção; Wikidata ao vivo):**
+
+| medida                                         | valor                                                 |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| clubes resolvidos                              | **60/60**                                             |
+| países / estados / cidades                     | 23 / 6 / 17                                           |
+| clubes vinculados (país / estado / cidade)     | 60 / 6 / 17                                           |
+| re-run (2ª execução)                           | **created=0, updated=0, unchanged=60** (zero escrita) |
+| spot-check 20 clubes (P625 + ISO via P17→P297) | **20/20**                                             |
+| spot-check 17 cidades (P625 na fonte)          | **17/17**                                             |
+| spot-check 6 estados (P300 == code)            | **6/6**                                               |
+| coordenada fora de faixa                       | **0**                                                 |
+| BR fora do bounding-box                        | **0**                                                 |
+| órfão/ciclo de hierarquia                      | **0**                                                 |
+
+**GAP DECLARADO:** apenas ~3% dos clubes têm P625 direto (produção 113/3.857; amostra 2/60) — mapa será esparso por clube; cidades (com P625 via P131) podem servir de fallback no T467. `stadiums` vazio (sem seed nesta rodada).
+
+**Blocker honesto:** produção só recebe as tabelas geo no **deploy pós-merge** (migration no boot via `migrate deploy`; não aplicada à mão — regra T430). Portanto o seed em produção (`ingest-geo-wikidata.ts --apply` + `enrich-club-coords.ts --apply`) e o E2E-produção ficam **pós-deploy** (Operador). `M1·WS-C` mapa segue `[ ]` até T467.
+
+### GATE 2 adendum 8 — T476: glob recursivo do lint (governança de CI) (2026-09-22)
+
+**Ponto-cego (medido, não assumido):** `pnpm lint` = `eslint apps/api/**/*.ts apps/worker/**/*.ts packages/**/*.ts` **sem aspas**. No bash do runner (sem `globstar`), `**` age como `*` e o shell expande **um** nível. Arquivos varridos: `apps/api` **27/186**, `apps/worker` **2/14**, `packages` **1/15**. `apps/api/src/modules/**`, `apps/api/tests/**`, `apps/api/src/scripts/**` **nunca eram lintados no CI** → 122 erros escondidos por trás de "CI verde" (viola R1 na infraestrutura).
+
+**Correção:** aspas nos globs do `lint` e `lint:fix` → o shell entrega o padrão literal e o **eslint expande recursivamente** (portável). `prettier --check` já estava entre aspas → recursivo (954 arquivos, 0 diff main=branch). `tsc` usa `tsconfig include` (não glob de shell) → `apps/api` cobre `src/**`; `scripts/**` fora é intencional (T448/#160).
+
+**Antes → depois (arquivos varridos por eslint):** api **27 → 186** · worker **2 → 14** · packages **1 → 15**.
+
+**Triagem por categoria (122 erros / 20 arquivos):** 118 `prettier/prettier` (18 arquivos — **formatação**, `eslint --fix`) · 3 `no-undef` (`NodeJS.ProcessEnv` como tipo → **FP** de core `no-undef` com TS; regra desligada p/ TS) · 1 `preserve-caught-error` (`privacy-copyright.test.ts` → `{ cause: e }`). **Resultado: 0 erros · 98 warnings** (registrados: detect-object-injection 57, no-explicit-any 26, detect-non-literal-fs-filename 14, detect-unsafe-regex 1).
+
+**Artefato novo:** `.gitattributes` (`* text=auto eol=lf`) — faltava (lição T448d).
+
+**Dívida rastreada:** `format:check` (prettier standalone) **não roda no CI** e cobre 954 arquivos (majoritariamente `apps/web/**`, ignorado pelo eslint) — gap separado; 98 warnings de estilo/segurança-FP. **R1:** "CI verde" passa a cobrir lint recursivo de api/worker/packages (ressalva no HANDOFF).
+
+### GATE 2 adendum 9 — T470: processo de direitos do titular + notificação autoral (2026-09-22)
+
+**FASE 0 (medida):** SMTP **ausente** → automatizado só autenticado; deslogado = manual. Produção: users 42 (4 ativos) · sessions 127 · subscriptions 41 · billings 2 · favorites 20 · audit_logs 174 · cookie_consents 8 · privacy_requests 0 · copyright_claims 0.
+
+**Entregas:** migration `20261002120000_t470_legal_titular_dmca` (`data_subject_requests`, `copyright_notices`, `users.deletedAt`; enums; PG+SQLite) com **GRANT/RLS idempotentes no SQL** (owner SELECT/INSERT; UPDATE/DELETE só SERVICE; `GRANT USAGE ON SCHEMA public`) + espelho `rls_legal_setup.sql`/`create_app_user.sql` + passo no `ci.yml` · módulo `legal` (Zod, protocolo, prazos BR 15d / EEA-UK 30d, export JSON/CSV, exclusão soft+anonimização, notificação/contranotificação, admin RBAC) · frontend `/direitos-titular` e `/direitos-autorais` (logado = fluxo; deslogado = orientação + canal manual; sem DMCA/safe harbor; sem “resposta imediata”).
+
+**Evidência:** 11 testes (unit + integração Postgres real): RLS como `app_user` (titular lê o próprio; **não lê de terceiro**; UPDATE direto negado; SERVICE atualiza); protocolo `dsr_*`; prazo 15d; export **sem** `passwordHash`/`tokenHash`; exclusão anonimiza e-mail, `deletedAt`, sessões revogadas, DSR `completed`; senha inválida → 401. `pnpm typecheck` 0 · `pnpm lint` recursivo **0 erros** (98 warnings).
+
+**Limitações (declaradas):** tradução legal = T472 · SMTP = Operador · rotas T445 legadas mantidas (deprecadas, não surfacadas) · consentimento fora do export (sem vínculo userId↔visitorId).
+
+### GATE 2 adendum 10 — T464: confirmação destrutiva + consistência billing↔refund (2026-09-22)
+
+**Causa-raiz F2 (R3):** o servidor **certa** — `withdrawSubscription` marca `billing.status='REFUNDED'` na mesma transação. O defeito era **UI**: o histórico era buscado só no mount e não re-sincronizava após o refund (linha PAID obsoleta).
+
+**Correção:** modal acessível (`role=dialog`, `aria-modal`, foco preso, Esc, foco inicial em Voltar, `aria-haspopup`) com **distinção visível** reembolso×cancelamento; re-fetch do histórico após a ação; fail-loud preservado (client já re-lê CSRF em 403). Sem migration; backend intocado.
+
+**Limitação:** E2E prod do modal exige assinatura paga de teste (declarado).
+
+### GATE 2 adendum 11 — T470b: revogação do access token pós-exclusão (2026-09-22)
+
+**Gap:** `DELETE /legal/rights/me/account` revogava o refresh mas o **access JWT (15 min)** seguia aceito. **FASE 0 (R3):** `authenticate.middleware.ts:58` = `jwt.verify` puro, **sem DB** ⇒ Opção A inviável ⇒ **Opção B** (blocklist Redis, TTL 15 min). Escrita **fail-loud** (antes da anonimização; Redis fora ⇒ 502, nada muda); leitura fail-open com log.
+
+**Evidência:** unit (block/reconhece; falha de escrita lança; leitura fail-open) + integração E2E (**register→login→/auth/me 200→DELETE→mesmo access→401 imediato**). Sem migration; reversível (TTL auto-expira). Fecha a ressalva **R3-PROD-GATE** do T470.
+
+### GATE 2 adendum 12 — T467: mapa-múndi choropleth (M1·WS-C) (2026-09-22)
+
+**FASE 0 (veredicto contra o artefato):** (0.1) Continente **não é model** — é `Country.continent` (168 países, 3 sem → bucket `ZZ`); **sem migration**. (0.2) `/clubs` filtrava country/city — **sem state/continent/agregação** ⇒ criados `GET /clubs/geo-stats` + filtros `continent/countryId/stateId/cityId` (OFFSET). (0.3) Licença: **Natural Earth domínio público** (continente/país) usado; **ODbL rejeitado** → estado/cidade **vazio-honesto** (lista). (0.4) Stack: **Leaflet 1.9.4** (sem lib nova). **Choropleth**, não pinos (coord ~3,7%).
+
+**Entregas:** `GET /clubs/geo-stats` (COUNT real derivado, `source='derived'`, cache read-through) · asset `public/geo/ne_110m_admin_0_countries.geojson` + `../LICENSE.md` · `WorldChoropleth` + `MapExplorer` (breadcrumb acessível, `aria-live`, região clicável por teclado, lista de clubes paginada, busca textual) · `/map` reescrito.
+
+**Evidência:** integração (geo-stats COUNT real + filtro `stateId`); unit (asset + licença); web 16 testes. `tsc` 0 · `lint` recursivo 0 erros.
+
+**Gaps declarados:** coord direta ~3,7% (pino opcional), estado 4,9%, cidade 11,6%, sem fronteira estado/cidade. **Não é "mapa completo".**
+
+### GATE 2 adendum 13 — T472a: i18n da UI de assinatura/checkout + G1 (CI-do-web medido) (2026-09-22)
+
+**G1 (medido, não assumido):** `pnpm test:unit` (= `pnpm --recursive test`, o que o `security-gate` roda) **inclui `apps/web` (vitest, 4 arq./16 testes)** → a hipótese "CI não roda testes do web" é **FALSA** para unit; o `rights.spec.ts` obsoleto "passou" porque é **Playwright** (`tests/e2e/**`, fora do vitest, **sem passo no `ci.yml`**) → gap real = Playwright E2E não roda no CI de PR (fora do escopo do T476b). Sem T476b.
+
+**T472a:** i18n pt/en/es de `CheckoutSummary`/`CheckoutButton`/modal T464 + catálogo **`plan-features.ts` multi-locale`** (fonte única). E2E en/es de `/planos` (+`/checkout` condicional à flag). **T472b (jurídico) CONDICIONADO** — não traduzir sem disclaimer de prevalência/advogado.
+
+### GATE 2 adendum 14 — T448b-2 FASE 0+1: reclassificação de miscategorização (parser RSSSF splitado) (2026-09-22)
+
+**FASE 0 (medido):** keywords do `resolveHierarchy` lidos do fonte (`ranking-algorithm.service.ts:77-86`); `estadual/municipal` **sem keyword** → default nacional. Produção: arestas WON nacional **4873** · continental **268** · mundial **16** · **estadual/municipal 0** (gap 514). Das **18** competitions que batem o keyword continental, **2 miscategorizadas** (country ≠ null): `VFF Champions League` (VU, 1 aresta) e `Afghanistan Champions League` (AF).
+
+**Veredicto (a) [arbitrado]:** continental por nome só com `country` nulo; re-ingestão idempotente. Entregue + testado (`t448b2-hierarchy.test.ts`, 3 casos).
+
+**Licença (0.4, corrigida):** RSSSF **não é domínio público** — "free to copy **with proper acknowledgement**". Atribuição obrigatória; `sourceUrl`/`retrievedAt` por aresta.
+
+**Corte de escopo:** o **parser RSSSF BR estadual** excede o round (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
+
+### GATE 2 adendum 15 — T449EN: base EN para o piloto T449a (2026-09-23)
+
+**FASE 0 (medida):** EN clubs GB **303** (100% ACTIVE/qid/proveniência); piloto RSSSF **93/116** casavam; **23 faltantes** (5 grandes) + **1 ruído** (`1964–65 Leeds…season`). Competições do piloto (5) presentes. Threshold **100%**; soft-delete via **migration `deletedAt`**.
+
+**Entregue:** migration `20261003120000_t449en_club_deleted_at` + filtro `deletedAt: null` (lista/count/detalhe/geo) · conector `wikidata-en-clubs` (SPARQL `P641=futebol` + `P17 UK/England`; fallback `wbsearchentities`) · script `ingest-en-clubs-missing` (resolve faltantes por QID + soft-delete do ruído) · 8 testes. **DRY-RUN: 115/115** nomes resolvidos (local). **Produção (gate, 2026-09-22):** migration `deletedAt` aplicada no boot · injeção DRY-RUN **94/116 casados · 22 faltantes · 22/22 resolvidos** · `--apply` **created=22, ruído soft-deleted=1** · re-run **116/116, 0 novos** (idempotente) · backfill `countryId=22` · **geo-stats GB=324 = `/clubs?country=GB`=324** · EU 2267 · `won_to_softdeleted=0` · busca "Arsenal"=3. **Threshold: matched_active=116/116, missing_real=0, ambiguous=0, noise_active=0 → T449a DESTRAVADO.** #185 a rebasar/reexecutar no round T449a (não mergeado até lá).
+
+### GATE 2 adendum 16 — T449a: tabelas RSSSF → ranking 0-100 por competição/temporada (2026-09-23)
+
+**FASE 0:** #185 rebasado em main (parser/testes preservados; conflito só em DECISOES resolvido). O parser emite **TABELAS FINAIS** (classificação), **não partidas** → arbitrado **tabelas→ranking, sem `matches`**. Schema pronto (RankingEntry.points 0-100), **sem migration**. Cobertura 116/116 (gate T449EN).
+
+**Entrega:** script `ingest-rsssf-england-tables` (DRY-RUN/`--apply`): casa clubes por **nome normalizado** (deletedAt null), computa `rankDivision` (`normalizeMinMax`), escreve `ranking_entries` por **competição existente (QID)** + `rankings` (competição+temporada) com **proveniência/atribuição RSSSF**. **Tier emerge** (por competição). Fórmula documentada (`W×3 + D×1 + GF×0.2`; títulos=0).
+
+**Gate de produção (pós-merge):** DRY-RUN no container → `--apply` → re-run idempotente → live verify → rollback. **#185 vira o PR do T449a.**
+
+### GATE 2 adendum 17 — T449a-close: superfície pública + crédito RSSSF (2026-09-23)
+
+**Produção (T449a):** `--apply` → 4 rankings do piloto (Premier League 2023 20 entries; Championship/Division 1/Division 2/National League 2023 24 cada) · points 0-100 · `dup=0` · re-run idempotente · `GET /rankings` lista o piloto; `GET /rankings/:id/entries` → 20 (100/92/78).
+
+**T449a-close:** `/metodologia#ranking-piloto-inglaterra` (fórmula, MinMax, peso, fonte, **atribuição RSSSF**, limitações, data, canal) + Fontes creditando RSSSF corretamente + **badge** "Piloto Inglaterra · Fonte RSSSF" na UI de rankings (pt/en/es) + link. Sem migration; reversível. **T449a [x].** (27 estados, layouts variados, sem URL canônica/directory listing) → **SPLITADO para T448b-2b**. Gap 514 **declarado**. Mapa **não** ganha P625 (limitação T467).
+
+### GATE 2 adendum 18 — T448b-2b FASE 1: parser PURO MG, sem escrita (2026-09-24)
+
+**Contexto (#193 + #194 mergeados):** motor de scoring T449b e docs FASE 0/0.2 do T448b-2b aprovados e mergeados; `main` avançou; branch da FASE 1 criada da `main` pós-merge.
+
+**Entrega (parser puro, SEM escrita):** `apps/api/src/lib/rsssf/**` — `types`, `decode-legacy-table` (decodifica **cp1252** mascarado como utf-8 + extração de tabela com warnings estruturados), `extract-state-champion` (**família** de frases + **cross-check** com a tabela), `map-team-to-club` (match **exato** por nome/alias/QID — **sem fuzzy**), `resolve-competition-qid` (por QID/alias auditável), `build-won-candidate`, `pending-review`, `fixtures-loader`; script **DRY** `src/scripts/parse-rsssf-mg-fixtures.ts` (**sem Prisma**); **41 testes** T1–T12 network-free; fixtures reais mínimas (cp1252 em base64) com `sourceUrl/retrievedAt/authorCredit/licenseText`.
+
+**R5 (medido ao vivo, read-only):** `mg2023/2024/2025` = HTTP **200**, com bloco de crédito e frase de campeão; QIDs verificados **fora do código** (Mineiro **Q731877**; Atlético-MG **Q270995**).
+
+**DRY-RUN (fixtures locais):** `parsedSeasons=[2023,2024,2025]` · **candidatesValid=3** · pendingReview=0 · `dedupKey` factual (`Q731877|<ano>|Q270995|WON`) · `externalId` distinto por temporada. Cobertura do parser: **95% stmts / 87% branch / 100% funcs**.
+
+**Blindagens provadas por teste:** dedup factual sem hash de URL (T9 — mesma tríade, URL diferente ⇒ mesmo `dedupKey`); co-campeão e conflito ⇒ `pending_review`, zero candidate (T3/T4); atribuição ausente bloqueia (T8); gênero desconhecido bloqueia (T10); tabela malformada não inventa campeão (T11); determinismo (T12).
+
+**Gates de escopo:** nenhum arquivo `prisma/`/`schema`/`migration`; nenhum script escreve em DB/produção; testes sem rede; **FASE 2 (writer/idempotência + read-filter de `metadata.deletedAt` + `--apply`) NÃO iniciada**; gap estadual (fora do MG) declarado.
+
+### GATE 2 adendum 19 — T448b-2b FASE 2: writer WON RSSSF + soft-delete (2026-09-24)
+
+**Contexto:** FASE 1 empilhada (PR #195); FASE 2 em branch própria sobre a FASE 1. Execução em **Postgres de teste local (54330, espelho de CI: PostGIS + RLS + `app_user`)** — **zero produção**.
+
+**Entrega:** `modules/etl/rsssf-won-edges.service.ts` (repo injetável + `syncRsssfWonEdges`), `scripts/write-rsssf-won-edges.ts` (DRY = transação revertida; `--apply`; **bloqueio de produção sem `--allow-production`**), `modules/graph/soft-delete.ts` (aplicado em `clubs/repository.listTitlesByClub`, `champions.loadChampions`, `compare.service`, `ranking-algorithm`).
+
+**Ponte de identidade (provada):** competição-mãe ausente → **upsert idempotente por `qid`** (criou `Q731877` "Campeonato Mineiro", `country=BR`, `type=LEAGUE`, `importedFrom=rsssf`, `sourceUrl`); clube resolvido por `qid` (produção) **ou** por **nome exato** → vincula `qid` (testado); ausente → **fail-fast** (`club_missing`, sem órfão).
+
+**Evidência (logs reais):**
+
+- `apply` (1ª vez): **created=3** (2023/2024/2025), `failed=0`, `attributionMissing=0`.
+- `apply` (2ª vez): **created=0 / skipped=3** → **idempotência provada**.
+- `GET /api/v1/clubs/:id/titles`: **200** · `total=3` · `hierarchy=estadual` · `sourceUrl=https://rsssfbrasil.com/tablesfq/mg2023|2024|2025.htm`.
+- Integração `tests/integration/rsssf-won-edges.test.ts`: **7/7** (ponte, idempotência, fail-fast, atribuição, API titles, soft-delete excluindo). Suíte de integração completa: **222 passed / 1 skipped**; única falha = `t470b-revoke-access` (isolamento; passa isolada — módulo não tocado).
+
+**Desvios de schema (R3, sinalizados):** o payload do dispatch (`competitionId`/`year`/`clubId`) não existe em `KnowledgeGraph` → convenção real do T448 (`sourceId`/`targetId`/`metadata.year`); `Competition` não tem `hierarchy`/`state`/`gender` → upsert com colunas reais, hierarquia em `metadata.hierarchy`.
+
+**Fora de escopo (não feito):** `--apply` em produção; migration; semear competição além do piloto; parser de outros estados; reclassificação em massa.
+
+### GATE 2 adendum 20 — T448b-2b FIX-PACK: candidates no runtime (#197) (2026-09-25)
+
+**Bloqueio medido (gate de produção abortado):** o writer do #196 lia `../apps/api/tests/fixtures/rsssf/mg/*.json`; o **Dockerfile não copia `tests/`** → em prod o script falharia com **ENOENT** (0 candidates), mesmo após merge. (Premissa do gate também falhou: #195/#196 estavam **OPEN**, não mergeados.)
+
+**Correção (#197):** pack **congelado** `../apps/api/src/lib/rsssf/data/mg-pilot-candidates.json` (emitido ao `dist/` pelo tsc — `resolveJsonModule` + import `with { type:'json' }`), carregado por `candidates-pack.ts` (**Zod + fail-fast**: pack inválido / atribuição ausente / `dedupKey` duplicada). Writer usa `loadPilotCandidates()` por padrão; `--from-fixtures` = dev. Trava de produção restrita ao `--apply`.
+
+**Evidência (Docker local, zero produção):** `docker build` OK → `../../../../../app/apps/api/dist/lib/rsssf/data/mg-pilot-candidates.json` presente (3360 bytes) → dry-run **no container**: `candidatesSource=pack(prod)`, `candidates=3`, `created=3`, `failed=0`, `attributionMissing=0`. Testes: `candidates-pack` 6 casos (48 unit rsssf no total); integração `rsssf-won-edges` 7/7; unit completo 33 arquivos verdes.
+
+**Limitação declarada:** piloto MG 2023–2025; expansão (outros estados / ingestão dinâmica) exige novos packs ou mecanismo genérico — workstream separado.
+
+### GATE 2 adendum 21 — T448b-2b GATE PROD MG: aborto por proveniência + rollback + fix (#198) (2026-09-25)
+
+**Deploy:** SHA `42db45f` (container de produção). **Pré-check de identidade:** clube Atlético-MG `420a0968-…` estava **sem `qid`** → micro-update escopado/transacional vinculou `qid='Q270995'` (rowcount 1); competição `Q731877` (`89ada543-…`) **já existia** (não criada).
+
+**Apply:** `created=3 · failed=0 · competitionsCreated=[] · clubsLinked=[]`.
+
+**Gate SQL (falha):** 3.1 active=3 ✓ · 3.2 anos 1/1/1 ✓ · 3.3 duplicação=0 ✓ · **3.4 missing_provenance=3 ✗** · 3.5 links=3 ✓ · 3.6 Q5028286=0 ✓. Diagnóstico: as arestas tinham `sourceUrl/authorCredit/licenseText` mas **faltava `retrievedAt`** (writer v1 gravava `importedAt`).
+
+**Rollback (lógico):** `UPDATE 3` → `active=0`; soft-deleted com `reason=rollback_t448b2b_mg_apply`; API `/titles` → **total=0** (read-filter OK); `/champions` 200 sem regressão. **Nenhum cache invalidado.** `clubs.qid` e a competição preservados.
+
+**Fix (#198):** `retrievedAt` persistido do candidate (fail-fast se ausente/inválido) + `parserVersion` bump (`t448b2b-fase2-provenance-v2`) + `dedupKey` no metadata; idempotência só por campos estáveis; lookup inclui soft-deleted; upsert **created/updated/restored/skipped/failed**; restore só com reason de rollback do piloto; APPLY atômico (`Serializable`). **Simulação contra o estado de prod → `created=0 · restored=3 · failed=0`**; unit etl 14/14; integração 11/11.
+
+**Lição:** dry-run local não bastou — não exercitou a **persistência real de todos os campos de proveniência**; o gate SQL pegou. Regra: todo campo exigido pelo gate deve ter teste de integração que **asserta presença no DB**.
+
+### GATE 2 adendum 22 — T448b-2b GATE PROD MG: ATIVAÇÃO CONCLUÍDA (2026-09-24)
+
+**Deploy:** SHA `dfe6e5c` (após merge do #198). Container verificado: pack presente + `t448b2b-fase2-provenance-v2` no bundle.
+
+**Dry-run + APPLY (produção):** `candidatesSource=pack(prod)`, `candidates=3`, **`created=0 · updated=0 · restored=3 · skipped=0 · failed=0`** (restaurou os MESMOS edgeIds soft-deleted — idempotência sobre soft-delete provada).
+
+**Gate SQL (6/6 verde):** 4.1 active=3 · 4.2 2023|1/2024|1/2025|1 · 4.3 `missing_provenance=0` · 4.4 `soft_deleted_remaining=0` · 4.5 links=3 (`420a0968-…`/`89ada543-…`) · 4.6 `Q5028286`=0. Amostra: `retrievedAt=2026-09-23T22:59:09Z`, `reactivationReason=t448b2b_provenance_fix`, crédito "Claudio Freati…".
+
+**Cache:** `champions:*` → `champions:all` deletado; `clubs:titles:<id>`/`clubs:byId:<id>` não estavam cacheados; o padrão do dispatch `club:<id>:*` **não é a chave real** (a real é `clubs:titles:<id>`), sinalizado.
+
+**API pública:** `/clubs/420a0968-…/titles` → **200 · total=3** (estadual, 2025/2024/2023, `sourceUrl` RSSSF Brasil, sem segredos); `/champions` → 200 · 5 itens · **estadual → Atlético-MG**, sem regressão.
+
+**Resultado:** piloto MG 2023–2025 **ativo** com proveniência completa (RSSSF + atribuição ao autor da página). Próximo: T448b-2c (outros estados) / T448b-2d (municipal).
+
+### GATE 2 adendum 23 — T448b-2c: discovery read-only de expansão estadual (2026-09-24)
+
+**Escopo:** descoberta **read-only** (sem parser/writer/escrita/migration). Doc: `../09-references/T448B2C-DISCOVERY-UFS.md`.
+
+**Higiene jurídica:** `/direitos-titular` (cache-bypass) **sem "resposta imediata"** → **T470c no-op** (texto coerente: BR 15 dias / EEE-UK "1 mês" prorrogável, canal manual). `/fontes` = **404**, **sem referência no repo** → no-op.
+
+**Candidatas (2023–2025):** SP (mãe `Q1348155` existe; campeão **não-inline**) · CE (mãe `Q2469206` existe; **2025=404**) · PR (mãe `Q920397` existe; campeão explícito; homônimo "Operário") · SC (mãe `Q2317199` ausente; licença/autor incompletos 2023/2024; campeão `*** Avaí ***`) · GO (mãe `Q931386` ausente; **campeão explícito nos 3 anos**).
+
+**RJ/RS/RO/RR:** ausentes do índice e do histórico; probe direto 404 em todos os prefixos; sem "carioca/gaúcho" → **gap de fonte** (RSSSF Brasil não publica).
+
+**DB read-only:** mães SP/CE/PR existem; SC/GO ausentes; homônimos confirmados (Vila Nova, Operário).
+
+**Recomendação:** **PR** (primária: mãe existente + licença + campeão explícito) e **GO** (secundária: melhor evidência de campeão; mãe a semear). **Gap:** SP/CE/SC e RJ/RS/RO/RR. **Nenhum parser iniciado** (T448b-2d gated na aprovação do Thinker).
+
+### GATE 2 adendum 25 — T448b-2d GO: seed de identidade reduzido (2023–2024) (2026-09-24)
+
+**Blocker real de schema (FASE 0 complementar):** `clubs` tem **`@@unique([name,country])`** (`clubs_name_country_key`); `Q10391045` (Vila Nova/RN) já ocupa `("Vila Nova Futebol Clube","BR")` → criar `Q1513287` (Vila Nova/GO) **viola a constraint** → **`club_name_unique_conflict`**. Decisão: **piloto GO reduzido a 2023–2024**; **2025 = gap**; sem rename/sufixo/link/migration.
+
+**Entrega (seed de identidade):** `lib/rsssf/go/**` (`identity-types`, `seed-plan` com Zod/fail-fast, `index`) + pack `../data/go-identity-seed.json` (`pilotScope=go-2023-2024`, `retrievedAt=2026-09-24T14:49:12Z`, `CC0`) + script `scripts/seed-go-identity.ts` (DRY default; `--apply` exige `--allow-production`). **Só a competição-mãe é escrita**; `Q198034` noop; `Q1513287` só em `excluded`; homônimos intocados.
+
+**Evidência:** dry-run local (dist) = `{"mode":"DRY","competition":{"qid":"Q931386","action":"create","conflicts":[]},"clubs":[{"qid":"Q198034","action":"noop"}],"excluded":[{"qid":"Q1513287","reason":"club_name_unique_conflict"}],"errors":[],"wouldWrite":true}`. Testes: unit **14/14**, integração **6/6**. tsc/lint/prettier 0. Gate de produção (dry-run/apply/SQL/cache) **pendente de merge+deploy**.
+
+**Follow-up:** `T448b-2f` remediation de identidade de clubes (constraint `@@unique([name,country])` × homônimos) — design, sem migration sem aprovação.
+
+### GATE 2 adendum 26 — T448b-2d GO: parser puro 2023–2024 (2026-09-25)
+
+**FASE 0 (read-only):** `tablesfq/go2023/2024.htm` = **200**; autor **Guillermo Alexander Rivera**; licença (atribuição ao autor) presente; frases `*** ATLÉTICO are Goiás State 2023/2024 champions ***`. Wikidata `Q931386` (P31=Q1478437, P17=Q155, P641=Q2736) e `Q198034` (P31=Q476028) validados; DB: mãe `3063bf26-…`, clube `16a63050-…` ACTIVE; homônimos intactos.
+
+**Encoding (medido):** páginas GO são **UTF-8** (meta diz windows-1252; hex `c3 89` = É) — fixtures em `utf-8`/`rawText`. **Gênero = men evidenciado** (sufixo `w` = feminino no RSSSF Brasil + clube masculino `Q198034`). **Hierarquia = estadual**.
+
+**Entrega:** `lib/rsssf/go/**` (reusa o núcleo genérico `lib/rsssf` — decode/extract/map/resolve) + `pack.ts` (Zod: rejeita 2025/Q1513287) + `../data/go-pilot-candidates.json` (**2 candidates**; `dedupKey=Q931386|year|Q198034|WON`; `retrievedAt=2026-09-24T20:03:52Z`) + `scripts/parse-rsssf-go-fixtures.ts`. Dry-run: **candidatesValid=2 · pendingReview=0 · excluded=[2025]**.
+
+**Excluído:** GO 2025 (`Q1513287`, `club_name_unique_conflict`); PR (`Q2580083`). **Testes:** unit GO T1–T15 verdes; total unit rsssf **78**. tsc/lint/prettier 0. **Sem writer/apply/arestas/migration/produção.**
+
+### GATE 2 adendum 27 — T448b-2d GO: writer idempotente (2026-09-25)
+
+**Entrega (#206):** `modules/etl/rsssf-won-edges-go.service.ts` (repo injetável + `syncGoWonEdges`) + `--pack=go` em `write-rsssf-won-edges.ts` (MG inalterado). **GO não cria/linka**: resolve competição/clube **só por QID** (fail-fast). Idempotência factual `(clubId, competitionId, year, WON)` **inclui soft-deleted**; **restore só** de reasons GO; `duplicate_factual_edges` se >1. Metadata com `retrievedAt` do pack (estático), `authorCredit`/`licenseText`, `writerVersion`, `pilotScope`, `uf=GO`, `dedupKey`. Guardas: rejeita 2025/Q1513287; não toca homônimos/MG.
+
+**Evidência (test DB):** dry-run `--pack=go` → `created=2 · updated=0 · restored=0 · skipped=0 · failed=0 · attributionMissing=0`. Unit **11/11**; integração **4/4** (create 2, re-run skip 2, 0 arestas 2025, homônimos intactos). Apply em produção **pendente** de #205+#206+#207 + verificação do `/champions`.
+
+### GATE 2 adendum 28 — T448b-2d GO: apply BLOQUEADO (rate limit Vercel) (2026-09-25)
+
+**Merges OK:** #205 (parser GO `63604ae`), #206 (writer GO `2450fa4`), #207 (atribuição web `928e5ce`) — `main=928e5ce`, `security-gate` verde. **Railway API deploy SUCCESS** (`928e5ce`), artefatos GO no container (`../go-pilot-candidates.json` `pilotScope=go-2023-2024`; `write-rsssf-won-edges.js` com `t448b2d-writer-go-v1`).
+
+**BLOCKED_REASON:** `vercel_deploy_rate_limited_24h` — `vercel --prod` → _"Resource is limited - try again in 24 hours (more than 100, api-deployments-free-per-day)"_. O deploy de produção do web **não subiu** → `/metodologia` **sem** a seção GO (`Guillermo Alexander Rivera`/`Goiano` ausentes; cache MISS) → **apply GO abortado** (gate exige atribuição pública antes). **Sem contorno/bypass/preview-como-produção/divergência.**
+
+**Estado congelado (read-only):** `go_active_won=0` · `go_2025_edges=0` · `q1513287_club=0` · `q1513287_edges=0` · homônimos (`Q10391045/Q10391046`) presentes · `mg_active_won=3` · `total_estadual_rsssf_active=3`. **PASSO 3 (`/champions`) verificado:** determinístico (tipo → ano desc) → card `estadual` permanece Atlético-MG 2025.
+
+**Retomada:** quando o deploy de produção Vercel contiver o #207 → PASSO 1 (verificar `/metodologia` + hash) → PASSO 2 (container) → PASSO 3 dry-run → PASSO 4 apply → PASSO 5 SQL → PASSO 7 cache → PASSO 8 API. Falha persistente → `vercel_deploy_still_rate_limited_after_24h` (escalar infra).
+
+### GATE 2 adendum 29 — T448b-2d GO: gate de produção CONCLUÍDO (2026-09-25)
+
+**Rate limit Vercel RESOLVIDO:** deploy de produção do web **SUCCESS** (`qytfay2a1`, aliased `almanaquedosclubes.com`). **PASSO 1:** `/metodologia` ao vivo (cache-bypass, SHA-256 `9bca4898603f5aaac34bf8a231e319a8490b71e4efaff54031af335361ca457f`) contém `Guillermo Alexander Rivera`, `RSSSF Brasil`, `go2023/go2024.htm`, `2025`, gap explicado por `clubs @@unique([name,country])`, "não representa cobertura completa" e **"(Não é domínio público.)"** (sem falsa alegação).
+
+**PASSO 3 dry-run** (container `928e5ce`): `created=2 · failed=0 · competitionsCreated=[] · clubsCreated=[] · clubsUpdated=[]`.
+**PASSO 4 apply:** `created=2 · failed=0` (edgeIds 2023/2024).
+**PASSO 5 SQL:** 5.1 GO ativo=**2** · 5.2 `2023|1 · 2024|1` · 5.4 `missing_provenance=0` · 5.5 autor `(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2023/2024.` · 5.6 URLs `go2023/go2024.htm` · 5.7 `go_2025=0` · 5.8 `vila_nova_edges=0` · 5.9 homônimos=**2** · 5.10 MG=**3** · 5.11 total estadual RSSSF=**5**.
+**PASSO 7 cache:** `competitions:list:{…}` DEL 1; champions/titles/byId = 0 (no-op).
+**PASSO 8 API:** `/clubs/16a63050-…/titles` = 5 (2 GO estaduais 2023/2024 com fonte RSSSF + 3 nacionais Wikidata pré-existentes); `/clubs/420a0968-…/titles` = 3; `/champions` = **estadual Atlético-MG 2025** (determinístico; GO não desloca/duplica).
+
+**Resultado:** **piloto GO 2023–2024 ATIVO** com proveniência completa (atribuição ao autor da página). GO 2025 = gap. Follow-up T448b-2f (identidade de clubes).
+
+### GATE 2 adendum 30 — T448b-2f: Identity Remediation (Opção A) (2026-09-25)
+
+**Problema (FASE 0 medida):** `clubs @@unique([name,country])` impedia homônimos nacionais com QIDs distintos (GO 2025 `Q1513287`, PR 2025 `Q2580083`). Produção: **0 homônimos** (a constraint impedia), **9 clubes sem qid**. Jev/TypeSafe no par homônimo → `noul=0.43` (**ambíguo**) ⇒ **identidade = QID**, nome não é chave.
+
+**Entrega:** migration `20261004120000_t448b2f_remove_name_country_unique` (**DROP INDEX** `clubs_name_country_key` + **CREATE INDEX** `clubs_name_country_idx`, idempotente; **down** documentado, recria o único só sem homônimos); `modules/clubs/club-uniqueness.ts` (puro: `normalizeClubContextKey`, `decideClubUniqueness` → `allow|block|ambiguous`, `DuplicateExactContextError`); `clubsService.create` (validação contextual; `clubsRepository.listActiveForDedup`); `prisma/seed.ts` ajustado (find-first, sem `name_country`).
+
+**Testes:** unit `club-uniqueness` **8/8**, `clubs` **6/6**; integração `club-identity-homonyms` **3/3** (coexistência GO/RN sem P2002; duplicata exata bloqueada; homônimo por state permitido); unit rsssf/clubs **92**. tsc 0; lint 0 erros; prettier ok.
+
+**Fora do escopo:** backfill dos 9 clubes sem qid (**T448b-2g**); parser GO 2025/PR 2025 (round subsequente). **DESTRAVA** os homônimos nacionais.
+
+### GATE 2 adendum 31 — T448b-2f: migration APLICADA em produção; FASE 2 liberada (2026-09-25)
+
+**Merge #209** (`85c0610`) → **Railway deploy SUCCESS** → entrypoint aplicou a migration no boot. **Verificação read-only (produção):** `_prisma_migrations` `20261004120000_t448b2f_remove_name_country_unique` **applied=t**; **`clubs_name_country_key` ausente**; **`clubs_name_country_idx`** (não-único) presente; **`clubs_qid_key` unique intacto**; **homônimos ativos = 0**; **estadual RSSSF ativo = 5** (MG 3 + GO 2). **Smoke:** `/clubs?country=BR` 200 · `/clubs/:id` 200 · `/champions` 200 (`estadual=Atlético-MG 2025`).
+
+**FASE 2 LIBERADA:** parsers **GO 2025** (`Q1513287`) e **PR 2025** (`Q2580083`) desbloqueados (homônimos nacionais coexistem; identidade por QID; duplicata exata bloqueada). **T448b-2g** (backfill 9 clubes sem QID) autorizado como follow-up.
+
+### GATE 2 adendum 32 — T448b-2d GO 2025: parser pronto (apply bloqueado até seed) (2026-09-25)
+
+**FASE 0 (read-only):** `go2025.htm` 200; autor **Guillermo Alexander Rivera**; frase `*** VILA NOVA are Goiás State 2025 champions ***`. Wikidata `Q1513287` (Vila Nova Futebol Clube; P31=Q476028, P17=Q155, P641=Q2736). DB: mãe `Q931386`=1; **clube `Q1513287`=0 (ausente)**; homônimos=2.
+
+**Entrega:** `buildGoWonCandidate` generalizado (`options`: `expectedCompetitionQid`/`expectedChampionQid`/`excludedSeasons`/`uf`/`pilotScope`/`parserVersion`); fixture `tests/fixtures/rsssf/go/2025/` (mock index com `Q1513287`); script `parse-rsssf-go-2025-fixtures.ts` (offline); pack `../data/go-2025-pilot-candidates.json` (**1 candidate** `Q931386|2025|Q1513287|WON`, `seedRequired=Q1513287`).
+
+**Testes:** T1 (mock⇒candidate Q1513287), T2 (ausente⇒`missing_club`), T3 (gender), T4 (determinismo) — unit GO (35) verdes. **APPLY BLOQUEADO** até micro-seed de `Q1513287`. Sem writer/produção/migration/cache.
+
+### GATE 2 adendum 33 — T448b-2d PR 2025: parser pronto (apply bloqueado até seed) (2026-09-25)
+
+**FASE 0 (read-only):** `pr2025.htm` 200; autor **Moacir Dalpiaz de Souza**; frase `*** Operário are Champions ***`. Wikidata `Q2580083` (Operário Ferroviário Esporte Clube; P31=Q476028, P17=Q155, P641=Q2736) + mãe `Q920397`. DB: mãe `Q920397`=1; **clube `Q2580083`=0 (ausente)**; homônimo `Q671621`=1.
+
+**Entrega:** `lib/rsssf/pr/index.ts` (`buildPrWonCandidate`, reusa o builder GO generalizado com options PR); fixture `tests/fixtures/rsssf/pr/2025/` (mock com `Q2580083`); script `parse-rsssf-pr-2025-fixtures.ts` (offline); pack `../data/pr-2025-pilot-candidates.json` (**1 candidate** `Q920397|2025|Q2580083|WON`, `seedRequired=Q2580083`).
+
+**Testes:** T1 (mock⇒candidate Q2580083), T2 (homônimo `Q671621` NÃO casa ⇒ `missing_club`), T3 (ausente ⇒ `missing_club`), T4 (determinismo) — **4/4**. **APPLY BLOQUEADO** até micro-seed de `Q2580083`. Empilhado no #211.
+
+### GATE 2 adendum 34 — T448b-2d: micro-seed de identidade GO/PR 2025 (2026-09-25)
+
+**Contexto:** parsers GO 2025 (`Q1513287`) e PR 2025 (`Q2580083`) mergeados (#211/#213), mas os clubes campeões **ausentes** no acervo → apply bloqueado. **FASE 0 read-only:** Wikidata `Q1513287` (Vila Nova Futebol Clube; P31=Q476028/P17=Q155/P641=Q2736) e `Q2580083` (Operário Ferroviário EC) validados; DB: ambos **0 rows**; homônimos `Q10391045`/`Q10391046`/`Q671621` presentes.
+
+**Entrega:** `lib/rsssf/seeds/club-seed.ts` (puro; upsert por QID; conflicts `ambiguous`/`soft_deleted`; sem link-by-name) + packs `../go-2025-seed-pack.json`/`../pr-2025-seed-pack.json` (Wikidata CC0; `retrievedAt` estático) + script `seed-go-pr-2025-clubs.ts` (DRY default; `--apply --allow-production`; **import estático** → packs no `dist`). `doNotTouch` de homônimos.
+
+**Testes:** unit **9/9**; integração **1/1** (cria 2 por QID; re-run noop; homônimos intactos). tsc/lint 0; prettier ok. **APPLY em produção pendente do gate (dry→apply→SQL→cache→smoke).**
+
+### GATE 2 adendum 35 — T448b-2d: gate de produção do micro-seed CONCLUÍDO (2026-09-25)
+
+**Contexto:** #214 (micro-seed de identidade GO/PR 2025) mergeado (`4372cd8`) → deploy Railway **SUCCESS**.
+
+**Execução (produção):** artefatos presentes (`../dist/lib/rsssf/data/go-2025-seed-pack.json`, `../pr-2025-seed-pack.json`, `dist/scripts/seed-go-pr-2025-clubs.js`). **DRY-run:** `go-2025 Q1513287 create` · `pr-2025 Q2580083 create` · `conflicts []` · `errors []`. **APPLY (`--allow-production`):** `created=2` · `noop=0` · `hardDeletes=0` · `migrations=0` · `errors=[]`.
+
+**SQL pós-apply (read-only):** `Q1513287`=1 (Vila Nova Futebol Clube, BR, `importedFrom=wikidata-go-2025-pre`, `sourceUrl` Wikidata) · `Q2580083`=1 (Operário Ferroviário Esporte Clube, BR, `importedFrom=wikidata-pr-2025-pre`) · homônimos `Q10391045`/`Q10391046`/`Q671621` **intactos** (`importedFrom=wikidata`) · dup por QID=**0** · clubes ativos **3878 → 3880 (+2)**.
+
+**Cache:** DEL cirúrgico `clubs:list:{...}` (1) + `clubs:geo-stats` (1); `clubs:byId:*`=0. **Sem FLUSHALL/FLUSHDB.**
+
+**Smoke API:** `/clubs?qid=Q1513287` · `/clubs?qid=Q2580083` → **200**; `search=Vila` → **Q1513287 + Q10391045** (+`Q10391046`) coexistindo; `search=Operário` → **Q2580083 + Q671621**; `/champions` **200** (sem regressão); `/clubs/<novos>/titles` **200** vazio (writers ainda não aplicados). **Observação (pré-existente, não-regressão):** o filtro `search` do repositório é **case-sensitive** (`name: { contains }`, sem `mode:'insensitive'`/`search_vector`) → termo em minúsculas retorna vazio; follow-up sugerido.
+
+**Resultado:** identidades `Q1513287` e `Q2580083` **ativas em produção**; writers GO 2025 / PR 2025 **destravados**.
+
+### GATE 2 adendum 36 — T448b-2d: writer estaduais 2025 (GO 2025 / PR 2025) implementado (2026-09-25)
+
+**Contexto:** seed de identidade verde (adendum 35) → clubes `Q1513287`/`Q2580083` ativos. Os packs (#211/#213) estavam prontos, mas o writer bloqueava 2025.
+
+**Entrega:** `write-rsssf-won-edges.ts` com `--pack=go-2025` / `--pack=pr-2025` (saída plana: `mode/pilotScope/candidates/created/updated/restored/skipped/failed/attributionMissing/duplicatesInBatch/…`). Generalização de `syncGoWonEdges` (options; defaults preservam GO 2023–2024). Loader `lib/rsssf/estaduais-2025-pack.ts`. Proveniência completa (`sourceUrl`, `authorCredit` do autor da página, `licenseText` verbatim, `retrievedAt` estático, `attributionRequired=true`, `hierarchy=estadual`, `gender=men`, `writerVersion=t448b2d-writer-go-pr-v1`).
+
+**Testes:** unit **20/20** (packs, escopo cruzado, attribution, retrievedAt, dedupKey, externalId estável, out-of-scope) + integração **8/8** (Postgres real; create/skip/restore/fail; transações revertidas — sem poluir a base). Regressão: GO 2023–2024 e MG verdes. tsc/lint 0.
+
+**Estado:** **APPLY em produção pendente do gate** (dry→apply GO→apply PR→SQL→cache→smoke).
+
+### GATE 2 adendum 37 — T448b-2d: writers GO 2025 / PR 2025 APLICADOS em produção (concluído) (2026-09-25)
+
+**Deploy:** #216 (`e4ea209`) → Railway SUCCESS. Artefatos conferidos; `--pack=go-2025|pr-2025` DRY → `created=1`/zeros/`errors=[]`.
+
+**APPLY (`--allow-production`):** GO `created=1` (`Q931386|2025|Q1513287|WON`); PR `created=1` (`Q920397|2025|Q2580083|WON`); `hardDeletes=0`; `migrations=0`.
+
+**SQL Gate:** total estadual RSSSF ativo **5 → 7**; `missing_provenance=0`; `go_2025_link_ok=1`; `pr_2025_link_ok=1`; **MG=3 / GO 2023–24=2** intactos; `unexpected_soft_deleted=0`. Autores 2025: Rivera (GO), Moacir Dalpiaz de Souza (PR), Freati (MG). URLs 2025: `go2025.htm`, `pr2025.htm`, `mg2025.htm`. `writerVersion=t448b2d-writer-go-pr-v1`; `uf` GO/PR.
+
+**Cache:** DEL cirúrgico `champions:all` (1); `clubs:titles/byId` = no-op. **Smoke:** `/clubs/<VN GO>/titles` 200 (Campeonato Goiano 2025, `go2025.htm`); `/clubs/<OP PR>/titles` 200 (Campeonato Paranaense 2025, `pr2025.htm`); `/champions` 200. `/metodologia` 200 (GO vivo; **seção PR ausente = follow-up web**).
+
+**Resultado:** **7 arestas estaduais RSSSF auditáveis.** T448b-2d concluído para GO/PR 2025.
+
+### GATE 2 adendum 38 — T448b-2d: conformidade pública do Paranaense 2025 em `/metodologia` (2026-09-25)
+
+**Dívida:** `/metodologia` tinha MG/GO/Inglaterra, sem seção **PR** (crédito a Moacir Dalpiaz de Souza só no JSONB). **Fix (texto):** seção `#campeonato-paranaense-2025` (fonte `pr2025.htm`; crédito ao autor; licença verbatim; "(Não é domínio público.)"; limitação; correção). **Consistência DB↔UI:** seção GO → **2023–2025** (+`go2025.htm`), removido o texto obsoleto "2025 não incluída". Datas → 25/09/2026.
+
+**Validação:** build web OK; render local (`next start`) → `Campeonato Paranaense`/`Moacir Dalpiaz de Souza`/`pr2025.htm`/`proper acknowledgement`/`All rights reserved`/âncora `campeonato-paranaense-2025`/`go2025.htm`/`Goiano (2023–2025)` = **presentes**. Credito DB (`metadata->>'authorCredit'` PR) ≡ UI. Lint/prettier 0. Sem regressão em MG/Inglaterra.
+
+### GATE 2 adendum 39 — T448b-2d: `/metodologia` validada ao vivo; ciclo encerrado (2026-09-25)
+
+**Deploy:** #218 (`7411283`) → Vercel READY `l5iji0idn` (alias `almanaquedosclubes.com`/`www`). **Fetch cache-bypass:** HTTP **200**; SHA-256 `720695cc…d55805`.
+
+**Strings live:** PR (Paranaense/Dalpiaz/pr2025.htm/proper acknowledgement/All rights reserved/âncora) · GO (Rivera/go2025.htm/2023–2025) · MG (Freati/mg2025.htm) · “Não é domínio público” (negação) ×6 · “2025 não incluída” **ausente** · zero segredo.
+
+**DB↔UI:** MG `Claudio Freati` 2023–2025 (`uf` null — writer v1); GO `Guillermo Alexander Rivera` 2023–2025 (`uf` GO); PR `Moacir Dalpiaz de Souza` 2025 (`uf` PR). Autores/anos consistentes.
+
+**Fecho:** T448b-2d (MG+GO+PR) concluído técnica e documentalmente. Próximo: T448b-2g (backfill) ou Discovery Nova UF.
+
+### GATE 2 adendum 40 — T449c-v1: tier/divisão como metadado (aditivo, sem score) (2026-09-27)
+
+**Dívida:** rankings de clube sem campo tier/divisão; piloto EN normalizado por divisão isolada.
+
+**Entrega (v1):** migration aditiva `competitions.level INTEGER NULL` + índice `competitions_level_idx`; módulo TS versionado `lib/rankings/tiers/en-pyramid.ts` (mapper nome-RSSSF→QID **fonte única**, importado pelo ingest EN); `resolve-tier.ts` (puro; `level` do banco canônico; label só com level+QID); `plan-backfill.ts`/`apply-backfill.ts` (puro; rowcount==1); script `backfill-en-competition-levels.ts` (DRY/`--apply --allow-production`/`--validate-only`); API aditiva (`competition` com level/divisionLabel nos 4 endpoints de rankings); badge na tabela de rankings (web). **Sem mudança de fórmula/score/posição.** Rollback por `level=NULL`.
+
+**Testes:** unit tiers **14/14** (mapeamento, resolução, plano, validação); integração `t449c-v1-en-level-backfill` (Postgres real, transações revertidas: apply 5 / re-run noop 5 / parcial / **score inalterado** / rollback). tsc 0 · lint 0 erros. **Dry-run/apply de produção = gate pós-merge (FASE 9).**
+
+### GATE 2 adendum 41 — T449c-v1: gate API/DB verde (migration + backfill EN; score inalterado) (2026-09-27)
+
+**Merge/deploy:** #225 (`8a3c02b`) → Railway SUCCESS. Migration `20261005120000_t449c_v1_add_competition_level` aplicada; `competitions.level` integer NULL + índice `competitions_level_idx`. Artefatos no container OK.
+
+**Snapshot:** 5 competições EN (level NULL) + 5 rankings + entries (hash pré `entries=16e0b210…`, `rankings=f9edaf56…`).
+
+**DRY:** `totalMapped=5 wouldUpdate=5 noop=0 errors=[]`. **APPLY:** `updated=5 noop=0 errors=0 hardDeletes=0 migrations=0`. **Re-run:** `wouldUpdate=0 noop=5`.
+
+**SQL gate:** levels 1..5 (`Q9448`=1 · `Q19510`=2 · `Q19565`=3 · `Q48837`=4 · `Q18504`=5); `unexpected_level_updates=0`; `missing_levels=0`; **hashes pós = pré** (score/posição/base inalterados); MG/GO/PR `level` NULL; estadual RSSSF ativo=**7**.
+
+**Cache:** DEL `rankings:list:{…}` + `competitions:list:{…}` (SCAN; sem FLUSHALL). **API smoke:** `/rankings` EN `level`/`divisionLabel`/`tierSource`/`tierVersion`; `/rankings/entries?year=2023` meta competition `level=5`; `/rankings/clube/:id` (Wrexham, National League); `/champions` 200.
+
+**Pendente:** Web/UI (badge `/rankings`) bloqueada pelo **rate limit da Vercel** (~24h). T449c-v1 **não concluído** até o UI smoke.
+
+### GATE 2 adendum 42 — T449c-v1 CONCLUÍDO: badge tier/divisão live (API+UI); score inalterado (2026-09-27)
+
+**Descoberta:** o deploy de **produção** Vercel `cts0o2qhg` (alias `almanaquedosclubes.com`/`www`, Ready) **já servia o #225** — o rate-limit bloqueou só o **preview** do PR, não a produção.
+
+**UI smoke (Playwright live):** `https://almanaquedosclubes.com/rankings` → HTTP 200; `[data-testid=ranking-division-badge]` = **“National League”** (ranking EN exibido, level 5); `ranking-pilot-badge` presente; 24 linhas. **Páginas:** `/` 200 (31830B) · `/rankings` 200 (25911B) · `/metodologia` 200 (50865B). _(A tabela exibe 1 ranking por vez — o último publicado; os 5 níveis estão expostos pela API e são cobertos por `en-pyramid`/smoke de API.)_
+
+**Negativas:** `rankings` estaduais BR publicados = 0 ⇒ nenhum badge possível; API `level` NULL p/ `Q731877`/`Q931386`/`Q920397`; 5/5 rankings EN com level.
+
+**Score:** hashes pré=pós (rankings `f9edaf56…`, entries `16e0b210…`) — inalterado. **T449c-v1 [x].** T449c-v2 [ ] (design primeiro).
+
+### GATE 2 adendum 43 — T449c-v2: FASE 0 (design) + alinhamento documental A+C do piloto EN (2026-09-27)
+
+**Divergência medida (código × metodologia):** texto publicava `W×3+D×1+GF×0.2` e desempate extenso; código usa `MinMax(points)` por divisão com desempate por saldo. **FASE 0 do v2** entregue em `../09-references/T449C-V2-FASE0-DESIGN.md` (read-only): inventário (5 rankings, 116 entries, all men; hashes pré `bfb6c485…`/`d2b117aa…`), diagnóstico de comparabilidade, opções de modelo A/B/C/D (**B recomendada**), 3 esquemas tier-aware com simulações (ordem intra-divisão preservada; Wrexham=40 acima de 10/20 PL no linear; α=0.15 inflaria p/ 15/20), rascunho de metodologia, API/UI, testes/gates e rollback.
+
+**Correção A+C (docs-only):** `/metodologia` — seção EN passa a publicar `Pontos brutos = Vitórias × 3 + Empates × 1`, MinMax intra-divisão (1º=100, último=0), desempate por **saldo (GF − GA)**, limitações atualizadas e **nota de consistência (2026-09-27)**; nova seção **“Agregado cross-division — Piloto Inglaterra (proposto, não publicado)”** (linear L1..L5 + disclaimer “estimativa metodológica”). Sem código de API/schema/migration; score inalterado.
+
+### GATE 2 adendum 44 — T449c-v2-pre: correção A+C validada em produção (2026-09-27)
+
+**Merges:** #228 (`00fd74f`, design) + #229 (`914caf5`, A+C). **Deploy:** Vercel production `d2in7qho7` READY. **`/metodologia` hash:** `8a3193d5…014d5` (HTTP 200).
+
+**Strings:** presentes — `Pontos brutos = Vitórias × 3 + Empates × 1`, `maior saldo de gols (GF - GA)`, `Agregado cross-division`, `proposto, não publicado`, `L1=1.00, L2=0.85, L3=0.70, L4=0.55, L5=0.40`, `estimativa metodológica, não confronto oficial`, `Nota de consistência (2026-09-27)`, RSSSF, “Não é domínio público”. **Ausentes** como afirmação: `gols contra, saldo, gols pró, nome, id`; “Gols Pró × 0.2” só na **nota histórica**; “ranking unificado ativo” só em **negação**.
+
+**API↔texto:** 5 rankings EN consistentes (1º=100, último=0, men, baseMatches 100%). **Smoke:** `/`,`/metodologia`,`/rankings` 200. **v2 desbloqueado.**
+
+### GATE 2 adendum 48 — T449c-v2 CONCLUÍDO: API + UI + metodologia publicada (2026-09-27)
+
+**Merges:** #235 (`a49abaa`) + #236 (`8dd1872`); **Railway SUCCESS** (`8dd1872`); **Vercel production `d9bded469` READY**.
+
+**Metodologia** (`/metodologia`, hash `5a8070dfa4…`): “**Piloto Inglaterra 2022/23 (publicado em 2026-09-27)**”, pesos `L1=1.00…L5=0.40`, “estimativa metodológica, não confronto oficial”, RSSSF; “proposto, não publicado” **ausente**.
+
+**UI smoke (Playwright):** abas `[division]`/`[pyramid]` presentes; disclaimer **só** no agregado; cabeçalhos **Posição/Clube/Pontos/Divisão/Nível/Multiplicador**; 1ª linha Man City 100 · Premier League · nível 1 · mult 1.
+
+**API:** `/rankings?scope=country_pyramid&country=GB` → agregado `b4db9d9e…` publicado; `/rankings/:id/entries` **116 entries** com `divisionLevel/divisionLabel/multiplier/intraScore/adjustedScore`; `/rankings` (sem scope) → 5 rankings EN por divisão intactos.
+
+**Integridade:** hash das entries das 5 divisões **= `d2b117aa…` (pré) ⇒ intactas**; MG/GO/PR intocados. **Cache:** DEL `rankings:*` (4). **Dívida de ordem zerada** (metodologia publicada após o apply; corrigido em #235).
+
+### GATE 2 adendum 47 — T449c-v2: UI “Pirâmide nacional” + metodologia publicada + metadata por entry (2026-09-27)
+
+**UI:** `/rankings` com abas **“Por divisão” (default)** / **“Pirâmide nacional”** (`?scope=country_pyramid`), **disclaimer** e colunas Pos/Clube/Nota/Divisão/Nível/Multiplicador; i18n pt/en/es. **API:** agregado expõe `divisionLevel/divisionLabel/multiplier/intraScore/adjustedScore` por entry (derivado das divisões; sem novo campo em RankingEntry). **Metodologia:** seção do agregado → **“publicado em 2026-09-27”**. Testes web 18/18; tsc api/web 0. Sem mudança de score; divisões intactas.
+
+### GATE 2 adendum 46 — T449c-v2: agregado `country_pyramid` ATIVO em produção (2026-09-27)
+
+**Merge #233 (`f36941c`) → Railway SUCCESS.** Migration `20261006120000_t449c_v2_country_pyramid` aplicada (colunas + índice). **DRY/APPLY:** `rankedCount=116`; máximos por nível 100/85/70/55/40; ranking `b4db9d9e…` (scope `country_pyramid`, GB, 2023, formulaVersion `t449c-v2-country-pyramid-v1`, publicado) com 116 entries. **Top:** Man City 100 · Arsenal 92 · Burnley(L2) 85 · Man Utd 78 · Newcastle 72.
+
+**SQL:** hash das entries das 5 divisões **= pré** (`d2b117aa…`) ⇒ **divisões intactas**; estadual RSSSF=**7**; MG/GO/PR `level` NULL. **Cache:** DEL `rankings:list:{…}`. **API smoke:** `?scope=country_pyramid` → agregado; **default segue por divisão**. **UI aba = follow-up.**
+
+### GATE 2 adendum 45 — T449c-v2: agregado `country_pyramid` implementado (2026-09-27)
+
+**FASE 0 técnica.** Migration aditiva `20261006120000_t449c_v2_country_pyramid` (`rankings.scope|country|tierVersion|formulaVersion` + índice `rankings_scope_country_season_idx`). Núcleo puro `lib/rankings/pyramid/country-pyramid.ts` (linear 1.00/0.85/0.70/0.55/0.40 sobre a nota 0-100; ordem intra-divisão preservada; gênero isolado; fail-fast: level inválido/duplicado, clube em >1 divisão). Script `build-country-pyramid.ts` (DRY/`--apply --allow-production`; reescreve só o agregado). API aditiva (`scope`/`country`; meta com `scope/country/tierVersion/formulaVersion`; **default por divisão**). **Testes:** unit **7/7**; integração Postgres real **1/1** (agregado `100/85/50/43`; divisões **inalteradas** — hash; idempotente). tsc 0; lint 0 erros. **Apply em produção = gate pós-merge.**
+
+### GATE 2 adendum 58 — WS-D M1b: engine conservadora implementada (2026-09-28)
+
+**FASE 0:** #249 (`632fa58`) mergeado; API/site 200; DB: clubes 3.871 (QID 100%, sem QID 0; coords 2.790; city 2.625; soft 10), competições 1.561 (QID 100%, sem QID 0; soft 3), qid dup 0, entries `d2b117aa…`, estadual 7, pyramid publicada 1. **Engine:** `lib/wikidata/expansion/*` + `scripts/expand-wikidata-conservative.ts` (DRY/`--apply --allow-production`; insert-only; filtros conservadores; whitelist de competição observada; coords P625>P159>P115>P131; dedupe por QID). Testes unit 21/21; tsc/lint 0. **Zero migration.** Apply/piloto = FASE 3 pós-merge.
+
+### GATE 2 adendum 57 — T448b-2i: idempotência operacional do re-run (noop) (2026-09-28)
+
+**Correção:** re-run do `--pairs-only` pós-apply retornava erro falso. `validateHumanPair` agora retorna **`noop_already_soft_deleted`** quando a duplicate tem `deletionReason='dedupe_t448b2i_human_pair'`, canônica ativa com QID esperado e **stale_refs=0**; reasons inesperadas/stale_refs>0 continuam erro (`duplicate_soft_deleted_unexpected`). Contador `noop` exposto; sem reescrita/restore. Testes unit 17/17. **Gate: dry-run apenas** (sem write).
+
+### GATE 2 adendum 56 — T448b-2i CONCLUÍDO: 3 competições duplicadas resolvidas (2026-09-28)
+
+**Merge #246 (`567348b`) → Railway SUCCESS.** Par Libertadores: DRY `groupsByHumanPair=1`/`duplicates=1`/`referencesToRedirect=1`; APPLY `duplicatesSoftDeleted=1`/`referencesRedirected=1` (rankings)/`errors=0`; manifest `/tmp/t448b2i-libertadores-manifest.json`. **SQL:** `Q184795` única ativa; duplicate `28b0f5d4…` soft-deleted (`dedupe_t448b2i_human_pair`); stale_refs=0; qid dup=0; **active competitions sem QID=0**; entries EN `d2b117aa…`; estadual=7; MG/GO/PR intactos. Cache cirúrgico; API smoke 200. **T448b-2i [x]. WS-D M1b liberado.** _(Ressalva: re-run do `--pairs-only` retorna `duplicate_soft_deleted` como erro — fail-safe por design; nenhuma reescrita.)_
+
+### GATE 2 adendum 56 — T471 onda 1: geo-Wikidata aplicado — 17 coords · 7 stadiums · incidente 42883/42703 documentado (2026-10-01)
+
+**Despacho T475 Frente B** (não confundir com T471 geobloqueio UE — opcional-futuro). Script `src/scripts/enrich-clubs-geo-wikidata.ts` (compila p/ `dist/scripts/`, padrão T430): clubs sem coord com QID (P625 → P131 → P115 venue, **zero overwrite** por `where latitude: null`) + stadiums via P115 (dedupe por QID `@unique`, proveniência CC0, `importedFrom='wikidata'`). DRY-RUN default; `--apply --allow-production`; `--chunk-size/--limit/--only-clubs/--only-stadiums`.
+
+**DRY-RUN gate (produção, cd4d6a0):** 2925 alvos → **17 resolvíveis (todas via P115)** · 2908 não resolvidos · 17 stadiums previstos · 0 existentes · errors 0.
+
+**PRE gate** (fórmula declarada em `scripts/local/t471-gate.js`, base64 via ssh): clubs 9301 (coords **6366** · sem-coords-qid 2925) · stadiums 0 · kg_won **5164** (sem_sourceurl **0**) · kg_rsssf **7** (GO 23/24/25 · MG 23/24/25 · PR 25) · comp_br 33 · EN pyramid L1 **1** · rankings 10/256 · hash `3e93aba9…`.
+
+**APPLY-1 (cd4d6a0):** **17 coords gravadas** (zero overwrite) + 1 stadium (Q141612577) e **falha no EWKT**: `42883 st_makepoint(numeric,numeric) does not exist` — duas causas em camada: (1) `$executeRaw` envia params JS como `numeric` e Postgres não resolve numeric→float8 implicitamente → **cast `::double precision`** (#290); (2) **`42703 column location does not exist` — a migration `20260905_stadiums_postgis` NUNCA foi aplicada no banco de produção** (gap de infra ANTERIOR a esta onda; local/test tem a coluna; a API não referencia `stadiums.location` em SQL cru — runtime safe). Dano: nenhum (coords escalares via `updateMany`, stadium escalar completo). **Fix #290 (db6b1c0):** guarda `information_schema.columns` + degradação com log declarado (gap explícito, não catch silencioso) + casts. **Fix #291 (ba6cd50):** escopo do re-run inclui clubes coords-via-P115 (`OR sourceUrl endsWith '(P115 venue)'`) — sem isto, o re-run não completaria os stadiums (clubes saem do alvo `latitude: null` após a coord). **Fix #292 (2c71a5d):** marcador por `venueQid` (a condição antiga exigia `venueName` — 10 venues sem label pt/en ficavam sem marcador).
+
+**APPLY-2 (ba6cd50):** `coords preenchidas=0` · **stadiums criados=6** (os labelados). **Noop (2c71a5d):** `coords=0 · stadiums 6/6 existentes · 0 novos · exit 0` — idempotência provada na versão final.
+
+**POST gate (pré=pós exceto alvo):** clubs coords **6366→6383 (+17; espelho exato −17 nos sem-coords = zero overwrite)** · stadiums **0→7** · kg_won 5164 · proveniência 100% · kg_rsssf **7** · comp_br 33 · EN pyramid 1 · rankings 10/256 · **hash `3e93aba9…` PRÉ=PÓS** (mesma fórmula). **Cache:** SCAN `clubs:*`/`geo:*` = **0 chaves** (TTL vencido; recomputa do banco — sem FLUSHALL). **Smoke:** `/geo/points?country=BR` 200 (`withoutLocation` BR **212** — inalterado; as 17 coords são clubes poloneses) · `/clubs/geo-stats` 200 recomputado (168 países · 3829 clubs c/ país). **Frente A re-ancorada:** sitemap `/map` 1× · `/preview/mapa` 0× · `/map` 200.
+
+**Gaps declarados (onda 2):** (1) **2908 clubes sem geo na fonte** — gap estrutural do Wikidata p/ clubes menores (outra fonte/estratégia); (2) **10 stadiums sem label** ficaram de fora (decisão de dado: `name=QID` é ruído, não dado — regra **R4-t471-dado-sem-label-nao-entra**; 1 row QID-named do crash Q141612577 = candidato a limpeza); (3) **`stadiums.location` ausente em prod** — aplicar `20260905_stadiums_postgis` (CREATE EXTENSION postgis) é decisão de infra do **Operador**; (4) harvest total de stadiums (todos os clubes com P115) = onda 2.
+
+### GATE 2 adendum 55 — T448b-2i: par humano Libertadores (nomes divergentes) implementado (2026-09-28)
+
+**FASE 0:** Q184795 validada read-only (label “Copa Libertadores”; desc “competição entre clubes de futebol sul-americana”; P31 Q1478437/Q18608583). Canonical `9d50e9fa…` ativa; duplicate `28b0f5d4…` qid NULL ativa; refs = 1 (rankings). Pair versionado `competition-dedupe-human-pairs-v1.json`; script `--pairs-only`/`--pairs-file` (import estático) + `validatePairsFile`/`validateHumanPair`. Testes unit 15/15. tsc/lint 0. **Apply em produção = gate pós-merge.**
+
+### GATE 2 adendum 54 — T448b-2i: soft-delete de Competition + dedupe por QID implementado (2026-09-28)
+
+**FASE 0 (read-only):** 3 duplicatas (qid NULL) — canônicas `Q206813`/`Q843989`/`Q184795`; refs a redirecionar = 2 (`rankings`); 0 qid dup global; entries EN `d2b117aa…`; estadual=7. **Migration** aditiva `20261007120000_t448b2i_competition_soft_delete` (`deletedAt`/`deletionReason` + índice). Módulo puro `lib/identity/competition-dedupe.ts` (canônica por QID) + `scripts/dedupe-competitions.ts` (DRY/`--apply --allow-production`; redirect reversível + soft-delete; manifest; Serializable). **Testes:** unit 7/7. tsc/lint 0. **Apply em produção = gate pós-merge.**
+
+### GATE 2 adendum 53 — WS-D M1a-2 ATIVO: coords/city enriquecidos (2026-09-27)
+
+**Merge #243 (`475dfcd`) → Railway SUCCESS.** DRY `wouldUpdate={coordinates:2632, city:2171}`; APPLY `totalUpdated=2780` (errors 0; hardDeletes 0; migrations 0); re-run idempotente (0/0). SQL: `with_coords` **2790** · `with_city` **2625**. hash entries EN `d2b117aa…` inalterado; estadual=7. Cache no-op. API smoke `/clubs?country=BR` 200 com city/lat. Próximo: migration `Competition.deletedAt` → dedupe.
+
+### GATE 2 adendum 52 — WS-D M1a-2: city/coords via P159/P115/P131 implementado (2026-09-27)
+
+**FASE 0.1:** P159=60% · P115=43% · P131=0% (amostra 100). **Entrega:** `extract-club-coordinates.ts` (prioridade `P625` > `P159` > `P115` > `P131`; confidence por fonte) + bulk + script `enrich-clubs-coordinates-m1a2.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; só preenche nulos; `importedFrom='wikidata-enrich-m1a2'`). **Testes:** unit 11/11; integração 2/2 (não sobrescreve; rollback). tsc 0; lint 0. **Apply em produção = gate pós-merge.**
+
+### GATE 2 adendum 51 — WS-D M1a: fullName aplicado; city/coords = gap; FASE 0.1 P115/P159 (2026-09-27)
+
+**Dry-run combinado REPROVOU** (city 0 / coords 604 ≪ 3.000) ⇒ **abortado** (nenhum apply combinado). **fullName aplicado** (`--fields=fullName`): DRY 3.512 → APPLY `updated.fullName=3512` (errors 0) → re-run `wouldUpdate=0`; `with_fullname` **3.535**. **Gap:** `P625/P131` direto não cobre city/coords. **FASE 0.1 (read-only, amostra 100):** `hasP115=43`, `hasP159=61`, `coordsViaP115=41`, `coordsViaP159=60` → cobertura combinada **>50%** ⇒ **M1a-2 autorizado via P115/P159**. **Competições:** duplicatas legacy; dedupe requer `Competition.deletedAt` (migration) — **pendente**. Integridade: entries `d2b117aa…`, estadual=7, MG/GO/PR intactos. Cache: no-op (0 chaves).
+
+### GATE 2 adendum 50 — WS-D M1a: enriquecimento de atributos (Wikidata) implementado (2026-09-27)
+
+**Contexto:** FASE 0 mediu 3.871 clubes 100% com QID; lacunas de atributo (city 88%, latitude 96%, fullName ~99% nulos) + 3 competições sem QID. **Entrega:** `lib/wikidata/wikidata-client.ts` (backoff/timeout/retry/cache/batch 50), `enrich-attributes.ts` (puros), `scripts/enrich-clubs-attributes.ts` (DRY/`--apply --allow-production`; chunks 100 Serializable; só preenche nulos; `importedFrom='wikidata-enrich-v1'`), `scripts/enrich-competitions-qid.ts` + `competitions-qid-mapping.json` (Q206813/Q843989/Q184795 validados). **Testes:** unit 6/6; integração 1/1 (preenche só nulos; não sobrescreve; rollback). tsc 0; lint 0. **Apply em produção = gate pós-merge.**
+
+### GATE 2 adendum 49 — T448b-2g: encerrado via T448b-2h; despacho de backfill refutado (2026-09-27)
+
+**Medição read-only (produção):** clubes ativos sem QID = **0**; os 9 nomes de um despacho de backfill (`Corinthians`…`São Paulo`, BR) são **duplicatas legacy já soft-deleted** (`deletedAt` não-nulo, `qid` vazio); os **9 QIDs-alvo estão ocupados por clubes canônicos ATIVOS** (`Q35933`=S.C. Corinthians Paulista, `Q80955`=Santos F.C., `Q80845`=S.C. Internacional…). Homônimos `Q10391045/Q10391046/Q671621` intactos.
+
+**Decisão:** a premissa do despacho (“9 clubes ativos sem QID”) é **inválida**; o **T448b-2h** já cumpriu a identidade por QID (base higienizada). **R3 aplicado:** nenhum pack/script/código escrito; **zero escrita**; MG/GO/PR intactos (estadual RSSSF=7). **Regra reforçada:** medição read-only **antes** de qualquer despacho de execução (ver `RULES.md`/R3).
+
+### GATE 2 adendum 24 — T448b-2d: PR bloqueado + GO discovery seedable (2026-09-24)
+
+**Higiene jurídica:** `/direitos-titular` (cache-bypass, SHA-256 `6faa117e…`) **sem "resposta imediata"** → **T470c no-op**.
+
+**PR bloqueado (T448b-2d PR):** `Q920397` existe, mas 2023 sem declaração de campeão; 2024 só tabela; **2025** com frase (`*** Operário are Champions ***`) porém clube **`Q2580083` ausente** → **0 ready (<2)**. Nenhum parser PR.
+
+**GO discovery (read-only):** `go2023/2024/2025.htm` = 200; autor **G. A. Rivera**; licença presente; **campeão explícito nos 3 anos** (`*** ATLÉTICO … 2023/2024 ***`, `*** VILA NOVA … 2025 ***`). Mãe **`Q931386`** (P31=Q1478437; P17=Q155) **ausente do DB** → seed. Campeões: **`Q198034`** (presente ACTIVE), **`Q1513287`** Vila Nova/GO (ausente; `missing_but_seedable_by_qid`). Homônimo: DB tem `Q10391045`/`Q10391046` (RN/ES) → resolver só por QID. **Veredito: GO seedable (3/3, zero blocked).** Seed gated na aprovação do Thinker. Doc: `../09-references/T448B2D-PR-BLOCK-GO-DISCOVERY.md`.
+
+### Run autônomo 2026-09-26 — T448b-2h: dedupe de identidade (9 clubes)
+
+**T448b-2g revelou-se inaplicável e virou T448b-2h (evidência FASE 0):** os 9 clubes ativos sem
+qid (Corinthians, Cruzeiro, Flamengo, Fluminense, Grêmio, Internacional, Palmeiras, Santos,
+São Paulo) são DUPLICATAS internas — os 9 QIDs-alvo já estão ocupados 9/9 por linhas canônicas
+ativas (Q35933/Q188277/Q17479/Q80987/Q221695/Q80845/Q80964/Q80955/Q38568, descobertos via
+wbsearchentities + P31 futebol + P17=Brasil, com rótulos no pack). Referências às duplicatas:
+18 ranking_entries (CBF/CONMEBOL 2023) + 1 favorito; 0 em KG/matches; 0 colisões canônicas.
+
+**Executado (#220 + #221):** pack determinístico versionado · redirect reversível dup→canon
+(19 refs) · soft-delete das 9 duplicatas (nunca hard delete; homônimos Q10391045/Q10391046/
+Q671621 intocados) · script com dry-run default, --apply --allow-production, transação e
+verificação pós-apply que LANÇA em resíduo.
+
+**Evidência de produção:** DRY-RUN 9/9 [OK] → APPLY 9/9 [APPLIED] → SQL pós: ativos sem qid=**0**,
+dups soft-deleted=**9**, refs penduradas=**0**, MG/GO/PR intactos=**7** → re-run idempotente
+9/9 SKIP → cache invalidado por inventário (SCAN, 3 chaves exatas, sem FLUSHALL) → smoke:
+health 200, busca "Flamengo"/"Santos" retorna só canônicos com QID. Reversão documentada no pack.
+
+**Lição de container (4ª):** tsc não copia assets JSON para dist/ — o pack virou módulo TS
+inline (compila junto; #221). Lições de processo reincidentes: `git add -A` capturou rascunho
+local (IDEA.md) e commit caiu na main local — branch protection REJEITOU o push (gate funcionou);
+corrigido pela regra D-2026-09-22-regra-processo-branch (reset + branch certa), zero perda.
+
+### Run autônomo 2026-09-26 — T448b-2i: busca case/acento-insensível
+
+**Probe em produção (R3):** `flamengo`/`Sao Paulo`/`gremio` → **0 resultados** (busca era
+case-sensitive E acento-sensível) — piorou com o T448b-2h, pois as linhas canônicas têm nomes
+oficiais acentuados. Produção só tem `plpgsql` (sem unaccent/pg_trgm/citext; app_user não pode
+CREATE EXTENSION).
+
+**Solução (#223):** helper `src/lib/search.ts` com `translate()+lower()` NATIVOS do Postgres de
+ambos os lados (coluna e termo) — sem extensão. IDs matched via `$queryRawUnsafe` parameterizado
+(LIKE-escape de %/_) alimentam o where Prisma: filtros estruturados e paginação intactos. Aplicado
+em clubs (name/fullName/shortName + soft-delete), players (fullName) e competitions (name); os
+dois OR-blocks duplicados do clubs unificados numa `searchCondition` única.
+
+**Bug pego pela integração (não pelo unit):** os literais de transliteração estavam
+desalinhados — PLAIN tinha 5 o's/3 u's → ç mapeava para u ("açoriano"→"auoriano"). Corrigido
+para 38/38 1:1 e TRAVADO por unit `it.each` dos 38 pares. Integração 7/7 estável ×3 (case,
+acento, ç, LIKE-injection, soft-delete).
+
+**Live verify:** fingerprint `66d5d44` + cache clubs:list invalidado por inventário →
+`flamengo` 0→2 (canônico primeiro) · `Sao Paulo` 0→2 · `gremio`/`Gremio` 0→7 · `palmeiras` ✓.
+
+### Run autônomo 2026-09-27 — WS-D M1b: expansão Wikidata conservadora (piloto PT + 24 países)
+
+**Engine (#250, `a9361e2`):** `lib/wikidata/expansion/{types,filters,extract-attributes,plan-builder,apply-plan}.ts`
+
+- `scripts/expand-wikidata-conservative.ts` (DRY default; `--apply --allow-production`; `--stage=PILOT|FULL`;
+  `--country=<ISO2>`; insert-only; dedupe por QID; unit 21/21). Whitelist de competição refinada em **#251**
+  (`15d194f`): removida a classe de temporada/edição `Q18608583` (over-inclusion → PT criava 81 comps > gate 50).
+  Whitelist final: `Q15991303` · `Q8463186` · `Q15991290` · `Q3270632` · `Q1478437`.
+
+**Piloto PT (dry-run → amostragem → apply):** `clubWouldCreate=364` (100–600 ✓), `competitionWouldCreate=5`
+(5–50 ✓), coords **56%** (≥35% ✓), `errors=[]`. Amostragem manual 25 clubes = 25/25 legítimos (0 FP).
+Apply: `createdClubs=364`, `createdCompetitions=5`, `errors=0`, `updatedExisting=0`, `reactivatedSoftDeleted=0`,
+`hardDeletes=0`, `migrations=0`; re-run **noop**; SQL: provenance 0/0, dup 0, ativos 3.871→4.235; API PT 212→576.
+
+**Lote (24 países, dry→apply por país):** BE 203/5 · SE 594/15 · NL 163/5 · PL 270/56 · DK 173/16 · HU 173/4 ·
+CH 146/17 · FI 169/7 · NO 281/31 · AT 150/7 · CZ 248/4 · GR 365/5 · TR 406/4 · JP 312 · KR 44 · AU 540 · NZ 160 ·
+AR 223 · UY 59 · CO 43 · CL 89 · PE 245 — todos com `errors=0`.
+
+**Gate final (produção):** criados **5.420 clubes / 344 competições** em **25 países** (meta ≥1.000/≥50/≥20 ✓);
+clubes ativos **9.291** (0 sem QID) · comps ativas **1.905** (0 sem QID) · proveniência 100% (0/0) · dup QID
+**0/0** · coords **3.075/5.420 = 56,7%** · `ranking_entries` hash **`d2b117aa537047efe96edbac844e4c40` intacto** ·
+estadual RSSSF **7** · `country_pyramid` **1** · cache `rankings:list:*` (2 chaves) invalidado por inventário
+(sem FLUSHALL). **API smoke:** health/clubs(?country=SE/JP)/competitions(?country=PL)/rankings(?scope=country_pyramid)/
+champions = **200**; web home + `/rankings` = 200.
+
+**Nota:** 2 países com 1 clube cada (DE, GH) são artefatos de P17 múltiplo (clube com mais de um país de origem);
+sem impacto material. Lição operacional: `Select-Object -First N` (PowerShell) encerra o pipe SSH — não usar para
+ler loops longos.
+
+### Run autônomo 2026-09-27 — WS-D M1a-3: geocodificação (Wikidata profundo + Nominatim/OSM)
+
+**Medição read-only (FASE 0, #253):** 3.426 de 9.291 clubes ativos sem coordenada (36,9%); 0 deles com `city`.
+O extractor de 1 nível já estava esgotado. Opções A (Wikidata profundo), B (geocoder externo), C (híbrido).
+
+**Opção A (#254, `48dde06`):** `lib/wikidata/deep-coordinates.ts` + `scripts/resolve-club-coordinates-m1a3.ts`
+(1: `P625`; 2-4: `P115`/`P159` exact e `P131`/`P276`/`P937` municipality; 5-6: `P115`/`P159`→`P131` e cadeia
+`P131` até 3 níveis). Migration aditiva `20261008120000_m1a3_club_metadata` (`clubs.metadata JSONB`). Dry-run:
+`wouldResolve=50/3.426` (1,5%) → **teto baixo de A confirmado**. Aplicado: `totalUpdated=50` (P115_P131 34 ·
+P276 12 · P159_P131 4), `city +11`, `overwroteExistingCoords=0`, re-run noop; `with_coords 5.865→5.915`.
+
+**Opção C (#255 `593375d` + fix #256 `03929a5`):** `lib/geocoding/{nominatim-client,geocode-clubs}.ts` +
+`scripts/geocode-clubs-nominatim.ts`. Cliente com 1 req/s, UA com contato, retry/backoff, 403 aborta, cache em
+arquivo. Filtro endurecido por **`type`** (o `class` do jsonv2 vem vazio) — rejeita `path`/`road` (match espúrio
+`RP IF`→path, corrigido em #256). Atribuição **ODbL** adicionada em `/metodologia` (web). Aplicado por grupos de
+países (resumível): SE 38 · AU 53 · PT 41 · BR 9 · TR 6 · JP 9 · HU 30 · PL 38 · NO 6 · BE 16 · PE 10 · NZ 10 ·
+AR 40 · FI 8 · ES 20 · IQ 19 · US 5 · GB 2 · CL 2 · AT 6 · DK 8 · CH 12 · CA 4 · DE 2 · UY 2 · MX 2 · RO 2 ·
+IT 1 · CZ 16 = **451**.
+
+**Gate final (produção):** coords **5.865 → 6.366** (**+501**); `metadata` 501/501 (`nominatim` 451, `P115_P131`
+34, `P276` 12, `P159_P131` 4); `bad=0`; `overwroteExistingCoords=0`; expansão M1b 5.420 intacta; `ranking_entries`
+hash `d2b117aa…` **intacto**; estadual RSSSF 7; cache sem chaves; API smoke 200. Residual 2.925 sem pista.
+
+**Bloqueio infra (declarado):** Vercel free-tier (`api-deployments-free-per-day`, ~24h) travou o deploy de produção
+do **web** → atribuição ODbL em `/metodologia` **não publicou** (coords já vivas na API). Thinker: **manter as
+coords**; **follow-up** = confirmar ODbL live no reset do Vercel. Lição: `nohup` não sobrevive ao fim da sessão SSH.
+
+### Run autônomo 2026-09-29 — WS-C-3 mapa-múndi PÚBLICO (release única aprovada) + WS-G-1.2-B.1
+
+**Aprovação:** Operador aprovou o **mapa público** e confirmou **janela Vercel segura**. **Merge** `9e56c61`
+(PR #277, squash); **`Deploy Web` SUCCESS** (production). RC `release/ws-c-3-map-public-rc` (base FASE 3+4 +
+docs), rebase na `main`; escopo de 18 arquivos (`apps/web/**` + docs), zero migration/escrita/scheduler.
+
+**Smoke público:** `/map` 200 (`noindex=False`, link “Mapa” no nav, lista presente) · `/preview/mapa`
+`noindex=True` · `/`,`/rankings`,`/metodologia`,`/search` 200 · perfil OSM `geo-attribution` ✓ / Wikidata sem
+ODbL ✓ / inexistente 404 · API `geo/points` **BR/PT/GB 200** (`withoutLocation` 212/223/31;
+`attributions.osm="© OpenStreetMap contributors (ODbL)"`), bbox inválida 400, country inválido 400 · `health`/
+`rankings`/`champions/carousel` 200.
+
+**Integridade pós-release:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · coords 6.366 · dup 0/0 ·
+`ranking_entries` hash `d2b117aa…` · estadual 7 · EN pyramid 1 · MG/GO/PR intactos.
+
+**WS-G-1.2-B.1 (dry-run-only, Railway):** 10 rankings · 256 entries · wouldCreate/ wouldUpdate / Points /
+Positions = **0** · `hashBefore == hashAfter == d2b117aa…` · flags OFF · **zero escrita**. **WS-G-1.2-B apply
+permanece `[ ]`.**
+
+**Guarda de deploy validada em produção:** merges API-only/docs-only não dispararam `Deploy Web`; apenas a
+release web disparou.
+
+### Run autônomo 2026-09-29 — Hold Local: WS-C-3 FASE 3 (local/off) + FASE 4 readiness + WS-G-1.2-B proposal
+
+**FASE 0 (read-only):** `main` `0bab01b`; guarda ativa; `/map` `noindex`; API `health` 200; `geo/points?country=PT`
+200 (`ws-c3-geo-v1`); integridade `d2b117aa…`/estadual 7/EN pyramid 1. Backup bundle local criado.
+
+**WS-C-3 FASE 3 [x] local/off:** branch `proto/ws-c-3-fase3-map-ui-local` (NÃO pushada) — `map-viewmodel.ts`,
+`GeoMapCanvas.tsx`, `GeoMapInternal.tsx`, rota `preview/mapa` (**noindex/nofollow**); 47/47 web unit; sem
+publicação.
+
+**WS-C-3 FASE 4 readiness [~] local:** `docs/WS-C-3-FASE4-RELEASE-READINESS.md` (critérios A–H, matriz, smoke,
+a11y/perf, blockers) + estados **degradados** no viewmodel (OSM sem attribution e origem desconhecida **não
+plotam**; 28/28 testes de mapa). **Mapa público PROIBIDO.**
+
+**WS-G-1.2-B [ ] proposal:** `docs/WS-G-1-2-B-DESIGN.md` + testes (`ranking-refresh.test.ts`); **sem**
+apply/write/scheduler.
+
+**Governança reconciliada** com o estado vivo (DECISOES/PLANO_MESTRE/HANDOFF/REPORT).
+
+### Run autônomo 2026-09-29 — WS-C-3 FASE 1 (local/off) + FASE 2 (geo API-only)
+
+**FASE 1 (local/off, branch `proto/ws-c-3-map-lib`, não pushada):** lib pura `apps/web/src/lib/map-geo.ts`
+(`isPlotable`/`filterPlotable` — nunca pino falso; `bboxFilter`; `clusterPoints` determinístico; `limitPerViewport`;
+`layerAttribution`; `resolveGeoSource`; `buildWithoutLocation`; `selectViewport`) + `map-geojson.ts`
+(parser/normalizador GeoJSON; TopoJSON declarado não suportado) + 21 testes unit network-free. Sem rota pública.
+
+**FASE 2 (API-only, publicada):** `GET /api/v1/geo/points?country=&minLat/maxLat/minLng/maxLng=&limit=`
+(merge `ab603e1`, PR #275; Railway SUCCESS). Contrato `ws-c3-geo-v1`: `features` (só coord válida + `attribution`),
+`withoutLocation`, `attributions` por camada, `limitations`, `viewport`; validação country/bbox/limit (400);
+cache 300s. **Merge não disparou deploy web** (guarda: `Deploy Web` permaneceu em `6d0d728`).
+
+**Smoke produção:** `?country=BR&limit=3` 200 (withoutLoc 212); `?limit=500` 200 (500 features, withoutLoc 2925);
+`attributions.osm = © OpenStreetMap contributors (ODbL)`; `country=BRA` 400; bbox invertida 400. **Integridade:**
+clubs 9.291 (0 sem QID) · comps 1.905 · `ranking_entries` `d2b117aa…` · estadual 7 · EN pyramid 1.
+
+**FASE 3 (UI interna) e FASE 4 (mapa público): não publicadas.** Mapa **off**.
+
+### Run autônomo 2026-09-29 — Release única: WS-G-1.2-A + WS-C-3 FASE 0 + guarda de deploy
+
+**Autorização:** Operador (Vercel Hobby) autorizou condicionalmente `apps/web/vercel.json`
+(`git.deploymentEnabled.main=false`) **dentro de uma release única**. Gate de segredos OK: `gh secret list` =
+`VERCEL_TOKEN`; `deploy-web.yml` só referencia `VERCEL_TOKEN` (+ `--project`). `.env` gitignored e não versionado.
+
+**Merge:** `6d0d728` (PR #273, squash). **Deploy:** `Deploy Web` workflow **success**; produção Vercel
+`almanaque-dos-clubes-dkyyfz4qd` (`Ready`, target production).
+
+**Conteúdo:** WS-G-1.2-A (chave composta `rankingId+clubId` + testes anti-falso-positivo) · `docs/WS-C-3-FASE0-DESIGN.md` ·
+guarda (`deploy-vercel-frontend` fora do `ci.yml`; `.github/workflows/deploy-web.yml` com `paths`+`environment`+`concurrency`;
+`apps/web/vercel.json` nativa-main off) · docs.
+
+**Smoke pós-release:** web `/`,`/rankings`,`/metodologia`,`/search?q=Flamengo`,`/map` 200 · perfil OSM
+`geo-attribution` ✓ · Wikidata sem ODbL ✓ · inexistente 404 · `/map` `noindex` + fora do nav · API
+`health`/`rankings`/`champions/carousel`/`search/global` 200 · `/metodologia` “Pontos brutos = Vitórias × 3 +
+Empates × 1” + saldo. **Integridade:** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · `ranking_entries`
+`d2b117aa…` · estadual 7 · EN pyramid 1 · MG/GO/PR intactos. **#272 fechado como superseded.**
+
+### Run autônomo 2026-09-28 — TRACK A: WS-C-2 publicado + smoke verde (WS-C-2 [x])
+
+O limite da Vercel resetou e a produção web publicou o WS-C-2 — deployment
+`almanaque-dos-clubes-3x3ywwmeo` (target `production`, `Ready`, aliases `almanaquedosclubes.com`/`www`).
+**Sem novo deploy disparado** (a produção já continha o WS-C-2 → fui direto ao smoke).
+
+**Smoke web (cache-bypass):** `/` 200 (seção de campeões; **sem link `/map`**) · `/rankings` 200 ·
+`/metodologia` 200 (ODbL vivo) · `/map` 200 **`noindex`** · `/search` 200 (`global-search-input`+`combobox`).
+Perfil: OSM → `geo-attribution` + gaps; Wikidata → **sem** ODbL; BR/EN 200; inexistente → **404**.
+
+**API smoke:** `health`/`rankings` 200 · `/clubs/:id/profile` `attribution.license='ODbL'` ·
+`/champions/carousel` 200 (`rulesVersion=ws-c-1-carousel-v1`) · `/search/global` `Flamengo`=7,
+`type=competition` `Libertadores`=1.
+
+**Integridade (SQL read-only):** clubs 9.291 (0 sem QID) · comps 1.905 (0 sem QID) · dup 0/0 ·
+`ranking_entries` hash `d2b117aa…` · estadual RSSSF 7 · `country_pyramid` EN 1 · MG/GO/PR intactos.
+
+**Estado:** **WS-C-2 [x]**; PENDENCIAS [3] fechada. Mapa **off**. `WS-G-1.2` aguarda checkpoint/decisão.
+`writes 0 · migrations 0 · schedulers 0`.
+
+### Run autônomo 2026-09-28 — WS-G-1.1: auditoria dry-run em produção (sem escrita)
+
+**Guarda Vercel:** produção web ainda no SHA anterior ao #266; `api-deployments-free-per-day` **ainda
+bloqueado**; **sem retry** (PENDENCIAS [3] atualizada com SHA/erro/sem-retry).
+
+**Execução (Railway `39ca6e7`, `ORCHESTRATION_ENABLED` `<unset>`=OFF):** entrypoint seguro via
+`node --input-type=module` importando `dist/lib/orchestration/runner.js` (opção B; sem endpoint/comando novo).
+
+| job                                       | resultado                                                                                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `geo-attribution-audit`                   | 9.291 clubes · coords 6.366 · OSM 451 · **missing 0 · wrong 0** · wikidata 50 · unknown `[]` · errors 0                                                   |
+| `identity-integrity-dry-run` (SQL)        | 0 sem QID (clubs/comps) · dup 0/0 · canônicos `Q206813/Q843989/Q184795` ativos · homônimos `Q10391045/Q10391046/Q671621` presentes · comps soft-deleted 3 |
+| `ranking-refresh-dry-run` (por ranking)   | 10 rankings · 256 entries · **0/0/0/0** (create/update/points/positions) · errors 0                                                                       |
+| `wikidata-sample-validation` (FASE 3, ≤5) | 5/5 HTTP 200 com `P31`+`P17`                                                                                                                              |
+
+_(1ª passagem do ranking chaveada por `clubId` acusou 124 diffs — artefato do harness com entradas duplicadas
+entre rankings; reconduzida por ranking = 0. RSSSF não raspado nesta etapa.)_
+
+**Integridade:** inalterada — `ranking_entries` hash `d2b117aa…`, estadual RSSSF 7, `country_pyramid` EN 1,
+MG/GO/PR intactos. **writes 0 · migrations 0 · schedulers 0 · hard deletes 0 · secrets echoed 0.**
+
+**Estado:** WS-G-1 FASE 0 `[x]`, WS-G-1.1 `[x]`; **WS-G-1.2 (apply) `[ ]` não autorizado**. `WS-C-2` `[~]`
+(deploy web pendente).
+
+### Run autônomo 2026-09-28 — WS-G-1: scaffolding de orquestração ETL/cron (dry-run only)
+
+**Track A (WS-C-2 deploy):** revalidação ao vivo — produção ainda no SHA anterior ao #266 (`/clubs/:id` sem
+`geo-attribution`/gaps); deploy de produção `api-deployments-free-per-day` **ainda bloqueado**. **Sem retry**
+(conforme dispatch). PENDENCIAS [3] mantida.
+
+**Track B (WS-G-1, read-only):** inventário (BullMQ `etl/email/export/ranking`, `etl-worker.ts`, conectores,
+`http-resilience`, `won-edges`, cache) + `docs/WS-G-1-FASE0-DESIGN.md`. Scaffolding em
+`apps/api/src/lib/orchestration/*`:
+
+- planners puros (`planWikidataIdentityScan` dedupe-QID/skip-soft-deleted/sem-fuzzy; `planWikidataEnrichment`
+  only-fill; `planRsssfStateChampions` proveniência/ambíguo-omitido; `planRankingRefreshDiff` nunca-publica;
+  `auditGeoAttribution` OSM sem/inconsistente atribuição);
+- `schemas.ts` (Zod), `registry.ts`, `runner.ts` (dry-run; **recusa `apply:true`**), `flags.ts`
+  (`ORCHESTRATION_ENABLED` **default OFF**), `metrics.ts`, `redact.ts`.
+
+**Testes:** 19 unit novos network-free (500 no dir unit); `tsc`/eslint/prettier ok; `security-gate` +
+`migration-drift` verdes (sem migration). **Zero escrita · zero cron ativo · zero deploy web · zero mapa.**
+
+**Integridade:** inalterada (leitura apenas) — `ranking_entries` hash `d2b117aa…`, estadual RSSSF 7,
+`country_pyramid` EN 1, 0 sem QID, MG/GO/PR intactos.
+
+### Run autônomo 2026-09-28 — WS-C-2: UI pública (perfil + busca global + carrossel) — deploy web pendente
+
+**FASE 0 (read-only):** `main` `ab01289`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem
+QID; dup 0/0; hash `d2b117aa…`; estadual 7; EN pyramid 1). **Gate #264 (ODbL EN) verde** — `/metodologia`
+passou a exibir “OpenStreetMap contributors” (o literal canônico). Sem PR WS-C-2 pré-existente.
+
+**Implementado (PR #266, `27e98e5`, UI read-only, aditivo):**
+
+- Perfil `apps/web/src/app/clubs/[id]/page.tsx` → `GET /clubs/:id/profile` (geo + **attribution ODbL visível**,
+  proveniência, títulos/rankings/competições/`related`, **gaps** declarados, SEO/canonical/OG + JSON-LD).
+- Busca `components/GlobalSearch.tsx` + `app/search/page.tsx` → `GET /search/global` (tipada, case/acento,
+  homônimos por QID, URL state, a11y; página `noindex`).
+- Carrossel `components/ChampionsCarousel.tsx` + `lib/carousel.ts` → `GET /champions/carousel`
+  (**subconjunto ≤16**, não renderiza 418; `unavailable` nunca vira card; a11y).
+- Mapa `app/map/page.tsx` → `robots: noindex,nofollow` + fora do nav (**não público**).
+- i18n pt/en/es aditivo (`i18n/wsC2.ts`).
+
+**Testes/qualidade:** web unit 22/22 (4 novos `selectCarouselSubset`); `champions.spec.ts` (e2e) atualizado;
+`pnpm typecheck` (api+domain+web) ok; **`security-gate`/`migration-drift`/`gitleaks`/`dependency-audit`
+verdes**; sem migration.
+
+**Deploy (FASE 4):** merge na `main` ok, mas o **deploy de produção do web falhou por
+`api-deployments-free-per-day`** (limite free-tier da Vercel) → `blocked_reason:
+vercel_rate_limit_blocks_ws_c2_deploy`. **Sem repetir tentativas** (conforme dispatch). Último deploy de
+produção (anterior) permanece no ar com a compliance ODbL viva. **Smoke web pendente** até o reset
+(PENDENCIAS item [3]).
+
+**Integridade:** nenhuma escrita/migration; MG/GO/PR intactos; estadual RSSSF 7; `ranking_entries` hash
+`d2b117aa…` intacto.
+
+### Run autônomo 2026-09-28 — GATE ODbL web: M1a-3 [x]
+
+O limite free-tier da Vercel destravou e um deploy de produção ficou `Ready`; o gate ODbL foi executado em
+https://almanaquedosclubes.com/metodologia (cache-bypass): **“© contribuidores do OpenStreetMap”**, **“Open
+Database License (ODbL)”**, **Nominatim**, **Wikidata CC0**, **RSSSF “não é domínio público”** e atribuições
+**MG (Freati)/GO (Rivera)/PR (Dalpiaz)/EN (Premier League)** presentes; negativas ok (nenhuma afirmação de
+RSSSF como domínio público; nenhum segredo). Smoke `/`,`/metodologia`,`/rankings`,`/clubs` = 200 + API `health`
+200; `ranking_entries` hash `d2b117aa…` intacto; estadual RSSSF 7; `country_pyramid` 1.
+
+**M1a-3 [x].** Desbloqueia **WS-C-2** (UI) e o **mapa público**. **Residual cosmético:** o literal EN canônico
+“© OpenStreetMap contributors” (PR #264, já na `main`) ainda não subiu — o limite voltou a estourar; registrar
+e subir no próximo deploy possível.
+
+### Run autônomo 2026-09-28 — WS-C-1: fundação de produto na API (perfil + busca global + carrossel)
+
+**FASE 0 (read-only):** main `debb68b`; integridade verde (clubs 9.291 / 0 sem QID; comps 1.905 / 0 sem QID;
+dup QID 0/0; `ranking_entries` hash `d2b117aa…`; estadual RSSSF 7; `country_pyramid` 1). Falha da `main` no
+`deploy-vercel-frontend` é **ambiental** (rate-limit Vercel); `security-gate`/`migration-drift`/`gitleaks`/
+`dependency-audit` success.
+
+**Implementado (PR #262, `172b434`, API-only, aditivo):**
+
+- `GET /clubs/:id/profile` — `geo`(+`attribution`), `provenance`, `titles`/`rankings`/`competitions`/`related`,
+  `gaps` (história/elenco/estádio/uniformes/hino/matches = inexistentes, vazio-honesto).
+- `GET /search/global` — clubes+competições, case/acento-insensível (`translate`+`lower`), homônimos por QID
+  (não colapsados), limitações declaradas; `q` ausente → 400.
+- `GET /champions/carousel` — KG `WON` ativas com proveniência; **ambíguo/ausente omitido**; gênero isolado;
+  vigência (ano futuro ignorado); `rulesVersion=ws-c-1-carousel-v1`.
+- Reuso: `lib/geocoding/geo-attribution.ts`, `lib/search.ts`, cache, `excludeSoftDeleted`, `ranking-algorithm.service`.
+
+**Testes:** 481 unit (incl. 19 novos: profile/search/carousel) + integração `tests/integration/ws-c1.test.ts`
+(Postgres real; fixtures isoladas). `tsc`/eslint/prettier ok; `security-gate` + `migration-drift` verdes (sem migration).
+
+**Produção (`172b434`):** smoke — profile OSM→ODbL, Wikidata/BR→null, EN→rankings/comps, inexistente→404;
+search `Flamengo`=7=`flamengo`, `Sao Paulo`=14, `Libertadores`=1, `type=competition` ok, sem `q`→400; carousel
+418 scopes + 5 `unavailable`. **Integridade pós:** hash `d2b117aa…` intacto; estadual 7; `country_pyramid` 1;
+0 sem QID. **Cache novo:** `clubs:profile:<id>` 300s · `search:global:*` 60s · `champions:carousel` 3600s
+(read-through; sem FLUSHALL).
+
+**Bloqueio de UI:** nenhuma UI/mapa publicado. `M1a-3` segue `[~]` (ODbL pendente na Vercel) → **WS-C-2** e o
+mapa público só após `M1a-3 [x]`.
+
+**Mitigação API-only de conformidade (PR #259, `7e5e20c`): enquanto o web está bloqueado, a API expõe a atribuição.**
+Helper puro `lib/geocoding/geo-attribution.ts` (`geoAttributionForMetadata`): origem OSM/Nominatim → `{ geo: '©
+OpenStreetMap contributors (ODbL)', source: 'openstreetmap/nominatim', license: 'ODbL' }`; Wikidata → `null`.
+**Aditivo**: `/clubs/:id/geo` ganha `attribution`; `/clubs` (lista) e `/clubs/:id` ganham `attribution` por item.
+Testes: 5 unit + 1 integração (Postgres real). Smoke de produção: clube OSM → ODbL; Wikidata/sem-metadata → null.
+**M1a-3 permanece [~]** até `/metodologia` publicar ODbL (pendência externa registrada em `PENDENCIAS_OPERADOR.md`
+item [2]).
+
+### Run autônomo 2026-09-26 — T448b-2j: rate-limit por usuário + bucket restritivo (diretriz do Operador)
+
+**FASE 0 (medido):** sliding window REAL em Redis (ZADD/ZREMRANGEBYSCORE, T384/7.3) com Retry-After
+já existia; brute-force login já era 5/15min por IP+email (rate-limit.service). **Buracos provados:**
+(1) keying "por usuário" era INEFETIVO — hook onRequest roda ANTES do verify do JWT, request.user
+sempre indefinido → sempre chave IP; (2) login/register/forgot/reset/verify-email sem bucket
+restritivo dedicado (10/min do global).
+
+**Entregue (#280, `3c50614`):**
+- `rateLimitByUserOrIp(options, getUserId?)` — caller injeta resolvedor de usuário; em onRequest o
+  cookie access_token é DECODIFICADO sem verify (suficiente para CHAVE; request.user vence quando
+  presente — rotas autenticadas). Sub forjado só cria chave distinta = mesmo efeito de IP novo.
+- `SENSITIVE_AUTH_WINDOW` 10/min por IP para login/register/forgot/reset/verify-email (diretriz
+  5-10/min), complementando o brute-force do login em camada. Sessão (me/csrf/refresh) permanece
+  isenta — lição T458 (self-DoS) intacta.
+- Algoritmo: sliding window Redis (ZSET) com fallback em memória — já era Token-Bucket-adequado;
+  429 + Retry-After padronizados no limiter custom E no plugin global (@fastify/rate-limit já
+  setava retry-after — verificado no fonte do plugin).
+
+**Evidência:** unit keying 4/4 (usuário compartilha cota entre IPs; usuários distintos no mesmo IP
+independentes; fallback IP; request.user vence e não roda getUserId) + integração (10× 422 consomem
+a cota, 11ª = 429 RATE_LIMIT_EXCEEDED com retry-after; me isento). CI Postgres real. Live verify:
+12 POSTs /auth/register → 10×422 + 429 com `retry-after: 60`; /auth/me → 401 (isento).

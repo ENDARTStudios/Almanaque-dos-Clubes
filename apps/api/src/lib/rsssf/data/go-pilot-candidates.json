@@ -1,0 +1,65 @@
+{
+  "pilotScope": "go-2023-2024",
+  "parserVersion": "t448b2d-go-parser-v1",
+  "source": "rsssf",
+  "attributionRequired": true,
+  "candidates": [
+    {
+      "relation": "WON",
+      "competitionQid": "Q931386",
+      "seasonYear": 2023,
+      "clubQid": "Q198034",
+      "hierarchy": "estadual",
+      "gender": "men",
+      "source": "rsssf",
+      "sourceUrl": "https://rsssfbrasil.com/tablesfq/go2023.htm",
+      "retrievedAt": "2026-09-24T20:03:52Z",
+      "authorCredit": "(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2023.",
+      "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to",
+      "attributionRequired": true,
+      "externalId": "d9f7e35150f325da",
+      "dedupKey": "Q931386|2023|Q198034|WON",
+      "parserVersion": "t448b2d-go-parser-v1",
+      "metadataExtras": {
+        "championPhrase": "ATLÉTICO",
+        "tablePosition": null,
+        "sourcePageUrlHash": "054a6e05d128458b0df558523bc1f017581742b73156c5652217935ba4bd39e6",
+        "uf": "GO",
+        "pilotScope": "go-2023-2024"
+      }
+    },
+    {
+      "relation": "WON",
+      "competitionQid": "Q931386",
+      "seasonYear": 2024,
+      "clubQid": "Q198034",
+      "hierarchy": "estadual",
+      "gender": "men",
+      "source": "rsssf",
+      "sourceUrl": "https://rsssfbrasil.com/tablesfq/go2024.htm",
+      "retrievedAt": "2026-09-24T20:03:52Z",
+      "authorCredit": "(C) Copyright Guillermo Alexander Rivera, RSSSF and RSSSF Brazil 2024.",
+      "licenseText": "You are free to copy this document in whole or part provided that proper acknowledgement is given to",
+      "attributionRequired": true,
+      "externalId": "d67e8b35c913ce1f",
+      "dedupKey": "Q931386|2024|Q198034|WON",
+      "parserVersion": "t448b2d-go-parser-v1",
+      "metadataExtras": {
+        "championPhrase": "ATLÉTICO",
+        "tablePosition": null,
+        "sourcePageUrlHash": "ace30547b5f1de0a8fc1988e8d37a49b7c204191da4de588fd3acf40bef612cc",
+        "uf": "GO",
+        "pilotScope": "go-2023-2024"
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "seasonYear": 2025,
+      "reason": "club_name_unique_conflict",
+      "clubQid": "Q1513287",
+      "detail": "GO 2025 excluded because Q1513287 cannot be seeded under current clubs @@unique([name,country]) constraint. No rename/link/migration authorized."
+    }
+  ],
+  "doNotTouch": ["Q10391045", "Q10391046", "Q1513287"]
+}

@@ -15,6 +15,7 @@
  */
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { env } from '../../config/env.js';
+import { isAccessBlocked } from './access-blocklist.service.js';
 
 /**
  * Payload do access token validado.
@@ -74,6 +75,14 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   }
 
   if (!payload) {
+    return reply.status(401).send({
+      error: { code: 'UNAUTHORIZED', message: 'Acesso não autorizado' },
+    });
+  }
+
+  // T470b — blocklist: invalida access tokens já emitidos de conta excluída
+  // (stateless não os revoga sozinho). Fail-open na leitura (Redis fora => log).
+  if (await isAccessBlocked(payload.sub)) {
     return reply.status(401).send({
       error: { code: 'UNAUTHORIZED', message: 'Acesso não autorizado' },
     });
