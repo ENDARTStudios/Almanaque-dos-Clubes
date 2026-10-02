@@ -14,7 +14,6 @@ let dbOk = true;
 let idA = '';
 let idB = '';
 let idC = '';
-let compId = '';
 
 async function cleanup(): Promise<void> {
   const clubs = await prisma.club.findMany({
@@ -56,7 +55,6 @@ beforeAll(async () => {
     data: { name: `WSC7 Cup ${suffix}`, qid: null, country: 'ZZ', type: 'CUP' },
     select: { id: true },
   });
-  compId = comp.id;
   const a = await prisma.club.create({
     data: { name: 'WSC7 Alfa', country: 'ZZ', qid: null, city: 'Cidade', foundedYear: 1910 },
   });
