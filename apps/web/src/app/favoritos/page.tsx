@@ -3,6 +3,7 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useI18n } from '@/i18n/Provider';
+import FavoritesFeed from '@/components/FavoritesFeed';
 
 // T439 — Painel "Meu Almanaque" (/favoritos): favoritos do usuário com badge
 // do ranking vigente e indicador de tempo real (WS conectado).
@@ -73,6 +74,9 @@ function FavoritosPanel() {
           ))}
         </ul>
       )}
+
+      {/* WS-C-6 — conquistas recentes dos favoritos (ano DESC, cap 20). */}
+      {loaded && !error && favorites.length > 0 && <FavoritesFeed />}
     </div>
   );
 }
