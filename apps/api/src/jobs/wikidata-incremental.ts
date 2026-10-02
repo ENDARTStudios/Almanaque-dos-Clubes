@@ -71,7 +71,12 @@ export async function pickCandidates(batchSize: number): Promise<IncrementalCand
            WHERE k."sourceId" = c.id AND k."sourceType" = 'Club' AND k.relation = 'WON'
          )
        )
-     ORDER BY c.name ASC
+     ORDER BY
+       -- Prioriza quem o job PODE ajudar (falta geo/city): clubes completos mas
+       -- sem título WON nunca saem da piscina (o job não cria títulos) e, sem
+       -- esta prioridade, monopolizam o LIMIT (starving medido no primeiro run).
+       (CASE WHEN c.latitude IS NULL OR c.city IS NULL THEN 0 ELSE 1 END),
+       c.name ASC
      LIMIT $1`,
     batchSize,
   );
