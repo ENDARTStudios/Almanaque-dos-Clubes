@@ -31,6 +31,9 @@ import {
   type ClubRankingResult,
   type Gender,
 } from './ranking-algorithm.service.js';
+import { recordJobRun } from '../../jobs/data-refresh.scheduler.js';
+import { pushLog } from '../../lib/observability/log-buffer.js';
+import { checkJobFailure } from '../../lib/observability/alerts.js';
 
 /** Horário UTC diário 03:00. */
 export const RANKING_CRON_PATTERN = '0 3 * * *' as const;
@@ -197,11 +200,28 @@ export async function runRankingCronOnce(scope: RankingRunScope): Promise<Rankin
   }
 }
 
-/** Handler do job BullMQ (fila `ranking`). Extrai o ano/escopo do payload. */
+/** Handler do job BullMQ (fila `ranking`). Extrai o ano/escopo do payload.
+ * WS-O-1 — telemetria de run (health/log buffer); NÃO toca dados de ranking. */
 export async function rankingJobHandler(job: Job): Promise<void> {
   const data = (job.data ?? {}) as { season?: string; competitionId?: string | null };
   const season = data.season ?? String(new Date().getUTCFullYear());
-  await runRankingCronOnce({ season, competitionId: data.competitionId ?? null });
+  const startedAt = Date.now();
+  pushLog({ level: 'info', job: RANKING_JOB_NAME, event: 'start', data: { season } });
+  try {
+    await runRankingCronOnce({ season, competitionId: data.competitionId ?? null });
+    recordJobRun(RANKING_JOB_NAME, 'success', Date.now() - startedAt);
+    pushLog({ level: 'info', job: RANKING_JOB_NAME, event: 'done', data: { season } });
+  } catch (err) {
+    recordJobRun(RANKING_JOB_NAME, 'failure', Date.now() - startedAt);
+    pushLog({
+      level: 'error',
+      job: RANKING_JOB_NAME,
+      event: 'failure',
+      data: { season, error: err instanceof Error ? err.message : String(err) },
+    });
+    checkJobFailure(RANKING_JOB_NAME);
+    throw err;
+  }
 }
 
 let registered = false;

@@ -14,6 +14,8 @@ import { queues, createWorker } from '../services/queue.js';
 import { logger } from '../config/logger.js';
 import { runWikidataIncremental } from './wikidata-incremental.js';
 import { runIntegrityCheck } from './integrity-check.js';
+import { pushLog } from '../lib/observability/log-buffer.js';
+import { checkJobFailure } from '../lib/observability/alerts.js';
 
 export const DATA_REFRESH_QUEUE = 'dataRefresh' as const;
 export const JOB_WIKIDATA_INCREMENTAL = 'wikidata-incremental' as const;
@@ -57,6 +59,15 @@ export function getJobHealth(): Record<string, JobHealthEntry> {
   return health;
 }
 
+/** WS-O-1 — crons fora da fila (ex.: ranking) registram run no mesmo health. */
+export function recordJobRun(
+  jobName: string,
+  status: 'success' | 'failure',
+  durationMs: number,
+): void {
+  record(jobName, status, durationMs);
+}
+
 function record(jobName: string, status: 'success' | 'failure', durationMs: number): void {
   const entry = health[jobName] ?? {
     lastRunAt: null,
@@ -93,6 +104,7 @@ async function withTimeout(jobName: string, fn: () => Promise<void>): Promise<vo
 
 export async function dataRefreshJobHandler(job: Job): Promise<void> {
   const startedAt = Date.now();
+  pushLog({ level: 'info', job: job.name, event: 'start', data: { id: job.id } });
   try {
     if (job.name === JOB_WIKIDATA_INCREMENTAL) {
       const data = (job.data ?? {}) as { batchSize?: number; dryRun?: boolean };
@@ -101,18 +113,43 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         { scanned: out.scanned, updated: out.clubsUpdated, dryRun: out.dryRun },
         'data-refresh: incremental ok',
       );
+      pushLog({
+        level: 'info',
+        job: job.name,
+        event: 'done',
+        data: {
+          scanned: out.scanned,
+          updated: out.clubsUpdated,
+          errors: out.errors.length,
+          dryRun: out.dryRun,
+        },
+      });
     } else if (job.name === JOB_INTEGRITY_CHECK) {
       const report = await runIntegrityCheck();
       logger.info(
         { ok: report.ok, anomalies: report.anomalies.length },
         'data-refresh: integrity-check ok',
       );
+      pushLog({
+        level: 'info',
+        job: job.name,
+        event: 'done',
+        data: { ok: report.ok, anomalies: report.anomalies.length },
+      });
     } else {
       throw new Error(`data-refresh: job desconhecido "${job.name}"`);
     }
     record(job.name, 'success', Date.now() - startedAt);
   } catch (err) {
     record(job.name, 'failure', Date.now() - startedAt);
+    pushLog({
+      level: 'error',
+      job: job.name,
+      event: 'failure',
+      data: { error: err instanceof Error ? err.message : String(err) },
+    });
+    // WS-O-1 — alerta quando acumula falhas consecutivas (log crítico + buffer).
+    checkJobFailure(job.name);
     throw err;
   }
 }
