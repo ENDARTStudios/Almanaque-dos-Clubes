@@ -252,7 +252,7 @@ async function loadRelatedEdges(clubId: string): Promise<ProfileRelatedEdge[]> {
     });
 }
 
-async function loadRankings(clubId: string): Promise<ProfileRankingItem[]> {
+export async function loadRankings(clubId: string): Promise<ProfileRankingItem[]> {
   const entries = await prisma.rankingEntry.findMany({
     where: { clubId, ranking: { publishedAt: { not: null } } },
     select: {
