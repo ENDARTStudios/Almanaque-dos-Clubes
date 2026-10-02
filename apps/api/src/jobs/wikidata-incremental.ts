@@ -148,11 +148,11 @@ export function buildPatch(
   return { clubId: club.id, qid: club.qid, name: club.name, fields, source };
 }
 
-/** Fetch com backoff exponencial (429/5xx) — provedor substituível nos testes. */
-export async function fetchWikidataEntities(
-  qids: string[],
-  userAgent: string,
-): Promise<WikidataEntities> {
+const WBGETENTITIES_CHUNK = 50;
+const PAUSE_MS = 1500;
+
+/** Uma requisição wbgetentities com backoff exponencial (429/5xx/4xx transitório). */
+async function fetchEntitiesOnce(qids: string[], userAgent: string): Promise<WikidataEntities> {
   const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=labels%7Cclaims&languages=pt%7Cen&format=json`;
   let lastError: unknown = null;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -170,6 +170,26 @@ export async function fetchWikidataEntities(
     }
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
+/**
+ * Fetch com backoff — CHUNKA em 50 ids por requisição (wbgetentities aceita
+ * batch de 50; URL >~4k chars estoura 414 — lição T471, pega no dry-run 1000).
+ */
+export async function fetchWikidataEntities(
+  qids: string[],
+  userAgent: string,
+): Promise<WikidataEntities> {
+  const out: WikidataEntities = {};
+  for (let i = 0; i < qids.length; i += WBGETENTITIES_CHUNK) {
+    const part = qids.slice(i, i + WBGETENTITIES_CHUNK);
+    const entities = await fetchEntitiesOnce(part, userAgent);
+    Object.assign(out, entities);
+    if (i + WBGETENTITIES_CHUNK < qids.length) {
+      await new Promise((r) => setTimeout(r, PAUSE_MS));
+    }
+  }
+  return out;
 }
 
 export interface IncrementalOptions {
