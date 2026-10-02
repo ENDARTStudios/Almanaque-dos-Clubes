@@ -104,8 +104,6 @@ describe('T451 integrity-check', () => {
 });
 
 describe('T451 wikidata-incremental (provider mockado)', () => {
-  const qid = `QT451A`;
-
   function mockProvider(entities: WikidataEntities) {
     return async (qids: string[]): Promise<WikidataEntities> =>
       Object.fromEntries(qids.filter((q) => entities[q]).map((q) => [q, entities[q]]));
