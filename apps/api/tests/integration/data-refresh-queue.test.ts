@@ -12,7 +12,6 @@ import type { Job } from 'bullmq';
 import { Redis } from 'ioredis';
 import { queues } from '../../src/services/queue.js';
 import {
-  DATA_REFRESH_QUEUE,
   JOB_INTEGRITY_CHECK,
   dataRefreshJobHandler,
   getJobHealth,
