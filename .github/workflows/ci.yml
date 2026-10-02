@@ -43,11 +43,11 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: 'pnpm' }
 
       - run: pnpm install --frozen-lockfile
@@ -68,6 +68,7 @@ jobs:
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_sessions_setup.sql
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_favorites_setup.sql
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_legal_setup.sql
+          npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/rls_notifications_setup.sql
           npx prisma db execute --schema=prisma/schema.prisma --file scripts/sql/create_app_user.sql
           # rls_users por ÚLTIMO: o GRANT EXECUTE da função pre-auth exige a role
           # app_user (criada no passo anterior).
@@ -127,11 +128,11 @@ jobs:
     env:
       DRIFT_URL: 'postgresql://almanaque:almanaque_dev_2025@localhost:5432/driftcheck'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: 'pnpm' }
 
       - run: pnpm install --frozen-lockfile
@@ -171,7 +172,7 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -181,7 +182,7 @@ jobs:
   dependency-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - name: Audit de dependências
         continue-on-error: true

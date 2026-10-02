@@ -240,6 +240,7 @@ model RankingEntry {
 
 model User {
   favorites Favorite[]
+  notifications Notification[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -421,6 +422,26 @@ enum SeasonStatus {
   PLANNED
   ONGOING
   FINISHED
+}
+
+// -----------------------------------------------------------------------------
+// WS-C-8 — notificações de usuário (eventos dos clubes favoritados).
+// Uma linha por evento; payload JSONB com shape por `type` (notification.service).
+// RLS owner-only (rls_notifications_setup.sql); SERVICE insere (ETL/crons).
+// -----------------------------------------------------------------------------
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "new_title" | "new_competition" | "ranking_change" | "system"
+  payload   Json
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, read])
+  @@map("notifications")
 }
 
 model Season {

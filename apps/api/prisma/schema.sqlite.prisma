@@ -31,6 +31,7 @@ datasource db {
 
 model Club {
   favorites Favorite[]
+  notifications Notification[]
   id           String   @id @default(uuid())
   name         String
   fullName     String?
@@ -199,6 +200,7 @@ model RankingEntry {
 
 model User {
   favorites Favorite[]
+  notifications Notification[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -367,6 +369,18 @@ model Favorite {
 // -----------------------------------------------------------------------------
 // AUDIT LOG — append-only
 // -----------------------------------------------------------------------------
+
+// WS-C-8 — espelho sqlite de Notification (payload String = JSON.stringify).
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  payload   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+}
 
 model Season {
   id        String   @id @default(uuid())
