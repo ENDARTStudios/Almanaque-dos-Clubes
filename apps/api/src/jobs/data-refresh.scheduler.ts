@@ -16,6 +16,7 @@ import { runWikidataIncremental } from './wikidata-incremental.js';
 import { runIntegrityCheck } from './integrity-check.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
 import { checkJobFailure } from '../lib/observability/alerts.js';
+import { notifyNewTitlesSince } from '../modules/notifications/title-notification.generator.js';
 
 export const DATA_REFRESH_QUEUE = 'dataRefresh' as const;
 export const JOB_WIKIDATA_INCREMENTAL = 'wikidata-incremental' as const;
@@ -124,6 +125,14 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
           dryRun: out.dryRun,
         },
       });
+      // WS-C-8 — arestas WON criadas neste run viram notificações new_title
+      // para favoritantes (falha de notificação NÃO falha o ETL).
+      if (!out.dryRun) {
+        const gen = await notifyNewTitlesSince(new Date(startedAt));
+        if (gen) {
+          pushLog({ level: 'info', job: job.name, event: 'notifications', data: { ...gen } });
+        }
+      }
     } else if (job.name === JOB_INTEGRITY_CHECK) {
       const report = await runIntegrityCheck();
       logger.info(
