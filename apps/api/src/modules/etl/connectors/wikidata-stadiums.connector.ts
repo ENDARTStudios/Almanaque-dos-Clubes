@@ -176,7 +176,7 @@ export function parseStadiums(json: unknown): StadiumEntry[] {
     .object({
       results: z
         .object({
-          bindings: z.array(z.record(z.unknown()) as z.ZodType<BindingMap>).optional(),
+          bindings: z.array(z.record(z.string(), z.unknown()) as z.ZodType<BindingMap>).optional(),
         })
         .optional(),
     })
