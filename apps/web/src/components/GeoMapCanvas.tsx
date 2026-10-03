@@ -25,7 +25,7 @@ export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }
     // e pan por teclado (setas) quando o mapa recebe foco. Sem flags explícitas,
     // o mapa parece "travado": a roda não zooma e as setas não panneam.
     const map = L.map(ref.current, {
-      scrollWheelZoom: true,
+      scrollWheelZoom: false, // roda sobre o mapa rola a página (UX WS-C-3); zoom via botões/duplo-clique/pinch
       dragging: true,
       touchZoom: true,
       doubleClickZoom: true,
