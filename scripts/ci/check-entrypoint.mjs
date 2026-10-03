@@ -5,7 +5,7 @@
  * imagem; container crashou em loop e derrubou a API de produção).
  *
  * Verifica, sem Docker e sem rede, que todo caminho relativo usado em
- * apps/api/entrypoint.sh existe na imagem descrita pelo Dockerfile raiz:
+ * apps/api/entrypoint.sh existe na imagem descrita pelo apps/api/Dockerfile:
  *  - caminhos sob node_modules/ precisam constar na allowlist explícita
  *    (binários vindos de `pnpm install`, verificados na imagem viva);
  *  - demais caminhos precisam estar cobertos por uma linha COPY.
@@ -22,7 +22,7 @@ const arg = (name, def) => {
   const i = process.argv.indexOf(name);
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : def;
 };
-const DOCKERFILE = resolve(root, arg('--dockerfile', 'Dockerfile'));
+const DOCKERFILE = resolve(root, arg('--dockerfile', 'apps/api/Dockerfile'));
 const ENTRYPOINT = resolve(root, arg('--entrypoint', 'apps/api/entrypoint.sh'));
 
 // Allowlist explícita: únicos caminhos gerados por `pnpm install` (não por

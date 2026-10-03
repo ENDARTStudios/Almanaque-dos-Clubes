@@ -1,1 +1,0 @@
-# Este arquivo será preenchido com o conteúdo do pg_hba.conf após execução
