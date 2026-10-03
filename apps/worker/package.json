@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@almanaque/api": "workspace:*",
-    "bullmq": "^5.46.3",
+    "bullmq": "^6.0.9",
     "resend": "^6.19.0"
   },
   "devDependencies": {

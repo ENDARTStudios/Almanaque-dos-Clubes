@@ -8,11 +8,11 @@ services:
       POSTGRES_PASSWORD: almanaque_dev_2025
       POSTGRES_DB: almanaque
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - almanaque_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U almanaque -d almanaque"]
+      test: ['CMD-SHELL', 'pg_isready -U almanaque -d almanaque']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,19 +24,19 @@ services:
     container_name: almanaque-api
     restart: unless-stopped
     environment:
-      DATABASE_URL: "postgresql://almanaque@postgres:5432/almanaque?schema=public"
+      DATABASE_URL: 'postgresql://almanaque@postgres:5432/almanaque?schema=public'
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
       LOG_LEVEL: info
-      JWT_SECRET: "dev_jwt_secret_minimum_32_chars_long_for_dev"
-      JWT_REFRESH_SECRET: "dev_refresh_secret_minimum_32_chars"
-      S3_ENDPOINT: "http://minio:9000"
+      JWT_SECRET: 'dev_jwt_secret_minimum_32_chars_long_for_dev'
+      JWT_REFRESH_SECRET: 'dev_refresh_secret_minimum_32_chars'
+      S3_ENDPOINT: 'http://minio:9000'
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - '3000:3000'
 
   minio:
     image: minio/minio:latest
@@ -47,12 +47,12 @@ services:
       MINIO_ROOT_USER: almanaque
       MINIO_ROOT_PASSWORD: almanaque_dev_2025
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - '9000:9000'
+      - '9001:9001'
     volumes:
       - almanaque_minio:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,11 +62,11 @@ services:
     container_name: almanaque-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - almanaque_redis:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -78,11 +78,11 @@ services:
     environment:
       - TZ=UTC
     volumes:
-      - ./.observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./.observability/alerting.yml:/etc/prometheus/alerting.yml:ro
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/observability/alerting.yml:/etc/prometheus/alerting.yml:ro
       - almanaque_prometheus:/prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
 
   grafana:
     image: grafana/grafana:latest
@@ -93,7 +93,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=almanaque_dev_2025
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      - "3001:3000"
+      - '3001:3000'
     volumes:
       - almanaque_grafana:/var/lib/grafana
     depends_on:
@@ -105,10 +105,10 @@ services:
     restart: unless-stopped
     command: -config.file=/etc/loki/config.yml
     volumes:
-      - ./.observability/loki-config.yml:/etc/loki/config.yml:ro
+      - ./infra/observability/loki-config.yml:/etc/loki/config.yml:ro
       - almanaque_loki:/loki
     ports:
-      - "3100:3100"
+      - '3100:3100'
 
   healthchecks:
     image: healthchecks/healthchecks:latest
@@ -120,7 +120,7 @@ services:
       - SECRET_KEY=dev_secret_key_minimum_32_chars_long_for_hc
       - DB=sqlite
     ports:
-      - "8005:8000"
+      - '8005:8000'
     volumes:
       - almanaque_hc:/data
 

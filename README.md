@@ -7,20 +7,20 @@
 
 ## ✅ O que está implementado
 
-| Item | Status |
-|------|--------|
-| Monorepo pnpm workspaces (`apps/api` + `packages/domain`) | ✅ |
-| Prisma schema PostgreSQL (canônico) + SQLite (sandbox) | ✅ |
-| Servidor Fastify 5 com TypeScript estrito | ✅ |
-| `GET /api/v1/health` — health check | ✅ |
-| `POST /api/v1/clubs` — criar clube (validação Zod + unicidade) | ✅ |
-| `GET /api/v1/clubs` — listar com filtros + paginação + busca | ✅ |
-| `GET /api/v1/clubs/:id` — buscar por ID | ✅ |
-| Helmet (CSP, X-Frame-Options, X-Content-Type-Options) | ✅ |
-| CORS restrito em produção | ✅ |
-| Logger Pino estruturado | ✅ |
-| Tratamento global de erros sem vazar stack trace | ✅ |
-| Graceful shutdown (SIGINT/SIGTERM) | ✅ |
+| Item                                                           | Status |
+| -------------------------------------------------------------- | ------ |
+| Monorepo pnpm workspaces (`apps/api` + `packages/domain`)      | ✅     |
+| Prisma schema PostgreSQL (canônico) + SQLite (sandbox)         | ✅     |
+| Servidor Fastify 5 com TypeScript estrito                      | ✅     |
+| `GET /api/v1/health` — health check                            | ✅     |
+| `POST /api/v1/clubs` — criar clube (validação Zod + unicidade) | ✅     |
+| `GET /api/v1/clubs` — listar com filtros + paginação + busca   | ✅     |
+| `GET /api/v1/clubs/:id` — buscar por ID                        | ✅     |
+| Helmet (CSP, X-Frame-Options, X-Content-Type-Options)          | ✅     |
+| CORS restrito em produção                                      | ✅     |
+| Logger Pino estruturado                                        | ✅     |
+| Tratamento global de erros sem vazar stack trace               | ✅     |
+| Graceful shutdown (SIGINT/SIGTERM)                             | ✅     |
 
 ---
 
@@ -28,38 +28,25 @@
 
 ```
 almanaque-dos-clubes/
-├── apps/
-│   └── api/                          # Servidor Fastify + Prisma
-│       ├── prisma/
-│       │   ├── schema.prisma         # POSTGRESQL (produção / Docker)
-│       │   ├── schema.sqlite.prisma  # SQLITE (sandbox)
-│       │   ├── seed.ts               # Seed: Flamengo, Palmeiras, Santos
-│       │   └── migrations/
-│       └── src/
-│           ├── app.ts                # Configuração do Fastify
-│           ├── server.ts             # Ponto de entrada
-│           ├── config/
-│           │   ├── env.ts
-│           │   ├── logger.ts
-│           │   └── prisma.ts
-│           ├── modules/
-│           │   └── clubs/
-│           │       ├── repository.ts # Acesso a dados (Prisma)
-│           │       ├── service.ts    # Regras de negócio
-│           │       └── routes.ts     # Camada HTTP
-│           └── routes/
-│               └── health.ts
-├── packages/
-│   └── domain/                       # Tipos + validadores Zod compartilhados
-│       └── src/
-│           ├── club.ts
-│           ├── errors.ts
-│           └── index.ts
-├── docker-compose.yml                # PostgreSQL 16 para dev local
-├── pnpm-workspace.yaml
-├── tsconfig.base.json
-├── .env.example
-└── .gitignore
+├── apps/                            # Aplicações (buildáveis/deployáveis)
+│   ├── api/                         # API Fastify + Prisma (produção: Railway)
+│   │   ├── Dockerfile               # Imagem de produção da API
+│   │   ├── entrypoint.sh            # migrate deploy + start (fail-fast)
+│   │   ├── prisma/                  # schema PostgreSQL (canônico) + SQLite (sandbox)
+│   │   └── src/                     # Fastify, módulos, serviços
+│   ├── web/                         # Frontend Next.js 16 (produção: Vercel)
+│   │   └── Dockerfile
+│   └── worker/                      # Workers BullMQ (ETL/e-mail — execução local/manual)
+├── packages/                        # Código compartilhado entre apps
+│   ├── domain/                      # Tipos + validadores Zod
+│   └── feature-flags/               # Flags de feature
+├── scripts/                         # Automação (CI, deploy, diagnóstico, k6, graft-tools)
+├── infra/                           # Infra local: postgres/ (pg_hba), observability/ (Prometheus/Grafana/Loki)
+├── docs/                            # Documentação (DECISOES, PLANO_MESTRE, HANDOFF, referências)
+├── docker-compose.yml               # Stack local (Postgres, Redis, MinIO, observabilidade)
+├── railway.json                     # Build/deploy da API no Railway
+├── turbo.json                       # Orquestração (typecheck com cache)
+└── pnpm-workspace.yaml              # Workspaces: apps/* + packages/*
 ```
 
 ---
@@ -67,8 +54,9 @@ almanaque-dos-clubes/
 ## 🚀 Como rodar LOCALMENTE no Windows (PostgreSQL via Docker)
 
 ### Pré-requisitos
-- Node.js v20+
-- pnpm v9+ (`npm install -g pnpm`)
+
+- Node.js v22
+- pnpm v11 (`corepack enable` ou `npm install -g pnpm`)
 - Docker Desktop rodando
 
 ### Passo a passo (PowerShell)
@@ -108,6 +96,7 @@ pnpm dev
 Servidor disponível em `http://localhost:3000/api/v1`.
 
 > ⚠️ **Importante:** o `pnpm db:seed` usa o schema SQLite por padrão (definido em `apps/api/package.json`). Para usar PostgreSQL em produção, ajuste o script `prisma:seed` para apontar a `--schema=prisma/schema.prisma`, ou rode direto:
+>
 > ```powershell
 > pnpm --filter @almanaque/api exec tsx prisma/seed.ts
 > ```
@@ -144,6 +133,7 @@ pnpm dev
 ## 📋 Endpoints disponíveis
 
 ### `GET /api/v1/health`
+
 Health check — não expõe detalhes internos.
 
 ```bash
@@ -152,6 +142,7 @@ curl http://localhost:3000/api/v1/health
 ```
 
 ### `POST /api/v1/clubs`
+
 Cria um novo clube. Validação completa via Zod; unicidade (name, country).
 
 ```bash
@@ -172,20 +163,21 @@ curl -X POST http://localhost:3000/api/v1/clubs \
 
 **Campos aceitos:**
 
-| Campo | Tipo | Obrigatório | Regras |
-|-------|------|-------------|--------|
-| `name` | string | ✅ | 2–200 caracteres |
-| `fullName` | string | — | 2–300 caracteres |
-| `shortName` | string | — | 1–20 caracteres |
-| `city` | string | — | 1–100 caracteres |
-| `state` | string | — | 1–100 caracteres |
-| `country` | string | — | ISO 3166-1 alpha-2 (ex.: "BR", "AR", "PT") |
-| `foundedYear` | int | — | Entre 1850 e o ano atual |
-| `status` | enum | — | `ACTIVE` (default), `INACTIVE`, `DISSOLVED` |
-| `primaryColor` | string | — | `#RRGGBB` |
-| `website` | string | — | URL válida |
+| Campo          | Tipo   | Obrigatório | Regras                                      |
+| -------------- | ------ | ----------- | ------------------------------------------- |
+| `name`         | string | ✅          | 2–200 caracteres                            |
+| `fullName`     | string | —           | 2–300 caracteres                            |
+| `shortName`    | string | —           | 1–20 caracteres                             |
+| `city`         | string | —           | 1–100 caracteres                            |
+| `state`        | string | —           | 1–100 caracteres                            |
+| `country`      | string | —           | ISO 3166-1 alpha-2 (ex.: "BR", "AR", "PT")  |
+| `foundedYear`  | int    | —           | Entre 1850 e o ano atual                    |
+| `status`       | enum   | —           | `ACTIVE` (default), `INACTIVE`, `DISSOLVED` |
+| `primaryColor` | string | —           | `#RRGGBB`                                   |
+| `website`      | string | —           | URL válida                                  |
 
 ### `GET /api/v1/clubs`
+
 Lista clubes com filtros e paginação.
 
 ```bash
@@ -203,6 +195,7 @@ curl "http://localhost:3000/api/v1/clubs?limit=10&offset=20"
 ```
 
 ### `GET /api/v1/clubs/:id`
+
 Busca um clube por ID (UUID).
 
 ```bash
@@ -213,17 +206,18 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 
 ## 🔒 Segurança já aplicada (Fase 1 do docs/PLANO_MESTRE.md)
 
-| Camada | Implementação |
-|--------|---------------|
-| Headers HTTP | `@fastify/helmet` (CSP, X-Frame-Options, X-Content-Type-Options, HSTS em prod) |
-| CORS | Restrito a `https://almanaquedosclubes.com` e `https://www.almanaquedosclubes.com` em produção; permissivo em dev |
-| Body size | Limite de 1 MiB |
-| Validação de entrada | Zod em todos os endpoints POST |
-| Sanitização de saída | Erros não vazam stack trace em produção |
-| Trust proxy | Habilitado (corrects `request.ip` atrás de proxy/reverse proxy) |
-| Logger estruturado | Pino (JSON em prod, pretty em dev) |
+| Camada               | Implementação                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Headers HTTP         | `@fastify/helmet` (CSP, X-Frame-Options, X-Content-Type-Options, HSTS em prod)                                    |
+| CORS                 | Restrito a `https://almanaquedosclubes.com` e `https://www.almanaquedosclubes.com` em produção; permissivo em dev |
+| Body size            | Limite de 1 MiB                                                                                                   |
+| Validação de entrada | Zod em todos os endpoints POST                                                                                    |
+| Sanitização de saída | Erros não vazam stack trace em produção                                                                           |
+| Trust proxy          | Habilitado (corrects `request.ip` atrás de proxy/reverse proxy)                                                   |
+| Logger estruturado   | Pino (JSON em prod, pretty em dev)                                                                                |
 
 **Próximos passos de segurança (Fase 3+):**
+
 - Autenticação com sessões server-side + cookie httpOnly
 - Rate limiting por IP/rota (Redis)
 - RBAC com middleware de permissões
@@ -234,15 +228,15 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 
 ## 🛠️ Scripts disponíveis
 
-| Comando | Ação |
-|---------|------|
-| `pnpm dev` | Sobe a API em modo watch (tsx watch) |
-| `pnpm build` | Compila TypeScript para `apps/api/dist/` |
-| `pnpm start` | Inicia a API a partir do build |
-| `pnpm db:generate` | Gera Prisma Client (schema SQLite) |
-| `pnpm db:migrate` | Roda migrations em dev (schema SQLite) |
-| `pnpm db:studio` | Abre Prisma Studio |
-| `pnpm db:seed` | Popula o banco com dados de exemplo |
+| Comando            | Ação                                     |
+| ------------------ | ---------------------------------------- |
+| `pnpm dev`         | Sobe a API em modo watch (tsx watch)     |
+| `pnpm build`       | Compila TypeScript para `apps/api/dist/` |
+| `pnpm start`       | Inicia a API a partir do build           |
+| `pnpm db:generate` | Gera Prisma Client (schema SQLite)       |
+| `pnpm db:migrate`  | Roda migrations em dev (schema SQLite)   |
+| `pnpm db:studio`   | Abre Prisma Studio                       |
+| `pnpm db:seed`     | Popula o banco com dados de exemplo      |
 
 > Em produção (PostgreSQL), substitua `--schema=prisma/schema.sqlite.prisma` por `--schema=prisma/schema.prisma` nos scripts `prisma:*` de `apps/api/package.json`.
 
