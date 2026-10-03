@@ -12,7 +12,7 @@ export const CreateConsentSchema = z.object({
   visitorId: z.string().min(8).max(128),
   version: z.string().min(1).max(32),
   categories: ConsentCategoriesSchema,
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CreateConsentInput = z.infer<typeof CreateConsentSchema>;

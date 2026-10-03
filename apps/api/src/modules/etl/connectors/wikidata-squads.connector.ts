@@ -145,7 +145,7 @@ export function parseSquadsResponse(json: unknown): SquadsEntry[] {
     .object({
       results: z
         .object({
-          bindings: z.array(z.record(z.unknown()) as z.ZodType<BindingMap>).optional(),
+          bindings: z.array(z.record(z.string(), z.unknown()) as z.ZodType<BindingMap>).optional(),
         })
         .optional(),
     })

@@ -84,7 +84,7 @@ describe('SQL injection (8.8)', () => {
   it('aceita UUID válido', async () => {
     const res = await app.inject({
       method: 'GET',
-      url: '/club/aaaaaaaa-0000-0000-0000-000000000001',
+      url: '/club/aaaaaaaa-bbbb-4ccc-8ddd-000000000001',
     });
     expect(res.statusCode).toBe(200);
   });

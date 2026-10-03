@@ -6,7 +6,7 @@ export const CreateGraphEdgeSchema = z.object({
   targetId: z.string().uuid(),
   targetType: z.enum(['Club', 'Player', 'Competition']),
   relation: z.enum(['PLAYED_FOR', 'MANAGED_BY', 'PART_OF', 'WON', 'RIVAL']),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 export type CreateGraphEdgeInput = z.infer<typeof CreateGraphEdgeSchema>;
 
