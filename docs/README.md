@@ -83,6 +83,7 @@
 
 - [T449C-V2-FASE0-DESIGN.md](./09-references/T449C-V2-FASE0-DESIGN.md) · [T448B2C-DISCOVERY-UFS.md](./09-references/T448B2C-DISCOVERY-UFS.md) · [T448B2D-PR-BLOCK-GO-DISCOVERY.md](./09-references/T448B2D-PR-BLOCK-GO-DISCOVERY.md)
 - [FASE0-T448b-2b-rsssf-estaduais.md](./09-references/FASE0-T448b-2b-rsssf-estaduais.md) · [HANDOFF-T445.md](./09-references/HANDOFF-T445.md) · [VERIFICACAO-T387.md](./09-references/VERIFICACAO-T387.md) · [CI-ROOT-CAUSE.md](./09-references/CI-ROOT-CAUSE.md)
+- [Design system (brand master)](./09-references/design-system/almanaque-dos-clubes-MASTER.md)
 
 ## Skeletons a preencher (Backlog de Documentação)
 

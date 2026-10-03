@@ -47,7 +47,8 @@ pgdata/
 
 # Artefatos de ambiente externo (T350)
 mnt/
-/1# secret rollback/rehearsal (T401) — nunca commitar
+/1
+# secret rollback/rehearsal (T401) — nunca commitar
 apps/api/.rollback-db-url
 apps/api/.appuser-pwd
 
@@ -55,3 +56,7 @@ apps/api/.appuser-pwd
 /graft/
 
 graft/
+
+# Turborepo (cache local) e runtime do husky
+.turbo/
+.husky/_/

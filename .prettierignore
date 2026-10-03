@@ -1,0 +1,11 @@
+# Lockfile do pnpm tem formato próprio — formatar quebra a integridade do YAML.
+pnpm-lock.yaml
+
+# Cache e artefatos
+graft/
+.kilo/
+.turbo/
+**/dist/
+**/.next/
+**/coverage/
+**/node_modules/

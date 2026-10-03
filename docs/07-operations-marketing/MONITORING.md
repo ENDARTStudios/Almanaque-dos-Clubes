@@ -2,15 +2,15 @@
 
 ## Ativo em produção
 
-| Instrumento | Onde | O que cobre |
-|---|---|---|
-| `/api/v1/health` | API | healthcheck do Railway (retry 2min; deploy rejeitado se falhar) |
-| `/api/v1/metrics` | API (T422) | http_requests_total, http_5xx_total, auth_failures_total (Prometheus) |
-| alerts.yml | workflow 5min | health + delta de 5xx/auth com cache; rankings-stale como warn |
-| backup.yml | workflow 04:00 UTC | pg_dump → R2 (threshold 400KB + validação clubs>0) + manifest |
-| drill.yml | semanal | restore-drill: baixa R2, restaura em DB efêmero, compara counts |
-| audit_logs | banco | auth/billing/admin/etl — append-only |
-| logs Railway | API/worker | pino estruturado; 5xx com correlationId |
+| Instrumento       | Onde               | O que cobre                                                           |
+| ----------------- | ------------------ | --------------------------------------------------------------------- |
+| `/api/v1/health`  | API                | healthcheck do Railway (retry 2min; deploy rejeitado se falhar)       |
+| `/api/v1/metrics` | API (T422)         | http_requests_total, http_5xx_total, auth_failures_total (Prometheus) |
+| alerts.yml        | workflow 5min      | health + delta de 5xx/auth com cache; rankings-stale como warn        |
+| backup.yml        | workflow 04:00 UTC | pg_dump → R2 (threshold 400KB + validação clubs>0) + manifest         |
+| drill.yml         | semanal            | restore-drill: baixa R2, restaura em DB efêmero, compara counts       |
+| audit_logs        | banco              | auth/billing/admin/etl — append-only                                  |
+| logs Railway      | API/worker         | pino estruturado; 5xx com correlationId                               |
 
 ## Runbook de incidentes
 
@@ -30,7 +30,6 @@ aplicável) / GDPR 72h (publicado na Privacidade §7 desde T469). Rollback de de
 
 Painel/alertas de NEGÓCIO (arestas WON novas, ingestão falha, gap por hierarquia) — candidato a
 round de observabilidade (T4xx); hoje o sinal é o output dos scripts + REPORT.
-
 
 ---
 
@@ -62,7 +61,7 @@ Verificação: `curl -s http://localhost:3000/api/v1/metrics | head` → linhas 
 - **`src/modules/observability/alerts.ts`** — regras puras + `evaluateAlerts(snapshot)`.
 - Regras: 5xx/total > 1% · falhas de auth > 50/min · último backup falhou · disco > 80%.
 - `renderAlertPayload(alerts)` gera o JSON do webhook (Slack/Discord/email); `ALERT_WEBHOOK_URL` em secret manager.
-- Prometheus rules em `observability/alerting.yml` (`High5xxRate`, `AuthFailureBurst`).
+- Prometheus rules em `infra/observability/alerting.yml` (`High5xxRate`, `AuthFailureBurst`).
 
 ## 4. Backup → S3 + cron
 
@@ -77,7 +76,7 @@ Verificação: `curl -s http://localhost:3000/api/v1/metrics | head` → linhas 
 
 ## 6. Stack Docker (compose)
 
-Serviços adicionados: **prometheus** (`:9090`), **grafana** (`:3001`), **loki** (`:3100`), **healthchecks** (`:8005`). Configs em `.observability/`.
+Serviços adicionados: **prometheus** (`:9090`), **grafana** (`:3001`), **loki** (`:3100`), **healthchecks** (`:8005`). Configs em `infra/observability/`.
 
 ```bash
 docker compose up -d prometheus grafana loki healthchecks      # requer daemon Docker ativo
