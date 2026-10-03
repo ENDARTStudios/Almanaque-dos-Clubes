@@ -15,9 +15,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {}
+    "sourceMap": true
   },
   "exclude": ["node_modules", "dist"]
 }
