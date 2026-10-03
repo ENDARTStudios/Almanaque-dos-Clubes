@@ -93,7 +93,11 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
         const fresh = await readCsrfToken();
         if (fresh) retryHeaders['x-csrf-token'] = fresh;
       }
-      res = await fetch(API_BASE + path, { credentials: 'include', headers: retryHeaders, ...options });
+      res = await fetch(API_BASE + path, {
+        credentials: 'include',
+        headers: retryHeaders,
+        ...options,
+      });
     }
   }
   // Se um write falhar por CSRF stale, invalida o cache, refaz o token e tenta uma vez.
@@ -121,9 +125,9 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
         : [];
     // T455 — status acessível ao chamador (AuthProvider distingue 401 de
     // erro transitório: só 401 resolve "deslogado").
-    const error = new Error(
-      details.length ? details.join('; ') : body.error.message,
-    ) as Error & { status?: number };
+    const error = new Error(details.length ? details.join('; ') : body.error.message) as Error & {
+      status?: number;
+    };
     error.status = res.status;
     throw error;
   }
@@ -138,7 +142,10 @@ export const api = {
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  // Corpo '{}' obrigatório: DELETE com Content-Type json e corpo vazio dá
+  // FST_ERR_CTP_EMPTY_JSON_BODY (400) antes do handler — mesma armadilha T462
+  // do logout, que deixava o botão "Remover" de /favoritos sem efeito.
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE', body: '{}' }),
   // T470 — DELETE com corpo (exclusão de conta exige confirmação + senha).
   del: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'DELETE', body: JSON.stringify(body) }),

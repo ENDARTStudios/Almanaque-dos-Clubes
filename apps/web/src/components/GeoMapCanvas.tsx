@@ -21,10 +21,18 @@ export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
-    const map = L.map(ref.current, { scrollWheelZoom: false, attributionControl: false }).setView(
-      [20, 0],
-      2,
-    );
+    // Interação explícita: pan por drag/touch, zoom por roda/botões/duplo-clique
+    // e pan por teclado (setas) quando o mapa recebe foco. Sem flags explícitas,
+    // o mapa parece "travado": a roda não zooma e as setas não panneam.
+    const map = L.map(ref.current, {
+      scrollWheelZoom: true,
+      dragging: true,
+      touchZoom: true,
+      doubleClickZoom: true,
+      keyboard: true,
+      worldCopyJump: true,
+      attributionControl: false,
+    }).setView([20, 0], 2);
     mapRef.current = map;
     return () => {
       map.remove();
