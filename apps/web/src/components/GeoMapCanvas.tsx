@@ -34,7 +34,16 @@ export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }
       attributionControl: false,
     }).setView([20, 0], 2);
     mapRef.current = map;
+    // BUG "mapa invisível/travado": se o mapa inicializa antes do layout
+    // estabilizar (fontes/CSS pendentes), o renderer projeta TODOS os paths
+    // para "M0 0" (bounds degenerados de container 0×0) e nada é pintado —
+    // só os botões de zoom funcionam. invalidateSize no primeiro frame +
+    // ResizeObserver garante re-projeção quando o layout assenta.
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(ref.current);
+    requestAnimationFrame(() => map.invalidateSize());
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -62,6 +71,10 @@ export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }
             .addTo(layer)
             .bindTooltip(String(c.count));
         }
+        // re-projeção explícita após os dados chegarem (o renderer pode ter
+        // projetado com bounds inválidos se o mapa montou antes do layout)
+        map.invalidateSize();
+        layer.invoke('redraw');
       })
       .catch(() => {
         /* base indisponível localmente — sem inventar */
