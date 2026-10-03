@@ -8,7 +8,7 @@
 
 - 🚀 [Onboarding](./08-knowledge-management/ONBOARDING.md) · [Setup](./03-development-process/SETUP.md) · [Regras](./03-development-process/RULES.md)
 - 🏛️ [Arquitetura](./02-architecture-design/ARCHITECTURE.md) · [Stack](./02-architecture-design/CHOOSE_TECH_STACK.md) · [API](./04-api-integrations/API.md)
-- 🧭 [Handoff (raiz)](../HANDOFF.md) · [Plano Mestre (raiz)](../PLANO_MESTRE.md) · [Decisões (raiz)](../DECISOES.md)
+- 🧭 [Handoff](./HANDOFF.md) · [Plano Mestre](./PLANO_MESTRE.md) · [Decisões](./DECISOES.md)
 
 ## Como navegar (9 domínios)
 
@@ -106,11 +106,11 @@
 
 ## Documentos canônicos fora de docs/ (NÃO duplicar — ler lá)
 
-- **DECISOES.md** (raiz) — registro permanente de decisões (o nosso ADR log).
-- **PLANO_MESTRE.md** (raiz) — estado consolidado do projeto e Estado Final.
-- **AGENTS.md** (raiz) — instruções para agentes (graft-first, navegação).
+- **DECISOES.md** (docs/) — registro permanente de decisões (o nosso ADR log).
+- **PLANO_MESTRE.md** (docs/) — estado consolidado do projeto e Estado Final.
+- **AGENTS.md** (docs/, com ponteiro na raiz) — instruções para agentes (graft-first, navegação).
 - **SECURITY.md** (raiz) — política de segurança.
-- _\*HANDOFF.md / PENDENCIAS_OPERADOR.md / PROMPT_* / worklog.md_* (raiz) — bastão, pendências e histórico de sessão do Operador.
+- _\*HANDOFF.md / PENDENCIAS_OPERADOR.md / PROMPT_* / worklog.md_* (docs/) — bastão, pendências e histórico de sessão do Operador.
 - **docs/06-devops-deployment/RECONCILIATION-REPORT.md** — snapshots de evidência por gate.
 
 ## Regra de manutenção

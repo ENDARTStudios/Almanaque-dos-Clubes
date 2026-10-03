@@ -1,7 +1,7 @@
 # Almanaque dos Clubes — API MVP
 
 > SaaS de pesquisa e análise histórica do futebol mundial.
-> Este repositório contém o **primeiro endpoint funcional** da API (Fase 0–2 do `PLANO_MESTRE.md`).
+> Este repositório contém o **primeiro endpoint funcional** da API (Fase 0–2 do `docs/PLANO_MESTRE.md`).
 
 ---
 
@@ -211,7 +211,7 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 
 ---
 
-## 🔒 Segurança já aplicada (Fase 1 do PLANO_MESTRE.md)
+## 🔒 Segurança já aplicada (Fase 1 do docs/PLANO_MESTRE.md)
 
 | Camada | Implementação |
 |--------|---------------|
@@ -261,7 +261,7 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 
 ---
 
-## 📁 Próximos passos (alinhado ao PLANO_MESTRE.md)
+## 📁 Próximos passos (alinhado ao docs/PLANO_MESTRE.md)
 
 1. **Fase 2.5** — Implementar models `User`, `Role`, `Permission`, `Session`, `AuditLog` no Prisma
 2. **Fase 3** — Autenticação com sessões server-side (Redis) + 2FA TOTP
@@ -269,4 +269,4 @@ curl http://localhost:3000/api/v1/clubs/<UUID>
 4. **Fase 1.3** — Rate limiting com `@fastify/rate-limit` + Redis store
 5. **Fase 4** — CRUDs de Player, Competition, Ranking
 
-Cada fase deve ser entregue como um PR separado, marcando os checkboxes do `PLANO_MESTRE.md`.
+Cada fase deve ser entregue como um PR separado, marcando os checkboxes do `docs/PLANO_MESTRE.md`.
