@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^22.9.0",
+    "@types/node": "^26.4.0",
     "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^4.1.10",
     "prisma": "^5.22.0",
