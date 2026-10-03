@@ -2,6 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
+    // TS7 (tsgo) exige rootDir explícito no emit — ./src casa com o layout
+    // esperado pelo entrypoint (dist/server.js) e pelo Dockerfile.
+    "rootDir": "./src",
     "types": ["node"]
   },
   "include": ["src/**/*", "src/**/*.d.ts"],
