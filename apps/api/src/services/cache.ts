@@ -35,6 +35,24 @@ function createRedisClient() {
 let redis: Redis | null = createRedisClient();
 
 const DEFAULT_TTL_SECONDS = 300;
+/**
+ * Offline queue (default pós-#313) enfileira comandos com Redis inalcançável
+ * em vez de rejeitar — sem este teto, cache.remember pendura o request até o
+ * fim (p.ex. dev local sem Redis, ou outage real em produção). 1.5s e fallback
+ * ao banco, sempre.
+ */
+const COMMAND_TIMEOUT_MS = 1500;
+function withTimeout<T>(p: Promise<T>): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`cache: redis timeout ${COMMAND_TIMEOUT_MS}ms`)),
+        COMMAND_TIMEOUT_MS,
+      ),
+    ),
+  ]);
+}
 
 export interface CacheInvalidationResult {
   ok: boolean;
@@ -47,7 +65,7 @@ export const cache = {
   async get<T>(key: string): Promise<T | null> {
     if (!redis) return null;
     try {
-      const raw = await redis.get(key);
+      const raw = await withTimeout(redis.get(key));
       return raw ? (JSON.parse(raw) as T) : null;
     } catch {
       return null;
@@ -56,7 +74,7 @@ export const cache = {
   async set(key: string, value: unknown, ttlSeconds = DEFAULT_TTL_SECONDS): Promise<void> {
     if (!redis) return;
     try {
-      await redis.setex(key, ttlSeconds, JSON.stringify(value));
+      await withTimeout(redis.setex(key, ttlSeconds, JSON.stringify(value)));
     } catch {
       /* ignore */
     }
@@ -71,8 +89,8 @@ export const cache = {
   async invalidate(pattern: string): Promise<CacheInvalidationResult> {
     if (!redis) return { ok: true, keysDeleted: 0 };
     try {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) await redis.del(...keys);
+      const keys = await withTimeout(redis.keys(pattern));
+      if (keys.length > 0) await withTimeout(redis.del(...keys));
       return { ok: true, keysDeleted: keys.length };
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
