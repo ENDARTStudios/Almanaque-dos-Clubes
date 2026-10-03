@@ -13,6 +13,23 @@
 | App cache keys          | presentes com TTL 300s (primeira vez que o inventário ≠ 0 desde o T471)                      |
 | `[cache] warn` nos logs | verificar T+24/T+48 (esperado: **zero** com Redis saudável)                                  |
 
+## Leitura intermediária (T0+16h, 2026-10-03 ~16:30 UTC — pós-deploy `6c30877`/#319)
+
+> Nota: o deploy da #319 (16:15 UTC) reiniciou o processo — gauges in-memory
+> (`rankings_last_run_timestamp`, contadores de request) zeraram; ts=0 é
+> inconclusivo por playbook. O cron de ranking re-agendou no boot (`0 3 * * *`)
+> e volta a alimentar o gauge no run de 03:00 UTC de 2026-10-04.
+
+| Métrica                    | Valor T0+16h                                                                           | Tendência                                             |
+| -------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Chaves Redis               | 151 total — bull 148 · champions 1 · clubs 1 · data-refresh 1                          | ✅ estável (bull 188→148 = removeOnComplete limpando) |
+| Memória Redis              | 3.04M · `maxmemory=0` · `noeviction`                                                   | ✅ flat (vs 3.01M em T0)                              |
+| App cache keys             | `clubs:geo-stats` TTL 3s (renascendo), `champions:carousel` TTL 3544s                  | ✅ vivas                                              |
+| Marcador WS-C-8            | `"2026-10-03T03:00:01.414Z"` · TTL restante ~29d                                       | ✅ ETL rodou no horário                               |
+| `[cache] warn` / `[ALERT]` | 0 ocorrências nos logs do deployment atual (~30 min de vida; janela completa na T+24h) | ✅ (parcial — deployment reiniciou)                   |
+| Latência rotas cacheadas   | `/clubs/geo-stats` 0.35s · `/champions/carousel` 0.44s                                 | ✅ < 800ms                                            |
+| `/jobs/health` (admin)     | não verificado nesta leitura (requer auth admin)                                       | —                                                     |
+
 ## Checklist T+24h (2026-10-04 ~00:30 UTC) e T+48h (2026-10-05)
 
 1. **Chaves**: inventário estável (app keys ~1-5, TTL renascendo; BullMQ ≤ ~190);
