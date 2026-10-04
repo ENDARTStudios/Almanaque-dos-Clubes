@@ -72,10 +72,12 @@ export default function GeoMapCanvas({
       if (cancelled || mapRef.current || !ref.current) return;
       const { width, height } = ref.current.getBoundingClientRect();
       if (width < 50 || height < 50) return;
-      // Interação explícita: pan por drag/touch, zoom por botões/duplo-clique/
-      // pinch e pan por teclado (setas) quando o mapa recebe foco.
+      // Interação explícita: pan por drag/touch, zoom por roda/botões/duplo-
+      // clique/pinch e pan por teclado (setas) quando o mapa recebe foco.
       const map = L.map(ref.current, {
-        scrollWheelZoom: false, // roda sobre o mapa rola a página (UX WS-C-3)
+        // Zoom por roda (despacho do Operador 10-04): roda sobre o mapa
+        // aproxima/afasta; fora do mapa a roda continua rolando a página.
+        scrollWheelZoom: true,
         dragging: true,
         touchZoom: true,
         doubleClickZoom: true,
