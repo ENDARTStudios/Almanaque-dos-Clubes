@@ -12,7 +12,7 @@ const OPEN_EVENT = 'almanaque:open-cookie-consent';
 // de same-visual-weight (tests/e2e/consent.spec.ts) compara os estilos
 // computados e falha se qualquer botão se destacar dos demais.
 const BUTTON_CLASS =
-  'bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity';
+  'bg-primary text-on-primary px-3 py-2 text-xs sm:px-4 sm:py-2 sm:text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity';
 
 type Category = Exclude<keyof ConsentChoice, 'necessary'>;
 
@@ -53,10 +53,10 @@ export default function CookieConsentBanner() {
           <div className="flex-1 text-xs sm:text-sm text-white/80">
             <p className="font-semibold text-white sm:mb-1">{b.title}</p>
             {/* Compacto no mobile: o banner fixo cobria ~2/3 do mapa em telas
-                pequenas e bloqueava a interação (o texto completo continua
-                acessível nos links de política). */}
-            <p className="line-clamp-2 sm:line-clamp-none">
-              {b.body}{' '}
+                pequenas e bloqueava a interação. Resumo em 2 linhas (3 no
+                desktop); texto completo em /cookies (link sempre visível). */}
+            <p className="line-clamp-2 sm:line-clamp-3">{b.body}</p>
+            <p className="sm:mt-1">
               <Link href="/cookies" className="underline text-white/90">
                 {dict.footer.cookies}
               </Link>{' '}
