@@ -11,8 +11,10 @@ const OPEN_EVENT = 'almanaque:open-cookie-consent';
 // aceitar, rejeitar e gerenciar — compartilham classes idênticas. O teste E2E
 // de same-visual-weight (tests/e2e/consent.spec.ts) compara os estilos
 // computados e falha se qualquer botão se destacar dos demais.
+// No mobile os 3 botões dividem a linha (basis igual) — sem isso o terceiro
+// ("Gerenciar preferências") vazava da viewport em 390px. sm+: largura natural.
 const BUTTON_CLASS =
-  'bg-primary text-on-primary px-3 py-2 text-xs sm:px-4 sm:py-2 sm:text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity';
+  'bg-primary text-on-primary px-3 py-2 text-xs sm:px-4 sm:py-2 sm:text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity flex-1 basis-24 sm:flex-none sm:basis-auto';
 
 type Category = Exclude<keyof ConsentChoice, 'necessary'>;
 
