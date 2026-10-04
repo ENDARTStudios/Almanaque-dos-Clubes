@@ -49,10 +49,13 @@ export default function CookieConsentBanner() {
         role="dialog"
         aria-label={b.title}
       >
-        <div className="max-w-4xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-1 text-sm text-white/80">
-            <p className="font-semibold text-white mb-1">{b.title}</p>
-            <p>
+        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex-1 text-xs sm:text-sm text-white/80">
+            <p className="font-semibold text-white sm:mb-1">{b.title}</p>
+            {/* Compacto no mobile: o banner fixo cobria ~2/3 do mapa em telas
+                pequenas e bloqueava a interação (o texto completo continua
+                acessível nos links de política). */}
+            <p className="line-clamp-2 sm:line-clamp-none">
               {b.body}{' '}
               <Link href="/cookies" className="underline text-white/90">
                 {dict.footer.cookies}
