@@ -1,23 +1,62 @@
 'use client';
 /**
- * WS-C-3 FASE 3 (local/off) — Canvas Leaflet do mapa interno.
+ * WS-C-3 FASE 3/4 — Canvas Leaflet do mapa interno.
  * Base = GeoJSON Natural Earth LOCAL (domínio público) — SEM tiles externos.
- * O mapa é ACESSÓRIO (role="img"): o caminho principal é a lista em `GeoMapInternal`.
+ * Interação (despacho do Operador 10-04): clicar em um PAÍS seleciona o país
+ * (fecha o zoom nele) e revela os clubes; cada CLUBE é um ponto clicável com
+ * nome + link para o perfil. O mapa é ACESSÓRIO (role="img"): a lista em
+ * `GeoMapInternal` segue sendo o caminho principal.
  */
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-export interface CanvasCluster {
-  key: string;
+export interface CanvasClubPoint {
+  id: string;
+  name: string;
+  subtitle: string | null;
   lat: number;
   lng: number;
-  count: number;
 }
 
-export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }) {
+/** ISO-2 confiável a partir das propriedades Natural Earth (France/Norway têm ISO_A2="-99"). */
+function isoFromProps(props: Record<string, unknown>): string | null {
+  const cand = [props.ISO_A2_EH, props.ISO_A2, props.WB_A2]
+    .map((v) => (typeof v === 'string' ? v.trim().toUpperCase() : ''))
+    .find((v) => /^[A-Z]{2}$/.test(v));
+  return cand ?? null;
+}
+
+const BASE_STYLE: L.PathOptions = {
+  color: '#94a3b8',
+  weight: 0.5,
+  fillColor: '#e5e7eb',
+  fillOpacity: 0.6,
+};
+
+const SELECTED_STYLE: L.PathOptions = {
+  color: '#0f766e',
+  weight: 1.5,
+  fillColor: '#99f6e4',
+  fillOpacity: 0.45,
+};
+
+export default function GeoMapCanvas({
+  points,
+  selectedCountry,
+  onCountrySelect,
+}: {
+  points: CanvasClubPoint[];
+  selectedCountry?: string | null;
+  onCountrySelect?: (iso2: string) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.LayerGroup | null>(null);
+  const countryLayersRef = useRef<Map<string, L.GeoJSON>>(new Map());
+  const selectedLayerRef = useRef<L.GeoJSON | null>(null);
+  const onCountrySelectRef = useRef(onCountrySelect);
+  onCountrySelectRef.current = onCountrySelect;
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -61,51 +100,103 @@ export default function GeoMapCanvas({ clusters }: { clusters: CanvasCluster[] }
     return () => {
       cancelled = true;
       ro?.disconnect();
+      markersRef.current = null;
+      countryLayersRef.current.clear();
+      selectedLayerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       setMapReady(false);
     };
   }, []);
 
+  // Base dos países: clicar em um país seleciona (callback) — o efeito de
+  // seleção abaixo fecha o zoom nele.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const layer = L.layerGroup().addTo(map);
     let cancelled = false;
     fetch('/geo/ne_110m_admin_0_countries.geojson')
       .then((r) => r.json())
       .then((geo: unknown) => {
-        if (cancelled) return;
-        L.geoJSON(geo as never, {
-          style: { color: '#94a3b8', weight: 0.5, fillColor: '#e5e7eb', fillOpacity: 0.6 },
-        }).addTo(layer);
-        for (const c of clusters) {
-          L.circleMarker([c.lat, c.lng], {
-            radius: Math.min(24, 3 + Math.log2(c.count + 1) * 2),
-            color: '#0f766e',
-            fillColor: '#2dd4bf',
-            fillOpacity: 0.8,
-          })
-            .addTo(layer)
-            .bindTooltip(String(c.count));
-        }
-        // Re-projeção HARD após os dados: invalidateSize é no-op quando o
-        // tamanho não muda, e redraw() só repinta as partes já projetadas —
-        // nenhum dos dois corrige uma projeção degenerada. setView(center,
-        // zoom) dispara viewreset INCONDICIONALMENTE, re-projetando todas as
-        // camadas mesmo sem mudar nada na vista.
-        map.invalidateSize();
-        map.setView(map.getCenter(), map.getZoom(), { animate: false });
-        layer.invoke('redraw');
+        if (cancelled || !mapRef.current) return;
+        const layer = L.geoJSON(geo as never, {
+          style: BASE_STYLE,
+          onEachFeature: (feature, fLayer) => {
+            const props = (feature?.properties ?? {}) as Record<string, unknown>;
+            const iso = isoFromProps(props);
+            if (!iso) return;
+            countryLayersRef.current.set(iso, fLayer as L.GeoJSON);
+            (fLayer as L.Path).on('click', () => onCountrySelectRef.current?.(iso));
+          },
+        }).addTo(map);
       })
       .catch(() => {
         /* base indisponível localmente — sem inventar */
       });
     return () => {
       cancelled = true;
-      layer.remove();
+      countryLayersRef.current.clear();
+      selectedLayerRef.current = null;
     };
-  }, [clusters, mapReady]);
+  }, [mapReady]);
+
+  // Pontos de clube: um marcador por clube, popup com nome + link do perfil
+  // (conteúdo montado via textContent — nunca innerHTML com dado do acervo).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    markersRef.current?.remove();
+    const group = L.layerGroup().addTo(map);
+    markersRef.current = group;
+    for (const p of points) {
+      const el = document.createElement('div');
+      const name = document.createElement('strong');
+      name.textContent = p.name;
+      el.appendChild(name);
+      if (p.subtitle) {
+        const sub = document.createElement('div');
+        sub.textContent = p.subtitle;
+        sub.style.fontSize = '12px';
+        sub.style.color = '#64748b';
+        el.appendChild(sub);
+      }
+      const a = document.createElement('a');
+      a.href = `/clubs/${p.id}`;
+      a.textContent = 'Ver clube →';
+      a.style.display = 'inline-block';
+      a.style.marginTop = '4px';
+      el.appendChild(a);
+      L.circleMarker([p.lat, p.lng], {
+        radius: 5,
+        color: '#0f766e',
+        weight: 1,
+        fillColor: '#2dd4bf',
+        fillOpacity: 0.85,
+      })
+        .bindPopup(el)
+        .addTo(group);
+    }
+  }, [points, mapReady]);
+
+  // País selecionado (via select ou clique no mapa): destaca o polígono e
+  // fecha o zoom nele, revelando os pontos do país.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (selectedLayerRef.current) {
+      selectedLayerRef.current.setStyle(BASE_STYLE);
+      selectedLayerRef.current = null;
+    }
+    if (!selectedCountry) return;
+    const iso = selectedCountry.toUpperCase();
+    const layer = countryLayersRef.current.get(iso);
+    if (!layer) return; // base ainda carregando — o highlight volta no próximo render
+    layer.setStyle(SELECTED_STYLE);
+    selectedLayerRef.current = layer;
+    if (layer.getBounds().isValid()) {
+      map.fitBounds(layer.getBounds(), { padding: [24, 24], maxZoom: 6 });
+    }
+  }, [selectedCountry, mapReady]);
 
   return (
     <div

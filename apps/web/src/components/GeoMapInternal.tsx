@@ -1,9 +1,11 @@
 'use client';
 /**
- * WS-C-3 FASE 3 (local/off) — Tela INTERNA do mapa (não pública).
- * Consome GET /api/v1/geo/points e renderiza: controles, ATRIBUIÇÃO visível por camada,
- * clusters (Leaflet/Natural Earth local, sem tiles) e a LISTA acessível (caminho principal),
- * incluindo a lista de clubes sem localização. Não publicar/rotear/navegar até WS-C-3 FASE 4.
+ * WS-C-3 FASE 3/4 — Tela INTERNA do mapa (não pública).
+ * Consome GET /api/v1/geo/points e renderiza: controles, ATRIBUIÇÃO visível por camada
+ * e a LISTA acessível (caminho principal), incluindo a lista de clubes sem localização.
+ * Interação (despacho do Operador 10-04): o PAÍS pode ser escolhido no select
+ * (todos os países com acervo, via /clubs/geo-stats) OU clicando no país no mapa;
+ * os clubes são pontos individuais clicáveis (nome + link) no canvas.
  */
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -15,18 +17,55 @@ const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   loading: () => <div className="h-[55vh] w-full rounded-2xl bg-foreground/5 animate-pulse" />,
 });
 
-const COUNTRIES: Array<{ code: string; label: string }> = [
-  { code: 'BR', label: 'Brasil (BR)' },
-  { code: 'PT', label: 'Portugal (PT)' },
-  { code: 'GB', label: 'Reino Unido (GB)' },
-  { code: 'SE', label: 'Suécia (SE)' },
-  { code: 'US', label: 'Estados Unidos (US)' },
+/** Fallback do select enquanto /clubs/geo-stats não carrega (ou falha). */
+const FALLBACK_COUNTRIES: Array<{ code: string; name: string; clubs: number }> = [
+  { code: 'BR', name: 'Brasil', clubs: 200 },
+  { code: 'PT', name: 'Portugal', clubs: 0 },
+  { code: 'GB', name: 'United Kingdom', clubs: 0 },
+  { code: 'SE', name: 'Sweden', clubs: 0 },
+  { code: 'US', name: 'Estados Unidos', clubs: 0 },
 ];
+
+interface GeoStatsCountry {
+  iso2: string;
+  name: string;
+  clubs: number;
+}
+
+interface GeoStatsResponse {
+  data: {
+    continents: Array<{ countries: GeoStatsCountry[] }>;
+  };
+}
 
 export default function GeoMapInternal() {
   const [country, setCountry] = useState('BR');
   const [data, setData] = useState<GeoPointsResponseDto | null>(null);
   const [state, setState] = useState<'loading' | 'done' | 'error'>('loading');
+  const [countries, setCountries] = useState<Array<{ code: string; name: string; clubs: number }>>(
+    FALLBACK_COUNTRIES,
+  );
+
+  // Catálogo de países com acervo (uma vez por mount). Ordena por clubes desc.
+  useEffect(() => {
+    let active = true;
+    api
+      .get<GeoStatsResponse>('/clubs/geo-stats')
+      .then((res) => {
+        if (!active) return;
+        const list = res.data.continents
+          .flatMap((c) => c.countries)
+          .map((c) => ({ code: c.iso2.toUpperCase(), name: c.name, clubs: c.clubs }))
+          .sort((a, b) => b.clubs - a.clubs || a.name.localeCompare(b.name));
+        if (list.length > 0) setCountries(list);
+      })
+      .catch(() => {
+        /* mantém o fallback */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -52,6 +91,13 @@ export default function GeoMapInternal() {
 
   const vm = useMemo(() => (data ? buildMapViewModel(data) : null), [data]);
 
+  // O país selecionado SEMPRE aparece no select — mesmo sem acervo (0 clubes).
+  const options = useMemo(() => {
+    const up = country.toUpperCase();
+    if (countries.some((c) => c.code === up)) return countries;
+    return [{ code: up, name: up, clubs: 0 }, ...countries];
+  }, [countries, country]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -60,23 +106,27 @@ export default function GeoMapInternal() {
         </label>
         <select
           id="geo-country"
-          value={country}
+          value={country.toUpperCase()}
           onChange={(e) => setCountry(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          className="rounded-lg border border-border bg-background px-3 py-2 text-sm max-w-xs"
         >
-          {COUNTRIES.map((c) => (
+          {options.map((c) => (
             <option key={c.code} value={c.code}>
-              {c.label}
+              {c.name} ({c.code}) · {c.clubs}
             </option>
           ))}
         </select>
         {vm && (
           <span className="text-xs text-foreground/50" aria-live="polite">
-            {vm.points.length} com coordenada · {vm.withoutLocationCount} sem localização ·{' '}
-            {vm.clusters.length} clusters
+            {vm.points.length} com coordenada · {vm.withoutLocationCount} sem localização
           </span>
         )}
       </div>
+
+      <p className="text-xs text-foreground/50">
+        Clique em um país no mapa para selecioná-lo e aproximar · clique em um ponto para ver o
+        clube · botões +/− ou duplo clique para zoom.
+      </p>
 
       {state === 'loading' && (
         <div className="h-[55vh] w-full rounded-2xl bg-foreground/5 animate-pulse" />
@@ -89,7 +139,17 @@ export default function GeoMapInternal() {
 
       {state === 'done' && vm && (
         <>
-          <GeoMapCanvas clusters={vm.clusters} />
+          <GeoMapCanvas
+            points={vm.points.map((p) => ({
+              id: p.id,
+              name: p.name,
+              subtitle: p.subtitle,
+              lat: p.lat,
+              lng: p.lng,
+            }))}
+            selectedCountry={country}
+            onCountrySelect={setCountry}
+          />
 
           <section
             aria-label="Atribuição das fontes"
