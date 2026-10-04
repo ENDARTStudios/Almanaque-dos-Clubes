@@ -54,7 +54,6 @@ export default function GeoMapCanvas({
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   const countryLayersRef = useRef<Map<string, L.GeoJSON>>(new Map());
-  const selectedLayerRef = useRef<L.GeoJSON | null>(null);
   const onCountrySelectRef = useRef(onCountrySelect);
   onCountrySelectRef.current = onCountrySelect;
   const [mapReady, setMapReady] = useState(false);
@@ -102,7 +101,6 @@ export default function GeoMapCanvas({
       ro?.disconnect();
       markersRef.current = null;
       countryLayersRef.current.clear();
-      selectedLayerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       setMapReady(false);
@@ -136,7 +134,6 @@ export default function GeoMapCanvas({
     return () => {
       cancelled = true;
       countryLayersRef.current.clear();
-      selectedLayerRef.current = null;
     };
   }, [mapReady]);
 
@@ -179,22 +176,23 @@ export default function GeoMapCanvas({
   }, [points, mapReady]);
 
   // País selecionado (via select ou clique no mapa): destaca o polígono e
-  // fecha o zoom nele, revelando os pontos do país.
+  // fecha o zoom nele, revelando os pontos do país. O estilo é aplicado por
+  // COMPARAÇÃO sobre toda a base (não depende de "estilo anterior").
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    if (selectedLayerRef.current) {
-      selectedLayerRef.current.setStyle(BASE_STYLE);
-      selectedLayerRef.current = null;
-    }
-    if (!selectedCountry) return;
-    const iso = selectedCountry.toUpperCase();
-    const layer = countryLayersRef.current.get(iso);
-    if (!layer) return; // base ainda carregando — o highlight volta no próximo render
-    layer.setStyle(SELECTED_STYLE);
-    selectedLayerRef.current = layer;
-    if (layer.getBounds().isValid()) {
-      map.fitBounds(layer.getBounds(), { padding: [24, 24], maxZoom: 6 });
+    const target = selectedCountry ? selectedCountry.toUpperCase() : null;
+    let didFit = false;
+    for (const [iso, layer] of countryLayersRef.current) {
+      if (target && iso === target) {
+        layer.setStyle(SELECTED_STYLE);
+        if (!didFit && layer.getBounds().isValid()) {
+          map.fitBounds(layer.getBounds(), { padding: [24, 24], maxZoom: 6 });
+          didFit = true;
+        }
+      } else {
+        layer.setStyle(BASE_STYLE);
+      }
     }
   }, [selectedCountry, mapReady]);
 
