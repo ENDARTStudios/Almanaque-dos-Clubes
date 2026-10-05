@@ -1614,3 +1614,23 @@ removendo o link do nav (API geo permanece); banco intocado; nunca hard delete /
 **Monitoramento aberto (Operador/Doer):** observar `rankings_last_run_timestamp` após o próximo ciclo 03:00 UTC — se o job do ranking rodar, o gauge populates; se falhar por causa de DADO (ex.: temporada vazia — T438 honestidade), o log do worker mostra o skip. **Não inferir sucesso sem evidência** (R3).
 
 **Regra nova:** **worker de fila é observável ou não existe** — todo `createWorker` deve logar consumo (início/falha) e o alerta de staleness (`WS-O-1`, checkStaleJob 48h) cobre os crons ativos a partir de agora.
+
+### [2026-10-05] Decisão: D-2026-10-05-cache-observation-concluded — WS-O-2 [x] fechado como ESTÁVEL; M3 liberado
+
+**Evidência (T+~69h, coleta read-only):** Redis 152 chaves (T0: 193 · T+16h: 151 — estável;
+chaves de cache curto expiram por TTL, esperado) · memória **3.00M flat** (T0: 3.01M; peak
+6.26M; `noeviction` sem maxmemory segue gap declarado) · **zero** `[ALERT]`/`[cache] warn`
+no recorte de logs disponível (cobertura desde o redeploy de 10-05 21:33 UTC — logs de 50h
+completas não disponíveis via CLI, declarado) · **crons provados pelo histórico BullMQ
+persistido** (gauges em memória zeraram nos redeploys): `ranking` 10-03/10-04/10-05 03:00:00Z
+e `data-refresh` wikidata 10-04+10-05 03:00:01Z + integrity-check 10-04 04:00Z — completed 10
+cada, **failed 0** — o alerta D-2026-10-02-ranking-cron-may-never-have-run está **FECHADO por
+evidência** (o cron roda diário desde o fix #303) · latência p95 « 800ms nos 4 endpoints
+cacheados (máx amostra 330ms) · marcador WS-C-8 vivo (`2026-10-05T03:00:01.611Z`).
+
+**Decisão:** WS-O-2 `[x]` — cache estável. M3 (WS-C-9 Modo Clube) liberado.
+
+**Método novo (reutilizável):** evidência de cron em produção coleta-se do **histórico BullMQ
+persistido no Redis** (`bull:<fila>:completed` ZSET com score=timestamp), não de gauges em
+memória — redeploys zeram gauges, não zeral BullMQ. Scripts read-only via `railway ssh` +
+base64 no container da API (node + ioredis resolvido a partir de /app/apps/api).

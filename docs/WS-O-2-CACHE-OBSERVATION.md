@@ -55,3 +55,23 @@
 
 48h sem: `[cache] warn` · `[ALERT]` · hangs · crescimento anômalo de memória → WS-O-2 `[x]`,
 cache declarado estável, M3 (WS-C-9) liberado para despacho.
+
+---
+
+## T+final (10-05/06, ~T+69h) — FECHAMENTO
+
+Coleta read-only em produção (redis via container da API; gauges BullMQ; curl externo).
+Gauges em memória zeraram nos redeploys de 10-05 (Google login) — a evidência de cron
+veio do histórico BullMQ persistido no Redis (melhor que gauges).
+
+| Critério | Resultado | Veredito |
+|---|---|---|
+| A. Inventário | dbsize 152 (T0: 193 · T+16h: 151) — bull 150 · data-refresh 1 · champions 1; chaves de cache curto (clubs:/geo:) expiradas por TTL (300s) como esperado | ✅ estável |
+| B. Memória | used 3.00M (T0: 3.01M — flat), peak 6.26M, `noeviction` sem maxmemory (gap conhecido, declarado) | ✅ |
+| C. Warn/alerta | **0** `[ALERT]` / `[cache] warn` / `cache fallback` / `redis timeout` no recorte disponível (logs do Railway cobrem só desde o redeploy de 10-05 ~21:33 UTC — cobertura de 50h completas não disponível via CLI) | ✅ (cobertura parcial, honesto) |
+| D. Crons (BullMQ) | `ranking`: completed 10, **failed 0** — 10-03/10-04/10-05 03:00:00Z · `data-refresh`: completed 10, **failed 0** — wikidata 10-04+10-05 03:00:01Z, integrity-check 10-04 04:00Z · waiting/active 0 | ✅ crons rodando diário |
+| E. Latência (5 amostras) | geo/points 0.23–0.33s · clubs/:id/profile 0.24–0.30s · compare 0.23–0.29s · champions/carousel 0.28–0.31s — **p95 « 800ms** | ✅ |
+| F. Marcador WS-C-8 | `data-refresh:new-titles-last-check` = `2026-10-05T03:00:01.611Z` (bate com o job BullMQ 03:00:01.614Z) | ✅ presente e diário |
+
+**DECISÃO: WS-O-2 [x] — cache ESTÁVEL.** Zero alertas, memória flat 69h, crons diários sem
+falha, marcador vivo. M3 (WS-C-9) LIBERADO. D-2026-10-05-cache-observation-concluded.
