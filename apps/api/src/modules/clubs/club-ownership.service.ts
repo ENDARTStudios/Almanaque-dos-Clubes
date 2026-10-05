@@ -16,6 +16,7 @@ import { randomUUID } from 'node:crypto';
 import { prisma } from '../../config/prisma.js';
 import { withRlsContext } from '../../config/rls-context.js';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
+import { cache } from '../../services/cache.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
 import type { SessionMetadata } from '../auth/session.service.js';
 
@@ -186,6 +187,9 @@ export async function updateDescription(
       requestId: randomUUID(),
     },
   });
+
+  // Cache do GET /clubs/:id — sem invalidar, o perfil fica stale até o TTL.
+  await cache.invalidate(`clubs:byId:${clubId}`);
 
   return { userDescription: text, updatedAt };
 }
