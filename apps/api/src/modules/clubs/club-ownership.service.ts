@@ -113,7 +113,7 @@ export async function unownClub(
 export async function listOwners(clubId: string): Promise<OwnershipView[]> {
   const result = await prisma.$queryRaw<
     Array<{ name: string | null; role: string; since: Date }>
-  >`SELECT "name", "role", "since" FROM club_owners_list(${clubId}::uuid)`;
+  >`SELECT "name", "role", "since" FROM club_owners_list(${clubId})`;
   return result.map((r) => ({
     name: r.name,
     role: r.role,

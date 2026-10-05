@@ -36,7 +36,7 @@ CREATE POLICY "club_ownership_service_all" ON "ClubOwnership"
 
 -- Lista pública de editores: SECURITY DEFINER (padrão T442) — app_user não tem
 -- GRANT na tabela users, então o join nome↔ownership passa pela função.
-CREATE OR REPLACE FUNCTION club_owners_list(p_club_id uuid)
+CREATE OR REPLACE FUNCTION club_owners_list(p_club_id text)
 RETURNS TABLE("name" text, "role" text, "since" timestamptz)
 LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT u.name, co.role, COALESCE(co."approvedAt", co."requestedAt") AS "since"
