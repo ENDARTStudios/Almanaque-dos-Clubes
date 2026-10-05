@@ -14,6 +14,7 @@ export interface WsC8Strings {
     newCompetition: string;
     rankingChange: string;
     system: string;
+    proposalReview: string;
     unreadOnly: string;
     all: string;
     backToNotifications: string;
@@ -31,6 +32,7 @@ export const wsC8Strings: Record<Locale, WsC8Strings> = {
       newCompetition: 'Nova competição',
       rankingChange: 'Mudança no ranking',
       system: 'Sistema',
+      proposalReview: 'Proposta revisada',
       unreadOnly: 'Não lidas',
       all: 'Todas',
       backToNotifications: '← Notificações',
@@ -46,6 +48,7 @@ export const wsC8Strings: Record<Locale, WsC8Strings> = {
       newCompetition: 'New competition',
       rankingChange: 'Ranking change',
       system: 'System',
+      proposalReview: 'Proposal reviewed',
       unreadOnly: 'Unread',
       all: 'All',
       backToNotifications: '← Notifications',
@@ -61,6 +64,7 @@ export const wsC8Strings: Record<Locale, WsC8Strings> = {
       newCompetition: 'Nueva competición',
       rankingChange: 'Cambio en el ranking',
       system: 'Sistema',
+      proposalReview: 'Propuesta revisada',
       unreadOnly: 'No leídas',
       all: 'Todas',
       backToNotifications: '← Notificaciones',
@@ -75,6 +79,7 @@ export function notificationTypeLabel(type: string, s: WsC8Strings['notification
     new_competition: s.newCompetition,
     ranking_change: s.rankingChange,
     system: s.system,
+    proposal_reviewed: s.proposalReview,
   };
   return map[type] ?? type;
 }

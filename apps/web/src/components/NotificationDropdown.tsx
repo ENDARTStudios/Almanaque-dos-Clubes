@@ -26,6 +26,7 @@ function itemText(n: NotificationItem): string {
     competitionName?: string;
     rankingName?: string;
     position?: number;
+    status?: string;
   };
   if (n.type === 'new_title') {
     const t = p.titles?.[0];
@@ -36,6 +37,10 @@ function itemText(n: NotificationItem): string {
   }
   if (n.type === 'new_competition') {
     return `${p.clubName ?? '—'} · ${p.competitionName ?? '—'}`;
+  }
+  if (n.type === 'proposal_reviewed') {
+    const verdict = p.status === 'approved' ? '✓' : '✗';
+    return `${p.clubName ?? '—'} · ${verdict}`;
   }
   return String(n.payload ?? '');
 }

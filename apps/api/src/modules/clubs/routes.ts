@@ -26,6 +26,13 @@ import {
   USER_DESCRIPTION_MAX,
 } from './club-ownership.service.js';
 import { extractMetadata } from '../auth/auth.service.js';
+import {
+  latestProposalStatus,
+  listPendingForReview,
+  pendingCount,
+  propose,
+  review,
+} from './proposals.service.js';
 import { z } from 'zod';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
@@ -149,6 +156,12 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         }
         const userId = (request.user as { id?: string } | undefined)?.id;
         const isOwner = userId ? await isActiveOwner(userId, request.params.id) : false;
+        // WS-C-10: status da última proposta do usuário; pendentes só contam
+        // para editors (dados de moderação não vazam para anônimos).
+        const proposalStatus = userId
+          ? await latestProposalStatus(userId, request.params.id)
+          : null;
+        const pendingProposalsCount = isOwner ? await pendingCount(request.params.id) : undefined;
         const raw = club as unknown as Record<string, unknown>;
         return reply.send({
           data: {
@@ -156,6 +169,8 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
             userDescription: raw.userDescription ?? null,
             userDescriptionUpdatedAt: raw.userDescriptionUpdatedAt ?? null,
             isOwner,
+            proposalStatus: proposalStatus ?? (userId ? 'none' : undefined),
+            pendingProposalsCount,
           },
         });
       } catch (err) {
@@ -328,6 +343,97 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           userId,
           request.params.id,
           body.userDescription,
+          extractMetadata(request),
+        );
+        return reply.status(200).send({ data: result });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
+  /**
+   * POST /clubs/:id/description/proposals — propor edição (WS-C-10).
+   * Editor → auto-aprovado (200); não-editor → pending (201); já tem pending → 409.
+   */
+  app.post<{ Params: { id: string } }>(
+    '/clubs/:id/description/proposals',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 hour', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const body = z
+          .object({ userDescription: z.string().min(10).max(USER_DESCRIPTION_MAX) })
+          .parse(request.body);
+        const result = await propose(
+          userId,
+          request.params.id,
+          body.userDescription,
+          extractMetadata(request),
+        );
+        return reply
+          .status(result.status === 'pending' ? 201 : 200)
+          .send({ data: { status: result.status } });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
+  /**
+   * GET /clubs/:id/description/proposals — pendentes do clube (só editors).
+   */
+  app.get<{ Params: { id: string } }>(
+    '/clubs/:id/description/proposals',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 60, timeWindow: '1 minute', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const proposals = await listPendingForReview(userId, request.params.id);
+        return reply.send({ data: { proposals } });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
+  /**
+   * PATCH /clubs/:id/description/proposals/:propId — aprovar/rejeitar.
+   * Editor ativo; auto-revisão bloqueada; aprovar aplica o texto + notifica.
+   */
+  app.patch<{ Params: { id: string; propId: string } }>(
+    '/clubs/:id/description/proposals/:propId',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 30, timeWindow: '1 minute', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const body = z
+          .object({
+            action: z.enum(['approve', 'reject']),
+            reviewNote: z.string().max(500).optional(),
+          })
+          .parse(request.body);
+        const result = await review(
+          userId,
+          request.params.id,
+          request.params.propId,
+          body.action,
+          body.reviewNote ?? null,
           extractMetadata(request),
         );
         return reply.status(200).send({ data: result });
