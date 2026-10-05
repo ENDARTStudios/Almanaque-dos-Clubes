@@ -29,7 +29,7 @@ export interface OwnershipView {
 }
 
 /** Sanitização mínima: sem HTML/scripts, sem espaços das pontas. */
-function sanitizeDescription(raw: string): string {
+export function sanitizeDescription(raw: string): string {
   return raw
     .replace(/<[^>]*>/g, '')
     .replace(/\r\n/g, '\n')

@@ -17,6 +17,9 @@ import { wsC9Strings } from '@/i18n/wsC9';
 import ClubOwnerButton from './ClubOwnerButton';
 import ClubDescriptionEditor from './ClubDescriptionEditor';
 import ClubOwnersList, { type OwnerView } from './ClubOwnersList';
+import ProposalButton from './ProposalButton';
+import ProposalDashboard from './ProposalDashboard';
+import { wsC10Strings } from '@/i18n/wsC10';
 
 interface Props {
   clubId: string;
@@ -26,6 +29,7 @@ export default function ClubCommunity({ clubId }: Props) {
   const { status } = useAuth();
   const { locale } = useI18n();
   const s = wsC9Strings[locale]?.community ?? wsC9Strings['pt-br'].community;
+  const p10 = wsC10Strings[locale]?.proposals ?? wsC10Strings['pt-br'].proposals;
   const loggedIn = status === 'authed';
 
   const [loading, setLoading] = useState(true);
@@ -33,15 +37,29 @@ export default function ClubCommunity({ clubId }: Props) {
   const [userDescription, setUserDescription] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [owners, setOwners] = useState<OwnerView[]>([]);
+  const [proposalStatus, setProposalStatus] = useState<
+    'none' | 'pending' | 'approved' | 'rejected' | null
+  >(null);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [dashboardKey, setDashboardKey] = useState(0);
 
   const load = useCallback(async (): Promise<void> => {
     try {
       const [clubRes, ownersRes] = await Promise.all([
-        api.get<{ data: { userDescription: string | null; isOwner: boolean } }>(`/clubs/${clubId}`),
+        api.get<{
+          data: {
+            userDescription: string | null;
+            isOwner: boolean;
+            proposalStatus?: 'none' | 'pending' | 'approved' | 'rejected';
+            pendingProposalsCount?: number;
+          };
+        }>(`/clubs/${clubId}`),
         api.get<{ data: { owners: OwnerView[] } }>(`/clubs/${clubId}/owners`).catch(() => null),
       ]);
       setUserDescription(clubRes.data.userDescription ?? null);
       setIsOwner(clubRes.data.isOwner === true);
+      setProposalStatus(clubRes.data.proposalStatus ?? null);
+      setPendingCount(clubRes.data.pendingProposalsCount ?? 0);
       setOwners(ownersRes?.data.owners ?? []);
       setFailed(false);
     } catch {
@@ -83,6 +101,14 @@ export default function ClubCommunity({ clubId }: Props) {
             <div>
               <h3 className="text-xs uppercase tracking-wide text-foreground/40 mb-1">
                 {s.owners}
+                {isOwner && pendingCount > 0 && (
+                  <span
+                    className="ml-2 bg-primary text-on-primary rounded-full px-2 py-0.5 text-[10px]"
+                    data-testid="proposals-pending-count"
+                  >
+                    {pendingCount}
+                  </span>
+                )}
               </h3>
               <ClubOwnersList owners={owners} s={s} />
             </div>
@@ -100,13 +126,38 @@ export default function ClubCommunity({ clubId }: Props) {
             </div>
           </div>
 
-          {isOwner && (
+          {isOwner ? (
+            <>
+              <div className="pt-2 border-t border-border/50">
+                <ClubDescriptionEditor
+                  clubId={clubId}
+                  initial={userDescription ?? ''}
+                  s={s}
+                  onSaved={(text) => setUserDescription(text)}
+                />
+              </div>
+              {/* WS-C-10 — propostas pendentes da comunidade (aba do editor) */}
+              <div className="pt-2 border-t border-border/50">
+                <ProposalDashboard
+                  clubId={clubId}
+                  s={p10}
+                  refreshKey={dashboardKey}
+                  onReviewed={() => {
+                    setDashboardKey((k) => k + 1);
+                    void load();
+                  }}
+                />
+              </div>
+            </>
+          ) : (
             <div className="pt-2 border-t border-border/50">
-              <ClubDescriptionEditor
+              {/* WS-C-10 — propor edição (não-editors) */}
+              <ProposalButton
                 clubId={clubId}
-                initial={userDescription ?? ''}
-                s={s}
-                onSaved={(text) => setUserDescription(text)}
+                proposalStatus={proposalStatus}
+                s={p10}
+                loggedIn={loggedIn}
+                onProposalChange={() => void load()}
               />
             </div>
           )}

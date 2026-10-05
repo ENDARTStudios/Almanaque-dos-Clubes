@@ -34,6 +34,7 @@ datasource db {
 model Club {
   favorites Favorite[]
   owners ClubOwnership[]
+  descriptionProposals ClubDescriptionProposal[]
   id           String     @id @default(uuid())
   name         String
   fullName     String?
@@ -248,6 +249,8 @@ model User {
   favorites Favorite[]
   notifications Notification[]
   clubOwnerships ClubOwnership[]
+  proposalsSubmitted ClubDescriptionProposal[] @relation("ProposalProposer")
+  proposalsReviewed ClubDescriptionProposal[] @relation("ProposalReviewer")
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -751,6 +754,27 @@ model ClubOwnership {
   @@unique([userId, clubId])
   @@index([clubId])
   @@index([userId])
+}
+
+// WS-C-10 — proposta de edição da userDescription por qualquer usuário
+// autenticado; revisada por editor do clube. 1 pending por usuário+clube
+// (verificado no código, não em constraint — permite re-propostas).
+model ClubDescriptionProposal {
+  id              String   @id @default(uuid())
+  clubId          String
+  club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  proposedBy      String
+  proposer        User     @relation("ProposalProposer", fields: [proposedBy], references: [id], onDelete: Cascade)
+  userDescription String   @db.Text
+  status          String   @default("pending") // 'pending' | 'approved' | 'rejected'
+  createdAt       DateTime @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewer        User?    @relation("ProposalReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  reviewNote      String?  @db.Text
+
+  @@index([clubId, createdAt(sort: Desc)])
+  @@index([proposedBy, clubId])
 }
 
 
