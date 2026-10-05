@@ -33,3 +33,18 @@ DROP POLICY IF EXISTS "club_ownership_service_all" ON "ClubOwnership";
 CREATE POLICY "club_ownership_service_all" ON "ClubOwnership"
   FOR ALL USING (current_setting('app.current_user_role', true) = 'SERVICE')
   WITH CHECK (current_setting('app.current_user_role', true) = 'SERVICE');
+
+-- Lista pública de editores: SECURITY DEFINER (padrão T442) — app_user não tem
+-- GRANT na tabela users, então o join nome↔ownership passa pela função.
+CREATE OR REPLACE FUNCTION club_owners_list(p_club_id text)
+RETURNS TABLE("name" text, "role" text, "since" timestamptz)
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT u.name, co.role, COALESCE(co."approvedAt", co."requestedAt") AS "since"
+  FROM "ClubOwnership" co
+  JOIN users u ON u.id = co."userId"
+  WHERE co."clubId" = p_club_id AND co.status = 'active'
+  ORDER BY COALESCE(co."approvedAt", co."requestedAt") ASC
+  LIMIT 50;
+$$;
+-- GRANT EXECUTE da função fica no create_app_user.sql (a role precisa existir antes
+-- — no CI este arquivo roda ANTES do create_app_user).
