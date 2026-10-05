@@ -103,23 +103,21 @@ export async function unownClub(
   return { removed: deleted.count > 0 };
 }
 
-/** Editores ativos do clube (nome público se disponível; userId NUNCA exposto). */
+/**
+ * Editores ativos do clube (nome público se disponível; userId NUNCA exposto).
+ * A leitura passa pela função SECURITY DEFINER `club_owners_list` (padrão
+ * T442): app_user não tem GRANT na tabela users, então o join nome↔ownership
+ * não pode sair do cliente direto — e o RLS da ownership é 'leitura
+ * autenticada', não pública.
+ */
 export async function listOwners(clubId: string): Promise<OwnershipView[]> {
-  const rows = await prisma.clubOwnership.findMany({
-    where: { clubId, status: 'active' },
-    select: {
-      role: true,
-      approvedAt: true,
-      requestedAt: true,
-      user: { select: { name: true } },
-    },
-    orderBy: { requestedAt: 'asc' },
-    take: 50,
-  });
-  return rows.map((r) => ({
-    name: r.user.name,
+  const result = await prisma.$queryRaw<
+    Array<{ name: string | null; role: string; since: Date }>
+  >`SELECT "name", "role", "since" FROM club_owners_list(${clubId}::uuid)`;
+  return result.map((r) => ({
+    name: r.name,
     role: r.role,
-    since: (r.approvedAt ?? r.requestedAt).toISOString(),
+    since: new Date(r.since).toISOString(),
   }));
 }
 
