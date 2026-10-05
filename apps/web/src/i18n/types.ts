@@ -169,6 +169,7 @@ export interface Dictionary {
     name: string;
     loginSubmit: string;
     loginErrorDefault: string;
+    loginGoogle: string;
     noAccount: string;
     loginLink: string;
     registerTitle: string;

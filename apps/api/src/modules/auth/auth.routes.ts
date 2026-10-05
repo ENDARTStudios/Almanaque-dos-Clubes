@@ -60,6 +60,16 @@ import {
   createEmailVerificationToken,
   consumeEmailVerificationToken,
 } from './email-verification.service.js';
+import {
+  GOOGLE_STATE_COOKIE,
+  buildGoogleAuthUrl,
+  exchangeCodeForProfile,
+  generateState,
+  googleRedirectUri,
+  isGoogleLoginEnabled,
+  statesMatch,
+} from './google-oauth.service.js';
+import { loginWithGoogle } from './auth.service.js';
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const jwt = createJwtService(app);
@@ -431,4 +441,81 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       handleAuthError(err, reply);
     }
   });
+
+  // -----------------------------------------------------------------
+  // GET /auth/providers — quais logins sociais estão habilitados (público).
+  // -----------------------------------------------------------------
+  app.get(
+    '/auth/providers',
+    { config: { rateLimit: { max: 600, timeWindow: '15 minutes' } } },
+    async () => ({ data: { google: isGoogleLoginEnabled() } }),
+  );
+
+  // -----------------------------------------------------------------
+  // GET /auth/google — 302 para o consent screen (state em cookie).
+  // -----------------------------------------------------------------
+  app.get(
+    '/auth/google',
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
+    async (_request, reply) => {
+      if (!isGoogleLoginEnabled()) {
+        return reply.status(404).send({
+          error: { code: 'PROVIDER_UNAVAILABLE', message: 'Login com Google indisponível.' },
+        });
+      }
+      const state = generateState();
+      reply.setCookie(GOOGLE_STATE_COOKIE, state, {
+        path: '/api/v1/auth/google/callback',
+        httpOnly: true,
+        secure: env.isProd,
+        sameSite: 'lax', // top-level GET de volta do Google precisa enviar o cookie
+        maxAge: 600,
+      });
+      return reply.redirect(buildGoogleAuthUrl(state, googleRedirectUri()));
+    },
+  );
+
+  // -----------------------------------------------------------------
+  // GET /auth/google/callback — troca o código, cria/linka a conta e emite a
+  // MESMA sessão (cookies __Host-) do /auth/login. Falhas → 302 para
+  // /auth/login?erro=google (sem detalhes na URL).
+  // -----------------------------------------------------------------
+  app.get(
+    '/auth/google/callback',
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
+      const failRedirect = (): void => {
+        reply.clearCookie(GOOGLE_STATE_COOKIE, {
+          path: '/api/v1/auth/google/callback',
+          httpOnly: true,
+          secure: env.isProd,
+          sameSite: 'lax',
+        });
+        void reply.redirect(`${env.appUrl ?? ''}/auth/login?erro=google`);
+      };
+      try {
+        if (!isGoogleLoginEnabled()) return failRedirect();
+        const query = (request.query ?? {}) as { code?: string; state?: string; error?: string };
+        const cookieState = request.cookies[GOOGLE_STATE_COOKIE];
+        if (query.error || !query.code || !query.state || !statesMatch(query.state, cookieState)) {
+          return failRedirect();
+        }
+        const profile = await exchangeCodeForProfile(query.code, googleRedirectUri());
+        // Só e-mail VERIFICADO pelo Google autoriza o link/criação de conta.
+        if (!profile.emailVerified) return failRedirect();
+        const result = await loginWithGoogle(profile, extractMetadata(request));
+        const { accessToken } = jwt.signTokens(result.user, result.sessionId);
+        setAuthCookies(reply, accessToken, result.refreshToken);
+        reply.clearCookie(GOOGLE_STATE_COOKIE, {
+          path: '/api/v1/auth/google/callback',
+          httpOnly: true,
+          secure: env.isProd,
+          sameSite: 'lax',
+        });
+        return reply.redirect(`${env.appUrl ?? ''}/`);
+      } catch {
+        return failRedirect();
+      }
+    },
+  );
 };

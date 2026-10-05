@@ -127,6 +127,7 @@ const pt: Dictionary = {
     name: 'Nome',
     loginSubmit: 'Entrar',
     loginErrorDefault: 'Erro ao fazer login',
+    loginGoogle: 'Entrar com Google',
     noAccount: 'Não tem conta?',
     loginLink: 'Crie uma grátis',
     registerTitle: 'Criar Conta',

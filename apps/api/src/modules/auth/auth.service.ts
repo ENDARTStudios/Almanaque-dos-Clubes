@@ -194,6 +194,89 @@ export async function register(
  *
  * Mensagem de erro sempre genérica "Credenciais inválidas".
  */
+
+/**
+ * Login social Google (10-05): encontra o usuário pelo e-mail VERIFICADO pelo
+ * Google ou cria a conta (sem senha local — passwordHash null; o usuário pode
+ * definir uma senha depois via fluxo de redefinição). Conta existente é
+ * logada (link automático por e-mail verificado); conta INACTIVE é recusada.
+ */
+export async function loginWithGoogle(
+  profile: { sub: string; email: string; name: string | null },
+  metadata: SessionMetadata = {},
+): Promise<AuthResult> {
+  const email = profile.email.toLowerCase().trim();
+
+  // 1. Busca por e-mail (pre-auth: SECURITY DEFINER — T442)
+  let user = await usersFindByEmail(email);
+
+  if (!user) {
+    // 2a. Cria a conta — espelho do register, com passwordHash null e
+    //     emailVerified (o Google verificou o e-mail).
+    const newUserId = randomUUID();
+    await withRlsContext({ userId: newUserId, role: 'USER' }, async (tx) =>
+      tx.user.create({
+        data: {
+          id: newUserId,
+          email,
+          name: profile.name,
+          passwordHash: null,
+          status: 'ACTIVE',
+          emailVerified: new Date(),
+        },
+      }),
+    );
+    // Re-busca pela SECURITY DEFINER: garante a row tipada (UserAuthRow).
+    user = await usersFindByEmail(email);
+    if (!user) throw new AuthError('Falha ao criar conta via Google');
+
+    await assignRole(user.id, ROLE_NAMES.FREE);
+    await createFreeSubscription(user.id);
+    await auditLog.record({
+      entityType: EntityType.USER,
+      entityId: user.id,
+      action: AuditAction.USER_REGISTER,
+      userId: user.id,
+      metadata: { ip: metadata.ipAddress, provider: 'google', googleSub: profile.sub },
+    });
+  } else if (user.status !== 'ACTIVE') {
+    await auditLog.record({
+      entityType: EntityType.USER,
+      entityId: user.id,
+      action: AuditAction.USER_LOGIN_FAILED,
+      userId: user.id,
+      metadata: { ip: metadata.ipAddress, reason: 'inactive', provider: 'google' },
+    });
+    throw new AuthError('Conta não está ativa');
+  } else {
+    await auditLog.record({
+      entityType: EntityType.USER,
+      entityId: user.id,
+      action: AuditAction.USER_LOGIN,
+      userId: user.id,
+      metadata: { ip: metadata.ipAddress, provider: 'google', googleSub: profile.sub },
+    });
+  }
+
+  // 3. lastLoginAt (contexto owner — T442)
+  await withRlsContext({ userId: user.id, role: 'USER' }, async (tx) => {
+    await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+  });
+
+  // 4. Sessão + roles
+  const { refreshToken, session } = await createSession(user.id, metadata);
+  const roles = (await getUserRoles(user.id)).map((r) => r.name);
+  const permissions = Array.from(await getUserPermissions(user.id));
+
+  const authUser: AuthUser = {
+    id: user.id,
+    email: user.email,
+    roles,
+    permissions,
+  };
+  return { user: authUser, refreshToken, sessionId: session.id };
+}
+
 export async function login(
   input: LoginInput,
   metadata: SessionMetadata = {},
@@ -211,7 +294,11 @@ export async function login(
   // 2. Verifica senha
   let passwordValid = false;
   if (user) {
-    passwordValid = await verifyPassword(input.password, user.passwordHash);
+    // Usuário só-social (Google) não tem senha local — login por senha é 401
+    // (a conta ganha senha ao passar por "redefinir senha").
+    passwordValid = user.passwordHash
+      ? await verifyPassword(input.password, user.passwordHash)
+      : false;
   } else {
     // Executa verifyPassword com hash dummy para gastar tempo similar
     await verifyPassword(input.password, DUMMY_HASH);

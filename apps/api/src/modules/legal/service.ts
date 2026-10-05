@@ -197,7 +197,10 @@ export const legalService = {
       tx.user.findUnique({ where: { id: userId }, select: { id: true, passwordHash: true } }),
     );
     if (!user) throw new NotFoundError('Usuário', userId);
-    const ok = await verifyPassword(password, user.passwordHash).catch(() => false);
+    // passwordHash null = usuário só-social (sem senha local) — exclusão por senha recusada
+    const ok = user.passwordHash
+      ? await verifyPassword(password, user.passwordHash).catch(() => false)
+      : false;
     if (!ok) throw new DomainError('Senha inválida', 'INVALID_CREDENTIALS', 401);
 
     // T470b — blocklist PRIMEIRO (fail-loud): se o Redis falhar, aborta SEM

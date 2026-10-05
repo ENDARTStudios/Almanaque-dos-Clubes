@@ -127,6 +127,7 @@ const en: Dictionary = {
     name: 'Name',
     loginSubmit: 'Log in',
     loginErrorDefault: 'Error logging in',
+    loginGoogle: 'Sign in with Google',
     noAccount: "Don't have an account?",
     loginLink: 'Create one free',
     registerTitle: 'Create Account',
