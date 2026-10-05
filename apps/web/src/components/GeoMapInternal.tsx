@@ -128,7 +128,11 @@ export default function GeoMapInternal() {
         clube · botões +/− ou duplo clique para zoom.
       </p>
 
-      {state === 'loading' && (
+      {/* O canvas NÃO desmonta durante o loading de outro país: desmontá-lo
+          matava o mapa com a animação de zoom do fitBounds em voo
+          (_onZoomTransitionEnd em mapa removido) e reconstruía tudo a cada
+          troca. Dados antigos permanecem visíveis até os novos chegarem. */}
+      {state === 'loading' && !vm && (
         <div className="h-[55vh] w-full rounded-2xl bg-foreground/5 animate-pulse" />
       )}
       {state === 'error' && (
@@ -137,7 +141,7 @@ export default function GeoMapInternal() {
         </p>
       )}
 
-      {state === 'done' && vm && (
+      {vm && (
         <>
           <GeoMapCanvas
             points={vm.points.map((p) => ({

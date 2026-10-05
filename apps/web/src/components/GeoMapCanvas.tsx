@@ -56,7 +56,38 @@ export default function GeoMapCanvas({
   const countryLayersRef = useRef<Map<string, L.GeoJSON>>(new Map());
   const onCountrySelectRef = useRef(onCountrySelect);
   onCountrySelectRef.current = onCountrySelect;
+  const selectedCountryRef = useRef(selectedCountry);
+  selectedCountryRef.current = selectedCountry;
   const [mapReady, setMapReady] = useState(false);
+
+  // Destaca o polígono do país selecionado e fecha o zoom nele. Aplicado por
+  // COMPARAÇÃO sobre toda a base e com try/catch por layer: um layer em estado
+  // inválido (mapa em teardown) não pode abortar o resto — a mesma função é
+  // reexecutada quando a base (re)carrega, então o highlight se auto-cura.
+  const applySelection = (): void => {
+    const map = mapRef.current;
+    if (!map) return;
+    const target = selectedCountryRef.current ? selectedCountryRef.current.toUpperCase() : null;
+    let didFit = false;
+    for (const [iso, layer] of countryLayersRef.current) {
+      try {
+        if (target && iso === target) {
+          layer.setStyle(SELECTED_STYLE);
+          if (!didFit) {
+            const bounds = layer.getBounds?.();
+            if (bounds?.isValid()) {
+              map.fitBounds(bounds, { padding: [24, 24], maxZoom: 6 });
+              didFit = true;
+            }
+          }
+        } else {
+          layer.setStyle(BASE_STYLE);
+        }
+      } catch {
+        /* layer em teardown — o próximo render corrige */
+      }
+    }
+  };
 
   useEffect(() => {
     const el = ref.current;
@@ -86,9 +117,15 @@ export default function GeoMapCanvas({
         attributionControl: false,
       }).setView([20, 0], 2);
       mapRef.current = map;
-      const roPost = new ResizeObserver(() => map.invalidateSize());
+      // Guard: após teardown, um RO órfão não pode invalidateSize num mapa morto
+      // (estourava "_leaflet_pos" de undefined e derrubava o subtree).
+      const roPost = new ResizeObserver(() => {
+        if (mapRef.current === map) map.invalidateSize();
+      });
       roPost.observe(ref.current);
-      requestAnimationFrame(() => map.invalidateSize());
+      requestAnimationFrame(() => {
+        if (mapRef.current === map) map.invalidateSize();
+      });
       setMapReady(true);
       ro?.disconnect();
     };
@@ -129,6 +166,10 @@ export default function GeoMapCanvas({
             (fLayer as L.Path).on('click', () => onCountrySelectRef.current?.(iso));
           },
         }).addTo(map);
+        // Se um país já estava selecionado quando a base (re)carregou — remount,
+        // troca de país rápida — o highlight é aplicado aqui (self-healing).
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- idem
+        applySelection();
       })
       .catch(() => {
         /* base indisponível localmente — sem inventar */
@@ -177,25 +218,10 @@ export default function GeoMapCanvas({
     }
   }, [points, mapReady]);
 
-  // País selecionado (via select ou clique no mapa): destaca o polígono e
-  // fecha o zoom nele, revelando os pontos do país. O estilo é aplicado por
-  // COMPARAÇÃO sobre toda a base (não depende de "estilo anterior").
+  // País selecionado (via select ou clique no mapa).
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- applySelection só lê refs
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const target = selectedCountry ? selectedCountry.toUpperCase() : null;
-    let didFit = false;
-    for (const [iso, layer] of countryLayersRef.current) {
-      if (target && iso === target) {
-        layer.setStyle(SELECTED_STYLE);
-        if (!didFit && layer.getBounds().isValid()) {
-          map.fitBounds(layer.getBounds(), { padding: [24, 24], maxZoom: 6 });
-          didFit = true;
-        }
-      } else {
-        layer.setStyle(BASE_STYLE);
-      }
-    }
+    applySelection();
   }, [selectedCountry, mapReady]);
 
   return (
