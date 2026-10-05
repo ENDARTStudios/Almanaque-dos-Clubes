@@ -27,6 +27,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "ClubOwnership" TO app_user;
 -- Colunas comunitárias no clubs (app_user já tem acesso à tabela; UPDATE de colunas
 -- específicas é guardado na camada de serviço por ownership ativo):
 GRANT UPDATE ("userDescription", "userDescriptionSource", "userDescriptionUpdatedAt") ON TABLE "clubs" TO app_user;
+GRANT EXECUTE ON FUNCTION club_owners_list(text) TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "permissions" TO app_user;

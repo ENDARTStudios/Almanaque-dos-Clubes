@@ -46,4 +46,5 @@ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   ORDER BY COALESCE(co."approvedAt", co."requestedAt") ASC
   LIMIT 50;
 $$;
-GRANT EXECUTE ON FUNCTION club_owners_list(text) TO app_user;
+-- GRANT EXECUTE da função fica no create_app_user.sql (a role precisa existir antes
+-- — no CI este arquivo roda ANTES do create_app_user).
