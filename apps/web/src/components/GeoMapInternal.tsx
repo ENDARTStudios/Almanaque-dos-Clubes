@@ -161,7 +161,8 @@ export default function GeoMapInternal() {
           >
             <h2 className="text-sm font-semibold text-foreground mb-2">Fontes deste mapa</h2>
             <ul className="space-y-1">
-              <li>Base cartográfica: Natural Earth (domínio público)</li>
+              <li>© OpenStreetMap contributors — ODbL (tiles da base cartográfica)</li>
+              <li>Base vetorial: Natural Earth (domínio público)</li>
               {vm.attributionsBySource.map((a) => (
                 <li key={a.source}>
                   {a.label} — {a.license}
