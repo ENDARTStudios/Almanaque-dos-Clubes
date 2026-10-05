@@ -108,6 +108,34 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
  * Resposta 403 se:
  * - Usuário não tem a permissão requerida
  */
+/**
+ * Autenticação OPCIONAL (WS-C-9): popula request.user se houver access token
+ * válido; caso contrário segue anônimo SEM rejeitar (rotas públicas que
+ * personalizam a resposta para o dono — ex.: isOwner no perfil do clube).
+ */
+export async function optionalAuthenticate(
+  request: FastifyRequest,
+  _reply: FastifyReply,
+): Promise<void> {
+  const cookieName = env.isProd ? '__Host-access_token' : 'access_token';
+  const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[
+    cookieName
+  ];
+  if (!accessToken) return;
+  try {
+    const decoded = request.server.jwt.verify(accessToken) as Record<string, unknown>;
+    if (decoded.type !== 'access') return;
+    (request as { user?: unknown }).user = {
+      id: decoded.sub as string,
+      email: decoded.email as string,
+      roles: decoded.roles as string[],
+      permissions: decoded.permissions as string[],
+    };
+  } catch {
+    /* anônimo */
+  }
+}
+
 export function requirePermission(permission: string) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const user = (

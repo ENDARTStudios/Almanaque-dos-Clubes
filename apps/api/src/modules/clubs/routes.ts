@@ -7,12 +7,25 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { clubsService, CreateClubSchema } from './service.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
-import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
+import {
+  authenticate,
+  optionalAuthenticate,
+  requirePermission,
+} from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
 import { getClubProfile } from './profile.service.js';
 import { getClubRelated, getClubTimeline } from './insights.service.js';
 import { getClubComparison } from './compare.service.js';
+import {
+  isActiveOwner,
+  listOwners,
+  ownClub,
+  unownClub,
+  updateDescription,
+  USER_DESCRIPTION_MAX,
+} from './club-ownership.service.js';
+import { extractMetadata } from '../auth/auth.service.js';
 import { z } from 'zod';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
@@ -121,21 +134,35 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   /**
    * GET /clubs/:id
-   * Busca um clube por ID.
+   * Busca um clube por ID. WS-C-9: auth OPCIONAL — com sessão, adiciona
+   * isOwner (se o usuário é editor do clube); userDescription comunitária
+   * (aditiva aos dados oficiais) sempre que existir.
    */
-  app.get<{ Params: { id: string } }>('/clubs/:id', async (request, reply) => {
-    try {
-      const club = await clubsService.getById(request.params.id);
-      if (!club) {
-        throw new NotFoundError('Clube', request.params.id);
+  app.get<{ Params: { id: string } }>(
+    '/clubs/:id',
+    { preHandler: [optionalAuthenticate] },
+    async (request, reply) => {
+      try {
+        const club = await clubsService.getById(request.params.id);
+        if (!club) {
+          throw new NotFoundError('Clube', request.params.id);
+        }
+        const userId = (request.user as { id?: string } | undefined)?.id;
+        const isOwner = userId ? await isActiveOwner(userId, request.params.id) : false;
+        const raw = club as unknown as Record<string, unknown>;
+        return reply.send({
+          data: {
+            ...withGeoAttribution(raw),
+            userDescription: raw.userDescription ?? null,
+            userDescriptionUpdatedAt: raw.userDescriptionUpdatedAt ?? null,
+            isOwner,
+          },
+        });
+      } catch (err) {
+        return handleDomainError(err, reply);
       }
-      return reply.send({
-        data: withGeoAttribution(club as unknown as Record<string, unknown>),
-      });
-    } catch (err) {
-      return handleDomainError(err, reply);
-    }
-  });
+    },
+  );
 
   /**
    * GET /clubs/:id/geo — T466, geografia resolvida (país/estado/cidade + coordenadas).
@@ -220,6 +247,95 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return handleDomainError(err, reply);
     }
   });
+
+  // -----------------------------------------------------------------
+  // WS-C-9 Modo Clube — ownerships + descrição comunitária.
+  // -----------------------------------------------------------------
+
+  /**
+   * POST /clubs/:id/own — "sou editor deste clube". Auto-aprovado nesta fase
+   * (status 'active' direto). Idempotente: 201 se criou, 200 se já existia.
+   */
+  app.post<{ Params: { id: string } }>(
+    '/clubs/:id/own',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 20, timeWindow: '1 hour', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const result = await ownClub(userId, request.params.id, extractMetadata(request));
+        return reply.status(result.created ? 201 : 200).send({ data: result });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
+  /**
+   * DELETE /clubs/:id/own — deixar de ser editor. Idempotente (204 sempre).
+   */
+  app.delete<{ Params: { id: string } }>(
+    '/clubs/:id/own',
+    { preHandler: [authenticate] },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        await unownClub(userId, request.params.id, extractMetadata(request));
+        return reply.status(204).send();
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
+  /**
+   * GET /clubs/:id/owners — editores ativos do clube (público; userId nunca
+   * exposto — só nome público se disponível, role e desde quando).
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/owners', async (request, reply) => {
+    try {
+      const owners = await listOwners(request.params.id);
+      return reply.send({ data: { owners } });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
+   * PATCH /clubs/:id/description — edita a userDescription (comunitária,
+   * aditiva aos dados oficiais). Exige ownership ATIVA → 403 sem ela.
+   * Texto sanitizado (sem HTML) e limitado a 2000 chars (422 pelo Zod).
+   */
+  app.patch<{ Params: { id: string } }>(
+    '/clubs/:id/description',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 hour', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const body = z
+          .object({ userDescription: z.string().max(USER_DESCRIPTION_MAX) })
+          .parse(request.body);
+        const result = await updateDescription(
+          userId,
+          request.params.id,
+          body.userDescription,
+          extractMetadata(request),
+        );
+        return reply.status(200).send({ data: result });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
 };
 
 /**

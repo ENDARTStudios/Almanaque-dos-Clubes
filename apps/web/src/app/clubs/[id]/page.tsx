@@ -9,6 +9,7 @@ import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
 import ClubTimeline from '@/components/ClubTimeline';
 import RelatedClubs from '@/components/RelatedClubs';
+import ClubCommunity from '@/components/ClubCommunity';
 
 // WS-C-2 — perfil público consolidado. Fonte única: GET /api/v1/clubs/:id/profile.
 // Renderiza SOMENTE o que a API entrega; lacunas declaradas como lacunas (nunca inventadas).
@@ -151,10 +152,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/clubs"
         className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
@@ -202,6 +200,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           {club.status && <InfoItem label={s.status} value={club.status} />}
         </dl>
       </header>
+
+      {/* WS-C-9 Modo Clube — seção Comunidade (client): descrição da comunidade
+          (aditiva aos dados oficiais), editores e botão "Sou editor". */}
+      <ClubCommunity clubId={club.id} />
 
       <Section title={s.provenance}>
         <ul className="text-sm space-y-1">
