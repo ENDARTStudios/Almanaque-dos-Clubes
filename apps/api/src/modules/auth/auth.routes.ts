@@ -484,14 +484,16 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     '/auth/google/callback',
     { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
     async (request, reply) => {
-      const failRedirect = (): void => {
+      // Sempre RETORNA o reply: handler async que devolve undefined com o
+      // redirect pendente pode deixar a request sem resposta (hang).
+      const failRedirect = (): FastifyReply => {
         reply.clearCookie(GOOGLE_STATE_COOKIE, {
           path: '/api/v1/auth/google/callback',
           httpOnly: true,
           secure: env.isProd,
           sameSite: 'lax',
         });
-        void reply.redirect(`${env.appUrl ?? ''}/auth/login?erro=google`);
+        return reply.redirect(`${env.appUrl ?? ''}/auth/login?erro=google`);
       };
       try {
         if (!isGoogleLoginEnabled()) return failRedirect();
