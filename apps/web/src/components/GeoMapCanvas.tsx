@@ -1,11 +1,15 @@
 'use client';
 /**
  * WS-C-3 FASE 3/4 — Canvas Leaflet do mapa interno.
- * Base = GeoJSON Natural Earth LOCAL (domínio público) — SEM tiles externos.
- * Interação (despacho do Operador 10-04): clicar em um PAÍS seleciona o país
- * (fecha o zoom nele) e revela os clubes; cada CLUBE é um ponto clicável com
- * nome + link para o perfil. O mapa é ACESSÓRIO (role="img"): a lista em
- * `GeoMapInternal` segue sendo o caminho principal.
+ * Base cartográfica = tiles OpenStreetMap (estados/cidades visíveis — despacho
+ * do Operador 10-05; CSP já autoriza os subdomínios a/b/c do OSM e a
+ * atribuição ODbL está na seção "Fontes deste mapa"). O GeoJSON Natural Earth
+ * LOCAL (domínio público) fica numa pane PRÓPRIA abaixo dos marcadores e serve
+ * de camada de clique/seleção de país.
+ * Interação: clicar em um PAÍS seleciona (fecha o zoom nele) e revela os
+ * clubes; cada CLUBE é um ponto clicável com nome + link para o perfil.
+ * O mapa é ACESSÓRIO (role="img"): a lista em `GeoMapInternal` segue sendo o
+ * caminho principal.
  */
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
@@ -27,18 +31,20 @@ function isoFromProps(props: Record<string, unknown>): string | null {
   return cand ?? null;
 }
 
+// Sobre os tiles OSM o preenchimento é quase transparente — o detalhe
+// (estados/cidades) tem que aparecer; a borda é o que guia o clique.
 const BASE_STYLE: L.PathOptions = {
-  color: '#94a3b8',
-  weight: 0.5,
-  fillColor: '#e5e7eb',
-  fillOpacity: 0.6,
+  color: '#64748b',
+  weight: 0.7,
+  fillColor: '#94a3b8',
+  fillOpacity: 0.08,
 };
 
 const SELECTED_STYLE: L.PathOptions = {
   color: '#0f766e',
-  weight: 1.5,
-  fillColor: '#99f6e4',
-  fillOpacity: 0.45,
+  weight: 1.8,
+  fillColor: '#2dd4bf',
+  fillOpacity: 0.18,
 };
 
 export default function GeoMapCanvas({
@@ -117,6 +123,13 @@ export default function GeoMapCanvas({
         attributionControl: false,
       }).setView([20, 0], 2);
       mapRef.current = map;
+      // Tiles OSM = base cartográfica detalhada (estados, cidades, vias).
+      // Atribuição exigida pela ODbL exibida na seção "Fontes deste mapa".
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        subdomains: ['a', 'b', 'c'],
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+      }).addTo(map);
       // Guard: após teardown, um RO órfão não pode invalidateSize num mapa morto
       // (estourava "_leaflet_pos" de undefined e derrubava o subtree).
       const roPost = new ResizeObserver(() => {
@@ -156,7 +169,17 @@ export default function GeoMapCanvas({
       .then((r) => r.json())
       .then((geo: unknown) => {
         if (cancelled || !mapRef.current) return;
+        // Pane própria ABAIXO da overlayPane (z 350 < 400): os países ficam
+        // sempre DEBAIXO dos marcadores independente da ordem de chegada dos
+        // fetches — antes, se a base terminava depois dos pontos, ela pintava
+        // por cima e bloqueava os cliques das bolinhas.
+        if (!map.getPane('countries')) {
+          const pane = map.createPane('countries');
+          pane.style.zIndex = '350';
+          pane.style.pointerEvents = 'auto';
+        }
         const layer = L.geoJSON(geo as never, {
+          pane: 'countries',
           style: BASE_STYLE,
           onEachFeature: (feature, fLayer) => {
             const props = (feature?.properties ?? {}) as Record<string, unknown>;
