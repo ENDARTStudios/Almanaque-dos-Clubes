@@ -155,6 +155,12 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true' || v === '1'),
+  // Login social Google (10-05) — ausentes = provedor desabilitado (404).
+  googleClientId: z.string().optional(),
+  googleClientSecret: z.string().optional(),
+  // Redirect URI exata registrada no Google Console (defaults derivam do
+  // RAILWAY_PUBLIC_DOMAIN); obrigatória se o domínio público for outro.
+  googleRedirectUri: z.string().url().optional(),
 });
 
 const parsed = envSchema.parse({
@@ -166,6 +172,9 @@ const parsed = envSchema.parse({
   appUrl: process.env.APP_URL,
   prismaSchemaProvider: process.env.PRISMA_SCHEMA_PROVIDER,
   rateLimitDisabled: process.env.RATE_LIMIT_DISABLED,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  googleRedirectUri: process.env.GOOGLE_REDIRECT_URI,
 });
 
 // Guarda de produção (T385): RATE_LIMIT_DISABLED é escape hatch de dev/teste
@@ -203,6 +212,11 @@ export const env = {
   appUrl: parsed.appUrl,
   prismaSchemaProvider: parsed.prismaSchemaProvider,
   rateLimitDisabled: parsed.rateLimitDisabled,
+
+  // Login social Google
+  googleClientId: parsed.googleClientId,
+  googleClientSecret: parsed.googleClientSecret,
+  googleRedirectUri: parsed.googleRedirectUri,
 
   // JWT
   jwtSecret,

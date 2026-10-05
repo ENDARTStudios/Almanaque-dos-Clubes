@@ -244,7 +244,7 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
-  passwordHash  String   // argon2id (ver apps/api/src/config/crypto.ts)
+  passwordHash  String?  // argon2id (ver apps/api/src/config/crypto.ts); null = usuário só-social (Google) sem senha local
   status        UserStatus @default(ACTIVE)
   emailVerified DateTime?
   lastLoginAt   DateTime?

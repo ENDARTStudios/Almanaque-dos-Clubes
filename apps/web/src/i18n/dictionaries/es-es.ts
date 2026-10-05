@@ -128,6 +128,7 @@ const es: Dictionary = {
     name: 'Nombre',
     loginSubmit: 'Entrar',
     loginErrorDefault: 'Error al iniciar sesión',
+    loginGoogle: 'Iniciar sesión con Google',
     noAccount: '¿No tienes cuenta?',
     loginLink: 'Crea una gratis',
     registerTitle: 'Crear Cuenta',
