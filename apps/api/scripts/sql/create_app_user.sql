@@ -22,6 +22,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "countries" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "data_subject_requests" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "favorites" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "notifications" TO app_user;
+-- WS-C-9 Modo Clube: ownerships (leitura pública na UI; escrita owner-only via RLS)
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "ClubOwnership" TO app_user;
+-- Colunas comunitárias no clubs (app_user já tem acesso à tabela; UPDATE de colunas
+-- específicas é guardado na camada de serviço por ownership ativo):
+GRANT UPDATE ("userDescription", "userDescriptionSource", "userDescriptionUpdatedAt") ON TABLE "clubs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "permissions" TO app_user;

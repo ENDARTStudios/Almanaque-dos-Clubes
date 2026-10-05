@@ -33,6 +33,7 @@ datasource db {
 
 model Club {
   favorites Favorite[]
+  owners ClubOwnership[]
   id           String     @id @default(uuid())
   name         String
   fullName     String?
@@ -44,6 +45,11 @@ model Club {
   status       ClubStatus @default(ACTIVE)
   primaryColor String?    @db.Char(7) // #RRGGBB
   website      String?
+  // WS-C-9 Modo Clube — conteúdo da comunidade, ADITIVO aos dados oficiais
+  // (Wikidata): nunca sobrescreve name/city/etc.
+  userDescription           String?    @db.Text // máx 2000 chars (validado na API)
+  userDescriptionSource     String?    // 'community' | 'official'
+  userDescriptionUpdatedAt  DateTime?
   qid          String?    @unique // Wikidata Q-identifier (ex: Q12345)
   latitude     Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
@@ -241,6 +247,7 @@ model RankingEntry {
 model User {
   favorites Favorite[]
   notifications Notification[]
+  clubOwnerships ClubOwnership[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -725,6 +732,25 @@ model Favorite {
   @@index([clubId])
   @@index([userId, deletedAt])
   @@map("favorites")
+}
+
+// WS-C-9 Modo Clube — um usuário representa/edita um clube.
+// Nesta fase: auto-aprovado (status 'active' direto na criação).
+model ClubOwnership {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId     String
+  club       Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  role       String    @default("editor") // 'editor' | 'admin' (admin = futuro)
+  status     String    @default("active") // 'pending' | 'active' | 'revoked'
+  requestedAt DateTime @default(now())
+  approvedAt  DateTime?
+  approvedBy  String?
+
+  @@unique([userId, clubId])
+  @@index([clubId])
+  @@index([userId])
 }
 
 
