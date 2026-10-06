@@ -730,8 +730,12 @@ model Favorite {
   id                  String   @id @default(uuid())
   userId              String
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clubId              String
-  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  // WS-C-12 — generalização polymorphic: clubId/club mantidos para compat
+  // (deprecated; populated só quando targetType='club').
+  clubId              String?
+  club                Club?    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  targetType          String   @default("club") // 'club' | 'player' | 'competition'
+  targetId            String
   notificationsActive Boolean  @default(true)
   createdAt           DateTime @default(now())
   deletedAt           DateTime?

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
+import FavoriteButton from '@/components/FavoriteButton';
 
 interface Competition {
   id: string;
@@ -31,14 +32,22 @@ async function getCompetition(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const comp = await getCompetition(id);
   if (!comp) return { title: 'Competição não encontrada' };
   return { title: comp.name, description: `${comp.name} — ${comp.country ?? 'Internacional'}` };
 }
 
-export default async function CompetitionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CompetitionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const comp = await getCompetition(id);
   if (!comp) notFound();
@@ -53,7 +62,10 @@ export default async function CompetitionDetailPage({ params }: { params: Promis
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
-      <Link href="/competitions" className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer">
+      <Link
+        href="/competitions"
+        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+      >
         &larr; Voltar para Competições
       </Link>
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
@@ -62,7 +74,16 @@ export default async function CompetitionDetailPage({ params }: { params: Promis
             {comp.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{comp.name}</h1>
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
+              {comp.name}
+            </h1>
+            <div className="mt-3">
+              <FavoriteButton
+                targetType="competition"
+                targetId={comp.id}
+                countLabel="espectadores"
+              />
+            </div>
             {comp.country ? (
               <p className="text-foreground/60 mt-1">{comp.country}</p>
             ) : (

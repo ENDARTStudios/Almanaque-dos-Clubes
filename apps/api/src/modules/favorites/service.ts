@@ -1,6 +1,7 @@
 import { NotFoundError } from '@almanaque/domain';
 import { withRlsContext } from '../../config/rls-context.js';
 import { favoritesRepository, type FavoriteWithClub } from './repository.js';
+import { prisma } from '../../config/prisma.js';
 import { excludeSoftDeleted } from '../graph/soft-delete.js';
 import { hierarchyOfEdge } from '../etl/won-edges.service.js';
 import type { RankHierarchy } from '../rankings/ranking-algorithm.service.js';
@@ -18,7 +19,7 @@ export interface FavoriteView extends FavoriteWithClub {
 }
 
 export interface AddResult {
-  favorite: { id: string; clubId: string; createdAt: Date };
+  favorite: { id: string; clubId: string | null; createdAt: Date };
   created: boolean;
   reactivated: boolean;
 }
@@ -111,10 +112,17 @@ export const favoritesService = {
     offset: number;
   }> {
     return withRlsContext({ userId, role: 'USER' }, async (tx) => {
-      const favorites = await favoritesRepository.listActiveWithClub(tx, userId, {
+      // WS-C-12 — o painel de clubes só considera favoritos de clube (clubId
+      // null = favorito de player/competition, que vive nas abas próprias).
+      // Type-guard único: o resto do método usa tipos não-nulos.
+      const all = await favoritesRepository.listActiveWithClub(tx, userId, {
         take: pagination.limit,
         skip: pagination.offset,
       });
+      const favorites = all.filter(
+        (f): f is typeof f & { clubId: string; club: NonNullable<typeof f.club> } =>
+          f.clubId !== null && f.club !== null,
+      );
       const total = await favoritesRepository.countActive(tx, userId);
       const clubIds = favorites.map((f) => f.clubId);
 
@@ -160,9 +168,14 @@ export const favoritesService = {
   /** WS-C-6 — feed de conquistas recentes dos favoritos (WON, ano DESC, cap 20). */
   async feed(userId: string): Promise<{ data: FavoriteFeedItem[]; total: number }> {
     return withRlsContext({ userId, role: 'USER' }, async (tx) => {
-      const favorites = await favoritesRepository.listActiveWithClub(tx, userId, {
+      // WS-C-12 — feed segue club-only (conquistas = arestas WON de clubes).
+      const allFavs = await favoritesRepository.listActiveWithClub(tx, userId, {
         take: FEED_FAVORITES_BASE,
       });
+      const favorites = allFavs.filter(
+        (f): f is typeof f & { clubId: string; club: NonNullable<typeof f.club> } =>
+          f.clubId !== null && f.club !== null,
+      );
       const clubIds = favorites.map((f) => f.clubId);
       if (clubIds.length === 0) return { data: [], total: 0 };
       const nameByClub = new Map(favorites.map((f) => [f.clubId, f.club.name]));
@@ -198,5 +211,143 @@ export const favoritesService = {
       const data = buildFeed(items);
       return { data, total: data.length };
     });
+  },
+
+  // -----------------------------------------------------------------
+  // WS-C-12 — generalização polymorphic (club | player | competition).
+  // -----------------------------------------------------------------
+
+  /** Alvo existe? (validação por tipo — clube respeita soft-delete) */
+  async targetExists(
+    userId: string,
+    targetType: 'club' | 'player' | 'competition',
+    targetId: string,
+  ): Promise<boolean> {
+    return withRlsContext({ userId, role: 'USER' }, (tx) =>
+      favoritesRepository.targetExists(tx, targetType, targetId),
+    );
+  },
+
+  /**
+   * WS-C-12 — favoritar por alvo genérico (idempotente + reativação, mesmo
+   * contrato do add() de clube). NOTIFICAÇÕES: o hook WS-C-8 notifica
+   * clubes (arestas WON vivas); para player/competition não há fonte de
+   * "novo título" no KG hoje — os tipos ativam quando a onda de dados chegar.
+   */
+  async addTarget(
+    userId: string,
+    targetType: 'club' | 'player' | 'competition',
+    targetId: string,
+  ): Promise<{
+    favorite: { id: string; createdAt: Date };
+    created: boolean;
+    reactivated: boolean;
+  }> {
+    return withRlsContext({ userId, role: 'USER' }, async (tx) => {
+      if (!(await favoritesRepository.targetExists(tx, targetType, targetId))) {
+        throw new NotFoundError(
+          targetType === 'club' ? 'Clube' : targetType === 'player' ? 'Jogador' : 'Competição',
+          targetId,
+        );
+      }
+      const active = await favoritesRepository.findActiveByTarget(tx, userId, targetType, targetId);
+      if (active) {
+        return {
+          favorite: { id: active.id, createdAt: active.createdAt },
+          created: false,
+          reactivated: false,
+        };
+      }
+      const deleted = await favoritesRepository.findLatestDeletedByTarget(
+        tx,
+        userId,
+        targetType,
+        targetId,
+      );
+      if (deleted) {
+        const f = await favoritesRepository.reactivate(tx, deleted.id);
+        return { favorite: { id: f.id, createdAt: f.createdAt }, created: true, reactivated: true };
+      }
+      const f = await favoritesRepository.createByTarget(tx, {
+        userId,
+        targetType,
+        targetId,
+      });
+      return { favorite: { id: f.id, createdAt: f.createdAt }, created: true, reactivated: false };
+    });
+  },
+
+  /** WS-C-12 — soft-delete por alvo genérico (idempotente). */
+  async removeTarget(
+    userId: string,
+    targetType: 'club' | 'player' | 'competition',
+    targetId: string,
+  ): Promise<{ removed: boolean }> {
+    return withRlsContext({ userId, role: 'USER' }, async (tx) => {
+      const active = await favoritesRepository.findActiveByTarget(tx, userId, targetType, targetId);
+      if (!active) return { removed: false };
+      await favoritesRepository.softDelete(tx, active.id);
+      return { removed: true };
+    });
+  },
+
+  /** WS-C-12 — lista por tipo com dados básicos do alvo (abas do painel). */
+  async listByTarget(
+    userId: string,
+    targetType: 'club' | 'player' | 'competition',
+    pagination: { limit: number; offset: number } = { limit: 50, offset: 0 },
+  ): Promise<{
+    data: Array<{
+      id: string;
+      targetId: string;
+      name: string;
+      qid: string | null;
+      createdAt: Date;
+    }>;
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    return withRlsContext({ userId, role: 'USER' }, async (tx) => {
+      const rows = await favoritesRepository.listActiveByTarget(tx, userId, targetType, {
+        take: pagination.limit,
+        skip: pagination.offset,
+      });
+      const total = await tx.favorite.count({
+        where: { userId, targetType, deletedAt: null },
+      });
+      return {
+        data: rows.map((r) => ({
+          id: r.id,
+          targetId: r.targetId,
+          name: r.name,
+          qid: r.qid,
+          createdAt: r.createdAt,
+        })),
+        total,
+        limit: pagination.limit,
+        offset: pagination.offset,
+      };
+    });
+  },
+
+  /** WS-C-12 — contagem pública por alvo (SD function favorites_count). */
+  async countTarget(targetType: string, targetId: string): Promise<number> {
+    const rows = await prisma.$queryRaw<Array<{ n: number }>>`
+      SELECT favorites_count(${targetType}, ${targetId}) AS n`;
+    return Number(rows[0]?.n ?? 0);
+  },
+
+  /** WS-C-12 — o usuário favoritou o alvo? */
+  async isFavorited(
+    userId: string,
+    targetType: 'club' | 'player' | 'competition',
+    targetId: string,
+  ): Promise<boolean> {
+    return withRlsContext(
+      { userId },
+      async (tx) =>
+        (await favoritesRepository.findActiveByTarget(tx, userId, targetType, targetId)) !== null,
+    );
   },
 };
