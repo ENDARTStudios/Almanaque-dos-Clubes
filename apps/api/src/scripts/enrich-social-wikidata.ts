@@ -106,7 +106,7 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   const otherWhere: TargetWhere & Record<string, unknown> = {
     deletedAt: null,
     qid: { not: null },
-    OR: [{ socialLinks: null }, { officialSite: null }],
+    OR: [{ socialLinks: Prisma.AnyNull }, { officialSite: null }],
   };
   const clubSelect = {
     id: true,
