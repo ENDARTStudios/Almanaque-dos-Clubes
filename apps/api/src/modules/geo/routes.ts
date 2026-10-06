@@ -37,6 +37,14 @@ export const geoRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         error: { code: 'VALIDATION_ERROR', message: 'country deve ser ISO-3166-1 alpha-2.' },
       });
     }
+    // T450 — filtro de gênero ('women' mostra só clubes femininos).
+    const gender =
+      q.gender === 'men' || q.gender === 'women' ? (q.gender as 'men' | 'women') : undefined;
+    if (q.gender && !gender) {
+      return reply.status(400).send({
+        error: { code: 'VALIDATION_ERROR', message: 'gender deve ser men|women.' },
+      });
+    }
     const bbox = parseBbox(q);
     if (bbox === 'invalid') {
       return reply.status(400).send({
@@ -49,6 +57,7 @@ export const geoRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     const limitRaw = Number.parseInt(q.limit ?? '', 10);
     const query: GeoPointsQuery = {
       country: q.country,
+      gender,
       bbox: bbox ?? undefined,
       limit: Number.isFinite(limitRaw) ? limitRaw : undefined,
     };

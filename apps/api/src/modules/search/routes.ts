@@ -33,10 +33,21 @@ export const searchRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
     const limit = Number.parseInt(query.limit ?? '', 10);
     const offset = Number.parseInt(query.offset ?? '', 10);
 
+    const genderRaw = query.gender;
+    if (genderRaw && genderRaw !== 'men' && genderRaw !== 'women') {
+      return reply.status(400).send({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Parâmetro "gender" inválido (use men|women).',
+        },
+      });
+    }
+
     const data = await globalSearch({
       q,
       type: (type as SearchType | undefined) ?? 'all',
       country: query.country,
+      gender: (genderRaw as 'men' | 'women' | undefined) ?? undefined,
       limit: Number.isFinite(limit) ? limit : undefined,
       offset: Number.isFinite(offset) ? offset : undefined,
     });

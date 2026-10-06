@@ -46,6 +46,9 @@ model Club {
   status       ClubStatus @default(ACTIVE)
   primaryColor String?    @db.Char(7) // #RRGGBB
   website      String?
+  // T450 — 'men' | 'women' | 'mixed' (default 'men' para o acervo existente;
+  // semeado por T450 marca 'women' — convenção WOMENS_GENDER_VALUE)
+  gender       String     @default("men")
   // WS-C-9 Modo Clube — conteúdo da comunidade, ADITIVO aos dados oficiais
   // (Wikidata): nunca sobrescreve name/city/etc.
   userDescription           String?    @db.Text // máx 2000 chars (validado na API)
@@ -149,6 +152,7 @@ model Player {
 model Competition {
   id           String   @id @default(uuid())
   name         String
+  gender       String   @default("men") // T450 — 'men' | 'women'
   country      String?  @db.VarChar(2)
   type         CompetitionType?
   level        Int? // T449c-v1 — degrau na pirâmide nacional (1 = elite); NULL = desconhecido

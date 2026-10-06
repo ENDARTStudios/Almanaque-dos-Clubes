@@ -49,42 +49,52 @@ export default function GlobalSearch() {
   const [type, setType] = useState<SearchResponse['type']>(
     type_valid(initialType) ? initialType : 'all',
   );
+  // T450 — filtro de gênero ('women' mostra só clubes/competições femininas).
+  const [gender, setGender] = useState<'men' | 'women' | null>(
+    params.get('gender') === 'women' ? 'women' : null,
+  );
   const [data, setData] = useState<SearchResponse | null>(null);
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const run = useCallback(async (query: string, t: SearchResponse['type']) => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      setData(null);
-      setState('idle');
-      return;
-    }
-    setState('loading');
-    try {
-      const url = `/search/global?q=${encodeURIComponent(trimmed)}&type=${t}&limit=20`;
-      const res = await api.get<SearchResponse>(url);
-      setData(res);
-      setState('done');
-    } catch {
-      setState('error');
-    }
-  }, []);
+  const run = useCallback(
+    async (query: string, t: SearchResponse['type'], g: 'men' | 'women' | null) => {
+      const trimmed = query.trim();
+      if (!trimmed) {
+        setData(null);
+        setState('idle');
+        return;
+      }
+      setState('loading');
+      try {
+        const url = `/search/global?q=${encodeURIComponent(trimmed)}&type=${t}${
+          g ? `&gender=${g}` : ''
+        }&limit=20`;
+        const res = await api.get<SearchResponse>(url);
+        setData(res);
+        setState('done');
+      } catch {
+        setState('error');
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(() => {
-      void run(q, type);
+      void run(q, type, gender);
       const usp = new URLSearchParams();
       if (q.trim()) usp.set('q', q.trim());
       if (type !== 'all') usp.set('type', type);
+      if (gender) usp.set('gender', gender);
       const qs = usp.toString();
       router.replace(qs ? `/search?${qs}` : '/search', { scroll: false });
     }, 300);
     return () => {
       if (debounce.current) clearTimeout(debounce.current);
     };
-  }, [q, type, run, router]);
+  }, [q, type, gender, run, router]);
 
   const typeLabel = (t: SearchResponse['type']) =>
     t === 'club' ? s.typeClub : t === 'competition' ? s.typeCompetition : s.typeAll;
@@ -128,6 +138,17 @@ export default function GlobalSearch() {
             </button>
           ))}
         </div>
+        {/* T450 — filtro de gênero (feminino) */}
+        <select
+          aria-label="Gênero"
+          value={gender ?? ''}
+          onChange={(e) => setGender(e.target.value === '' ? null : (e.target.value as 'women'))}
+          data-testid="search-gender"
+          className="rounded-xl border border-border px-3 py-2 text-sm bg-white"
+        >
+          <option value="">Gênero: todos</option>
+          <option value="women">Feminino</option>
+        </select>
       </div>
 
       <div id="global-search-results" aria-live="polite" className="mt-6">

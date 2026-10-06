@@ -88,6 +88,8 @@ export interface ClubProfile {
   state: string | null;
   city: string | null;
   foundedYear: number | null;
+  /** T450 — 'men' | 'women' | 'mixed' (default 'men' para o acervo existente). */
+  gender: 'men' | 'women' | 'mixed';
   geo: ProfileGeo;
   provenance: ProfileProvenance;
   titles: ProfileSection<ProfileTitleItem>;
@@ -111,6 +113,8 @@ export interface ProfileClubInput {
   id: string;
   qid: string | null;
   name: string;
+  /** T450 — 'men' | 'women' | 'mixed' (default 'men'). */
+  gender?: string;
   fullName: string | null;
   shortName: string | null;
   status: string;
@@ -198,6 +202,7 @@ export function buildProfile(
     state: club.state,
     city: club.city,
     foundedYear: club.foundedYear,
+    gender: (club.gender as 'men' | 'women' | 'mixed' | undefined) ?? 'men',
     geo: buildGeo(club, geoView),
     provenance: deriveProvenance(club),
     titles: buildTitlesSection(titles),
@@ -313,6 +318,7 @@ export async function getClubProfile(id: string): Promise<ClubProfile | null> {
 
     const input: ProfileClubInput = {
       id: club.id,
+      gender: club.gender,
       qid: club.qid,
       name: club.name,
       fullName: club.fullName,

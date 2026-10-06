@@ -32,12 +32,22 @@ import {
   WOMENS_GENDER_VALUE,
   type WomensSyncData,
   type WomensRepository,
-} from '../src/modules/etl/connectors/wikidata-womens-football.connector.js';
+} from '../modules/etl/connectors/wikidata-womens-football.connector.js';
 
 const APPLY = process.argv.includes('--apply');
+// T450 — flags de contenção: --limit=N (cap do fetch) e --country=XX (filtro ISO 2).
+const flagValue = (name: string): string | undefined => {
+  const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
+  return arg ? arg.split('=')[1] : undefined;
+};
+const COUNTRY = flagValue('country')?.toUpperCase();
+if (COUNTRY && !/^[A-Z]{2}$/.test(COUNTRY)) {
+  console.error(`--country inválido: ${COUNTRY} (use ISO 3166-1 alpha-2)`);
+  process.exit(1);
+}
 const PLAYER_MAX_PAGES = Number(process.env.WOMENS_PLAYER_MAX_PAGES ?? (APPLY ? 8 : 1));
 const MAX_PAGES = Number(process.env.WOMENS_MAX_PAGES ?? (APPLY ? 20 : 2));
-const LIMIT = Number(process.env.WOMENS_LIMIT ?? 1000);
+const LIMIT = Number(flagValue('limit') ?? process.env.WOMENS_LIMIT ?? 1000);
 const TARGET_MIN_COMPETITIONS = Number(process.env.WOMENS_TARGET_MIN_COMPETITIONS ?? 200);
 const TARGET_MIN_CLUBS = Number(process.env.WOMENS_TARGET_MIN_CLUBS ?? 500);
 const TARGET_MIN_PLAYERS = Number(process.env.WOMENS_TARGET_MIN_PLAYERS ?? 1000);
@@ -92,6 +102,7 @@ function createPrismaWomensRepository(prisma: PrismaClient): WomensRepository {
           name: row.name,
           country: row.country,
           qid: row.qid,
+          gender: WOMENS_GENDER_VALUE, // T450 — coluna gender (filtros API/UI)
           importedFrom: WOMENS_DATASOURCE,
           importedAt: provenance.importedAt,
         },
@@ -111,8 +122,10 @@ function createPrismaWomensRepository(prisma: PrismaClient): WomensRepository {
             name: row.name,
             country: row.country,
             qid: row.qid,
+            gender: WOMENS_GENDER_VALUE, // T450 — coluna gender (filtros API/UI)
             importedFrom: WOMENS_DATASOURCE,
             importedAt: provenance.importedAt,
+            metadata: { gender: WOMENS_GENDER_VALUE, coordAttribution: 'Wikidata CC0' },
           },
           select: { id: true },
         });
@@ -211,11 +224,30 @@ async function main(): Promise<void> {
     const comps = dedupe(await fetchCompetitions({ limit: LIMIT, maxPages: MAX_PAGES }));
     const clubs = dedupe(await fetchClubs({ limit: LIMIT, maxPages: MAX_PAGES }));
     const players = dedupe(await fetchPlayers({ limit: LIMIT, maxPages: PLAYER_MAX_PAGES }));
-    // 2) vínculos, limitados aos clubes do acervo feminino (anti-órfão por construção)
-    const clubQids = dedupe(clubs.map((c) => c.qid));
+    // 2) vínculos (anti-órfão por construção) — ver bloco T450 abaixo
+
+    // T450 — filtro por país pós-fetch (SPARQL do connector não filtra país;
+    // busca larga + filtro local é honesto e sem tocar o módulo puro/testado).
+    const filtered = {
+      competitions: COUNTRY ? comps.filter((c) => c.country === COUNTRY) : comps,
+      clubs: COUNTRY ? clubs.filter((c) => c.country === COUNTRY) : clubs,
+      players: COUNTRY ? players.filter((p) => p.country === COUNTRY) : players,
+    };
+    if (COUNTRY) {
+      console.log(
+        `  filtro país=${COUNTRY}: comp=${filtered.competitions.length} club=${filtered.clubs.length} jog=${filtered.players.length}`,
+      );
+    }
+    const edgesSrc = filtered.clubs.length > 0 ? filtered.clubs : clubs;
+    const clubQids = dedupe(edgesSrc.map((c) => ({ qid: c.qid }))).map((c) => c.qid);
     const edges = dedupeEdges(await fetchEdges({ limit: LIMIT, maxPages: MAX_PAGES, clubQids }));
 
-    const data: WomensSyncData = { competitions: comps, clubs, players, edges };
+    const data: WomensSyncData = {
+      competitions: filtered.competitions,
+      clubs: filtered.clubs,
+      players: filtered.players,
+      edges,
+    };
     console.log(
       `  origem: comp=${comps.length} club=${clubs.length} jog=${players.length} edge=${edges.length}`,
     );
