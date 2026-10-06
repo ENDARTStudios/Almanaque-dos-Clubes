@@ -224,9 +224,7 @@ async function main(): Promise<void> {
     //    e o DISTINCT/ORDER BY server-side sobre o corpus todo derruba o WDQS
     //    com 504 (presenciado no gate de produção). Mesma cobertura, sem 504.
     const light = { distinct: false, orderBy: false } as const;
-    const comps = dedupe(
-      await fetchCompetitions({ limit: LIMIT, maxPages: MAX_PAGES, ...light }),
-    );
+    const comps = dedupe(await fetchCompetitions({ limit: LIMIT, maxPages: MAX_PAGES, ...light }));
     const clubs = dedupe(await fetchClubs({ limit: LIMIT, maxPages: MAX_PAGES, ...light }));
     const players = dedupe(
       await fetchPlayers({ limit: LIMIT, maxPages: PLAYER_MAX_PAGES, ...light }),
@@ -248,8 +246,8 @@ async function main(): Promise<void> {
     const edgesSrc = filtered.clubs.length > 0 ? filtered.clubs : clubs;
     const clubQids = dedupe(edgesSrc.map((c) => ({ qid: c.qid }))).map((c) => c.qid);
     const edges = dedupeEdges(
-    await fetchEdges({ limit: LIMIT, maxPages: MAX_PAGES, clubQids, ...light }),
-  );
+      await fetchEdges({ limit: LIMIT, maxPages: MAX_PAGES, clubQids, ...light }),
+    );
 
     const data: WomensSyncData = {
       competitions: filtered.competitions,
