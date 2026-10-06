@@ -14,7 +14,7 @@
  * Agendamento: diário 06:00 UTC via fila `gamification` (scheduler próprio),
  * atrás da flag BIRTHDAY_GIFT_ENABLED.
  */
-import { prisma } from '../../config/prisma.js';
+import { withRlsContext } from '../../config/rls-context.js';
 import { changePlan, getSubscription, PLAN_CYCLE_DAYS } from '../billing/subscription.service.js';
 import { createNotification } from '../notifications/notification.service.js';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
@@ -48,15 +48,19 @@ export async function grantBirthdayGifts(
   const year = now.getUTCFullYear();
   const monthDay = todayMonthDay(now);
 
-  const birthdayUsers = await prisma.user.findMany({
-    where: {
-      deletedAt: null,
-      status: 'ACTIVE',
-      birthDate: { not: null },
-      OR: [{ birthdayGiftLastYear: null }, { birthdayGiftLastYear: { lt: year } }],
-    },
-    select: { id: true, email: true, name: true, birthDate: true, birthdayGiftLastYear: true },
-  });
+  // T442 — FORCE RLS: a varredura de aniversariantes precisa de contexto
+  // SERVICE (o app_user puro não vê linhas de users).
+  const birthdayUsers = await withRlsContext({ role: 'SERVICE' }, (tx) =>
+    tx.user.findMany({
+      where: {
+        deletedAt: null,
+        status: 'ACTIVE',
+        birthDate: { not: null },
+        OR: [{ birthdayGiftLastYear: null }, { birthdayGiftLastYear: { lt: year } }],
+      },
+      select: { id: true, email: true, name: true, birthDate: true, birthdayGiftLastYear: true },
+    }),
+  );
 
   const today = birthdayUsers.filter((u) => u.birthDate && isoMonthDay(u.birthDate) === monthDay);
 
@@ -84,13 +88,15 @@ export async function grantToUser(
   metadata: SessionMetadata = {},
   now = new Date(),
 ): Promise<BirthdayGrantResult> {
-  const yearGuard = await prisma.user.updateMany({
-    where: {
-      id: userId,
-      OR: [{ birthdayGiftLastYear: null }, { birthdayGiftLastYear: { lt: year } }],
-    },
-    data: { birthdayGiftLastYear: year },
-  });
+  const yearGuard = await withRlsContext({ role: 'SERVICE' }, (tx) =>
+    tx.user.updateMany({
+      where: {
+        id: userId,
+        OR: [{ birthdayGiftLastYear: null }, { birthdayGiftLastYear: { lt: year } }],
+      },
+      data: { birthdayGiftLastYear: year },
+    }),
+  );
   if (yearGuard.count === 0) {
     throw new Error(`Presente de aniversário já concedido em ${year} (guard)`);
   }
@@ -107,10 +113,12 @@ export async function grantToUser(
     // Elite pago: estende o ciclo em 30 dias sem sobrescrever cobrança.
     const base = sub!.currentPeriodEnd as Date;
     expiresAt = new Date(base.getTime() + PLAN_CYCLE_DAYS * 24 * 60 * 60 * 1000);
-    await prisma.subscription.update({
-      where: { userId },
-      data: { currentPeriodEnd: expiresAt },
-    });
+    await withRlsContext({ role: 'SERVICE' }, (tx) =>
+      tx.subscription.update({
+        where: { userId },
+        data: { currentPeriodEnd: expiresAt },
+      }),
+    );
   } else {
     // Free/Pro (ou Elite expirado): 30 dias de Elite, sem billing.
     const s = await changePlan(userId, 'ELITE');
