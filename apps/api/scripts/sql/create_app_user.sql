@@ -31,6 +31,8 @@ GRANT EXECUTE ON FUNCTION club_owners_list(text) TO app_user;
 -- WS-C-10 propostas de descrição
 GRANT SELECT, INSERT, UPDATE ON TABLE "ClubDescriptionProposal" TO app_user;
 GRANT EXECUTE ON FUNCTION club_proposals_list(text, text) TO app_user;
+-- WS-C-14 trilha de atividade (preparada, tracking desativado até WS-L)
+GRANT SELECT, INSERT ON TABLE "UserActivity" TO app_user;
 -- WS-C-12 — contagem pública de favoritos por alvo
 GRANT EXECUTE ON FUNCTION favorites_count(text, text) TO app_user;
 -- WS-C-11 denúncias

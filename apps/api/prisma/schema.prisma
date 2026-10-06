@@ -270,6 +270,7 @@ model User {
   proposalsSubmitted ClubDescriptionProposal[] @relation("ProposalProposer")
   proposalsReviewed ClubDescriptionProposal[] @relation("ProposalReviewer")
   reportsSubmitted Report[]
+  activities UserActivity[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -805,6 +806,23 @@ model ClubDescriptionProposal {
 
 // WS-C-11 — denúncia de conteúdo inadequado (descrição de clube / proposta).
 // Moderada por admin (permission reports:moderate); reporter vê só as suas.
+// WS-C-14 — trilha de atividade do usuário. Tabela PREPARADA mas DESATIVADA:
+// o tracking só liga quando USER_TRACKING_ENABLED=true E o consent de cookies
+// (WS-L) estiver publicado. Nenhum caminho de escrita ativo hoje.
+model UserActivity {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType String
+  targetType   String?
+  targetId     String?
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, activityType, createdAt(sort: Desc)])
+}
+
 model Report {
   id           String    @id @default(uuid())
   reporterId   String
