@@ -56,6 +56,16 @@ export async function buildApp(): Promise<FastifyInstance> {
   // captura o errorHandler da instância no momento do registro de cada rota (e
   // instâncias filhas não herdam o handler do pai).
   const errorHandler = (err: unknown, _request: FastifyRequest, reply: FastifyReply) => {
+    // WS-C-11 — rate-limit de rota estoura como payload do plugin (sem
+    // statusCode no Error): mapeia para 429 ANTES do fallback 500.
+    const rlPayload = (err as { error?: { code?: string } } | null)?.error;
+    if (
+      rlPayload?.code === 'RATE_LIMIT_EXCEEDED' ||
+      (err as { code?: string }).code === 'RATE_LIMIT_EXCEEDED'
+    ) {
+      logger.warn({ message: 'rate limited' }, '429');
+      return reply.status(429).send(err as Record<string, unknown>);
+    }
     const statusCode = (err as { statusCode?: number }).statusCode ?? 500;
     // 413 padronizado (T385, item 7.7): sem stack trace, sem detalhes internos.
     if (statusCode === 413) {
