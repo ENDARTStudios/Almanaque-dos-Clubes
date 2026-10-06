@@ -41,6 +41,7 @@ import {
   planW3Seed,
   planW3Competitions,
   clubSlug,
+  competitionSlugKey,
   W3_EDGE_RELATION,
   type W3ClubInput,
   type W3TemplateResolution,
@@ -432,14 +433,12 @@ async function main(): Promise<void> {
     const compIdByKey = new Map<string, string>();
     for (const comp of existingComps) {
       if (comp.gender === 'women') {
-        compIdByKey.set(
-          `${comp.name.toLowerCase()}::${(comp.country ?? 'br').toLowerCase()}`,
-          comp.id,
-        );
+        // Mesma função de chave das arestas do plano (formato slugificado).
+        compIdByKey.set(competitionSlugKey(comp.name, comp.country), comp.id);
       }
     }
     for (const comp of compsPlan.compsToCreate) {
-      const key = `${comp.name.toLowerCase()}::${W3_COUNTRY.toLowerCase()}`;
+      const key = competitionSlugKey(comp.name, W3_COUNTRY);
       if (compIdByKey.has(key)) continue;
       const dup = await prisma.competition.findFirst({
         where: { name: comp.name, country: W3_COUNTRY, gender: 'women', deletedAt: null },
