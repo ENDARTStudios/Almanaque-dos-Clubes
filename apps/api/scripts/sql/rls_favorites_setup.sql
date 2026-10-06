@@ -38,14 +38,9 @@ CREATE POLICY "favorites_delete_service" ON "favorites"
 
 -- WS-C-12 — contagem pública por alvo (SECURITY DEFINER, padrão T442):
 -- leitura anônima da CONTAGEM sem expor linhas de usuários.
-CREATE OR REPLACE FUNCTION favorites_count(p_target_type text, p_target_id text)
-RETURNS integer LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
-  SELECT COUNT(*)::integer
-  FROM favorites
-  WHERE "targetType" = p_target_type
-    AND "targetId" = p_target_id
-    AND "deletedAt" IS NULL;
-$$;
+
+-- WS-C-12 — contagem pública por alvo (SECURITY DEFINER, padrão T442):
+-- leitura anônima da CONTAGEM sem expor linhas de usuários.
 
 -- WS-C-12 — contagem pública por alvo (SECURITY DEFINER, padrão T442):
 -- leitura anônima da CONTAGEM sem expor linhas de usuários.
