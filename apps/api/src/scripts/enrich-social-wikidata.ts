@@ -108,42 +108,55 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
     qid: { not: null },
     OR: [{ socialLinks: null }, { officialSite: null }],
   };
-  const select = {
+  const clubSelect = {
     id: true,
     qid: true,
     website: true,
+    socialLinks: true,
+  };
+  const otherSelect = {
+    id: true,
+    qid: true,
     officialSite: true,
     socialLinks: true,
   };
   if (TARGET === 'club') {
     return prisma.club.findMany({
       where: clubWhere,
-      select: { ...select, officialSite: false },
+      select: clubSelect,
       orderBy: { createdAt: 'asc' },
     }) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'player') {
     return prisma.player.findMany({
       where: otherWhere,
-      select,
+      select: otherSelect,
       orderBy: { createdAt: 'asc' },
     }) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'competition') {
     return prisma.competition.findMany({
       where: otherWhere,
-      select,
+      select: otherSelect,
       orderBy: { createdAt: 'asc' },
     }) as unknown as Promise<Target[]>;
   }
   const [clubs, players, comps] = await Promise.all([
     prisma.club.findMany({
       where: clubWhere,
-      select: { ...select, officialSite: false },
+      select: clubSelect,
       orderBy: { createdAt: 'asc' },
     }),
-    prisma.player.findMany({ where: otherWhere, select, orderBy: { createdAt: 'asc' } }),
-    prisma.competition.findMany({ where: otherWhere, select, orderBy: { createdAt: 'asc' } }),
+    prisma.player.findMany({
+      where: otherWhere,
+      select: otherSelect,
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.competition.findMany({
+      where: otherWhere,
+      select: otherSelect,
+      orderBy: { createdAt: 'asc' },
+    }),
   ]);
   return [...clubs, ...players, ...comps] as unknown as Target[];
 }
