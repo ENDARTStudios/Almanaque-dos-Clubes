@@ -754,6 +754,9 @@ model Favorite {
   createdAt           DateTime @default(now())
   deletedAt           DateTime?
 
+  @@index([targetType, targetId])
+  @@index([userId, targetType])
+
   @@index([userId])
   @@index([clubId])
   @@index([userId, deletedAt])
