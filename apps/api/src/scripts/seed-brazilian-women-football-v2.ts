@@ -243,7 +243,7 @@ async function collect(): Promise<Collected> {
   // clube com sourceUrl do artigo da temporada (a fonte verificável do fato);
   // sem vínculo → recusa honesta.
   const wpTitles = [...new Set([...categoryInputs, ...seasonInputs].map((i) => i.name))];
-  const missingTitles = new Set<string>(wpTitles.map((t) => t.toLowerCase()));
+  const missingTitles = new Set<string>();
   for (let i = 0; i < wpTitles.length; i += 50) {
     const body = await fetchText(
       mwApi({ action: 'query', titles: wpTitles.slice(i, i + 50).join('|') }),
@@ -255,7 +255,6 @@ async function collect(): Promise<Collected> {
       if (page.missing) missingTitles.add(page.title.toLowerCase());
     }
   }
-  for (const t of wpTitles) missingTitles.delete(t.toLowerCase());
   const verifiedInputs: W3ClubInput[] = [];
   for (const input of [...categoryInputs, ...seasonInputs]) {
     if (!missingTitles.has(input.name.toLowerCase())) {
