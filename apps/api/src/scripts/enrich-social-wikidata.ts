@@ -14,7 +14,7 @@
  *   node dist/scripts/enrich-social-wikidata.js --target=club --limit=20        # DRY-RUN
  *   node dist/scripts/enrich-social-wikidata.js --apply --allow-production --target=all
  */
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { extractSocial } from '../modules/social/social-links.js';
 
 const UA = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclubes.com)';
@@ -101,7 +101,7 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   const clubWhere: TargetWhere & Record<string, unknown> = {
     deletedAt: null,
     qid: { not: null },
-    OR: [{ socialLinks: { equals: null } }, { website: null }],
+    OR: [{ socialLinks: Prisma.AnyNull }, { website: null }],
   };
   const otherWhere: TargetWhere & Record<string, unknown> = {
     deletedAt: null,
