@@ -22,7 +22,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
     console.log(`[Email DRY-RUN] Para: ${to} | Assunto: ${subject}`);
     return;
   }
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,
     to,
     subject,
@@ -33,7 +33,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
     console.error(`[Email Worker] Falha ao enviar email para ${to}:`, error);
     throw error;
   }
-  console.log(`[Email Worker] Email enviado para ${to}: ${subject}`);
+  console.log(`[Email Worker] Email enviado para ${to}: ${subject} (resend id ${data?.id ?? '?'})`);
 }
 
 createWorker('email', async (job) => {
