@@ -19,7 +19,7 @@ export default async function PlanosPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <ContentDocument namespace="planos" currency={currency} />
-      <CheckoutButton />
+      <CheckoutButton currency={currency} />
     </div>
   );
 }
