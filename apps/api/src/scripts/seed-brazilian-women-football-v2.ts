@@ -237,8 +237,45 @@ async function collect(): Promise<Collected> {
 
   const categoryInputs = tree.entries.map((e) => buildClubInputFromCategory(e.title, e.state));
 
+  // Proveniência verificável: todo título wikipedia-pt tem que EXISTIR (a árvore
+  // de categorias pode trazer entrada stale e a resolução de predefinições pode
+  // cair em red link). Título inexistente + vínculo de temporada → mantém o
+  // clube com sourceUrl do artigo da temporada (a fonte verificável do fato);
+  // sem vínculo → recusa honesta.
+  const wpTitles = [...new Set([...categoryInputs, ...seasonInputs].map((i) => i.name))];
+  const missingTitles = new Set<string>(wpTitles.map((t) => t.toLowerCase()));
+  for (let i = 0; i < wpTitles.length; i += 50) {
+    const body = await fetchText(
+      mwApi({ action: 'query', titles: wpTitles.slice(i, i + 50).join('|') }),
+    );
+    const payload = JSON.parse(body) as {
+      query?: { pages?: Array<{ title: string; missing?: boolean }> };
+    };
+    for (const page of payload.query?.pages ?? []) {
+      if (page.missing) missingTitles.add(page.title.toLowerCase());
+    }
+  }
+  for (const t of wpTitles) missingTitles.delete(t.toLowerCase());
+  const verifiedInputs: W3ClubInput[] = [];
+  for (const input of [...categoryInputs, ...seasonInputs]) {
+    if (!missingTitles.has(input.name.toLowerCase())) {
+      verifiedInputs.push(input);
+      continue;
+    }
+    if (input.competitions.length > 0) {
+      verifiedInputs.push({ ...input, sourceUrl: input.competitions[0]!.sourceUrl });
+    } else {
+      refusals.push({ name: input.name, reason: 'titulo_inexistente_na_wikipedia' });
+    }
+  }
+  if (missingTitles.size > 0) {
+    console.log(
+      `    verificação de existência: ${missingTitles.size} título(s) inexistente(s) tratados`,
+    );
+  }
+
   for (const r of refusals.slice(0, 10)) console.log(`    recusado: ${r.name} (${r.reason})`);
-  return { wikipediaInputs: [...categoryInputs, ...seasonInputs], wikidataInputs, wdAvailable };
+  return { wikipediaInputs: verifiedInputs, wikidataInputs, wdAvailable };
 }
 
 // ---------------------------------------------------------------------------
