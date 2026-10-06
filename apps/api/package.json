@@ -28,7 +28,7 @@
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.1.1",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.10.0",
     "argon2": "^0.45.0",
     "bullmq": "^6.3.11",
     "dotenv": "^18.0.4",
