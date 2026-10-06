@@ -22,12 +22,6 @@ export default function DireitosAutoraisPage() {
           ← /termos
         </Link>
       </div>
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        Direitos Autorais
-      </h1>
-      <p className="text-sm text-foreground/50 mb-8">
-        Lei 9.610/98 e normas análogas · END ART Studios
-      </p>
       <p className="text-foreground/70 mb-8 leading-relaxed">
         Notificações e contranotificações são registradas com protocolo e passam por triagem manual
         com decisão motivada; conteúdo inequivocamente infrator é removido. Canal manual (sem conta):
