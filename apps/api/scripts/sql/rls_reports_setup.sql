@@ -40,11 +40,11 @@ RETURNS TABLE (
     r."targetType", r."targetId",
     c.name AS target_club_name,
     r.reason, r.details, r."createdAt",
-    (SELECT COUNT(*) FROM reports r2
+    (SELECT COUNT(*) FROM "Report" r2
      WHERE r2."targetType" = r."targetType"
        AND r2."targetId" = r."targetId"
        AND r2.status = 'pending') AS report_count
-  FROM reports r
+  FROM "Report" r
   LEFT JOIN users u ON u.id = r."reporterId"
   LEFT JOIN clubs c ON c.id = r."targetId"
   WHERE r.status = 'pending'
