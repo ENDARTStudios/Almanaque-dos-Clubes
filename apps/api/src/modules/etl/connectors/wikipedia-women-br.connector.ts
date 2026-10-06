@@ -232,7 +232,9 @@ export function clubSlug(name: string, state: string | null): string {
   return `${slugify(name)}::${slugify(state ?? 'br')}`;
 }
 
-function compSlugKey(name: string, country: string | null): string {
+/** Chave de competição — exportada para o script montar o mapa de ids
+ *  com EXATAMENTE o mesmo formato das arestas do plano. */
+export function competitionSlugKey(name: string, country: string | null): string {
   return `${slugify(name)}::${slugify(country ?? 'br')}`;
 }
 
@@ -666,7 +668,7 @@ export function planW3Competitions(
   const existingKeys = new Set(
     existingComps
       .filter((c) => c.gender === 'women' && !c.deletedAt)
-      .map((c) => compSlugKey(c.name, c.country)),
+      .map((c) => competitionSlugKey(c.name, c.country)),
   );
   const compsToCreate: W3CompetitionCreate[] = [];
   const plannedKeys = new Set<string>();
@@ -676,7 +678,7 @@ export function planW3Competitions(
 
   for (const input of inputs) {
     for (const comp of input.competitions) {
-      const key = compSlugKey(comp.name, W3_COUNTRY);
+      const key = competitionSlugKey(comp.name, W3_COUNTRY);
       if (!existingKeys.has(key) && !plannedKeys.has(key)) {
         plannedKeys.add(key);
         compsToCreate.push({
