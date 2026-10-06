@@ -27,6 +27,9 @@ import {
 } from './club-ownership.service.js';
 import { extractMetadata } from '../auth/auth.service.js';
 import { hasReported } from '../reports/report.service.js';
+import { SocialPatchSchema } from './social.schema.js';
+import { cache } from '../../services/cache.js';
+import { auditLog, AuditAction } from '../audit/audit-log.service.js';
 import { favoritesService } from '../favorites/service.js';
 import {
   latestProposalStatus,
@@ -36,6 +39,7 @@ import {
   review,
 } from './proposals.service.js';
 import { z } from 'zod';
+import { prisma } from '../../config/prisma.js';
 
 /** WS-D M1a-3 — adiciona `attribution` (ODbL) de forma aditiva quando a coord vier de OSM/Nominatim. */
 function withGeoAttribution<T extends Record<string, unknown>>(entity: T) {
@@ -276,6 +280,50 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return handleDomainError(err, reply);
     }
   });
+
+  // -----------------------------------------------------------------
+  // WS-C-13 — PATCH /clubs/:id/social (editors only): site oficial +
+  // redes sociais + snapshot de seguidores declarado pelo editor.
+  // -----------------------------------------------------------------
+  app.patch<{ Params: { id: string } }>(
+    '/clubs/:id/social',
+    {
+      preHandler: [authenticate],
+      config: {
+        rateLimit: { max: 20, timeWindow: '1 hour', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = request.user!.id;
+        const body = SocialPatchSchema.parse(request.body);
+        if (!(await isActiveOwner(userId, request.params.id))) {
+          throw new DomainError('Sem ownership ativa neste clube', 'NOT_CLUB_OWNER', 403);
+        }
+        const data: Record<string, unknown> = { socialLinksUpdatedAt: new Date() };
+        if (body.officialSite !== undefined) data.website = body.officialSite;
+        if (body.socialLinks !== undefined) data.socialLinks = body.socialLinks;
+        if (body.followersSnapshot !== undefined) {
+          data.followersSnapshot = {
+            ...body.followersSnapshot,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        await prisma.club.update({ where: { id: request.params.id }, data });
+        await cache.invalidate(`clubs:byId:${request.params.id}`);
+        await auditLog.record({
+          entityType: 'Club',
+          entityId: request.params.id,
+          action: AuditAction.ENTITY_UPDATE,
+          userId,
+          metadata: { ip: request.ip, kind: 'social_links' },
+        });
+        return reply.send({ data });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
 
   // -----------------------------------------------------------------
   // WS-C-9 Modo Clube — ownerships + descrição comunitária.
