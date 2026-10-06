@@ -274,7 +274,10 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
-  passwordHash  String?  // argon2id (ver apps/api/src/config/crypto.ts); null = usuário só-social (Google) sem senha local
+  passwordHash  String?  // argon2id; null = conta só-social (Google)
+  // WS-C-15 — aniversário: opcional no onboarding; trava após 1ª concessão
+  birthDate            DateTime? @db.Date
+  birthdayGiftLastYear Int?
   status        UserStatus @default(ACTIVE)
   emailVerified DateTime?
   lastLoginAt   DateTime?

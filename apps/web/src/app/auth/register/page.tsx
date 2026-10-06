@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [birthDate, setBirthDate] = useState('');
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
@@ -121,6 +122,22 @@ export default function RegisterPage() {
               </Link>
             </span>
           </label>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="register-birthdate" className="block text-sm font-medium text-foreground mb-1.5">
+            Data de aniversário (opcional)
+          </label>
+          <input
+            id="register-birthdate"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+            className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          />
+          <p className="text-xs text-foreground/50 mt-1">
+            No seu aniversário você ganha 1 mês de Elite 🎁
+          </p>
         </div>
 
         <button

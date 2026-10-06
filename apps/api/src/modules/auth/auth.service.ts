@@ -79,6 +79,8 @@ export interface RegisterInput {
   email: string;
   password: string;
   name?: string;
+  /** WS-C-15 — aniversário opcional (YYYY-MM-DD). */
+  birthDate?: string;
 }
 
 export interface LoginInput {
@@ -117,6 +119,8 @@ export async function register(
 ): Promise<AuthResult> {
   const email = input.email.toLowerCase().trim();
   const name = input.name?.trim() || null;
+  // WS-C-15 — aniversário opcional no onboarding.
+  const birthDate = input.birthDate ? new Date(input.birthDate) : null;
 
   // 1. Verifica se email já existe (pre-auth: função SECURITY DEFINER — T442)
   const existing = await usersFindByEmail(email);
@@ -138,6 +142,7 @@ export async function register(
         name,
         passwordHash,
         status: 'ACTIVE',
+        ...(birthDate ? { birthDate } : {}),
       },
     }),
   );

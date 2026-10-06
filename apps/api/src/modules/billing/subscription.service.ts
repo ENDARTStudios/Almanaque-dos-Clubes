@@ -21,7 +21,7 @@
 import { prisma } from '../../config/prisma.js';
 
 // Tipos unificados — funcionam tanto para PostgreSQL (enums) quanto SQLite (strings)
-type SubscriptionPlan = 'FREE' | 'PRO' | 'ELITE';
+export type SubscriptionPlan = 'FREE' | 'PRO' | 'ELITE';
 type BillingStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED' | 'CANCELLED';
 
 interface Subscription {

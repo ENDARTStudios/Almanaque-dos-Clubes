@@ -31,6 +31,13 @@ async function main() {
       await registerDataRefreshCron();
     }
 
+    // WS-C-15 — presente de aniversário (fila gamification). Opt-in via
+    // BIRTHDAY_GIFT_ENABLED=1; job idempotente por ano (guard na coluna).
+    if (process.env.BIRTHDAY_GIFT_ENABLED === '1') {
+      const { registerBirthdayGiftCron } = await import('./jobs/birthday-gift.scheduler.js');
+      await registerBirthdayGiftCron();
+    }
+
     await app.listen({ port: env.port, host: env.host });
     setupWebSocket(app);
     logger.info(`🚀 Servidor ouvindo em http://${env.host}:${env.port}/api/v1`);

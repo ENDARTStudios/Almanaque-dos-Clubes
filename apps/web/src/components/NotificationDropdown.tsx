@@ -42,6 +42,9 @@ function itemText(n: NotificationItem): string {
     const verdict = p.status === 'approved' ? '✓' : '✗';
     return `${p.clubName ?? '—'} · ${verdict}`;
   }
+  if (n.type === 'birthday_gift') {
+    return 'Feliz aniversário! Você ganhou 1 mês de Elite 🎉';
+  }
   return String(n.payload ?? '');
 }
 
