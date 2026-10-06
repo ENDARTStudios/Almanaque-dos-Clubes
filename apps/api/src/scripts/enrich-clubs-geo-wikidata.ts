@@ -228,6 +228,8 @@ async function main(): Promise<void> {
   const limit = argValue('limit');
   const onlyStadiums = process.argv.includes('--only-stadiums');
   const onlyClubs = process.argv.includes('--only-clubs');
+  // T450 onda 2 — enriquecer SÓ clubes femininos (gender='women', coluna T450).
+  const onlyWomen = process.argv.includes('--gender=women');
 
   console.log(`T471 onda 1 — enriquecimento geo Wikidata (${APPLY ? 'APPLY' : 'DRY-RUN'})`);
   const prisma = new PrismaClient();
@@ -236,6 +238,8 @@ async function main(): Promise<void> {
     where: {
       deletedAt: null,
       qid: { not: null },
+      // T450 onda 2 — escopo feminino quando --gender=women.
+      ...(onlyWomen ? { gender: 'women' } : {}),
       // Sem coordenada OU com coordenada vinda de venue P115 (marcada no sourceUrl).
       // O segundo ramo mantém o clube no escopo em re-runs: a escrita de coords é
       // protegida por `where latitude: null` (zero overwrite), mas o registro do
