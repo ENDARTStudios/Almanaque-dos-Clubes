@@ -14,7 +14,7 @@
  *   node dist/scripts/enrich-social-wikidata.js --target=club --limit=20        # DRY-RUN
  *   node dist/scripts/enrich-social-wikidata.js --apply --allow-production --target=all
  */
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { extractSocial } from '../modules/social/social-links.js';
 
 const UA = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclubes.com)';
@@ -88,77 +88,40 @@ interface Target {
   socialLinks: unknown;
 }
 
-interface TargetWhere {
-  deletedAt: null;
-  qid: { not: null };
-  OR: Array<Record<string, null>>;
-}
-
 async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
-  // Zero overwrite: só entra no escopo quem está vazio.
-  // Club: official site vive na coluna `website` (P856 == website — mesma
-  // semântica; sem coluna duplicada). Player/Competition: officialSite nova.
-  const clubWhere: TargetWhere & Record<string, unknown> = {
-    deletedAt: null,
-    qid: { not: null },
-    OR: [{ socialLinks: Prisma.AnyNull }, { website: null }],
-  };
-  const otherWhere: TargetWhere & Record<string, unknown> = {
-    deletedAt: null,
-    qid: { not: null },
-    OR: [{ socialLinks: Prisma.AnyNull }, { officialSite: null }],
-  };
-  const clubSelect = {
-    id: true,
-    qid: true,
-    website: true,
-    socialLinks: true,
-  };
-  const otherSelect = {
-    id: true,
-    qid: true,
-    officialSite: true,
-    socialLinks: true,
-  };
+  // Raw SQL: filtros null em Json via shorthand/sentinels têm comportamento
+  // inconsistente nesta instalação — SQL direto é determinístico.
+  const base = `deletedAt IS NULL AND qid IS NOT NULL AND (social_links IS NULL OR website IS NULL)`;
+  const baseOther = `deletedAt IS NULL AND qid IS NOT NULL AND (social_links IS NULL OR official_site IS NULL)`;
+  const select = `id, qid, website, social_links AS "socialLinks"`;
+  const selectOther = `id, qid, official_site AS "officialSite", social_links AS "socialLinks"`;
   if (TARGET === 'club') {
-    return prisma.club.findMany({
-      where: clubWhere,
-      select: clubSelect,
-      orderBy: { createdAt: 'asc' },
-    }) as unknown as Promise<Target[]>;
+    return prisma.$queryRawUnsafe(
+      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'player') {
-    return prisma.player.findMany({
-      where: otherWhere,
-      select: otherSelect,
-      orderBy: { createdAt: 'asc' },
-    }) as unknown as Promise<Target[]>;
+    return prisma.$queryRawUnsafe(
+      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'competition') {
-    return prisma.competition.findMany({
-      where: otherWhere,
-      select: otherSelect,
-      orderBy: { createdAt: 'asc' },
-    }) as unknown as Promise<Target[]>;
+    return prisma.$queryRawUnsafe(
+      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ) as unknown as Promise<Target[]>;
   }
-  const [clubs, players, comps] = await Promise.all([
-    prisma.club.findMany({
-      where: clubWhere,
-      select: clubSelect,
-      orderBy: { createdAt: 'asc' },
-    }),
-    prisma.player.findMany({
-      where: otherWhere,
-      select: otherSelect,
-      orderBy: { createdAt: 'asc' },
-    }),
-    prisma.competition.findMany({
-      where: otherWhere,
-      select: otherSelect,
-      orderBy: { createdAt: 'asc' },
-    }),
-  ]);
-  return [...clubs, ...players, ...comps] as unknown as Target[];
+  const [clubs, players, comps] = (await Promise.all([
+    prisma.$queryRawUnsafe(
+      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ),
+    prisma.$queryRawUnsafe(
+      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ),
+    prisma.$queryRawUnsafe(
+      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+    ),
+  ])) as unknown as Target[][];
+  return [...clubs, ...players, ...comps];
 }
 
 async function main(): Promise<void> {
