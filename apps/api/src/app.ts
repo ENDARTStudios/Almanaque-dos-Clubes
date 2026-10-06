@@ -21,6 +21,7 @@ import { metrics } from './modules/observability/metrics.js';
 import { healthRoutes } from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { clubsRoutes } from './modules/clubs/routes.js';
+import { reportsRoutes } from './modules/reports/routes.js';
 import { playersRoutes } from './modules/players/routes.js';
 import { competitionsRoutes } from './modules/competitions/routes.js';
 import { rankingsRoutes } from './modules/rankings/routes.js';
@@ -246,6 +247,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(notificationsRoutes);
       await api.register(authRoutes);
       await api.register(clubsRoutes);
+      await api.register(reportsRoutes);
       await api.register(consentRoutes);
       await api.register(privacyRoutes);
       await api.register(copyrightRoutes);

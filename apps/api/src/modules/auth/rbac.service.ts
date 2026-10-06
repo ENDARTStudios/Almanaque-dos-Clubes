@@ -67,6 +67,7 @@ export const PERMISSIONS = {
   // Billing
   BILLINGS_READ: 'billings:read', // ler próprias cobranças
   BILLINGS_REFUND: 'billings:refund', // admin
+  REPORTS_MODERATE: 'reports:moderate', // WS-C-11 — moderar denúncias (admin)
 
   // Admin
   AUDIT_LOGS_READ: 'audit_logs:read',

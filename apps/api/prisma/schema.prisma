@@ -251,6 +251,7 @@ model User {
   clubOwnerships ClubOwnership[]
   proposalsSubmitted ClubDescriptionProposal[] @relation("ProposalProposer")
   proposalsReviewed ClubDescriptionProposal[] @relation("ProposalReviewer")
+  reportsSubmitted Report[]
   id            String   @id @default(uuid())
   email         String   @unique
   name          String?
@@ -775,6 +776,28 @@ model ClubDescriptionProposal {
 
   @@index([clubId, createdAt(sort: Desc)])
   @@index([proposedBy, clubId])
+}
+
+// WS-C-11 — denúncia de conteúdo inadequado (descrição de clube / proposta).
+// Moderada por admin (permission reports:moderate); reporter vê só as suas.
+model Report {
+  id           String    @id @default(uuid())
+  reporterId   String
+  reporter     User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType   String // 'club_description' | 'proposal'
+  targetId     String
+  reason       String // 'spam' | 'offensive' | 'misinformation' | 'copyright' | 'other'
+  details      String?   @db.Text
+  status       String    @default("pending") // 'pending' | 'resolved' | 'dismissed'
+  createdAt    DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedBy   String?
+  reviewAction String? // 'remove_content' | 'warn_user' | 'suspend_user' | 'no_action'
+  reviewNote   String?   @db.Text
+
+  @@index([createdAt(sort: Desc)])
+  @@index([targetType, targetId, createdAt(sort: Desc)])
+  @@index([reporterId, createdAt(sort: Desc)])
 }
 
 

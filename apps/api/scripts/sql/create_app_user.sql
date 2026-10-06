@@ -31,6 +31,9 @@ GRANT EXECUTE ON FUNCTION club_owners_list(text) TO app_user;
 -- WS-C-10 propostas de descrição
 GRANT SELECT, INSERT, UPDATE ON TABLE "ClubDescriptionProposal" TO app_user;
 GRANT EXECUTE ON FUNCTION club_proposals_list(text, text) TO app_user;
+-- WS-C-11 denúncias
+GRANT SELECT, INSERT, UPDATE ON TABLE "Report" TO app_user;
+GRANT EXECUTE ON FUNCTION reports_pending_list() TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "knowledge_graph" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "matches" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "permissions" TO app_user;
