@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import DashboardStatsSection from '@/components/DashboardStatsSection';
 
 export const metadata: Metadata = {
   title: 'Meu Painel',
@@ -13,6 +14,11 @@ export default function DashboardPage() {
         Meu Painel
       </h1>
       <p className="text-foreground/60 mb-8">Gerencie sua conta e assinatura.</p>
+
+      {/* WS-C-14 — stats do usuário + favoritos recentes + placeholder de tracking */}
+      <DashboardStatsSection />
+
+      <h2 className="text-lg font-heading font-semibold text-foreground mb-3">Conta e assinatura</h2>
       <div className="grid sm:grid-cols-3 gap-6">
         <Link
           href="/dashboard/subscription"

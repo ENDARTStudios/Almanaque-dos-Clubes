@@ -161,6 +161,11 @@ const envSchema = z.object({
   // Redirect URI exata registrada no Google Console (defaults derivam do
   // RAILWAY_PUBLIC_DOMAIN); obrigatória se o domínio público for outro.
   googleRedirectUri: z.string().url().optional(),
+  // WS-C-14 — tracking de atividade DESATIVADO até WS-L (cookie consent)
+  userTrackingEnabled: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
 });
 
 const parsed = envSchema.parse({
@@ -212,6 +217,7 @@ export const env = {
   appUrl: parsed.appUrl,
   prismaSchemaProvider: parsed.prismaSchemaProvider,
   rateLimitDisabled: parsed.rateLimitDisabled,
+  userTrackingEnabled: parsed.userTrackingEnabled,
 
   // Login social Google
   googleClientId: parsed.googleClientId,
