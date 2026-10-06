@@ -83,7 +83,16 @@ async function fetchText(url: string, attempt = 0): Promise<string> {
       throw new Error(`HTTP ${res.status} após 3 tentativas: ${url.slice(0, 120)}`);
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${url.slice(0, 120)}`);
-    return await res.text();
+    const text = await res.text();
+    // MediaWiki responde rate-limit como HTTP 200 text/plain (não 429).
+    if (text.startsWith('You are making too many requests')) {
+      if (attempt < 3) {
+        await sleep(2 ** attempt * 2000);
+        return fetchText(url, attempt + 1);
+      }
+      throw new Error('rate limit persistente da MediaWiki (200 text/plain)');
+    }
+    return text;
   } catch (err) {
     if (attempt < 3 && !(err instanceof Error && err.message.startsWith('HTTP 4'))) {
       await sleep(2 ** attempt * 1000);
