@@ -19,6 +19,7 @@ import ClubDescriptionEditor from './ClubDescriptionEditor';
 import ClubOwnersList, { type OwnerView } from './ClubOwnersList';
 import ProposalButton from './ProposalButton';
 import ProposalDashboard from './ProposalDashboard';
+import SocialEditor from './SocialEditor';
 import { wsC10Strings } from '@/i18n/wsC10';
 import { wsC11Strings } from '@/i18n/wsC11';
 import ReportButton from './ReportButton';
@@ -89,6 +90,21 @@ export default function ClubCommunity({ clubId }: Props) {
 
       {!loading && !failed && (
         <div className="rounded-2xl border border-border/50 bg-background p-5 space-y-4">
+          {/* WS-C-13 — site oficial + redes (SocialLinks server-rendered via
+              props do GET /clubs/:id; editor inline para owners). */}
+          {isOwner && (
+            <div className="pt-2 border-t border-border/50">
+              <SocialEditor
+                clubId={clubId}
+                social={{
+                  officialSite: null,
+                  socialLinks: null,
+                  followersSnapshot: null,
+                }}
+                onSaved={() => void load()}
+              />
+            </div>
+          )}
           {userDescription ? (
             <div>
               <div className="flex items-center justify-between gap-3">
