@@ -61,22 +61,24 @@ async function countPublic(targetType: string, targetId: string): Promise<number
 }
 
 export async function getDashboard(userId: string): Promise<DashboardPayload> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      deletedAt: true,
-      userRoles: { select: { role: { select: { name: true } } } },
-    },
-  });
-  if (!user || user.deletedAt) throw new NotFoundError('Usuário', userId);
-
-  const roles = user.userRoles.map((ur) => ur.role.name);
-
+  // T442 — users sob FORCE RLS: a leitura da própria linha exige contexto
+  // owner (app_user sem contexto não vê nada — foi o 500 do gate). TODAS as
+  // consultas do dashboard rodam na mesma transação com o contexto owner.
   return withRlsContext({ userId, role: 'USER' }, async (tx) => {
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        deletedAt: true,
+        userRoles: { select: { role: { select: { name: true } } } },
+      },
+    });
+    if (!user || user.deletedAt) throw new NotFoundError('Usuário', userId);
+    const roles = user.userRoles.map((ur) => ur.role.name);
+
     // Favoritos por tipo (polymorphic, WS-C-12)
     const [favClub, favPlayer, favCompetition] = await Promise.all([
       tx.favorite.count({ where: { userId, targetType: 'club', deletedAt: null } }),
@@ -139,12 +141,12 @@ export async function getDashboard(userId: string): Promise<DashboardPayload> {
           targetName = c?.name ?? '';
           targetQid = c?.qid ?? null;
         } else if (r.targetType === 'player') {
-          const p = await tx.player.findUnique({
+          const pl = await tx.player.findUnique({
             where: { id: r.targetId },
             select: { fullName: true, qid: true },
           });
-          targetName = p?.fullName ?? '';
-          targetQid = p?.qid ?? null;
+          targetName = pl?.fullName ?? '';
+          targetQid = pl?.qid ?? null;
         } else {
           const c = await tx.competition.findUnique({
             where: { id: r.targetId },
