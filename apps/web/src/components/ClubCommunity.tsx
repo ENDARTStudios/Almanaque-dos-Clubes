@@ -20,6 +20,8 @@ import ClubOwnersList, { type OwnerView } from './ClubOwnersList';
 import ProposalButton from './ProposalButton';
 import ProposalDashboard from './ProposalDashboard';
 import { wsC10Strings } from '@/i18n/wsC10';
+import { wsC11Strings } from '@/i18n/wsC11';
+import ReportButton from './ReportButton';
 
 interface Props {
   clubId: string;
@@ -30,6 +32,7 @@ export default function ClubCommunity({ clubId }: Props) {
   const { locale } = useI18n();
   const s = wsC9Strings[locale]?.community ?? wsC9Strings['pt-br'].community;
   const p10 = wsC10Strings[locale]?.proposals ?? wsC10Strings['pt-br'].proposals;
+  const s11 = wsC11Strings[locale]?.reports ?? wsC11Strings['pt-br'].reports;
   const loggedIn = status === 'authed';
 
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,7 @@ export default function ClubCommunity({ clubId }: Props) {
   >(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [dashboardKey, setDashboardKey] = useState(0);
+  const [hasReported, setHasReported] = useState<boolean | undefined>(undefined);
 
   const load = useCallback(async (): Promise<void> => {
     try {
@@ -52,6 +56,7 @@ export default function ClubCommunity({ clubId }: Props) {
             isOwner: boolean;
             proposalStatus?: 'none' | 'pending' | 'approved' | 'rejected';
             pendingProposalsCount?: number;
+            hasReported?: boolean;
           };
         }>(`/clubs/${clubId}`),
         api.get<{ data: { owners: OwnerView[] } }>(`/clubs/${clubId}/owners`).catch(() => null),
@@ -60,6 +65,7 @@ export default function ClubCommunity({ clubId }: Props) {
       setIsOwner(clubRes.data.isOwner === true);
       setProposalStatus(clubRes.data.proposalStatus ?? null);
       setPendingCount(clubRes.data.pendingProposalsCount ?? 0);
+      setHasReported(clubRes.data.hasReported);
       setOwners(ownersRes?.data.owners ?? []);
       setFailed(false);
     } catch {
@@ -85,7 +91,18 @@ export default function ClubCommunity({ clubId }: Props) {
         <div className="rounded-2xl border border-border/50 bg-background p-5 space-y-4">
           {userDescription ? (
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-1">{s.aboutCommunity}</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold text-foreground mb-1">{s.aboutCommunity}</h3>
+                {loggedIn && !isOwner && (
+                  <ReportButton
+                    clubId={clubId}
+                    hasReported={hasReported}
+                    loggedIn={loggedIn}
+                    s={s11}
+                    onReported={() => void load()}
+                  />
+                )}
+              </div>
               <p
                 className="text-sm text-foreground/80 whitespace-pre-line"
                 data-testid="club-user-description"

@@ -26,6 +26,7 @@ import {
   USER_DESCRIPTION_MAX,
 } from './club-ownership.service.js';
 import { extractMetadata } from '../auth/auth.service.js';
+import { hasReported } from '../reports/report.service.js';
 import {
   latestProposalStatus,
   listPendingForReview,
@@ -162,6 +163,10 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           ? await latestProposalStatus(userId, request.params.id)
           : null;
         const pendingProposalsCount = isOwner ? await pendingCount(request.params.id) : undefined;
+        // WS-C-11: o usuário já denunciou a descrição deste clube?
+        const hasReportedClub = userId
+          ? await hasReported(userId, 'club_description', request.params.id)
+          : undefined;
         const raw = club as unknown as Record<string, unknown>;
         return reply.send({
           data: {
@@ -171,6 +176,7 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
             isOwner,
             proposalStatus: proposalStatus ?? (userId ? 'none' : undefined),
             pendingProposalsCount,
+            hasReported: hasReportedClub,
           },
         });
       } catch (err) {
