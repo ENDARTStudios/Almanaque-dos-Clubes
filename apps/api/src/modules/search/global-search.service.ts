@@ -94,6 +94,7 @@ interface SearchInput {
   q: string;
   type?: 'all' | 'club' | 'competition';
   country?: string;
+  gender?: 'men' | 'women';
   limit?: number;
   offset?: number;
 }
@@ -102,13 +103,19 @@ async function searchClubs(
   q: string,
   normalized: string,
   country?: string,
+  gender?: 'men' | 'women',
 ): Promise<ClubSearchResult[]> {
   const ids = await searchMatchedIds(prisma, 'clubs', ['name', 'fullName', 'shortName'], q, {
     softDeleteCol: 'deletedAt',
   });
   if (ids.length === 0) return [];
   const clubs = await prisma.club.findMany({
-    where: { id: { in: ids }, deletedAt: null, ...(country ? { country } : {}) },
+    where: {
+      id: { in: ids },
+      deletedAt: null,
+      ...(country ? { country } : {}),
+      ...(gender ? { gender } : {}),
+    },
     select: {
       id: true,
       qid: true,
@@ -144,11 +151,17 @@ async function searchCompetitions(
   q: string,
   normalized: string,
   country?: string,
+  gender?: 'men' | 'women',
 ): Promise<CompetitionSearchResult[]> {
   const ids = await searchMatchedIds(prisma, 'competitions', ['name'], q);
   if (ids.length === 0) return [];
   const comps = await prisma.competition.findMany({
-    where: { id: { in: ids }, deletedAt: null, ...(country ? { country } : {}) },
+    where: {
+      id: { in: ids },
+      deletedAt: null,
+      ...(country ? { country } : {}),
+      ...(gender ? { gender } : {}),
+    },
     select: { id: true, qid: true, name: true, type: true, country: true },
   });
   return comps.map((c) => ({
@@ -187,11 +200,13 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
   }
 
   const data = await cache.remember(
-    `search:global:${type}:${input.country ?? ''}:${normalized}`,
+    `search:global:${type}:${input.country ?? ''}:${input.gender ?? ''}:${normalized}`,
     SEARCH_TTL_SECONDS,
     async () => {
-      const clubs = type === 'competition' ? [] : await searchClubs(q, normalized, input.country);
-      const comps = type === 'club' ? [] : await searchCompetitions(q, normalized, input.country);
+      const clubs =
+        type === 'competition' ? [] : await searchClubs(q, normalized, input.country, input.gender);
+      const comps =
+        type === 'club' ? [] : await searchCompetitions(q, normalized, input.country, input.gender);
       return [...clubs, ...comps];
     },
   );

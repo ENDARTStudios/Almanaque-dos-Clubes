@@ -26,6 +26,8 @@ interface ClubProfile {
   fullName: string | null;
   shortName: string | null;
   status: string;
+  /** T450 — 'men' | 'women' | 'mixed' (default 'men' para o acervo existente). */
+  gender?: 'men' | 'women' | 'mixed';
   country: string | null;
   state: string | null;
   city: string | null;
@@ -174,6 +176,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
             {club.shortName && <p className="text-sm text-foreground/40">({club.shortName})</p>}
+            {club.gender === 'women' && (
+              <span
+                className="inline-block mt-1 text-xs bg-primary/10 text-primary border border-primary/30 rounded-full px-2 py-0.5"
+                data-testid="club-gender-women"
+              >
+                ♀ Feminino
+              </span>
+            )}
             <div className="flex flex-wrap gap-3 mt-3 text-sm">
               {club.qid && (
                 <a

@@ -26,6 +26,8 @@ export interface GeoBbox {
 
 export interface GeoPointsQuery {
   country?: string;
+  /** T450 — filtra clubes por gênero ('women' mostra só clubes femininos). */
+  gender?: 'men' | 'women';
   bbox?: GeoBbox;
   limit?: number;
 }
@@ -130,11 +132,12 @@ export const GEO_ATTRIBUTIONS = {
 
 export async function getGeoPoints(query: GeoPointsQuery): Promise<GeoPointsResponse> {
   const country = query.country ? query.country.toUpperCase() : undefined;
+  const gender = query.gender;
   const limit = clampGeoLimit(query.limit);
   const bbox = query.bbox;
 
   return cache.remember(
-    `geo:points:${country ?? ''}:${limit}:${bbox ? JSON.stringify(bbox) : ''}`,
+    `geo:points:${country ?? ''}:${gender ?? ''}:${limit}:${bbox ? JSON.stringify(bbox) : ''}`,
     GEO_TTL_SECONDS,
     async () => {
       const coordWhere = {
@@ -143,6 +146,7 @@ export async function getGeoPoints(query: GeoPointsQuery): Promise<GeoPointsResp
         latitude: { not: null },
         longitude: { not: null },
         ...(country ? { country } : {}),
+        ...(gender ? { gender } : {}),
         ...(bbox
           ? {
               latitude: { gte: bbox.minLat, lte: bbox.maxLat },

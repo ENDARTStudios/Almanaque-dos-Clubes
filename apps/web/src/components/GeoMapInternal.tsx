@@ -40,11 +40,12 @@ interface GeoStatsResponse {
 
 export default function GeoMapInternal() {
   const [country, setCountry] = useState('BR');
+  // T450 — toggle de clubes femininos (gender=women no /geo/points).
+  const [onlyWomen, setOnlyWomen] = useState(false);
   const [data, setData] = useState<GeoPointsResponseDto | null>(null);
   const [state, setState] = useState<'loading' | 'done' | 'error'>('loading');
-  const [countries, setCountries] = useState<Array<{ code: string; name: string; clubs: number }>>(
-    FALLBACK_COUNTRIES,
-  );
+  const [countries, setCountries] =
+    useState<Array<{ code: string; name: string; clubs: number }>>(FALLBACK_COUNTRIES);
 
   // Catálogo de países com acervo (uma vez por mount). Ordena por clubes desc.
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function GeoMapInternal() {
       setState('loading');
       try {
         const res = await api.get<GeoPointsResponseDto>(
-          `/geo/points?country=${encodeURIComponent(country)}&limit=200`,
+          `/geo/points?country=${encodeURIComponent(country)}${onlyWomen ? '&gender=women' : ''}&limit=200`,
         );
         if (active) {
           setData(res);
@@ -87,7 +88,7 @@ export default function GeoMapInternal() {
     return () => {
       active = false;
     };
-  }, [country]);
+  }, [country, onlyWomen]);
 
   const vm = useMemo(() => (data ? buildMapViewModel(data) : null), [data]);
 
@@ -116,6 +117,16 @@ export default function GeoMapInternal() {
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm text-foreground/70" htmlFor="geo-women">
+          <input
+            id="geo-women"
+            type="checkbox"
+            checked={onlyWomen}
+            onChange={(e) => setOnlyWomen(e.target.checked)}
+            data-testid="geo-women-toggle"
+          />
+          Mostrar clubes femininos
+        </label>
         {vm && (
           <span className="text-xs text-foreground/50" aria-live="polite">
             {vm.points.length} com coordenada · {vm.withoutLocationCount} sem localização
