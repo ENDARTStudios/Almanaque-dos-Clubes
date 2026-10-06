@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
+import FavoriteButton from '@/components/FavoriteButton';
 
 interface Player {
   id: string;
@@ -56,10 +57,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/players"
         className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
@@ -75,6 +73,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {p.fullName}
             </h1>
+            <div className="mt-3">
+              <FavoriteButton targetType="player" targetId={p.id} countLabel="fans" />
+            </div>
             {p.shortName && <p className="text-sm text-foreground/40">({p.shortName})</p>}
           </div>
         </div>

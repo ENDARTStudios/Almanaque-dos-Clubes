@@ -27,6 +27,7 @@ import {
 } from './club-ownership.service.js';
 import { extractMetadata } from '../auth/auth.service.js';
 import { hasReported } from '../reports/report.service.js';
+import { favoritesService } from '../favorites/service.js';
 import {
   latestProposalStatus,
   listPendingForReview,
@@ -167,6 +168,11 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         const hasReportedClub = userId
           ? await hasReported(userId, 'club_description', request.params.id)
           : undefined;
+        // WS-C-12: fansCount (público) + isFavorited (logado).
+        const fansCount = await favoritesService.countTarget('club', request.params.id);
+        const isFavorited = userId
+          ? await favoritesService.isFavorited(userId, 'club', request.params.id)
+          : undefined;
         const raw = club as unknown as Record<string, unknown>;
         return reply.send({
           data: {
@@ -177,6 +183,8 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
             proposalStatus: proposalStatus ?? (userId ? 'none' : undefined),
             pendingProposalsCount,
             hasReported: hasReportedClub,
+            fansCount,
+            isFavorited,
           },
         });
       } catch (err) {

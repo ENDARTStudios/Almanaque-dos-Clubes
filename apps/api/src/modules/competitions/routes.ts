@@ -2,7 +2,12 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { DomainError } from '@almanaque/domain';
 import { competitionsService } from './service.js';
-import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
+import {
+  authenticate,
+  optionalAuthenticate,
+  requirePermission,
+} from '../auth/authenticate.middleware.js';
+import { favoritesService } from '../favorites/service.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 
 export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
@@ -33,14 +38,28 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
     return reply.send(result);
   });
 
-  app.get<{ Params: { id: string } }>('/competitions/:id', async (request, reply) => {
-    try {
-      const competition = await competitionsService.getById(request.params.id);
-      return reply.send({ data: competition });
-    } catch (err) {
-      return handleDomainError(err, reply);
-    }
-  });
+  // WS-C-12 — auth opcional: fansCount (público) + isFavorited (logado).
+  app.get<{ Params: { id: string } }>(
+    '/competitions/:id',
+    { preHandler: [optionalAuthenticate] },
+    async (request, reply) => {
+      try {
+        const competition = await competitionsService.getById(request.params.id);
+        const userId = (request.user as { id?: string } | undefined)?.id;
+        return reply.send({
+          data: {
+            ...competition,
+            fansCount: await favoritesService.countTarget('competition', request.params.id),
+            isFavorited: userId
+              ? await favoritesService.isFavorited(userId, 'competition', request.params.id)
+              : undefined,
+          },
+        });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
 
   app.put<{ Params: { id: string } }>(
     '/competitions/:id',
