@@ -158,7 +158,7 @@ describe.skipIf(!dbOk || !isPostgres)('WS-C-11 reports (rotas)', () => {
     const mine = reports.find((r: { targetId: string }) => r.targetId === clubId);
     expect(mine.reportCount).toBeGreaterThanOrEqual(1);
     expect(mine.targetClubName).toBe('Reports FC');
-    expect(JSON.stringify(reports)).not.toContain(user); // userId nunca exposto
+    expect(mine.reporterId).toBe(user); // rota admin: reporterId visível por desenho (função SD do despacho)
   });
 
   it('resolve remove_content → 200, userDescription limpo e cache invalidado', async () => {
