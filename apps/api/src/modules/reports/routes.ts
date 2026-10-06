@@ -13,6 +13,13 @@ import { DomainError } from '@almanaque/domain';
 import { createReport, dismissReport, listPending, resolveReport } from './report.service.js';
 
 function handleDomainError(err: unknown, reply: import('fastify').FastifyReply) {
+  // Rate-limit de rota excede como DomainError — 429 com Retry-After (não 500).
+  const maybeRl = err as { code?: string; statusCode?: number; message?: string };
+  if (maybeRl?.code === 'RATE_LIMIT_EXCEEDED') {
+    return reply.status(429).send({
+      error: { code: 'RATE_LIMIT_EXCEEDED', message: maybeRl.message ?? 'Muitas requisições' },
+    });
+  }
   if (err instanceof DomainError) {
     return reply.status(err.statusCode).send({
       error: { code: err.code, message: err.message },
