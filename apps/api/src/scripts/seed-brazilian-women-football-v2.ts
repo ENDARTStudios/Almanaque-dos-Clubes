@@ -303,15 +303,19 @@ async function main(): Promise<void> {
 
   const prisma = new PrismaClient();
   try {
+    // Identidade é GLOBAL (qid é a chave canônica; constraint unique no schema).
+    // Filtrar por country aqui deixava passar QID já no acervo com country
+    // NULL/outra (ingestões anteriores) → crash P2002 no create.
     const existingClubs = await prisma.club.findMany({
-      where: { country: W3_COUNTRY },
       select: { id: true, qid: true, name: true, state: true, gender: true, deletedAt: true },
     });
     const existingComps = await prisma.competition.findMany({
       where: { country: W3_COUNTRY },
       select: { id: true, name: true, country: true, gender: true, deletedAt: true },
     });
-    console.log(`  acervo BR: ${existingClubs.length} clubes, ${existingComps.length} competições`);
+    console.log(
+      `  acervo: ${existingClubs.length} clubes (global), ${existingComps.length} competições BR`,
+    );
 
     const seedPlan = planW3Seed(merged, existingClubs);
     const compsPlan = planW3Competitions(
@@ -371,32 +375,55 @@ async function main(): Promise<void> {
         slugToClubId.set(key, dup.id);
         continue;
       }
-      const club = await prisma.club.create({
-        data: {
-          name: entry.finalName,
-          fullName: entry.input.fullName,
-          shortName: entry.input.shortName,
-          city: entry.input.city,
-          state: entry.input.state,
-          country: W3_COUNTRY,
-          foundedYear: entry.input.foundedYear,
-          latitude: entry.input.latitude,
-          longitude: entry.input.longitude,
-          qid: entry.input.qid,
-          gender: 'women',
-          importedFrom: entry.input.source,
-          importedAt,
-          sourceUrl: entry.input.sourceUrl,
-          metadata: {
+      let clubId: string;
+      try {
+        const club = await prisma.club.create({
+          data: {
+            name: entry.finalName,
+            fullName: entry.input.fullName,
+            shortName: entry.input.shortName,
+            city: entry.input.city,
+            state: entry.input.state,
+            country: W3_COUNTRY,
+            foundedYear: entry.input.foundedYear,
+            latitude: entry.input.latitude,
+            longitude: entry.input.longitude,
+            qid: entry.input.qid,
             gender: 'women',
-            wave: W3_WAVE,
-            sources: [entry.input.source],
-          } as Prisma.InputJsonValue,
-        },
-        select: { id: true },
-      });
-      slugToClubId.set(clubSlug(entry.input.name, entry.input.state), club.id);
-      slugToClubId.set(key, club.id);
+            importedFrom: entry.input.source,
+            importedAt,
+            sourceUrl: entry.input.sourceUrl,
+            metadata: {
+              gender: 'women',
+              wave: W3_WAVE,
+              sources: [entry.input.source],
+            } as Prisma.InputJsonValue,
+          },
+          select: { id: true },
+        });
+        clubId = club.id;
+      } catch (err) {
+        // Corrida benigna: qid/nome surgiu no acervo entre o plano e o create —
+        // vincula a entidade existente (identidade canônica = qid) e segue.
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2002' &&
+          entry.input.qid
+        ) {
+          const winner = await prisma.club.findFirst({
+            where: { qid: entry.input.qid },
+            select: { id: true },
+          });
+          if (winner) {
+            slugToClubId.set(clubSlug(entry.input.name, entry.input.state), winner.id);
+            slugToClubId.set(key, winner.id);
+            continue;
+          }
+        }
+        throw err;
+      }
+      slugToClubId.set(clubSlug(entry.input.name, entry.input.state), clubId);
+      slugToClubId.set(key, clubId);
       created += 1;
     }
     console.log(`  clubes criados: ${created}`);
