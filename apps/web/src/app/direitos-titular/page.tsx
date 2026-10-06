@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { legalAlternates } from '@/lib/legal-hreflang';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
@@ -9,6 +10,7 @@ import DireitosTitularPanel from '@/components/DireitosTitularPanel';
 // canal manual (sem SMTP). Gate de superfície legal (legalPagesEnabled).
 
 export const metadata: Metadata = {
+  alternates: legalAlternates('/direitos-titular'),
   title: 'Direitos do Titular | Almanaque dos Clubes',
   description:
     'Exercício dos direitos previstos no art. 18 da LGPD: confirmação, acesso, correção, anonimização, portabilidade, eliminação e mais, com protocolo de acompanhamento.',

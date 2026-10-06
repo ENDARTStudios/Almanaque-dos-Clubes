@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import { legalAlternates } from '@/lib/legal-hreflang';
 import ContentDocument from '@/components/ContentDocument';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
+  alternates: legalAlternates('/cookies'),
   title: 'Política de Cookies | Almanaque dos Clubes',
   description: 'Política de Cookies do Almanaque dos Clubes, operado por END ART Studios.',
 };

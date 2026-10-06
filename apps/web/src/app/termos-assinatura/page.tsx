@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { legalAlternates } from '@/lib/legal-hreflang';
 import { headers } from 'next/headers';
 import ContentDocument from '@/components/ContentDocument';
 import { mapCountryToCurrency } from '@/lib/pricing';
@@ -6,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
+  alternates: legalAlternates('/termos-assinatura'),
   title: 'Termos de Assinatura — Pro e Elite | Almanaque dos Clubes',
   description: 'Contrato de assinatura dos planos Pro e Elite do Almanaque dos Clubes.',
 };
