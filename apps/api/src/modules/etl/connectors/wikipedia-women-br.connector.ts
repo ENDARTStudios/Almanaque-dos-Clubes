@@ -267,7 +267,7 @@ const TemplateContentPayload = z.object({
             title: z.string(),
             missing: z.boolean().optional(),
             revisions: z
-              .array(z.object({ slots: z.object({ main: z.object({ ['*']: z.string() }) }) }))
+              .array(z.object({ slots: z.object({ main: z.object({ content: z.string() }) }) }))
               .optional(),
           })
           .passthrough(),
@@ -371,7 +371,7 @@ export function parseTemplateBatch(rawBody: string): Map<string, W3TemplateResol
     if (page.missing || !page.revisions?.length) continue;
     out.set(
       page.title.replace(/^Predefinição:/, ''),
-      resolveTemplateToArticle(page.revisions[0]!.slots.main['*']),
+      resolveTemplateToArticle(page.revisions[0]!.slots.main.content),
     );
   }
   return out;

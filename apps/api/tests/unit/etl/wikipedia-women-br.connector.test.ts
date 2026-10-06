@@ -135,7 +135,7 @@ describe('T450 wave 3 — resolução de predefinições', () => {
           pages: [
             {
               title: 'Predefinição:Futebol Ferroviária Feminino',
-              revisions: [{ slots: { main: { '*': '[[Clube A|Ferrão]]' } } }],
+              revisions: [{ slots: { main: { content: '[[Clube A|Ferrão]]' } } }],
             },
             { title: 'Predefinição:Futebol Inexistente', missing: true },
           ],
