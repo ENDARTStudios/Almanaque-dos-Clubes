@@ -10,7 +10,6 @@
  */
 import { createWorker, queues } from '../services/queue.js';
 import { grantBirthdayGifts } from '../modules/billing/birthday-gift.service.js';
-import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
 export const GAMIFICATION_QUEUE = 'gamification';
@@ -19,8 +18,9 @@ export const BIRTHDAY_CRON_PATTERN = '0 6 * * *';
 
 let registered = false;
 
+// O gift é público e independente do tracking (que segue desativado até WS-L).
 export function isBirthdayGiftEnabled(): boolean {
-  return env.userTrackingEnabled === true && process.env.BIRTHDAY_GIFT_ENABLED === 'true';
+  return process.env.BIRTHDAY_GIFT_ENABLED === 'true';
 }
 
 export async function birthdayGiftJobHandler(): Promise<void> {
