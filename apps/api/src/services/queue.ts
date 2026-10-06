@@ -58,6 +58,9 @@ export const queues = {
   // T451 — ingestão Wikidata incremental + verificação de integridade.
   // Scheduler opt-in (ETL_SCHEDULER_ENABLED=1); o job incremental só ESCREVE
   // com WIKIDATA_DRY_RUN=false (default 'true' = dry-run).
+  gamification: new Queue('gamification', {
+    connection: connection,
+  }),
   dataRefresh: new Queue('data-refresh', {
     connection,
     defaultJobOptions: {

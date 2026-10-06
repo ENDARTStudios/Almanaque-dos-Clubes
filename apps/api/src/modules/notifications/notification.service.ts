@@ -13,7 +13,12 @@ import { withRlsContext } from '../../config/rls-context.js';
 import type { Prisma } from '@prisma/client';
 
 export type NotificationType =
-  'new_title' | 'new_competition' | 'ranking_change' | 'proposal_reviewed' | 'system';
+  | 'new_title'
+  | 'new_competition'
+  | 'ranking_change'
+  | 'proposal_reviewed'
+  | 'birthday_gift'
+  | 'system';
 
 export interface TitlePayloadPart {
   competitionId: string | null;

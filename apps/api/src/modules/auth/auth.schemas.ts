@@ -34,6 +34,12 @@ export const RegisterSchema = z.object({
   acceptedPrivacy: z
     .boolean()
     .refine((v) => v === true, 'É necessário aceitar a Política de Privacidade (LGPD)'),
+  // WS-C-15 — aniversário (opcional): dá direito a 1 mês de Elite no dia.
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'birthDate deve ser YYYY-MM-DD')
+    .refine((v) => !Number.isNaN(new Date(v).getTime()), 'birthDate inválida')
+    .optional(),
 });
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;

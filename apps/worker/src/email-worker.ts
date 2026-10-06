@@ -3,6 +3,7 @@ import { createWorker } from '../../api/src/services/queue.js';
 import { welcomeEmailHtml, welcomeEmailText } from './templates/welcome.js';
 import { passwordResetEmailHtml, passwordResetEmailText } from './templates/password-reset.js';
 import { verifyEmailHtml, verifyEmailText } from './templates/verify-email.js';
+import { birthdayEmailHtml, birthdayEmailText } from './templates/birthday.js';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.EMAIL_FROM ?? 'noreply@almanaquedosclubes.com';
@@ -70,6 +71,21 @@ createWorker('email', async (job) => {
         'Verifique seu email — Almanaque dos Clubes',
         verifyEmailHtml({ name, email, verifyLink }),
         verifyEmailText({ name, email, verifyLink }),
+      );
+      break;
+    }
+
+    case 'birthday-gift': {
+      const { name, email, expiresAt } = job.data as {
+        name: string;
+        email: string;
+        expiresAt: string;
+      };
+      await sendEmail(
+        email,
+        '🎂 Parabéns! Você ganhou 1 mês de Elite no Almanaque dos Clubes',
+        birthdayEmailHtml({ name, email, expiresAt }),
+        birthdayEmailText({ name, email, expiresAt }),
       );
       break;
     }
