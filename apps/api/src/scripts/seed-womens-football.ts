@@ -220,10 +220,15 @@ async function main(): Promise<void> {
 
   const prisma = new PrismaClient();
   try {
-    // 1) entidades
-    const comps = dedupe(await fetchCompetitions({ limit: LIMIT, maxPages: MAX_PAGES }));
-    const clubs = dedupe(await fetchClubs({ limit: LIMIT, maxPages: MAX_PAGES }));
-    const players = dedupe(await fetchPlayers({ limit: LIMIT, maxPages: PLAYER_MAX_PAGES }));
+    // 1) entidades — flags LEVES (distinct/orderBy off): o dedupe é client-side
+    //    e o DISTINCT/ORDER BY server-side sobre o corpus todo derruba o WDQS
+    //    com 504 (presenciado no gate de produção). Mesma cobertura, sem 504.
+    const light = { distinct: false, orderBy: false } as const;
+    const comps = dedupe(await fetchCompetitions({ limit: LIMIT, maxPages: MAX_PAGES, ...light }));
+    const clubs = dedupe(await fetchClubs({ limit: LIMIT, maxPages: MAX_PAGES, ...light }));
+    const players = dedupe(
+      await fetchPlayers({ limit: LIMIT, maxPages: PLAYER_MAX_PAGES, ...light }),
+    );
     // 2) vínculos (anti-órfão por construção) — ver bloco T450 abaixo
 
     // T450 — filtro por país pós-fetch (SPARQL do connector não filtra país;
@@ -240,7 +245,9 @@ async function main(): Promise<void> {
     }
     const edgesSrc = filtered.clubs.length > 0 ? filtered.clubs : clubs;
     const clubQids = dedupe(edgesSrc.map((c) => ({ qid: c.qid }))).map((c) => c.qid);
-    const edges = dedupeEdges(await fetchEdges({ limit: LIMIT, maxPages: MAX_PAGES, clubQids }));
+    const edges = dedupeEdges(
+      await fetchEdges({ limit: LIMIT, maxPages: MAX_PAGES, clubQids, ...light }),
+    );
 
     const data: WomensSyncData = {
       competitions: filtered.competitions,
