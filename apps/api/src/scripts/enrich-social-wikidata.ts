@@ -91,34 +91,34 @@ interface Target {
 async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   // Raw SQL: filtros null em Json via shorthand/sentinels têm comportamento
   // inconsistente nesta instalação — SQL direto é determinístico.
-  const base = `deletedAt IS NULL AND qid IS NOT NULL AND (social_links IS NULL OR website IS NULL)`;
-  const baseOther = `deletedAt IS NULL AND qid IS NOT NULL AND (social_links IS NULL OR official_site IS NULL)`;
-  const select = `id, qid, website, social_links AS "socialLinks"`;
-  const selectOther = `id, qid, official_site AS "officialSite", social_links AS "socialLinks"`;
+  const base = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR website IS NULL)`;
+  const baseOther = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR "officialSite" IS NULL)`;
+  const select = `id, qid, website, "socialLinks"`;
+  const selectOther = `id, qid, "officialSite", "socialLinks"`;
   if (TARGET === 'club') {
     return prisma.$queryRawUnsafe(
-      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'player') {
     return prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'competition') {
     return prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ) as unknown as Promise<Target[]>;
   }
   const [clubs, players, comps] = (await Promise.all([
     prisma.$queryRawUnsafe(
-      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ),
     prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ),
     prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY created_at ASC LIMIT ${LIMIT}`,
+      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ),
   ])) as unknown as Target[][];
   return [...clubs, ...players, ...comps];
