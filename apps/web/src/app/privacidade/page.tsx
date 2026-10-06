@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import { legalAlternates } from '@/lib/legal-hreflang';
 import LegalDocument from '@/components/LegalDocument';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
+  alternates: legalAlternates('/privacidade'),
   title: 'Política de Privacidade | Almanaque dos Clubes',
   description:
     'Política de Privacidade (LGPD) da plataforma Almanaque dos Clubes, operada por END ART Studios.',

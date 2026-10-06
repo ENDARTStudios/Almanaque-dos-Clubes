@@ -3,11 +3,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
-import { LOCALE_COOKIE, DEFAULT_LOCALE, normalizeLocale, type Locale } from './config';
+import { LOCALE_COOKIE, DEFAULT_LOCALE, isLocale, normalizeLocale, type Locale } from './config';
 import { getDictionary } from './getDictionary';
 import type { Dictionary } from './types';
 
@@ -53,6 +54,18 @@ export function I18nProvider({
       document.cookie = LOCALE_COOKIE + '=' + encodeURIComponent(next) + ';path=/;max-age=31536000;samesite=lax';
       document.documentElement.lang = next;
     }
+  }, []);
+
+  // T493/T472 — override por URL (?locale=): dá endereço distinto por idioma
+  // aos <link hreflang> das páginas legais (pt-BR/en-US/es-ES). Só aceita
+  // locale válido; vence o cookie apenas naquela visita.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const param = new URLSearchParams(window.location.search).get('locale');
+    if (param && isLocale(param) && param !== locale) {
+      setLocale(param);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = useMemo<I18nContextValue>(() => {

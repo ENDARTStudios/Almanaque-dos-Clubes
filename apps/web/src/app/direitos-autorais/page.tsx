@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { legalAlternates } from '@/lib/legal-hreflang';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
@@ -8,6 +9,7 @@ import DireitosAutoraisPanel from '@/components/DireitosAutoraisPanel';
 // harbor formal/DMCA). Logado = formulários com protocolo; deslogado = canal manual.
 
 export const metadata: Metadata = {
+  alternates: legalAlternates('/direitos-autorais'),
   title: 'Direitos Autorais | Almanaque dos Clubes',
   description:
     'Canal interno de notificação e contranotificação de direitos autorais (Lei 9.610/98 e normas análogas; sem safe harbor formal) da plataforma Almanaque dos Clubes, operada por END ART Studios.',
@@ -22,12 +24,6 @@ export default function DireitosAutoraisPage() {
           ← /termos
         </Link>
       </div>
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        Direitos Autorais
-      </h1>
-      <p className="text-sm text-foreground/50 mb-8">
-        Lei 9.610/98 e normas análogas · END ART Studios
-      </p>
       <p className="text-foreground/70 mb-8 leading-relaxed">
         Notificações e contranotificações são registradas com protocolo e passam por triagem manual
         com decisão motivada; conteúdo inequivocamente infrator é removido. Canal manual (sem conta):
