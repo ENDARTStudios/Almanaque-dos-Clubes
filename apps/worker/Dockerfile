@@ -38,4 +38,4 @@ COPY --from=builder /app/apps/api/src ./apps/api/src/
 COPY --from=builder /app/packages/domain/src ./packages/domain/src/
 COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
-CMD ["node", "--import=tsx", "apps/worker/src/etl-worker.ts"]
+CMD ["node", "--import=tsx", "apps/worker/src/main.ts"]
