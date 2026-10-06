@@ -1634,3 +1634,25 @@ cacheados (máx amostra 330ms) · marcador WS-C-8 vivo (`2026-10-05T03:00:01.611
 persistido no Redis** (`bull:<fila>:completed` ZSET com score=timestamp), não de gauges em
 memória — redeploys zeram gauges, não zeral BullMQ. Scripts read-only via `railway ssh` +
 base64 no container da API (node + ioredis resolvido a partir de /app/apps/api).
+
+### [2026-10-06] Decisão: D-2026-10-06-t450-rankings-femininos-adiados — dados de resultados insuficientes; conteúdo base no ar
+
+**Feito (T450):** 331 clubes femininos + 5 competições femininas + 104 jogadoras seedados do
+Wikidata (CC0, classes Q28140340/Q51481377/Q135641755; importedFrom='wikidata', gender='women'
+na coluna nova `gender` + metadata) · coluna `gender` (clubs+competitions, NOT NULL DEFAULT
+'men' — acervo existente por desenho) · filtros `?gender=women` em /search/global e
+/geo/points · `gender` no /clubs/:id/profile · UI: toggle no mapa, select Gênero na busca,
+tag ♀ Feminino no perfil.
+
+**Adiado:** ranking feminino (ex.: "Brasileirão Feminino"). **Motivo honesto:** o seed T424
+traz entidades + vínculos P54 (jogadora↔clube), NÃO resultados de partidas/campeões — sem
+arestas WON femininas (0 hoje) não há o que ranquear; fabricar ranking sem resultados viola
+o princípio anti-fabricação. **Caminho automático:** o cron T425 já normaliza men/women
+isoladamente — quando arestas WON femininas forem ingeridas (onda 2: P1346 de competições
+femininas via WOMENS_COMPETITION_QIDS), o ranking feminino nasce sem código novo.
+
+**Gap declarado (onda 2):** (1) clubes BR femininos = 0 via classes Q28140340/Q51481377 no
+corpus amostrado — BR usa outras classes/P118 (Brasileirão Feminino et al): nova query SPARQL
+por P118; (2) coords: o seed não traz P625 → mapa feminino vazio até onda de enriquecimento
+T471-estilo; (3) seleções nacionais femininas entram como "clubes" (classes do connector) —
+qualidade de dado a curar em onda futura.
