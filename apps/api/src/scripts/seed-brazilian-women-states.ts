@@ -34,6 +34,7 @@ import {
   planW3Competitions,
   clubSlug,
   slugify,
+  stripFeminineSuffix,
   competitionSlugKey,
   W3_EDGE_RELATION,
   type W3ClubInput,
@@ -267,15 +268,24 @@ async function main(): Promise<void> {
     });
     console.log(`  acervo: ${existingClubs.length} clubes, ${existingComps.length} competições BR`);
 
-    // Tabelas estaduais normalmente NÃO repetem {{BR-UF}} → input nasce sem
-    // estado e o slug (nome::uf) não bate com o clube que a wave 3 criou com
-    // estado. Nome-slug (sem UF) casando 1:1 com o acervo = MESMO clube:
-    // adota o estado do acervo (plano vira skip_existing e a aresta liga nele).
+    // Adoção canônica 1:1 (modulo sufixo "(futebol feminino)"): a tabela
+    // estadual linka o artigo principal ("EC Juventude") enquanto o acervo tem
+    // "EC Juventude (futebol feminino)" — e clubes de categoria (wave 3) nasceram
+    // sem estado. Nome-slug sem sufixo casando EXATAMENTE 1 clube do acervo
+    // (estado igual ou NULL) = MESMO time: adota o nome/estado canônicos →
+    // plano vira skip_existing e a aresta liga no clube existente. 2+ hits =
+    // homônimo ambíguo: não adota nada (honesto).
     for (const input of deduped) {
-      if (input.state) continue;
-      const nameKey = slugify(input.name);
-      const hits = existingClubs.filter((c) => slugify(c.name) === nameKey);
-      if (hits.length === 1) input.state = hits[0]!.state;
+      const nameKey = slugify(stripFeminineSuffix(input.name));
+      const hits = existingClubs.filter(
+        (c) =>
+          slugify(stripFeminineSuffix(c.name)) === nameKey &&
+          (c.state == null || c.state === input.state),
+      );
+      if (hits.length === 1) {
+        input.name = hits[0]!.name;
+        input.state = hits[0]!.state ?? input.state;
+      }
     }
 
     const seedPlan = planW3Seed(deduped, existingClubs);
