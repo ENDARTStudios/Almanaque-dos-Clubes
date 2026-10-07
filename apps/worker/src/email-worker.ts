@@ -95,7 +95,9 @@ createWorker('email', async (job) => {
         email = user?.email;
       }
       if (!email) {
-        throw new Error(`birthday-gift sem destinatário (job ${job.id}, userId ${job.data.userId ?? 'ausente'})`);
+        throw new Error(
+          `birthday-gift sem destinatário (job ${job.id}, userId ${job.data.userId ?? 'ausente'})`,
+        );
       }
       const to = email;
       const nome = name ?? '';
