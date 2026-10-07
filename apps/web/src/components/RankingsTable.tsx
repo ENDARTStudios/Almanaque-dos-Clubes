@@ -67,6 +67,8 @@ export default function RankingsTable() {
   const [year, setYear] = useState('');
   const [gender, setGender] = useState('');
   const [country, setCountry] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [years, setYears] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [meta, setMeta] = useState<RankingMeta | null>(null);
@@ -81,12 +83,13 @@ export default function RankingsTable() {
       if (year) params.set('year', year);
       if (gender) params.set('gender', gender);
       if (country) params.set('country', country);
+      if (search) params.set('search', search);
       if (view === 'pyramid') params.set('scope', 'country_pyramid');
       params.set('limit', String(LIMIT));
       if (cursorPos !== null) params.set('cursor', String(cursorPos));
       return `/rankings/entries?${params.toString()}`;
     },
-    [year, gender, country, view],
+    [year, gender, country, search, view],
   );
 
   // Anos disponíveis (rankings publicados) para o filtro.
@@ -134,7 +137,7 @@ export default function RankingsTable() {
     setCursor(null);
     void load(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, gender, country, view]);
+  }, [year, gender, country, view, search]);
 
   const hasFilters = useMemo(
     () => year !== '' || gender !== '' || country !== '',
@@ -231,6 +234,21 @@ export default function RankingsTable() {
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-foreground/70">
+          <span>{t.searchClub}</span>
+          <input
+            type="text"
+            aria-label={t.searchClub}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onBlur={() => setSearch(searchInput.trim())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') setSearch(searchInput.trim());
+            }}
+            placeholder={t.searchClub}
+            className={selectClass}
+          />
         </label>
         {meta?.competition?.divisionLabel ? (
           <span

@@ -235,6 +235,7 @@ const es: Dictionary = {
       filterYear: 'Año',
       filterGender: 'Género',
       filterCountry: 'País',
+      searchClub: 'Buscar club',
       all: 'Todos',
       genderMen: 'Masculino',
       genderWomen: 'Femenino',

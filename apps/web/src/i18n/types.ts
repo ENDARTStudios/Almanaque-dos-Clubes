@@ -261,6 +261,7 @@ export interface Dictionary {
       filterYear: string;
       filterGender: string;
       filterCountry: string;
+      searchClub: string;
       all: string;
       genderMen: string;
       genderWomen: string;

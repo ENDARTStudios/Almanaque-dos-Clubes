@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import PageHeading from '@/components/PageHeading';
+import SearchBar from '@/components/SearchBar';
 import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
@@ -49,6 +50,9 @@ export default async function CompetitionsPage({
         subtitleKey="pages.competitions.subtitle"
         subtitleParams={{ n: total }}
       />
+      <div className="mb-6">
+        <SearchBar targetPath="/competitions" searchKey="search" placeholderKey="pages.competitions.title" />
+      </div>
       <Suspense
         fallback={
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

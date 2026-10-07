@@ -4,10 +4,15 @@ import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import FavoriteButton from '@/components/FavoriteButton';
+import SocialLinks from '@/components/SocialLinks';
 
 interface Competition {
   id: string;
   name: string;
+  fansCount?: number | null;
+  officialSite?: string | null;
+  socialLinks?: Record<string, { handle: string; url: string } | null> | null;
+  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   country?: string | null;
   type?: string | null;
   qid?: string | null;
@@ -81,6 +86,7 @@ export default async function CompetitionDetailPage({
               <FavoriteButton
                 targetType="competition"
                 targetId={comp.id}
+                initialCount={comp.fansCount ?? undefined}
                 countLabel="espectadores"
               />
             </div>
@@ -91,6 +97,11 @@ export default async function CompetitionDetailPage({
             )}
           </div>
         </div>
+        <SocialLinks
+          officialSite={comp.officialSite ?? null}
+          socialLinks={comp.socialLinks ?? null}
+          followersSnapshot={comp.followersSnapshot ?? null}
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
           {comp.country && <InfoItem label="País" value={comp.country} />}
           {comp.type && <InfoItem label="Tipo" value={TYPE_LABEL[comp.type] ?? comp.type} />}

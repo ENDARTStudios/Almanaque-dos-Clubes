@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageHeading from '@/components/PageHeading';
+import SearchBar from '@/components/SearchBar';
 import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
@@ -15,9 +16,11 @@ interface PlayerRow {
   position?: string | null;
 }
 
-async function getPlayers() {
+async function getPlayers(search?: string) {
   try {
-    const res = await fetch(getApiBase() + '/players?limit=60', { cache: 'no-store' });
+    const params = new URLSearchParams({ limit: '60' });
+    if (search) params.set('search', search);
+    const res = await fetch(getApiBase() + '/players?' + params.toString(), { cache: 'no-store' });
     if (!res.ok) return { data: [], total: 0 };
     return await res.json();
   } catch {
@@ -25,12 +28,20 @@ async function getPlayers() {
   }
 }
 
-export default async function PlayersPage() {
-  const { data: players, total } = await getPlayers();
+export default async function PlayersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const sp = await searchParams;
+  const { data: players, total } = await getPlayers(sp.search);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <PageHeading titleKey="pages.players.title" subtitleKey="pages.players.subtitle" />
+      <div className="mb-6">
+        <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
+      </div>
       <p className="text-sm text-foreground/50 mt-2 mb-6">
         Jogadores diferentes no acervo: {total}
       </p>
