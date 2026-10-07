@@ -188,19 +188,21 @@ async function main(): Promise<void> {
   console.log(`  resolvendo ${allTemplates.size} predefinições...`);
   const templateMap = await resolveTemplates([...allTemplates]);
   for (const { rows, edition } of perPage) {
-    inputs.push(
-      ...seasonRowsToInputs(
-        rows,
-        templateMap,
-        {
-          name: edition.competition,
-          level: edition.level,
-          season: edition.season,
-          sourceUrl: wikiUrl(edition.article),
-        },
-        refusals,
-      ),
+    const editionInputs = seasonRowsToInputs(
+      rows,
+      templateMap,
+      {
+        name: edition.competition,
+        level: edition.level,
+        season: edition.season,
+        sourceUrl: wikiUrl(edition.article),
+      },
+      refusals,
     );
+    // A UF é fato do próprio artigo (Campeonato Baiano ⇒ BA): quando a linha
+    // não traz {{BR-UF}}, carimba a UF da edição.
+    for (const input of editionInputs) input.state = input.state ?? edition.uf;
+    inputs.push(...editionInputs);
   }
 
   // Proveniência verificável: título wikipedia-pt precisa EXISTIR (padrão wave 3).
