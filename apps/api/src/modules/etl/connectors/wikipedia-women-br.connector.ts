@@ -774,64 +774,152 @@ export interface W5ChampionEdition {
 }
 
 export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
+  // Abordagem dirigida pelo HEADER da tabela: localiza a coluna
+  // "Ano"/"Edição" e a coluna "Campeão/Campeã" pelos títulos (! células) e
+  // extrai por linha. Formatos cobertos (T450 wave 6): Mineiro (campeão SEM
+  // negrito logo após o ano), Gaúcho (org. antes do campeão negrito),
+  // Paranaense (campeão em tooltip + rowspans), Carioca/Paulista/Baiano/
+  // Catarinense/Pernambucano (negrito padrão da wave 5).
   const out: W5ChampionEdition[] = [];
+  const SECTION_OK = /Edições|Edicoes|Campe[õãa]es|Campe[õãa]s|Finais/i;
   const lines = wikitext.split('\n');
-  let inEditions = false;
-  let current: { year: number; captured: W5ChampionEdition | null } | null = null;
+  let inSection = false;
+  let headerCells: string[] = [];
+  let yearIdx = -1;
+  let champIdx = -1;
+  let rows: string[][] = [];
+  // Carry de rowspan entre flushes (o parser limpa rows a cada |-, mas a
+  // célula do campeão ausente na linha seguinte herda o último campeão).
+  let lastChampion: string | null = null;
 
-  const BOLD_LINK = /'{2,4}\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/;
-  const BOLD_TEMPLATE = /'{2,4}\{\{(Futebol [^{}|]+)/;
-
-  const flush = (): void => {
-    if (current?.captured) out.push(current.captured);
-    current = null;
+  const extractChampion = (champCell: string): W5ChampionEdition | null => {
+    const tpl = /\{\{(Futebol [^{}|]+)/.exec(champCell);
+    const tooltip = tpl ? null : /\{\{tooltip\|([^|}]+)\|([^|}]+)\}\}/i.exec(champCell);
+    if (tpl) return { year: 0, link: null, template: tpl[1]!.trim() };
+    if (tooltip) return { year: 0, link: tooltip[2]!.trim(), template: null };
+    // Itera TODOS os links: imagens (namespace :) e o self-link 'Detalhes' da
+    // própria temporada não são campeões — o primeiro link válido é.
+    const linkRe = /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g;
+    let m: RegExpExecArray | null;
+    while ((m = linkRe.exec(champCell)) !== null) {
+      if (m[1]!.includes(':')) continue;
+      if (/campeonato|copa|detalhes|torneio/i.test(m[1]!)) continue;
+      return { year: 0, link: m[1]!.trim(), template: null };
+    }
+    return null;
   };
 
-  // O link "Detalhes" da célula do ano aponta para o ARTIGO DA TEMPORADA —
-  // não é o campeão. Campeão = link/predefinição em negrito que não seja o
-  // próprio campeonato.
-  const isSeasonSelfLink = (target: string, year: number): boolean =>
-    /campeonato|copa|detalhes|torneio/i.test(target) || target.includes(String(year));
+  // Caminho 2 — tabelas SEM header: heurística da wave 5 (célula do ano +
+  // primeira célula em negrito = campeão).
+  const flushLegacy = (): void => {
+    for (const cells of rows) {
+      const yearCellIdx = cells.findIndex((c) => /\d{4}/.test(c));
+      if (yearCellIdx < 0) continue;
+      const year = Number((/(\d{4})/.exec(cells[yearCellIdx]!) ?? [])[1]);
+      if (!Number.isFinite(year)) continue;
+      // Campeão = 1a célula com template/negrito DEPOIS da célula do ano
+      // (a célula do ano contém o link Detalhes da própria temporada).
+      const candIdx = cells.findIndex(
+        (c, i) => i > yearCellIdx && (/\{\{Futebol /.test(c) || /'{2,4}\[\[/.test(c)),
+      );
+      if (candIdx < 0) continue;
+      const champ = extractChampion(cells[candIdx]!);
+      if (!champ || (!champ.link && !champ.template)) continue;
+      out.push({ year, link: champ.link, template: champ.template });
+    }
+    rows = [];
+  };
 
-  for (const line of lines) {
-    if (/^==+[^=]*==+/.test(line)) {
-      inEditions = /==+[^=]*(?:Edições|Edicoes|Campe[õãa]es|Finais)[^=]*==+/.test(line);
-      flush();
-      continue;
+  const flushTable = (): void => {
+    if (yearIdx < 0 || champIdx < 0) {
+      flushLegacy();
+      return;
     }
-    if (!inEditions) continue;
-    const trimmed = line.trim();
-    // Célula do ano inicia a edição: |'''1983'''<br />…
-    const yearMatch = /^\|'{2,4}(\d{4})'{2,4}/.exec(trimmed) ?? /^\|\s*(\d{4})\s*$/.exec(trimmed);
-    if (yearMatch) {
-      flush();
-      current = { year: Number(yearMatch[1]), captured: null };
-      // O campeão pode vir na MESMA linha (tabelas compactas).
-      const tpl = BOLD_TEMPLATE.exec(trimmed);
-      const lnk = tpl ? null : BOLD_LINK.exec(trimmed);
-      if (tpl && !isSeasonSelfLink(tpl[1]!, current.year)) {
-        current.captured = { year: current.year, link: null, template: tpl[1]!.trim() };
-      } else if (lnk && !/:/.test(lnk[1]!) && !isSeasonSelfLink(lnk[1]!, current.year)) {
-        current.captured = { year: current.year, link: lnk[1]!.trim(), template: null };
-      }
-      continue;
-    }
-    // Linhas seguintes da mesma edição: só até a célula do placar (1–0 etc.);
-    // captura o primeiro clube em negrito (campeão) e para.
-    if (current && !current.captured && trimmed.startsWith('|')) {
-      if (/\d+\s*[–-]\s*\d+/.test(trimmed)) {
-        flush();
+    for (const cells of rows) {
+      const yearCell = cells[yearIdx] ?? '';
+      const yearMatch = /(\d{4})/.exec(yearCell);
+      if (!yearMatch) continue;
+      const year = Number(yearMatch[1]);
+      let champCell = cells[champIdx];
+      // rowspan: a célula do campeão não se repete nas linhas seguintes
+      if (champCell === undefined || champCell.trim() === '') {
+        if (lastChampion === null) continue;
+        out.push({ year, link: lastChampion, template: null });
         continue;
       }
-      const tpl = BOLD_TEMPLATE.exec(trimmed);
-      const lnk = tpl ? null : BOLD_LINK.exec(trimmed);
-      if (tpl && !isSeasonSelfLink(tpl[1]!, current.year)) {
-        current.captured = { year: current.year, link: null, template: tpl[1]!.trim() };
-      } else if (lnk && !/:/.test(lnk[1]!) && !isSeasonSelfLink(lnk[1]!, current.year)) {
-        current.captured = { year: current.year, link: lnk[1]!.trim(), template: null };
+      const tpl = /\{\{(Futebol [^{}|]+)/.exec(champCell);
+      const tooltip = tpl ? null : /\{\{tooltip\|([^|}]+)\|([^|}]+)\}\}/i.exec(champCell);
+      const link = tpl || tooltip ? null : /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/.exec(champCell);
+      let captured: W5ChampionEdition | null = null;
+      if (tpl) captured = { year, link: null, template: tpl[1]!.trim() };
+      else if (tooltip) {
+        // tooltip|Display|Título do artigo — o 2º arg é o nome completo
+        const title = tooltip[2]!.trim();
+        captured = { year, link: title, template: null };
+      } else if (link && !link[1]!.includes(':')) {
+        captured = { year, link: link[1]!.trim(), template: null };
+      }
+      if (captured) {
+        lastChampion = captured.link ?? captured.template;
+        out.push(captured);
       }
     }
+    rows = [];
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (/^==+[^=]*==+$/.test(line)) {
+      flushTable();
+      // Hierarquia: só o nível 2 alterna a seção aprovada; subseções (nível 3+,
+      // ex.: === Campeonato Gaúcho === sob == Edições ==) herdam.
+      const level = (line.match(/^=+/)?.[0] ?? '=').length;
+      if (level <= 2) {
+        inSection = SECTION_OK.test(line);
+        headerCells = [];
+        yearIdx = champIdx = -1;
+      }
+      continue;
+    }
+    if (!inSection) continue;
+    if (line.startsWith('{|')) {
+      headerCells = [];
+      yearIdx = champIdx = -1;
+      rows = [];
+      lastChampion = null;
+      continue;
+    }
+    if (line.startsWith('|}')) {
+      flushTable();
+      continue;
+    }
+    if (line.startsWith('!')) {
+      const parts = line
+        .slice(1)
+        .split('!!')
+        .map((c) => c.trim());
+      headerCells.push(...parts);
+      const lower = headerCells.map((c) => c.toLowerCase());
+      // 'Ano' tem prioridade sobre 'Edição' (a coluna Edição usa ordinais
+      // 1ª/2ª — Campeonato Paranaense); 'edição' só como fallback.
+      yearIdx = lower.findIndex((c) => /\W*ano\b/.test(c));
+      if (yearIdx < 0) yearIdx = lower.findIndex((c) => /\W*edição\b/.test(c));
+      champIdx = lower.findIndex((c) => /campe[ãó]/.test(c));
+      continue;
+    }
+    if (line.startsWith('|-')) {
+      if (headerCells.length > 0 && rows.length > 0) flushTable();
+      rows.push([]);
+      continue;
+    }
+    if (line.startsWith('|')) {
+      const content = line.slice(1).split('||')[0] ?? '';
+      if (rows.length === 0) rows.push([]);
+      rows[rows.length - 1]!.push(content.trim());
+      const extra = line.slice(1).split('||').slice(1);
+      for (const e of extra) rows[rows.length - 1]!.push(e.trim());
+    }
   }
-  flush();
+  flushTable();
   return out;
 }
