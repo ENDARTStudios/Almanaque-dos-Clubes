@@ -223,10 +223,7 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
   const offset = Math.max(Math.trunc(input.offset ?? 0) || 0, 0);
   const normalized = normalizeQuery(q);
 
-  const limitations = [
-    'search_uses_existing_postgres_indexes',
-    'accent_insensitive_via_translate',
-  ];
+  const limitations = ['search_uses_existing_postgres_indexes', 'accent_insensitive_via_translate'];
   if (!q) {
     return {
       query: input.q ?? '',
