@@ -288,7 +288,9 @@ async function main(): Promise<void> {
       const team = sameName.filter((c) => c.gender !== 'men');
       if (team.length === 1) {
         input.name = team[0]!.name;
-        input.state = team[0]!.state ?? input.state;
+        // Estado do gêmeo INCONDICIONAL (inclusive NULL): gêmeo sem estado +
+        // input carimbado gerava slug ::uf vs ::null e recriação do time.
+        input.state = team[0]!.state;
       }
     }
 
