@@ -41,7 +41,8 @@ import {
 } from '../modules/etl/connectors/wikipedia-women-br.connector.js';
 
 const APPLY = process.argv.includes('--apply');
-const LIMIT = Number(process.argv.find((a) => a.startsWith('--limit='))?.split('=')[1] ?? 0) || Infinity;
+const LIMIT =
+  Number(process.argv.find((a) => a.startsWith('--limit='))?.split('=')[1] ?? 0) || Infinity;
 
 const MIN_INTERVAL_MS = 1000;
 let lastRequestAt = 0;
@@ -205,7 +206,9 @@ async function main(): Promise<void> {
   const titles = [...new Set(inputs.map((i) => i.name))];
   const missingTitles = new Set<string>();
   for (let i = 0; i < titles.length; i += 50) {
-    const body = await fetchText(mwApi({ action: 'query', titles: titles.slice(i, i + 50).join('|') }));
+    const body = await fetchText(
+      mwApi({ action: 'query', titles: titles.slice(i, i + 50).join('|') }),
+    );
     const payload = JSON.parse(body) as {
       query?: { pages?: Array<{ title: string; missing?: boolean }> };
     };
@@ -269,14 +272,19 @@ async function main(): Promise<void> {
     console.log(
       `  plano: wouldCreate=${seedPlan.wouldCreate} skips=${seedPlan.skips} recusados=${seedPlan.refusals.length} dupInBatch=${seedPlan.duplicatesInBatch}`,
     );
-    console.log(`  competições: novas=${compsPlan.compsToCreate.length}, arestas=${compsPlan.edges.length}`);
-    for (const c of compsPlan.compsToCreate) console.log(`    comp nova: ${c.name} (level ${c.level})`);
+    console.log(
+      `  competições: novas=${compsPlan.compsToCreate.length}, arestas=${compsPlan.edges.length}`,
+    );
+    for (const c of compsPlan.compsToCreate)
+      console.log(`    comp nova: ${c.name} (level ${c.level})`);
 
     if (!APPLY) {
       const sample = seedPlan.plan.filter((e) => e.action === 'create').slice(0, 12);
       console.log('  amostra (primeiras 12 criações):');
       for (const e of sample) {
-        console.log(`    + ${e.finalName} uf=${e.input.state ?? '-'} city=${e.input.city ?? '-'} comps=${e.input.competitions.length}`);
+        console.log(
+          `    + ${e.finalName} uf=${e.input.state ?? '-'} city=${e.input.city ?? '-'} comps=${e.input.competitions.length}`,
+        );
       }
       console.log('  DRY-RUN — nada gravado. Rode com --apply para persistir.');
       return;
@@ -403,7 +411,12 @@ async function main(): Promise<void> {
         continue;
       }
       const candidates = await prisma.knowledgeGraph.findMany({
-        where: { sourceId: clubId, targetType: 'Competition', targetId: compId, relation: W3_EDGE_RELATION },
+        where: {
+          sourceId: clubId,
+          targetType: 'Competition',
+          targetId: compId,
+          relation: W3_EDGE_RELATION,
+        },
         select: { id: true, metadata: true },
       });
       const already = candidates.some(
