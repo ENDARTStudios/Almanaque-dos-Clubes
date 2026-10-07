@@ -11,6 +11,7 @@
 import { prisma } from '../../config/prisma.js';
 import { cache } from '../../services/cache.js';
 import { clubsRepository, type ClubGeoView, type ClubTitleView } from './repository.js';
+import { favoritesService } from '../favorites/service.js';
 import { excludeSoftDeleted } from '../graph/soft-delete.js';
 import {
   geoAttributionForMetadata,
@@ -97,6 +98,13 @@ export interface ClubProfile {
   competitions: ProfileSection<ProfileCompetitionItem>;
   related: ProfileSection<ProfileRelatedEdge>;
   gaps: string[];
+  /** WS-C-13 — site oficial/redes + snapshot estático de seguidores (T493). */
+  website: string | null;
+  officialSite: string | null;
+  socialLinks: Record<string, { handle: string; url: string } | null> | null;
+  followersSnapshot: Record<string, number | null> & { updatedAt?: string } | null;
+  /** WS-C-12 — ❤ contagem pública de favoritantes. */
+  fansCount: number;
 }
 
 /** Gaps permanentes do acervo atual (dados que simplesmente não existem ainda). */
@@ -128,6 +136,13 @@ export interface ProfileClubInput {
   importedFrom: string | null;
   importedAt: Date | null;
   metadata: unknown;
+  /** WS-C-13 — expostos no perfil p/ a página pública (T493 despacho itens 1-3). */
+  website?: string | null;
+  officialSite?: string | null;
+  socialLinks?: unknown;
+  followersSnapshot?: unknown;
+  /** WS-C-12 — ❤ contagem pública de favoritantes. */
+  fansCount?: number | null;
 }
 
 export function deriveProvenance(club: {
@@ -203,6 +218,11 @@ export function buildProfile(
     city: club.city,
     foundedYear: club.foundedYear,
     gender: (club.gender as 'men' | 'women' | 'mixed' | undefined) ?? 'men',
+    website: club.website ?? null,
+    officialSite: club.officialSite ?? null,
+    socialLinks: (club.socialLinks ?? null) as ClubProfile['socialLinks'],
+    followersSnapshot: (club.followersSnapshot ?? null) as ClubProfile['followersSnapshot'],
+    fansCount: club.fansCount ?? 0,
     geo: buildGeo(club, geoView),
     provenance: deriveProvenance(club),
     titles: buildTitlesSection(titles),
@@ -296,9 +316,10 @@ export async function getClubProfile(id: string): Promise<ClubProfile | null> {
     const club = await prisma.club.findFirst({ where: { id, deletedAt: null } });
     if (!club) return null;
 
-    const [geoView, titles] = await Promise.all([
+    const [geoView, titles, fansCount] = await Promise.all([
       clubsRepository.findGeoById(id),
       clubsRepository.listTitlesByClub(id),
+      favoritesService.countTarget('club', id),
     ]);
     const rankings = await loadRankings(id);
 
@@ -334,6 +355,10 @@ export async function getClubProfile(id: string): Promise<ClubProfile | null> {
       importedFrom: club.importedFrom,
       importedAt: club.importedAt,
       metadata: club.metadata,
+      website: club.website,
+      socialLinks: club.socialLinks,
+      followersSnapshot: club.followersSnapshot,
+      fansCount,
     };
     return buildProfile(input, geoView, titles, rankings, competitions, related);
   });
