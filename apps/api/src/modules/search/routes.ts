@@ -4,7 +4,7 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { globalSearch } from './global-search.service.js';
 
-type SearchType = 'all' | 'club' | 'competition';
+type SearchType = 'all' | 'club' | 'competition' | 'player';
 
 export const searchRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   /**
@@ -21,11 +21,11 @@ export const searchRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
     }
 
     const type = query.type;
-    if (type && type !== 'all' && type !== 'club' && type !== 'competition') {
+    if (type && type !== 'all' && type !== 'club' && type !== 'competition' && type !== 'player') {
       return reply.status(400).send({
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Parâmetro "type" inválido (use all|club|competition).',
+          message: 'Parâmetro "type" inválido (use all|club|competition|player).',
         },
       });
     }
