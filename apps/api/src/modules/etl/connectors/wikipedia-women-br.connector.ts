@@ -850,21 +850,10 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
         out.push({ year, link: lastChampion, template: null });
         continue;
       }
-      const tpl = /\{\{(Futebol [^{}|]+)/.exec(champCell);
-      const tooltip = tpl ? null : /\{\{tooltip\|([^|}]+)\|([^|}]+)\}\}/i.exec(champCell);
-      const link = tpl || tooltip ? null : /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/.exec(champCell);
-      let captured: W5ChampionEdition | null = null;
-      if (tpl) captured = { year, link: null, template: tpl[1]!.trim() };
-      else if (tooltip) {
-        // tooltip|Display|Título do artigo — o 2º arg é o nome completo
-        const title = tooltip[2]!.trim();
-        captured = { year, link: title, template: null };
-      } else if (link && !link[1]!.includes(':')) {
-        captured = { year, link: link[1]!.trim(), template: null };
-      }
-      if (captured) {
-        lastChampion = captured.link ?? captured.template;
-        out.push(captured);
+      const champ = extractChampion(champCell);
+      if (champ) {
+        lastChampion = champ.link ?? champ.template;
+        out.push({ year, link: champ.link, template: champ.template });
       }
     }
     rows = [];
@@ -897,10 +886,15 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
       continue;
     }
     if (line.startsWith('!')) {
-      const parts = line
-        .slice(1)
-        .split('!!')
-        .map((c) => c.trim());
+      const content = line.slice(1).trim();
+      // Tabelas do Carioca usam '!N' (ordinal header-styled) como 1a célula de
+      // cada linha de dados — é a coluna Edição, não um header: abre linha.
+      if (/^\d+[ªº]?$/.test(content)) {
+        if (rows.length === 0) rows.push([]);
+        rows.push([]);
+        continue;
+      }
+      const parts = content.split('!!').map((c) => c.trim());
       headerCells.push(...parts);
       const lower = headerCells.map((c) => c.toLowerCase());
       // 'Ano' tem prioridade sobre 'Edição' (a coluna Edição usa ordinais
