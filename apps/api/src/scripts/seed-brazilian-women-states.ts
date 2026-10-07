@@ -259,7 +259,10 @@ async function main(): Promise<void> {
 
   const prisma = new PrismaClient();
   try {
+    // Soft-deleted NÃO entram no matching (eram contados como homônimos e
+    // tornavam a adoção ambígua após o merge de duplicatas).
     const existingClubs = await prisma.club.findMany({
+      where: { deletedAt: null },
       select: { id: true, qid: true, name: true, state: true, gender: true, deletedAt: true },
     });
     const existingComps = await prisma.competition.findMany({
