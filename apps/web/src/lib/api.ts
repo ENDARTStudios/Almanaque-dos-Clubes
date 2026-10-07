@@ -100,20 +100,41 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
       });
     }
   }
+  // Body de erro lido UMA vez (res.text é consumível: um 2º res.json()
+  // rejeitava e virava 'Erro desconhecido' genérico no lugar da mensagem real).
+  let errorText: string | null = null;
+  const parseErrorBody = async (): Promise<Record<string, unknown> | null> => {
+    if (errorText === null) errorText = await res.text().catch(() => '');
+    try {
+      return errorText ? (JSON.parse(errorText) as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  };
   // Se um write falhar por CSRF stale, invalida o cache, refaz o token e tenta uma vez.
   if (!res.ok && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-    const probe = (await res.json().catch(() => null)) as { error?: { code?: string } } | null;
-    if (probe?.error?.code === 'CSRF_INVALID') {
+    const probe = await parseErrorBody();
+    if ((probe?.error as { code?: string } | undefined)?.code === 'CSRF_INVALID') {
       csrfToken = null;
       const fresh = await readCsrfToken();
       if (fresh) headers['x-csrf-token'] = fresh;
       res = await fetch(API_BASE + path, { credentials: 'include', headers, ...options });
+      errorText = null;
     }
   }
   if (!res.ok) {
-    const body = (await res
-      .json()
-      .catch(() => ({ error: { code: 'UNKNOWN', message: 'Erro desconhecido' } }))) as ApiError;
+    const parsed = await parseErrorBody();
+    const enveloped = parsed?.error as { code?: string; message?: string; details?: unknown } | undefined;
+    // Erros Fastify de framework (ex.: FST_ERR_CTP_EMPTY_JSON_BODY) vêm SEM o
+    // envelope {error:{}} — usam {code, error, message} no topo.
+    const flatMessage = (parsed as { message?: string } | null)?.message;
+    const body = {
+      error: {
+        code: enveloped?.code ?? (parsed as { code?: string } | null)?.code ?? 'UNKNOWN',
+        message: enveloped?.message ?? flatMessage ?? 'Erro desconhecido',
+        details: enveloped?.details,
+      },
+    } as ApiError;
     // Se a API devolver erros de validação em "details", mostramos as mensagens
     // específicas (ex.: "Senha deve conter ao menos 1 letra maiúscula").
     const details =
@@ -136,8 +157,11 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
+  // POST sem corpo recebe '{}': Content-Type json + body vazio dá
+  // FST_ERR_CTP_EMPTY_JSON_BODY (400) — mesma armadilha T462 do DELETE/logout.
+  // Quebrava "Sou editor deste clube" e o cancelamento de pedido LGPD.
   post: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : '{}' }),
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   patch: <T>(path: string, body: unknown) =>
