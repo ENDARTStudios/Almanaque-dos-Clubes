@@ -920,3 +920,140 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
   flushTable();
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// T450 Wave 7 — classificação feminina via {{#invoke:sports results|main}}:
+// o módulo estruturado das páginas de temporada (CBFF 2026 Série A1/A2,
+// Paulista 2026…) guarda teamN=cod, name_COD={{Futebol X}} e
+// match_A_B=H–A (&mdash; = não jogado). A classificação é COMPUTADA dos
+// placares (3pts vitória/1 empate) — nada inventado; partida não jogada não
+// entra. Provê standings prontos p/ rankDivision (0-100).
+// ---------------------------------------------------------------------------
+export interface W7Team {
+  code: string;
+  template: string;
+}
+
+export interface W7Match {
+  home: string;
+  away: string;
+  homeScore: number;
+  awayScore: number;
+}
+
+export interface W7StandingsRow {
+  code: string;
+  template: string;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+/** Extrai o conteúdo de um template #invoke:sports results (balanceando {{ }}). */
+export function extractSportsResultsBlock(wikitext: string): string | null {
+  const start = wikitext.indexOf('#invoke:sports results');
+  if (start < 0) return null;
+  let depth = 0;
+  let begin = -1;
+  for (let i = start; i < wikitext.length - 1; i++) {
+    const two = wikitext.slice(i, i + 2);
+    if (two === '{{') {
+      if (depth === 0) begin = i + 2;
+      depth++;
+      i++;
+    } else if (two === '}}') {
+      depth--;
+      if (depth === 0) return wikitext.slice(begin, i);
+      i++;
+    }
+  }
+  return null;
+}
+
+/** Partida jogada: "0–2", "0-2", "1-1" (mdash/vazio = não jogada). */
+function parseScore(raw: string | undefined): { hs: number; as: number } | null {
+  if (!raw) return null;
+  const decoded = raw.replace(/&mdash;|&ndash;/gi, '—').trim();
+  const m = /^\s*(\d{1,2})\s*[–-]\s*(\d{1,2})\s*$/.exec(decoded);
+  if (!m) return null;
+  return { hs: Number(m[1]), as: Number(m[2]) };
+}
+
+export function parseSportsResults(block: string): {
+  teams: W7Team[];
+  matches: W7Match[];
+  standings: W7StandingsRow[];
+} {
+  const teams: W7Team[] = [];
+  const codeByTemplate = new Map<string, string>();
+  const matches: W7Match[] = [];
+
+  // name_COD={{Futebol X}} (params são um por linha neste módulo)
+  for (const m of block.matchAll(/\|\s*name_([A-Z0-9]{2,6})\s*=\s*\{\{(Futebol [^{}|]+)/g)) {
+    const code = m[1]!;
+    const template = m[2]!.trim();
+    teams.push({ code, template });
+    codeByTemplate.set(template, code);
+  }
+
+  // match_A_B=H–A (o par pode vir em qualquer ordem; casa = 1º código)
+  for (const m of block.matchAll(/\|\s*match_([A-Z0-9]{2,6})_([A-Z0-9]{2,6})\s*=\s*([^\n|]*)/g)) {
+    const score = parseScore(m[3]);
+    if (!score) continue;
+    matches.push({ home: m[1]!, away: m[2]!, homeScore: score.hs, awayScore: score.as });
+  }
+
+  // classificação computada dos placares
+  const stats = new Map<string, W7StandingsRow>();
+  for (const t of teams) {
+    stats.set(t.code, {
+      code: t.code,
+      template: t.template,
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      points: 0,
+    });
+  }
+  for (const match of matches) {
+    const home = stats.get(match.home);
+    const away = stats.get(match.away);
+    if (!home || !away) continue;
+    home.played++;
+    away.played++;
+    home.goalsFor += match.homeScore;
+    home.goalsAgainst += match.awayScore;
+    away.goalsFor += match.awayScore;
+    away.goalsAgainst += match.homeScore;
+    if (match.homeScore > match.awayScore) {
+      home.wins++;
+      home.points += 3;
+      away.losses++;
+    } else if (match.homeScore < match.awayScore) {
+      away.wins++;
+      away.points += 3;
+      home.losses++;
+    } else {
+      home.draws++;
+      away.draws++;
+      home.points++;
+      away.points++;
+    }
+  }
+
+  // ordena: pts → saldo → gf (mesma chave do rankDivision)
+  const standings = [...stats.values()].sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.goalsFor - b.goalsAgainst - (a.goalsFor - a.goalsAgainst) ||
+      b.goalsFor - a.goalsFor,
+  );
+  return { teams, matches, standings };
+}
