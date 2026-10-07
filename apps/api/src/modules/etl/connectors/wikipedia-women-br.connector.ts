@@ -831,40 +831,25 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
   };
 
   const flushTable = (): void => {
-    if (process.env.DBG_W5)
-      console.error(
-        '[flush] yearIdx=' +
-          yearIdx +
-          ' champIdx=' +
-          champIdx +
-          ' rows=' +
-          rows.length +
-          ' cells0=' +
-          JSON.stringify((rows[0] ?? [])[0] ?? '').slice(0, 60),
-      );
     if (yearIdx < 0 || champIdx < 0) {
       flushLegacy();
       return;
     }
+    // Posição do campeão RELATIVA à célula do ano (os rows nem sempre têm
+    // as mesmas colunas do header — ex.: Carioca omite a coluna Edição, e
+    // cells[champIdx] absoluto apontava pro placar).
+    const champOffset = champIdx - yearIdx;
     for (const cells of rows) {
-      const yearCell = cells[yearIdx] ?? '';
-      const yearMatch = /(\d{4})/.exec(yearCell);
-      if (!yearMatch) continue;
-      const year = Number(yearMatch[1]);
-      let champCell = cells[champIdx];
+      const yearCellIdx = cells.findIndex((c) => /(\d{4})/.test(c));
+      if (yearCellIdx < 0) continue;
+      const year = Number((/(\d{4})/.exec(cells[yearCellIdx]!) ?? [])[1]);
+      let champCell = cells[yearCellIdx + champOffset];
       // rowspan: a célula do campeão não se repete nas linhas seguintes
       if (champCell === undefined || champCell.trim() === '') {
         if (lastChampion === null) continue;
         out.push({ year, link: lastChampion, template: null });
         continue;
       }
-      if (process.env.DBG_W5 && rows.indexOf(cells) < 3)
-        console.error(
-          '[row] yearCell=' +
-            JSON.stringify(yearCell.slice(0, 50)) +
-            ' champCell=' +
-            JSON.stringify(champCell.slice(0, 70)),
-        );
       const tpl = /\{\{(Futebol [^{}|]+)/.exec(champCell);
       const tooltip = tpl ? null : /\{\{tooltip\|([^|}]+)\|([^|}]+)\}\}/i.exec(champCell);
       const link = tpl || tooltip ? null : /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/.exec(champCell);
