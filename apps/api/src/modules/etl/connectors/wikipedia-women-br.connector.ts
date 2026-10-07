@@ -795,14 +795,14 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
 
   for (const line of lines) {
     if (/^==+[^=]*==+/.test(line)) {
-      inEditions = /==+[^=]*(?:Edições|Edicoes|Campe[ãa]es)[^=]*==+/.test(line);
+      inEditions = /==+[^=]*(?:Edições|Edicoes|Campe[õãa]es|Finais)[^=]*==+/.test(line);
       flush();
       continue;
     }
     if (!inEditions) continue;
     const trimmed = line.trim();
     // Célula do ano inicia a edição: |'''1983'''<br />…
-    const yearMatch = /^\|'{2,4}(\d{4})'{2,4}/.exec(trimmed);
+    const yearMatch = /^\|'{2,4}(\d{4})'{2,4}/.exec(trimmed) ?? /^\|\s*(\d{4})\s*$/.exec(trimmed);
     if (yearMatch) {
       flush();
       current = { year: Number(yearMatch[1]), captured: null };
