@@ -7,6 +7,7 @@ import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
+import SocialLinks from '@/components/SocialLinks';
 import ClubTimeline from '@/components/ClubTimeline';
 import RelatedClubs from '@/components/RelatedClubs';
 import ClubCommunity from '@/components/ClubCommunity';
@@ -23,6 +24,10 @@ interface ClubProfile {
   id: string;
   qid: string | null;
   name: string;
+  fansCount?: number | null;
+  website?: string | null;
+  socialLinks?: Record<string, { handle: string; url: string } | null> | null;
+  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   fullName: string | null;
   shortName: string | null;
   status: string;
@@ -198,7 +203,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </div>
           </div>
           <div className="shrink-0">
-            <FavoriteButton clubId={club.id} />
+            <FavoriteButton clubId={club.id} initialCount={club.fansCount ?? undefined} countLabel="torcedores" />
           </div>
         </div>
 
@@ -209,6 +214,13 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           {club.foundedYear && <InfoItem label={s.founded} value={String(club.foundedYear)} />}
           {club.status && <InfoItem label={s.status} value={club.status} />}
         </dl>
+        <div className="mt-6">
+          <SocialLinks
+            officialSite={club.website ?? null}
+            socialLinks={club.socialLinks ?? null}
+            followersSnapshot={club.followersSnapshot ?? null}
+          />
+        </div>
       </header>
 
       {/* WS-C-9 Modo Clube — seção Comunidade (client): descrição da comunidade

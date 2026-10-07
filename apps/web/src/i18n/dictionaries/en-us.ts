@@ -232,6 +232,7 @@ const en: Dictionary = {
       filterYear: 'Year',
       filterGender: 'Gender',
       filterCountry: 'Country',
+      searchClub: 'Search club',
       all: 'All',
       genderMen: 'Men',
       genderWomen: 'Women',

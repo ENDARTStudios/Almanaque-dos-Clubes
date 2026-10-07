@@ -4,7 +4,16 @@ import { useRouter } from 'next/navigation';
 import { useGsapFadeIn } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
 
-export default function SearchBar({ placeholderKey = 'pages.search.placeholder' }: { placeholderKey?: string }) {
+export default function SearchBar({
+  placeholderKey = 'pages.search.placeholder',
+  targetPath,
+  searchKey = 'q',
+}: {
+  placeholderKey?: string;
+  /** Busca section-scoped: vai para `${targetPath}?${searchKey}=…` em vez de /search. */
+  targetPath?: string;
+  searchKey?: string;
+}) {
   const [query, setQuery] = useState('');
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
@@ -13,7 +22,9 @@ export default function SearchBar({ placeholderKey = 'pages.search.placeholder' 
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (query.trim()) router.push('/search?q=' + encodeURIComponent(query.trim()));
+    const q = encodeURIComponent(query.trim());
+    if (targetPath) router.push(`${targetPath}?${searchKey}=${q}`);
+    else router.push('/search?q=' + q);
   }
 
   return (

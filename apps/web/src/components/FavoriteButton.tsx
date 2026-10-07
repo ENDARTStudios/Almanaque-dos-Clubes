@@ -102,7 +102,11 @@ export default function FavoriteButton(props: FavoriteButtonProps) {
           {count.toLocaleString('pt-BR')}
         </span>
       )}
-      {props.countLabel && <span className="sr-only">{props.countLabel}</span>}
+      {props.countLabel && count !== null && (
+        <span data-testid={`favorite-label-${targetType}`} className="text-foreground/60">
+          {props.countLabel}
+        </span>
+      )}
     </button>
   );
 }

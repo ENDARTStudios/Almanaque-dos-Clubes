@@ -5,9 +5,14 @@ import { notFound } from 'next/navigation';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import FavoriteButton from '@/components/FavoriteButton';
+import SocialLinks from '@/components/SocialLinks';
 
 interface Player {
   id: string;
+  fansCount?: number | null;
+  officialSite?: string | null;
+  socialLinks?: Record<string, { handle: string; url: string } | null> | null;
+  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   fullName: string;
   shortName?: string | null;
   birthDate?: string | null;
@@ -74,11 +79,21 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               {p.fullName}
             </h1>
             <div className="mt-3">
-              <FavoriteButton targetType="player" targetId={p.id} countLabel="fans" />
+              <FavoriteButton
+                targetType="player"
+                targetId={p.id}
+                initialCount={p.fansCount ?? undefined}
+                countLabel="fãs"
+              />
             </div>
             {p.shortName && <p className="text-sm text-foreground/40">({p.shortName})</p>}
           </div>
         </div>
+        <SocialLinks
+          officialSite={p.officialSite ?? null}
+          socialLinks={p.socialLinks ?? null}
+          followersSnapshot={p.followersSnapshot ?? null}
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
           {p.country && <InfoItem label="País" value={p.country} />}
           {p.position && <InfoItem label="Posição" value={p.position} />}
