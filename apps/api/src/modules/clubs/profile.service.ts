@@ -102,7 +102,7 @@ export interface ClubProfile {
   website: string | null;
   officialSite: string | null;
   socialLinks: Record<string, { handle: string; url: string } | null> | null;
-  followersSnapshot: Record<string, number | null> & { updatedAt?: string } | null;
+  followersSnapshot: (Record<string, number | null> & { updatedAt?: string }) | null;
   /** WS-C-12 — ❤ contagem pública de favoritantes. */
   fansCount: number;
 }
