@@ -704,3 +704,55 @@ export function planW3Competitions(
   }
   return { compsToCreate, edges, duplicatesInBatch };
 }
+
+// ---------------------------------------------------------------------------
+// T450 Wave 4 — campeonatos ESTADUAIS femininos (mesmas fontes aprovadas:
+// Wikipedia PT via tabelas de participantes; Wikidata para QIDs/coords).
+// Reusa TODOS os parsers/planos da wave 3; muda só a lista de artigos e a
+// proveniência (wave: 4, level 4 = degrau estadual da pirâmide).
+// ---------------------------------------------------------------------------
+export const W4_WAVE = 4 as const;
+
+export interface W4StatePage {
+  state: string;
+  uf: string;
+  /** Edições candidatas, da mais nova para a mais antiga (o script sonda). */
+  editions: string[];
+  /** Nome da entidade competição (sem ano). */
+  competition: string;
+  level: 4;
+}
+
+const statePage = (nome: string, uf: string, anoNovo: number, anoAntigo: number): W4StatePage => ({
+  state: nome,
+  uf,
+  editions: [
+    `Campeonato ${nome} de Futebol Feminino de ${anoNovo}`,
+    `Campeonato ${nome} de Futebol Feminino de ${anoAntigo}`,
+  ],
+  competition: `Campeonato ${nome} de Futebol Feminino`,
+  level: 4,
+});
+
+/** Os 8 estaduais do despacho (T450 wave 4). */
+export const W4_STATE_PAGES: readonly W4StatePage[] = [
+  statePage('Paulista', 'SP', 2026, 2025),
+  statePage('Carioca', 'RJ', 2026, 2025),
+  statePage('Mineiro', 'MG', 2026, 2025),
+  statePage('Gaúcho', 'RS', 2026, 2025),
+  statePage('Paranaense', 'PR', 2026, 2025),
+  statePage('Baiano', 'BA', 2026, 2025),
+  statePage('Catarinense', 'SC', 2026, 2025),
+  statePage('Pernambucano', 'PE', 2026, 2025),
+];
+
+/** "Campeonato Paulista de Futebol Feminino de 2025" → "Campeonato Paulista de Futebol Feminino". */
+export function stateCompetitionName(articleTitle: string): string {
+  return articleTitle.replace(/\s+de\s+\d{4}\s*$/, '').trim();
+}
+
+/** Ano da edição a partir do título ("… de 2025" → "2025"). */
+export function stateEditionYear(articleTitle: string): string {
+  const m = /de\s+(\d{4})\s*$/.exec(articleTitle);
+  return m ? m[1]! : '';
+}
