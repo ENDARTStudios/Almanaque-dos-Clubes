@@ -831,6 +831,17 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
   };
 
   const flushTable = (): void => {
+    if (process.env.DBG_W5)
+      console.error(
+        '[flush] yearIdx=' +
+          yearIdx +
+          ' champIdx=' +
+          champIdx +
+          ' rows=' +
+          rows.length +
+          ' cells0=' +
+          JSON.stringify((rows[0] ?? [])[0] ?? '').slice(0, 60),
+      );
     if (yearIdx < 0 || champIdx < 0) {
       flushLegacy();
       return;
@@ -847,6 +858,13 @@ export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
         out.push({ year, link: lastChampion, template: null });
         continue;
       }
+      if (process.env.DBG_W5 && rows.indexOf(cells) < 3)
+        console.error(
+          '[row] yearCell=' +
+            JSON.stringify(yearCell.slice(0, 50)) +
+            ' champCell=' +
+            JSON.stringify(champCell.slice(0, 70)),
+        );
       const tpl = /\{\{(Futebol [^{}|]+)/.exec(champCell);
       const tooltip = tpl ? null : /\{\{tooltip\|([^|}]+)\|([^|}]+)\}\}/i.exec(champCell);
       const link = tpl || tooltip ? null : /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/.exec(champCell);
