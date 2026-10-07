@@ -277,14 +277,18 @@ async function main(): Promise<void> {
     // homônimo ambíguo: não adota nada (honesto).
     for (const input of deduped) {
       const nameKey = slugify(stripFeminineSuffix(input.name));
-      const hits = existingClubs.filter(
+      const sameName = existingClubs.filter(
         (c) =>
           slugify(stripFeminineSuffix(c.name)) === nameKey &&
           (c.state == null || c.state === input.state),
       );
-      if (hits.length === 1) {
-        input.name = hits[0]!.name;
-        input.state = hits[0]!.state ?? input.state;
+      // Clubes tradicionais têm gêmeos masculino E feminino no acervo — entre os
+      // homônimos, exatamente 1 time (gender != men) é o candidato: clubes só
+      // masculinos NÃO são adoção (o plano aplica o sufixo feminino neles).
+      const team = sameName.filter((c) => c.gender !== 'men');
+      if (team.length === 1) {
+        input.name = team[0]!.name;
+        input.state = team[0]!.state ?? input.state;
       }
     }
 
