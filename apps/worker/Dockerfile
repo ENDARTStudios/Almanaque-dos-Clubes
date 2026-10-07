@@ -10,9 +10,11 @@ RUN corepack enable && corepack prepare pnpm@11 --activate
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY apps/worker/package.json ./apps/worker/
 COPY apps/api/package.json ./apps/api/
+COPY apps/api/prisma/ ./apps/api/prisma/
 COPY packages/domain/package.json ./packages/domain/
 
 RUN pnpm install --frozen-lockfile --filter @almanaque/worker --filter @almanaque/api --filter @almanaque/domain 2>&1
+RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.prisma 2>&1
 
 COPY apps/worker/src ./apps/worker/src/
 COPY apps/api/src ./apps/api/src/
@@ -31,6 +33,8 @@ COPY apps/worker/package.json ./apps/worker/
 COPY apps/api/package.json ./apps/api/
 COPY packages/domain/package.json ./packages/domain/
 
+COPY apps/api/prisma/ ./apps/api/prisma/
+RUN pnpm --filter @almanaque/api exec prisma generate --schema=prisma/schema.prisma 2>&1
 RUN pnpm install --frozen-lockfile --filter @almanaque/worker --filter @almanaque/api --filter @almanaque/domain --prod 2>&1
 
 COPY --from=builder /app/apps/worker/src ./apps/worker/src/
