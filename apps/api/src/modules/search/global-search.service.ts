@@ -1,11 +1,10 @@
 /**
  * WS-C-1 — Busca global tipada (READ-ONLY, API-only).
  *
- * Casa clubes e competições por `name/fullName/shortName` de forma case-insensitive e
+ * Casa clubes, competições e jogadores por `name/fullName/shortName` de forma case-insensitive e
  * acento-insensível, reutilizando `lib/search.ts` (translate()+lower() nativo do Postgres,
  * sem extensão). Homônimos NÃO são colapsados: cada linha é um resultado com QID/cidade/
- * estado/país. Jogadores ficam fora (limitação declarada) — não há índice/modelo de busca
- * consolidado ainda. Nunca usar fuzzy para criar identidade; nunca retornar soft-deleted.
+ * estado/país. Nunca usar fuzzy para criar identidade; nunca retornar soft-deleted.
  */
 import { prisma } from '../../config/prisma.js';
 import { cache } from '../../services/cache.js';
@@ -45,12 +44,23 @@ export interface CompetitionSearchResult {
   sourceUrl: string | null;
 }
 
-export type GlobalSearchResult = ClubSearchResult | CompetitionSearchResult;
+export interface PlayerSearchResult {
+  type: 'player';
+  id: string;
+  qid: string | null;
+  name: string;
+  subtitle: string | null;
+  country: string | null;
+  score: number;
+  sourceUrl: string | null;
+}
+
+export type GlobalSearchResult = ClubSearchResult | CompetitionSearchResult | PlayerSearchResult;
 
 export interface GlobalSearchResponse {
   query: string;
   normalizedQuery: string;
-  type: 'all' | 'club' | 'competition';
+  type: 'all' | 'club' | 'competition' | 'player';
   results: GlobalSearchResult[];
   pagination: { limit: number; offset: number; total: number };
   limitations: string[];
@@ -92,7 +102,7 @@ export function clampLimit(limit?: number): number {
 
 interface SearchInput {
   q: string;
-  type?: 'all' | 'club' | 'competition';
+  type?: 'all' | 'club' | 'competition' | 'player';
   country?: string;
   gender?: 'men' | 'women';
   limit?: number;
@@ -176,6 +186,36 @@ async function searchCompetitions(
   }));
 }
 
+async function searchPlayers(
+  q: string,
+  normalized: string,
+  country?: string,
+): Promise<PlayerSearchResult[]> {
+  const ids = await searchMatchedIds(prisma, 'players', ['fullName'], q);
+  if (ids.length === 0) return [];
+  const players = await prisma.player.findMany({
+    where: { id: { in: ids }, ...(country ? { country } : {}) },
+    select: {
+      id: true,
+      qid: true,
+      fullName: true,
+      country: true,
+      position: true,
+      sourceUrl: true,
+    },
+  });
+  return players.map((p) => ({
+    type: 'player' as const,
+    id: p.id,
+    qid: p.qid,
+    name: p.fullName,
+    subtitle: buildSubtitle([p.position, p.country]),
+    country: p.country,
+    score: scoreName(p.fullName, normalized),
+    sourceUrl: p.sourceUrl,
+  }));
+}
+
 export async function globalSearch(input: SearchInput): Promise<GlobalSearchResponse> {
   const q = (input.q ?? '').trim();
   const type = input.type ?? 'all';
@@ -183,11 +223,7 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
   const offset = Math.max(Math.trunc(input.offset ?? 0) || 0, 0);
   const normalized = normalizeQuery(q);
 
-  const limitations = [
-    'players_not_indexed_yet',
-    'search_uses_existing_postgres_indexes',
-    'accent_insensitive_via_translate',
-  ];
+  const limitations = ['search_uses_existing_postgres_indexes', 'accent_insensitive_via_translate'];
   if (!q) {
     return {
       query: input.q ?? '',
@@ -204,10 +240,18 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
     SEARCH_TTL_SECONDS,
     async () => {
       const clubs =
-        type === 'competition' ? [] : await searchClubs(q, normalized, input.country, input.gender);
+        type === 'competition' || type === 'player'
+          ? []
+          : await searchClubs(q, normalized, input.country, input.gender);
       const comps =
-        type === 'club' ? [] : await searchCompetitions(q, normalized, input.country, input.gender);
-      return [...clubs, ...comps];
+        type === 'club' || type === 'player'
+          ? []
+          : await searchCompetitions(q, normalized, input.country, input.gender);
+      const players =
+        type === 'club' || type === 'competition'
+          ? []
+          : await searchPlayers(q, normalized, input.country);
+      return [...clubs, ...comps, ...players];
     },
   );
 

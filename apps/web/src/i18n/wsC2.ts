@@ -46,6 +46,7 @@ export interface WsC2Strings {
     typeAll: string;
     typeClub: string;
     typeCompetition: string;
+    typePlayer: string;
     total: string;
     limitations: string;
     attributionNote: string;
@@ -114,6 +115,7 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       typeAll: 'Tudo',
       typeClub: 'Clubes',
       typeCompetition: 'Competições',
+      typePlayer: 'Jogadores',
       total: '{n} resultado(s)',
       limitations:
         'Limitações: jogadores ainda não indexados; busca usa os índices atuais do Postgres.',
@@ -181,6 +183,7 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       typeAll: 'All',
       typeClub: 'Clubs',
       typeCompetition: 'Competitions',
+      typePlayer: 'Players',
       total: '{n} result(s)',
       limitations:
         'Limitations: players not indexed yet; search uses the current Postgres indexes.',
@@ -248,6 +251,7 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       typeAll: 'Todo',
       typeClub: 'Clubes',
       typeCompetition: 'Competiciones',
+      typePlayer: 'Jugadores',
       total: '{n} resultado(s)',
       limitations:
         'Limitaciones: jugadores aún no indexados; la búsqueda usa los índices actuales de Postgres.',

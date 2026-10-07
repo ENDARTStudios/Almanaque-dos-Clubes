@@ -15,7 +15,7 @@ interface GeoAttribution {
   license: string;
 }
 interface SearchResult {
-  type: 'club' | 'competition';
+  type: 'club' | 'competition' | 'player';
   id: string;
   qid: string | null;
   name: string;
@@ -29,13 +29,18 @@ interface SearchResult {
 interface SearchResponse {
   query: string;
   normalizedQuery: string;
-  type: 'all' | 'club' | 'competition';
+  type: 'all' | 'club' | 'competition' | 'player';
   results: SearchResult[];
   pagination: { limit: number; offset: number; total: number };
   limitations: string[];
 }
 
-const TYPES: Array<'all' | 'club' | 'competition'> = ['all', 'club', 'competition'];
+const TYPES: Array<'all' | 'club' | 'competition' | 'player'> = [
+  'all',
+  'club',
+  'competition',
+  'player',
+];
 
 export default function GlobalSearch() {
   const router = useRouter();
@@ -97,7 +102,13 @@ export default function GlobalSearch() {
   }, [q, type, gender, run, router]);
 
   const typeLabel = (t: SearchResponse['type']) =>
-    t === 'club' ? s.typeClub : t === 'competition' ? s.typeCompetition : s.typeAll;
+    t === 'club'
+      ? s.typeClub
+      : t === 'competition'
+        ? s.typeCompetition
+        : t === 'player'
+          ? s.typePlayer
+          : s.typeAll;
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -177,7 +188,13 @@ export default function GlobalSearch() {
                     data-testid={`search-result-${r.type}`}
                   >
                     <Link
-                      href={r.type === 'club' ? `/clubs/${r.id}` : `/competitions/${r.id}`}
+                      href={
+                        r.type === 'club'
+                          ? `/clubs/${r.id}`
+                          : r.type === 'player'
+                            ? `/players/${r.id}`
+                            : `/competitions/${r.id}`
+                      }
                       className="block group"
                     >
                       <span className="text-xs uppercase tracking-wider text-primary/80">
@@ -206,6 +223,8 @@ export default function GlobalSearch() {
   );
 }
 
-function type_valid(v: unknown): v is 'all' | 'club' | 'competition' {
-  return v === 'all' || v === 'club' || v === 'competition';
+function type_valid(v: unknown): v is 'all' | 'club' | 'competition' | 'player' {
+  return (
+    v === 'all' || v === 'club' || v === 'competition' || v === 'player'
+  );
 }
