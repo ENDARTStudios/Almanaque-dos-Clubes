@@ -41,4 +41,7 @@ COPY --from=builder /app/apps/worker/src ./apps/worker/src/
 COPY --from=builder /app/apps/api/src ./apps/api/src/
 COPY --from=builder /app/packages/domain/src ./packages/domain/src/
 
-CMD ["node", "--import=tsx", "apps/worker/src/main.ts"]
+# cwd = pacote do worker: é assim que o tsx resolve (apps/worker/node_modules) —
+# o container da API roda os scripts do mesmo jeito (cd /app/apps/api).
+WORKDIR /app/apps/worker
+CMD ["node", "--import=tsx", "src/main.ts"]
