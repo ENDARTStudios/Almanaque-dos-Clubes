@@ -756,3 +756,82 @@ export function stateEditionYear(articleTitle: string): string {
   const m = /de\s+(\d{4})\s*$/.exec(articleTitle);
   return m ? m[1]! : '';
 }
+
+// ---------------------------------------------------------------------------
+// T450 Wave 5 — modo "Edições/Campeões": os artigos-mãe dos estaduais têm a
+// tabela de edições (ano → campeão) de 1983 a 2026. Cada campeão PARTICIPOU
+// da temporada do título → aresta PARTICIPATED_IN com season=ano (inerte,
+// zero rankings). O campeão é a primeira célula em NEGRITO após a célula do
+// ano ('''[[Clube|Nome]]''' ou '''{{Futebol X}}'''); vice/3º ficam de fora
+// (conservador).
+// ---------------------------------------------------------------------------
+export interface W5ChampionEdition {
+  year: number;
+  /** Título do artigo do clube campeão (link direto da célula). */
+  link: string | null;
+  /** Nome da predefinição {{Futebol X}} quando a célula a usa. */
+  template: string | null;
+}
+
+export function parseChampionEditions(wikitext: string): W5ChampionEdition[] {
+  const out: W5ChampionEdition[] = [];
+  const lines = wikitext.split('\n');
+  let inEditions = false;
+  let current: { year: number; captured: W5ChampionEdition | null } | null = null;
+
+  const BOLD_LINK = /'{2,4}\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/;
+  const BOLD_TEMPLATE = /'{2,4}\{\{(Futebol [^{}|]+)/;
+
+  const flush = (): void => {
+    if (current?.captured) out.push(current.captured);
+    current = null;
+  };
+
+  // O link "Detalhes" da célula do ano aponta para o ARTIGO DA TEMPORADA —
+  // não é o campeão. Campeão = link/predefinição em negrito que não seja o
+  // próprio campeonato.
+  const isSeasonSelfLink = (target: string, year: number): boolean =>
+    /campeonato|copa|detalhes|torneio/i.test(target) || target.includes(String(year));
+
+  for (const line of lines) {
+    if (/^==+[^=]*==+/.test(line)) {
+      inEditions = /==+[^=]*(?:Edições|Edicoes|Campe[ãa]es)[^=]*==+/.test(line);
+      flush();
+      continue;
+    }
+    if (!inEditions) continue;
+    const trimmed = line.trim();
+    // Célula do ano inicia a edição: |'''1983'''<br />…
+    const yearMatch = /^\|'{2,4}(\d{4})'{2,4}/.exec(trimmed);
+    if (yearMatch) {
+      flush();
+      current = { year: Number(yearMatch[1]), captured: null };
+      // O campeão pode vir na MESMA linha (tabelas compactas).
+      const tpl = BOLD_TEMPLATE.exec(trimmed);
+      const lnk = tpl ? null : BOLD_LINK.exec(trimmed);
+      if (tpl && !isSeasonSelfLink(tpl[1]!, current.year)) {
+        current.captured = { year: current.year, link: null, template: tpl[1]!.trim() };
+      } else if (lnk && !/:/.test(lnk[1]!) && !isSeasonSelfLink(lnk[1]!, current.year)) {
+        current.captured = { year: current.year, link: lnk[1]!.trim(), template: null };
+      }
+      continue;
+    }
+    // Linhas seguintes da mesma edição: só até a célula do placar (1–0 etc.);
+    // captura o primeiro clube em negrito (campeão) e para.
+    if (current && !current.captured && trimmed.startsWith('|')) {
+      if (/\d+\s*[–-]\s*\d+/.test(trimmed)) {
+        flush();
+        continue;
+      }
+      const tpl = BOLD_TEMPLATE.exec(trimmed);
+      const lnk = tpl ? null : BOLD_LINK.exec(trimmed);
+      if (tpl && !isSeasonSelfLink(tpl[1]!, current.year)) {
+        current.captured = { year: current.year, link: null, template: tpl[1]!.trim() };
+      } else if (lnk && !/:/.test(lnk[1]!) && !isSeasonSelfLink(lnk[1]!, current.year)) {
+        current.captured = { year: current.year, link: lnk[1]!.trim(), template: null };
+      }
+    }
+  }
+  flush();
+  return out;
+}
