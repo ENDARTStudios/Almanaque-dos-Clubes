@@ -426,3 +426,49 @@ describe('T450 wave 3 — guard de ToS (fonte descartada nunca é processada)', 
     expect(kept.map((k) => k.source)).toEqual(['wikipedia-pt', 'wikidata']);
   });
 });
+
+describe('T450 wave 4 — estaduais femininos', () => {
+  it('W4_STATE_PAGES: 8 estados do despacho, level 4, edições 2026→2025', async () => {
+    const { W4_STATE_PAGES } = await import(
+      '../../../src/modules/etl/connectors/wikipedia-women-br.connector.js'
+    );
+    expect(W4_STATE_PAGES).toHaveLength(8);
+    for (const s of W4_STATE_PAGES) {
+      expect(s.level).toBe(4);
+      expect(s.editions).toHaveLength(2);
+      expect(s.editions[0]).toContain('2026');
+      expect(s.editions[1]).toContain('2025');
+      expect(s.competition).not.toMatch(/de \d{4}$/);
+    }
+    expect(W4_STATE_PAGES.map((s) => s.uf)).toEqual(['SP', 'RJ', 'MG', 'RS', 'PR', 'BA', 'SC', 'PE']);
+  });
+
+  it('stateCompetitionName remove o ano da edição; stateEditionYear extrai', async () => {
+    const mod = await import(
+      '../../../src/modules/etl/connectors/wikipedia-women-br.connector.js'
+    );
+    expect(mod.stateCompetitionName('Campeonato Paulista de Futebol Feminino de 2025')).toBe(
+      'Campeonato Paulista de Futebol Feminino',
+    );
+    expect(mod.stateCompetitionName('Campeonato Gaúcho de Futebol Feminino de 2026')).toBe(
+      'Campeonato Gaúcho de Futebol Feminino',
+    );
+    expect(mod.stateEditionYear('Campeonato Mineiro de Futebol Feminino de 2025')).toBe('2025');
+    expect(mod.stateEditionYear('sem ano')).toBe('');
+  });
+
+  it('estaduais sem estado na linha usam a UF da tabela ({{BR-UF}}) e competição level 4', async () => {
+    const mod = await import(
+      '../../../src/modules/etl/connectors/wikipedia-women-br.connector.js'
+    );
+    const rows = mod.parseSeasonParticipants('| {{Futebol São José Feminino}} || [[São José dos Campos]] || {{BR-SP}} || x');
+    const inputs = mod.seasonRowsToInputs(
+      rows,
+      new Map([['Futebol São José Feminino', { target: 'São José Esporte Clube (futebol feminino)', display: 'São José' }]]),
+      { name: 'Campeonato Paulista de Futebol Feminino', level: 4, season: '2025', sourceUrl: 'u' },
+      [],
+    );
+    expect(inputs[0]!.state).toBe('SP');
+    expect(inputs[0]!.competitions[0]!.level).toBe(4);
+  });
+});
