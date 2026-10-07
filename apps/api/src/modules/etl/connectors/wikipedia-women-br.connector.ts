@@ -955,21 +955,28 @@ export interface W7StandingsRow {
 
 /** Extrai o conteúdo de um template #invoke:sports results (balanceando {{ }}). */
 export function extractSportsResultsBlock(wikitext: string): string | null {
-  const start = wikitext.indexOf('#invoke:sports results');
-  if (start < 0) return null;
-  let depth = 0;
-  let begin = -1;
-  for (let i = start; i < wikitext.length - 1; i++) {
+  const marker = wikitext.indexOf('#invoke:sports results');
+  if (marker < 0) return null;
+  // A chave externa do PROPRIO #invoke abre antes do marcador — comeca depth=1
+  // (sem isso o 1o }} interno, ex.: {{Futebol X}}, fechava o bloco cedo).
+  const braceStart = wikitext.lastIndexOf('{{', marker);
+  if (braceStart < 0) return null;
+  let depth = 1;
+  let i = braceStart + 2;
+  while (i < wikitext.length - 1) {
     const two = wikitext.slice(i, i + 2);
     if (two === '{{') {
-      if (depth === 0) begin = i + 2;
       depth++;
-      i++;
-    } else if (two === '}}') {
-      depth--;
-      if (depth === 0) return wikitext.slice(begin, i);
-      i++;
+      i += 2;
+      continue;
     }
+    if (two === '}}') {
+      depth--;
+      if (depth === 0) return wikitext.slice(braceStart + 2, i);
+      i += 2;
+      continue;
+    }
+    i++;
   }
   return null;
 }
