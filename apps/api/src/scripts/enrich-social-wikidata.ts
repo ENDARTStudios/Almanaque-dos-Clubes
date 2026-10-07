@@ -92,7 +92,11 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   // Raw SQL: filtros null em Json via shorthand/sentinels têm comportamento
   // inconsistente nesta instalação — SQL direto é determinístico.
   const base = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR website IS NULL)`;
+  // competitions tem soft-delete (T448b-2i); players NÃO tem deletedAt no
+  // modelo — usar base própria (a coluna inexistente derrubava o enrich de
+  // players com 42703; o branch nunca tinha rodado em produção).
   const baseOther = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR "officialSite" IS NULL)`;
+  const basePlayer = `qid IS NOT NULL AND ("socialLinks" IS NULL OR "officialSite" IS NULL)`;
   const select = `id, qid, website, "socialLinks"`;
   const selectOther = `id, qid, "officialSite", "socialLinks"`;
   if (TARGET === 'club') {
@@ -102,7 +106,7 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   }
   if (TARGET === 'player') {
     return prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
+      `SELECT ${selectOther} FROM players WHERE ${basePlayer} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     ) as unknown as Promise<Target[]>;
   }
   if (TARGET === 'competition') {
