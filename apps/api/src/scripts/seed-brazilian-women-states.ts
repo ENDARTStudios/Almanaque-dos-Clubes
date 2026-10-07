@@ -33,6 +33,7 @@ import {
   planW3Seed,
   planW3Competitions,
   clubSlug,
+  slugify,
   competitionSlugKey,
   W3_EDGE_RELATION,
   type W3ClubInput,
@@ -263,6 +264,17 @@ async function main(): Promise<void> {
       select: { id: true, name: true, country: true, gender: true, deletedAt: true },
     });
     console.log(`  acervo: ${existingClubs.length} clubes, ${existingComps.length} competições BR`);
+
+    // Tabelas estaduais normalmente NÃO repetem {{BR-UF}} → input nasce sem
+    // estado e o slug (nome::uf) não bate com o clube que a wave 3 criou com
+    // estado. Nome-slug (sem UF) casando 1:1 com o acervo = MESMO clube:
+    // adota o estado do acervo (plano vira skip_existing e a aresta liga nele).
+    for (const input of deduped) {
+      if (input.state) continue;
+      const nameKey = slugify(input.name);
+      const hits = existingClubs.filter((c) => slugify(c.name) === nameKey);
+      if (hits.length === 1) input.state = hits[0]!.state;
+    }
 
     const seedPlan = planW3Seed(deduped, existingClubs);
     const compsPlan = planW3Competitions(
