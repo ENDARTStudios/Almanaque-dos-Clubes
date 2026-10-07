@@ -483,3 +483,43 @@ describe('T450 wave 4 — estaduais femininos', () => {
     expect(inputs[0]!.competitions[0]!.level).toBe(4);
   });
 });
+
+describe('T450 wave 5 — parser de edições/campeões', () => {
+  const wikitext = [
+    'intro',
+    '== Edições ==',
+    '{| class="wikitable"',
+    '|- style="background: #C1D8FF;"',
+    "|'''1983'''<br />''[[Campeonato X de Futebol Feminino de 1983|Detalhes]]''",
+    "|[[imagem:Bandeira.svg|30px]]<br />'''[[Esporte Clube Radar|Radar]]'''",
+    "|'''2 – 0'''",
+    '|[[imagem:Bandeira.svg]]<br />[[Bangu Atlético Clube|Bangu]]',
+    '|-',
+    "|'''1984'''<br />''[[Campeonato X de Futebol Feminino de 1984|Detalhes]]''",
+    "|{{BR-RJ-Riob|30x27px}}<br />'''{{Futebol Flamengo Feminino}}'''",
+    '|-',
+    "|'''1985'''",
+    '|[[:Categoria:X]]<br />sem campeão em negrito nesta linha',
+    "|'''{{Futebol Kindermann}}'''",
+    '|}',
+    '== Títulos por equipe ==',
+    "|'''{{Futebol Flamengo|cidade=antes}}''' (agregado, não é edição)",
+    '...continuação fora de Edições',
+    "|'''1999'''<br />fora da seção",
+  ].join('\n');
+
+  it('extrai ano + campeão (link direto e via predefinição), ignora vice e agregados', async () => {
+    const mod = await import('../../../src/modules/etl/connectors/wikipedia-women-br.connector.js');
+    const editions = mod.parseChampionEditions(wikitext);
+    expect(editions).toEqual([
+      { year: 1983, link: 'Esporte Clube Radar', template: null },
+      { year: 1984, link: null, template: 'Futebol Flamengo Feminino' },
+      { year: 1985, link: null, template: 'Futebol Kindermann' },
+    ]);
+  });
+
+  it('guard de seção: nada fora de Edições/Campeões', async () => {
+    const mod = await import('../../../src/modules/etl/connectors/wikipedia-women-br.connector.js');
+    expect(mod.parseChampionEditions("|'''1999'''<br />sem seção")).toEqual([]);
+  });
+});
