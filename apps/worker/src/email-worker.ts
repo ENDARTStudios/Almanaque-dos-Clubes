@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { createWorker } from '../../api/src/services/queue.js';
+import { prisma } from '../../api/src/config/prisma.js';
 import { welcomeEmailHtml, welcomeEmailText } from './templates/welcome.js';
 import { passwordResetEmailHtml, passwordResetEmailText } from './templates/password-reset.js';
 import { verifyEmailHtml, verifyEmailText } from './templates/verify-email.js';
@@ -76,16 +77,33 @@ createWorker('email', async (job) => {
     }
 
     case 'birthday-gift': {
-      const { name, email, expiresAt } = job.data as {
-        name: string;
-        email: string;
+      // A API enfileira {type, userId, expiresAt} (sem name/email) — o worker
+      // resolve o destinatário pelo userId (conexão owner; FORCE RLS não se
+      // aplica). Descoberto no primeiro smoke real do consumer (T493).
+      let { name, email, expiresAt } = job.data as {
+        name?: string;
+        email?: string;
+        userId?: string;
         expiresAt: string;
       };
+      if (!email && job.data.userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: String(job.data.userId) },
+          select: { name: true, email: true },
+        });
+        name = name ?? user?.name ?? undefined;
+        email = user?.email;
+      }
+      if (!email) {
+        throw new Error(`birthday-gift sem destinatário (job ${job.id}, userId ${job.data.userId ?? 'ausente'})`);
+      }
+      const to = email;
+      const nome = name ?? '';
       await sendEmail(
-        email,
+        to,
         '🎂 Parabéns! Você ganhou 1 mês de Elite no Almanaque dos Clubes',
-        birthdayEmailHtml({ name, email, expiresAt }),
-        birthdayEmailText({ name, email, expiresAt }),
+        birthdayEmailHtml({ name: nome, email: to, expiresAt }),
+        birthdayEmailText({ name: nome, email: to, expiresAt }),
       );
       break;
     }
