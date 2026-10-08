@@ -541,3 +541,19 @@ Work Log:
 
 Stage Summary:
 - Portal estruturado com dado real; backlog do portal registrado (§Portal) — quick win seguinte: Ranking digital de clubes (T062 já tem o dado)
+
+---
+Task ID: goal-2026-10-09/entregas-portal
+Agent: Doer (GLM-5.3-Flash)
+Task: Entregas 1–4 — camada de navegação e perfis conectados
+
+Work Log:
+- API ADITIVA: GET /competitions ganha gender filter (coluna real; 'hierarchy' não é coluna — adaptação honesta registrada) · GET /competitions/:id ganha overview WON (editions por ano com regra de ambiguidade T441, topWinners, participants = clubes com títulos — aresta PARTICIPATED_IN não existe no enum, rotulado) · GET /players/:id ganha profile (currentClub, career via metadata.year, achievements WON source=player honesto, clubs via PLAYED_FOR)
+- WEB: /competitions/:id com sub-abas server-side (Visão Geral|Edições|Clubes|Maiores Campeões) + badges + campeão atual · /players/:id com Clube atual + Carreira + Conquistas + Clubes (estados honestos) · /competitions com filtros gender/type/country (form GET) + paginação 50 · Navbar com dropdowns Competições/Clubes + busca global sempre visível (→ /search?q=; GlobalSearch adota q) + mobile 2 níveis
+- Testes: unit buildCompetitionOverview (6: agrupamento/ambíguo/soft-delete/ghost/participantes/vazio) + integração portal-profiles (4: overview com arestas reais, 404, profile honesto, gender filter) + web 63/63
+- Armadilhas: apóstrofos em "Women's" quebram strings TS single-quoted (escapar); âncoras de bloco multilinha precisam ser estruturais (`\n    },\n    favoritos: {`); includes falso-negativo por âncora com `};` onde o bloco termina `},`
+- Smoke produção: Libertadores com 50 edições reais (1960–2025) linkadas aos perfis dos clubes · Kelly Brady/Marta sem PLAYED_FOR → "Em catalogação" (honesto; 19 edges P54 entre 2.4k+ jogadores — correção em escala = T034)
+- PR #434 MERGADO (CI verde)
+
+Stage Summary:
+- Entregas 1–4 completas; integridade preservada (zero escrita em rankings, sem migration); i18n ×3; T034 é o multiplicador seguinte (popular carreiras em escala)
