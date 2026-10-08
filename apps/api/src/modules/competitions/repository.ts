@@ -12,6 +12,7 @@ import type { Competition } from '@almanaque/domain';
 export interface ListCompetitionsParams {
   country?: string;
   type?: string;
+  gender?: string;
   search?: string;
   limit?: number;
   offset?: number;
@@ -23,12 +24,13 @@ export const competitionsRepository = {
   },
 
   async findMany(params: ListCompetitionsParams = {}): Promise<Competition[]> {
-    const { country, type, search, limit = 50, offset = 0 } = params;
+    const { country, type, gender, search, limit = 50, offset = 0 } = params;
     return prisma.competition.findMany({
       where: {
         AND: [
           country ? { country } : {},
           type ? { type: type as any } : {},
+          gender ? { gender } : {},
           ...(search ? [await searchCondition(search)] : []),
         ],
       },
@@ -39,12 +41,13 @@ export const competitionsRepository = {
   },
 
   async count(params: ListCompetitionsParams = {}): Promise<number> {
-    const { country, type, search } = params;
+    const { country, type, gender, search } = params;
     return prisma.competition.count({
       where: {
         AND: [
           country ? { country } : {},
           type ? { type: type as any } : {},
+          gender ? { gender } : {},
           ...(search ? [await searchCondition(search)] : []),
         ],
       },

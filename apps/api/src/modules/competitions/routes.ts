@@ -31,6 +31,7 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
     const result = await competitionsService.list({
       country: query.country,
       type: query.type,
+      gender: query.gender,
       search: query.search,
       limit,
       offset,
@@ -46,6 +47,9 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
       try {
         const competition = await competitionsService.getById(request.params.id);
         const userId = (request.user as { id?: string } | undefined)?.id;
+        // Mapeamento do portal (Entrega 2) — overview aditivo (editions/topWinners/
+        // participants via WON); nenhum contrato existente muda.
+        const overview = await competitionsService.getOverview(request.params.id);
         return reply.send({
           data: {
             ...competition,
@@ -54,6 +58,7 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
               ? await favoritesService.isFavorited(userId, 'competition', request.params.id)
               : undefined,
           },
+          overview,
         });
       } catch (err) {
         return handleDomainError(err, reply);
