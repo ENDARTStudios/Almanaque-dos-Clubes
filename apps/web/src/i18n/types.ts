@@ -31,6 +31,8 @@ export interface Dictionary {
     dashboard: string;
     signOut: string;
     subscription: string;
+    market: string;
+    menu: string;
   };
   footer: {
     tagline: string;
@@ -198,7 +200,29 @@ export interface Dictionary {
   pages: {
     clubs: { title: string; subtitle: string; placeholder: string };
     players: { title: string; subtitle: string; placeholder: string };
-    competitions: { title: string; subtitle: string; empty: string };
+    competitions: {
+      title: string;
+      subtitle: string;
+      empty: string;
+      sections: {
+        continental: string;
+        nacionais: string;
+        feminino: string;
+        femininoNota: string;
+        selecoes: string;
+        selecoesVazio: string;
+        verTodasFeminino: string;
+        todas: string;
+      };
+    };
+    market: {
+      title: string;
+      subtitle: string;
+      emBreve: string;
+      body: string;
+      bodyCta: string;
+      cta: string;
+    };
     favoritos: {
       title: string;
       heartAdd: string;
