@@ -17,8 +17,6 @@ import {
 } from '../../src/jobs/data-refresh.scheduler.js';
 import { cache } from '../../src/services/cache.js';
 
-const KEY = 'jobs:health:t077-fake-job';
-
 let redisOk = false;
 
 beforeAll(async () => {
@@ -48,6 +46,8 @@ describe('health de jobs persistido (dívida #303)', () => {
 
   it('(b) entrada persistida de job sem entrada em memória entra no merged', async () => {
     if (!redisOk) return; // skip logado no beforeAll
+    // O merger só sonda nomes canônicos + chaves presentes na memória — semear
+    // 'integrity-check' (memória com lastRunAt null ⇒ persistida mais recente vence).
     const persisted = {
       lastRunAt: new Date().toISOString(),
       lastStatus: 'success' as const,
@@ -55,10 +55,10 @@ describe('health de jobs persistido (dívida #303)', () => {
       failureCount: 0,
       lastDurationMs: 4321,
     };
-    await cache.set(KEY, JSON.stringify(persisted), 60);
+    await cache.set('jobs:health:integrity-check', JSON.stringify(persisted), 60);
     const merged = await getJobHealthMerged();
-    expect(merged['t077-fake-job']?.successCount).toBe(7);
-    expect(merged['t077-fake-job']?.lastDurationMs).toBe(4321);
+    expect(merged['integrity-check']?.successCount).toBe(7);
+    expect(merged['integrity-check']?.lastDurationMs).toBe(4321);
   });
 
   it('(c) memória mais recente vence a persistida', async () => {
