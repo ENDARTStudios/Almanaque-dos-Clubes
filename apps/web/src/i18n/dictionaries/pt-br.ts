@@ -198,6 +198,7 @@ const pt: Dictionary = {
       hierarchy_nacional: 'Nacional',
       hierarchy_estadual: 'Estadual',
       hierarchy_municipal: 'Municipal',
+      nonFifaTag: 'Não-FIFA',
     },
     compare: {
       title: 'Comparar',

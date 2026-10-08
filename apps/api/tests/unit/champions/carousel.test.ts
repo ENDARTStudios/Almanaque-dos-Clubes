@@ -20,6 +20,44 @@ function edge(sourceId: string, meta: Record<string, unknown>, targetId = 'comp1
   return { sourceId, sourceType: 'Club', targetId, targetType: 'Competition', metadata: meta };
 }
 
+describe('buildCarousel — flag nonFifa (auditoria 08-10)', () => {
+  const viva: CarouselComp = {
+    id: 'compV',
+    qid: 'Q318443',
+    name: 'VIVA World Cup',
+    type: null,
+    country: null,
+  };
+  it('Q318443 (VIVA World Cup) → scope.nonFifa true; QID comum → false', () => {
+    const { scopes } = buildCarousel(
+      [
+        edge(
+          'clubA',
+          { year: 2006, hierarchy: 'mundial', source: 'wikidata', sourceUrl: 'u' },
+          'compV',
+        ),
+        edge('clubB', { year: 2025, hierarchy: 'mundial', source: 'wikidata', sourceUrl: 'u' }),
+      ],
+      [viva, comps[0]],
+      clubs,
+      2026,
+    );
+    expect(scopes).toHaveLength(2);
+    const vivaScope = scopes.find((s) => s.competition.qid === 'Q318443');
+    const fifaScope = scopes.find((s) => s.competition.qid === 'Q100');
+    expect(vivaScope?.nonFifa).toBe(true);
+    expect(fifaScope?.nonFifa).toBe(false);
+  });
+
+  it('isNonFifaWorldCompetition: null/undefined → false', async () => {
+    const { isNonFifaWorldCompetition } = await import('../../../src/lib/champions/non-fifa.js');
+    expect(isNonFifaWorldCompetition(null)).toBe(false);
+    expect(isNonFifaWorldCompetition(undefined)).toBe(false);
+    expect(isNonFifaWorldCompetition('Q999')).toBe(false);
+    expect(isNonFifaWorldCompetition('Q318443')).toBe(true);
+  });
+});
+
 describe('buildCarousel', () => {
   it('um único campeão ativo por escopo → incluído', () => {
     const { scopes } = buildCarousel(
