@@ -77,6 +77,8 @@ próprio. **Restante p/ os 80%:** agregado `country_pyramid` do rankings.service
 **Decisão de design:** banco de dados ESTATÍSTICO (identidade do Almanaque); não é portal de notícias.
 Implementado (PR #432): menu com 5 áreas + Mercado da Bola (i18n ×3) · **menu mobile hambúrguer** (antes: zero navegação no celular) · /competitions hierárquica curada (Continentais 6 · Nacionais 9 países/14 âncoras por arestas WON · Feminino 9 do acervo T450 · Seleções vazio-honesto) · /mercado-da-bola honesta ('Em breve') · matriz de interconexão verificada (jogador↔clube, clube→competições, carrossel→competição).
 
+**Entregas 1–4 implementadas (PR #434, 09-10):** menu com dropdowns + busca global sempre visível + mobile 2 níveis · /competitions/:id com sub-abas (Edições reais: Libertadores 1960–2025) · /players/:id com Carreira/Conquistas/Clubes · /competitions com filtros+paginação. Adaptações honestas: PARTICIPATED_IN não existe (participantes = via WON); hierarchy não é coluna (filtro real = gender).
+
 **Backlog do portal (dependente de DADO novo — ordem de valor):**
 - [ ] **Jogos de Hoje** (carrossel na home) — requer ingestão de partidas/resultados (T102; API football-data já tem conector no worker)
 - [ ] **Sub-abas por competição**: Tabela/Calendário/Estatísticas/Notícias — Tabela = rankings existentes por competição; Calendário = T102; Artilharia/Assistências = sem dado granular; Notícias = sem fonte editorial
