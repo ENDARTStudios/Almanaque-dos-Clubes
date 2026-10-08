@@ -153,21 +153,43 @@ interface WikidataSitelink {
 
 async function sitelinkForQids(qids: string[]): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
-  for (let i = 0; i < qids.length; i += 50) {
-    const batch = qids.slice(i, i + 50);
-    const d = await fetchJson<WikidataSitelink>(
-      `https://www.wikidata.org/w/api.php?${new URLSearchParams({
-        action: 'wbgetentities',
-        ids: batch.join('|'),
-        props: 'sitelinks',
-        sitefilter: 'ptwiki',
-        format: 'json',
-        formatversion: '2',
-      })}`,
-    );
-    for (const [qid, ent] of Object.entries(d.entities ?? {})) {
-      const pt = ent.sitelinks?.ptwiki?.title;
-      if (pt) out[qid] = pt;
+  // Wikidata limita o IP compartilhado do Railway — lote 20 + cadência lenta
+  // própria (3s entre chamadas, backoff 15/30/60s em 429/5xx).
+  for (let i = 0; i < qids.length; i += 20) {
+    const batch = qids.slice(i, i + 20);
+    let attempt = 0;
+    for (;;) {
+      await throttle();
+      try {
+        const res = await fetch(
+          `https://www.wikidata.org/w/api.php?${new URLSearchParams({
+            action: 'wbgetentities',
+            ids: batch.join('|'),
+            props: 'sitelinks',
+            sitefilter: 'ptwiki',
+            format: 'json',
+            formatversion: '2',
+          })}`,
+          { headers: { 'user-agent': UA } },
+        );
+        if (res.status === 429 || res.status >= 500) {
+          if (attempt >= 3) throw new Error(`wikidata HTTP ${res.status}`);
+          await sleep(15000 * 2 ** attempt);
+          attempt++;
+          continue;
+        }
+        if (!res.ok) throw new Error(`wikidata HTTP ${res.status}`);
+        const d = (await res.json()) as WikidataSitelink;
+        for (const [qid, ent] of Object.entries(d.entities ?? {})) {
+          const pt = ent.sitelinks?.ptwiki?.title;
+          if (pt) out[qid] = pt;
+        }
+        break;
+      } catch (err) {
+        if (attempt >= 3) throw err;
+        await sleep(15000 * 2 ** attempt);
+        attempt++;
+      }
     }
   }
   return out;
@@ -183,16 +205,44 @@ async function fetchArticleAndTemplate(title: string): Promise<Record<string, st
   const m = /\{\{(Info\/[^|}]+)/.exec(wt);
   if (!m) return null;
   const templateName = m[1]!.trim();
-  // campos inline?
-  const inline = parseInfoboxFields(wt.slice(wt.indexOf(`{{${templateName}`)));
-  if (Object.keys(inline).length >= 3) return inline;
-  // subpágina Predefinição:Info/<Artigo>
+  // SUBPÁGINA primeiro (padrão dos artigos de clube da PT Wikipedia: o artigo
+  // transclui Predefinição:Info/<Artigo>). O parse inline no artigo INTEIRO
+  // casava linhas de tabelas do corpo (| align=\"left\" |) como se fossem campos.
   const tpl = await fetchJson<{ parse?: { wikitext: string } }>(
     mwApi({ action: 'parse', page: `Predefinição:${templateName}`, prop: 'wikitext' }),
   );
   const twt = tpl.parse?.wikitext;
-  if (!twt) return null;
-  return parseInfoboxFields(twt);
+  if (twt) {
+    const fields = parseInfoboxFields(twt);
+    if (Object.keys(fields).length >= 2) return fields;
+  }
+  // Fallback: infobox INLINE no artigo — cortado no extent balanceado do
+  // template (nunca no artigo inteiro).
+  const start = wt.indexOf(`{{${templateName}`);
+  if (start < 0) return null;
+  let depth = 1;
+  let i = start + 2;
+  let extentEnd = wt.length;
+  while (i < wt.length - 1) {
+    const two = wt.slice(i, i + 2);
+    if (two === '{{') {
+      depth++;
+      i += 2;
+      continue;
+    }
+    if (two === '}}') {
+      depth--;
+      if (depth === 0) {
+        extentEnd = i;
+        break;
+      }
+      i += 2;
+      continue;
+    }
+    i++;
+  }
+  const inline = parseInfoboxFields(wt.slice(start, extentEnd));
+  return Object.keys(inline).length >= 2 ? inline : null;
 }
 
 async function main(): Promise<void> {
