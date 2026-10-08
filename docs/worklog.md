@@ -491,3 +491,19 @@ Work Log:
 
 Stage Summary:
 - Site auditado saudável; 3 achados corrigidos e verificados ao vivo; 2 P3 registrados
+
+---
+Task ID: goal-2026-10-08-r5/speed-insights
+Agent: Doer (GLM-5.3-Flash)
+Task: Speed Insights via código (Operador pediu CLI-first em vez de painel)
+
+Work Log:
+- Vercel CLI autenticado (endartstudios @ end-art-studios): whoami, project ls, ls, inspect — produção mapeada via terminal
+- P3 Speed Insights implementado pelo CAMINHO DE CÓDIGO (mesmo resultado do botão Enable do painel): @vercel/speed-insights + <SpeedInsightsGate/> no layout raiz
+- GATEADO na categoria 'analytics' do consentimento (regra T436: analytics nunca carrega sem consentimento) — componente retorna null sem consent
+- Sem cookies: inventário da /cookies segue verdadeiro; nota da política atualizada ×3 (v1.1, revisão 08/10) com menção transparente da telemetria
+- PR #428 MERGADO (CI verde); produção 6dcblcrkv Ready
+- Verificado em produção via browser: chunk do SI carregado + /_vercel/insights/script.js fetchado (resource timing) — só navega com consent.analytics=true, provando o gate
+
+Stage Summary:
+- Core Web Vitals reais passam a fluir para o painel Vercel (Speed Insights) com tráfego; P3 encerrado por código em vez de toggle de painel
