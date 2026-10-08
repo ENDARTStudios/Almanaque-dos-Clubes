@@ -53,7 +53,7 @@ async function main(): Promise<void> {
     const batch = qids.slice(i, i + 200);
     const q = SPARQL.replace('%QIDS%', batch.map((q) => `wd:${q}`).join(' '));
     const url = `https://query.wikidata.org/sparql?format=json&query=` + encodeURIComponent(q);
-    let rows: Array<Record<string, { value: string }>> = [];
+    let rows: Array<Record<string, { value: string }>>;
     for (;;) {
       const res = await fetch(url, {
         headers: { 'user-agent': UA, accept: 'application/sparql-results+json' },
