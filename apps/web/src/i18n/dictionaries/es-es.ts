@@ -224,6 +224,13 @@ const es: Dictionary = {
       national: 'Nacional',
       state: 'Estadual',
       municipal: 'Municipal',
+      historyYears: 'Años de historia',
+      radarTitle: 'Visión general (radar)',
+      radarNote:
+        'Cada eje se normaliza por el mayor valor del par (100 = líder). Los ejes sin datos en cualquiera de los lados quedan fuera.',
+      radarExcluded: 'Sin datos en el acervo (fuera del radar):',
+      exportPdf: 'Exportar PDF',
+      printTitle: 'Informe comparativo',
     },
     rankings: {
       title: 'Rankings',

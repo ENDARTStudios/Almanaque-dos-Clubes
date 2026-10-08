@@ -383,3 +383,20 @@
 .leaflet-overlay-pane svg {
   touch-action: none;
 }
+
+/* T072 — Exportar PDF em /compare: o botão usa window.print() e estas regras
+   garantem que só o relatório saia no papel/PDF (nav, rodapé e controles fora). */
+.print-only {
+  display: none;
+}
+@media print {
+  nav,
+  footer,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
