@@ -221,6 +221,13 @@ const en: Dictionary = {
       national: 'National',
       state: 'State',
       municipal: 'Municipal',
+      historyYears: 'Years of history',
+      radarTitle: 'Overview (radar)',
+      radarNote:
+        "Each axis is normalized by the pair's highest value (100 = leader). Axes missing data on either side are excluded.",
+      radarExcluded: 'No archive data (excluded from radar):',
+      exportPdf: 'Export PDF',
+      printTitle: 'Comparison report',
     },
     rankings: {
       title: 'Rankings',

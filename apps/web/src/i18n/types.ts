@@ -251,6 +251,12 @@ export interface Dictionary {
       national: string;
       state: string;
       municipal: string;
+      historyYears: string;
+      radarTitle: string;
+      radarNote: string;
+      radarExcluded: string;
+      exportPdf: string;
+      printTitle: string;
     };
     rankings: {
       title: string;
