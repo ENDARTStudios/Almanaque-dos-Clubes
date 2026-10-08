@@ -18,6 +18,7 @@ import type { FastifyInstance } from 'fastify';
 let app: FastifyInstance;
 let dbOk = true;
 let redisOk = false;
+let eliteToken = '';
 
 const suffix = Date.now();
 const created: string[] = [];
@@ -80,7 +81,7 @@ describe('GET /export/:entityType — plano (T094)', () => {
     for (const format of ['csv', 'json']) {
       const res = await app.inject({
         method: 'GET',
-        url: `/export/clubs?format=${format}`,
+        url: `/api/v1/export/clubs?format=${format}`,
         headers: auth(token),
       });
       expect(res.statusCode).toBe(403);
@@ -95,7 +96,7 @@ describe('GET /export/:entityType — plano (T094)', () => {
     const token = await makeUser('PRO');
     const csv = await app.inject({
       method: 'GET',
-      url: '/export/clubs?format=csv',
+      url: '/api/v1/export/clubs?format=csv',
       headers: auth(token),
     });
     expect(csv.statusCode).toBe(200);
@@ -103,7 +104,7 @@ describe('GET /export/:entityType — plano (T094)', () => {
 
     const json = await app.inject({
       method: 'GET',
-      url: '/export/clubs?format=json',
+      url: '/api/v1/export/clubs?format=json',
       headers: auth(token),
     });
     expect(json.statusCode).toBe(403);
@@ -112,11 +113,11 @@ describe('GET /export/:entityType — plano (T094)', () => {
 
   it('(c) ELITE → json 200', async () => {
     if (!dbOk) return;
-    const token = await makeUser('ELITE');
+    eliteToken = await makeUser('ELITE');
     const res = await app.inject({
       method: 'GET',
-      url: '/export/clubs?format=json',
-      headers: auth(token),
+      url: '/api/v1/export/clubs?format=json',
+      headers: auth(eliteToken),
     });
     expect(res.statusCode).toBe(200);
   });
@@ -125,7 +126,7 @@ describe('GET /export/:entityType — plano (T094)', () => {
 describe('GET /export/:entityType — quota diária (T096)', () => {
   it('(d) estourou o limite → 429 + Retry-After', async () => {
     if (!dbOk || !redisOk) return; // pulos logados no beforeAll
-    const token = await makeUser('ELITE');
+    // Reusa o usuário ELITE de (c) — criar outro com o mesmo suffix daria P2002.
     const user = await prisma.user.findFirstOrThrow({
       where: { email: `t094-elite-${suffix}@test.local` },
       select: { id: true },
@@ -137,8 +138,8 @@ describe('GET /export/:entityType — quota diária (T096)', () => {
     );
     const res = await app.inject({
       method: 'GET',
-      url: '/export/clubs?format=json',
-      headers: auth(token),
+      url: '/api/v1/export/clubs?format=json',
+      headers: auth(eliteToken!),
     });
     expect(res.statusCode).toBe(429);
     expect(res.json().error.code).toBe('EXPORT_QUOTA_EXCEEDED');
