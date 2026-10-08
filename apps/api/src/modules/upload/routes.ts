@@ -45,7 +45,13 @@ export const uploadRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
           .send({ error: { code: 'INVALID_FORMAT', message: 'Apenas arquivos CSV são aceitos' } });
       }
       const buffer = await data.toBuffer();
-      const result = await uploadFile(buffer, 'text/csv', data.filename, 'imports');
+      // text/csv é permitido POR CONTRATO nesta rota (valida CSV-ness acima) —
+      // não depende do env geral de imagens (#423: CI/prod sem text/csv na
+      // UPLOAD_ALLOWED_MIMES gerava 500 não tratado).
+      const result = await uploadFile(buffer, 'text/csv', data.filename, {
+        folder: 'imports',
+        allowedMimes: ['text/csv'],
+      });
       return reply.status(201).send({ data: result });
     },
   );

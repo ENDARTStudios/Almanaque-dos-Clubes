@@ -24,7 +24,7 @@ beforeEach(() => {
 
 describe('uploadFile (T138)', () => {
   it('caminho feliz: PNG válido → key com folder/ext, url pública e sizeBytes', async () => {
-    const res = await uploadFile(PNG, 'image/png', 'escudo.png', 'clubs');
+    const res = await uploadFile(PNG, 'image/png', 'escudo.png', { folder: 'clubs' });
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(res.key.startsWith('clubs/')).toBe(true);
     expect(res.key.endsWith('.png')).toBe(true);
@@ -32,6 +32,15 @@ describe('uploadFile (T138)', () => {
     expect(res.sizeBytes).toBe(PNG.length);
     // url = endpoint/bucket/key (ou domínio público quando S3_PUBLIC_URL definido)
     expect(res.url).toContain(res.key);
+  });
+
+  it('override de allowlist: CSV passa mesmo sem text/csv no env (#423)', async () => {
+    const res = await uploadFile(Buffer.from('a,b,c'), 'text/csv', 'dados.csv', {
+      folder: 'imports',
+      allowedMimes: ['text/csv'],
+    });
+    expect(res.key.startsWith('imports/')).toBe(true);
+    expect(res.mimeType).toBe('text/csv');
   });
 
   it('rejeita arquivo acima do limite (uploadMaxBytes)', async () => {
@@ -61,7 +70,9 @@ describe('uploadFile (T138)', () => {
 
   it('CSV não tem magic bytes confiáveis — passa direto pela checagem de assinatura', async () => {
     if (!env.uploadAllowedMimes.includes('text/csv')) return; // allowlist sem CSV neste env
-    const res = await uploadFile(Buffer.from('a,b,c'), 'text/csv', 'dados.csv', 'exports');
+    const res = await uploadFile(Buffer.from('a,b,c'), 'text/csv', 'dados.csv', {
+      folder: 'exports',
+    });
     expect(res.key.endsWith('.csv')).toBe(true);
   });
 });
