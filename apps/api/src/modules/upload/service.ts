@@ -24,13 +24,18 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
   return signatures.some((sig) => sig.every((byte, i) => buffer[i] === byte));
 }
 
-function validateFile(buffer: Buffer, mimeType: string, originalName: string): void {
+function validateFile(
+  buffer: Buffer,
+  mimeType: string,
+  originalName: string,
+  allowedMimes: string[] = env.uploadAllowedMimes,
+): void {
   if (buffer.length > env.uploadMaxBytes) {
     throw new Error(
       `Arquivo excede o limite de ${Math.round(env.uploadMaxBytes / 1024 / 1024)} MiB`,
     );
   }
-  if (!env.uploadAllowedMimes.includes(mimeType)) {
+  if (!allowedMimes.includes(mimeType)) {
     throw new Error(`Tipo MIME não permitido: ${mimeType}`);
   }
   if (!validateMagicBytes(buffer, mimeType)) {
@@ -49,13 +54,21 @@ export interface UploadResult {
   sizeBytes: number;
 }
 
+export interface UploadOptions {
+  folder?: string;
+  /** Override da allowlist de MIME (p.ex. a rota de CSV aceita text/csv por
+   * contrato próprio, independente do env geral de imagens). */
+  allowedMimes?: string[];
+}
+
 export async function uploadFile(
   buffer: Buffer,
   mimeType: string,
   originalName: string,
-  folder = 'uploads',
+  opts: UploadOptions = {},
 ): Promise<UploadResult> {
-  validateFile(buffer, mimeType, originalName);
+  const folder = opts.folder ?? 'uploads';
+  validateFile(buffer, mimeType, originalName, opts.allowedMimes ?? env.uploadAllowedMimes);
   const ext = originalName.split('.').pop()?.toLowerCase() ?? 'bin';
   const key = `${folder}/${randomUUID()}.${ext}`;
   await s3Client.send(
