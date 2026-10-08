@@ -449,3 +449,26 @@ Work Log:
 Stage Summary:
 
 - Prioridade seguinte: rankings.service + graph/rag/legal routes (fechar os 80% do T138) · T046/T047 com dado que existir · T093/T095
+
+---
+
+Task ID: goal-2026-10-08-r3/T138-gaps
+Agent: Doer (GLM-5.3-Flash)
+Task: T138 rodada 2 — fechar os gaps (rankings/graph/rag/legal/upload-routes)
+
+Work Log:
+
+- Sessão paralela VERIFICADA: mega-sweep SPARQL mergeada (#420, 03:30 UTC), zero PRs abertos — janela limpa para frentes de teste (zero colisão Wikidata)
+- 17 testes novos, todos verdes em DB+Redis locais (PostGIS 5439 descartável + Redis da stack):
+  · rankings lifecycle 5: CRUD + entries + publicação (imutabilidade → 409) + cursor público + histórico — service 18,6→63,6% (restante = agregado country_pyramid, fixture EN-pyramid registrada como próximo passo)
+  · graph 3: aresta RIVAL real (403/422/201) + consulta bidirecional — módulo 35,5→87,1%
+  · rag 2: /ai/ask honesto (422 sem pergunta; eco + citations [] + modelo declarado)
+  · legal routes 6: direitos do titular owner-scoped (cancel→409 honesto, export json/csv, perfil, admin RBAC 403) + copyright (declaração falsa→422, contranota, triagem admin) — módulo 40,5→82,8%
+  · upload routes 3: NO_FILE/403/INVALID_FORMAT + caminho feliz com S3 mockado (multipart com magic bytes EXATOS via Buffer — string UTF-8 corrompe 0x89)
+- BUG LATENTE REAL corrigido (#423): /upload/csv lançava 500 quando UPLOAD_ALLOWED_MIMES não inclui text/csv (default do env.ts NÃO inclui) — a rota agora passa allowedMimes:['text/csv'] por contrato próprio; teste reproduz o cenário do CI localmente
+- Cobertura global: 74,9→79,3% linhas (77,4% stmts · 66,1% branches · 78,8% funções); thresholds 70/60/68/72 → 75/63/75/77
+- Nota de higiene: dois pushes caíram em branch errada no worktree (docs/goal-round2 recebeu commits de código); corrigido movendo o ponteiro do PR (fast-forward). A branch docs mergeada ficou com 1 commit extra no origin — ruído cosmético
+
+Stage Summary:
+
+- PR #423 MERGADO (CI verde). T138: 79,3% linhas — a ~1pp dos 80%; próximo: fixture country_pyramid no rankings.service
