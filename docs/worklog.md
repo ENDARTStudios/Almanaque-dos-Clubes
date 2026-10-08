@@ -507,3 +507,19 @@ Work Log:
 
 Stage Summary:
 - Core Web Vitals reais passam a fluir para o painel Vercel (Speed Insights) com tráfego; P3 encerrado por código em vez de toggle de painel
+
+---
+Task ID: goal-2026-10-09/aliases
+Agent: Doer (GLM-5.3-Flash)
+Task: Aliases oficiais de email por função (T057/T090 — Operador criou os 6)
+
+Work Log:
+- Operador criou: contato/suporte/privacidade/security/reembolso/direitos (Gmail plus-addressing de endart.studios@gmail.com)
+- 76 ocorrências mapeadas por FUNÇÃO: 60 nos dicionários ×3 (regras por seção + palavras-chave, 6 correções manuais de tradução) + 16 em componentes/páginas
+- Mapa: contato→rodapé/metodologia/IA/identificação · suporte→atendimento/planos · privacidade→privacidade/cookies/LGPD/direitos-titular · security→/seguranca · reembolso→checkout CDC/painel/Termos · direitos→direitos-autorais
+- SECURITY.md: 3 resquícios do domínio LEGADO almanaque.app eliminados (canal security + escopo)
+- Teste t449a-close atualizado (asserção do alias +contato)
+- PR #430 MERGADO (CI verde); smoke ao vivo: rodapé +contato · /direitos-autorais +direitos · /seguranca +security
+
+Stage Summary:
+- T057/T090 [x]; comunicação oficial por função ativa; PENDENCIAS_OPERADOR item de aliases encerrado
