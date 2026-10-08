@@ -45,13 +45,17 @@ coordenadas 6.383+ · arestas WON 5.164 · hash ranking `3e93aba9…`.
 
 ### P1 — Caminho crítico (esta sessão/round)
 
-| #        | Tarefa                                                     | Status verificado                                                                                             | Ação                                                      |
-| -------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| **T072** | Comparadores avançados (gráficos interativos + export PDF) | `[~]` — T440 entregou tabela+timeline+títulos em `/compare`; **sem export**                                   | **EXECUTANDO neste round**                                |
-| **T077** | WS-G-1.2-B.2 — apply real do ranking refresh               | `[ ]` GATED: apply em produção exige aprovação explícita (B.1 dry-run ✅ 0/0/0/0 em 29-09)                    | Refazer dry-run read-only + escalar decisão com evidência |
-| **T094** | Export CSV/JSON com rate-limit (Pro/Elite)                 | `[ ]` confirmado: módulo `export` **sem** rate-limit                                                          | Executar                                                  |
-| **T096** | Limites diferenciados por plano (rate-limit)               | `[ ]`                                                                                                         | Executar após T094 (mesma superfície)                     |
-| **T034** | Seed de jogadores em escala (Wikidata P54)                 | `[~]` — scripts prontos (`ingest-players-wikidata.ts`, `seed-squads.ts`); 2.396+ jogadores; cobertura parcial | Ampliar cobertura (round próprio)                         |
+| #        | Tarefa                                                     | Status verificado                                                                                                                                                                                | Ação                                                                   |
+| -------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **T072** | Comparadores avançados (gráficos interativos + export PDF) | **✅ PR #415 mergeado (08-10)** — radar normalizado (normalização pelo líder; eixo sem dado é excluído e declarado) + Exportar PDF via print (CSP-safe, i18n ×3, 5 testes); smoke `/compare` 200 | Concluída                                                              |
+| **T077** | WS-G-1.2-B.2 — apply real do ranking refresh               | `[ ]` GATED: apply exige aprovação explícita; B.1 dry-run (29-09) = **0 drift** (nada a aplicar); sem wiring script→DB no repo (B.1 foi entrypoint ad-hoc no container)                          | Escalar decisão com este quadro; re-dry-run exige reconstruir o wiring |
+| **T094** | Export CSV/JSON com rate-limit (Pro/Elite)                 | **✅ PR #417 mergeado (08-10)** — FREE 403 `PLAN_REQUIRED` · PRO=csv · ELITE=csv+json (spec = catálogo `/planos`)                                                                                | Concluída                                                              |
+| **T096** | Limites diferenciados por plano (rate-limit)               | **✅ PR #417 mergeado (08-10)** — quota diária Redis: PRO 20/dia · ELITE 60/dia (default declarado, 429 com Retry-After, fail-open)                                                              | Concluída (limites ajustáveis pelo Operador)                           |
+| **T034** | Seed de jogadores em escala (Wikidata P54)                 | `[~]` — scripts prontos (`ingest-players-wikidata.ts`, `seed-squads.ts`); 2.396+ jogadores; cobertura parcial                                                                                    | Ampliar cobertura (round próprio)                                      |
+
+**Extra do round (08-10):** dívida de monitoramento **#303 fechada** (PR #416 mergeado) — health de jobs
+persiste em Redis (TTL 8d) e `/jobs/health` + `/observability/slo` sobrevivem a redeploy; o restart de
+01:14 UTC de hoje tinha apagado os gauges do cron das 03:00.
 
 ### P2 — Conteúdo M4 (rounds seguintes)
 
