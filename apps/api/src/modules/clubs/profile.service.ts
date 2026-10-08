@@ -105,6 +105,8 @@ export interface ClubProfile {
   followersSnapshot: (Record<string, number | null> & { updatedAt?: string }) | null;
   /** WS-C-12 — ❤ contagem pública de favoritantes. */
   fansCount: number;
+  /** T450 wave 8 — infobox Wikipedia PT (fonte padrão substituta do Wikidata). */
+  infobox: Record<string, string> | null;
 }
 
 /** Gaps permanentes do acervo atual (dados que simplesmente não existem ainda). */
@@ -143,6 +145,30 @@ export interface ProfileClubInput {
   followersSnapshot?: unknown;
   /** WS-C-12 — ❤ contagem pública de favoritantes. */
   fansCount?: number | null;
+}
+
+const INFOBOX_KEYS = [
+  'estadio',
+  'capacidade',
+  'alcunhas',
+  'mascote',
+  'presidente',
+  'treinador',
+  'local',
+  'liga',
+] as const;
+
+/** T450 wave 8 — extrai o bloco metadata.infobox (Wikipedia PT) p/ o perfil. */
+export function infoboxFromMetadata(metadata: unknown): Record<string, string> | null {
+  const meta = (metadata as Record<string, unknown> | null) ?? {};
+  const infobox = meta.infobox as Record<string, unknown> | null;
+  if (!infobox || typeof infobox !== 'object') return null;
+  const out: Record<string, string> = {};
+  for (const key of INFOBOX_KEYS) {
+    const v = infobox[key];
+    if (typeof v === 'string' && v.trim()) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 export function deriveProvenance(club: {
@@ -223,6 +249,7 @@ export function buildProfile(
     socialLinks: (club.socialLinks ?? null) as ClubProfile['socialLinks'],
     followersSnapshot: (club.followersSnapshot ?? null) as ClubProfile['followersSnapshot'],
     fansCount: club.fansCount ?? 0,
+    infobox: infoboxFromMetadata(club.metadata),
     geo: buildGeo(club, geoView),
     provenance: deriveProvenance(club),
     titles: buildTitlesSection(titles),
