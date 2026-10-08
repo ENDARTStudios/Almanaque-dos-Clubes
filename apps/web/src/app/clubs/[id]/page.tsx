@@ -26,6 +26,7 @@ interface ClubProfile {
   name: string;
   fansCount?: number | null;
   website?: string | null;
+  infobox?: Record<string, string> | null;
   socialLinks?: Record<string, { handle: string; url: string } | null> | null;
   followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   fullName: string | null;
@@ -221,6 +222,21 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             followersSnapshot={club.followersSnapshot ?? null}
           />
         </div>
+        {club.infobox && (
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8">
+            {club.infobox.estadio && <InfoItem label="Estádio" value={club.infobox.estadio} />}
+            {club.infobox.capacidade && (
+              <InfoItem label="Capacidade" value={club.infobox.capacidade} />
+            )}
+            {club.infobox.presidente && (
+              <InfoItem label="Presidente" value={club.infobox.presidente} />
+            )}
+            {club.infobox.treinador && <InfoItem label="Treinador" value={club.infobox.treinador} />}
+            {club.infobox.alcunhas && <InfoItem label="Alcunhas" value={club.infobox.alcunhas} />}
+            {club.infobox.mascote && <InfoItem label="Mascote" value={club.infobox.mascote} />}
+            {club.infobox.local && <InfoItem label="Local" value={club.infobox.local} />}
+          </dl>
+        )}
       </header>
 
       {/* WS-C-9 Modo Clube — seção Comunidade (client): descrição da comunidade
