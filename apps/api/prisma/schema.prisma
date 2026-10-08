@@ -134,6 +134,8 @@ model Player {
   shortName    String?
   birthDate    DateTime?
   country      String?   @db.VarChar(2)
+  // T034 — P21 Wikidata ('men' | 'women'); nullable, ingestão preenche quando a fonte traz.
+  gender       String?
   position     String?
   clubId       String?
   club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)
