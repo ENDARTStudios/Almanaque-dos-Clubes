@@ -153,21 +153,43 @@ interface WikidataSitelink {
 
 async function sitelinkForQids(qids: string[]): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
-  for (let i = 0; i < qids.length; i += 50) {
-    const batch = qids.slice(i, i + 50);
-    const d = await fetchJson<WikidataSitelink>(
-      `https://www.wikidata.org/w/api.php?${new URLSearchParams({
-        action: 'wbgetentities',
-        ids: batch.join('|'),
-        props: 'sitelinks',
-        sitefilter: 'ptwiki',
-        format: 'json',
-        formatversion: '2',
-      })}`,
-    );
-    for (const [qid, ent] of Object.entries(d.entities ?? {})) {
-      const pt = ent.sitelinks?.ptwiki?.title;
-      if (pt) out[qid] = pt;
+  // Wikidata limita o IP compartilhado do Railway — lote 20 + cadência lenta
+  // própria (3s entre chamadas, backoff 15/30/60s em 429/5xx).
+  for (let i = 0; i < qids.length; i += 20) {
+    const batch = qids.slice(i, i + 20);
+    let attempt = 0;
+    for (;;) {
+      await throttle();
+      try {
+        const res = await fetch(
+          `https://www.wikidata.org/w/api.php?${new URLSearchParams({
+            action: 'wbgetentities',
+            ids: batch.join('|'),
+            props: 'sitelinks',
+            sitefilter: 'ptwiki',
+            format: 'json',
+            formatversion: '2',
+          })}`,
+          { headers: { 'user-agent': UA } },
+        );
+        if (res.status === 429 || res.status >= 500) {
+          if (attempt >= 3) throw new Error(`wikidata HTTP ${res.status}`);
+          await sleep(15000 * 2 ** attempt);
+          attempt++;
+          continue;
+        }
+        if (!res.ok) throw new Error(`wikidata HTTP ${res.status}`);
+        const d = (await res.json()) as WikidataSitelink;
+        for (const [qid, ent] of Object.entries(d.entities ?? {})) {
+          const pt = ent.sitelinks?.ptwiki?.title;
+          if (pt) out[qid] = pt;
+        }
+        break;
+      } catch (err) {
+        if (attempt >= 3) throw err;
+        await sleep(15000 * 2 ** attempt);
+        attempt++;
+      }
     }
   }
   return out;
