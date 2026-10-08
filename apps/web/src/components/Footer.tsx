@@ -73,7 +73,7 @@ export default function Footer() {
               ))}
               <li>
                 <a
-                  href="mailto:endart.studios@gmail.com"
+                  href="mailto:endart.studios+contato@gmail.com"
                   className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200"
                 >
                   <Mail className="w-3.5 h-3.5" /> {t('footer.contact')}

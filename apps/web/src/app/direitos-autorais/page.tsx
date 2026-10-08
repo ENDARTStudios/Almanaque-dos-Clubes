@@ -27,7 +27,7 @@ export default function DireitosAutoraisPage() {
       <p className="text-foreground/70 mb-8 leading-relaxed">
         Notificações e contranotificações são registradas com protocolo e passam por triagem manual
         com decisão motivada; conteúdo inequivocamente infrator é removido. Canal manual (sem conta):
-        endart.studios@gmail.com.
+        endart.studios+direitos@gmail.com.
       </p>
       <DireitosAutoraisPanel />
     </div>

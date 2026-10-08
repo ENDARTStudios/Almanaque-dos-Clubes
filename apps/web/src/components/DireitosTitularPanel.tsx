@@ -124,8 +124,8 @@ export default function DireitosTitularPanel() {
         <p>
           {s.loggedIntro} <strong>{s.loggedStrong}</strong>
           {s.loggedManual}{' '}
-          <a className="text-primary hover:underline" href="mailto:endart.studios@gmail.com">
-            endart.studios@gmail.com
+          <a className="text-primary hover:underline" href="mailto:endart.studios+privacidade@gmail.com">
+            endart.studios+privacidade@gmail.com
           </a>
           .
         </p>
