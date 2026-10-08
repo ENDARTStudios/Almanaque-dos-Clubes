@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
 import { queues } from '../../services/queue.js';
 import {
-  getJobHealth,
+  getJobHealthMerged,
   isSchedulerEnabled,
   WIKIDATA_CRON_PATTERN,
   INTEGRITY_CRON_PATTERN,
@@ -71,7 +71,7 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           },
           queue: queueCounts,
           queueError,
-          jobs: getJobHealth(),
+          jobs: await getJobHealthMerged(),
           alerts: {
             active: getAlerts(10),
             backlog,
@@ -129,7 +129,9 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     { preHandler: [authenticate, requireRole('admin')] },
     async (_request, reply) => {
       const now = Date.now();
-      const health = getJobHealth();
+      // Dívida #303 — lastRun persiste em Redis (sobrevive a redeploy); os
+      // contadores só zeram se a entrada persistida expirar (TTL 8 dias).
+      const health = await getJobHealthMerged();
       // Cadências-alvo (documentação: docs/06-devops-deployment/SLOs.md —
       // aspiracionais, sem binding; service não é pago).
       const targets: Record<string, { maxAgeHours: number; schedule: string }> = {
@@ -152,8 +154,9 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           successCount: h?.successCount ?? 0,
           failureCount: h?.failureCount ?? 0,
           successRate: runs > 0 ? Number(((h?.successCount ?? 0) / runs).toFixed(3)) : null,
-          // Limitação declarada: medido desde o último redeploy (counters em memória).
-          measuredSince: 'last-deploy',
+          // Limitação declarada: contadores vêm da entrada persistida (TTL 8d —
+          // janela deslizante; sem run por 8 dias, a contagem recomeça).
+          measuredSince: 'persisted-8d',
         };
       });
       return reply.send({ data: { measuredAt: new Date().toISOString(), slo } });

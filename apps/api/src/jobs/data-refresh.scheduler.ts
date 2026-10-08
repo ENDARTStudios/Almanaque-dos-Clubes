@@ -61,6 +61,51 @@ export function getJobHealth(): Record<string, JobHealthEntry> {
   return health;
 }
 
+/**
+ * Dívida #303 — o health em memória zera a cada redeploy (o restart de 2026-10-08
+ * 01:14 UTC apagou os gauges do cron das 03:00). Cada run persiste a entrada em
+ * Redis (fire-and-forget: telemetria NUNCA falha o job) e a leitura mescla
+ * memória × Redis ficando com a entrada de lastRunAt mais recente (fail-open:
+ * Redis fora ⇒ só memória, como antes).
+ */
+const JOB_HEALTH_KEY_PREFIX = 'jobs:health:';
+/** 8 dias — cobre o job semanal (integrity-check, domingo 04:00). */
+const JOB_HEALTH_TTL_SECONDS = 8 * 24 * 3600;
+
+function persistJobRun(jobName: string, entry: JobHealthEntry): void {
+  void cache
+    .set(`${JOB_HEALTH_KEY_PREFIX}${jobName}`, JSON.stringify(entry), JOB_HEALTH_TTL_SECONDS)
+    .catch(() => {
+      // Silenciado de propósito: o client do cache já loga warn único; telemetria
+      // persistida é best-effort por construção.
+    });
+}
+
+/** Nomes canônicos sempre sondados no Redis (mesmo sem entrada em memória). */
+const KNOWN_JOB_NAMES = ['wikidata-incremental', 'integrity-check', 'ranking:compute'] as const;
+
+export async function getJobHealthMerged(): Promise<Record<string, JobHealthEntry>> {
+  const merged: Record<string, JobHealthEntry> = { ...health };
+  const names = new Set<string>([...Object.keys(health), ...KNOWN_JOB_NAMES]);
+  await Promise.all(
+    [...names].map(async (name) => {
+      try {
+        const raw = await cache.get<string>(`${JOB_HEALTH_KEY_PREFIX}${name}`);
+        if (!raw) return;
+        const persisted = JSON.parse(raw) as JobHealthEntry;
+        const mem = merged[name];
+        const persistedNewer =
+          persisted.lastRunAt != null &&
+          (mem?.lastRunAt == null || new Date(persisted.lastRunAt) > new Date(mem.lastRunAt));
+        if (persistedNewer) merged[name] = persisted;
+      } catch {
+        // fail-open: sem Redis, o health volta a ser só da instância (padrão metrics).
+      }
+    }),
+  );
+  return merged;
+}
+
 /** WS-O-1 — crons fora da fila (ex.: ranking) registram run no mesmo health. */
 export function recordJobRun(
   jobName: string,
@@ -84,6 +129,7 @@ function record(jobName: string, status: 'success' | 'failure', durationMs: numb
   if (status === 'success') entry.successCount += 1;
   else entry.failureCount += 1;
   health[jobName] = entry;
+  persistJobRun(jobName, entry);
 }
 
 /** Roda o handler com teto duro de 10 min (rejeita, não derruba o processo). */
