@@ -33,6 +33,31 @@ export interface Dictionary {
     subscription: string;
     market: string;
     menu: string;
+    searchPlaceholder: string;
+    sub: {
+      countryBR: string;
+      countryGB: string;
+      countryIT: string;
+      countryFR: string;
+      countryES: string;
+      countryNO: string;
+      continental: string;
+      women: string;
+      allCompetitions: string;
+      clubCountry_BR: string;
+      clubCountry_AR: string;
+      clubCountry_PT: string;
+      clubCountry_ES: string;
+      clubCountry_GB: string;
+      clubCountry_IT: string;
+      clubCountry_DE: string;
+      clubCountry_FR: string;
+      clubCountry_MX: string;
+      clubCountry_US: string;
+      byContinent: string;
+      womenClubs: string;
+      allClubs: string;
+    };
   };
   footer: {
     tagline: string;
@@ -204,6 +229,11 @@ export interface Dictionary {
       title: string;
       subtitle: string;
       empty: string;
+      filtersLabel: string;
+      filters: { gender: string; type: string; country: string; all: string; league: string; cup: string; apply: string };
+      paginationLabel: string;
+      prev: string;
+      next: string;
       sections: {
         continental: string;
         nacionais: string;
@@ -222,6 +252,37 @@ export interface Dictionary {
       body: string;
       bodyCta: string;
       cta: string;
+    };
+    competitionProfile: {
+      international: string;
+      level: string;
+      spectators: string;
+      country: string;
+      type: string;
+      currentChampion: string;
+      emCatalogacao: string;
+      totalEditions: string;
+      yearShort: string;
+      tabsLabel: string;
+      tabs: { overview: string; editions: string; clubs: string; topWinners: string };
+      year: string;
+      champion: string;
+      titles: string;
+      editionsEmpty: string;
+      participantsNote: string;
+      participantsEmpty: string;
+      overviewHint: string;
+    };
+    playerProfile: {
+      currentClub: string;
+      year: string;
+      club: string;
+      careerTitle: string;
+      careerEmpty: string;
+      achievementsTitle: string;
+      achievementsEmpty: string;
+      clubsTitle: string;
+      clubsEmpty: string;
     };
     favoritos: {
       title: string;

@@ -1,6 +1,8 @@
 import { CreateCompetitionSchema, NotFoundError, type Competition } from '@almanaque/domain';
 import { competitionsRepository, type ListCompetitionsParams } from './repository.js';
 import { cache } from '../../services/cache.js';
+import { prisma } from '../../config/prisma.js';
+import { buildCompetitionOverview, type CompetitionOverview } from './overview.js';
 
 const COMPETITIONS_TTL_SECONDS = 5 * 60; // 5min
 
@@ -44,6 +46,30 @@ export const competitionsService = {
       const competition = await competitionsRepository.findById(id);
       if (!competition) throw new NotFoundError('Competição', id);
       return competition;
+    });
+  },
+
+  /**
+   * Mapeamento do portal (Entrega 2) — edições/maiores campeões/participantes
+   * derivados das arestas WON do grafo (soft-delete respeitado via metadata).
+   * Aditivo ao getById — nenhum contrato existente muda.
+   */
+  async getOverview(id: string): Promise<CompetitionOverview> {
+    await this.getById(id); // 404 honesto se a competição não existe
+    return cache.remember(`competitions:overview:${id}`, COMPETITIONS_TTL_SECONDS, async () => {
+      const edges = await prisma.knowledgeGraph.findMany({
+        where: { relation: 'WON', targetType: 'Competition', targetId: id },
+        select: { sourceId: true, metadata: true },
+      });
+      const clubIds = [...new Set(edges.map((e) => e.sourceId))];
+      const clubs = await prisma.club.findMany({
+        where: { id: { in: clubIds }, deletedAt: null },
+        select: { id: true, name: true, city: true, country: true },
+      });
+      return buildCompetitionOverview(
+        edges.map((e) => ({ sourceId: e.sourceId, metadata: e.metadata })),
+        clubs,
+      );
     });
   },
 

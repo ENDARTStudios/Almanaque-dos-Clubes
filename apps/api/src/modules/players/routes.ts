@@ -47,6 +47,9 @@ export const playersRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
       try {
         const player = await playersService.getById(request.params.id);
         const userId = (request.user as { id?: string } | undefined)?.id;
+        // Mapeamento do portal (Entrega 3) — extras aditivos (carreira/conquistas/
+        // clubes via grafo); nenhum contrato existente muda.
+        const profile = await playersService.getProfileExtras(request.params.id);
         return reply.send({
           data: {
             ...player,
@@ -55,6 +58,7 @@ export const playersRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
               ? await favoritesService.isFavorited(userId, 'player', request.params.id)
               : undefined,
           },
+          profile,
         });
       } catch (err) {
         return handleDomainError(err, reply);

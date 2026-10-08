@@ -30,18 +30,20 @@ interface Competition {
 
 async function getCompetitions(searchParams: { [key: string]: string | undefined }) {
   const params = new URLSearchParams();
-  [['country'], ['type'], ['search']].forEach(([key]) => {
+  [['country'], ['type'], ['gender'], ['search']].forEach(([key]) => {
     const v = searchParams[key];
     if (v) params.set(key, v);
   });
+  const offset = Math.max(parseInt(searchParams.offset ?? '0', 10) || 0, 0);
+  params.set('offset', String(offset));
   params.set('limit', '50');
   try {
     const base = getApiBase();
     const res = await fetch(base + '/competitions?' + params.toString(), { cache: 'no-store' });
-    if (!res.ok) return { data: [], total: 0 };
+    if (!res.ok) return { data: [], total: 0, offset: 0 };
     return await res.json();
   } catch {
-    return { data: [], total: 0 };
+    return { data: [], total: 0, offset: 0 };
   }
 }
 
@@ -66,7 +68,7 @@ export default async function CompetitionsPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const sp = await searchParams;
-  const { data: competitions, total } = await getCompetitions(sp);
+  const { data: competitions, total, offset } = await getCompetitions(sp);
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
@@ -79,6 +81,47 @@ export default async function CompetitionsPage({
         subtitleKey="pages.competitions.subtitle"
         subtitleParams={{ n: total }}
       />
+
+      {/* Filtros (Entrega 4) — form GET: gender/type/country */}
+      <form method="get" className="mt-8 flex flex-wrap gap-3 items-end" aria-label={dict.pages.competitions.filtersLabel}>
+        <label className="text-xs text-foreground/60">
+          {dict.pages.competitions.filters.gender}
+          <select
+            name="gender"
+            defaultValue={sp.gender ?? ''}
+            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          >
+            <option value="">{dict.pages.competitions.filters.all}</option>
+            <option value="men">{dict.pages.rankings.genderMen}</option>
+            <option value="women">{dict.pages.rankings.genderWomen}</option>
+          </select>
+        </label>
+        <label className="text-xs text-foreground/60">
+          {dict.pages.competitions.filters.type}
+          <select
+            name="type"
+            defaultValue={sp.type ?? ''}
+            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          >
+            <option value="">{dict.pages.competitions.filters.all}</option>
+            <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
+            <option value="CUP">{dict.pages.competitions.filters.cup}</option>
+          </select>
+        </label>
+        <label className="text-xs text-foreground/60">
+          {dict.pages.competitions.filters.country}
+          <input
+            name="country"
+            defaultValue={sp.country ?? ''}
+            placeholder="BR"
+            maxLength={2}
+            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm w-20"
+          />
+        </label>
+        <button type="submit" className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold">
+          {dict.pages.competitions.filters.apply}
+        </button>
+      </form>
 
       {/* Hierarquia curada (mapeamento do portal) */}
       <div className="mt-8 space-y-8">
@@ -193,7 +236,45 @@ export default async function CompetitionsPage({
         ) : (
           <p className="text-center text-foreground/60 py-12">Nenhuma competição encontrada.</p>
         )}
+        {total > 50 ? (
+          <nav className="flex justify-between mt-6" aria-label={dict.pages.competitions.paginationLabel}>
+            {offset > 0 ? (
+              <Link
+                href={pageHref(sp, Math.max(0, offset - 50))}
+                className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:border-primary/40"
+              >
+                {dict.pages.competitions.prev}
+              </Link>
+            ) : (
+              <span />
+            )}
+            {offset + 50 < total ? (
+              <Link
+                href={pageHref(sp, offset + 50)}
+                className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:border-primary/40"
+              >
+                {dict.pages.competitions.next}
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        ) : null}
       </Suspense>
     </div>
   );
+}
+
+
+// Paginação (Entrega 4): preserva os filtros ativos na troca de página.
+function pageHref(
+  sp: { [key: string]: string | undefined },
+  offset: number,
+): string {
+  const params = new URLSearchParams();
+  for (const key of ['gender', 'type', 'country', 'search'] as const) {
+    if (sp[key]) params.set(key, sp[key] as string);
+  }
+  params.set('offset', String(offset));
+  return '/competitions?' + params.toString();
 }
