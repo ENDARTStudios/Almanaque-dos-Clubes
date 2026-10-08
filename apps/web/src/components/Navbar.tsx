@@ -1,31 +1,36 @@
 'use client';
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { useGsapFadeIn } from '@/hooks/useGsap';
-import LanguageSelector from '@/components/LanguageSelector';
 import { useI18n } from '@/i18n/Provider';
-import NotificationBadge from '@/components/NotificationBadge';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from './AuthProvider';
+import { useGsapFadeIn } from '@/hooks/useGsap';
+import LanguageSelector from './LanguageSelector';
+import NotificationBadge from './NotificationBadge';
 
+/**
+ * Mapeamento do portal (Operador, 08/10) — 5 áreas + Mapa/Busca.
+ * Mobile: menu hambúrguer expansível (dica UX do mapeamento — antes os links
+ * eram `hidden sm:block`, ou seja, INEXISTENTES no celular).
+ */
 export default function Navbar() {
   const ref = useRef<HTMLElement>(null);
   const { t } = useI18n();
   const { user, status, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   useGsapFadeIn(ref);
 
   const closeMenu = () => setMenuOpen(false);
+  const closeMobile = () => setMobileOpen(false);
 
-  // WS-C-3 FASE 4 — `/map` entra no nav (link discreto) como parte da release pública do mapa.
   const navLinks = [
+    { href: '/competitions', label: t('nav.competitions') },
     { href: '/clubs', label: t('nav.clubs') },
     { href: '/players', label: t('nav.players') },
-    { href: '/competitions', label: t('nav.competitions') },
-    { href: '/map', label: t('nav.map') },
     { href: '/rankings', label: t('nav.rankings') },
-    { href: '/favoritos', label: t('pages.favoritos.title') },
+    { href: '/mercado-da-bola', label: t('nav.market') },
+    { href: '/map', label: t('nav.map') },
     { href: '/search', label: t('nav.search') },
-    { href: '/planos', label: t('footer.plans') },
   ];
 
   return (
@@ -35,18 +40,33 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-heading font-bold text-primary">ALMANAQUE</span>
-            <span className="text-lg font-heading text-foreground hidden sm:inline">
-              dos Clubes
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* Hambúrguer — só no mobile */}
+            <button
+              type="button"
+              data-testid="nav-mobile-toggle"
+              aria-expanded={mobileOpen}
+              aria-label={t('nav.menu')}
+              onClick={() => setMobileOpen((o) => !o)}
+              className="sm:hidden p-2 rounded-lg text-foreground/80 hover:bg-foreground/5"
+            >
+              <span aria-hidden="true" className="block w-5 h-0.5 bg-current mb-1" />
+              <span aria-hidden="true" className="block w-5 h-0.5 bg-current mb-1" />
+              <span aria-hidden="true" className="block w-5 h-0.5 bg-current" />
+            </button>
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-2xl font-heading font-bold text-primary">ALMANAQUE</span>
+              <span className="text-lg font-heading text-foreground hidden sm:inline">
+                dos Clubes
+              </span>
+            </Link>
+          </div>
           <div className="flex items-center gap-4 sm:gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="hidden sm:block text-sm font-medium text-foreground/80 hover:text-primary transition-colors duration-200 cursor-pointer"
+                className="hidden lg:block text-sm font-medium text-foreground/80 hover:text-primary transition-colors duration-200 cursor-pointer"
               >
                 {link.label}
               </Link>
@@ -78,6 +98,13 @@ export default function Navbar() {
                     >
                       <p className="px-4 py-1 text-xs text-foreground/50 truncate">{user.email}</p>
                       <Link
+                        href="/dashboard"
+                        onClick={closeMenu}
+                        className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
+                      >
+                        {t('nav.dashboard')}
+                      </Link>
+                      <Link
                         href="/favoritos"
                         onClick={closeMenu}
                         className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
@@ -91,20 +118,12 @@ export default function Navbar() {
                       >
                         {t('nav.subscription')}
                       </Link>
-                      <Link
-                        href="/dashboard"
-                        onClick={closeMenu}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                      >
-                        {t('nav.dashboard')}
-                      </Link>
                       <button
-                        data-testid="nav-signout"
-                        onClick={async () => {
+                        onClick={() => {
                           closeMenu();
-                          await logout();
+                          void logout();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-foreground/5 cursor-pointer"
+                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
                       >
                         {t('nav.signOut')}
                       </button>
@@ -123,6 +142,42 @@ export default function Navbar() {
             )}
           </div>
         </div>
+        {/* Painel mobile expansível */}
+        {mobileOpen ? (
+          <div data-testid="nav-mobile-panel" className="sm:hidden border-t border-border py-3">
+            <ul className="space-y-1">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={closeMobile}
+                    className="block px-2 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-foreground/5"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="/favoritos"
+                  onClick={closeMobile}
+                  className="block px-2 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-foreground/5"
+                >
+                  {t('pages.favoritos.title')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/planos"
+                  onClick={closeMobile}
+                  className="block px-2 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-foreground/5"
+                >
+                  {t('footer.plans')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+        ) : null}
       </div>
     </nav>
   );

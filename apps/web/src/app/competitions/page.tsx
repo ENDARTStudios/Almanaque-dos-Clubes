@@ -1,9 +1,19 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import PageHeading from '@/components/PageHeading';
 import SearchBar from '@/components/SearchBar';
 import { getApiBase } from '@/lib/api-base';
+import { getDictionary } from '@/i18n/getDictionary';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import {
+  CONTINENTAL_ANCHORS,
+  NATIONAL_ANCHOR_GROUPS,
+  WOMEN_ANCHORS,
+  countryLabel,
+  type AnchorCompetition,
+} from '@/lib/competition-anchors';
 
 export const metadata: Metadata = {
   title: 'Competições',
@@ -35,6 +45,21 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
   }
 }
 
+// Mapeamento do portal (Operador, 08/10) — hierarquia geográfica com âncoras
+// CURADAS do acervo (ids/QIDs confirmados no banco de produção; regra R4).
+// Seções sem dado no acervo (Seleções/Internacionais) ficam vazio-honestas.
+
+function AnchorChip({ c }: { c: AnchorCompetition }) {
+  return (
+    <Link
+      href={`/competitions/${c.id}`}
+      className="inline-block px-3 py-1.5 rounded-full border border-border text-sm text-foreground/80 hover:border-primary/50 hover:text-primary transition-colors"
+    >
+      {c.name}
+    </Link>
+  );
+}
+
 export default async function CompetitionsPage({
   searchParams,
 }: {
@@ -42,6 +67,10 @@ export default async function CompetitionsPage({
 }) {
   const sp = await searchParams;
   const { data: competitions, total } = await getCompetitions(sp);
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
+  const s = dict.pages.competitions.sections;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -50,7 +79,75 @@ export default async function CompetitionsPage({
         subtitleKey="pages.competitions.subtitle"
         subtitleParams={{ n: total }}
       />
-      <div className="mb-6">
+
+      {/* Hierarquia curada (mapeamento do portal) */}
+      <div className="mt-8 space-y-8">
+        {/* Continentais */}
+        <section aria-labelledby="comp-continental">
+          <h2 id="comp-continental" className="text-lg font-heading font-semibold mb-3">
+            {`🏆 ${s.continental}`}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {CONTINENTAL_ANCHORS.map((c) => (
+              <AnchorChip key={c.id} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* Nacionais por país */}
+        <section aria-labelledby="comp-nacionais">
+          <h2 id="comp-nacionais" className="text-lg font-heading font-semibold mb-3">
+            {`⚽ ${s.nacionais}`}
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {NATIONAL_ANCHOR_GROUPS.map((g) => (
+              <div key={g.country} className="rounded-xl border border-border p-4">
+                <h3 className="text-sm font-semibold text-foreground/80 mb-2">
+                  {countryLabel(g.country, locale)}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {g.items.map((c) => (
+                    <AnchorChip key={c.id} c={c} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Feminino */}
+        <section aria-labelledby="comp-feminino">
+          <h2 id="comp-feminino" className="text-lg font-heading font-semibold mb-3">
+            {`♀ ${s.feminino}`}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {WOMEN_ANCHORS.map((c) => (
+              <AnchorChip key={c.id} c={c} />
+            ))}
+            <Link
+              href="/competitions?search=feminino"
+              className="inline-block px-3 py-1.5 rounded-full text-sm text-primary hover:underline"
+            >
+              {`${s.verTodasFeminino} →`}
+            </Link>
+          </div>
+          <p className="mt-2 text-xs text-foreground/40">{s.femininoNota}</p>
+        </section>
+
+        {/* Seleções / Internacionais — vazio honesto */}
+        <section aria-labelledby="comp-selecoes">
+          <h2 id="comp-selecoes" className="text-lg font-heading font-semibold mb-3">
+            {`🌍 ${s.selecoes}`}
+          </h2>
+          <p className="text-sm text-foreground/50" data-testid="selecoes-empty">
+            {s.selecoesVazio}
+          </p>
+        </section>
+      </div>
+
+      {/* Busca + lista completa (funcionalidade existente) */}
+      <div className="mt-12 mb-6">
+        <h2 className="text-lg font-heading font-semibold mb-3">{s.todas}</h2>
         <SearchBar targetPath="/competitions" searchKey="search" placeholderKey="pages.competitions.title" />
       </div>
       <Suspense
