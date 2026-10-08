@@ -24,12 +24,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/modules/**/*.ts', 'src/config/**/*.ts', 'src/middleware/**/*.ts'],
-      // T138 (2026-10-08): cobertura medida com suíte COMPLETA (DB+Redis locais):
-      // 73,15% stmts · 63% branches · 72,21% functions · 74,91% lines.
-      // Thresholds = piso real com margem para variação de CI. Próximos gaps
-      // registrados em docs/PLANO-CONCLUSAO.md (rankings.service, graph, rag,
-      // legal, upload routes) até os 80% do T138.
-      thresholds: { statements: 70, branches: 60, functions: 68, lines: 72 },
+      // T138 (08-10, rodada 2): cobertura medida com suíte COMPLETA (DB+Redis):
+      // 77,36% stmts · 66,12% branches · 78,79% functions · 79,27% lines.
+      // Thresholds = piso real com margem de CI. Gap restante para os 80%:
+      // agregado country_pyramid do rankings.service (fixture EN-pyramid) —
+      // registrado em docs/PLANO-CONCLUSAO.md.
+      thresholds: { statements: 75, branches: 63, functions: 75, lines: 77 },
     },
     server: {
       deps: {
