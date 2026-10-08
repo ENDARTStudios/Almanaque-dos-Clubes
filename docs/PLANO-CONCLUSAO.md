@@ -60,9 +60,15 @@ persiste em Redis (TTL 8d) e `/jobs/health` + `/observability/slo` sobrevivem a 
 **Extra do round 2 (08-10):** **T138 avançou** (PR #421 mergeado) — cobertura REAL medida com suíte
 completa em DB+Redis locais: global 68,6→**74,9% linhas** (63% branches); players 12,3→92,3% (service
 100% linhas) · matches 14,8→98,1% · seasons 14,8→98,1% · upload 16,7→71,4%; thresholds 30/20/25/30 →
-70/60/68/72. **Gaps restantes p/ os 80%:** rankings.service 18,6% · graph 35% · rag 33% · legal 40% ·
-upload routes. **Achado:** `prisma migrate deploy` from-scratch quebra no repo (3 migrations criam
+70/60/68/72. **Achado:** `prisma migrate deploy` from-scratch quebra no repo (3 migrations criam
 `clubs`, era da reconstrução; CI não vê pois usa baseline dump) — follows-up no worklog.
+
+**Extra do round 3 (08-10):** **gaps do T138 fechados** (PR #423 mergeado) — global 74,9→**79,3% linhas**
+(77,4% stmts · 66,1% branches · 78,8% funções); rankings.service 18,6→**63,6%** (módulo 76,8%) · graph
+35→**87,1%** · legal 40,5→**82,8%** · upload 71,4→**95,2%**; thresholds → 75/63/75/77. **Bug latente REAL
+corrigido:** `/upload/csv` devolvia **500** quando `UPLOAD_ALLOWED_MIMES` não inclui `text/csv` (o default
+do `env.ts` NÃO inclui — CI e possivelmente produção); agora a rota permite `text/csv` por contrato
+próprio. **Restante p/ os 80%:** agregado `country_pyramid` do rankings.service (fixture EN-pyramid).
 
 ### P2 — Conteúdo M4 (rounds seguintes)
 
@@ -82,7 +88,7 @@ upload routes. **Achado:** `prisma migrate deploy` from-scratch quebra no repo (
 - **T125** — Prisma 7 (plano em 5 fases, PR #11) `[ ]`
 - **T127** — ClamAV em uploads `[ ]`
 - **T130–T135** — logs centralizados, métricas, alertas externos, uptime, backup cron (backup R2 ✅ T446; falta cron diário), DAST semanal `[ ]`/`[~]`
-- **T138** — cobertura ≥80% `[~]` (round 08-10: 74,9% linhas, 4 services cobertos, thresholds honestos; falta rankings.service/graph/rag/legal/upload-routes) · **T139** — E2E Playwright no CI (dívida T476c) `[ ]` · **T140/T141** — carga 1.000 usuários + testes de IA `[ ]`
+- **T138** — cobertura ≥80% `[~]` (08-10: **79,3% linhas**, thresholds honestos 75/63/75/77; falta só o agregado `country_pyramid` do rankings.service) · **T139** — E2E Playwright no CI (dívida T476c) `[ ]` · **T140/T141** — carga 1.000 usuários + testes de IA `[ ]`
 - **T142–T145** — Lighthouse >90, PWA offline, WCAG audit, SEO técnico `[ ]`
 
 ## §4 Bloqueadas pelo OPERADOR (escalação, não execução autônoma)
