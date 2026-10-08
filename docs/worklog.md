@@ -412,3 +412,40 @@ Work Log:
 Stage Summary:
 
 - T094 [x] · T096 [x] (limites default registrados para recalibragem do Operador); T093 (UI admin de flags) e T095 (API keys) seguem [ ]
+
+---
+
+Task ID: goal-2026-10-08-r2/T138
+Agent: Doer (GLM-5.3-Flash)
+Task: T138 — cobre os 4 services mortos e mede a cobertura REAL
+
+Work Log:
+
+- Subiu infra local de testes: Docker Desktop + Postgres PostGIS 16 na porta 5439 (contêiner descartável — as portas 5432/5433 do host têm Postgres NATIVOS com credenciais desconhecidas e proxies fantasmas) + Redis da stack almanaque
+- Replicada a receita do CI: create_postgis → db push → 8 scripts RLS → create_app_user → rls_users. ORDEM IMPORTA: RLS antes do db push falha silencioso (CREATE FUNCTION valida a tabela inexistente)
+- Cobertura REAL medida: global 68,6% linhas (o config comentava ~34% e travava thresholds 30/20/25/30 — defasados)
+- 15 testes novos: players 12,3→92,3% (service 100% linhas) · matches 14,8→98,1% · seasons 14,8→98,1% · upload 16,7→71,4% (S3 mockado)
+- Thresholds elevados: 70/60/68/72 (piso real + margem CI)
+- Armadilhas pegadas e corrigidas: rotas sob /api/v1; CSRF (x-csrf-token via generateCsrfToken) em toda escrita; enums de domínio (FORWARD/MIDFIELDER; ONGOING)
+- Achado registrado: prisma migrate deploy from-scratch QUEBRA no repo (3 migrations criam clubs — era da reconstrução); CI não vê porque usa baseline dump
+- PR #421 MERGADO (CI verde com os novos thresholds)
+
+Stage Summary:
+
+- T138 [~] — global 74,9% linhas · 63% branches; gaps restantes registrados: rankings.service 18,6% · graph 35% · rag 33% · legal 40% · upload routes
+
+---
+
+Task ID: goal-2026-10-08-r2/reconciliacao
+Agent: Doer (GLM-5.3-Flash)
+Task: Reconciliação do round 2 (estado vivo anda rápido)
+
+Work Log:
+
+- T048 (linha do tempo de CLUBES) já está FEITO: GET /clubs/:id/timeline (WS-C-5) + componente ClubTimeline na página do clube — PLANO-CONCLUSAO atualizado
+- T034 (jogadores P54 em escala) ADIADO por colisão: sessão paralela ativa em mega-sweep SPARQL de Wikidata/Wikipedia (PRs #413/#414/#420) — mesmo IP compartilhado, evitar brigar por rate-limit; reabrir quando a mega-sweep fechar
+- T450 waves seguem com a sessão paralela; frentes autônomas deste round escolhidas sem tocar Wikidata/Wikipedia
+
+Stage Summary:
+
+- Prioridade seguinte: rankings.service + graph/rag/legal routes (fechar os 80% do T138) · T046/T047 com dado que existir · T093/T095
