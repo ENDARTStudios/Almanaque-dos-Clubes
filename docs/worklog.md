@@ -523,3 +523,21 @@ Work Log:
 
 Stage Summary:
 - T057/T090 [x]; comunicação oficial por função ativa; PENDENCIAS_OPERADOR item de aliases encerrado
+
+---
+Task ID: goal-2026-10-09/portal
+Agent: Doer (GLM-5.3-Flash)
+Task: Mapeamento do portal — menu 5 áreas, hierarquia de competições, Mercado da Bola
+
+Work Log:
+- Operador enviou mapeamento ideal do portal + pergunta de design; DECISÃO registrada: banco de dados ESTATÍSTICO (não portal de notícias)
+- Dados coletados do banco de produção (base64+ssh, read-only): 6 continentais + 14 nacionais (por arestas WON) + 16 femininas (T450) + contadores (1.921 comps · 197 países) — R4: só entra o que existe
+- /competitions hierárquica: Continentais · Nacionais por país (9 países) · Feminino · Seleções vazio-honesto · busca preservada (lib competition-anchors.ts + 5 testes)
+- Navbar: 5 áreas + Mercado (i18n ×3) + MENU MOBILE HAMBÚRGUER (antes: links hidden sm:block = zero navegação no celular)
+- /mercado-da-bola honesta ('Em breve' + aponta perfis com torcedores/redes)
+- Matriz de interconexão verificada (jogador↔clube, clube→competições, carrossel→competição); Ficha de Partida = T047/T102 backlog
+- Armadilhas: dicionários TS com apóstrofos em 'Women's' (escapar) e blocos multilinha (âncora estrutural `\n    },\n    favoritos: {`)
+- PR #432 MERGADO; verificado ao vivo: menu mobile (viewport 390px) com painel das 5 áreas · /competitions com hierarquia renderizada · /mercado-da-bola 200
+
+Stage Summary:
+- Portal estruturado com dado real; backlog do portal registrado (§Portal) — quick win seguinte: Ranking digital de clubes (T062 já tem o dado)
