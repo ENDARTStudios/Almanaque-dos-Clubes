@@ -49,3 +49,19 @@
   `metadata.crossSource` registra contribuições da outra).
 - `sourceUrl`: URL do artigo/categoria/item de origem.
 - `metadata`: `{ gender: 'women', wave: 3, ... }`.
+
+## DECISÃO 10-07 (revisada pelo Operador) — ORDEM DE FONTES
+
+1. **Wikidata** — fonte PADRÃO (primária). Sempre consultada primeiro.
+2. **Wikipedia REGIONAL** — segunda fonte quando o Wikidata for insuficiente.
+   Regra de regionalidade: usar a Wikipedia do idioma/país do clube
+   (pt.wikipedia para BR/PT, en.wikipedia para EN/US/IE/AU, es.wikipedia para
+   LatAm/ES, de.wikipedia para DE/AT/CH, etc.) — dados mais coesos e precisos
+   para times globais.
+3. **Outras fontes verificáveis** — site oficial do clube, sites regionais,
+   federações (scraping autorizado; proveniência por registro obrigatória:
+   sourceUrl + fonte + method).
+
+NUNCA se limitar a uma única fonte; o acervo é multi-fonte por construção e
+cada registro carrega sua proveniência. Zero-overwrite mantido: fontes
+seguintes só preenchem o que as anteriores deixaram vazio.
