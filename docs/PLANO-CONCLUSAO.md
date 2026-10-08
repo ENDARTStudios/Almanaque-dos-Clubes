@@ -72,6 +72,23 @@ próprio. **Restante p/ os 80%:** agregado `country_pyramid` do rankings.service
 
 **Extra do round 5 (09-10):** Operador criou os 6 aliases (Gmail plus-addressing) — **T057/T090 ✅** e as políticas/páginas publicam o canal certo por função (PRs: aliases no web + docs). **Extra do round 4 (08-10):** auditoria geral do site (browser + curl) — base saudável (20/20 páginas 200, web e API = main, headers/SEO/API gated ok) e **3 achados corrigidos** (PR #426): tag Não-FIFA no carrossel (P1 curadoria), nomes reais no deep-link do /compare (P2 UX), CSP sem unsafe-eval (P2 hardening). **P3 registrados:** migração CSP→nonce (M5) · HSTS preload (T120). ~~Speed Insights~~ → **resolvido via código** (PR #428: @vercel/speed-insights gateado no consentimento analytics; política v1.1; verificado em produção).
 
+## §Portal — Mapeamento do Operador (08/10) — implementado e backlog
+
+**Decisão de design:** banco de dados ESTATÍSTICO (identidade do Almanaque); não é portal de notícias.
+Implementado (PR #432): menu com 5 áreas + Mercado da Bola (i18n ×3) · **menu mobile hambúrguer** (antes: zero navegação no celular) · /competitions hierárquica curada (Continentais 6 · Nacionais 9 países/14 âncoras por arestas WON · Feminino 9 do acervo T450 · Seleções vazio-honesto) · /mercado-da-bola honesta ('Em breve') · matriz de interconexão verificada (jogador↔clube, clube→competições, carrossel→competição).
+
+**Backlog do portal (dependente de DADO novo — ordem de valor):**
+- [ ] **Jogos de Hoje** (carrossel na home) — requer ingestão de partidas/resultados (T102; API football-data já tem conector no worker)
+- [ ] **Sub-abas por competição**: Tabela/Calendário/Estatísticas/Notícias — Tabela = rankings existentes por competição; Calendário = T102; Artilharia/Assistências = sem dado granular; Notícias = sem fonte editorial
+- [ ] **Elenco por posição no perfil do clube** — P54 parcial (T034 destravado)
+- [ ] **Estatísticas do time** (casa/fora, posse) — requer partidas (T102)
+- [ ] **Perfil do jogador: carreira/temporadas/mapas de calor** — T046 + dado granular (mapas de calor = sem fonte; declarar 'em breve')
+- [ ] **Histórico de transferências** — fonte própria necessária (Mercado da Bola)
+- [ ] **Rankings de desempenho** (chuteira de ouro, clean sheets, desarmes/passes/dribles) — sem dado granular; **Ranking digital de clubes** = POSSÍVEL JÁ com T062 (followersSnapshot) — quick win
+- [ ] **Treinadores** — T116 (MANAGED_BY existe no enum do grafo)
+- [ ] **Rankings oficiais CBF/FIFA/CONMEBOL** — fonte própria necessária
+
+
 ### P2 — Conteúdo M4 (rounds seguintes)
 
 - **T450** — continuar ondas (Wikipedia PT como fonte substituta; recomendações wave 3 em `docs/T450-OBSERVATION.md`: coords, cura de seleções×clubes, monitorar WD para BR feminino)
