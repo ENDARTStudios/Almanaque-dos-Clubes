@@ -470,7 +470,7 @@ const en: Dictionary = {
           form: 'HTTP header',
         },
       ],
-      note: 'Classification and inventory follow the real function of each cookie, not the vendor commercial name. No analytics or advertising cookies are installed today; this table is updated on every inventory change (last reviewed: 2026-09-22 — policy version 1.0).',
+      note: 'Classification and inventory follow the real function of each cookie, not the vendor commercial name. No analytics or advertising cookies are installed today; this table is updated on every inventory change (last reviewed: 2026-10-08 — policy version 1.1). Performance telemetry (Core Web Vitals via Vercel Speed Insights) is only collected with analytics consent and installs no cookies.',
     },
     ia: {
       title: 'How we use AI',
