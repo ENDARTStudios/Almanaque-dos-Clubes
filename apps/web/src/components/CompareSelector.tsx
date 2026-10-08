@@ -119,6 +119,44 @@ export default function CompareSelector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auditoria 08-10 (P2) — no deep-link o rótulo inicial é o id BRUTO; busca os
+  // NOMES reais para os inputs (id morto mantém o id como rótulo, sem quebrar).
+  useEffect(() => {
+    let active = true;
+    const resolve = async (id: string, set: (i: SearchItem | null) => void) => {
+      if (!id) return;
+      try {
+        const path = type === 'clubs' ? 'clubs' : 'players';
+        type ItemShape = {
+          name?: string;
+          fullName?: string;
+          country?: string | null;
+          position?: string | null;
+        };
+        const res = await api.get<{ data?: ItemShape }>(`/${path}/${id}`);
+        // Tolerante ao envelope: GET /:id responde { data }; versões antigas podiam
+        // responder o item direto no topo.
+        const envelope = res as { data?: ItemShape } | ItemShape;
+        const item: ItemShape | undefined =
+          'data' in (envelope as Record<string, unknown>) && (envelope as { data?: ItemShape }).data
+            ? (envelope as { data: ItemShape }).data
+            : (envelope as ItemShape);
+        const label = item?.name ?? item?.fullName;
+        if (active && label) {
+          set({ id, label, sub: item?.country ?? item?.position ?? null });
+        }
+      } catch {
+        // deep-link com id inexistente — exibe o id, não derruba a página
+      }
+    };
+    void resolve(initialA, setA);
+    void resolve(initialB, setB);
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const listClass =
     'absolute z-20 mt-1 w-full rounded-lg border border-border bg-white shadow-lg max-h-56 overflow-auto';
   const optClass = 'px-3 py-2 text-sm cursor-pointer hover:bg-primary/10';

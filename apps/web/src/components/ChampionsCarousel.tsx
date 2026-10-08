@@ -132,6 +132,14 @@ export default function ChampionsCarousel() {
                   <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                     {t[`hierarchy_${scope.hierarchy}` as keyof typeof t] ?? scope.hierarchy}
                     {scope.gender === 'women' ? ` · ${dict.pages.rankings.genderWomen}` : ''}
+                    {scope.nonFifa ? (
+                      <span
+                        className="ml-2 rounded border border-border px-1 text-[10px] font-normal normal-case tracking-normal text-foreground/60"
+                        data-testid="champion-nonfifa-tag"
+                      >
+                        {t.nonFifaTag}
+                      </span>
+                    ) : null}
                   </span>
                   <TrophyIcon />
                 </div>

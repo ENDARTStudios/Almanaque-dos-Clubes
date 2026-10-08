@@ -28,8 +28,12 @@ const nextConfig: NextConfig = {
             // fonts.gstatic.com — sem isso o CSP bloqueia as fontes Barlow/
             // Barlow Condensed e o site cai para fonte de sistema (console:
             // "Loading the stylesheet ... violates CSP" em todas as páginas).
+            // Auditoria 08-10 (P2): 'unsafe-eval' REMOVIDO do script-src —
+            // nada no bundle de produção usa eval (Leaflet/recharts/GSAP não
+            // usam). 'unsafe-inline' permanece (exigido pelos scripts inline
+            // de bootstrap do Next sem nonce); migração para nonce = M5.
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },

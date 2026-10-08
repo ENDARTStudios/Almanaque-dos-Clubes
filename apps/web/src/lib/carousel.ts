@@ -10,6 +10,8 @@ export interface CarouselScope {
   gender: 'men' | 'women';
   competition: { id: string; qid: string | null; name: string | null };
   champion: { id: string; qid: string | null; name: string };
+  /** Auditoria 08-10 — competições mundiais não-FIFA ganham etiqueta na UI */
+  nonFifa?: boolean;
   source: {
     type: string;
     sourceUrl: string | null;

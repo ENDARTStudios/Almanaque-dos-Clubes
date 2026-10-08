@@ -226,6 +226,7 @@ export interface Dictionary {
       hierarchy_nacional: string;
       hierarchy_estadual: string;
       hierarchy_municipal: string;
+      nonFifaTag: string;
     };
     compare: {
       title: string;

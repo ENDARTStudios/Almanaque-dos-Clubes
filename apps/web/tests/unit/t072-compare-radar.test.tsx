@@ -126,9 +126,7 @@ describe('Exportar PDF (T072)', () => {
       comparison: { rankingPoints: { a: 80, b: 60 }, matches: { reason: 'sem partidas' } },
     };
     (api.get as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) =>
-      path.includes('/compare/clubs')
-        ? Promise.resolve(payload)
-        : Promise.resolve({ data: [] }),
+      path.includes('/compare/clubs') ? Promise.resolve(payload) : Promise.resolve({ data: [] }),
     );
 
     render(<CompareSelector initialType="clubs" initialA="id-a" initialB="id-b" />);
@@ -137,5 +135,43 @@ describe('Exportar PDF (T072)', () => {
     await waitFor(() => expect(screen.getAllByText('Clube A').length).toBeGreaterThan(0));
     fireEvent.click(btn);
     expect(print).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('deep-link resolve nomes (auditoria 08-10 P2)', () => {
+  it('inputs mostram os NOMES dos clubes em vez do id bruto', async () => {
+    const payload = {
+      kind: 'clubs',
+      a: {
+        name: 'Clube A',
+        titles: { total: 1, mundial: 1, continental: 0, nacional: 0, estadual: 0, municipal: 0 },
+        foundedYear: 1914,
+        stadium: null,
+        rankingHistory: [],
+      },
+      b: {
+        name: 'Clube B',
+        titles: { total: 1, mundial: 0, continental: 0, nacional: 1, estadual: 0, municipal: 0 },
+        foundedYear: 1990,
+        stadium: null,
+        rankingHistory: [],
+      },
+      comparison: { rankingPoints: { a: null, b: null }, matches: { reason: 'sem partidas' } },
+    };
+    (api.get as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
+      if (path.includes('/compare/clubs')) return Promise.resolve(payload);
+      if (path.includes('/clubs/id-a'))
+        return Promise.resolve({ data: { name: 'Clube A', country: 'BR' } });
+      if (path.includes('/clubs/id-b'))
+        return Promise.resolve({ data: { name: 'Clube B', country: 'BR' } });
+      return Promise.resolve({ data: [] });
+    });
+
+    render(<CompareSelector initialType="clubs" initialA="id-a" initialB="id-b" />);
+
+    const inputA = (await screen.findByLabelText('A')) as HTMLInputElement;
+    await waitFor(() => expect(inputA.value).toBe('Clube A'));
+    const inputB = screen.getByLabelText('B') as HTMLInputElement;
+    expect(inputB.value).toBe('Clube B');
   });
 });

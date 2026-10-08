@@ -20,6 +20,7 @@ import {
 } from '../rankings/ranking-algorithm.service.js';
 import { isKnownHierarchy } from '../etl/connectors/wikidata-won-edges.connector.js';
 import { excludeSoftDeleted } from '../graph/soft-delete.js';
+import { isNonFifaWorldCompetition } from '../../lib/champions/non-fifa.js';
 
 const CAROUSEL_TTL_SECONDS = 3600;
 export const CAROUSEL_RULES_VERSION = 'ws-c-1-carousel-v1';
@@ -69,6 +70,8 @@ export interface CarouselScope {
   gender: 'men' | 'women';
   competition: { id: string; qid: string | null; name: string | null };
   champion: { id: string; qid: string | null; name: string };
+  /** Auditoria 08-10 — competições mundiais de federações não-FIFA (ConIFA etc.) */
+  nonFifa: boolean;
   source: CarouselSource;
   confidence: 'single_active_record';
 }
@@ -182,6 +185,7 @@ export function buildCarousel(
       gender: g.gender,
       competition: { id: g.compId, qid: comp?.qid ?? null, name: comp?.name ?? null },
       champion: { id: club.id, qid: club.qid, name: club.name },
+      nonFifa: isNonFifaWorldCompetition(comp?.qid ?? null),
       source,
       confidence: 'single_active_record',
     });
