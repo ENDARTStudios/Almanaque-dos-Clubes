@@ -70,7 +70,7 @@ corrigido:** `/upload/csv` devolvia **500** quando `UPLOAD_ALLOWED_MIMES` não i
 do `env.ts` NÃO inclui — CI e possivelmente produção); agora a rota permite `text/csv` por contrato
 próprio. **Restante p/ os 80%:** agregado `country_pyramid` do rankings.service (fixture EN-pyramid).
 
-**Extra do round 4 (08-10):** auditoria geral do site (browser + curl) — base saudável (20/20 páginas 200, web e API = main, headers/SEO/API gated ok) e **3 achados corrigidos** (PR #426): tag Não-FIFA no carrossel (P1 curadoria), nomes reais no deep-link do /compare (P2 UX), CSP sem unsafe-eval (P2 hardening). **P3 registrados:** migração CSP→nonce (M5) · HSTS preload (T120). ~~Speed Insights~~ → **resolvido via código** (PR #428: @vercel/speed-insights gateado no consentimento analytics; política v1.1; verificado em produção).
+**Extra do round 5 (09-10):** Operador criou os 6 aliases (Gmail plus-addressing) — **T057/T090 ✅** e as políticas/páginas publicam o canal certo por função (PRs: aliases no web + docs). **Extra do round 4 (08-10):** auditoria geral do site (browser + curl) — base saudável (20/20 páginas 200, web e API = main, headers/SEO/API gated ok) e **3 achados corrigidos** (PR #426): tag Não-FIFA no carrossel (P1 curadoria), nomes reais no deep-link do /compare (P2 UX), CSP sem unsafe-eval (P2 hardening). **P3 registrados:** migração CSP→nonce (M5) · HSTS preload (T120). ~~Speed Insights~~ → **resolvido via código** (PR #428: @vercel/speed-insights gateado no consentimento analytics; política v1.1; verificado em produção).
 
 ### P2 — Conteúdo M4 (rounds seguintes)
 
