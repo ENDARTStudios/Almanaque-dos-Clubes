@@ -24,9 +24,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/modules/**/*.ts', 'src/config/**/*.ts', 'src/middleware/**/*.ts'],
-      // Thresholds alinhados à cobertura real da suíte atual (linhas ~34%, branches ~24%).
-      // Ajuste para cima conforme os testes de integração/unit forem adicionados.
-      thresholds: { statements: 30, branches: 20, functions: 25, lines: 30 },
+      // T138 (2026-10-08): cobertura medida com suíte COMPLETA (DB+Redis locais):
+      // 73,15% stmts · 63% branches · 72,21% functions · 74,91% lines.
+      // Thresholds = piso real com margem para variação de CI. Próximos gaps
+      // registrados em docs/PLANO-CONCLUSAO.md (rankings.service, graph, rag,
+      // legal, upload routes) até os 80% do T138.
+      thresholds: { statements: 70, branches: 60, functions: 68, lines: 72 },
     },
     server: {
       deps: {
