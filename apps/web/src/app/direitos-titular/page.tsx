@@ -33,7 +33,7 @@ export default function DireitosTitularPage() {
         Exerça seus direitos com protocolo rastreável. O recebimento é confirmado na hora; a resposta
         conclusiva sai em até 15 dias no Brasil (LGPD, art. 18, §3, prorrogável, com comunicação à
         ANPD) ou em até 1 mês no EEE/Reino Unido quando aplicável. Canal manual (sem conta):
-        endart.studios@gmail.com.
+        endart.studios+privacidade@gmail.com.
       </p>
       <DireitosTitularPanel />
     </div>

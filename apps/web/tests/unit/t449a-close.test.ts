@@ -23,7 +23,7 @@ describe('T449a-close — /metodologia', () => {
     expect(metodologia).toMatch(/títulos não incluídos nesta fase/);
     expect(metodologia).toMatch(/RSSSF/);
     expect(metodologia).toMatch(/condicionado à atribuição adequada/);
-    expect(metodologia).toMatch(/endart\.studios@gmail\.com/);
+    expect(metodologia).toMatch(/endart\.studios\+contato@gmail\.com/);
     // NÃO afirmar domínio público para RSSSF.
     expect(metodologia).not.toMatch(/RSSSF[^.]*domínio público/i);
     // Fórmula antiga (divergente) NÃO deve constar.

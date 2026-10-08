@@ -121,8 +121,8 @@ export default function DireitosAutoraisPanel() {
           <p>
             {s.loggedIntro} <strong>{s.loggedStrong}</strong>
             {s.loggedManual}{' '}
-            <a className="text-primary hover:underline" href="mailto:endart.studios@gmail.com">
-              endart.studios@gmail.com
+            <a className="text-primary hover:underline" href="mailto:endart.studios+direitos@gmail.com">
+              endart.studios+direitos@gmail.com
             </a>{' '}
             {s.loggedWith}
           </p>

@@ -35,8 +35,8 @@ export default function CheckoutSummary() {
           <li>{c.cancelInfo}</li>
           <li>
             {c.withdrawInfo}{' '}
-            <a className="underline" href="mailto:endart.studios@gmail.com">
-              endart.studios@gmail.com
+            <a className="underline" href="mailto:endart.studios+reembolso@gmail.com">
+              endart.studios+reembolso@gmail.com
             </a>
           </li>
         </ul>

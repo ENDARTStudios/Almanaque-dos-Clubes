@@ -330,13 +330,13 @@ const es: Dictionary = {
           title: 'Contratación transparente',
           body: [
             'La contratación se procesa tras la confirmación expresa del consumidor. Antes del pago, será posible revisar plan, periodicidad, precio total, descuento, renovación automática, método de pago, límites, cancelación, reembolso y estos Términos de Uso.',
-            'El plan Free no se convierte automáticamente en plan de pago. Los planes Pro y Elite se renuevan solo si esa condición se ha informado y aceptado en el checkout. El consumidor puede cancelar por los mismos canales usados para contratar o por endart.studios@gmail.com.',
+            'El plan Free no se convierte automáticamente en plan de pago. Los planes Pro y Elite se renuevan solo si esa condición se ha informado y aceptado en el checkout. El consumidor puede cancelar por los mismos canales usados para contratar o por endart.studios+reembolso@gmail.com.',
           ],
         },
         {
           title: 'Cancelación y arrepentimiento',
           body: [
-            'La cancelación detiene cobros futuros. Salvo condición más favorable, las funciones de pago permanecen hasta el final del periodo ya pagado. En contratación fuera del establecimiento comercial, el consumidor puede ejercer el derecho de arrepentimiento en el plazo legal de 7 días (art. 49 del CDC), por el panel o endart.studios@gmail.com.',
+            'La cancelación detiene cobros futuros. Salvo condición más favorable, las funciones de pago permanecen hasta el final del periodo ya pagado. En contratación fuera del establecimiento comercial, el consumidor puede ejercer el derecho de arrepentimiento en el plazo legal de 7 días (art. 49 del CDC), por el panel o endart.studios+reembolso@gmail.com.',
             'El reembolso se solicitará por el medio de pago utilizado, con confirmación al consumidor. END ART no reemplazará la restitución legal por crédito sin el consentimiento del consumidor.',
           ],
         },
@@ -355,7 +355,7 @@ const es: Dictionary = {
         {
           title: 'Atención e identificación',
           body: [
-            'Dudas sobre planes, cancelación, cobro, reembolso o funciones: endart.studios@gmail.com.',
+            'Dudas sobre planes, cancelación, cobro, reembolso o funciones: endart.studios+reembolso@gmail.com.',
             'END ART Studios — CNPJ nº 45.370.930/0001-75 — Osasco, São Paulo, Brasil.',
           ],
         },
@@ -376,7 +376,7 @@ const es: Dictionary = {
         {
           title: 'Reporte de vulnerabilidades',
           body: [
-            'Las vulnerabilidades pueden reportarse en endart.studios@gmail.com. Indique el activo afectado, pasos reproducibles, impacto, evidencia mínima y contacto.',
+            'Las vulnerabilidades pueden reportarse en endart.studios+security@gmail.com. Indique el activo afectado, pasos reproducibles, impacto, evidencia mínima y contacto.',
             'No acceda, altere, elimine ni exfiltre datos más allá de lo necesario para demostrar el problema, ni provoque caídas, ingeniería social o pruebas contra terceros.',
           ],
         },
@@ -429,7 +429,7 @@ const es: Dictionary = {
         {
           title: 'Contacto de privacidad',
           body: [
-            'Dudas, retirada de preferencias y ejercicio de derechos: endart.studios@gmail.com. El canal actual de soporte es endart.studios@gmail.com.',
+            'Dudas, retirada de preferencias y ejercicio de derechos: endart.studios+privacidade@gmail.com. El canal actual de soporte es endart.studios+privacidade@gmail.com.',
           ],
         },
       ],
@@ -485,7 +485,7 @@ const es: Dictionary = {
           body: [
             'Las funciones de IA de Almanaque dos Clubes son auxiliares de investigación, síntesis, clasificación y navegación del acervo. Las respuestas pueden ser incorrectas, incompletas, desactualizadas, ambiguas o con citas inadecuadas.',
             'Aviso junto a la consulta: "Respuesta asistida por inteligencia artificial. Puede contener errores, omisiones o información desactualizada. Comprueba las fuentes, fechas y contexto antes de usar o compartir. No insertes datos confidenciales o personales innecesarios."',
-            'Aviso junto a la respuesta: "Importante: esta respuesta fue generada u organizada con ayuda de IA. No es una fuente oficial, no garantiza precisión o completitud y no sustituye la verificación humana. Consulta las fuentes indicadas y reporta una posible imprecisión a endart.studios@gmail.com."',
+            'Aviso junto a la respuesta: "Importante: esta respuesta fue generada u organizada con ayuda de IA. No es una fuente oficial, no garantiza precisión o completitud y no sustituye la verificación humana. Consulta las fuentes indicadas y reporta una posible imprecisión a endart.studios+contato@gmail.com."',
           ],
         },
         {
@@ -511,7 +511,7 @@ const es: Dictionary = {
           title: 'Filtros e impugnación',
           body: [
             'El usuario no debe insertar contraseñas, datos bancarios, datos de salud, datos de menores, documentos de identidad, secretos comerciales ni información confidencial innecesaria en los prompts.',
-            'Ante abuso, riesgo de seguridad o violación, END ART puede bloquear una consulta, reducir límites, suspender temporalmente, revocar API o finalizar una cuenta de forma proporcional. Cuando sea posible, comunicará el motivo y ofrecerá impugnación en endart.studios@gmail.com. Las medidas urgentes pueden ocurrir sin aviso previo cuando sea necesario para evitar daño grave.',
+            'Ante abuso, riesgo de seguridad o violación, END ART puede bloquear una consulta, reducir límites, suspender temporalmente, revocar API o finalizar una cuenta de forma proporcional. Cuando sea posible, comunicará el motivo y ofrecerá impugnación en endart.studios+security@gmail.com. Las medidas urgentes pueden ocurrir sin aviso previo cuando sea necesario para evitar daño grave.',
           ],
         },
       ],
@@ -548,7 +548,7 @@ const es: Dictionary = {
         {
           title: 'Responsabilidad y protección de datos',
           body: [
-            'END ART responde conforme al CDC, la LGPD y la ley aplicable por fallos que le sean imputables. Ninguna cláusula excluye responsabilidad legal inderogable. El tratamiento de datos sigue la Política de Privacidad; el consumidor puede ejercer sus derechos en endart.studios@gmail.com. El marketing es opcional y no condiciona la contratación.',
+            'END ART responde conforme al CDC, la LGPD y la ley aplicable por fallos que le sean imputables. Ninguna cláusula excluye responsabilidad legal inderogable. El tratamiento de datos sigue la Política de Privacidad; el consumidor puede ejercer sus derechos en endart.studios+privacidade@gmail.com. El marketing es opcional y no condiciona la contratación.',
           ],
         },
         {
@@ -574,7 +574,7 @@ const es: Dictionary = {
         {
           title: 'Identificación del proveedor',
           body: [
-            'END ART Studios — Nombre Comercial: END ART Studios — CNPJ nº 45.370.930/0001-75 — Osasco, São Paulo, Brasil — contacto: endart.studios@gmail.com.',
+            'END ART Studios — Nombre Comercial: END ART Studios — CNPJ nº 45.370.930/0001-75 — Osasco, São Paulo, Brasil — contacto: endart.studios+contato@gmail.com.',
           ],
         },
         {
@@ -594,7 +594,7 @@ const es: Dictionary = {
         {
           title: '2. Identificación y objeto',
           body: [
-            'La Plataforma es operada por END ART Studios, CNPJ nº 45.370.930/0001-75, Nombre Comercial END ART Studios, en Osasco, São Paulo, Brasil, contacto endart.studios@gmail.com.',
+            'La Plataforma es operada por END ART Studios, CNPJ nº 45.370.930/0001-75, Nombre Comercial END ART Studios, en Osasco, São Paulo, Brasil, contacto endart.studios+contato@gmail.com.',
             'Almanaque dos Clubes reúne y organiza información histórica sobre clubes, jugadores, competiciones, partidos y rankings, con herramientas de búsqueda y funciones asistidas por IA. La Plataforma puede usar fuentes públicas, bases licenciadas, contribuciones autorizadas y procesos internos de revisión.',
             'Almanaque no es un organismo oficial de federación, club, liga, atleta o competición, salvo indicación expresa y documentada. La presencia de nombre, escudo, marca, imagen o registro no implica patrocinio, respaldo, afiliación ni autorización de terceros.',
           ],
@@ -634,7 +634,7 @@ const es: Dictionary = {
         {
           title: '7. Cancelación',
           body: [
-            'El consumidor puede cancelar la renovación desde el panel de la cuenta o el mismo canal usado para contratar, o por endart.studios@gmail.com, sin justificación.',
+            'El consumidor puede cancelar la renovación desde el panel de la cuenta o el mismo canal usado para contratar, o por endart.studios+reembolso@gmail.com, sin justificación.',
             'Cancelar la renovación detiene cobros futuros. Salvo cese inmediato solicitado por el consumidor o medida necesaria por violación comprobada, el acceso a funciones de pago permanece hasta el final del periodo ya pagado. La cancelación no elimina derechos de reembolso o arrepentimiento.',
             'La eliminación de la cuenta y de datos sigue la Política de Privacidad. Los registros necesarios para reembolso, contabilidad, seguridad, prevención de fraude, obligación legal o defensa pueden conservarse de forma restringida por el plazo necesario.',
           ],
@@ -643,7 +643,7 @@ const es: Dictionary = {
           title: '8. Derecho de arrepentimiento y reembolso',
           body: [
             'En contrataciones fuera del establecimiento comercial, el consumidor puede ejercer el derecho de arrepentimiento en el plazo de 7 días desde la firma o recepción del servicio, conforme al art. 49 del Código de Defensa del Consumidor.',
-            'La solicitud puede realizarse por el panel, el flujo de cancelación o endart.studios@gmail.com. END ART proporcionará confirmación y protocolo, detendrá la renovación y solicitará la restitución por el medio de pago utilizado. El consumidor no estará obligado a aceptar crédito cuando la ley exija restitución.',
+            'La solicitud puede realizarse por el panel, el flujo de cancelación o endart.studios+reembolso@gmail.com. END ART proporcionará confirmación y protocolo, detendrá la renovación y solicitará la restitución por el medio de pago utilizado. El consumidor no estará obligado a aceptar crédito cuando la ley exija restitución.',
             'El uso del servicio no se utilizará aisladamente para negar automáticamente el derecho legal de arrepentimiento. Las disputas de fraude, chargeback o uso por terceros se investigarán por separado.',
           ],
         },
@@ -651,7 +651,7 @@ const es: Dictionary = {
           title: '9. Contenido, fuentes y precisión',
           body: [
             'La información histórica puede contener lagunas, divergencias entre fuentes, cambios posteriores, errores de transcripción o datos aún no revisados. La expresión "fuentes verificadas" significa que la Plataforma busca identificar y revisar fuentes, no que todo registro sea infalible u oficialmente reconocido.',
-            'La fecha de actualización, la fuente y la metodología, cuando estén disponibles, deben consultarse en la página del registro o ranking. El usuario puede reportar imprecisiones a endart.studios@gmail.com.',
+            'La fecha de actualización, la fuente y la metodología, cuando estén disponibles, deben consultarse en la página del registro o ranking. El usuario puede reportar imprecisiones a endart.studios+contato@gmail.com.',
           ],
         },
         {
@@ -677,7 +677,7 @@ const es: Dictionary = {
           title: '12. API y extracción',
           body: [
             'Cuando la API esté incluida en el plan, el acceso se limita a la documentación, clave individual, límites y finalidades del checkout. Se prohíbe compartir claves, eludir rate limits, extraer la base íntegra o sustancialmente, crear un espejo, revender respuestas, redistribuir a escala o crear un servicio competidor sin autorización escrita.',
-            'END ART puede bloquear solicitudes anómalas para proteger la disponibilidad y los datos. La medida será proporcional y podrá impugnarse en endart.studios@gmail.com.',
+            'END ART puede bloquear solicitudes anómalas para proteger la disponibilidad y los datos. La medida será proporcional y podrá impugnarse en endart.studios+security@gmail.com.',
           ],
         },
         {
@@ -705,7 +705,7 @@ const es: Dictionary = {
         {
           title: '16. Comunicaciones y contacto',
           body: [
-            'Servicio, cancelación, reembolso, corrección de contenido, privacidad y dudas contractuales: endart.studios@gmail.com. Para seguridad, se recomienda el canal dedicado indicado en la Política de Seguridad, cuando esté disponible.',
+            'Servicio, cancelación, reembolso, corrección de contenido, privacidad y dudas contractuales: endart.studios+suporte@gmail.com. Para seguridad, se recomienda el canal dedicado indicado en la Política de Seguridad, cuando esté disponible.',
           ],
         },
         {
@@ -723,7 +723,7 @@ const es: Dictionary = {
         {
           title: '18. Derechos de autor e historial de versiones',
           body: [
-            'Los titulares de derechos de autor pueden notificar presuntas infracciones mediante el formulario en /direitos-autorais (descripción del material, ubicación, fundamentación legal y contacto) o por el canal endart.studios@gmail.com. Las notificaciones pasan por triaje y decisión motivada; el contenido inequívocamente infractor es retirado.',
+            'Los titulares de derechos de autor pueden notificar presuntas infracciones mediante el formulario en /direitos-autorais (descripción del material, ubicación, fundamentación legal y contacto) o por el canal endart.studios+direitos@gmail.com. Las notificaciones pasan por triaje y decisión motivada; el contenido inequívocamente infractor es retirado.',
             'Historial de versiones: v1.0 (01/09/2026) — versión inicial; v1.1 (18/09/2026) — inclusión del canal de notificaciones de derechos de autor; v1.2 (19/09/2026) — Stripe activado como procesador de pagamentos en producción.; v1.3 (22/09/2026) — consistencia documental: plazos de derechos, retención detallada, incidentes de seguridad, menores y proveedores (fuentes autoalojadas).',
           ],
         },
@@ -811,7 +811,7 @@ const es: Dictionary = {
         {
           title: '10. Delegado de Protección de Datos (DPO) y contacto',
           body: [
-            'Solicitudes de privacidad y ejercicio de derechos: endart.studios@gmail.com.',
+            'Solicitudes de privacidad y ejercicio de derechos: endart.studios+privacidade@gmail.com.',
             'END ART Studios es el responsable del tratamiento de los datos de la plataforma.',
           ],
         },
@@ -825,7 +825,7 @@ const es: Dictionary = {
         {
           title: '12. Ejercicio de derechos, canales e historial de versiones',
           body: [
-            'Los derechos del art. 18 de la LGPD (confirmación, acceso, corrección, anonimización, portabilidad, eliminación, información sobre el compartimiento, información sobre las consecuencias de no proporcionar datos, revisión de decisiones automatizadas y revocación del consentimiento) pueden ejercerse mediante el formulario en /direitos-titular, con emisión de protocolo de seguimiento, o por el canal endart.studios@gmail.com.',
+            'Los derechos del art. 18 de la LGPD (confirmación, acceso, corrección, anonimización, portabilidad, eliminación, información sobre el compartimiento, información sobre las consecuencias de no proporcionar datos, revisión de decisiones automatizadas y revocación del consentimiento) pueden ejercerse mediante el formulario en /direitos-titular, con emisión de protocolo de seguimiento, o por el canal endart.studios+privacidade@gmail.com.',
             'Las solicitudes de confirmación y acceso reciben respuesta inmediata; las demás, en un plazo de 15 días, prorrogable conforme el art. 18, §3, con comunicación a la ANPD.',
             'Historial de versiones: v1.0 (01/09/2026) — versión inicial; v1.1 (18/09/2026) — inclusión de los canales de ejercicio de derechos del titular y de notificaciones de derechos de autor; v1.2 (19/09/2026) — Stripe activado como procesador de pagamentos en producción.; v1.3 (22/09/2026) — plazos de derechos (15d LGPD / 1 mes GDPR), retención detallada, notificación de incidentes, menores y proveedores.',
           ],
@@ -852,7 +852,7 @@ const es: Dictionary = {
     trackInputLabel: 'Protocolo',
     trackButton: 'Consultar',
     notFound: 'Protocolo no encontrado. Verifica los caracteres e inténtalo de nuevo.',
-    errorGeneric: 'No se pudo completar. Inténtalo de nuevo o escribe a endart.studios@gmail.com.',
+    errorGeneric: 'No se pudo completar. Inténtalo de nuevo o escribe a endart.studios+privacidade@gmail.com.',
     statusLabel: 'Estado',
     slaLabel: 'Plazo de respuesta',
     createdAtLabel: 'Recibida el',
@@ -889,7 +889,7 @@ const es: Dictionary = {
     successBody:
       'Guarda el protocolo de abajo. El triaje ocurre en hasta 5 días hábiles y las decisiones son siempre motivadas.',
     protocolLabel: 'Protocolo',
-    errorGeneric: 'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios@gmail.com.',
+    errorGeneric: 'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios+contato@gmail.com.',
   },
   mapExplorer: {
     world: 'Mundo',

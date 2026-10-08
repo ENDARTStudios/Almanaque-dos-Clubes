@@ -11,7 +11,7 @@ de forma responsável.
 **Não crie uma issue pública no GitHub.** Envie um email para:
 
 ```
-security@almanaque.app
+endart.studios+security@gmail.com
 ```
 
 ### O que esperar
@@ -24,7 +24,7 @@ security@almanaque.app
 ### Escopo
 
 Dentro do escopo:
-- Aplicações web em `*.almanaque.app` e subdomínios (quando disponíveis).
+- Aplicações web em `almanaquedosclubes.com` e subdomínios (incl. `api.almanaquedosclubes.com`).
 - Repositórios do GitHub do projeto (`ENDARTStudios/Almanaque-dos-Clubes`).
 - Endpoints da API (`/api/v1/*`).
 
@@ -35,7 +35,7 @@ Fora de escopo:
 
 ### Processo
 
-1. Reportante envia descrição detalhada para security@almanaque.app.
+1. Reportante envia descrição detalhada para endart.studios+security@gmail.com.
 2. Mantenedor confirma recebimento e classifica severidade.
 3. Correção é desenvolvida em branch privada.
 4. Após deploy da correção, vulnerabilidade é divulgada publicamente.

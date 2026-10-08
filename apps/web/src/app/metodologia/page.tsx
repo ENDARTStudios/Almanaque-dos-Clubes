@@ -128,7 +128,7 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Atualização e correções:</strong> última atualização em 25/09/2026. Encontrou um
-            erro? Escreva para <strong>endart.studios@gmail.com</strong>.
+            erro? Escreva para <strong>endart.studios+contato@gmail.com</strong>.
           </p>
         </section>
 
@@ -160,7 +160,7 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
             fonte prevalecem no idioma original.
           </p>
         </section>
@@ -307,7 +307,7 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
             fonte prevalecem no idioma original.
           </p>
         </section>
@@ -364,7 +364,7 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios@gmail.com</strong>. Versão informativa; as condições de uso da
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
             fonte prevalecem no idioma original.
           </p>
         </section>
