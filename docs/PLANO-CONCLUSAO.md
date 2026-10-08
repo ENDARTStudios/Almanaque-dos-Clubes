@@ -70,6 +70,8 @@ corrigido:** `/upload/csv` devolvia **500** quando `UPLOAD_ALLOWED_MIMES` não i
 do `env.ts` NÃO inclui — CI e possivelmente produção); agora a rota permite `text/csv` por contrato
 próprio. **Restante p/ os 80%:** agregado `country_pyramid` do rankings.service (fixture EN-pyramid).
 
+**Extra do round 4 (08-10):** auditoria geral do site (browser + curl) — base saudável (20/20 páginas 200, web e API = main, headers/SEO/API gated ok) e **3 achados corrigidos** (PR #426): tag Não-FIFA no carrossel (P1 curadoria), nomes reais no deep-link do /compare (P2 UX), CSP sem unsafe-eval (P2 hardening). **P3 registrados:** migração CSP→nonce (M5) · Speed Insights da Vercel (painel/dependência — Operador ou round futuro) · HSTS preload (T120).
+
 ### P2 — Conteúdo M4 (rounds seguintes)
 
 - **T450** — continuar ondas (Wikipedia PT como fonte substituta; recomendações wave 3 em `docs/T450-OBSERVATION.md`: coords, cura de seleções×clubes, monitorar WD para BR feminino)

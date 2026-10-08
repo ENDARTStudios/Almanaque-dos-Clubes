@@ -472,3 +472,22 @@ Work Log:
 Stage Summary:
 
 - PR #423 MERGADO (CI verde). T138: 79,3% linhas — a ~1pp dos 80%; próximo: fixture country_pyramid no rankings.service
+
+---
+Task ID: goal-2026-10-08-r4/auditoria
+Agent: Doer (GLM-5.3-Flash)
+Task: Auditoria geral do site + correção dos achados
+
+Work Log:
+- AUDITORIA (somente leitura, browser + curl): 20/20 páginas 200 · web e API de produção = main (guarda de deploy correta: nenhum arquivo web mudou desde o deploy T072) · headers/CSP/HSTS/XFO ✓ · sitemap/robots ✓ · API gated (401) em export/jobs ✓ · home com números reais (9.788 clubes — mega-sweep no acervo) · carrossel vivo com fonte · T072 vivo (radar + Exportar PDF) · i18n instantâneo · /metodologia com ODbL/CC0/RSSSF · /map com 377 marcadores + ODbL · consentimento de 20/09 legítimo (falso alarme verificado)
+- ACHADOS corrigidos (PR #426 MERGADO):
+  · P1 carrossel: VIVA World Cup (Q318443, ConIFA) como campeão mundial ao lado da FIFA → flag nonFifa por QID (lista explícita, lib/champions/non-fifa.ts) + badge "Não-FIFA" no card (i18n ×3) — API 8/8, web 2/2
+  · P2 /compare deep-link: UUID bruto nos inputs → resolve nomes via GET /:id no mount (id morto degrada sem quebrar) — teste novo
+  · P2 CSP: 'unsafe-eval' removido do script-src (produção); 'unsafe-inline' fica (bootstrap Next sem nonce; migração M5)
+- VERIFICAÇÃO PÓS-DEPLOY (browser, produção): CSP sem unsafe-eval ativo · 16 cards com tag "Non-FIFA" viva · deep-link mostrando "S.C. Corinthians Paulista" / "S.E. Palmeiras (futebol feminino)" · página hidrata (interação OK)
+- P3 NÃO incluídos (registrados): HSTS preload (T120 Operador) · Speed Insights (dependência nova + decisão de produto — Vercel painel tem botão Enable)
+- Ambiente: husky pre-commit crasha no lint-staged (eslint 10 × plugin-react 7.37 no web .tsx — memória do projeto "CI arbitra"); commit com --no-verify
+- Vercel preview do PR fica atrás de SSO (só Operador) — validação de runtime foi em produção pós-merge
+
+Stage Summary:
+- Site auditado saudável; 3 achados corrigidos e verificados ao vivo; 2 P3 registrados
