@@ -472,7 +472,7 @@ const pt: Dictionary = {
           form: 'Header HTTP',
         },
       ],
-      note: 'Classificação e inventário seguem a função real de cada cookie, não o nome comercial do fornecedor. Nenhum cookie de analytics ou marketing está instalado hoje; esta tabela é atualizada a cada mudança de inventário (última revisão: 22/09/2026 — versão 1.0 da política).',
+      note: 'Classificação e inventário seguem a função real de cada cookie, não o nome comercial do fornecedor. Nenhum cookie de analytics ou marketing está instalado hoje; esta tabela é atualizada a cada mudança de inventário (última revisão: 08/10/2026 — versão 1.1 da política). Telemetria de performance (Core Web Vitals via Vercel Speed Insights) só é coletada com consentimento de analytics e não instala cookies.',
     },
     ia: {
       title: 'Como usamos IA',

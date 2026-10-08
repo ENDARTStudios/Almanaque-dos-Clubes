@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/components/AuthProvider';
 import Footer from '@/components/Footer';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
+import SpeedInsightsGate from '@/components/SpeedInsightsGate';
 import { cookieBannerEnabled } from '@/lib/flags';
 import { safeJsonLd } from '@/lib/json-ld';
 import { I18nProvider } from '@/i18n/Provider';
@@ -94,6 +95,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="flex-1 pt-16">{children}</main>
           <Footer />
           {cookieBannerEnabled() && <CookieConsentBanner />}
+          {/* Core Web Vitals — gateado na categoria analytics do consentimento */}
+          <SpeedInsightsGate />
           </AuthProvider>
         </I18nProvider>
       </body>

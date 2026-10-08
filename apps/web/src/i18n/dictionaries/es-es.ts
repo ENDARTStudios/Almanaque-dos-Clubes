@@ -473,7 +473,7 @@ const es: Dictionary = {
           form: 'Cabecera HTTP',
         },
       ],
-      note: 'La clasificación y el inventario siguen la función real de cada cookie, no el nombre comercial del proveedor. Hoy no hay cookies de analítica ni de publicidad instaladas; esta tabla se actualiza a cada cambio de inventario (última revisión: 22/09/2026 — versión 1.0 de la política).',
+      note: 'La clasificación y el inventario siguen la función real de cada cookie, no el nombre comercial del proveedor. Hoy no hay cookies de analítica ni de publicidad instaladas; esta tabla se actualiza a cada cambio de inventario (última revisión: 08/10/2026 — versión 1.1 de la política). La telemetría de rendimiento (Core Web Vitals vía Vercel Speed Insights) solo se recopila con consentimiento de analítica y no instala cookies.',
     },
     ia: {
       title: 'Cómo usamos la IA',
