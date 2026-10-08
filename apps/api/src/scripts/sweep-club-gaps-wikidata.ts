@@ -76,13 +76,6 @@ async function main(): Promise<void> {
       const club = qid ? byQid.get(qid) : undefined;
       if (!club) continue;
       const patch: Record<string, unknown> = {};
-      const meta =
-        {
-          ...((club as unknown as { metadata?: object }).metadata as Record<
-            string,
-            unknown
-          > | null),
-        } ?? {};
       if (club.foundedYear == null && row.found?.value) {
         const y = row.found.value.slice(0, 4);
         if (/^\d{4}$/.test(y) && Number(y) > 1800 && Number(y) <= new Date().getFullYear()) {
