@@ -63,6 +63,22 @@ const CATEGORIES: Category[] = [
   },
 ];
 
+/**
+ * Sinônimos documentados (nome RSSSF → nome no acervo). Cada entrada é um
+ * sinônimo público e auditável do mesmo clube — NÃO é inferência: o par
+ * nome+país identifica o clube univocamente (ex.: 'Santos Futebol Clube'
+ * [Santos/SP] é o Santos F.C. do acervo; o homônimo zambiano Chief Santos é
+ * outro país e é filtrado pelo country do match).
+ */
+const NAME_ALIASES: Record<string, string> = {
+  'Santos Futebol Clube': 'Santos F.C.',
+  'Botafogo de Futebol e Regatas': 'Botafogo F.R.',
+  'Sport Club Corinthians Paulista': 'S.C. Corinthians Paulista',
+  'Fluminense Football Club': 'Fluminense F.C.',
+  'Grêmio Foot-Ball Porto Alegrense': 'Grêmio FBPA',
+  'Clube de Regatas Vasco da Gama': 'Club de Regatas Vasco da Gama',
+};
+
 /** Fetch da página RSSSF (windows-1252). */
 async function fetchPage(page: string): Promise<string> {
   const url = RSSSF_BASE + page;
@@ -78,9 +94,12 @@ async function fetchPage(page: string): Promise<string> {
 async function matchClub(
   prisma: PrismaClient,
   championName: string,
+  competitionCountry: string | null,
 ): Promise<{ id: string; name: string } | null> {
+  const alias = NAME_ALIASES[championName];
+  const searchName = alias ?? championName;
   const exact = await prisma.club.findFirst({
-    where: { name: { equals: championName, mode: 'insensitive' }, deletedAt: null },
+    where: { name: { equals: searchName, mode: 'insensitive' }, deletedAt: null },
     select: { id: true, name: true },
   });
   if (exact) return exact;
@@ -90,7 +109,7 @@ async function matchClub(
   // o acervo cataloga 'Santos F.C.' — tsvector composto não casa com o nome
   // completo do RSSSF. Validação: ≥60% das palavras do RSSSF presentes no nome
   // do acervo (Santos F.C. vs Botafogo F.R. nunca confundem).
-  const tokens = championName
+  const tokens = searchName
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -121,7 +140,13 @@ async function matchClub(
     // candidato '(futebol feminino)' é OUTRO clube no acervo (T450) e nunca é
     // o campeão correto (bug do smoke 09/10: Santos ×5 linkado ao feminino).
     .filter((x) => !/futebol feminino|femenino|women/i.test(x.c.name))
-    .sort((a, b) => b.hits - a.hits || a.c.name.localeCompare(b.c.name));
+    .sort(
+      (a, b) =>
+        b.hits - a.hits ||
+        (a.c.country === competitionCountry ? -1 : 0) -
+          (b.c.country === competitionCountry ? -1 : 0) ||
+        a.c.name.localeCompare(b.c.name),
+    );
   if (scored.length > 0 && (scored.length === 1 || scored[0].hits > scored[1].hits)) {
     return { id: scored[0].c.id, name: scored[0].c.name };
   }
@@ -191,7 +216,7 @@ async function main(): Promise<number> {
       let skipped = 0;
       let unmatched: string[] = [];
       for (const e of championEditions) {
-        const club = await matchClub(prisma, e.championName);
+        const club = await matchClub(prisma, e.championName, cat.country);
         if (!club) {
           unmatched.push(`${e.year} ${e.championName}`);
           continue;
