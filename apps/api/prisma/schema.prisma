@@ -60,6 +60,16 @@ model Club {
   userDescriptionUpdatedAt  DateTime?
   qid          String?    @unique // Wikidata Q-identifier (ex: Q12345)
   latitude     Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
+  // T502 — mídia visual (Wikidata P154/P115/P625/P1083/P18) + identidade (seleções)
+  logoUrl           String?
+  teamColors        Json?
+  stadiumName       String?
+  stadiumImage      String?
+  stadiumCapacity   Int?
+  stadiumLat        Float?
+  stadiumLng        Float?
+  kind              String  @default("club") // 'club' | 'national_team' | 'federation'
+  federation        String?
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
@@ -136,6 +146,8 @@ model Player {
   country      String?   @db.VarChar(2)
   // T034 — P21 Wikidata ('men' | 'women'); nullable, ingestão preenche quando a fonte traz.
   gender       String?
+  // T502 — P18 Wikidata (Wikimedia Commons, CC-BY-SA/CC0)
+  photoUrl     String?
   position     String?
   clubId       String?
   club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)
