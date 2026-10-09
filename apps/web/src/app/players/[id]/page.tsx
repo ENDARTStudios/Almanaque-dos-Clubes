@@ -9,6 +9,7 @@ import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { safeJsonLd } from '@/lib/json-ld';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
+import { PlayerPhoto } from '@/components/MediaAssets';
 
 interface Player {
   id: string;
@@ -89,9 +90,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
       </Link>
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
-            {p.fullName.slice(0, 2).toUpperCase()}
-          </div>
+          <PlayerPhoto photoUrl={(p as { photoUrl?: string | null }).photoUrl} name={p.fullName} size={80} />
           <div className="flex-1">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {p.fullName}
