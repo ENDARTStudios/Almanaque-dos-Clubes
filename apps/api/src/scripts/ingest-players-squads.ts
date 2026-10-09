@@ -191,7 +191,9 @@ async function main(): Promise<number> {
     const byQid = new Map<string, PlayerSquad>();
     for (let i = 0; i < clubQids.length; i += CLUB_CHUNK) {
       const chunk = clubQids.slice(i, i + CLUB_CHUNK);
-      console.log(`[t034] wikidata chunk ${Math.floor(i / CLUB_CHUNK) + 1}/${Math.ceil(clubQids.length / CLUB_CHUNK)} (${chunk.length} clubes)…`);
+      console.log(
+        `[t034] wikidata chunk ${Math.floor(i / CLUB_CHUNK) + 1}/${Math.ceil(clubQids.length / CLUB_CHUNK)} (${chunk.length} clubes)…`,
+      );
       const found = await fetchPlayersSquads({
         clubQids: chunk,
         limit: PAGE_SIZE,
