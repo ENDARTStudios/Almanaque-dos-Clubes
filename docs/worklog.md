@@ -612,3 +612,20 @@ Work Log:
 
 Stage Summary:
 - T500 [x]: 3.918 jogadoras + 5.581 vínculos femininos; conteúdo feminino consolidado (150 clubes + 8 competições + 3.918 jogadoras com vínculos)
+
+---
+Task ID: goal-2026-10-09/t035
+Agent: Doer (GLM-5.3-Flash)
+Task: T035 — RSSSF competições históricas (Taça Brasil, Robertão, Rio-SP)
+
+Work Log:
+- Discovery: rsssfbrasil.com sem robots bloqueante; páginas de palmares consolidadas identificadas (brcuphst.htm, rgpcamp.htm, rjspcamp.htm); charset cp1252
+- Intercontinental Cup (37 WON) JÁ coberta pelo T448-Wikidata — fora do escopo
+- Parser puro (lib/rsssf/champions-parser.ts): cp1252→tokens→linhas ANO - Nome (Cidade); pula not realized/decided/no effect com status; 5 testes com amostras reais
+- Script seed-rsssf-competitions.ts: find-or-create Competition (importedFrom='rsssf', sourceUrl), match clube em 3 camadas (exato → palavra distintiva + score → recusa honesta), arestas WON metadata {rsssf:true, year, sourceUrl, CC0-with-attribution}, dedup por (comp, year)
+- Gate produção (3 applies + 2 re-runs): Taça Brasil 10/10 WON ✓ · Robertão 4/4 ✓ · Rio-SP 22/25 (3 recusas honestas por ambiguidade de nome: Vasco/Flamengo homônimos) · smoke: Taça Brasil com 10 edições e topWinners (Palmeiras ×2, Cruzeiro, Bahia) ✓
+- FIXES no caminho: (1) match feminino errado — Santos ×5 e Botafogo 1968 linkados ao clube '(futebol feminino)' (T450); filtro exclui femininos em competições masculinas; 21 arestas erradas removidas; (2) aliases auditáveis NAME_ALIASES (Santos Futebol Clube = Santos F.C. etc. — sinônimos públicos, não inferência) desbloqueou Santos/Botafogo/Grêmio; (3) country priority no desempate
+- Zero escrita em rankings ✓ · API 200 ✓
+
+Stage Summary:
+- T035 [x piloto]: 3 competições históricas criadas + 36 arestas WON (1 gap: Rio-SP 1964 título dividido) · extensão para mais categorias (internacionais, estaduais desde 1902) segue o mesmo padrão
