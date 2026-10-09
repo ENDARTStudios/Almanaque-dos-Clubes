@@ -266,11 +266,29 @@ export async function fetchPlayersSquads(opts: FetchPlayersSquadsOptions): Promi
   for (let page = 0; page < maxPages; page++) {
     const query = buildPlayersSquadsQuery({ clubQids, limit, offset: page * limit });
     const url = `${endpoint}?query=${encodeURIComponent(query)}&format=json`;
-    const res = await fetchImpl(url, {
-      headers: { 'user-agent': userAgent, Accept: 'application/sparql-results+json' },
-    });
-    if (!res.ok) throw new Error(`SPARQL HTTP ${res.status}`);
-    const pagePlayers = parsePlayersSquadsResponse(await res.json());
+    // Wikidata Query Service oscila (503 em VALUES grandes) — 3 tentativas com backoff.
+    let body: unknown = null;
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetchImpl(url, {
+          headers: { 'user-agent': userAgent, Accept: 'application/sparql-results+json' },
+        });
+        if (!res.ok) {
+          lastError = new Error(`SPARQL HTTP ${res.status}`);
+        } else {
+          body = await res.json();
+          break;
+        }
+      } catch (err) {
+        lastError = err;
+      }
+      if (attempt < 2) await sleep(2000 * 2 ** attempt);
+    }
+    if (body === null) {
+      throw lastError instanceof Error ? lastError : new Error('SPARQL fetch falhou');
+    }
+    const pagePlayers = parsePlayersSquadsResponse(body);
     all.push(...pagePlayers);
     if (pagePlayers.length === 0 || pagePlayers.length < limit) break;
     await sleep(minIntervalMs);

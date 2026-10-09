@@ -185,12 +185,22 @@ async function main(): Promise<number> {
     }
 
     // 2. Wikidata: jogadores com P54 nesses clubes (1 req/s, User-Agent identificado).
-    const players = await fetchPlayersSquads({
-      clubQids,
-      limit: PAGE_SIZE,
-      maxPages: MAX_PAGES,
-      userAgent: PLAYERS_SQUADS_USER_AGENT,
-    });
+    // VALUES grandes derrubam o Query Service (503) — chunk de 50 clubes por query,
+    // dedup por QID entre chunks (jogador pode ter P54 em clubes de chunks distintos).
+    const CLUB_CHUNK = 50;
+    const byQid = new Map<string, PlayerSquad>();
+    for (let i = 0; i < clubQids.length; i += CLUB_CHUNK) {
+      const chunk = clubQids.slice(i, i + CLUB_CHUNK);
+      console.log(`[t034] wikidata chunk ${Math.floor(i / CLUB_CHUNK) + 1}/${Math.ceil(clubQids.length / CLUB_CHUNK)} (${chunk.length} clubes)…`);
+      const found = await fetchPlayersSquads({
+        clubQids: chunk,
+        limit: PAGE_SIZE,
+        maxPages: MAX_PAGES,
+        userAgent: PLAYERS_SQUADS_USER_AGENT,
+      });
+      for (const p of found) if (!byQid.has(p.qid)) byQid.set(p.qid, p);
+    }
+    const players = [...byQid.values()];
     const capped = players.slice(0, LIMIT);
     console.log(
       `[t034] wikidata: ${players.length} jogadores com P54+dados (limitado a ${capped.length})`,
