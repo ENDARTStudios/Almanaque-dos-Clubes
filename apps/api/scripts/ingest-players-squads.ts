@@ -19,12 +19,12 @@ import {
   fetchPlayersSquads,
   type PlayerSquad,
   PLAYERS_SQUADS_USER_AGENT,
-} from '../modules/etl/connectors/wikidata-players-squads.connector.js';
+} from '../src/modules/etl/connectors/wikidata-players-squads.connector.js';
 import {
   syncSquads,
   type SquadsEntry,
   type SquadsRepository,
-} from '../modules/etl/connectors/wikidata-squads.connector.js';
+} from '../src/modules/etl/connectors/wikidata-squads.connector.js';
 import { logger } from '../config/logger.js';
 
 const APPLY = process.argv.includes('--apply');
