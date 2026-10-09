@@ -575,3 +575,24 @@ Work Log:
 
 Stage Summary:
 - T034 [x]: 772 jogadores + 13.5k vínculos PLAYED_FOR acumulados; perfis de jogador alimentados (carreira/conquistas/clubes); NOOP provado; gaps declarados: jogadores sem P54 no Wikidata, clubes sem QID no acervo (recusados), fases seguintes (outros países) em rounds futuros
+
+---
+Task ID: goal-2026-10-09/t499
+Agent: Doer (GLM-5.3-Flash)
+Task: T499 — extensão do seed de jogadores para 9 países (AR,PT,ES,GB,IT,DE,FR,MX,US)
+
+Work Log:
+- Mesmo script T034 via env T034_COUNTRIES='AR,PT,ES,GB,IT,DE,FR,MX,US' — 1.906 clubes com QID no escopo
+- Fase 1 (determinística, ORDER BY + paginação): 238.254 vínculos P54 destilados · 94.571 jogadores distintos
+- Fase 2 (wbgetentities em lotes de 50, ~1.892 requests a 1 req/s): 94.070 aceitos · apenas 501 fora do escopo
+- Criação: 91.045 jogadores criados em 911 lotes de 100 (proveniência completa; zero overwrite)
+- Vínculos: 237.727 PLAYED_FOR criados · 0 já-existiam · 0 recusas (todos os clubes dos vínculos estavam no acervo — fase 1 só buscou clubes do acervo)
+- OOM corrigido no caminho (PR #450): índice de links por playerQid (o filter O(n×m) 94k×238k derrubava o container silenciosamente)
+- Smoke: Daniel Messina (AR) com currentClub=Vélez Sarsfield + clubs linkados ✓ · busca global encontra os novos ✓
+- Noop: fase 1 determinística (238.254 idênticos em ambas execuções ✓); syncSquads idempotente provado no T034 (9.363 já-existiam)
+- Gap estrutural declarado: career (tabela ano a ano) só preenche para jogadores cujos P54 têm P580/P582 (qualificadores de período) — nos clubes 9 países, muitos vínculos são sem período; currentClub/clubs funcionam para todos
+- Hash/entries rankings intocados (zero escrita); API 200 · web 200
+
+Stage Summary:
+- T499 [x]: acervo salta para ~101k jogadores · 238k+ vínculos PLAYED_FOR no grafo · países do briefing cobertos
+- Lição: processos longos (>10 min) em produção exigem nohup + log em /tmp (ssh mata o processo)
