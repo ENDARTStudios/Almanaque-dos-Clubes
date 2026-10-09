@@ -107,6 +107,23 @@ export interface ClubProfile {
   fansCount: number;
   /** T450 wave 8 — infobox Wikipedia PT (fonte padrão substituta do Wikidata). */
   infobox: Record<string, string> | null;
+  /** T502 — mídia visual: escudo (P154) e estádio (P115/P625/P1083/P18). */
+  media: ClubMediaFields;
+}
+
+/** T502 (W1) — mídia do clube exposta no perfil público. */
+export interface ClubMediaFields {
+  logoUrl: string | null;
+  teamColors: string[] | null;
+  kind: string;
+  federation: string | null;
+  stadium: {
+    name: string | null;
+    image: string | null;
+    capacity: number | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
 }
 
 /** Gaps permanentes do acervo atual (dados que simplesmente não existem ainda). */
@@ -145,6 +162,16 @@ export interface ProfileClubInput {
   followersSnapshot?: unknown;
   /** WS-C-12 — ❤ contagem pública de favoritantes. */
   fansCount?: number | null;
+  /** T502 — mídia visual (opcional; ausente ⇒ null honestamente). */
+  logoUrl?: string | null;
+  teamColors?: unknown;
+  kind?: string | null;
+  federation?: string | null;
+  stadiumName?: string | null;
+  stadiumImage?: string | null;
+  stadiumCapacity?: number | null;
+  stadiumLat?: number | null;
+  stadiumLng?: number | null;
 }
 
 const INFOBOX_KEYS = [
@@ -157,6 +184,43 @@ const INFOBOX_KEYS = [
   'local',
   'liga',
 ] as const;
+
+/** T502 (W1) — monta o bloco de mídia do perfil (tudo null quando ausente). */
+function buildMediaFromClub(club: {
+  logoUrl?: string | null;
+  teamColors?: unknown;
+  kind?: string | null;
+  federation?: string | null;
+  stadiumName?: string | null;
+  stadiumImage?: string | null;
+  stadiumCapacity?: number | null;
+  stadiumLat?: number | null;
+  stadiumLng?: number | null;
+}): ClubMediaFields {
+  const colors = Array.isArray(club.teamColors)
+    ? (club.teamColors as unknown[]).filter((c): c is string => typeof c === 'string')
+    : null;
+  const hasStadium =
+    club.stadiumName != null ||
+    club.stadiumImage != null ||
+    club.stadiumCapacity != null ||
+    club.stadiumLat != null;
+  return {
+    logoUrl: club.logoUrl ?? null,
+    teamColors: colors && colors.length > 0 ? colors : null,
+    kind: club.kind ?? 'club',
+    federation: club.federation ?? null,
+    stadium: hasStadium
+      ? {
+          name: club.stadiumName ?? null,
+          image: club.stadiumImage ?? null,
+          capacity: club.stadiumCapacity ?? null,
+          latitude: club.stadiumLat ?? null,
+          longitude: club.stadiumLng ?? null,
+        }
+      : null,
+  };
+}
 
 /** T450 wave 8 — extrai o bloco metadata.infobox (Wikipedia PT) p/ o perfil. */
 export function infoboxFromMetadata(metadata: unknown): Record<string, string> | null {
@@ -269,6 +333,8 @@ export function buildProfile(
       limitations: related.length === 0 ? ['no_related_edges'] : [],
     },
     gaps: [...PROFILE_GAPS],
+    // T502 (W1) — mídia visual (escudo/estádio); null honesto quando ausente.
+    media: buildMediaFromClub(club),
   };
 }
 
@@ -366,6 +432,15 @@ export async function getClubProfile(id: string): Promise<ClubProfile | null> {
 
     const input: ProfileClubInput = {
       id: club.id,
+      logoUrl: club.logoUrl ?? null,
+      teamColors: club.teamColors ?? null,
+      kind: club.kind ?? 'club',
+      federation: club.federation ?? null,
+      stadiumName: club.stadiumName ?? null,
+      stadiumImage: club.stadiumImage ?? null,
+      stadiumCapacity: club.stadiumCapacity ?? null,
+      stadiumLat: club.stadiumLat ?? null,
+      stadiumLng: club.stadiumLng ?? null,
       gender: club.gender,
       qid: club.qid,
       name: club.name,
