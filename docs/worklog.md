@@ -629,3 +629,40 @@ Work Log:
 
 Stage Summary:
 - T035 [x piloto]: 3 competições históricas criadas + 36 arestas WON (1 gap: Rio-SP 1964 título dividido) · extensão para mais categorias (internacionais, estaduais desde 1902) segue o mesmo padrão
+
+---
+Task ID: goal-2026-10-09/t502
+Agent: Doer (GLM-5.3-Flash)
+Task: T502 — W1+W2+W3 mídia visual (escudos/fotos) + seleções nacionais
+
+Work Log:
+- MIGRATION ADITIVA unificada: clubs{logoUrl, teamColors, stadiumName/Image/Capacity/Lat/Lng, kind, federation} + players{photoUrl} (9 campos, nada removido)
+- CONNECTOR wikidata-media: wbgetentities lotes 50 (1 req/s), claimScalar/claimAll/bestLabel, commonsFilePath (Special:FilePath — URL nunca inventada), sparql retry 3×
+- W1 enrich-clubs-media: logo P154 + estádio P115→{nome, P625, P1083, P18}; 2 fases; zero overwrite
+- W2 enrich-players-media: foto P18 + país P27→Country.iso2 + posição P413
+- W3 seed-national-teams: seleções via P31=Q6979593 + P17→ISO2 + P21 + P154; kind='national_team'
+- WEB: MediaAssets (ClubCrest/PlayerPhoto/CountryFlag com fallback sigla honesto) integrados em /clubs/:id e /players/:id
+
+CONTAGENS REAIS (produção):
+- 118 clubes com logoUrl · 261 com estádio (nome) · 114 com imagem de estádio · 0 com teamColors
+- 1.153 seleções nacionais criadas (meta era ~420 — superou; 44 já existiam)
+- 863 jogadores com foto (de 105.211 no acervo)
+- Integridade: zero escrita em rankings ✓
+
+FIXES necessários no caminho (5 PRs):
+1. #460 QID das seleções — Q6979593 (Q2730771 retornava 0; validado via wbsearchentities — lição T424)
+2. #461 /clubs/:id consome /clubs/:id/profile (payload curado) — adicionado bloco `media` com null honesto
+3. #462 CSP img-src não permitia commons/upload/flagcdn (imagens bloqueadas)
+4. #463 next/image bloqueia SVG remoto por padrão → dangerouslyAllowSVG
+5. profile cache Redis: preciso invalidar clubs:profile:* para o campo novo aparecer
+
+GAPS DECLARADOS (honestos):
+- Metas de volume (5k logos / 30k fotos) exigem rodar o enrich para os 9.622 clubes e 105k jogadores a 1 req/s ≈ 10-20h — os scripts são RESUMÍVEIS e IDEMPOTENTES (só preenchem NULL): rodar em lotes/cron
+- teamColors = 0: P1423 no Wikidata não é hex string simples (é entidade/descritor) — precisa mapeamento próprio
+- Cobertura P154/P18 no Wikidata é intrinsecamente baixa para clubes/jogadores pequenos (não inventamos placeholder enganoso: fallback é a sigla)
+- Render visual não confirmado no MEU browser de teste (IAB/Electron restringe sub-recursos de domínios fora da whitelist do host): evidência técnica de que está correto — API retorna media.logoUrl, arquivo Commons 200 image/svg+xml, CSP servido inclui os domínios, navegação direta ao arquivo funciona
+
+Stage Summary:
+- T502 [~]: infraestrutura completa (migration + connector + 3 scripts + componentes web) e primeiros lotes aplicados (118 logos, 261 estádios, 1.153 seleções, 863 fotos)
+- PRs #459/#460/#461/#462/#463 mergeados; execução em escala = rodar os scripts em lotes (resumíveis)
+- Lição permanente reforçada: validar QID/classe na fonte antes de usar (3ª vez: T424, T034, T502)
