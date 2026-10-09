@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
     ],
     // Flag para testes de carga/E2E e ambientes sem cota.
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === '1',
+    // T502 — escudos do Commons são majoritariamente SVG; o next/image
+    // bloqueia SVG remoto por padrão (imagem quebrada, naturalWidth=0).
+    // O CSP restringe img-src aos domínios do Commons.
+    dangerouslyAllowSVG: true,
   },
   async headers() {
     return [
