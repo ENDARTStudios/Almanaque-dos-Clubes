@@ -210,9 +210,10 @@ LIMIT 5000`;
             data: {
               fullName: p.name.slice(0, 300),
               // P569 com precision < 11 pode vir malformado — nunca gravar Invalid Date.
-              birthDate: p.birthDate && !Number.isNaN(new Date(p.birthDate).getTime())
-                ? new Date(p.birthDate)
-                : null,
+              birthDate:
+                p.birthDate && !Number.isNaN(new Date(p.birthDate).getTime())
+                  ? new Date(p.birthDate)
+                  : null,
               country: p.countryCode,
               gender: p.gender,
               position: p.position,
