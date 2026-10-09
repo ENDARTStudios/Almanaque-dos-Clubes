@@ -8,6 +8,7 @@ import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
+import { ClubCrest } from '@/components/MediaAssets';
 import ClubTimeline from '@/components/ClubTimeline';
 import RelatedClubs from '@/components/RelatedClubs';
 import ClubCommunity from '@/components/ClubCommunity';
@@ -170,12 +171,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
       <header className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <div
-            aria-hidden="true"
-            className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0"
-          >
-            {club.name.slice(0, 2).toUpperCase()}
-          </div>
+          <ClubCrest logoUrl={(club as { logoUrl?: string | null }).logoUrl} name={club.name} size={80} />
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {club.name}

@@ -10,7 +10,12 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     // Whitelist mínima: fecha o otimizador como proxy aberto.
     // Novas origens entram por PR com justificativa.
-    remotePatterns: [{ protocol: 'https', hostname: 'upload.wikimedia.org' }],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+      // T502 — mídia do acervo (escudos/fotos via Special:FilePath do Commons)
+      { protocol: 'https', hostname: 'commons.wikimedia.org', pathname: '/wiki/Special:FilePath/**' },
+      { protocol: 'https', hostname: 'flagcdn.com' },
+    ],
     // Flag para testes de carga/E2E e ambientes sem cota.
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === '1',
   },
