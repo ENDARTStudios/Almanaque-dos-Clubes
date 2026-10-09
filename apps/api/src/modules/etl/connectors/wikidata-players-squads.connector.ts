@@ -3,20 +3,23 @@
  * via Wikidata P54 (member of sports team), criando vínculos PLAYED_FOR que
  * alimentam os perfis de jogador.
  *
- * Diferenças para o connector de squads (T421, mantido intocado):
- *  - T421 só LINKA jogadores já no acervo (anti-órfão). Este módulo, quando
- *    autorizado pelo chamador (script com --apply), TAMBÉM CRIA o jogador
- *    ausente (insert-only, dedup por QID, proveniência obrigatória).
- *  - Traza dados do jogador (label, P569 nascimento, P27→ISO, P21 gênero,
- *    P413 posição) junto do vínculo P54 (P580/P582 início/fim).
+ * ARQUITETURA (2 fases baratas — a query "rica" com labels/P106/OPTIONALs
+ * expirava no Query Service e voltava PARCIAL sem erro, lição 09/10):
+ *  1. SPARQL minimalista de vínculos (padrão T421): player→club + P580/P582.
+ *  2. Enriquecimento por Special:EntityData em lotes de 50 (barato, sem SPARQL):
+ *     rótulo (pt>en>es), P569, P27→ISO (via mapa P297 obtido 1×), P21, P413
+ *     (rótulo EN dos QIDs de posição), P106 (futebolista Q11513337 OU treinador
+ *     Q1920462 — filtro pós-busca).
  *
- * Fonte: Wikidata (CC0). Rate limit respeitado pelo chamador (1 req/s).
+ * Fonte: Wikidata (CC0). Rate limit 1 req/s + User-Agent identificado.
  */
 import { z } from 'zod';
 
 export const PLAYERS_SQUADS_USER_AGENT =
   'AlmanaqueDosClubes/0.1 (wikidata players P54 ingest; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 export const PLAYERS_SQUADS_MIN_INTERVAL_MS = 1000; // 1 req/s (regra do Operador)
+export const WIKIDATA_SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
+export const WIKIDATA_ENTITY_DATA = 'https://www.wikidata.org/wiki/Special:EntityData';
 
 /** Ocupações aceitas: futebolista (Q11513337) OU treinador de futebol (Q1920462). */
 export const OCCUPATION_QIDS = ['Q11513337', 'Q1920462'] as const;
@@ -39,67 +42,6 @@ export function positionFromLabel(label: string | null | undefined): string | nu
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// SPARQL
-// ---------------------------------------------------------------------------
-
-export interface BuildPlayersSquadsQueryOptions {
-  clubQids: string[];
-  limit?: number;
-  offset?: number;
-}
-
-/**
- * Jogadores (futebolista OU treinador) com P54 apontando para os clubes do
- * VALUES. Rótulo em pt>en>es; P569/P27(+P297 ISO)/P21/P413 opcionais;
- * P580/P582 qualificam o vínculo.
- */
-export function buildPlayersSquadsQuery(opts: BuildPlayersSquadsQueryOptions): string {
-  const { clubQids, limit = 500, offset = 0 } = opts;
-  const values = clubQids.map((q) => 'wd:' + q).join(' ');
-  return `SELECT DISTINCT ?player ?label ?labelLang ?birth ?cc ?genderQ ?posLabel ?club ?start ?end WHERE {
-  VALUES ?club { ${values} }
-  ?player p:P54 ?stmt .
-  ?stmt ps:P54 ?club .
-  OPTIONAL { ?stmt pq:P580 ?start . }
-  OPTIONAL { ?stmt pq:P582 ?end . }
-  ?player wdt:P106 ?occ .
-  FILTER(?occ IN (wd:Q11513337, wd:Q1920462))
-  OPTIONAL { ?player wdt:P569 ?birth . }
-  OPTIONAL {
-    ?player wdt:P27 ?country .
-    ?country wdt:P297 ?cc .
-  }
-  OPTIONAL { ?player wdt:P21 ?genderQ . }
-  OPTIONAL {
-    ?player wdt:P413 ?pos .
-    ?pos rdfs:label ?posLabel .
-    FILTER(LANG(?posLabel) = 'en')
-  }
-  ?player rdfs:label ?label .
-  FILTER(LANG(?label) IN ('pt', 'en', 'es'))
-}
-LIMIT ${limit} OFFSET ${offset}`;
-}
-
-// ---------------------------------------------------------------------------
-// Parse (Zod em todo payload externo)
-// ---------------------------------------------------------------------------
-
-interface BindingMap {
-  [k: string]: { type?: string; value?: string } | undefined;
-}
-
-const rawRows = z
-  .object({
-    results: z
-      .object({
-        bindings: z.array(z.record(z.string(), z.unknown()) as z.ZodType<BindingMap>).optional(),
-      })
-      .optional(),
-  })
-  .passthrough();
-
 function qidFromUri(uri: string | undefined): string | null {
   const last = uri?.trim().split('/').pop();
   return last && /^Q\d+$/.test(last) ? last : null;
@@ -111,187 +53,359 @@ function yearFromIso(value: string | undefined): number | null {
   return Number.isInteger(y) ? y : null;
 }
 
-/** Linha crua validada (1 binding SPARQL). */
-const RawPlayerRow = z.object({
-  player: z.string(),
-  label: z.string().optional(),
-  labelLang: z.string().optional(),
-  birth: z.string().optional(),
-  cc: z.string().optional(),
-  genderQ: z.string().optional(),
-  posLabel: z.string().optional(),
-  club: z.string(),
-  start: z.string().optional(),
-  end: z.string().optional(),
-});
+// ---------------------------------------------------------------------------
+// Fase 1 — SPARQL minimalista de vínculos
+// ---------------------------------------------------------------------------
 
-export interface PlayerTeamLink {
+export interface BuildLinksQueryOptions {
+  clubQids: string[];
+  limit?: number;
+  offset?: number;
+}
+
+/** Igual ao T421: player→club + P580/P582, sem labels/P106/OPTIONALs caros. */
+export function buildLinksQuery(opts: BuildLinksQueryOptions): string {
+  const { clubQids, limit = 1000, offset = 0 } = opts;
+  const values = clubQids.map((q) => 'wd:' + q).join(' ');
+  return `SELECT ?player ?club ?start ?end WHERE {
+  VALUES ?club { ${values} }
+  ?player p:P54 ?stmt .
+  ?stmt ps:P54 ?club .
+  OPTIONAL { ?stmt pq:P580 ?start . }
+  OPTIONAL { ?stmt pq:P582 ?end . }
+}
+LIMIT ${limit} OFFSET ${offset}`;
+}
+
+export interface PlayerLink {
+  playerQid: string;
   clubQid: string;
   startYear: number | null;
   endYear: number | null;
 }
 
-export interface PlayerSquad {
-  qid: string;
-  name: string;
-  birthDate: string | null; // YYYY-MM-DD
-  countryCode: string | null; // ISO 3166-1 alpha-2 (P297)
-  gender: 'men' | 'women' | null;
-  position: string | null; // GOALKEEPER|DEFENDER|MIDFIELDER|FORWARD|null
-  teams: PlayerTeamLink[];
-}
+const bindingsShape = z
+  .object({
+    results: z
+      .object({
+        bindings: z
+          .array(
+            z.record(z.string(), z.unknown()) as z.ZodType<
+              Record<string, { type?: string; value?: string } | undefined>
+            >,
+          )
+          .optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
 
-/**
- * Agrupa bindings por jogador (dedup de rótulo multi-idioma: pt > en > es >
- * qualquer) e destila os vínculos P54 válidos. Linhas inválidas são descartadas.
- */
-export function parsePlayersSquadsResponse(json: unknown): PlayerSquad[] {
-  const parsed = rawRows.safeParse(json);
+export function parseLinksResponse(json: unknown): PlayerLink[] {
+  const parsed = bindingsShape.safeParse(json);
   if (!parsed.success) return [];
-  const bindings = (parsed.data.results?.bindings ?? []) as BindingMap[];
-
-  interface Acc {
-    name: string | null;
-    nameRank: number;
-    birth: string | null;
-    cc: string | null;
-    gender: 'men' | 'women' | null;
-    position: string | null;
-    teams: Map<string, PlayerTeamLink>;
-  }
-  const langRank = (l?: string): number => (l === 'pt' ? 3 : l === 'en' ? 2 : l === 'es' ? 1 : 0);
-  const acc = new Map<string, Acc>();
-
-  for (const b of bindings) {
-    const row = RawPlayerRow.safeParse({
-      player: b.player?.value ?? '',
-      label: b.label?.value,
-      labelLang:
-        b.label && 'xml:lang' in (b.label as object)
-          ? (b.label as unknown as { 'xml:lang'?: string })['xml:lang']
-          : b.labelLang,
-      birth: b.birth?.value,
-      cc: b.cc?.value,
-      genderQ: qidFromUri(b.genderQ?.value) ?? b.genderQ?.value?.split('/').pop(),
-      posLabel: b.posLabel?.value,
-      club: b.club?.value ?? '',
-      start: b.start?.value,
-      end: b.end?.value,
-    });
-    if (!row.success) continue;
-    const r = row.data;
-    const playerQid = qidFromUri(r.player);
-    const clubQid = qidFromUri(r.club);
+  const out: PlayerLink[] = [];
+  const seen = new Set<string>();
+  for (const b of parsed.data.results?.bindings ?? []) {
+    const playerQid = qidFromUri(b.player?.value);
+    const clubQid = qidFromUri(b.club?.value);
     if (!playerQid || !clubQid) continue;
-
-    const a =
-      acc.get(playerQid) ??
-      ({
-        name: null,
-        nameRank: -1,
-        birth: null,
-        cc: null,
-        gender: null,
-        position: null,
-        teams: new Map(),
-      } as Acc);
-    // Rótulo: melhor idioma vence (pt=3 > en=2 > es=1 > outro=0)
-    const rank = langRank(r.labelLang);
-    if (r.label && rank > a.nameRank) {
-      a.name = r.label;
-      a.nameRank = rank;
-    }
-    if (r.birth && !a.birth) a.birth = r.birth.slice(0, 10);
-    if (r.cc && !a.cc) a.cc = r.cc.toUpperCase();
-    if (r.genderQ && !a.gender) a.gender = GENDER_MAP[r.genderQ] ?? null;
-    if (r.posLabel && !a.position) a.position = positionFromLabel(r.posLabel);
-    // Vínculo: ano de início OU fim (ambos ausentes ⇒ link sem ano)
-    const startYear = yearFromIso(r.start);
-    const endYear = yearFromIso(r.end);
-    const teamKey = clubQid;
-    const prev = a.teams.get(teamKey);
-    const link: PlayerTeamLink = {
-      clubQid,
-      startYear: startYear ?? prev?.startYear ?? null,
-      endYear: endYear ?? prev?.endYear ?? null,
-    };
-    a.teams.set(teamKey, link);
-    acc.set(playerQid, a);
-  }
-
-  const out: PlayerSquad[] = [];
-  for (const [qid, a] of acc) {
-    if (!a.name) continue; // sem rótulo humano — R4: dado sem label não entra
+    const key = `${playerQid}|${clubQid}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     out.push({
-      qid,
-      name: a.name,
-      birthDate: a.birth,
-      countryCode: a.cc,
-      gender: a.gender,
-      position: a.position,
-      teams: [...a.teams.values()],
+      playerQid,
+      clubQid,
+      startYear: yearFromIso(b.start?.value),
+      endYear: yearFromIso(b.end?.value),
     });
   }
-  return out.sort((x, y) => x.qid.localeCompare(y.qid));
+  return out;
 }
 
-// ---------------------------------------------------------------------------
-// Fetch paginado, concorrência 1, intervalo mínimo de 1s entre páginas
-// ---------------------------------------------------------------------------
-
-export interface FetchPlayersSquadsOptions {
+export interface FetchLinksOptions {
   endpoint?: string;
   userAgent?: string;
   clubQids: string[];
-  limit?: number;
-  maxPages?: number;
+  /** Tamanho do chunk de clubes por query (VALUES grandes → 503). */
+  clubChunk?: number;
+  pageLimit?: number;
+  maxPagesPerChunk?: number;
   fetchImpl?: typeof globalThis.fetch;
   sleep?: (ms: number) => Promise<void>;
   minIntervalMs?: number;
 }
 
-export async function fetchPlayersSquads(opts: FetchPlayersSquadsOptions): Promise<PlayerSquad[]> {
+/**
+ * Fase 1: busca vínculos por chunks de clubes, paginando cada chunk até
+ * página vazia, com retry 3× (backoff 2/4s) e intervalo mínimo entre requests.
+ */
+export async function fetchLinks(opts: FetchLinksOptions): Promise<PlayerLink[]> {
   const {
-    endpoint = 'https://query.wikidata.org/sparql',
+    endpoint = WIKIDATA_SPARQL_ENDPOINT,
     userAgent = PLAYERS_SQUADS_USER_AGENT,
     clubQids,
-    limit = 500,
-    maxPages = 1,
+    clubChunk = 50,
+    pageLimit = 1000,
+    maxPagesPerChunk = 10,
     fetchImpl = globalThis.fetch,
     sleep = (ms) => new Promise<void>((r) => setTimeout(r, ms)),
     minIntervalMs = PLAYERS_SQUADS_MIN_INTERVAL_MS,
   } = opts;
 
-  const all: PlayerSquad[] = [];
-  for (let page = 0; page < maxPages; page++) {
-    const query = buildPlayersSquadsQuery({ clubQids, limit, offset: page * limit });
-    const url = `${endpoint}?query=${encodeURIComponent(query)}&format=json`;
-    // Wikidata Query Service oscila (503 em VALUES grandes) — 3 tentativas com backoff.
-    let body: unknown = null;
-    let lastError: unknown = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const res = await fetchImpl(url, {
-          headers: { 'user-agent': userAgent, Accept: 'application/sparql-results+json' },
-        });
-        if (!res.ok) {
-          lastError = new Error(`SPARQL HTTP ${res.status}`);
-        } else {
-          body = await res.json();
-          break;
+  const all: PlayerLink[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < clubQids.length; i += clubChunk) {
+    const chunk = clubQids.slice(i, i + clubChunk);
+    for (let page = 0; page < maxPagesPerChunk; page++) {
+      const query = buildLinksQuery({
+        clubQids: chunk,
+        limit: pageLimit,
+        offset: page * pageLimit,
+      });
+      const url = `${endpoint}?query=${encodeURIComponent(query)}&format=json`;
+      let body: unknown = null;
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetchImpl(url, {
+            headers: { 'user-agent': userAgent, Accept: 'application/sparql-results+json' },
+          });
+          if (!res.ok) {
+            lastError = new Error(`SPARQL HTTP ${res.status}`);
+          } else {
+            body = await res.json();
+            break;
+          }
+        } catch (err) {
+          lastError = err;
         }
-      } catch (err) {
-        lastError = err;
+        if (attempt < 2) await sleep(2000 * 2 ** attempt);
       }
-      if (attempt < 2) await sleep(2000 * 2 ** attempt);
+      if (body === null) {
+        throw lastError instanceof Error ? lastError : new Error('SPARQL fetch falhou');
+      }
+      const links = parseLinksResponse(body);
+      let novos = 0;
+      for (const l of links) {
+        const key = `${l.playerQid}|${l.clubQid}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        all.push(l);
+        novos += 1;
+      }
+      if (novos === 0) break; // chunk esgotado
+      await sleep(minIntervalMs);
     }
-    if (body === null) {
-      throw lastError instanceof Error ? lastError : new Error('SPARQL fetch falhou');
-    }
-    const pagePlayers = parsePlayersSquadsResponse(body);
-    all.push(...pagePlayers);
-    if (pagePlayers.length === 0 || pagePlayers.length < limit) break;
     await sleep(minIntervalMs);
   }
   return all;
+}
+
+// ---------------------------------------------------------------------------
+// Fase 2 — enriquecimento via Special:EntityData (lotes de 50)
+// ---------------------------------------------------------------------------
+
+export interface PlayerEntityData {
+  qid: string;
+  name: string | null;
+  birthDate: string | null;
+  countryCodeQid: string | null;
+  genderQid: string | null;
+  positionQids: string[];
+  occupations: Set<string>;
+}
+
+interface ClaimSnak {
+  mainsnak?: { datavalue?: { value?: unknown } };
+}
+
+const entityDataShape = z
+  .object({
+    entities: z.record(
+      z.string(),
+      z.object({
+        labels: z
+          .record(z.string(), z.object({ language: z.string(), value: z.string() }))
+          .optional(),
+        claims: z.record(z.string(), z.array(z.custom<ClaimSnak>()).optional()).optional(),
+      }),
+    ),
+  })
+  .passthrough();
+
+type EntityShape = NonNullable<z.infer<typeof entityDataShape>['entities']>[string];
+
+function claimValues(entity: EntityShape, pid: string): unknown[] {
+  return (entity.claims?.[pid] ?? [])
+    .map((c) => c.mainsnak?.datavalue?.value)
+    .filter((v): v is NonNullable<typeof v> => v != null);
+}
+
+/** Extrai dados do jogador de UM entity JSON (Special:EntityData). */
+export function extractPlayerEntity(qid: string, entityJson: unknown): PlayerEntityData | null {
+  const parsed = entityDataShape.safeParse(entityJson);
+  if (!parsed.success) return null;
+  const entity = parsed.data.entities?.[qid];
+  if (!entity) return null;
+
+  // Rótulo: pt (rank 3) > en (2) > es (1) > qualquer (0)
+  let name: string | null = null;
+  let nameRank = -1;
+  for (const [lang, l] of Object.entries(entity.labels ?? {})) {
+    const rank =
+      lang === 'pt-br' || lang === 'pt'
+        ? 3
+        : lang === 'en' || lang === 'en-us'
+          ? 2
+          : lang === 'es'
+            ? 1
+            : 0;
+    if (rank > nameRank) {
+      name = l.value;
+      nameRank = rank;
+    }
+  }
+
+  // P569 datavalue: { time: '+1996-05-03T00:00:00Z', precision: 11, ... }
+  const birth = claimValues(entity, 'P569')[0] as { time?: string } | undefined;
+  const birthTime =
+    typeof birth === 'object' && birth !== null ? birth.time : (birth as string | undefined);
+  const birthDate = birthTime ? (birthTime.match(/^\+?(\d{4}-\d{2}-\d{2})/)?.[1] ?? null) : null;
+
+  // datavalue de item: { 'entity-type': 'item', 'numeric-id': N, id: 'Q…' }
+  const qidFromValue = (v: unknown): string | null => {
+    if (v == null) return null;
+    if (typeof v === 'object' && 'id' in (v as Record<string, unknown>)) {
+      const id = (v as { id?: unknown }).id;
+      return typeof id === 'string' && /^Q\d+$/.test(id) ? id : null;
+    }
+    return qidFromUri(String(v));
+  };
+
+  const countryQid = qidFromValue(claimValues(entity, 'P27')[0]);
+  const genderQid = qidFromValue(claimValues(entity, 'P21')[0]);
+  const positionQids = claimValues(entity, 'P413')
+    .map(qidFromValue)
+    .filter((q): q is string => !!q);
+  const occupations = new Set(
+    claimValues(entity, 'P106')
+      .map(qidFromValue)
+      .filter((q): q is string => !!q),
+  );
+
+  return {
+    qid,
+    name,
+    birthDate,
+    countryCodeQid: countryQid,
+    genderQid,
+    positionQids,
+    occupations,
+  };
+}
+
+export interface EnrichedPlayer {
+  qid: string;
+  name: string;
+  birthDate: string | null;
+  countryCode: string | null;
+  gender: 'men' | 'women' | null;
+  position: string | null;
+}
+
+/**
+ * Converte dados de entidade em jogador do acervo. Retornos:
+ *  - enriched (aceito: ocupação futebolista/treinador + rótulo humano)
+ *  - rejected com motivo (sem rótulo=R4; ocupação fora do escopo)
+ */
+export function enrichPlayer(
+  d: PlayerEntityData,
+  countryIsoByQid: Map<string, string>,
+  positionLabelByQid: Map<string, string>,
+):
+  | { ok: true; player: EnrichedPlayer }
+  | { ok: false; reason: 'no_label' | 'occupation_out_of_scope' } {
+  if (!d.name) return { ok: false, reason: 'no_label' };
+  const inScope = [...d.occupations].some((o) =>
+    (OCCUPATION_QIDS as readonly string[]).includes(o),
+  );
+  if (!inScope) return { ok: false, reason: 'occupation_out_of_scope' };
+  const position =
+    d.positionQids
+      .map((q) => positionFromLabel(positionLabelByQid.get(q) ?? null))
+      .find((p) => p) ?? null;
+  return {
+    ok: true,
+    player: {
+      qid: d.qid,
+      name: d.name,
+      birthDate: d.birthDate,
+      countryCode: d.countryCodeQid ? (countryIsoByQid.get(d.countryCodeQid) ?? null) : null,
+      gender: d.genderQid ? (GENDER_MAP[d.genderQid] ?? null) : null,
+      position,
+    },
+  };
+}
+
+/** Mapa QID-país → ISO 3166-1 alpha-2 (1 query SPARQL; ~250 linhas). */
+export function buildCountryIsoQuery(): string {
+  return 'SELECT ?c ?cc WHERE { ?c wdt:P297 ?cc . }';
+}
+
+/** Rótulos EN para os QIDs de posição (P413) distintos. */
+export function buildPositionLabelsQuery(positionQids: string[]): string {
+  const values = positionQids.map((q) => 'wd:' + q).join(' ');
+  return `SELECT ?p ?l WHERE { VALUES ?p { ${values} } ?p rdfs:label ?l . FILTER(LANG(?l) = 'en') }`;
+}
+
+export function parsePairsResponse(json: unknown): Array<{ qid: string; value: string }> {
+  const parsed = bindingsShape.safeParse(json);
+  if (!parsed.success) return [];
+  const out: Array<{ qid: string; value: string }> = [];
+  const seen = new Set<string>();
+  for (const b of parsed.data.results?.bindings ?? []) {
+    const qid = qidFromUri(b.c?.value ?? b.p?.value);
+    const value = b.cc?.value ?? b.l?.value;
+    if (!qid || !value || seen.has(qid)) continue;
+    seen.add(qid);
+    out.push({ qid, value });
+  }
+  return out;
+}
+
+/** Fase 2 — busca EntityData em lotes de 50 (1 req/s). */
+export async function fetchEntityDataBatch(
+  qids: string[],
+  opts: {
+    base?: string;
+    userAgent?: string;
+    fetchImpl?: typeof globalThis.fetch;
+    sleep?: (ms: number) => Promise<void>;
+    minIntervalMs?: number;
+    batchSize?: number;
+  } = {},
+): Promise<Map<string, PlayerEntityData>> {
+  const {
+    base = WIKIDATA_ENTITY_DATA,
+    userAgent = PLAYERS_SQUADS_USER_AGENT,
+    fetchImpl = globalThis.fetch,
+    sleep = (ms) => new Promise<void>((r) => setTimeout(r, ms)),
+    minIntervalMs = PLAYERS_SQUADS_MIN_INTERVAL_MS,
+    batchSize = 50,
+  } = opts;
+  const out = new Map<string, PlayerEntityData>();
+  for (let i = 0; i < qids.length; i += batchSize) {
+    const chunk = qids.slice(i, i + batchSize);
+    const url = `${base}/${chunk.join('|')}.json`;
+    const res = await fetchImpl(url, { headers: { 'user-agent': userAgent } });
+    if (!res.ok) throw new Error(`EntityData HTTP ${res.status}`);
+    const parsed = entityDataShape.safeParse(await res.json());
+    if (!parsed.success) throw new Error('EntityData payload inválido');
+    for (const qid of chunk) {
+      const d = extractPlayerEntity(qid, parsed.data);
+      if (d) out.set(qid, d);
+    }
+    if (i + batchSize < qids.length) await sleep(minIntervalMs);
+  }
+  return out;
 }
