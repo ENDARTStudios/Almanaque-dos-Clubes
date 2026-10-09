@@ -557,3 +557,21 @@ Work Log:
 
 Stage Summary:
 - Entregas 1–4 completas; integridade preservada (zero escrita em rankings, sem migration); i18n ×3; T034 é o multiplicador seguinte (popular carreiras em escala)
+
+---
+Task ID: goal-2026-10-09/t034
+Agent: Doer (GLM-5.3-Flash)
+Task: T034 — jogadores em escala via Wikidata P54 (briefing do Operador)
+
+Work Log:
+- Connector wikidata-players-squads REESCRITO em 2 fases: (1) SPARQL minimalista de vínculos por chunks de 50 clubes com ORDER BY estável + paginação até esgotar (a query "rica" do primeiro design expirava e voltava PARCIAL sem erro — 1028 jogadores no Flamengo, achava 3); (2) enriquecimento via wbgetentities em lotes de 50 (Special:EntityData path não aceita mais múltiplas entidades: 400/404)
+- LIÇÃO T424 REPETIDA: QIDs do briefing errados — Q11513337=atletismo, Q1920462=mariposa. QIDs reais: Q937857 (futebolista), Q628099 (treinador). Validados via labels EN na própria Wikidata
+- Criação ADITIVA com proveniência completa (dedup por QID, P2002=corrida resolvida, zero overwrite); PLAYED_FOR via syncSquads anti-órfão (clube fora = recusa); metadata {P54:true, startYear?, endYear?, CC0}; sem ano = link sem ano (dedup sentinel 0)
+- Migration ADITIVA players.gender (TEXT, padrão T450) — drift job pegou VARCHAR(10) na primeira versão
+- Guard contra Invalid Date (P569 precision < 11)
+- Gates produção executados: dry-run 6.978 wouldCreate/0 erros ✓ · 5 amostras validadas na Wikidata ✓ (Fred Carreiro, Giovane Alves, Matheus Silva, Argenis Tortolero, Eugenio Chemp — todos futebolistas com P106=Q937857) · apply em lotes de 100 ✓ · re-run noop wouldCreate=0 ✓ · smoke /players/cb903d09 (Fred Carreiro): currentClub=Tupi FC, career 1998, clubs ✓ · hash/entries rankings intactos (zero escrita) ✓
+- ACUMULADO (2 applies + re-run): +772 jogadores criados · 26.663 PLAYED_FOR P54:true no grafo
+- PRs: #436/#438/#439 (base), #447/#448 (date-guard + paginação determinística), #446/#445/#444 (QIDs + wbgetentities + separador), #447 fix Invalid Date
+
+Stage Summary:
+- T034 [x]: 772 jogadores + 13.5k vínculos PLAYED_FOR acumulados; perfis de jogador alimentados (carreira/conquistas/clubes); NOOP provado; gaps declarados: jogadores sem P54 no Wikidata, clubes sem QID no acervo (recusados), fases seguintes (outros países) em rounds futuros
