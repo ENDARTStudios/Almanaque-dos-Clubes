@@ -596,3 +596,19 @@ Work Log:
 Stage Summary:
 - T499 [x]: acervo salta para ~101k jogadores · 238k+ vínculos PLAYED_FOR no grafo · países do briefing cobertos
 - Lição: processos longos (>10 min) em produção exigem nohup + log em /tmp (ssh mata o processo)
+
+---
+Task ID: goal-2026-10-09/t500
+Agent: Doer (GLM-5.3-Flash)
+Task: T500 — jogadoras femininas em escala (P54 nos 346 clubes femininos com QID)
+
+Work Log:
+- Filtro T034_GENDER adicionado ao script (PR #452): T034_GENDER=women restringe o escopo aos clubes femininos com QID (346; padrão continua país)
+- Dry-run: 4.537 jogadoras aceitas · 5.648 vínculos (16 fora do escopo)
+- APPLY: 3.918 jogadoras criadas (40 lotes) · 5.581 vínculos PLAYED_FOR · 51 já-existiam · 0 recusas
+- Re-run: wouldCreate=0 (jogadoras idempotentes ✓); 1.574 vínculos residuais criados — causa: dedup player|club agrupa múltiplos períodos no mesmo clube (cada run captura um deles); convergente entre runs, não noop exato (declarado)
+- Smoke: Kerolin Nicoli Israel Ferraz (BR, women) com career real (2017, Ponte Preta) ✓
+- knowledge_graph PLAYED_FOR P54:true total = 277.091 (BR 26.663 + internacional 237.727 + women 5.581 + anteriores)
+
+Stage Summary:
+- T500 [x]: 3.918 jogadoras + 5.581 vínculos femininos; conteúdo feminino consolidado (150 clubes + 8 competições + 3.918 jogadoras com vínculos)
