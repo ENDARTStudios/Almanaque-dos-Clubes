@@ -396,7 +396,7 @@ export async function fetchEntityDataBatch(
   const out = new Map<string, PlayerEntityData>();
   for (let i = 0; i < qids.length; i += batchSize) {
     const chunk = qids.slice(i, i + batchSize);
-    const url = `${base}/${chunk.join('|')}.json`;
+    const url = `${base}/${chunk.join(';')}.json`;
     const res = await fetchImpl(url, { headers: { 'user-agent': userAgent } });
     if (!res.ok) throw new Error(`EntityData HTTP ${res.status}`);
     const parsed = entityDataShape.safeParse(await res.json());
