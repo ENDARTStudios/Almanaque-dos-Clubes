@@ -63,9 +63,7 @@ describe('extractPlayerEntity + enrichPlayer (T034 fase 2)', () => {
           P27: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q155' } } } }],
           P21: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q6581072' } } } }],
           P413: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q201330' } } } }],
-          P106: [
-            { mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q11513337' } } } },
-          ],
+          P106: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q937857' } } } }],
         },
       },
     },
@@ -107,7 +105,7 @@ describe('extractPlayerEntity + enrichPlayer (T034 fase 2)', () => {
     const noLabel = {
       entities: {
         Q1000: {
-          claims: { P106: [{ mainsnak: { datavalue: { value: { id: 'Q11513337' } } } }] },
+          claims: { P106: [{ mainsnak: { datavalue: { value: { id: 'Q937857' } } } }] },
         },
       },
     };

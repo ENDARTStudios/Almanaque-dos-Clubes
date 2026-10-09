@@ -22,7 +22,9 @@ export const WIKIDATA_SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
 export const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 
 /** Ocupações aceitas: futebolista (Q11513337) OU treinador de futebol (Q1920462). */
-export const OCCUPATION_QIDS = ['Q11513337', 'Q1920462'] as const;
+// QIDs validados na Wikidata em 09/10 (lição T424 de novo — os QIDs do briefing
+// eram de ATLETISMO e de uma MARIPOSA!): futebolista Q937857, treinador Q628099.
+export const OCCUPATION_QIDS = ['Q937857', 'Q628099'] as const;
 
 /** Gênero Wikidata → valor do acervo. */
 const GENDER_MAP: Record<string, 'men' | 'women'> = {
