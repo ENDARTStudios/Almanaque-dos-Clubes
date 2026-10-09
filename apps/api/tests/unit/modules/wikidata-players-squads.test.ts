@@ -63,9 +63,7 @@ describe('extractPlayerEntity + enrichPlayer (T034 fase 2)', () => {
           P27: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q155' } } } }],
           P21: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q6581072' } } } }],
           P413: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q201330' } } } }],
-          P106: [
-            { mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q937857' } } } },
-          ],
+          P106: [{ mainsnak: { datavalue: { value: { 'entity-type': 'item', id: 'Q937857' } } } }],
         },
       },
     },
