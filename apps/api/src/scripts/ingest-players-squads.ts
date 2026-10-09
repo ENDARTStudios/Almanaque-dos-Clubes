@@ -95,39 +95,49 @@ async function main(): Promise<number> {
     // jogador|clube entre chunks e páginas).
     const links: Link[] = [];
     const seenLink = new Set<string>();
+    const PAGE = 5000;
     for (let i = 0; i < clubQids.length; i += CLUB_CHUNK) {
       const chunk = clubQids.slice(i, i + CLUB_CHUNK);
       console.log(
         `[t034] fase 1 chunk ${Math.floor(i / CLUB_CHUNK) + 1}/${Math.ceil(clubQids.length / CLUB_CHUNK)} (${chunk.length} clubes)…`,
       );
-      const query = `SELECT ?player ?club ?start ?end WHERE {
+      // ORDER BY estável + paginação até esgotar: sem isso a Wikidata retorna
+      // conjuntos não-determinísticos entre execuções (o re-run não era noop).
+      for (let offset = 0; ; offset += PAGE) {
+        const query = `SELECT ?player ?club ?start ?end WHERE {
   VALUES ?club { ${chunk.map((q) => 'wd:' + q).join(' ')} }
   ?player p:P54 ?stmt .
   ?stmt ps:P54 ?club .
   OPTIONAL { ?stmt pq:P580 ?start . }
   OPTIONAL { ?stmt pq:P582 ?end . }
 }
-LIMIT 5000`;
-      const json = (await sparqlQuery(query)) as {
-        results?: { bindings?: Array<Record<string, { value?: string }>> };
-      };
-      const bindings = json.results?.bindings ?? [];
-      for (const b of bindings) {
-        const pq = b.player?.value?.split('/').pop();
-        const cq = b.club?.value?.split('/').pop();
-        if (!pq || !cq) continue;
-        const key = `${pq}|${cq}`;
-        if (seenLink.has(key)) continue;
-        seenLink.add(key);
-        const yr = (v?: string) => (v ? Number.parseInt(v.slice(0, 4), 10) || null : null);
-        links.push({
-          playerQid: pq,
-          clubQid: cq,
-          startYear: yr(b.start?.value),
-          endYear: yr(b.end?.value),
-        });
+ORDER BY ?player ?club ?start
+LIMIT ${PAGE} OFFSET ${offset}`;
+        const json = (await sparqlQuery(query)) as {
+          results?: { bindings?: Array<Record<string, { value?: string }>> };
+        };
+        const bindings = json.results?.bindings ?? [];
+        let novos = 0;
+        for (const b of bindings) {
+          const pq = b.player?.value?.split('/').pop();
+          const cq = b.club?.value?.split('/').pop();
+          if (!pq || !cq) continue;
+          const key = `${pq}|${cq}`;
+          if (seenLink.has(key)) continue;
+          seenLink.add(key);
+          const yr = (v?: string) => (v ? Number.parseInt(v.slice(0, 4), 10) || null : null);
+          links.push({
+            playerQid: pq,
+            clubQid: cq,
+            startYear: yr(b.start?.value),
+            endYear: yr(b.end?.value),
+          });
+          novos += 1;
+        }
+        console.log(`  offset ${offset}: +${novos} novos`);
+        if (bindings.length < PAGE) break; // chunk esgotado
+        await sleep(1000);
       }
-      await sleep(1000);
     }
     console.log(`[t034] fase 1: ${links.length} vínculos P54 destilados`);
     const playerQids = [...new Set(links.map((l) => l.playerQid))].sort().slice(0, LIMIT);
