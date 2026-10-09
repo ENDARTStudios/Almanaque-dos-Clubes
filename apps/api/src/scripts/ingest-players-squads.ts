@@ -76,15 +76,20 @@ interface EnrichedPlayer {
 async function main(): Promise<number> {
   const prisma = new PrismaClient();
   try {
-    // 1. Clubes do escopo (país + QID) — fora do acervo = recusa honesta.
+    // 1. Clubes do escopo — T500: T034_GENDER=women filtra clubes femininos
+    // (ignora países); default: país + QID. Fora do acervo = recusa honesta.
+    const genderFilter = process.env.T034_GENDER ?? '';
+    const clubWhere = genderFilter
+      ? { gender: genderFilter, qid: { not: null }, deletedAt: null }
+      : { country: { in: COUNTRIES }, qid: { not: null }, deletedAt: null };
     const clubs = await prisma.club.findMany({
-      where: { country: { in: COUNTRIES }, qid: { not: null }, deletedAt: null },
+      where: clubWhere,
       select: { id: true, qid: true, name: true },
     });
     const clubQids = clubs.map((c) => c.qid!).filter(Boolean);
     const clubIdByQid = new Map(clubs.map((c) => [c.qid!, c.id]));
     console.log(
-      `[t034] escopo: países=${COUNTRIES.join(',')} · clubes com QID=${clubQids.length} · modo=${APPLY ? 'APPLY' : 'DRY-RUN'}`,
+      `[t034] escopo: países=${COUNTRIES.join(',')} · gênero-clubes=${genderFilter || 'todos'} · clubes com QID=${clubQids.length} · modo=${APPLY ? 'APPLY' : 'DRY-RUN'}`,
     );
     if (clubQids.length === 0) {
       console.log('[t034] nenhum clube no escopo — nada a fazer.');
