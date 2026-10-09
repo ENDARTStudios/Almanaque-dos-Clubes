@@ -117,6 +117,10 @@ async function matchClub(
       return { c, hits };
     })
     .filter((x) => x.hits > 0)
+    // Taça Brasil/Robertão/Rio-SP são competições masculinas históricas — o
+    // candidato '(futebol feminino)' é OUTRO clube no acervo (T450) e nunca é
+    // o campeão correto (bug do smoke 09/10: Santos ×5 linkado ao feminino).
+    .filter((x) => !/futebol feminino|femenino|women/i.test(x.c.name))
     .sort((a, b) => b.hits - a.hits || a.c.name.localeCompare(b.c.name));
   if (scored.length > 0 && (scored.length === 1 || scored[0].hits > scored[1].hits)) {
     return { id: scored[0].c.id, name: scored[0].c.name };
