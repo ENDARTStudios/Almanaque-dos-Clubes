@@ -209,7 +209,11 @@ LIMIT 5000`;
           await prisma.player.create({
             data: {
               fullName: p.name.slice(0, 300),
-              birthDate: p.birthDate ? new Date(p.birthDate) : null,
+              // P569 com precision < 11 pode vir malformado — nunca gravar Invalid Date.
+              birthDate:
+                p.birthDate && !Number.isNaN(new Date(p.birthDate).getTime())
+                  ? new Date(p.birthDate)
+                  : null,
               country: p.countryCode,
               gender: p.gender,
               position: p.position,
