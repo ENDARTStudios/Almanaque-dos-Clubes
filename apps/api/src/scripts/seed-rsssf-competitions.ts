@@ -85,25 +85,41 @@ async function matchClub(
   });
   if (exact) return exact;
 
-  // Fallback: busca do acervo (pg_trgm/tsvector). ÚNICO resultado com QID = match.
-  const ids = await prisma.$queryRaw<Array<{ id: string }>>`
-    SELECT id FROM clubs
-    WHERE "deletedAt" IS NULL AND search_vector @@ plainto_tsquery('portuguese', ${championName})
-    LIMIT 5`;
-  if (ids.length === 1) {
-    return prisma.club.findFirst({ where: { id: ids[0].id }, select: { id: true, name: true } });
-  }
-  // Múltiplos resultados: comparar via filtro de nome aplicado pós-busca
-  if (ids.length > 1) {
-    const cands = await prisma.club.findMany({
-      where: { id: { in: ids.map((r) => r.id) } },
-      select: { id: true, name: true },
-    });
-    const lower = championName.toLowerCase();
-    const filtered = cands.filter(
-      (c) => c.name.toLowerCase().includes(lower) || lower.includes(c.name.toLowerCase()),
-    );
-    if (filtered.length === 1) return filtered[0];
+  // Fallback: busca do acervo por palavra distintiva (pg_trgm/tsvector, o mesmo
+  // mecanismo da busca global). 'Santos Futebol Clube' → busca 'Santos' porque
+  // o acervo cataloga 'Santos F.C.' — tsvector composto não casa com o nome
+  // completo do RSSSF. Validação: ≥60% das palavras do RSSSF presentes no nome
+  // do acervo (Santos F.C. vs Botafogo F.R. nunca confundem).
+  const tokens = championName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length >= 4);
+  const distinctWord = tokens.find(
+    (w) => !['futebol', 'clube', 'club', 'esporte', 'esportes'].includes(w),
+  );
+  if (!distinctWord) return null;
+  const cands = await prisma.club.findMany({
+    where: {
+      name: { contains: distinctWord, mode: 'insensitive' },
+      deletedAt: null,
+    },
+    select: { id: true, name: true, country: true },
+  });
+  const scored = cands
+    .map((c) => {
+      const norm = c.name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+      const hits = tokens.filter((w) => norm.includes(w)).length;
+      return { c, hits };
+    })
+    .filter((x) => x.hits > 0)
+    .sort((a, b) => b.hits - a.hits || a.c.name.localeCompare(b.c.name));
+  if (scored.length > 0 && (scored.length === 1 || scored[0].hits > scored[1].hits)) {
+    return { id: scored[0].c.id, name: scored[0].c.name };
   }
   return null;
 }
