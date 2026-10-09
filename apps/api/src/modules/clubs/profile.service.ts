@@ -186,27 +186,37 @@ const INFOBOX_KEYS = [
 ] as const;
 
 /** T502 (W1) — monta o bloco de mídia do perfil (tudo null quando ausente). */
-function buildMedia(input: ProfileClubInput): ClubMediaFields {
-  const colors = Array.isArray(input.teamColors)
-    ? (input.teamColors as unknown[]).filter((c): c is string => typeof c === 'string')
+function buildMediaFromClub(club: {
+  logoUrl?: string | null;
+  teamColors?: unknown;
+  kind?: string | null;
+  federation?: string | null;
+  stadiumName?: string | null;
+  stadiumImage?: string | null;
+  stadiumCapacity?: number | null;
+  stadiumLat?: number | null;
+  stadiumLng?: number | null;
+}): ClubMediaFields {
+  const colors = Array.isArray(club.teamColors)
+    ? (club.teamColors as unknown[]).filter((c): c is string => typeof c === 'string')
     : null;
   const hasStadium =
-    input.stadiumName != null ||
-    input.stadiumImage != null ||
-    input.stadiumCapacity != null ||
-    input.stadiumLat != null;
+    club.stadiumName != null ||
+    club.stadiumImage != null ||
+    club.stadiumCapacity != null ||
+    club.stadiumLat != null;
   return {
-    logoUrl: input.logoUrl ?? null,
+    logoUrl: club.logoUrl ?? null,
     teamColors: colors && colors.length > 0 ? colors : null,
-    kind: input.kind ?? 'club',
-    federation: input.federation ?? null,
+    kind: club.kind ?? 'club',
+    federation: club.federation ?? null,
     stadium: hasStadium
       ? {
-          name: input.stadiumName ?? null,
-          image: input.stadiumImage ?? null,
-          capacity: input.stadiumCapacity ?? null,
-          latitude: input.stadiumLat ?? null,
-          longitude: input.stadiumLng ?? null,
+          name: club.stadiumName ?? null,
+          image: club.stadiumImage ?? null,
+          capacity: club.stadiumCapacity ?? null,
+          latitude: club.stadiumLat ?? null,
+          longitude: club.stadiumLng ?? null,
         }
       : null,
   };
@@ -324,7 +334,7 @@ export function buildProfile(
     },
     gaps: [...PROFILE_GAPS],
     // T502 (W1) — mídia visual (escudo/estádio); null honesto quando ausente.
-    media: buildMedia(input),
+    media: buildMediaFromClub(club),
   };
 }
 

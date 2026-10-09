@@ -171,7 +171,11 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
       <header className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <ClubCrest logoUrl={(club as { logoUrl?: string | null }).logoUrl} name={club.name} size={80} />
+          <ClubCrest
+            logoUrl={(club as { media?: { logoUrl?: string | null } }).media?.logoUrl}
+            name={club.name}
+            size={80}
+          />
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {club.name}
