@@ -160,6 +160,14 @@ LIMIT ${PAGE} OFFSET ${offset}`;
       positionLabelByQid = new Map(parsePairsResponse(posJson).map((p) => [p.qid, p.value]));
     }
 
+    // Índice O(1): com 94k jogadores × 238k links, o filter por jogador é O(n×m) = OOM.
+    const linksByPlayer = new Map<string, Link[]>();
+    for (const l of links) {
+      const arr = linksByPlayer.get(l.playerQid);
+      if (arr) arr.push(l);
+      else linksByPlayer.set(l.playerQid, [l]);
+    }
+
     const enriched: EnrichedPlayer[] = [];
     let rejectedOccupation = 0;
     let rejectedNoLabel = 0;
@@ -182,7 +190,7 @@ LIMIT ${PAGE} OFFSET ${offset}`;
         countryCode: r.player.countryCode,
         gender: r.player.gender,
         position: r.player.position,
-        links: links.filter((l) => l.playerQid === qid),
+        links: linksByPlayer.get(qid) ?? [],
       });
     }
     console.log(
