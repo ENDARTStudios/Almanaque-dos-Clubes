@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
             // usam). 'unsafe-inline' permanece (exigido pelos scripts inline
             // de bootstrap do Next sem nonce); migração para nonce = M5.
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://commons.wikimedia.org https://upload.wikimedia.org https://flagcdn.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },
