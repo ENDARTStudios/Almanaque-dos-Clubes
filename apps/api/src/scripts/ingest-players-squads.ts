@@ -19,12 +19,12 @@ import {
   fetchPlayersSquads,
   type PlayerSquad,
   PLAYERS_SQUADS_USER_AGENT,
-} from '../src/modules/etl/connectors/wikidata-players-squads.connector.js';
+} from '../modules/etl/connectors/wikidata-players-squads.connector.js';
 import {
   syncSquads,
   type SquadsEntry,
   type SquadsRepository,
-} from '../src/modules/etl/connectors/wikidata-squads.connector.js';
+} from '../modules/etl/connectors/wikidata-squads.connector.js';
 import { logger } from '../config/logger.js';
 
 const APPLY = process.argv.includes('--apply');
@@ -99,16 +99,14 @@ export async function linkEdges(
 ): Promise<{ created: number; skipped: number; clubMissing: number }> {
   const repo: SquadsRepository = {
     async findPlayerByQid(qid) {
-      return (
-        playerIdByQid.get(qid) ??
-        (await prisma.player.findFirst({ where: { qid }, select: { id: true } }))
-      );
+      const cached = playerIdByQid.get(qid);
+      if (cached) return { id: cached };
+      return prisma.player.findFirst({ where: { qid }, select: { id: true } });
     },
     async findClubByQid(qid) {
-      return (
-        clubIdByQid.get(qid) ??
-        (await prisma.club.findFirst({ where: { qid }, select: { id: true } }))
-      );
+      const cached = clubIdByQid.get(qid);
+      if (cached) return { id: cached };
+      return prisma.club.findFirst({ where: { qid }, select: { id: true } });
     },
     async findEdgeByKey({ sourceId, targetId, relation, year }) {
       return prisma.knowledgeGraph.findFirst({
