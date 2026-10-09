@@ -19,7 +19,7 @@ export const PLAYERS_SQUADS_USER_AGENT =
   'AlmanaqueDosClubes/0.1 (wikidata players P54 ingest; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 export const PLAYERS_SQUADS_MIN_INTERVAL_MS = 1000; // 1 req/s (regra do Operador)
 export const WIKIDATA_SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
-export const WIKIDATA_ENTITY_DATA = 'https://www.wikidata.org/wiki/Special:EntityData';
+export const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 
 /** Ocupações aceitas: futebolista (Q11513337) OU treinador de futebol (Q1920462). */
 export const OCCUPATION_QIDS = ['Q11513337', 'Q1920462'] as const;
@@ -386,7 +386,6 @@ export async function fetchEntityDataBatch(
   } = {},
 ): Promise<Map<string, PlayerEntityData>> {
   const {
-    base = WIKIDATA_ENTITY_DATA,
     userAgent = PLAYERS_SQUADS_USER_AGENT,
     fetchImpl = globalThis.fetch,
     sleep = (ms) => new Promise<void>((r) => setTimeout(r, ms)),
@@ -396,9 +395,13 @@ export async function fetchEntityDataBatch(
   const out = new Map<string, PlayerEntityData>();
   for (let i = 0; i < qids.length; i += batchSize) {
     const chunk = qids.slice(i, i + batchSize);
-    const url = `${base}/${chunk.join(';')}.json`;
+    // Special:EntityData via path não aceita mais múltiplas entidades (400/404);
+    // wbgetentities é o endpoint oficial e devolve o MESMO shape (entities.qid).
+    const url =
+      `${WIKIDATA_API}?action=wbgetentities&ids=${chunk.join('|')}` +
+      `&format=json&props=labels|claims`;
     const res = await fetchImpl(url, { headers: { 'user-agent': userAgent } });
-    if (!res.ok) throw new Error(`EntityData HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`wbgetentities HTTP ${res.status}`);
     const parsed = entityDataShape.safeParse(await res.json());
     if (!parsed.success) throw new Error('EntityData payload inválido');
     for (const qid of chunk) {
