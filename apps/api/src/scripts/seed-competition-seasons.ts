@@ -130,10 +130,12 @@ async function main(): Promise<number> {
     //  2) 'contains' EXCLUINDO feminino;
     //  3) o nome MAIS CURTO entre os candidatos (a divisão principal é a mais
     //     genérica: 'Campeonato Brasileiro de Futebol' antes de '... - Série B').
-    let comp = await prisma.competition.findFirst({
+    // Mesmo no EXATO pode haver duplicata (com/sem QID) — preferir o canônico.
+    const exactCands = await prisma.competition.findMany({
       where: { name: { equals: base, mode: 'insensitive' }, deletedAt: null },
       select: { id: true, name: true, qid: true },
     });
+    let comp = exactCands.sort((a, b) => (b.qid ? 1 : 0) - (a.qid ? 1 : 0))[0] ?? null;
     if (!comp) {
       const cands = await prisma.competition.findMany({
         where: {
