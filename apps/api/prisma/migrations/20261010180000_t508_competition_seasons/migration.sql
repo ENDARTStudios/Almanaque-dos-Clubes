@@ -4,7 +4,7 @@
 -- Tipos: `String @id @default(uuid())` no Prisma mapeia para TEXT no Postgres
 -- (não UUID nativo) — a FK precisa ser TEXT (lição das migrations existentes;
 -- o CI pegou isto: "foreign key constraint cannot be implemented", 42804).
-CREATE TABLE "competition_seasons" (
+CREATE TABLE "CompetitionSeason" (
   "id" TEXT NOT NULL,
   "competitionId" TEXT NOT NULL,
   "season" VARCHAR(9) NOT NULL,
@@ -19,15 +19,15 @@ CREATE TABLE "competition_seasons" (
   "importedAt" TIMESTAMPTZ,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "competition_seasons_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "competition_seasons_competition_season_key" UNIQUE ("competitionId", "season")
+  CONSTRAINT "CompetitionSeason_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "CompetitionSeason_competitionId_season_key" UNIQUE ("competitionId", "season")
 );
-CREATE INDEX "competition_seasons_competitionId_idx" ON "competition_seasons"("competitionId");
-ALTER TABLE "competition_seasons" ADD CONSTRAINT "competition_seasons_competitionId_fkey"
+CREATE INDEX "CompetitionSeason_competitionId_idx" ON "CompetitionSeason"("competitionId");
+ALTER TABLE "CompetitionSeason" ADD CONSTRAINT "CompetitionSeason_competitionId_fkey"
   FOREIGN KEY ("competitionId") REFERENCES "competitions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "competition_seasons" ADD CONSTRAINT "competition_seasons_championId_fkey"
+ALTER TABLE "CompetitionSeason" ADD CONSTRAINT "CompetitionSeason_championId_fkey"
   FOREIGN KEY ("championId") REFERENCES "clubs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "competition_seasons" ADD CONSTRAINT "competition_seasons_runnerUpId_fkey"
+ALTER TABLE "CompetitionSeason" ADD CONSTRAINT "CompetitionSeason_runnerUpId_fkey"
   FOREIGN KEY ("runnerUpId") REFERENCES "clubs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- T509 (W6) — troféu da competição e histórico de uniformes do clube.
