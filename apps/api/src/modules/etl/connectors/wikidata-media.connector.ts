@@ -109,9 +109,12 @@ export function commonsFilePath(filename: string, width?: number): string {
   const ab = hash.slice(0, 2);
   const enc = encodeURIComponent(clean);
   const base = 'https://upload.wikimedia.org/wikipedia/commons/';
-  const isSvg = /\.svg$/i.test(clean);
-  if (isSvg || !width) return base + a + '/' + ab + '/' + enc;
-  return base + 'thumb/' + a + '/' + ab + '/' + enc + '/' + width + 'px-' + enc;
+  // T506 — o Commons RESTRINGIU as larguras de thumb (400/640/800 → HTTP 400;
+  // validado em produção: só 120 é aceito na lista canônica). Servimos sempre o
+  // ORIGINAL (200 garantido) e deixamos a escala para o navegador — um thumb
+  // quebrado é pior que um arquivo um pouco maior num avatar de perfil.
+  void width;
+  return base + a + '/' + ab + '/' + enc;
 }
 
 /** Lote de wbgetentities: Map<qid, EntityShape normalizado>. */
