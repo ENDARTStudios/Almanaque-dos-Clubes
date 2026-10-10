@@ -32,8 +32,20 @@ describe('resolveColors (T506)', () => {
   });
 
   it('mapeia os nomes de cor observados na Wikidata (consulta 09/10)', () => {
-    const { colors, unknown } = resolveColors([], ['white', 'blue', 'black', 'red', 'green', 'yellow', 'gold', 'orange']);
-    expect(colors).toEqual(['#FFFFFF', '#0000FF', '#000000', '#FF0000', '#008000', '#FFFF00', '#FFD700', '#FFA500']);
+    const { colors, unknown } = resolveColors(
+      [],
+      ['white', 'blue', 'black', 'red', 'green', 'yellow', 'gold', 'orange'],
+    );
+    expect(colors).toEqual([
+      '#FFFFFF',
+      '#0000FF',
+      '#000000',
+      '#FF0000',
+      '#008000',
+      '#FFFF00',
+      '#FFD700',
+      '#FFA500',
+    ]);
     expect(unknown).toEqual([]);
   });
 
