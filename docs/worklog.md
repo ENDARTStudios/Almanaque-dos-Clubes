@@ -743,3 +743,45 @@ Stage Summary:
   seleções (Brasil com logo), 227 reclassificados
 - Gaps declarados: cobertura editorial depende de artigo na Wikipedia (23/120
   sem artigo no 1º lote); 2.300 = teto da hierarquia Q6979593 no Wikidata
+
+---
+Task ID: goal-2026-10-10/t508-t509
+Agent: Doer (GLM-5.3-Flash)
+Task: T508 (W4 tabelas/estatísticas) + T509 (W6 troféus)
+
+Work Log:
+- T508 INFRA: tabela CompetitionSeason (classificação/artilheiro/totais, UNIQUE
+  competitionId+season); parser lib/wikipedia/standings-parser do HTML RENDERIZADO
+  (a Wikipedia PT monta tabelas por MÓDULOS LUA — o wikitext só tem a transclusão);
+  âncora por CABEÇALHO (Pos+Equipe+J+Pts), tolerante a idioma/ordem; 5 testes com
+  FIXTURE REAL do Brasileirão 2024 (20 clubes, Botafogo 1º ✓)
+- T508 EXECUÇÃO: 4 temporadas (2022-2025) do Brasileirão Série A gravadas —
+  campeões TODOS corretos: Palmeiras 2022/2023, Botafogo 2024, Flamengo 2025 ✓
+- T508 UI VALIDADA AO VIVO: aba "Seasons" com 4 temporadas, 80 linhas (4×20),
+  tabela completa (P/W/D/L/GF/GA/Pts), clube linkado, artilheiro em destaque,
+  fonte Wikipedia; smoke: 2025 = Flamengo 79 pts, Kaio Jorge (21) ✓
+- BUGS PEGOS PELOS GATES (5, todos corrigidos):
+  1. migration UUID→TEXT (Prisma String=TEXT; FK nativa impossível, 42804)
+  2. migration snake_case→'CompetitionSeason' (nome do model)
+  3. migration TIMESTAMPTZ→TIMESTAMP(3) (padrão Prisma)
+  4. match de competição casava 'Campeonato Brasileiro de Futebol' com
+     '...Feminino - Série A3' (dados masculinos iriam para o feminino!)
+  5. artilheiro 2022 = 'Flamengo (33778)' (outra coluna) → guard gols<=60 + nome
+  6. **permission denied for table CompetitionSeason (42501)**: a tabela nova
+     nasceu SEM GRANT para app_user (RLS) → API 500 → adicionado ao
+     create_app_user.sql (regra grants do repo) + aplicado em produção
+- T509 TROFÉUS: diagnóstico (P18 de troféu é ESCASSO: Libertadores/Copa do Brasil
+  sem P18; UCL tem logo) → busca curada no Commons por 'troph|trofeu|cup|taça'
+  no NOME DO ARQUIVO. RESULTADO: 36 marcadas mas com FALSOS POSITIVOS graves
+  ('2. Liga'←Grey Cup canadense; 'A Championship'←Rugby Championship;
+  'A-Class'←críquete) → **ROLLBACK completo (36→0)**: melhor nenhum troféu que
+  troféu de outro esporte. Gap declarado: troféus exigem categoria específica
+  do Commons por competição (ou curadoria manual) — NÃO busca textual aberta
+- clubs.kitHistory: campo aditivo criado; população depende de fonte por temporada
+  (Wikipedia raramente expõe imagem de uniforme por ano de forma estruturada)
+
+Stage Summary:
+- T508 [x] VALIDADO AO VIVO (4 temporadas, campeões corretos, UI smoke)
+- T509 [~] infra pronta (campo + script curado) mas REVERTIDO por falsos
+  positivos — gap declarado com evidência (melhor null que errado)
+- PRs #475/#476/#477/#478/#479/#480/#481 mergeados (7 fixes no caminho)
