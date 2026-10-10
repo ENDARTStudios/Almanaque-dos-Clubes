@@ -52,6 +52,8 @@ interface CompetitionSeasonData {
   sourceUrl: string | null;
   championId: string | null;
   runnerUpId: string | null;
+  champion: { id: string; name: string | null } | null;
+  runnerUp: { id: string; name: string | null } | null;
   totalMatches: number | null;
   totalGoals: number | null;
 }
@@ -340,6 +342,46 @@ export default async function CompetitionDetailPage({
                     </p>
                   ) : null}
                 </div>
+                {se.champion || se.runnerUp || se.totalMatches || se.totalGoals ? (
+                  <p className="mb-3 text-sm text-foreground/70">
+                    {/* Em COPAS a posição 1 da tabela NÃO é o campeão — o título vem da final. */}
+                    {se.champion ? (
+                      <span>
+                        {t.champion}:{' '}
+                        <Link
+                          href={`/clubs/${se.champion.id}`}
+                          className="text-primary hover:underline font-semibold"
+                        >
+                          {se.champion.name ?? se.champion.id}
+                        </Link>
+                      </span>
+                    ) : null}
+                    {se.runnerUp ? (
+                      <span>
+                        {se.champion ? ' · ' : ''}
+                        {t.runnerUp}:{' '}
+                        <Link
+                          href={`/clubs/${se.runnerUp.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {se.runnerUp.name ?? se.runnerUp.id}
+                        </Link>
+                      </span>
+                    ) : null}
+                    {se.totalMatches ? (
+                      <span>
+                        {se.champion || se.runnerUp ? ' · ' : ''}
+                        {t.matches}: {se.totalMatches}
+                      </span>
+                    ) : null}
+                    {se.totalGoals ? (
+                      <span>
+                        {se.champion || se.runnerUp || se.totalMatches ? ' · ' : ''}
+                        {t.goals}: {se.totalGoals}
+                      </span>
+                    ) : null}
+                  </p>
+                ) : null}
                 {se.standings && se.standings.length > 0 ? (
                   <div className="overflow-x-auto rounded-xl border border-border">
                     <table className="w-full text-sm">

@@ -785,3 +785,58 @@ Stage Summary:
 - T509 [~] infra pronta (campo + script curado) mas REVERTIDO por falsos
   positivos — gap declarado com evidência (melhor null que errado)
 - PRs #475/#476/#477/#478/#479/#480/#481 mergeados (7 fixes no caminho)
+
+---
+
+Task ID: goal-2026-10-10/t510-t511
+Agent: Doer (ZCode)
+Task: T510 (W4.1 tabelas multi-competição) + T511 (W6 troféus por CATEGORIA do Commons)
+
+Work Log:
+- T510 PARSER MULTI-IDIOMA: `lib/wikipedia/standings-parser` ganhou detecção de
+  idioma por rótulo distintivo (Equipe→pt, Team→en, Equipo→es, Squadra→it) e
+  LÉXICO DE COLUNAS POR IDIOMA — necessário porque "G" é *jogos* em it e
+  *vitórias* em es, e "D"/"P" mudam de sentido entre pt/en/es/it (um léxico
+  único casaria a coluna errada). Validado com FIXTURES REAIS das 3 ligas
+  (campeões corretos por fonte externa: Premier League 23-24 → Manchester City;
+  La Liga → Real Madrid; Serie A → Inter)
+- T510 COPA: `parseCupPlacements` lê campeão/vice do INFOBOX ("Colocações finais")
+  — a Copa Libertadores é mata-mata, então posição 1 da tabela NÃO é o campeão.
+  Validado: Libertadores 2024 → campeão Botafogo, vice Atlético Mineiro ✓ (real).
+  `parseStandings({requireGroup:true})` traz a tabela combinada da fase de grupos.
+- T510 MATCH DE CLUBE: a célula do clube traz link para o ARTIGO
+  (`/wiki/<Título>`); o seed resolve o QID via Wikipedia `prop=pageprops` (lotes
+  de 50) e casa por QID — imune a grafia/idioma. Fallback por nome: exato →
+  alias → normalizado (sem F.C./C.F./Club de Fútbol) → token único.
+- BUG PEGO PELO TESTE: `clubFromCell` tomava o PRIMEIRO link da célula — no
+  Brasileirão esse link é a BANDEIRA DO ESTADO, então pegava "Rio de Janeiro
+  (Estado)" em vez do clube. Corrigido: entre links não-arquivo, escolhe o de
+  MAIOR texto de exibição (bandeira não tem texto).
+- BUG PEGO PELO TESTE: o artilheiro assumia "gols é a última coluna" — falso em
+  es (a última é "Prom." 0.67) e em it (gols é a PRIMEIRA, "Gol|Rigori|…").
+  Corrigido: detectar a coluna por CABEÇALHO (Goles/Goals/Gol/Reti).
+- T511 TROFÉUS (retry do T509): busca textual aberta → CATEGORIA dedicada do
+  Commons + ARQUIVO explícito por competição. Mapa curado de 14 competições
+  (QID → categoria → arquivo), cada par conferido à mão na categoria do Commons
+  (ex.: 'Troféu Copa Libertadores 2019.jpg' ∈ "Copa Conmebol Libertadores trophy").
+  Antes de gravar, o arquivo é VALIDADO AO VIVO (imageinfo: existe? é imagem?).
+  Invariante testada: toda categoria do mapa contém "troph" (impede regressão
+  para categoria de evento/celebração, causa-raiz dos falsos positivos do T509).
+- T510 LIÇÃO T424 (5ª vez): o 1º QID candidato para a Serie A (Q153723) era o
+  FILME "Inglourious Basterds". QID correto = Q15804 (validado: P17=Q38 Itália,
+  P31=Q15991303 liga de futebol, itwiki="Serie A").
+- T510 GAP DE ACERVO (R3, medido ao vivo): a elite italiana NÃO existe em
+  `competitions` — só "Lega Serie A" (Q2427920 = órgão) e "Italian Football
+  Championship" (Q16481773 = histórico); "Serie A" tem 0 arestas WON (vs 74 da
+  Série B). Criado `scripts/ensure-competition.ts` (idempotente, por QID, com
+  proveniência) para registrar a mãe.
+- API/UI: `getSeasons` agora resolve os NOMES de campeão/vice por temporada
+  (essencial para copas); card de temporada mostra campeão/vice/jogos/gols; i18n ×3.
+- 27 testes novos (parser multi-idioma 9, copa 2, artilheiro 3, club-match 6,
+  curadoria de troféus 8) — 76/76 verdes; tsc api + web sem erros.
+
+Stage Summary:
+- T510 [~] implementado e testado localmente; execução em produção PENDENTE
+  (dry-run por competição → validar campeões → apply → smoke)
+- T511 [~] mapa curado pronto; apply em produção PENDENTE (gate: 14 verificações
+  ao vivo no Commons antes de gravar)
