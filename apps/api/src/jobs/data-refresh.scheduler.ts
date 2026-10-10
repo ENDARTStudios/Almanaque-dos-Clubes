@@ -14,6 +14,10 @@ import { queues, createWorker } from '../services/queue.js';
 import { logger } from '../config/logger.js';
 import { runWikidataIncremental } from './wikidata-incremental.js';
 import { runIntegrityCheck } from './integrity-check.js';
+import {
+  enrichClubsMediaBatch,
+  enrichPlayersMediaBatch,
+} from '../modules/etl/enrich-media.service.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
 import { cache } from '../services/cache.js';
 import { checkJobFailure } from '../lib/observability/alerts.js';
@@ -22,9 +26,17 @@ import { notifyNewTitlesSince } from '../modules/notifications/title-notificatio
 export const DATA_REFRESH_QUEUE = 'dataRefresh' as const;
 export const JOB_WIKIDATA_INCREMENTAL = 'wikidata-incremental' as const;
 export const JOB_INTEGRITY_CHECK = 'integrity-check' as const;
+// T506 — enrichment de mídia (escudos/estádios/cores + fotos), lotes diários.
+export const JOB_ENRICH_CLUBS_MEDIA = 'enrich-clubs-media' as const;
+export const JOB_ENRICH_PLAYERS_MEDIA = 'enrich-players-media' as const;
 
 export const WIKIDATA_CRON_PATTERN = '0 3 * * *' as const;
 export const INTEGRITY_CRON_PATTERN = '0 4 * * 0' as const;
+// Lotes seguros: 500 clubes/dia (~20 dias p/ 9.6k) e 2.000 jogadores/dia (~53 dias p/ 105k).
+export const ENRICH_CLUBS_CRON_PATTERN = '0 4 * * *' as const;
+export const ENRICH_PLAYERS_CRON_PATTERN = '0 5 * * *' as const;
+export const ENRICH_CLUBS_BATCH = 500;
+export const ENRICH_PLAYERS_BATCH = 2000;
 
 const JOB_TIMEOUT_MS = 10 * 60 * 1000;
 
@@ -49,6 +61,20 @@ const health: Record<string, JobHealthEntry> = {
     lastDurationMs: null,
   },
   [JOB_INTEGRITY_CHECK]: {
+    lastRunAt: null,
+    lastStatus: null,
+    successCount: 0,
+    failureCount: 0,
+    lastDurationMs: null,
+  },
+  [JOB_ENRICH_CLUBS_MEDIA]: {
+    lastRunAt: null,
+    lastStatus: null,
+    successCount: 0,
+    failureCount: 0,
+    lastDurationMs: null,
+  },
+  [JOB_ENRICH_PLAYERS_MEDIA]: {
     lastRunAt: null,
     lastStatus: null,
     successCount: 0,
@@ -82,7 +108,13 @@ function persistJobRun(jobName: string, entry: JobHealthEntry): void {
 }
 
 /** Nomes canônicos sempre sondados no Redis (mesmo sem entrada em memória). */
-const KNOWN_JOB_NAMES = ['wikidata-incremental', 'integrity-check', 'ranking:compute'] as const;
+const KNOWN_JOB_NAMES = [
+  'wikidata-incremental',
+  'integrity-check',
+  'ranking:compute',
+  'enrich-clubs-media',
+  'enrich-players-media',
+] as const;
 
 export async function getJobHealthMerged(): Promise<Record<string, JobHealthEntry>> {
   const merged: Record<string, JobHealthEntry> = { ...health };
@@ -187,6 +219,36 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
           pushLog({ level: 'info', job: job.name, event: 'notifications', data: { ...gen } });
         }
       }
+    } else if (job.name === JOB_ENRICH_CLUBS_MEDIA) {
+      // T506 — lote diário de mídia de clubes (só preenche NULL; re-run noop).
+      const out = await enrichClubsMediaBatch(ENRICH_CLUBS_BATCH, { apply: true });
+      logger.info(
+        { processed: out.processed, updated: out.updated, skipped: out.skipped },
+        'data-refresh: enrich-clubs-media ok',
+      );
+      pushLog({
+        level: 'info',
+        job: job.name,
+        event: 'done',
+        data: {
+          processed: out.processed,
+          updated: out.updated,
+          skipped: out.skipped,
+          unknownColors: out.unknownColors.length,
+        },
+      });
+    } else if (job.name === JOB_ENRICH_PLAYERS_MEDIA) {
+      const out = await enrichPlayersMediaBatch(ENRICH_PLAYERS_BATCH, { apply: true });
+      logger.info(
+        { processed: out.processed, updated: out.updated, skipped: out.skipped },
+        'data-refresh: enrich-players-media ok',
+      );
+      pushLog({
+        level: 'info',
+        job: job.name,
+        event: 'done',
+        data: { processed: out.processed, updated: out.updated, skipped: out.skipped },
+      });
     } else if (job.name === JOB_INTEGRITY_CHECK) {
       const report = await runIntegrityCheck();
       logger.info(
@@ -245,6 +307,34 @@ export async function registerDataRefreshCron(): Promise<void> {
     },
   );
   await queues.dataRefresh.upsertJobScheduler(
+    'enrich-clubs-media-daily',
+    { pattern: ENRICH_CLUBS_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_CLUBS_MEDIA,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
+      },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
+    'enrich-players-media-daily',
+    { pattern: ENRICH_PLAYERS_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_PLAYERS_MEDIA,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
+      },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
     'integrity-check-weekly',
     { pattern: INTEGRITY_CRON_PATTERN },
     {
@@ -259,7 +349,12 @@ export async function registerDataRefreshCron(): Promise<void> {
     },
   );
   logger.info(
-    { wikidata: WIKIDATA_CRON_PATTERN, integrity: INTEGRITY_CRON_PATTERN },
+    {
+      wikidata: WIKIDATA_CRON_PATTERN,
+      integrity: INTEGRITY_CRON_PATTERN,
+      enrichClubs: ENRICH_CLUBS_CRON_PATTERN,
+      enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
+    },
     'data-refresh scheduler agendado (UTC)',
   );
 }
