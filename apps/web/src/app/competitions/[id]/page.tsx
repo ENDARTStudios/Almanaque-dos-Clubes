@@ -27,6 +27,33 @@ interface Competition {
   followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   qid?: string | null;
   importedFrom?: string | null;
+  /** T509 (W6) — foto do troféu (Wikimedia Commons). */
+  trophyImageUrl?: string | null;
+}
+
+interface SeasonRow {
+  position: number;
+  clubName: string;
+  clubId: string | null;
+  matchedName: string | null;
+  played: number | null;
+  won: number | null;
+  drawn: number | null;
+  lost: number | null;
+  goalsFor: number | null;
+  goalsAgainst: number | null;
+  points: number | null;
+}
+
+interface CompetitionSeasonData {
+  season: string;
+  standings: SeasonRow[] | null;
+  topScorer: { name: string; goals: number } | null;
+  sourceUrl: string | null;
+  championId: string | null;
+  runnerUpId: string | null;
+  totalMatches: number | null;
+  totalGoals: number | null;
 }
 
 interface Overview {
@@ -41,13 +68,17 @@ async function getCompetition(id: string) {
     const res = await fetch(`${getApiBase()}/competitions/${id}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
-    return { data: json.data as Competition | null, overview: (json.overview ?? null) as Overview | null };
+    return {
+      data: json.data as Competition | null,
+      overview: (json.overview ?? null) as Overview | null,
+      seasons: (json.seasons ?? []) as CompetitionSeasonData[],
+    };
   } catch {
     return null;
   }
 }
 
-const TABS = ['visao', 'edicoes', 'clubes', 'campeoes'] as const;
+const TABS = ['visao', 'edicoes', 'clubes', 'campeoes', 'temporadas'] as const;
 type Tab = (typeof TABS)[number];
 
 export async function generateMetadata({
@@ -74,6 +105,7 @@ export default async function CompetitionDetailPage({
   if (!res?.data) notFound();
   const comp = res.data;
   const overview = res.overview;
+  const seasons = res.seasons ?? [];
 
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
@@ -96,6 +128,8 @@ export default async function CompetitionDetailPage({
     { id: 'edicoes', label: t.tabs.editions },
     { id: 'clubes', label: t.tabs.clubs },
     { id: 'campeoes', label: t.tabs.topWinners },
+    // T508 (W4) — classificação por temporada (só quando há dado no acervo).
+    ...(seasons.length > 0 ? [{ id: 'temporadas' as Tab, label: t.tabs.seasons }] : []),
   ];
 
   return (
@@ -111,9 +145,19 @@ export default async function CompetitionDetailPage({
       {/* Cabeçalho (Visão Geral fica no cabeçalho; demais abas abaixo) */}
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
-            {comp.name.slice(0, 2).toUpperCase()}
-          </div>
+          {comp.trophyImageUrl ? (
+            <span
+              data-testid="competition-trophy"
+              className="w-20 h-20 rounded-2xl bg-white border border-border/50 flex items-center justify-center overflow-hidden shrink-0"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={comp.trophyImageUrl} alt="" className="object-contain w-16 h-16" loading="lazy" />
+            </span>
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
+              {comp.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {comp.name}
@@ -280,6 +324,79 @@ export default async function CompetitionDetailPage({
           ) : (
             <p className="text-sm text-foreground/60">{t.editionsEmpty}</p>
           )
+        ) : null}
+
+        {tab === 'temporadas' ? (
+          <div className="space-y-8">
+            {seasons.map((se) => (
+              <section key={se.season} data-testid={`season-${se.season}`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                  <h3 className="text-lg font-heading font-semibold">
+                    {t.season} {se.season}
+                  </h3>
+                  {se.topScorer ? (
+                    <p className="text-sm text-foreground/70">
+                      {t.topScorer}: <strong>{se.topScorer.name}</strong> ({se.topScorer.goals})
+                    </p>
+                  ) : null}
+                </div>
+                {se.standings && se.standings.length > 0 ? (
+                  <div className="overflow-x-auto rounded-xl border border-border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-foreground/5 text-left">
+                          <th scope="col" className="px-3 py-2">{t.pos}</th>
+                          <th scope="col" className="px-3 py-2">{t.club}</th>
+                          <th scope="col" className="px-3 py-2">{t.played}</th>
+                          <th scope="col" className="px-3 py-2">{t.won}</th>
+                          <th scope="col" className="px-3 py-2">{t.drawn}</th>
+                          <th scope="col" className="px-3 py-2">{t.lost}</th>
+                          <th scope="col" className="px-3 py-2">{t.goalsFor}</th>
+                          <th scope="col" className="px-3 py-2">{t.goalsAgainst}</th>
+                          <th scope="col" className="px-3 py-2 font-semibold">{t.points}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {se.standings.map((row) => (
+                          <tr key={`${se.season}-${row.position}`} className="border-t border-border">
+                            <td className="px-3 py-2 font-semibold">{row.position}</td>
+                            <td className="px-3 py-2">
+                              {row.clubId ? (
+                                <Link href={`/clubs/${row.clubId}`} className="text-primary hover:underline">
+                                  {row.matchedName ?? row.clubName}
+                                </Link>
+                              ) : (
+                                <span className="text-foreground/60">{row.clubName}</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2">{row.played ?? '—'}</td>
+                            <td className="px-3 py-2">{row.won ?? '—'}</td>
+                            <td className="px-3 py-2">{row.drawn ?? '—'}</td>
+                            <td className="px-3 py-2">{row.lost ?? '—'}</td>
+                            <td className="px-3 py-2">{row.goalsFor ?? '—'}</td>
+                            <td className="px-3 py-2">{row.goalsAgainst ?? '—'}</td>
+                            <td className="px-3 py-2 font-semibold">{row.points ?? '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/50">{t.seasonsEmpty}</p>
+                )}
+                {se.sourceUrl ? (
+                  <a
+                    href={se.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-xs text-foreground/50 hover:text-primary underline decoration-dotted underline-offset-2"
+                  >
+                    {t.source} ({t.wikipedia})
+                  </a>
+                ) : null}
+              </section>
+            ))}
+          </div>
         ) : null}
 
         {tab === 'visao' ? <p className="text-xs text-foreground/40 mt-6">{t.overviewHint}</p> : null}

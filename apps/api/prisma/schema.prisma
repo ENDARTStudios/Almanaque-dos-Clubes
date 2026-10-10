@@ -35,6 +35,9 @@ model Club {
   favorites Favorite[]
   owners ClubOwnership[]
   descriptionProposals ClubDescriptionProposal[]
+  // T508 (W4) — temporadas em que o clube foi campeão/vice (CompetitionSeason).
+  seasonsAsChampion CompetitionSeason[] @relation("CompetitionSeasonChampion")
+  seasonsAsRunnerUp CompetitionSeason[] @relation("CompetitionSeasonRunnerUp")
   id           String     @id @default(uuid())
   name         String
   fullName     String?
@@ -73,6 +76,8 @@ model Club {
   // T507 — texto editorial por idioma (Wikipedia REST, CC-BY-SA 3.0).
   // Shape: { pt?: {extract, sourceUrl}, en?: {...}, es?: {...} }
   editorialText     Json?
+  // T509 (W6) — histórico de uniformes [{season, type, imageUrl, sourceUrl}]
+  kitHistory        Json?
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
@@ -179,6 +184,9 @@ model Competition {
   id           String   @id @default(uuid())
   name         String
   gender       String   @default("men") // T450 — 'men' | 'women'
+  // T509 (W6) — foto do troféu (Wikimedia Commons)
+  trophyImageUrl String?
+  seasons      CompetitionSeason[]
   country      String?  @db.VarChar(2)
   // WS-C-13
   officialSite           String?
@@ -1046,4 +1054,28 @@ model CopyrightNotice {
   @@index([originalNoticeId])
   @@index([protocol])
   @@map("copyright_notices")
+}
+
+/// T508 (W4) — classificação/artilheiro/totais por temporada (fonte Wikipedia/RSSSF).
+model CompetitionSeason {
+  id            String   @id @default(uuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  season        String   @db.VarChar(9)
+  championId    String?
+  champion      Club?    @relation("CompetitionSeasonChampion", fields: [championId], references: [id], onDelete: SetNull)
+  runnerUpId    String?
+  runnerUp      Club?    @relation("CompetitionSeasonRunnerUp", fields: [runnerUpId], references: [id], onDelete: SetNull)
+  totalMatches  Int?
+  totalGoals    Int?
+  topScorer     Json?
+  standings     Json?
+  sourceUrl     String?
+  importedFrom  String?
+  importedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([competitionId, season])
+  @@index([competitionId])
 }
