@@ -48,7 +48,8 @@ const QUERY = `SELECT DISTINCT ?team ?country ?iso2 ?genderQ WHERE {
   OPTIONAL { ?team wdt:P17 ?country . OPTIONAL { ?country wdt:P297 ?iso2 . } }
   OPTIONAL { ?team wdt:P21 ?genderQ . }
 }
-LIMIT 3000`;
+ORDER BY ?team
+LIMIT 3000 OFFSET $OFFSET`;
 
 interface TeamRow {
   qid: string;
@@ -84,8 +85,29 @@ async function main(): Promise<number> {
   const prisma = new PrismaClient();
   try {
     console.log(`[w3] modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'}`);
-    const json = await sparql(QUERY, { userAgent: MEDIA_USER_AGENT, sleep });
-    const base = rowsFromSparql(json);
+    // LIMIT sem ORDER BY trunca de forma NÃO-determinística (3ª vez que a lição
+    // aparece: T034/T499/seleções — a seleção do Brasil Q83459 ficou de fora).
+    // Pagina com ORDER BY ?team até a página vir incompleta.
+    const PAGE = 3000;
+    const base: TeamRow[] = [];
+    const seenQ = new Set<string>();
+    for (let offset = 0; ; offset += PAGE) {
+      const json = await sparql(QUERY.replace('$OFFSET', String(offset)), {
+        userAgent: MEDIA_USER_AGENT,
+        sleep,
+      });
+      const page = rowsFromSparql(json);
+      let novos = 0;
+      for (const r of page) {
+        if (seenQ.has(r.qid)) continue;
+        seenQ.add(r.qid);
+        base.push(r);
+        novos += 1;
+      }
+      console.log(`  seleções página offset=${offset}: +${novos} novos`);
+      if (page.length < PAGE) break;
+      await sleep(1000);
+    }
     // Labels + logo via wbgetentities (a query com SERVICE label volta truncada
     // na hierarquia P279* — 2.300+ entidades; o lote é o padrão T034/T499).
     const names = new Map<string, string>();
