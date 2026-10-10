@@ -6,6 +6,8 @@ import {
   isSchedulerEnabled,
   WIKIDATA_CRON_PATTERN,
   INTEGRITY_CRON_PATTERN,
+  ENRICH_CLUBS_CRON_PATTERN,
+  ENRICH_PLAYERS_CRON_PATTERN,
 } from '../../jobs/data-refresh.scheduler.js';
 import {
   getAlerts,
@@ -68,6 +70,9 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           schedules: {
             'wikidata-incremental': WIKIDATA_CRON_PATTERN,
             'integrity-check': INTEGRITY_CRON_PATTERN,
+            // T506 — lotes diários de mídia (resumíveis/idempotentes).
+            'enrich-clubs-media': ENRICH_CLUBS_CRON_PATTERN,
+            'enrich-players-media': ENRICH_PLAYERS_CRON_PATTERN,
           },
           queue: queueCounts,
           queueError,
