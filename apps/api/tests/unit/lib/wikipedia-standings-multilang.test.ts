@@ -105,3 +105,35 @@ describe('isStandingsHeader — regressão T508 (pt)', () => {
     ).toBe(true);
   });
 });
+
+describe('parseStandings — cabeçalho PT com "Equipe" LIMPO (sem legenda colada)', () => {
+  // Regressão 10/10 (pega pelo smoke de UI): com o cabeçalho "Equipe" (limpo),
+  // o léxico pt resolvia EMPATES para a coluna "E"quipe → drawn sempre null.
+  // A tabela combinada da Libertadores tem exatamente esse formato.
+  const rowsHtml = [
+    ['1', 'A', 'Palmeiras', '18', '6', '6', '0', '0', '17', '4', '13'],
+    ['2', 'A', 'São Paulo', '14', '6', '4', '2', '0', '10', '4', '6'],
+    ['3', 'A', 'Racing', '13', '6', '4', '1', '1', '14', '3', '11'],
+    ['4', 'A', 'River Plate', '12', '6', '3', '3', '0', '13', '7', '6'],
+  ]
+    .map((r) => '<tr>' + r.map((c) => `<td>${c}</td>`).join('') + '</tr>')
+    .join('');
+  const html =
+    '<table><tr>' +
+    ['Pos', 'Grp', 'Equipe', 'Pts', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG']
+      .map((h) => `<th>${h}</th>`)
+      .join('') +
+    '</tr>' +
+    rowsHtml +
+    '</table>';
+
+  it('lê V/E/D nas colunas certas e a coluna de grupo', () => {
+    const rows = parseStandings(html, { requireGroup: true, minRows: 4 });
+    expect(rows).toHaveLength(4);
+    expect(rows[0].group).toBe('A');
+    expect(rows[0]).toMatchObject({ won: 6, drawn: 0, lost: 0, points: 18, played: 6 });
+    expect(rows[1]).toMatchObject({ won: 4, drawn: 2, lost: 0, points: 14 });
+    expect(rows[2]).toMatchObject({ won: 4, drawn: 1, lost: 1 });
+    expect(rows[3]).toMatchObject({ won: 3, drawn: 3, lost: 0 });
+  });
+});
