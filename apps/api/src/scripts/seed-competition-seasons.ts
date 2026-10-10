@@ -29,6 +29,10 @@ const { values } = parseArgs({
     competition: { type: 'string', default: '' },
     seasons: { type: 'string', default: '' },
     lang: { type: 'string', default: 'pt' },
+    // Título na Wikipedia difere do nome no acervo: 'Campeonato Brasileiro de
+    // Futebol de 2024 - Série A' (artigo) × 'Campeonato Brasileiro Série A' (acervo).
+    article: { type: 'string', default: '' },
+    suffix: { type: 'string', default: '' },
   },
 });
 const APPLY_ON = values.apply || APPLY;
@@ -113,6 +117,8 @@ async function main(): Promise<number> {
     const seasons = values.seasons.split(',').map((s) => s.trim());
     // Nome do artigo: "{base} de {ano}" (formato consagrado da Wikipedia PT)
     const base = values.competition;
+    const articleBase = values.article || base;
+    const suffix = values.suffix ?? '';
     console.log(
       `[t508] modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'} · base="${base}" · temporadas=${seasons.join(',')}`,
     );
@@ -149,7 +155,7 @@ async function main(): Promise<number> {
     console.log(`  competição: ${comp.name} (${comp.id})`);
 
     for (const season of seasons) {
-      const title = `${base} de ${season}`;
+      const title = `${articleBase} de ${season}${suffix}`;
       const html = await fetchArticleHtml(values.lang ?? 'pt', title);
       if (!html) {
         console.log(`  ${season}: artigo "${title}" não existe — nada a fazer.`);
