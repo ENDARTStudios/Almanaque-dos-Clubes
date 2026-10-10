@@ -10,6 +10,8 @@ END $$;
 GRANT USAGE ON SCHEMA public TO app_user;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "audit_logs" TO app_user;
+-- T508 (W4) — temporadas de competição (classificação/artilheiro).
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "CompetitionSeason" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "billings" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cities" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;
