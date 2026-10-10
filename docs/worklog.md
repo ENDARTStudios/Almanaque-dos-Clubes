@@ -836,7 +836,41 @@ Work Log:
   curadoria de troféus 8) — 76/76 verdes; tsc api + web sem erros.
 
 Stage Summary:
-- T510 [~] implementado e testado localmente; execução em produção PENDENTE
-  (dry-run por competição → validar campeões → apply → smoke)
-- T511 [~] mapa curado pronto; apply em produção PENDENTE (gate: 14 verificações
-  ao vivo no Commons antes de gravar)
+- T510 [x] EXECUTADO E VALIDADO AO VIVO — 24 temporadas no acervo (Brasileirão 4 +
+  Libertadores 5 + Premier League 5 + La Liga 5 + Serie A 5); campeões conferidos
+  contra a realidade; UI validada no navegador (5 temporadas, tabela, troféu)
+- T511 [x] EXECUTADO E VALIDADO AO VIVO — 14 troféus gravados, ZERO falsos
+  positivos (contra 3 esportes errados no T509)
+
+4 BUGS PEGOS NA EXECUÇÃO EM PRODUÇÃO (todos corrigidos; 4 PRs):
+  1. 'Premier League' casou com a UCRAINIANA (Q206073) em vez da inglesa —
+     `--country` passou a desempatar homônimas
+  2. Libertadores 2021-2023 vinham SEM classificação: a tabela combinada da fase
+     de grupos usa 'Seed' na 1ª coluna (não 'Pos')
+  3. FALSO POSITIVO DE CLUBE: 'Liverpool' (Q113013, ausente) casava com
+     'A.F.C. Liverpool' (Q18552) — o campeão da Premier League 2024-25 sairia
+     errado. Regra nova: se o artigo da Wikipedia aponta um QID que NÃO está no
+     acervo, o match APROXIMADO é proibido (só nome exato/alias)
+  4. **BUG PEGO PELO SMOKE DE UI** (não pelos testes): coluna "Empates" = "—".
+     O léxico pt tinha `drawn: /^(e|emp)/` SEM `$` → casava o cabeçalho "Equipe"
+     → a coluna de empates apontava para a coluna do CLUBE. Só afetava tabelas de
+     cabeçalho LIMPO ("Equipe"); as com legenda colada ('equipevde') caíam em
+     `detectLang='unknown'` (léxico já ancorado) e escapavam — por isso o
+     Brasileirão passou e a tabela combinada da Libertadores não. Ancorado.
+
+LACUNAS DE ACERVO DECLARADAS (medidas ao vivo, NÃO corrigidas — workstream de
+identidade, fora do escopo do T510):
+- **Liverpool F.C. (Q113013) AUSENTE** → PL 2021-22 vice e 2024-25 campeão = null
+- **FC Barcelona (Q7156) AUSENTE** → La Liga perde os títulos do Barcelona
+- **La Liga**: ausentes Sevilla, Villarreal, Girona, Valencia, Real Sociedad,
+  Osasuna, Rayo, Elche, Cádiz, Almería, Valladolid, Las Palmas, Leganés, Oviedo
+  (existem apenas RESERVAS/homônimos: 'Real Sociedad B', 'Valencia CF Mestalla')
+- **Libertadores**: ausentes Boca Juniors, San Lorenzo, Libertad, The Strongest
+  (existem 'Club Atlético Boca Unidos', 'Club Deportivo Boca Juniors' (PE)…)
+- **Serie A**: ausentes só clubes menores (Salernitana, Monza, Lecce, Cremonese…)
+→ cobre 24 temporadas; champions resolvidos 17/20 (3 null por ausência de clube).
+→ a regra do QID resolvido é o que IMPEDE que essas lacunas virem campeão errado.
+
+VERSÃO: 5 PRs mergeados nesta rodada (#483 implementação, #484 homônimo+Seed,
+#485 regra do QID, #486 relaxamento do exato, #487 ancoragem do léxico);
+84/84 testes verdes; tsc api + web sem erros.
