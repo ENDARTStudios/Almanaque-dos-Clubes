@@ -61,9 +61,10 @@ interface MatchableClub {
  *
  * REGRA DO QID RESOLVIDO (adicionada 10/10 após falso positivo em produção):
  * se o ARTIGO da Wikipedia apontou para uma entidade (QID) que NÃO existe no
- * acervo, NÃO cai no match por nome — o nome pode coincidir com OUTRO clube.
- * Ex.: "Liverpool" (Q113013, ausente) casava com "A.F.C. Liverpool" (Q18552) e
- * o campeão da Premier League 2024-25 sairia errado. Só aceita NOME EXATO.
+ * acervo, NÃO cai na cadeia APROXIMADA (normalizado/token) — o nome pode
+ * coincidir com OUTRO clube. Ex.: "Liverpool" (Q113013, ausente) casava com
+ * "A.F.C. Liverpool" (Q18552) e o campeão da Premier League 2024-25 sairia
+ * errado. Aceita apenas NOME EXATO (ou alias curado), que é evidência forte.
  */
 export async function matchClub(
   prisma: PrismaClient,
@@ -86,10 +87,11 @@ export async function matchClub(
       select: { id: true, name: true },
     });
     if (byQid) return byQid;
-    // artigo conhecido mas clube ausente do acervo → só nome EXATO (nunca vizinho)
+    // artigo conhecido mas clube ausente do acervo → só NOME EXATO (nunca um
+    // vizinho aproximado). Nome exato é evidência forte; aproximado não é.
     for (const name of candidates) {
       const exact = await prisma.club.findFirst({
-        where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null, qid: null },
+        where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null },
         select: { id: true, name: true },
       });
       if (exact) return exact;
