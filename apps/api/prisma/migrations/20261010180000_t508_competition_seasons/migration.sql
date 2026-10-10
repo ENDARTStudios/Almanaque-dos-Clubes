@@ -16,9 +16,9 @@ CREATE TABLE "CompetitionSeason" (
   "standings" JSONB,
   "sourceUrl" TEXT,
   "importedFrom" TEXT,
-  "importedAt" TIMESTAMPTZ,
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "importedAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL,
   CONSTRAINT "CompetitionSeason_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "CompetitionSeason_competitionId_season_key" UNIQUE ("competitionId", "season")
 );
