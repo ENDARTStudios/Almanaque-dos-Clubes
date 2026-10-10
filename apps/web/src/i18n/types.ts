@@ -279,6 +279,9 @@ export interface Dictionary {
   seasonsEmpty: string;
   source: string;
   wikipedia: string;
+  runnerUp: string;
+  matches: string;
+  goals: string;
       year: string;
       champion: string;
       titles: string;

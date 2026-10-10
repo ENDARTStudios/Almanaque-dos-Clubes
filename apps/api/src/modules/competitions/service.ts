@@ -73,11 +73,11 @@ export const competitionsService = {
     });
   },
 
-  /** T508 (W4) — temporadas da competição (classificação/artilheiro). */
+  /** T508/T510 — temporadas da competição (classificação/artilheiro/campeão). */
   async getSeasons(id: string): Promise<unknown[]> {
     await this.getById(id); // 404 honesto
-    return cache.remember(`competitions:seasons:${id}`, COMPETITIONS_TTL_SECONDS, async () =>
-      prisma.competitionSeason.findMany({
+    return cache.remember(`competitions:seasons:${id}`, COMPETITIONS_TTL_SECONDS, async () => {
+      const seasons = await prisma.competitionSeason.findMany({
         where: { competitionId: id },
         select: {
           season: true,
@@ -90,8 +90,27 @@ export const competitionsService = {
           totalGoals: true,
         },
         orderBy: { season: 'desc' },
-      }),
-    );
+      });
+      // T510 — resolve os NOMES de campeão/vice (essencial para COPAS, onde a
+      // classificação não tem posição 1 = campeão: o título vem da final).
+      const clubIds = [
+        ...new Set(
+          seasons.flatMap((s) => [s.championId, s.runnerUpId]).filter((x): x is string => !!x),
+        ),
+      ];
+      const clubs = clubIds.length
+        ? await prisma.club.findMany({
+            where: { id: { in: clubIds }, deletedAt: null },
+            select: { id: true, name: true },
+          })
+        : [];
+      const byId = new Map(clubs.map((c) => [c.id, c.name]));
+      return seasons.map((s) => ({
+        ...s,
+        champion: s.championId ? { id: s.championId, name: byId.get(s.championId) ?? null } : null,
+        runnerUp: s.runnerUpId ? { id: s.runnerUpId, name: byId.get(s.runnerUpId) ?? null } : null,
+      }));
+    });
   },
 
   async update(id: string, input: unknown): Promise<Competition> {
