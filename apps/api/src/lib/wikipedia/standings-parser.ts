@@ -104,12 +104,16 @@ const LEXICON: Record<StandingsLang, Lexicon> = {
   pt: {
     pos: [/^(pos|#|posiç|class|seed)/i],
     team: [/equipe|time|clube/i],
-    played: [/^(j|pj|jogos)$/i],
-    won: [/^(v|vit)/i],
-    drawn: [/^(e|emp)/i],
-    lost: [/^(d|der)/i],
-    gf: [/^(gp|gf|gols? pró)/i],
-    ga: [/^(gc|ga|gols? contra)/i],
+    played: [/^(j|pj|jogos)\.?$/i],
+    // ANCORADO (bug 10/10): sem `$`, `/^(e|emp)/` casava o cabeçalho "Equipe"
+    // (a coluna de EMPATES apontava para a coluna do CLUBE → drawn sempre null).
+    // Acontecia nas tabelas de cabeçalho limpo ("Equipe"); as com legenda colada
+    // ('equipevde') caíam em `unknown` (já ancorado) e escapavam.
+    won: [/^(v|vit)\.?$/i],
+    drawn: [/^(e|emp)\.?$/i],
+    lost: [/^(d|der)\.?$/i],
+    gf: [/^(gp|gf)\.?$/i, /^gols? pró/i],
+    ga: [/^(gc|ga)\.?$/i, /^gols? contra/i],
     pts: [/^(pts|pontos)/i],
     group: [/^(grp|grupo|group)$/i],
   },

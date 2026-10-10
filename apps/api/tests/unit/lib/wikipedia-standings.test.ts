@@ -34,6 +34,18 @@ describe('parseStandings (T508)', () => {
     expect(rows[0].clubName.toLowerCase()).toContain('botafogo');
   });
 
+  it('parseia V/E/D separadamente (regressão: /^(e|emp)/ casava a coluna "Equipe")', () => {
+    const rows = parseStandings(fixture);
+    const first = rows[0];
+    // Botafogo 2024: 38 J · 23 V · 10 E · 5 D
+    expect(first.won).toBe(23);
+    expect(first.drawn).toBe(10);
+    expect(first.lost).toBe(5);
+    expect((first.won as number) + (first.drawn as number) + (first.lost as number)).toBe(
+      first.played as number,
+    );
+  });
+
   it('retorna [] quando não há tabela de classificação', () => {
     expect(parseStandings('<table><tr><th>Foo</th></tr><tr><td>1</td></tr></table>')).toEqual([]);
     expect(parseStandings('')).toEqual([]);
