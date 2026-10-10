@@ -868,7 +868,9 @@ identidade, fora do escopo do T510):
 - **Libertadores**: ausentes Boca Juniors, San Lorenzo, Libertad, The Strongest
   (existem 'Club Atlético Boca Unidos', 'Club Deportivo Boca Juniors' (PE)…)
 - **Serie A**: ausentes só clubes menores (Salernitana, Monza, Lecce, Cremonese…)
-→ cobre 24 temporadas; champions resolvidos 17/20 (3 null por ausência de clube).
+→ cobre 24 temporadas; champions resolvidos 16/20 nas 4 competições novas
+  (Libertadores 5/5, Premier League 4/5, Serie A 5/5, La Liga 2/5) — os 4 null são
+  ausência de clube no acervo, não falha de parsing.
 → a regra do QID resolvido é o que IMPEDE que essas lacunas virem campeão errado.
 
 VERSÃO: 5 PRs mergeados nesta rodada (#483 implementação, #484 homônimo+Seed,
