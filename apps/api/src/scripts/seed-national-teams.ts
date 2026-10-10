@@ -15,6 +15,7 @@ import {
   fetchEntities,
   commonsFilePath,
   claimScalar,
+  bestLabel,
   sparql,
   parseBindings,
   MEDIA_USER_AGENT,
@@ -41,12 +42,11 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * Q6979593 estava errado e retornava 0). Separa masculino (P21 men)
  * e feminino (P21 women) quando o gênero está declarado.
  */
-const QUERY = `SELECT DISTINCT ?team ?teamLabel ?country ?countryLabel ?iso2 ?genderQ ?logo WHERE {
-  ?team wdt:P31 ?teamType . ?teamType wdt:P279* wd:Q6979593 .
+const QUERY = `SELECT DISTINCT ?team ?country ?iso2 ?genderQ WHERE {
+  ?team wdt:P31 ?teamType .
+  ?teamType wdt:P279* wd:Q6979593 .
   OPTIONAL { ?team wdt:P17 ?country . OPTIONAL { ?country wdt:P297 ?iso2 . } }
   OPTIONAL { ?team wdt:P21 ?genderQ . }
-  OPTIONAL { ?team wdt:P154 ?logo . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "pt,en". }
 }
 LIMIT 3000`;
 
@@ -85,7 +85,31 @@ async function main(): Promise<number> {
   try {
     console.log(`[w3] modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'}`);
     const json = await sparql(QUERY, { userAgent: MEDIA_USER_AGENT, sleep });
-    const rows = rowsFromSparql(json).slice(0, Number.isFinite(LIMIT) ? LIMIT : undefined);
+    const base = rowsFromSparql(json);
+    // Labels + logo via wbgetentities (a query com SERVICE label volta truncada
+    // na hierarquia P279* — 2.300+ entidades; o lote é o padrão T034/T499).
+    const names = new Map<string, string>();
+    const logosByQid = new Map<string, string>();
+    for (let i = 0; i < base.length; i += 50) {
+      const chunk = base.slice(i, i + 50).map((r) => r.qid);
+      const res = await fetchEntities(chunk, { userAgent: MEDIA_USER_AGENT, sleep });
+      for (const [qid, e] of res) {
+        const l = bestLabel(e);
+        if (l) names.set(qid, l);
+        const f = claimScalar(e, 'P154');
+        if (f) logosByQid.set(qid, commonsFilePath(f, 300));
+      }
+      if ((i / 50) % 10 === 0)
+        console.log(`  labels ${Math.min(i + 50, base.length)}/${base.length}`);
+    }
+    const rows = base
+      .map((r) => ({
+        ...r,
+        name: names.get(r.qid) ?? r.name,
+        countryName: r.countryName ?? (r.countryIso ? r.countryIso : null),
+        logoUrl: logosByQid.get(r.qid) ?? null,
+      }))
+      .slice(0, Number.isFinite(LIMIT) ? LIMIT : undefined);
     console.log(`[w3] seleções encontradas no Wikidata: ${rows.length}`);
 
     // Dedup contra o acervo por QID
