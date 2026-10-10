@@ -344,10 +344,17 @@ async function main(): Promise<number> {
             matched.find((m) => m.position === 2)?.clubArticle,
           );
 
+      // NÃO exibir o nome cru como se estivesse casado: se o clube não está no
+      // acervo, o rótulo é "SEM-CLUBE (nome)" — foi esse log que, ao mostrar o
+      // nome do infobox, me fez ler como "casado" quando o vice era null.
+      const fmtPlacement = (
+        matchedName: string | null | undefined,
+        raw: string | null | undefined,
+      ) => matchedName ?? (raw ? `SEM-CLUBE (${raw})` : '?');
       console.log(
         `  ${season}: ${isCup ? 'copa' : 'liga'} · linhas=${standings.length} · casados=${withClub}` +
-          ` · campeão=${champion?.name ?? placements?.champion ?? '?'}` +
-          ` · vice=${runnerUp?.name ?? placements?.runnerUp ?? '?'}` +
+          ` · campeão=${fmtPlacement(champion?.name, placements?.champion)}` +
+          ` · vice=${fmtPlacement(runnerUp?.name, placements?.runnerUp)}` +
           ` · artilheiro=${topScorer ? topScorer.name + ' (' + topScorer.goals + ')' : 'n/d'}` +
           (unmatched.length > 0 ? ` · SEM-MATCH=[${unmatched.join(', ')}]` : '') +
           ` · fonte=${lang}.wikipedia/${title}`,
