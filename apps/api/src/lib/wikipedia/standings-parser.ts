@@ -139,7 +139,9 @@ export function parseTopScorer(html: string): TopScorer | null {
       if (cells.length < 2) continue;
       const name = cells.find((c) => /[A-Za-zÀ-ÿ]{4}/.test(c) && !/^\d+$/.test(c));
       const goals = num(cells[cells.length - 1]);
-      if (name && goals != null && goals > 0 && (!best || goals > best.goals)) {
+      // Guard: gols plausíveis (recordes ~35-40; 'Flamengo (33778)' é outra
+      // coluna — visto no apply de 10/10 no Brasileirão 2022).
+      if (name && goals != null && goals > 0 && goals <= 60 && (!best || goals > best.goals)) {
         best = { name, goals };
       }
     }
