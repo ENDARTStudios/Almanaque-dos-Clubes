@@ -143,9 +143,12 @@ async function main(): Promise<number> {
         },
         select: { id: true, name: true, qid: true },
       });
+      // Preferir o registro CANÔNICO (com QID): o acervo tem duplicatas legadas
+      // sem QID (ex.: dois 'Campeonato Brasileiro Série A') e a página pública
+      // resolve pelo canônico — gravar no duplicado resulta em 404 (visto 10/10).
       const men = cands
         .filter((c) => !/feminin|women/i.test(c.name))
-        .sort((a, b) => a.name.length - b.name.length);
+        .sort((a, b) => (b.qid ? 1 : 0) - (a.qid ? 1 : 0) || a.name.length - b.name.length);
       comp = men[0] ?? null;
     }
     if (!comp) {
