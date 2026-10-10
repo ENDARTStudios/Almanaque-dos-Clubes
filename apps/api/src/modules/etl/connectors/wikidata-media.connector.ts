@@ -8,6 +8,7 @@
  * ou string) conforme o tipo da propriedade.
  */
 import { z } from 'zod';
+import { createHash } from 'node:crypto';
 
 export const MEDIA_USER_AGENT =
   'AlmanaqueDosClubes/0.1 (wikidata media enrich; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
@@ -87,11 +88,30 @@ export function bestLabel(entity: EntityShape): string | null {
   return name;
 }
 
-/** URL oficial do Commons para um nome de arquivo (nunca inventado). */
+/**
+ * URL DIRETA do Commons (sem redirect) para um nome de arquivo.
+ *
+ * T506 — o endpoint Special:FilePath devolve 302->301->arquivo; no browser a
+ * cadeia de redirects atrasa/trava em alguns ambientes (validado em producao:
+ * o arquivo direto carrega 200 image/svg+xml, o redirect da timeout). O caminho
+ * e DETERMINISTICO: 1o char + 2 primeiros chars do md5 do nome normalizado.
+ *   md5('Gremio_Prudente_Emblem.svg') = '66e1ca...' -> /wikipedia/commons/6/66/...
+ * SVG usa o original (escala); rasters usam o thumb deterministico (Wpx-N.png).
+ * Nada e inventado: o nome vem do claim P154/P18.
+ */
 export function commonsFilePath(filename: string, width?: number): string {
-  const clean = filename.replace(/^./, (c) => c.toUpperCase()).replace(/\s/g, '_');
-  const base = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(clean)}`;
-  return width ? `${base}?width=${width}` : base;
+  const clean = filename
+    .trim()
+    .replace(/ /g, '_')
+    .replace(/^./, (c) => c.toUpperCase());
+  const hash = createHash('md5').update(clean).digest('hex');
+  const a = hash[0];
+  const ab = hash.slice(0, 2);
+  const enc = encodeURIComponent(clean);
+  const base = 'https://upload.wikimedia.org/wikipedia/commons/';
+  const isSvg = /\.svg$/i.test(clean);
+  if (isSvg || !width) return base + a + '/' + ab + '/' + enc;
+  return base + 'thumb/' + a + '/' + ab + '/' + enc + '/' + width + 'px-' + enc;
 }
 
 /** Lote de wbgetentities: Map<qid, EntityShape normalizado>. */
