@@ -21,14 +21,32 @@ const { values } = parseArgs({
 });
 const APPLY_ON = values.apply || APPLY;
 
-/** Padrões (case-insensitive) → kind. Ordem importa (federação antes de seleção). */
+/**
+ * Padrões (case-insensitive) → kind. Ordem importa (federação antes de seleção).
+ *
+ * Refinados após o dry-run de produção (10/10) pegar 2 falsos positivos:
+ *  - 'Asociación Deportiva San Juan' é um CLUBE (o termo genérico 'asociación'
+ *    casava como federação) → o padrão exige contexto de futebol/federação;
+ *  - 'South Australian National Training Centre' NÃO é seleção (o 'national'
+ *    solto casava) → exige 'national … team' ou 'national football'.
+ */
 const PATTERNS: Array<{ match: RegExp; kind: 'federation' | 'national_team'; label: string }> = [
   {
-    match: /\b(football association|federation|federação|asociación)\b/i,
+    match:
+      /(football federation|football association(?!\s+football team)|federa(c|ç)(ã|a)o(?!\s+de\s+clubes)|federaci(o|ó)n de f(u|ú)tbol)/i,
     kind: 'federation',
     label: 'federação',
   },
-  { match: /\bnational\b/i, kind: 'national_team', label: 'seleção' },
+  {
+    match: /\bnational\b[^,]{0,40}\bteam\b/i,
+    kind: 'national_team',
+    label: 'seleção (national … team)',
+  },
+  {
+    match: /\bnational\s+(football|soccer)\b/i,
+    kind: 'national_team',
+    label: 'seleção (national football)',
+  },
   { match: /\bsele(c|ç)(ã|a)o\b/i, kind: 'national_team', label: 'seleção (pt)' },
 ];
 
