@@ -28,24 +28,6 @@ import {
 import { logger } from '../config/logger.js';
 
 const APPLY = process.argv.includes('--apply');
-const { values } = parseArgs({
-  args: process.argv.slice(2),
-  options: {
-    apply: { type: 'boolean', default: false },
-    competition: { type: 'string', default: '' },
-    seasons: { type: 'string', default: '' },
-    lang: { type: 'string', default: 'pt' },
-    // Título na Wikipedia difere do nome no acervo. Duas formas:
-    //  - template:  --title="Serie A {season}" (recomendado; idioma-agnóstico)
-    //  - legado PT: --article=<base> --suffix=<sufixo> → "{base} de {ano}{sufixo}"
-    title: { type: 'string', default: '' },
-    article: { type: 'string', default: '' },
-    suffix: { type: 'string', default: '' },
-    // Escopo do fallback de match por NOME (país ISO-2). Default: país da competição.
-    country: { type: 'string', default: '' },
-  },
-});
-const APPLY_ON = values.apply || APPLY;
 const UA =
   'AlmanaqueDosClubes/0.1 (wikipedia standings seed; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -76,20 +58,17 @@ interface MatchableClub {
  * Casa um clube do acervo com a linha da tabela.
  * Ordem: QID (via artigo) → nome exato → alias → normalizado(país) → token único.
  * `null` = recusa honesta (nunca inventa clube).
+ *
+ * REGRA DO QID RESOLVIDO (adicionada 10/10 após falso positivo em produção):
+ * se o ARTIGO da Wikipedia apontou para uma entidade (QID) que NÃO existe no
+ * acervo, NÃO cai no match por nome — o nome pode coincidir com OUTRO clube.
+ * Ex.: "Liverpool" (Q113013, ausente) casava com "A.F.C. Liverpool" (Q18552) e
+ * o campeão da Premier League 2024-25 sairia errado. Só aceita NOME EXATO.
  */
 export async function matchClub(
   prisma: PrismaClient,
   opts: { rawName: string; article?: string | null; qid?: string | null; country?: string | null },
 ): Promise<MatchableClub | null> {
-  // 1) QID é a chave canônica (independe de grafia/idioma)
-  if (opts.qid) {
-    const byQid = await prisma.club.findFirst({
-      where: { qid: opts.qid, deletedAt: null, kind: { not: 'national_team' } },
-      select: { id: true, name: true },
-    });
-    if (byQid) return byQid;
-  }
-
   const cleaned = (opts.rawName ?? '')
     .replace(/\([^)]*\)/g, ' ')
     .replace(/\b\d+\b/g, ' ')
@@ -99,6 +78,24 @@ export async function matchClub(
   const candidates = [alias, cleaned, opts.article ?? undefined, opts.rawName].filter(
     (x): x is string => !!x,
   );
+
+  // 1) QID é a chave canônica (independe de grafia/idioma)
+  if (opts.qid) {
+    const byQid = await prisma.club.findFirst({
+      where: { qid: opts.qid, deletedAt: null, kind: { not: 'national_team' } },
+      select: { id: true, name: true },
+    });
+    if (byQid) return byQid;
+    // artigo conhecido mas clube ausente do acervo → só nome EXATO (nunca vizinho)
+    for (const name of candidates) {
+      const exact = await prisma.club.findFirst({
+        where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null, qid: null },
+        select: { id: true, name: true },
+      });
+      if (exact) return exact;
+    }
+    return null;
+  }
 
   // 2) nome EXATO (insensível)
   for (const name of candidates) {
@@ -197,6 +194,27 @@ async function resolveQids(lang: string, titles: string[]): Promise<Map<string, 
 }
 
 async function main(): Promise<number> {
+  // parseArgs fica DENTRO de main para o módulo ser importável em testes
+  // (top-level parseArgs estoura com os argv do runner de teste).
+  const { values } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      apply: { type: 'boolean', default: false },
+      competition: { type: 'string', default: '' },
+      seasons: { type: 'string', default: '' },
+      lang: { type: 'string', default: 'pt' },
+      // Título na Wikipedia difere do nome no acervo. Duas formas:
+      //  - template:  --title="Serie A {season}" (recomendado; idioma-agnóstico)
+      //  - legado PT: --article=<base> --suffix=<sufixo> → "{base} de {ano}{sufixo}"
+      title: { type: 'string', default: '' },
+      article: { type: 'string', default: '' },
+      suffix: { type: 'string', default: '' },
+      // Escopo do fallback de match por NOME (país ISO-2). Default: país da competição.
+      // Também desempata competição homônima (ex.: 'Premier League' GB × UA).
+      country: { type: 'string', default: '' },
+    },
+  });
+  const APPLY_ON = values.apply || APPLY;
   const prisma = new PrismaClient();
   try {
     if (!values.competition || !values.seasons) {
