@@ -704,3 +704,42 @@ Stage Summary:
 - PRs: #465 (cron+cores) · #466 (cores PT) · #467 (URLs diretas) · #468 (thumbs)
 - Gaps declarados: seleção principal do Brasil ausente; 234 clubes 'national' sem kind;
   cobertura de cores limitada pela fonte (230 clubes no mundo)
+
+---
+Task ID: goal-2026-10-10/t507
+Agent: Doer (GLM-5.3-Flash)
+Task: T507 — W5 texto editorial + seleções principais + reclassificação
+
+Work Log:
+- PARTE 1 (W5): migration aditiva clubs.editorialText (JSONB); connector
+  wikipedia-editorial (REST pt/en/es, CC-BY-SA; rejeita disambiguation e extract
+  < 40 chars); service enrichClubsEditorialBatch (sitelinks via wbgetentities,
+  1 req/s); cron T451 às 06:00 UTC (confirmado no boot: enrichEditorial="0 6 * * *");
+  perfil expõe `editorial`; UI seção "Sobre" com atribuição e fallback honesto;
+  i18n ×3 (aboutTitle/aboutSource/aboutCataloging).
+  · Executado: 120 globais (97 atualizados) + 60 BR (55) = 152 clubes com texto
+  · 5 AMOSTRAS VALIDADAS: América FC, Vitória das Tabocas [pt,en,es], Caldense
+    [pt,en,es], Moreninhas, Ponte Preta [pt,en,es] — textos corretos
+  · SMOKE UI ao vivo: seção "Sobre" renderizada com o texto real da Ponte Preta
+    ("agremiação esportiva brasileira da cidade de Campinas... fundada em 11 de
+    agosto de 1900") + atribuição "Wikipédia" ✓
+- PARTE 2 (seleções principais) — CAUSA RAIZ: usam P31=Q135408445 (men's
+  national association football team), SUBCLASSE de Q6979593; com P31 direto o
+  script pegava só variantes (blind/cerebral palsy/under-XX). Query passa a usar
+  P279* (hierarquia). RESULTADO: 2.300 seleções no acervo (era 1.153) —
+  **Seleção Brasileira de Futebol (Q83459) criada com o logo da CBF** ✓
+  · 2 fixes no caminho: (a) labels via wbgetentities (SPARQL com SERVICE label
+    truncava o JSON em 433KB na hierarquia); (b) PAGINAÇÃO ORDER BY ?team —
+    LIMIT sem ordenação truncava não-deterministicamente e deixou o Brasil FORA
+    (3ª aparição da lição T034/T499)
+- PARTE 3 (reclassificação): 227 clubes reclassificados → national_team 1.376,
+  federation 4, club 9.575. Padrões refinados após 2 FALSOS POSITIVOS no dry-run:
+  'Asociación Deportiva San Juan' (clube, não federação) e 'South Australian
+  National Training Centre' (não é seleção) → padrões exigem contexto.
+- Integridade: zero escrita em rankings; 5 PRs mergeados (#470-#473)
+
+Stage Summary:
+- T507 [x]: W5 editorial ativo (cron 06:00, 152 clubes, UI validada), 2.300
+  seleções (Brasil com logo), 227 reclassificados
+- Gaps declarados: cobertura editorial depende de artigo na Wikipedia (23/120
+  sem artigo no 1º lote); 2.300 = teto da hierarquia Q6979593 no Wikidata
