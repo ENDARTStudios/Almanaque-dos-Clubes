@@ -35,6 +35,10 @@ export interface WsC2Strings {
     city: string;
     founded: string;
     gapLabels: Record<string, string>;
+    /** T507 — seção Sobre (texto editorial da Wikipedia). */
+    aboutTitle: string;
+    aboutSource: string;
+    aboutCataloging: string;
   };
   search: {
     title: string;
@@ -104,6 +108,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Competições relacionadas',
         no_related_edges: 'Conexões no grafo',
       },
+    aboutTitle: 'Sobre',
+    aboutSource: 'Fonte: Wikipédia (CC BY-SA)',
+    aboutCataloging: 'Descrição em catalogação (sem artigo na Wikipédia).',
     },
     search: {
       title: 'Busca global',
@@ -172,6 +179,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Related competitions',
         no_related_edges: 'Graph connections',
       },
+    aboutTitle: 'About',
+    aboutSource: 'Source: Wikipedia (CC BY-SA)',
+    aboutCataloging: 'Description being catalogued (no Wikipedia article).',
     },
     search: {
       title: 'Global search',
@@ -240,6 +250,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Competiciones relacionadas',
         no_related_edges: 'Conexiones del grafo',
       },
+    aboutTitle: 'Acerca de',
+    aboutSource: 'Fuente: Wikipedia (CC BY-SA)',
+    aboutCataloging: 'Descripción en catalogación (sin artículo en Wikipedia).',
     },
     search: {
       title: 'Búsqueda global',

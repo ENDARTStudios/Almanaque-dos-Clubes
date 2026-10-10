@@ -33,18 +33,22 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
  * SPARQL: seleções nacionais de futebol (association football national team).
- * Q6979593 = national association football team (VALIDADO na Wikidata 09/10 —
+ * Q6979593 = national association football team. A query usa P279* (hierarquia):
+ * as seleções PRINCIPAIS usam P31=Q135408445 (men's national association
+ * football team), subclasse de Q6979593 — com P31 direto elas ficavam de fora
+ * (2.300 via hierarquia vs 1.229 direto; gap do Brasil/Argentina etc. em 10/10).
+ * Original (VALIDADO na Wikidata 09/10 —
  * Q6979593 estava errado e retornava 0). Separa masculino (P21 men)
  * e feminino (P21 women) quando o gênero está declarado.
  */
 const QUERY = `SELECT DISTINCT ?team ?teamLabel ?country ?countryLabel ?iso2 ?genderQ ?logo WHERE {
-  ?team wdt:P31 wd:Q6979593 .
+  ?team wdt:P31 ?teamType . ?teamType wdt:P279* wd:Q6979593 .
   OPTIONAL { ?team wdt:P17 ?country . OPTIONAL { ?country wdt:P297 ?iso2 . } }
   OPTIONAL { ?team wdt:P21 ?genderQ . }
   OPTIONAL { ?team wdt:P154 ?logo . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "pt,en". }
 }
-LIMIT 1200`;
+LIMIT 3000`;
 
 interface TeamRow {
   qid: string;

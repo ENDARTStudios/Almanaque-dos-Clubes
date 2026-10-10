@@ -28,6 +28,8 @@ interface ClubProfile {
   fansCount?: number | null;
   website?: string | null;
   infobox?: Record<string, string> | null;
+  /** T507 — texto editorial por idioma (Wikipedia, CC-BY-SA). */
+  editorial?: Record<string, { extract?: string; sourceUrl?: string } | null> | null;
   socialLinks?: Record<string, { handle: string; url: string } | null> | null;
   followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
   fullName: string | null;
@@ -392,6 +394,38 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       </Section>
 
       {/* WS-C-5 — timeline cronológica (ARESTAS WON ordenadas por ano, proveniência por aresta). */}
+      {/* T507 (W5) — Sobre: texto editorial (Wikipedia CC-BY-SA), fallback honesto. */}
+      {(() => {
+        const ed = club.editorial ?? null;
+        const entry = ed?.[locale] ?? ed?.pt ?? ed?.en ?? ed?.es ?? null;
+        const extract = entry?.extract ?? null;
+        const sourceUrl = entry?.sourceUrl ?? null;
+        return (
+          <section aria-labelledby="club-about" className="mt-10" data-testid="club-about">
+            <h2 id="club-about" className="text-xl font-heading font-semibold mb-3">
+              {s.aboutTitle}
+            </h2>
+            {extract ? (
+              <>
+                <p className="text-sm leading-relaxed text-foreground/80">{extract}</p>
+                {sourceUrl ? (
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-xs text-foreground/50 hover:text-primary underline decoration-dotted underline-offset-2"
+                  >
+                    {s.aboutSource}
+                  </a>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-sm text-foreground/50">{s.aboutCataloging}</p>
+            )}
+          </section>
+        );
+      })()}
+
       <ClubTimeline clubId={club.id} locale={locale} />
 
       <Section title={s.competitions}>

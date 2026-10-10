@@ -70,6 +70,9 @@ model Club {
   stadiumLng        Float?
   kind              String  @default("club") // 'club' | 'national_team' | 'federation'
   federation        String?
+  // T507 — texto editorial por idioma (Wikipedia REST, CC-BY-SA 3.0).
+  // Shape: { pt?: {extract, sourceUrl}, en?: {...}, es?: {...} }
+  editorialText     Json?
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?

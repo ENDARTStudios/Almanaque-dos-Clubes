@@ -109,6 +109,11 @@ export interface ClubProfile {
   infobox: Record<string, string> | null;
   /** T502 — mídia visual: escudo (P154) e estádio (P115/P625/P1083/P18). */
   media: ClubMediaFields;
+  /**
+   * T507 (W5) — texto editorial da Wikipedia por idioma (CC-BY-SA).
+   * Shape: { pt?: {extract, description, sourceUrl}, en?: {...}, es?: {...}, license }
+   */
+  editorial: Record<string, unknown> | null;
 }
 
 /** T502 (W1) — mídia do clube exposta no perfil público. */
@@ -172,6 +177,7 @@ export interface ProfileClubInput {
   stadiumCapacity?: number | null;
   stadiumLat?: number | null;
   stadiumLng?: number | null;
+  editorialText?: unknown;
 }
 
 const INFOBOX_KEYS = [
@@ -184,6 +190,14 @@ const INFOBOX_KEYS = [
   'local',
   'liga',
 ] as const;
+
+/** T507 (W5) — bloco editorial (null quando não há texto na fonte). */
+export function editorialFromMetadata(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const hasAny = ['pt', 'en', 'es'].some((l) => o[l] != null);
+  return hasAny ? o : null;
+}
 
 /** T502 (W1) — monta o bloco de mídia do perfil (tudo null quando ausente). */
 function buildMediaFromClub(club: {
@@ -335,6 +349,8 @@ export function buildProfile(
     gaps: [...PROFILE_GAPS],
     // T502 (W1) — mídia visual (escudo/estádio); null honesto quando ausente.
     media: buildMediaFromClub(club),
+    // T507 (W5) — texto editorial por idioma (null honesto quando ausente).
+    editorial: editorialFromMetadata(club.editorialText),
   };
 }
 
@@ -441,6 +457,7 @@ export async function getClubProfile(id: string): Promise<ClubProfile | null> {
       stadiumCapacity: club.stadiumCapacity ?? null,
       stadiumLat: club.stadiumLat ?? null,
       stadiumLng: club.stadiumLng ?? null,
+      editorialText: club.editorialText ?? null,
       gender: club.gender,
       qid: club.qid,
       name: club.name,
