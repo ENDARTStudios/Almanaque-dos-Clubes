@@ -666,3 +666,41 @@ Stage Summary:
 - T502 [~]: infraestrutura completa (migration + connector + 3 scripts + componentes web) e primeiros lotes aplicados (118 logos, 261 estádios, 1.153 seleções, 863 fotos)
 - PRs #459/#460/#461/#462/#463 mergeados; execução em escala = rodar os scripts em lotes (resumíveis)
 - Lição permanente reforçada: validar QID/classe na fonte antes de usar (3ª vez: T424, T034, T502)
+
+---
+Task ID: goal-2026-10-10/t506
+Agent: Doer (GLM-5.3-Flash)
+Task: T506 — cron de enrichment + cores corrigidas + validação visual
+
+Work Log:
+- CRON ATIVO (T451): enrich-clubs-media 04:00 UTC (lote 500/dia) e enrich-players-media
+  05:00 UTC (lote 2.000/dia). Confirmado no log de boot de produção:
+  enrichClubs="0 4 * * *" enrichPlayers="0 5 * * *". Lógica em service compartilhado
+  (CLIs viraram wrappers finos); registrados em /jobs/health.
+- CORES: briefing indicava P1423 — que é "template has topic" (0 clubes usam com cor!).
+  4ª repetição da lição T424. Correto: P465 (sRGB hex, 87 clubes no mundo) com fallback
+  P462 (color, 143 clubes) → rótulo EN/PT → mapa de 45 nomes validados na fonte.
+  Cores desconhecidas são LOGADAS (nunca inventadas). Aplicado: 2 clubes com teamColors
+  (cobertura intrinsecamente baixa — a fonte tem só 230 clubes no mundo com cor declarada).
+- VALIDAÇÃO VISUAL (Chrome/IAB, 2 de 3 perfis):
+  · ESCUDO do clube (Grêmio Barueri): CARREGOU 794px — screenshot com o escudo real ✓
+  · FOTO do jogador (Alan Kelly): CARREGOU 1287px — screenshot com a foto real ✓
+  · SELEÇÃO: gap de catalogação (a seleção principal do Brasil não está no acervo;
+    234 clubes pré-existentes com 'national' no nome seguem kind='club')
+- 4 CAUSAS RAIZ encadeadas isoladas empiricamente (todas corrigidas):
+  a) Special:FilePath (302→301→arquivo) TRAVA no browser → URL direta via md5 do nome
+     (validado: Gremio_Prudente_Emblem.svg → 6/66/ → 200 image/svg+xml)
+  b) next/image bloqueia SVG remoto por padrão → dangerouslyAllowSVG
+  c) CSP img-src só permitia tiles OSM → liberados commons/upload/flagcdn
+  d) Commons REJEITOU thumbs de largura arbitrária (400/640/800 → HTTP 400; só 120 aceito)
+     → raster serve o ORIGINAL (200 sempre); 930 URLs existentes migradas
+- Contagens: 179 logos · 463 estádios (nome) · 256 estádios (imagem) · 863 fotos ·
+  2 com cores · 1.153 seleções · zero escrita em rankings
+
+Stage Summary:
+- T506 [x]: cron diário ativo (enriquece ~500 clubes + 2.000 jogadores por noite),
+  cores corrigidas (P465/P462), 2 de 3 perfis validados visualmente com screenshot,
+  4 bugs de mídia resolvidos na causa raiz.
+- PRs: #465 (cron+cores) · #466 (cores PT) · #467 (URLs diretas) · #468 (thumbs)
+- Gaps declarados: seleção principal do Brasil ausente; 234 clubes 'national' sem kind;
+  cobertura de cores limitada pela fonte (230 clubes no mundo)
