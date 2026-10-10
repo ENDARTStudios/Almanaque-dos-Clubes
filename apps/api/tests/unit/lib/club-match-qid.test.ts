@@ -91,10 +91,29 @@ describe('matchClub — regra do QID resolvido', () => {
     expect(r).toBeNull();
   });
 
-  it('aceita nome EXATO de clube SEM QID quando o artigo tem QID não cadastrado', async () => {
+  it('aceita NOME EXATO mesmo quando o clube do acervo tem QID próprio', async () => {
     const prisma = makePrisma(CLUBS);
-    const r = await matchClub(prisma, { rawName: 'São Paulo', qid: 'Q1812999', country: 'BR' });
-    expect(r?.id).toBe('sao');
+    // 'Manchester City F.C.' existe (Q50602) mas o artigo resolveu um QID
+    // desconhecido: nome EXATO ainda casa (o erro era só o match APROXIMADO).
+    const r = await matchClub(prisma, {
+      rawName: 'Manchester City F.C.',
+      article: 'Manchester City F.C.',
+      qid: 'Q999999',
+      country: 'GB',
+    });
+    expect(r?.id).toBe('mci');
+  });
+
+  it('NÃO aceita nome APROXIMADO quando o artigo tem QID não cadastrado', async () => {
+    const prisma = makePrisma(CLUBS);
+    // 'Manchester City' (sem o F.C.) não é exato → não pode cair no normalizado
+    const r = await matchClub(prisma, {
+      rawName: 'Manchester City',
+      article: 'Manchester City',
+      qid: 'Q999999',
+      country: 'GB',
+    });
+    expect(r).toBeNull();
   });
 
   it('sem QID, usa a cadeia normalizada (grafias equivalentes)', async () => {
