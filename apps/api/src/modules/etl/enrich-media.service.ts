@@ -19,6 +19,12 @@ import {
   MEDIA_USER_AGENT,
   type EntityShape,
 } from './connectors/wikidata-media.connector.js';
+import {
+  sitelinksFromEntity,
+  buildEditorial,
+  EDITORIAL_USER_AGENT,
+  EDITORIAL_LICENSE,
+} from './connectors/wikipedia-editorial.connector.js';
 
 /** Nomes de cor do Wikidata (label EN) → hex. Só cores observadas na fonte
  * (consulta SPARQL em 09/10) + complementos universais de kit esportivo. */
@@ -338,6 +344,81 @@ export async function enrichPlayersMediaBatch(
       }
     }
     return { processed: players.length, updated, skipped, unknownColors: [] };
+  } finally {
+    if (own) await prisma.$disconnect();
+  }
+}
+
+/**
+ * T507 (W5) — lote de texto editorial via Wikipedia REST (pt/en/es, CC-BY-SA).
+ * Idempotente: só preenche `editorialText` NULL. Compartilhado CLI ⇄ cron 06:00.
+ */
+export async function enrichClubsEditorialBatch(
+  limit: number,
+  opts: { country?: string; apply: boolean; prisma?: PrismaClient } = { apply: false },
+): Promise<MediaBatchResult> {
+  const prisma = opts.prisma ?? new PrismaClient();
+  const own = !opts.prisma;
+  try {
+    const clubs = await prisma.club.findMany({
+      where: {
+        qid: { not: null },
+        deletedAt: null,
+        editorialText: { equals: Prisma.DbNull },
+        ...(opts.country ? { country: opts.country } : {}),
+      },
+      select: { id: true, qid: true, name: true },
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
+    if (clubs.length === 0) return { processed: 0, updated: 0, skipped: 0, unknownColors: [] };
+
+    // Sitelinks (pt/en/es) por lote de 50.
+    const entities = new Map<
+      string,
+      { sitelinks?: Record<string, { title?: string } | undefined> }
+    >();
+    const qids = clubs.map((c) => c.qid!);
+    for (let i = 0; i < qids.length; i += 50) {
+      const chunk = qids.slice(i, i + 50);
+      const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${chunk.join('|')}&format=json&props=sitelinks`;
+      const res = await fetch(url, { headers: { 'user-agent': EDITORIAL_USER_AGENT } });
+      if (!res.ok) throw new Error(`wbgetentities(sitelinks) HTTP ${res.status}`);
+      const json = (await res.json()) as {
+        entities?: Record<string, { sitelinks?: Record<string, { title?: string } | undefined> }>;
+      };
+      for (const [qid, e] of Object.entries(json.entities ?? {})) entities.set(qid, e);
+      if (i + 50 < qids.length) await sleep(1000);
+    }
+
+    let updated = 0;
+    let skipped = 0;
+    for (const club of clubs) {
+      const e = entities.get(club.qid!);
+      const titles = e ? sitelinksFromEntity(e) : {};
+      if (Object.keys(titles).length === 0) {
+        skipped += 1;
+        continue;
+      }
+      const editorial = await buildEditorial(titles, { sleep });
+      if (!editorial) {
+        skipped += 1;
+        continue;
+      }
+      if (opts.apply) {
+        await prisma.club.update({
+          where: { id: club.id },
+          data: {
+            editorialText: {
+              ...editorial,
+              license: EDITORIAL_LICENSE,
+            } as unknown as Prisma.InputJsonValue,
+          },
+        });
+        updated += 1;
+      }
+    }
+    return { processed: clubs.length, updated, skipped, unknownColors: [] };
   } finally {
     if (own) await prisma.$disconnect();
   }

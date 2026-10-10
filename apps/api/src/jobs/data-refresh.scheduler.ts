@@ -17,6 +17,7 @@ import { runIntegrityCheck } from './integrity-check.js';
 import {
   enrichClubsMediaBatch,
   enrichPlayersMediaBatch,
+  enrichClubsEditorialBatch,
 } from '../modules/etl/enrich-media.service.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
 import { cache } from '../services/cache.js';
@@ -29,6 +30,8 @@ export const JOB_INTEGRITY_CHECK = 'integrity-check' as const;
 // T506 — enrichment de mídia (escudos/estádios/cores + fotos), lotes diários.
 export const JOB_ENRICH_CLUBS_MEDIA = 'enrich-clubs-media' as const;
 export const JOB_ENRICH_PLAYERS_MEDIA = 'enrich-players-media' as const;
+// T507 (W5) — texto editorial (Wikipedia REST, 3 idiomas).
+export const JOB_ENRICH_CLUBS_EDITORIAL = 'enrich-clubs-editorial' as const;
 
 export const WIKIDATA_CRON_PATTERN = '0 3 * * *' as const;
 export const INTEGRITY_CRON_PATTERN = '0 4 * * 0' as const;
@@ -37,6 +40,8 @@ export const ENRICH_CLUBS_CRON_PATTERN = '0 4 * * *' as const;
 export const ENRICH_PLAYERS_CRON_PATTERN = '0 5 * * *' as const;
 export const ENRICH_CLUBS_BATCH = 500;
 export const ENRICH_PLAYERS_BATCH = 2000;
+export const ENRICH_EDITORIAL_CRON_PATTERN = '0 6 * * *' as const;
+export const ENRICH_EDITORIAL_BATCH = 500;
 
 const JOB_TIMEOUT_MS = 10 * 60 * 1000;
 
@@ -81,6 +86,13 @@ const health: Record<string, JobHealthEntry> = {
     failureCount: 0,
     lastDurationMs: null,
   },
+  [JOB_ENRICH_CLUBS_EDITORIAL]: {
+    lastRunAt: null,
+    lastStatus: null,
+    successCount: 0,
+    failureCount: 0,
+    lastDurationMs: null,
+  },
 };
 
 export function getJobHealth(): Record<string, JobHealthEntry> {
@@ -114,6 +126,7 @@ const KNOWN_JOB_NAMES = [
   'ranking:compute',
   'enrich-clubs-media',
   'enrich-players-media',
+  'enrich-clubs-editorial',
 ] as const;
 
 export async function getJobHealthMerged(): Promise<Record<string, JobHealthEntry>> {
@@ -249,6 +262,14 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         event: 'done',
         data: { processed: out.processed, updated: out.updated, skipped: out.skipped },
       });
+    } else if (job.name === JOB_ENRICH_CLUBS_EDITORIAL) {
+      // T507 (W5) — texto editorial (Wikipedia REST, CC-BY-SA).
+      const out = await enrichClubsEditorialBatch(ENRICH_EDITORIAL_BATCH, { apply: true });
+      logger.info(
+        { processed: out.processed, updated: out.updated, skipped: out.skipped },
+        'data-refresh: enrich-clubs-editorial ok',
+      );
+      pushLog({ level: 'info', job: job.name, event: 'done', data: { ...out } });
     } else if (job.name === JOB_INTEGRITY_CHECK) {
       const report = await runIntegrityCheck();
       logger.info(
@@ -335,6 +356,20 @@ export async function registerDataRefreshCron(): Promise<void> {
     },
   );
   await queues.dataRefresh.upsertJobScheduler(
+    'enrich-clubs-editorial-daily',
+    { pattern: ENRICH_EDITORIAL_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_CLUBS_EDITORIAL,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
+      },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
     'integrity-check-weekly',
     { pattern: INTEGRITY_CRON_PATTERN },
     {
@@ -354,6 +389,7 @@ export async function registerDataRefreshCron(): Promise<void> {
       integrity: INTEGRITY_CRON_PATTERN,
       enrichClubs: ENRICH_CLUBS_CRON_PATTERN,
       enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
+      enrichEditorial: ENRICH_EDITORIAL_CRON_PATTERN,
     },
     'data-refresh scheduler agendado (UTC)',
   );
