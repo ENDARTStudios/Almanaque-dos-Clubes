@@ -48,6 +48,28 @@ export const COLOR_NAME_HEX: Record<string, string> = {
   teal: '#008080',
   violet: '#EE82EE',
   pink: '#FFC0CB',
+  // Nomes em PORTUGUÊS (o bestLabel prefere pt — sem eles 'azul'/'branco' caem
+  // como desconhecidos). São os mesmos QIDs de cor, só com rótulo pt.
+  branco: '#FFFFFF',
+  preto: '#000000',
+  vermelho: '#FF0000',
+  azul: '#0000FF',
+  verde: '#008000',
+  amarelo: '#FFFF00',
+  ouro: '#FFD700',
+  dourado: '#FFD700',
+  laranja: '#FFA500',
+  cinza: '#808080',
+  prata: '#C0C0C0',
+  marrom: '#A52A2A',
+  roxo: '#800080',
+  rosa: '#FFC0CB',
+  violeta: '#EE82EE',
+  grená: '#7F1734',
+  vinho: '#800020',
+  'azul-marinho': '#000080',
+  'azul claro': '#ADD8E6',
+  'azul celeste': '#87CEEB',
 };
 
 /** Normaliza P465 ("7FFFD4" ou "#7FFFD4") → "#RRGGBB" válido, senão null. */
