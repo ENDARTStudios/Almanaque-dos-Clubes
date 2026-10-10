@@ -73,6 +73,27 @@ export const competitionsService = {
     });
   },
 
+  /** T508 (W4) — temporadas da competição (classificação/artilheiro). */
+  async getSeasons(id: string): Promise<unknown[]> {
+    await this.getById(id); // 404 honesto
+    return cache.remember(`competitions:seasons:${id}`, COMPETITIONS_TTL_SECONDS, async () =>
+      prisma.competitionSeason.findMany({
+        where: { competitionId: id },
+        select: {
+          season: true,
+          standings: true,
+          topScorer: true,
+          sourceUrl: true,
+          championId: true,
+          runnerUpId: true,
+          totalMatches: true,
+          totalGoals: true,
+        },
+        orderBy: { season: 'desc' },
+      }),
+    );
+  },
+
   async update(id: string, input: unknown): Promise<Competition> {
     const existing = await competitionsRepository.findById(id);
     if (!existing) throw new NotFoundError('Competição', id);

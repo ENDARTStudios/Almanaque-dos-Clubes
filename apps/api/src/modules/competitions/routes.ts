@@ -50,6 +50,8 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
         // Mapeamento do portal (Entrega 2) — overview aditivo (editions/topWinners/
         // participants via WON); nenhum contrato existente muda.
         const overview = await competitionsService.getOverview(request.params.id);
+        // T508 (W4) — temporadas (classificação/artilheiro), aditivo.
+        const seasons = await competitionsService.getSeasons(request.params.id);
         return reply.send({
           data: {
             ...competition,
@@ -59,6 +61,7 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
               : undefined,
           },
           overview,
+          seasons,
         });
       } catch (err) {
         return handleDomainError(err, reply);
