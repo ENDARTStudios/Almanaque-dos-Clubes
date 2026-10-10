@@ -117,11 +117,31 @@ async function main(): Promise<number> {
       `[t508] modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'} · base="${base}" · temporadas=${seasons.join(',')}`,
     );
 
-    // Competição no acervo (por nome exato/ILIKE)
-    const comp = await prisma.competition.findFirst({
-      where: { name: { contains: base, mode: 'insensitive' }, deletedAt: null },
+    // Competição no acervo. ORDEM importa (bug pego pelo dry-run 10/10:
+    // 'Campeonato Brasileiro de Futebol' casou com '...Feminino - Série A3' —
+    // os dados masculinos iriam para a competição feminina):
+    //  1) nome EXATO;
+    //  2) 'contains' EXCLUINDO feminino;
+    //  3) o nome MAIS CURTO entre os candidatos (a divisão principal é a mais
+    //     genérica: 'Campeonato Brasileiro de Futebol' antes de '... - Série B').
+    let comp = await prisma.competition.findFirst({
+      where: { name: { equals: base, mode: 'insensitive' }, deletedAt: null },
       select: { id: true, name: true, qid: true },
     });
+    if (!comp) {
+      const cands = await prisma.competition.findMany({
+        where: {
+          name: { contains: base, mode: 'insensitive' },
+          deletedAt: null,
+          NOT: { name: { contains: 'feminin', mode: 'insensitive' } },
+        },
+        select: { id: true, name: true, qid: true },
+      });
+      const men = cands
+        .filter((c) => !/feminin|women/i.test(c.name))
+        .sort((a, b) => a.name.length - b.name.length);
+      comp = men[0] ?? null;
+    }
     if (!comp) {
       console.log(`[t508] competição "${base}" não está no acervo — recusa honesta.`);
       return 0;
