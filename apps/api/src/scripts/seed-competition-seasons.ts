@@ -230,7 +230,12 @@ async function main(): Promise<number> {
         where: { name: { equals: values.competition, mode: 'insensitive' }, deletedAt: null },
         select: { id: true, name: true, qid: true, type: true, country: true },
       });
-      comp = exact.sort((a, b) => (b.qid ? 1 : 0) - (a.qid ? 1 : 0))[0] ?? null;
+      // Há homônimas (ex.: 'Premier League' = inglesa GB Q9448 e ucraniana UA
+      // Q206073). O `--country` desempata — sem ele, casaria a competição errada
+      // (visto 10/10: os dados da INGLESA iriam para a UCRAINIANA).
+      const scoped = values.country ? exact.filter((c) => c.country === values.country) : exact;
+      const pool = scoped.length > 0 ? scoped : exact;
+      comp = pool.sort((a, b) => (b.qid ? 1 : 0) - (a.qid ? 1 : 0))[0] ?? null;
     }
     if (!comp) {
       console.log(`[t510] competição "${values.competition}" não está no acervo — recusa honesta.`);
@@ -290,6 +295,7 @@ async function main(): Promise<number> {
         matched.push({ ...row, clubId: club?.id ?? null, matchedName: club?.name ?? null });
       }
       const withClub = matched.filter((m) => m.clubId).length;
+      const unmatched = matched.filter((m) => !m.clubId).map((m) => m.clubName);
 
       // campeão/vice: copa (infobox) ou liga (posição 1/2)
       const resolvePlacement = async (
@@ -323,6 +329,7 @@ async function main(): Promise<number> {
           ` · campeão=${champion?.name ?? placements?.champion ?? '?'}` +
           ` · vice=${runnerUp?.name ?? placements?.runnerUp ?? '?'}` +
           ` · artilheiro=${topScorer ? topScorer.name + ' (' + topScorer.goals + ')' : 'n/d'}` +
+          (unmatched.length > 0 ? ` · SEM-MATCH=[${unmatched.join(', ')}]` : '') +
           ` · fonte=${lang}.wikipedia/${title}`,
       );
 

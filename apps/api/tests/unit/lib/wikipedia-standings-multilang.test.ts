@@ -96,4 +96,12 @@ describe('isStandingsHeader — regressão T508 (pt)', () => {
     expect(isStandingsHeader(['equipe', 'cidade', 'estado'])).toBe(false);
     expect(isStandingsHeader(['jogador', 'gols'])).toBe(false);
   });
+
+  it('aceita a 1ª coluna "Seed" (tabela combinada de copa, ex.: Libertadores 2022)', () => {
+    // bug pego em produção 10/10: 2021-2023 usam "Seed" no lugar de "Pos" e as
+    // temporadas vinham SEM classificação
+    expect(
+      isStandingsHeader(['seed', 'grp', 'equipe', 'pts', 'j', 'v', 'e', 'd', 'gp', 'gc', 'sg']),
+    ).toBe(true);
+  });
 });
