@@ -102,7 +102,7 @@ interface Lexicon {
  */
 const LEXICON: Record<StandingsLang, Lexicon> = {
   pt: {
-    pos: [/^(pos|#|posiç|class)/i],
+    pos: [/^(pos|#|posiç|class|seed)/i],
     team: [/equipe|time|clube/i],
     played: [/^(j|pj|jogos)$/i],
     won: [/^(v|vit)/i],
@@ -150,7 +150,7 @@ const LEXICON: Record<StandingsLang, Lexicon> = {
     group: [/^(grp|gruppo|group)$/i],
   },
   unknown: {
-    pos: [/^(pos|#|posiç|class)/i],
+    pos: [/^(pos|#|posiç|class|seed)/i],
     team: [/equipe|time|clube|team|equipo|squadra/i],
     played: [/^(j|pj|jogos|played|pld|mp|g)$/i],
     won: [/^(v|vit|won|w|g)$/i],
