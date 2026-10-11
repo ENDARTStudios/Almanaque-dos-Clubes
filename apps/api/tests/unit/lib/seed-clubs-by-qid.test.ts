@@ -10,6 +10,7 @@ import {
   TARGET_CLUBS_T514,
   TARGET_CLUBS_T515,
   TARGET_CLUBS_T516,
+  TARGET_NATIONS_T517,
   ALL_TARGET_CLUBS,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
@@ -215,13 +216,23 @@ describe('listas curadas (ondas)', () => {
     }
   });
 
-  it('ALL_TARGET_CLUBS é a união das cinco ondas', () => {
+  it('T517 tem 31 SELEÇÕES (sub-23/olímpicas e femininas), sem clubes', () => {
+    expect(TARGET_NATIONS_T517).toHaveLength(31);
+    for (const t of TARGET_NATIONS_T517) {
+      expect(t.lang).toBe('en');
+      expect(t.note).toMatch(/Olimpíadas/);
+      expect(t.article).not.toMatch(/at the d{4} Summer Olympics/); // delegação, não seleção
+    }
+  });
+
+  it('ALL_TARGET_CLUBS é a união das ondas de clube + as seleções', () => {
     expect(ALL_TARGET_CLUBS.length).toBe(
       TARGET_CLUBS.length +
         TARGET_CLUBS_T513.length +
         TARGET_CLUBS_T514.length +
         TARGET_CLUBS_T515.length +
-        TARGET_CLUBS_T516.length,
+        TARGET_CLUBS_T516.length +
+        TARGET_NATIONS_T517.length,
     );
   });
 

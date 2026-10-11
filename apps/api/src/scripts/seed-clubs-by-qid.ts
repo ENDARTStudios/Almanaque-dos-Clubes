@@ -221,6 +221,47 @@ export const TARGET_CLUBS_T516: Array<{ lang: 'pt'; article: string; note: strin
   { lang: 'pt', article: 'Wydad Athletic Club', note: 'Mundial de Clubes' },
 ];
 
+/**
+ * T517 — SELEÇÕES ausentes das Olimpíadas (sub-23/olímpica e feminino).
+ */
+export const TARGET_NATIONS_T517: Array<{ lang: 'en'; article: string; note: string }> = [
+  { lang: 'en', article: 'Argentina national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Brazil national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Nigeria national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Germany national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Uruguay national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Morocco national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Gabon national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Ivory Coast national under-23 football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'South Africa national under-23 soccer team', note: 'Olimpíadas M' },
+  {
+    lang: 'en',
+    article: "New Zealand men's national under-23 football team",
+    note: 'Olimpíadas M',
+  },
+  { lang: 'en', article: 'New Zealand Olympic national football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: "Australia men's national under-23 soccer team", note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Japan Olympic football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Honduras Olympic football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'Guinea Olympic football team', note: 'Olimpíadas M' },
+  { lang: 'en', article: 'South Africa Olympic national soccer team', note: 'Olimpíadas M' },
+  { lang: 'en', article: "Brazil women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Sweden women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Canada women's national soccer team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "North Korea women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Argentina women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Nigeria women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Great Britain women's Olympic football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "South Africa women's national soccer team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Colombia women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Cameroon women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Australia women's national soccer team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Netherlands women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Zambia women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Chile women's national football team", note: 'Olimpíadas F' },
+  { lang: 'en', article: "Spain women's national football team", note: 'Olimpíadas F' },
+];
+
 /** Todas as ondas curadas (--wave=all, default). */
 export const ALL_TARGET_CLUBS = [
   ...TARGET_CLUBS,
@@ -228,6 +269,7 @@ export const ALL_TARGET_CLUBS = [
   ...TARGET_CLUBS_T514,
   ...TARGET_CLUBS_T515,
   ...TARGET_CLUBS_T516,
+  ...TARGET_NATIONS_T517,
 ];
 
 // ---------------------------------------------------------------------------
@@ -297,6 +339,33 @@ export function isFootballClubEntity(entity: Entity): boolean {
   const sport = claimIds(entity, PROP_SPORT);
   const hasVenue = claimIds(entity, PROP_HOME_VENUE).length > 0;
   return p31.includes(QID_FOOTBALL_CLUB) || (sport.includes(QID_ASSOCIATION_FOOTBALL) && hasVenue);
+}
+
+/**
+ * T517 — SELEÇÃO NACIONAL (qualquer variante: sênior, feminina, sub-23, olímpica).
+ * Não têm estádio próprio (P115 ausente) e o P31 VARIA muito (Q6979593 "national
+ * association football team", Q15944511, Q23759293… — a sub-23 do Brasil, por
+ * exemplo, NÃO tem Q6979593). Regra: futebol (P641=Q2736) + país (P17) + NÃO ser
+ * clube de futebol (P31 ∌ Q476028).
+ */
+export function isNationalTeamEntity(entity: Entity): boolean {
+  const p31 = claimIds(entity, 'P31');
+  const sport = claimIds(entity, PROP_SPORT);
+  const country = claimIds(entity, 'P17')[0];
+  return sport.includes(QID_ASSOCIATION_FOOTBALL) && !!country && !p31.includes(QID_FOOTBALL_CLUB);
+}
+
+/** Gênero da seleção a partir do rótulo/descrição (o acervo separa men/women). */
+export function nationalTeamGender(entity: Entity): 'men' | 'women' {
+  const txt = [
+    entity.labels?.en?.value,
+    entity.labels?.pt?.value,
+    entity.descriptions?.en?.value,
+    entity.descriptions?.pt?.value,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return /women|feminin|femenin/i.test(txt) ? 'women' : 'men';
 }
 
 /** Ano de fundação (P571), ou null. */
@@ -512,22 +581,27 @@ async function main(): Promise<number> {
       qid: { type: 'string', default: '' },
       // onda curada: 'all' (default) | 't512' | 't513'
       wave: { type: 'string', default: 'all' },
+      // 'national_team' valida/grava SELEÇÕES (T517) em vez de clubes.
+      kind: { type: 'string', default: 'club' },
     },
   });
   const APPLY_ON = values.apply || process.argv.includes('--apply');
   const wave = values.wave ?? 'all';
+  const kind = values.kind === 'national_team' ? 'national_team' : 'club';
   const targets =
     wave === 't512'
       ? TARGET_CLUBS
       : wave === 't513'
         ? TARGET_CLUBS_T513
-        : wave === 't516'
-          ? TARGET_CLUBS_T516
-          : wave === 't515'
-            ? TARGET_CLUBS_T515
-            : wave === 't514'
-              ? TARGET_CLUBS_T514
-              : ALL_TARGET_CLUBS;
+        : wave === 't517'
+          ? TARGET_NATIONS_T517
+          : wave === 't516'
+            ? TARGET_CLUBS_T516
+            : wave === 't515'
+              ? TARGET_CLUBS_T515
+              : wave === 't514'
+                ? TARGET_CLUBS_T514
+                : ALL_TARGET_CLUBS;
   const prisma = new PrismaClient();
   try {
     // --- 1) alvos → QIDs (derivados do artigo, ou explícitos) ---
@@ -560,9 +634,15 @@ async function main(): Promise<number> {
         continue;
       }
       const countryQid = claimIds(e, 'P17')[0];
-      if (!isFootballClubEntity(e) || !countryQid) {
+      // --kind=national_team valida SELEÇÕES (T517): P641=futebol + P17 país e
+      // NÃO ser clube de futebol. O P31 das seleções varia demais para exigir
+      // uma classe específica (a sub-23 do Brasil não tem Q6979593).
+      const okEntity = kind === 'national_team' ? isNationalTeamEntity(e) : isFootballClubEntity(e);
+      if (!okEntity || !countryQid) {
         console.log(
-          `  ✗ ${p.qid} "${pickName(e) ?? '?'}": não é clube de futebol com país — RECUSADO.`,
+          `  ✗ ${p.qid} "${pickName(e) ?? '?'}": não é ${
+            kind === 'national_team' ? 'seleção' : 'clube'
+          } de futebol com país — RECUSADO.`,
         );
         continue;
       }
@@ -637,8 +717,8 @@ async function main(): Promise<number> {
             country: iso,
             foundedYear,
             qid: v.qid,
-            gender: 'men',
-            kind: 'club',
+            gender: kind === 'national_team' ? nationalTeamGender(v.entity) : 'men',
+            kind,
             logoUrl: logoFile ? commonsFilePath(logoFile) : null,
             stadiumName: venueName,
             stadiumCapacity: picked?.venue.capacity ?? null,
