@@ -429,29 +429,29 @@ async function main(): Promise<number> {
         const champSrc = twoLegFinal
           ? { name: twoLegFinal.winner.name, article: twoLegFinal.winner.article }
           : slot.champName
-          ? { name: slot.champName, article: slot.champArticle }
-          : labeled?.champion
-            ? { name: labeled.champion, article: labeled.championArticle }
-            : isCup
-              ? { name: placements?.champion, article: placements?.championArticle }
-              : {
-                  name: matched.find((m) => m.position === 1)?.clubName,
-                  article: matched.find((m) => m.position === 1)?.clubArticle,
-                };
+            ? { name: slot.champName, article: slot.champArticle }
+            : labeled?.champion
+              ? { name: labeled.champion, article: labeled.championArticle }
+              : isCup
+                ? { name: placements?.champion, article: placements?.championArticle }
+                : {
+                    name: matched.find((m) => m.position === 1)?.clubName,
+                    article: matched.find((m) => m.position === 1)?.clubArticle,
+                  };
         const runnerSrc = twoLegFinal
           ? { name: twoLegFinal.loser.name, article: twoLegFinal.loser.article }
           : dual
-          ? // Liga MX: o vice é o PERDEDOR DA FINAL, não o 2º da fase regular — e o
-            // infobox só dá os campeões. Melhor null que um vice que não é o vice.
-            { name: null, article: null }
-          : labeled?.runnerUp != null
-            ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
-            : isCup
-              ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
-              : {
-                  name: matched.find((m) => m.position === 2)?.clubName,
-                  article: matched.find((m) => m.position === 2)?.clubArticle,
-                };
+            ? // Liga MX: o vice é o PERDEDOR DA FINAL, não o 2º da fase regular — e o
+              // infobox só dá os campeões. Melhor null que um vice que não é o vice.
+              { name: null, article: null }
+            : labeled?.runnerUp != null
+              ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
+              : isCup
+                ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
+                : {
+                    name: matched.find((m) => m.position === 2)?.clubName,
+                    article: matched.find((m) => m.position === 2)?.clubArticle,
+                  };
         const champion = await resolvePlacement(champSrc.name, champSrc.article);
         const runnerUp = await resolvePlacement(runnerSrc.name, runnerSrc.article);
 
