@@ -43,5 +43,7 @@ describe('NAME_ALIASES', () => {
     expect(NAME_ALIASES.Inter).toBe('Inter Milan');
     expect(NAME_ALIASES.Milan).toBe('AC Milan');
     expect(NAME_ALIASES['Botafogo de Futebol e Regatas']).toBe('Botafogo F.R.');
+    // T514 — artefato da fonte (template cru na célula da Primeira Liga 2021-22)
+    expect(NAME_ALIASES['Predefinição:Futebol B-SAD']).toBe('B-SAD');
   });
 });
