@@ -46,7 +46,7 @@
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.6",
     "turbo": "^2.11.7",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.3"
   },
   "lint-staged": {
     "{apps,packages,scripts}/**/*.{ts,tsx}": [
