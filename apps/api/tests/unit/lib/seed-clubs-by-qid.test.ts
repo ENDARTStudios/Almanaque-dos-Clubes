@@ -107,19 +107,59 @@ describe('pickName', () => {
 });
 
 describe('pickVenue', () => {
-  it('escolhe o estádio de MAIOR capacidade (P115 lista a história do clube)', () => {
-    // forma real do FC Barcelona: primeiro valor é o antigo Velòdrom (sem capacidade)
-    const club = ent({ P115: [id('Q_velodrom'), id('Q_campnou')] });
-    const venues = new Map<
-      string,
-      { entity: unknown; capacity: number | null; image: string | null }
-    >([
-      ['Q_velodrom', { entity: {}, capacity: null, image: null }],
-      ['Q_campnou', { entity: {}, capacity: 99354, image: null }],
-    ]);
-    const picked = pickVenue(club, venues as never);
-    expect(picked?.qid).toBe('Q_campnou');
-    expect(picked?.venue.capacity).toBe(99354);
+  const venue = (capacity: number | null) => ({ entity: {}, capacity, image: null });
+  const venues = new Map<string, unknown>([
+    ['Q_old', venue(75000)],
+    ['Q_new', venue(47964)],
+    ['Q_campnou', venue(105000)],
+  ]);
+
+  it('prefere o rank `preferred` (FC Barcelona marca o Camp Nou assim)', () => {
+    const club = {
+      claims: {
+        P115: [
+          { mainsnak: { datavalue: { value: { id: 'Q_old' } } }, rank: 'normal' },
+          { mainsnak: { datavalue: { value: { id: 'Q_campnou' } } }, rank: 'preferred' },
+        ],
+      },
+    } as Entity;
+    expect(pickVenue(club, venues as never)?.qid).toBe('Q_campnou');
+  });
+
+  it('sem preferred, usa o P580 MAIS RECENTE (San Lorenzo: Nuevo Gasómetro, não o Gasómetro antigo)', () => {
+    const qual = (start: string) => ({
+      P580: [{ mainsnak: { datavalue: { value: { time: start } } } }],
+    });
+    const club = {
+      claims: {
+        P115: [
+          {
+            mainsnak: { datavalue: { value: { id: 'Q_old' } } },
+            rank: 'normal',
+            qualifiers: qual('+1916-00-00T00:00:00Z'),
+          },
+          {
+            mainsnak: { datavalue: { value: { id: 'Q_new' } } },
+            rank: 'normal',
+            qualifiers: qual('+1993-00-00T00:00:00Z'),
+          },
+        ],
+      },
+    } as Entity;
+    // mesmo com o antigo tendo MAIOR capacidade (75k vs 47k)
+    expect(pickVenue(club, venues as never)?.qid).toBe('Q_new');
+  });
+
+  it('desempata por capacidade e descarta claims `deprecated`', () => {
+    const club = {
+      claims: {
+        P115: [
+          { mainsnak: { datavalue: { value: { id: 'Q_old' } } }, rank: 'deprecated' },
+          { mainsnak: { datavalue: { value: { id: 'Q_new' } } }, rank: 'normal' },
+        ],
+      },
+    } as Entity;
+    expect(pickVenue(club, venues as never)?.qid).toBe('Q_new');
   });
 });
 
