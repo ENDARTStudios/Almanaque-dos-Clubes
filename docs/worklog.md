@@ -876,3 +876,55 @@ identidade, fora do escopo do T510):
 VERSÃO: 5 PRs mergeados nesta rodada (#483 implementação, #484 homônimo+Seed,
 #485 regra do QID, #486 relaxamento do exato, #487 ancoragem do léxico);
 84/84 testes verdes; tsc api + web sem erros.
+
+---
+
+Task ID: goal-2026-10-10/t512
+Agent: Doer (ZCode)
+Task: T512 — ingestão dos clubes ausentes por QID (fechar a lacuna de identidade do T510)
+
+Work Log:
+- ⚠️ **LIÇÃO T424, 6ª vez — AGORA EM ESCALA**: a lista de 20 QIDs recebida estava
+  **19/20 ERRADA**. Q113013 = "literatura pós-moderna"; Q8776 = Abraham de Moivre;
+  Q19629 = o ano 1147; Q49724 = a banda Hoobastank; Q19648 = Fenerbahçe SK;
+  Q19569 = lantanídeo; Q19631 = garrafa de Nansen; Q19647 = o ano 2. Só Q7156
+  (FC Barcelona) estava correto. **QID digitado à mão não entra**: os QIDs são
+  DERIVADOS do artigo da Wikipédia e VALIDADOS no Wikidata antes de escrever.
+- T512 EXECUÇÃO: **21 clubes criados** (Liverpool, Leeds, Barcelona, Girona,
+  Real Sociedad, Villarreal, Valencia, Osasuna, Sevilla, Las Palmas, Rayo,
+  Cádiz, Almería, Valladolid, Leganés, Oviedo, Elche, Boca Juniors, San Lorenzo,
+  Libertad, The Strongest). Re-run = **noop** (0 criaria, 21 já existiam).
+- Validação de "é clube de futebol" (formatos REAIS do Wikidata): P31 ∋ Q476028
+  **OU** (P641 ∋ Q2736 ∧ tem P115) — FC Barcelona, Boca e San Lorenzo NÃO têm
+  P31=Q476028 (são "sports club"). + P17 com P297 (ISO-2). Rejeita ligas,
+  seleções, pessoas, anos e bandas.
+- Garantias: dedup por QID (nunca duplica); mesmo nome sem QID → ANEXA o QID e
+  preenche só campos nulos (zero overwrite); proveniência 'wikidata-t512' +
+  sourceUrl (reversível por proveniência); enriquecimento de país, fundação,
+  estádio (nome/capacidade/imagem) e logo.
+- T510 RE-RODADO (preencher os null): **24/24 temporadas com campeão — ZERO null**.
+  Premier League **20/20 casados** (2024-25 = Liverpool ✓, 2021-22 vice =
+  Liverpool ✓); La Liga **20/20** (Barcelona campeão 2022-23 e 2024-25 ✓);
+  Libertadores **16/16** (vice 2023 = Boca Juniors ✓).
+- UI validada no navegador: temporada 2024-25 da Premier League mostra
+  "Champion: Liverpool F.C." com tabela 38J/25V/9E/4D/86GP/41GC/84pts (dados
+  reais) e troféu carregado; /clubs/Liverpool com escudo (Commons), fundação
+  1892 e Anfield.
+- 4 BUGS pegos pelo dry-run/gate em produção (todos corrigidos, 4 PRs):
+  1. P297 (ISO) é datatype STRING → país saía "?" nos 21 clubes
+  2. P571 com vários valores: usava o PRIMEIRO (Q145 tem 1921/1927) → agora o
+     MAIS ANTIGO
+  3. estádio: "maior capacidade" pegava o Gasómetro ANTIGO do San Lorenzo →
+     agora rank `preferred` → P580 mais recente → capacidade
+  4. qualificador é SNAK CRU (sem o wrapper `mainsnak` da claim) → o meu TESTE
+     passava espelhando a forma errada; corrigido para a forma REAL da API
+
+Stage Summary:
+- T512 [x] VALIDADO AO VIVO: 21 clubes criados, re-run noop, 24/24 temporadas
+  com campeão (16/20 → 20/20 nas 4 competições novas), UI e perfil conferidos
+- Lacunas RESOLVIDAS: Liverpool, Barcelona, Boca Juniors, San Lorenzo, Libertad,
+  The Strongest, Leeds + 14 clubes da La Liga
+- Ressalva declarada: `Club Libertad` tem P571=2018 no Wikidata (o clube é de
+  1905) — o dado é EXATAMENTE o da fonte; e 16 dos 21 clubes ficam sem escudo
+  (P154 ausente no Wikidata) — o cron noturno de mídia (04:00) pode preencher
+- Rankings/entries intocados; home/rankings/perfil do Liverpool = 200
