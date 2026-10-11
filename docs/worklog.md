@@ -1192,3 +1192,67 @@ Stage Summary:
   dois jogos, #515 âncora do agregado + texto puro, #516 este checkpoint);
   130/130 testes; backend verde
 
+---
+
+Task ID: goal-2026-10-10/t517
+Agent: Doer (ZCode)
+Task: T517 — SELEÇÕES: Copa do Mundo, Copa América, Eurocopa e Olimpíadas (M+F)
+
+Work Log:
+- COMPETIÇÕES: Mundial (Q19317) e Copa América (Q178750) já existiam com troféu.
+  REGISTRADAS duas ausentes (QIDs derivados do artigo, validados no Wikidata):
+  Campeonato Europeu de Futebol (Q260858) e Futebol nos Jogos Olímpicos (Q188317,
+  gender='mixed' — cobre masculino e feminino).
+- RECURSO NOVO: `--label-suffix` — os Jogos Olímpicos têm DOIS torneios no mesmo
+  ano, então o rótulo da temporada é "2008 M"/"2008 F" (ordena cronologicamente)
+  enquanto o TÍTULO do artigo usa o ano puro ("Football at the 2008 Summer
+  Olympics – Men's tournament").
+- NENHUM recurso de parser foi necessário: Mundial/Copa América/Eurocopa usam
+  "Campeão"/"Vice-campeão" (pt) e as Olimpíadas usam "Champions"/"Runners-up"
+  (suportado desde o T514). As tabelas de grupo de 4 linhas são recusadas pelo
+  minRows=8 (sem classificação — melhor que gravar 1 grupo só).
+- INGEST DE SELEÇÕES: o `seed-clubs-by-qid` só aceitava CLUBES. Novo
+  `--kind=national_team`: valida P641=futebol + NÃO ser clube + (P17 país OU uma
+  classe de seleção conhecida) e grava kind='national_team' com o gênero inferido
+  do rótulo. 31 seleções curadas (sub-23/olímpicas e femininas) — TODAS as 31 já
+  existiam no acervo (nada criado) ✓.
+- **3 BLOCKINGS pegos no dry-run de produção (todos corrigidos com teste)**:
+  1. o `matchClub` por QID do seed filtrava `kind != 'national_team'` — guard que
+     faz sentido para CLUBES, mas recusava as SELEÇÕES: as Olimpíadas vinham com
+     "SEM-CLUBE" mesmo com a seleção no acervo. O QID é autoritativo → filtro fora.
+  2. a regra de seleção exigia P17, mas a sub-23 da GUINÉ (Q16581714) não tem P17
+     (só a classe) → agora aceita P17 OU classe de seleção conhecida.
+  3. o CHECK combinado `!okEntity || !countryQid` derrubava a Guiné mesmo aprovada
+     pela regra → o país só é exigido para CLUBE.
+  (+ o CI pegou um teste TEMPORÁRIO de descoberta que entrou no commit por engano —
+   removido; lição: conferir `git status` antes de commitar.)
+- EXECUÇÃO: 25 temporadas gravadas (5 Mundial + 5 Copa América + 5 Eurocopa +
+  5 Olímpicas M + 5 Olímpicas F) → **114/114 temporadas com campeão — ZERO null**
+  em 21 competições. 11.987 clubes. 19 troféus.
+- CAMPEÕES conferidos contra a realidade (todos os itens do GATE):
+  Mundial → Itália 2006, Espanha 2010, Alemanha 2014, França 2018, Argentina 2022;
+  Copa América → Chile 2015, Chile 2016, Brasil 2019, Argentina 2021 e 2024;
+  Eurocopa → Espanha 2008 e 2012, Portugal 2016, Itália 2020, Espanha 2024;
+  Olimpíadas M → Argentina 2008, México 2012, Brasil 2016 e 2020, Espanha 2024;
+  Olimpíadas F → EUA 2008, 2012 e 2024, Alemanha 2016, Canadá 2020.
+- Olimpíadas M 2012-2024: 13-16 de 13-16 linhas casadas ✓ (o fix do QID elevou o
+  casamento). 2008 M fica com as DELEGAÇÕES ("Argentina at the 2008 Summer
+  Olympics") não linkadas — gap declarado (o artigo usa o link da delegação, não o
+  da seleção).
+- UI validada no navegador (Olimpíadas): 10 temporadas ("2024 M"…"2008 F") em
+  ordem cronológica, com campeão, vice e tabela real (2020 F: Canadá 6J·2V·4E·0D).
+
+GAPS DECLARADOS (T517): troféu do futebol olímpico (não há categoria — as medalhas
+não são um troféu da competição); classificação de grupos do Mundial/Copa
+América/Eurocopa (tabelas de 4 linhas recusadas); linhas de 2008 M (delegações).
+DECLARAÇÃO (D-2026-10-10): tudo com fonte e proveniência; nenhum dado de teste.
+
+Stage Summary:
+- 114/114 temporadas com campeão (0 null), 21 competições, 19 troféus, 11.987 clubes
+- **ESCOPO 1 COMPLETO**: todas as competições continentais/internacionais de CLUBES
+  (Libertadores, Sul-Americana, Recopa, UCL, UEL, Mundial de Clubes) e de SELEÇÕES
+  (Copa do Mundo, Copa América, Eurocopa, Olimpíadas M/F) têm temporadas com dados
+- 4 PRs nesta rodada (#517 Eurocopa/Olimpíadas + --label-suffix, #518 ingest de
+  seleções, #519 QID não exclui seleção + regra sem P17, #520 país só para clube,
+  #521 este checkpoint); 135/135 testes; backend verde
+
