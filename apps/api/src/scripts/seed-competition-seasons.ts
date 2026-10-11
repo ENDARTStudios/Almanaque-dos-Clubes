@@ -478,8 +478,12 @@ async function main(): Promise<number> {
               : parseInfoboxInt(html, /Gol\(o\)s|Goals scored|Goles|Reti/i),
           // No modo dual só o 1º slot (Apertura) recebe o artilheiro lido; o 2º
           // (Clausura) fica null — o dado do Apertura não vale para o Clausura.
-          topScorer: ((dual && slot !== slots[0] ? null : topScorer) ??
-            undefined) as unknown as Prisma.InputJsonValue,
+          // ATENÇÃO: precisa ser `Prisma.DbNull`, NÃO `undefined` — no Prisma,
+          // `undefined` significa "não mexa no campo" e o valor antigo sobrevive
+          // ao UPDATE (foi o que deixou o artilheiro do Apertura no Clausura).
+          topScorer: (dual && slot !== slots[0]
+            ? Prisma.DbNull
+            : (topScorer ?? Prisma.DbNull)) as unknown as Prisma.InputJsonValue,
           standings:
             matched.length > 0 ? (matched as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
           sourceUrl: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
