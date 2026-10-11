@@ -26,6 +26,7 @@ import {
   parseCupPlacements,
   parseChampionByLabel,
   parseSplitChampions,
+  parseTwoLegFinal,
   type StandingRow,
 } from '../lib/wikipedia/standings-parser.js';
 import { logger } from '../config/logger.js';
@@ -225,10 +226,14 @@ async function main(): Promise<number> {
       'champion-label': { type: 'string', default: '' },
       // Liga MX: 2 torneios por temporada (Apertura/Clausura) → grava 2 temporadas.
       'dual-tournament': { type: 'boolean', default: false },
+      // Final em DOIS JOGOS (Recopa): o infobox não tem 'Campeão' — o campeão é o
+      // do maior agregado na caixa do confronto.
+      'two-leg-final': { type: 'boolean', default: false },
     },
   });
   const APPLY_ON = values.apply || APPLY;
   const dual = values['dual-tournament'] === true || process.argv.includes('--dual-tournament');
+  const twoLeg = values['two-leg-final'] === true || process.argv.includes('--two-leg-final');
   const prisma = new PrismaClient();
   try {
     if (!values.competition || !values.seasons) {
@@ -345,6 +350,7 @@ async function main(): Promise<number> {
 
       const placements = isCup ? parseCupPlacements(html) : null;
       // --champion-label: o rótulo do infobox não é "Champion" (MLS usa "MLS Cup")
+      const twoLegFinal = twoLeg ? parseTwoLegFinal(html) : null;
       const labeled = values['champion-label']
         ? parseChampionByLabel(html, values['champion-label'])
         : null;
@@ -420,28 +426,32 @@ async function main(): Promise<number> {
         };
         // fonte do campeão, por precedência: --dual-tournament → --champion-label →
         // copa (infobox) → liga (posição 1)
-        const champSrc = slot.champName
-          ? { name: slot.champName, article: slot.champArticle }
-          : labeled?.champion
-            ? { name: labeled.champion, article: labeled.championArticle }
-            : isCup
-              ? { name: placements?.champion, article: placements?.championArticle }
-              : {
-                  name: matched.find((m) => m.position === 1)?.clubName,
-                  article: matched.find((m) => m.position === 1)?.clubArticle,
-                };
-        const runnerSrc = dual
-          ? // Liga MX: o vice é o PERDEDOR DA FINAL, não o 2º da fase regular — e o
-            // infobox só dá os campeões. Melhor null que um vice que não é o vice.
-            { name: null, article: null }
-          : labeled?.runnerUp != null
-            ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
-            : isCup
-              ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
-              : {
-                  name: matched.find((m) => m.position === 2)?.clubName,
-                  article: matched.find((m) => m.position === 2)?.clubArticle,
-                };
+        const champSrc = twoLegFinal
+          ? { name: twoLegFinal.winner.name, article: twoLegFinal.winner.article }
+          : slot.champName
+            ? { name: slot.champName, article: slot.champArticle }
+            : labeled?.champion
+              ? { name: labeled.champion, article: labeled.championArticle }
+              : isCup
+                ? { name: placements?.champion, article: placements?.championArticle }
+                : {
+                    name: matched.find((m) => m.position === 1)?.clubName,
+                    article: matched.find((m) => m.position === 1)?.clubArticle,
+                  };
+        const runnerSrc = twoLegFinal
+          ? { name: twoLegFinal.loser.name, article: twoLegFinal.loser.article }
+          : dual
+            ? // Liga MX: o vice é o PERDEDOR DA FINAL, não o 2º da fase regular — e o
+              // infobox só dá os campeões. Melhor null que um vice que não é o vice.
+              { name: null, article: null }
+            : labeled?.runnerUp != null
+              ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
+              : isCup
+                ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
+                : {
+                    name: matched.find((m) => m.position === 2)?.clubName,
+                    article: matched.find((m) => m.position === 2)?.clubArticle,
+                  };
         const champion = await resolvePlacement(champSrc.name, champSrc.article);
         const runnerUp = await resolvePlacement(runnerSrc.name, runnerSrc.article);
 

@@ -161,6 +161,13 @@ export const TROPHY_MAP: TrophyEntry[] = [
     file: 'Serie B 2018.jpg',
     category: 'Trophy of Campeonato Brasileiro Série B',
   },
+  // T516 — categoria: "Trophy of CONMEBOL Recopa" (foto do troféu)
+  {
+    qid: 'Q734296',
+    name: 'Recopa Sudamericana',
+    file: 'Trofeo de la Conmebol Recopa.png',
+    category: 'Trophy of CONMEBOL Recopa',
+  },
   // GAP DECLARADO (T514):
   //  · Primeira Liga (Q182994): NÃO existe categoria do troféu português — a busca
   //    só acha "Trophy of Primeira Liga do BRASIL", que é OUTRA competição.

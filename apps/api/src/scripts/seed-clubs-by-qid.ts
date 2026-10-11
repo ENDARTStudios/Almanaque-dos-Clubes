@@ -181,12 +181,53 @@ export const TARGET_CLUBS_T515: Array<{ lang: 'en' | 'pt'; article: string; note
   { lang: 'en', article: 'Tigres UANL', note: 'Liga MX' },
 ];
 
+/**
+ * T516 — clubes ausentes da Copa Sul-Americana, Recopa e Mundial de Clubes.
+ * Derivados dos ARTIGOS das tabelas/caixas (15 temporadas → 145 QIDs → diff: 114
+ * já existiam, 31 "faltantes") — mas 5 NÃO eram clubes (país Venezuela, AFA, CBF,
+ * FIFA e o árbitro Facundo Tello) e saíram da curadoria; a validação do ingest
+ * os recusaria de qualquer forma.
+ */
+export const TARGET_CLUBS_T516: Array<{ lang: 'pt'; article: string; note: string }> = [
+  { lang: 'pt', article: '12 de Octubre Football Club', note: 'Sudamericana' },
+  { lang: 'pt', article: '9 de Octubre Fútbol Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Academia Puerto Cabello', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Alianza Fútbol Club (Colômbia)', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Arsenal Fútbol Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Caracas Fútbol Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club Always Ready', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club Atlético Belgrano', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club Atlético River Plate (Assunção)', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club Deportivo Universidad Católica (Equador)', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club General Caballero (Juan León Mallorquín)', note: 'Sudamericana' },
+  {
+    lang: 'pt',
+    article: 'Club Gualberto Villarroel Club Deportivo San José',
+    note: 'Sudamericana',
+  },
+  { lang: 'pt', article: 'Club Sportivo Ameliano', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club Sportivo Trinidense', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Club de Gimnasia y Esgrima La Plata', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Delfín Sporting Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Deportivo Rayo Zuliano', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Guaireña Fútbol Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Metropolitanos Fútbol Club', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Red Bull Bragantino', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Sociedad Deportiva Aucas', note: 'Sudamericana' },
+  { lang: 'pt', article: 'Al Ain Football Club', note: 'Mundial de Clubes' },
+  { lang: 'pt', article: 'Al-Ittihad FC', note: 'Mundial de Clubes' },
+  { lang: 'pt', article: 'Association Sportive Pirae', note: 'Mundial de Clubes' },
+  { lang: 'pt', article: 'Mamelodi Sundowns Football Club', note: 'Mundial de Clubes' },
+  { lang: 'pt', article: 'Wydad Athletic Club', note: 'Mundial de Clubes' },
+];
+
 /** Todas as ondas curadas (--wave=all, default). */
 export const ALL_TARGET_CLUBS = [
   ...TARGET_CLUBS,
   ...TARGET_CLUBS_T513,
   ...TARGET_CLUBS_T514,
   ...TARGET_CLUBS_T515,
+  ...TARGET_CLUBS_T516,
 ];
 
 // ---------------------------------------------------------------------------
@@ -480,11 +521,13 @@ async function main(): Promise<number> {
       ? TARGET_CLUBS
       : wave === 't513'
         ? TARGET_CLUBS_T513
-        : wave === 't515'
-          ? TARGET_CLUBS_T515
-          : wave === 't514'
-            ? TARGET_CLUBS_T514
-            : ALL_TARGET_CLUBS;
+        : wave === 't516'
+          ? TARGET_CLUBS_T516
+          : wave === 't515'
+            ? TARGET_CLUBS_T515
+            : wave === 't514'
+              ? TARGET_CLUBS_T514
+              : ALL_TARGET_CLUBS;
   const prisma = new PrismaClient();
   try {
     // --- 1) alvos → QIDs (derivados do artigo, ou explícitos) ---

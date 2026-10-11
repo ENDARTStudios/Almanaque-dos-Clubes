@@ -548,6 +548,68 @@ export function parseChampionByLabels(
 }
 
 /**
+ * FINAL EM DOIS JOGOS (Recopa Sul-Americana) — o infobox NÃO tem rótulo
+ * "Campeão": a caixa do confronto traz os dois times e, logo abaixo, o
+ * AGREGADO ("LDU Quito | Fluminense | 1 | 2" → 1º time 1, 2º time 2). O vencedor
+ * é quem tem o maior agregado; o outro é o vice.
+ */
+export interface TwoLegFinal {
+  winner: { name: string; article: string | null };
+  loser: { name: string; article: string | null };
+  aggregate: [number, number];
+}
+
+export function parseTwoLegFinal(html: string): TwoLegFinal | null {
+  const i = html.search(/infobox-full-data/i);
+  if (i < 0) return null;
+  const box = html.slice(i, i + 12000);
+
+  // Percorre as linhas da caixa: guarda a ÚLTIMA linha que parece de TIMES (dois
+  // textos não-numéricos) e, ao achar o AGREGADO (dois inteiros pequenos),
+  // devolve o vencedor conforme o MAIOR valor.
+  // NÃO usar "os dois primeiros links da caixa": o 1º é a legenda do cartaz
+  // ("Recopa Sul-Americana") e o vencedor sairia errado.
+  const linksOf = (tr: string): Array<{ name: string; article: string | null }> => {
+    const out: Array<{ name: string; article: string | null }> = [];
+    for (const m of tr.matchAll(/<a\b[^>]*href="\/wiki\/([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+      const target = decodeURIComponent(m[1]).replace(/_/g, ' ');
+      if (FILE_PREFIX.test(target) || NON_ARTICLE_PREFIX.test(target)) continue;
+      const display = stripTags(m[2]).trim();
+      if (display.length < 3) continue; // bandeira/escudo não tem texto
+      const t = /\btitle="([^"]*)"/i.exec(m[0]);
+      out.push({ name: display, article: stripTags((t ? t[1] : target).trim()) });
+    }
+    return out;
+  };
+
+  let teams: Array<{ name: string; article: string | null }> = [];
+  for (const tr of box.split(/<tr\b/i).slice(1)) {
+    const raw = tr.split(/<\/tr>/i)[0] ?? '';
+    const cells = [...raw.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) =>
+      stripTags(m[1]).trim(),
+    );
+    if (cells.length !== 2) continue;
+    // linha de TIMES: dois textos não-numéricos
+    if (cells.every((c) => c.length >= 3 && !/^\d+$/.test(c))) {
+      const l = linksOf(raw);
+      if (l.length === 2) teams = l;
+      continue;
+    }
+    // linha do AGREGADO: dois inteiros pequenos
+    if (!/^\d{1,2}$/.test(cells[0]) || !/^\d{1,2}$/.test(cells[1]) || teams.length < 2) continue;
+    const a = Number.parseInt(cells[0], 10);
+    const b = Number.parseInt(cells[1], 10);
+    if (a === b) continue; // agregado empatado não decide
+    return {
+      winner: a > b ? teams[0] : teams[1],
+      loser: a > b ? teams[1] : teams[0],
+      aggregate: [a, b],
+    };
+  }
+  return null;
+}
+
+/**
  * LIGA MX — dois torneios por temporada, ambos listados na MESMA célula do
  * infobox: `<b>Apertura</b>:<br><a…>América</a><br>(16th title)<br><b>Clausura</b>:
  * <br><a…>Toluca</a>`. Devolve os dois campeões separadamente.

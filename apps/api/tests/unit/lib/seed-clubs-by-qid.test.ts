@@ -9,6 +9,7 @@ import {
   TARGET_CLUBS_T513,
   TARGET_CLUBS_T514,
   TARGET_CLUBS_T515,
+  TARGET_CLUBS_T516,
   ALL_TARGET_CLUBS,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
@@ -204,12 +205,23 @@ describe('listas curadas (ondas)', () => {
     }
   });
 
-  it('ALL_TARGET_CLUBS é a união das quatro ondas', () => {
+  it('T516 (Sudamericana/Recopa/Mundial) tem 26 clubes, sem país/federação/árbitro', () => {
+    expect(TARGET_CLUBS_T516).toHaveLength(26);
+    for (const t of TARGET_CLUBS_T516) {
+      expect(t.lang).toBe('pt');
+      expect(t.note).toMatch(/Sudamericana|Recopa|Mundial/);
+      // a curadoria NÃO inclui país, federação nem pessoa
+      expect(t.article).not.toMatch(/Venezuela|Asociación del Fútbol|Confederação|FIFA|Tello/);
+    }
+  });
+
+  it('ALL_TARGET_CLUBS é a união das cinco ondas', () => {
     expect(ALL_TARGET_CLUBS.length).toBe(
       TARGET_CLUBS.length +
         TARGET_CLUBS_T513.length +
         TARGET_CLUBS_T514.length +
-        TARGET_CLUBS_T515.length,
+        TARGET_CLUBS_T515.length +
+        TARGET_CLUBS_T516.length,
     );
   });
 
