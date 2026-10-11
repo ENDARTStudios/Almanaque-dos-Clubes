@@ -95,4 +95,9 @@ export const NAME_ALIASES: Record<string, string> = {
   'Real Betis': 'Real Betis Balompié',
   'Celta de Vigo': 'RC Celta de Vigo',
   'Rayo Vallecano': 'Rayo Vallecano de Madrid',
+  // T514 — artefato da FONTE: na tabela da Primeira Liga 2021-22 a célula do clube
+  // renderiza o texto cru de um template (`{{Futebol B-SAD}}`), SEM link para o
+  // artigo. O clube é o B-SAD (Q59212899), que está no acervo; sem este mapeamento
+  // a linha ficaria sem clube (e "Predefinição:Futebol B-SAD" apareceria como nome).
+  'Predefinição:Futebol B-SAD': 'B-SAD',
 };
