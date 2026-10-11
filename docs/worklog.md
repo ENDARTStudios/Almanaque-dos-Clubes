@@ -990,3 +990,68 @@ Stage Summary:
 - 6 PRs nesta rodada (#496 léxicos+clubes+troféu, #497 homônimo Bundesliga,
   #498 artilheiro, #499 este checkpoint); 106/106 testes; backend verde
 
+---
+
+Task ID: goal-2026-10-10/t514
+Agent: Doer (ZCode)
+Task: T514 — UEFA Champions League + UEFA Europa League + Primeira Liga
+
+Work Log:
+- COPA tem DOIS formatos reais, ambos suportados: tabela combinada da fase de
+  grupos com coluna "Grp" (Libertadores) e FASE DE LIGA única de 36 times SEM
+  coluna de grupo (UCL/UEL desde 2024-25). O seed tenta a forma com grupo e cai
+  na plana (minRows=8); nos anos com 8 grupos de 4 (UCL até 2023-24) o minRows
+  RECUSA as tabelas de grupo → sem classificação (melhor que gravar 1 grupo só).
+  Campeão/vice vêm do INFOBOX.
+- 4 BUGS DE PARSER pegos pelas fixtures/smoke (todos com teste):
+  1. os rótulos do infobox en são PLURAIS ("Champions"/"Runners-up") — as formas
+     singulares não casavam
+  2. a célula do infobox tem o FLAGICON DA FEDERAÇÃO como primeiro link: o parser
+     lia "french football federation" em vez de "Paris Saint-Germain" → passou a
+     usar `clubFromCell` (maior texto de exibição)
+  3. a âncora do artilheiro não cobria "Top goalscorers"
+  4. **BLOCO REMOVIDO VIRAVA TEXTO COLADO** (pegue o smoke de UI): o `<style>` da
+     legenda "v t e" fica ENTRE "team" e "vte" → o cabeçalho virava "teamvte", o
+     `\bteam\b` falhava, o idioma caía em `unknown` e as colunas saíam TROCADAS
+     (Liverpool 7V-0E-1D aparecia como "7V — 0D"). Agora `<style>`/`<sup>`/spans
+     invisíveis são substituídos por ESPAÇO. Efeito colateral medido: no
+     Brasileirão "equipevde" → "equipe vde" e o idioma sobe de `unknown` para
+     `pt`, resolvendo as MESMAS colunas.
+  5. (menor) link de namespace virava "clube": na Primeira Liga 2021-22 a célula
+     do B-SAD renderiza o texto cru de um template → namespaces (Predefinição/
+     Template/Categoria/…) agora são ignorados; alias documentado mapeia o
+     artefato para o B-SAD (Q59212899), que já estava no acervo (18/18 casados)
+- COMPETIÇÕES: UCL já existia (Q18756, com troféu). Registradas: UEFA Europa
+  League (Q18760 — a busca só achava o antigo "UEFA Cup") e Primeira Liga
+  (Q182994) que JÁ EXISTIA no acervo como "Liga Portugal" (o dedup por QID pegou).
+- CLUBES: 15 temporadas parseadas localmente → 144 QIDs → 130 JÁ EXISTIAM →
+  14 ausentes criados (--wave=t514): Shakhtar, Dinamo Zagreb, Maccabi Haifa,
+  Olympiacos, Pafos, Qarabağ, Red Star, AEK Athens, AEK Larnaca, RFS, Legia,
+  PAOK, Ludogorets, Estrela da Amadora (UA/HR/IL/GR/CY/AZ/RS/LV/PL/BG/PT).
+  Re-run = noop (0 criaria, 14 já existiam).
+- TROFÉUS: Europa League curada ("UEFA Cup trophy" — o troféu físico é o mesmo; a
+  UEL sucedeu a Taça UEFA). Total: 16. GAP declarado: Primeira Liga (só existe
+  "Trophy of Primeira Liga do BRASIL" — outra competição).
+- EXECUÇÃO: 15 temporadas gravadas → **54/54 temporadas com campeão — ZERO null**
+  em 11 competições (47 com tabela de classificação; as 7 sem tabela são as copas
+  com grupos de 4 e a Libertadores 2021). 11.910 clubes. Zero falsos positivos.
+- CAMPEÕES conferidos contra a realidade: UCL → Real Madrid 21-22 e 23-24,
+  Man City 22-23, PSG 24-25/25-26; UEL → Eintracht 21-22, Sevilla 22-23,
+  Atalanta 23-24, Tottenham 24-25, Aston Villa 25-26; Liga Portugal → FC Porto
+  21-22, Benfica 22-23, Sporting 23-24/24-25. Artilheiros reais: Benzema 15,
+  Haaland 12, Kane 8, Guirassy 13, Mbappé 15 / Tavernier 7, Rashford 6,
+  Aubameyang 10, El Kaabi 7 / Taremi 22, Gyökeres 29 e 30.
+- UI validada no navegador (UCL 2024-25): "Champion: Paris Saint-Germain FC ·
+  Runner-up: Inter Milan · Top scorer: Serhou Guirassy (13)" com a tabela REAL da
+  fase de liga (Liverpool 8J·7V·0E·1D·17GP·5GC·21pts) e o troféu carregado.
+
+GAPS DECLARADOS (T514): classificação das copas com grupos de 4 (UCL/UEL
+2021-24) — só as tabelas de grupo existem, e gravar 1 grupo seria enganoso;
+artilheiro da Liga Portugal 2021-22 (n/d); troféu da Primeira Liga.
+
+Stage Summary:
+- 54/54 temporadas com campeão (0 null), 11 competições, 16 troféus, 11.910 clubes
+- 14 clubes criados (re-run noop); 3 gaps declarados
+- 4 PRs nesta rodada (#500 UCL/UEL/PL, #501 namespaces, #502 alias B-SAD,
+  #503 espaçamento de blocos, #504 este checkpoint); 117/117 testes; backend verde
+
