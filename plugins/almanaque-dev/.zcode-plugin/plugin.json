@@ -1,0 +1,8 @@
+{
+  "name": "almanaque-dev",
+  "version": "0.1.0",
+  "description": "Workflows operacionais do Almanaque dos Clubes: acesso a produção (Railway), validação de entidades Wikidata/QID, extensão do parser de tabelas da Wikipédia, ciclo de PR/deploy e escrita de seeds idempotentes.",
+  "author": { "name": "END ART Studios" },
+  "skills": "./skills",
+  "agents": "./agents"
+}

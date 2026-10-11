@@ -13,6 +13,13 @@ Resumo das regras essenciais (valência completa em `docs/AGENTS.md`):
 - **Stack**: monorepo pnpm — `apps/api` (Fastify + Prisma + Postgres), `apps/web`
   (Next.js), `apps/worker`, `packages/domain`. Dockerfile da API: `apps/api/Dockerfile`.
 - Migrações/schema em `apps/api/prisma` (Postgres canônico). Infra local em `infra/`.
+- **Workflows operacionais (ZCode)**: skills e subagentes deste projeto vivem em
+  **`.zcode/skills/`** e **`.zcode/agents/`** (escopo do workspace, carregados sob demanda):
+  `prod-railway` (produção via container), `wikidata-entity` (QID/validação),
+  `wiki-table-parser` (parser de tabelas), `release-loop` (PR→deploy→produção),
+  `idempotent-seed` (seeds seguros); agentes `fonte-scout`, `prod-runner`, `gate-verifier`.
+  A **fonte canônica é o plugin** `plugins/almanaque-dev/` — edite lá e rode
+  `bash plugins/almanaque-dev/scripts/sync-to-workspace.sh`. Ver [docs/PLUGIN-ALMANAQUE-DEV.md](docs/PLUGIN-ALMANAQUE-DEV.md).
 
 <!-- BEGIN:turborepo-agent-rules -->
 

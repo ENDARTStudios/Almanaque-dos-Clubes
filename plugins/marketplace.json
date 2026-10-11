@@ -1,0 +1,17 @@
+{
+  "name": "dev-almanaque-dos-clubes",
+  "plugins": [
+    {
+      "name": "almanaque-dev",
+      "source": "./almanaque-dev",
+      "version": "0.1.0",
+      "description": "Workflows operacionais do Almanaque dos Clubes: produção via Railway, validação de QID/entidades Wikidata, extensão do parser de tabelas da Wikipédia, ciclo de PR/deploy e seeds idempotentes.",
+      "displayName": "Almanaque Dev",
+      "displayName_i18n": { "zh-CN": "Almanaque 开发" },
+      "description_i18n": {
+        "zh-CN": "Almanaque dos Clubes 的运维工作流：Railway 生产操作、QID/维基数据校验、维基百科表格解析器扩展、PR/部署流程与幂等种子脚本。"
+      },
+      "category": "developer-tools"
+    }
+  ]
+}
