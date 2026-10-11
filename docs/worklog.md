@@ -1256,3 +1256,42 @@ Stage Summary:
   seleções, #519 QID não exclui seleção + regra sem P17, #520 país só para clube,
   #521 este checkpoint); 135/135 testes; backend verde
 
+Task ID: goal-2026-10-11/t518
+Agent: Doer (ZCode)
+Task: T518 — AUDITORIA DE MARCO + RECONCILIAÇÃO do PLANO_MESTRE por evidência de produção
+
+Work Log:
+- ORIGEM: uma análise externa (sem ferramentas de web) declarou "nenhum marco foi
+  atingido / plataforma técnica vazia" lendo o bloco "STATUS CONSOLIDADO — 2026-09-02"
+  do docs/PLANO_MESTRE.md como se fosse o estado atual. O documento estava, de fato,
+  defasado por T443–T517 — o defeito real não era o produto, era o documento.
+- MÉTODO (read-only, zero escrita): curl nas 28 rotas públicas de almanaquedosclubes.com
+  (todas 200 com HTML real) + endpoints de api.almanaquedosclubes.com/api/v1 + SELECT no
+  Postgres de produção via `railway ssh` (deploy da API 211539ba, SUCCESS 11-10 19:03).
+- ACERVO REAL: 12.001 clubes (11.992 com QID Wikidata; 6.472 com lat+lng; 502 femininos) ·
+  105.211 jogadores (4.974 femininos) · 1.932 competições · 114 temporadas (114 com campeão,
+  104 vice, 78 classificação, 70 artilheiro) · 293 entradas de ranking · 5.205 arestas WON
+  com proveniência 100% · 19 competições com trophyImageUrl.
+- VERDADEIRO NO DOCUMENTO ANTIGO (e corrigido no lugar): 18 itens marcados `[ ]` estão no ar
+  (mapa, busca, feminino, perfis, páginas legais/privadas, checkout, DOMPurify, ETL automático,
+  cache Redis, fila BullMQ, export, ingestão Wikidata, WON, tabelas de competição). O item mais
+  grave — "Ingestão Wikidata (script pronto, não executado)" — valia em 02-09 e caiu em 02-10.
+- GAPS CONFIRMADOS (o que a crítica acertou): visualizador 360º, hino, flâmula, uniformes
+  (`kitHistory` com 0 registros), ranking de jogadores (sem tabela), `matches` vazio (0),
+  logo em 2,4% / foto de jogador em 0,8% / estádio em 4,4%, `Player.clubId` 100% nulo,
+  estádios sem PostGIS, RAG sem store vetorial, /metrics não exposto (404), DAST/carga fora do CI.
+- ENTREGUE: banner de supersessão nos dois blocos de 02-09 · checklists de Escopo 1/2, Dados,
+  Infra, Frontend, Testes e Observabilidade corrigidos item a item com a evidência · Resumo
+  Executivo recalculado (Features 5%→70%, Dados 1%→40%, Compliance 10%→85%, Frontend 30%→85%) ·
+  nova seção "STATUS CONSOLIDADO — 2026-10-11" com método, números verbatim, itens retratados e
+  os 13 gaps abertos · decisão D-2026-10-11-auditar-por-producao em DECISOES.md.
+- HONESTIDADE DE MÉTODO: as % são estimativa calibrada e o denominador de "Dados reais" é
+  indefinido — o critério de marco é o de ESCOPO (Escopo 1 completo em T517), não o percentual.
+  Dois erros meus foram pegos na própria auditoria: probe lendo `championName` (campo inexistente;
+  o real é `champion.name`) e preço ausente no HTML servidor do /planos (vem client-side).
+
+Stage Summary:
+- PLANO_MESTRE.md reconciliado com evidência de produção; nenhum dado do acervo foi tocado
+- Regra nova: auditoria de marco ancora em PRODUÇÃO (curl + SELECT), nunca em documento/checklist
+- Gaps remanescentes nomeados e finitos (13), com dono declarado (M4 / Operador onde é infra)
+
