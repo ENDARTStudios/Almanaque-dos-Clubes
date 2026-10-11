@@ -61,6 +61,18 @@ describe('foundedYearOf', () => {
     expect(foundedYearOf(ent({ P571: [time('+1905-00-00T00:00:00Z')] }))).toBe(1905);
     expect(foundedYearOf(ent({}))).toBeNull();
   });
+
+  it('com vários P571 usa o MAIS ANTIGO (os primeiros valores costumam ser ruído)', () => {
+    // forma real de Q29 (Espanha): 1715, 1812, 1931, 1978, 1516
+    const many = ent({
+      P571: [
+        time('+1715-00-00T00:00:00Z'),
+        time('+1931-12-09T00:00:00Z'),
+        time('+1516-03-14T00:00:00Z'),
+      ],
+    });
+    expect(foundedYearOf(many)).toBe(1516);
+  });
 });
 
 describe('pickName', () => {

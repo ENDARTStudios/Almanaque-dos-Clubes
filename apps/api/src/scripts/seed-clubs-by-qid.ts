@@ -137,14 +137,20 @@ export function isFootballClubEntity(entity: Entity): boolean {
 }
 
 /** Ano de fundação (P571), ou null. */
+/**
+ * Ano de fundação (P571). Com VÁRIOS valores, usa o MAIS ANTIGO (fundação é a
+ * inception mais antiga) — os primeiros valores costumam ser ruído: Q145 (Reino
+ * Unido) tem 1921 e 1927, Q29 (Espanha) começa em 1715.
+ */
 export function foundedYearOf(entity: Entity): number | null {
+  const years: number[] = [];
   for (const v of claimValues(entity, 'P571')) {
     if (typeof v === 'object' && v !== null && 'time' in v) {
       const m = /^[+-](\d{4})/.exec(String((v as { time?: string }).time ?? ''));
-      if (m) return Number.parseInt(m[1], 10);
+      if (m) years.push(Number.parseInt(m[1], 10));
     }
   }
-  return null;
+  return years.length > 0 ? Math.min(...years) : null;
 }
 
 /**
@@ -224,7 +230,8 @@ async function resolveCountryIso(qids: string[]): Promise<Map<string, string>> {
     `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=claims&format=json`,
   )) as { entities?: Record<string, Entity> };
   for (const [qid, e] of Object.entries(json.entities ?? {})) {
-    const iso = claimIds(e, 'P297')[0];
+    // P297 é datatype STRING (external-id) → o valor é "ES", não { id: 'ES' }
+    const iso = claimString(e, 'P297');
     if (iso) map.set(qid, iso.toUpperCase());
   }
   return map;
