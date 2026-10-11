@@ -1127,3 +1127,68 @@ Stage Summary:
   #507 artilheiro do Clausura, #508 Prisma.DbNull, #509 este checkpoint);
   123/123 testes; backend verde
 
+---
+
+Task ID: goal-2026-10-10/t516
+Agent: Doer (ZCode)
+Task: T516 — Copa Sul-Americana + Recopa Sul-Americana + Mundial de Clubes FIFA
+
+Work Log:
+- AS TRÊS JÁ EXISTIAM no acervo como CUP (Sul-Americana Q60585 e Mundial Q223366
+  inclusive com troféu curado no T511; Recopa Q734296 sem). Nenhum registro.
+- ESTRUTURA NOVA — RECOPA, FINAL EM DOIS JOGOS: o infobox NÃO tem rótulo
+  "Campeão" (só "Evento|Data"): a caixa do confronto traz os dois times e, logo
+  abaixo, o AGREGADO ("LDU Quito | Fluminense | 1 | 2"). Novo `parseTwoLegFinal`
+  (flag `--two-leg-final`): vencedor = maior agregado, o outro é o vice.
+- **4 BUGS pegos na execução (todos corrigidos com fixture de regressão)**:
+  1. peguei "os dois primeiros links da caixa" e o 1º era a LEGENDA DO CARTAZ
+     ("Recopa Sul-Americana") → vencedor saía errado. Agora: âncora = o AGREGADO
+     (dois inteiros pequenos) e os TIMES ficam EXATAMENTE 2 LINHAS ACIMA.
+  2. o GUARD da copa ("sem colocações finais nem tabela de grupos") não conhecia
+     o `--two-leg-final` e descartava a RECOPA INTEIRA (5 temporadas).
+  3. 2022 — os times na caixa são TEXTO PURO (sem link): eu exigia links e a linha
+     era ignorada → o parse caía na linha da ARBITRAGEM (que tem links) e gravou
+     campeão **"Facundo Tello"** (o árbitro!). Agora, sem links, usa o TEXTO.
+  4. 2025 — há uma linha de FEDERAÇÕES ("AFA | CBF") ENTRE os times e o agregado →
+     gravou campeão **"AFA"**. A âncora de "2 linhas acima" resolve os dois.
+  (+ lint: o CI pegou 20 erros de prettier em código que eu editei por script
+   DEPOIS do último `--fix` — rodar o lint do app inteiro antes do push.)
+- SUL-AMERICANA e MUNDIAL usam o infobox pt normal ("Campeão"/"Vice-campeão") e as
+  tabelas de grupo de 4 linhas são RECUSADAS pelo minRows=8 (sem classificação —
+  melhor que gravar 1 grupo só; a UI mostra "Standings being catalogued").
+  O MUNDIAL 2025 (formato reformulado de 32 clubes) tem tabela combinada com 32
+  linhas ✓ e o campeão sai do infobox.
+- CLUBES: 15 temporadas → 145 QIDs → 114 JÁ EXISTIAM → 31 "faltantes", dos quais 5
+  NÃO são clubes (país Venezuela, AFA, CBF, FIFA e o árbitro Facundo Tello) →
+  fora da curadoria (a validação do ingest os recusaria de qualquer forma).
+  26 criados (--wave=t516): 12 de Octubre, 9 de Octubre, Academia Puerto Cabello,
+  Alianza, Arsenal (Sarandí), Caracas, Always Ready, Belgrano, River Plate
+  (Assunção), U. Católica (Equador), General Caballero, San José, Ameliano,
+  Trinidense, Gimnasia La Plata, Delfín, Rayo Zuliano, Guaireña, Metropolitanos,
+  Bragantino, Aucas + Al Ain, Al-Ittihad, AS Pirae, Mamelodi Sundowns, Wydad
+  (Ásia/África/Oceania). Re-run = noop.
+- TROFÉUS: Recopa curada ("Trophy of CONMEBOL Recopa"). Total: **18**.
+- EXECUÇÃO: 15 temporadas gravadas → **89/89 temporadas com campeão — ZERO null**
+  em 17 competições. 11.987 clubes.
+- CAMPEÕES conferidos contra a realidade: Sul-Americana → Athletico-PR 2021,
+  Independiente del Valle 2022, LDU 2023, Racing 2024, Lanús 2025; Recopa →
+  Palmeiras 2021, Palmeiras 2022 (4-2 Athletico-PR), IDV 2023, Fluminense 2024,
+  Racing 2025 (4-0 Botafogo); Mundial → Chelsea 2021, Real Madrid 2022 e 2024,
+  Manchester City 2023, **Chelsea 2025** (formato reformulado de 32 clubes).
+- UI validada no navegador (Sul-Americana): 5 temporadas, "Champion: Racing Club ·
+  Runner-up: Cruzeiro E.C.", artilheiro Adrián Martínez (10), troféu carregado e o
+  aviso honesto "Standings being catalogued" onde não há tabela.
+
+GAPS DECLARADOS (T516): classificação da Sul-Americana e do Mundial 2021-2024 (as
+tabelas de grupo de 4 são recusadas; o Mundial até 2024 é mata-mata puro) e o
+artilheiro da Recopa (o artigo não tem seção de artilharia).
+DECLARAÇÃO (D-2026-10-10): segue tudo com fonte (URL) e proveniência — nenhum
+dado de teste/placeholder.
+
+Stage Summary:
+- 89/89 temporadas com campeão (0 null), 17 competições, 18 troféus, 11.987 clubes
+- 26 clubes criados (re-run noop); 4 bugs corrigidos com fixture de regressão
+- 4 PRs nesta rodada (#513 Sul-Americana/Recopa/Mundial, #514 guard da final em
+  dois jogos, #515 âncora do agregado + texto puro, #516 este checkpoint);
+  130/130 testes; backend verde
+
