@@ -348,11 +348,25 @@ export function isFootballClubEntity(entity: Entity): boolean {
  * exemplo, NÃO tem Q6979593). Regra: futebol (P641=Q2736) + país (P17) + NÃO ser
  * clube de futebol (P31 ∌ Q476028).
  */
+/** Classes de SELEÇÃO vistas no Wikidata (validadas por observação no T517). */
+export const NATIONAL_TEAM_CLASSES = new Set([
+  'Q6979593', // national association football team
+  'Q23759293', // national under-23 association football team
+  'Q15944511', // national under-21/under-23 association football team
+  'Q23905105', // women's national association football team
+]);
+
 export function isNationalTeamEntity(entity: Entity): boolean {
   const p31 = claimIds(entity, 'P31');
   const sport = claimIds(entity, PROP_SPORT);
   const country = claimIds(entity, 'P17')[0];
-  return sport.includes(QID_ASSOCIATION_FOOTBALL) && !!country && !p31.includes(QID_FOOTBALL_CLUB);
+  // P17 pode faltar (a sub-23 da GUINÉ não tem P17) — a classe de seleção supre.
+  const isNatClass = p31.some((q) => NATIONAL_TEAM_CLASSES.has(q));
+  return (
+    sport.includes(QID_ASSOCIATION_FOOTBALL) &&
+    !p31.includes(QID_FOOTBALL_CLUB) &&
+    (!!country || isNatClass)
+  );
 }
 
 /** Gênero da seleção a partir do rótulo/descrição (o acervo separa men/women). */
