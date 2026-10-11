@@ -582,29 +582,47 @@ export function parseTwoLegFinal(html: string): TwoLegFinal | null {
     return out;
   };
 
-  let teams: Array<{ name: string; article: string | null }> = [];
-  for (const tr of box.split(/<tr\b/i).slice(1)) {
-    const raw = tr.split(/<\/tr>/i)[0] ?? '';
-    const cells = [...raw.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) =>
-      stripTags(m[1]).trim(),
-    );
+  // ÂNCORA: o AGREGADO é a linha com dois inteiros pequenos e os TIMES ficam
+  // EXATAMENTE DUAS linhas acima (a linha intermediária é a das bandeiras/
+  // federações). Medido nos 5 anos: 2022 os times são TEXTO PURO (sem link) e
+  // 2025 tem uma linha "AFA | CBF" entre os times e o agregado — pegar "a última
+  // linha de textos" devolvia a federação e o vencedor saía AFA/Facundo Tello.
+  const rows = box
+    .split(/<tr\b/i)
+    .slice(1)
+    .map((tr) => {
+      const raw = tr.split(/<\/tr>/i)[0] ?? '';
+      return {
+        raw,
+        cells: [...raw.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) =>
+          stripTags(m[1]).trim(),
+        ),
+      };
+    });
+
+  for (let k = 0; k < rows.length; k++) {
+    const { cells } = rows[k];
     if (cells.length !== 2) continue;
-    // linha de TIMES: dois textos não-numéricos
-    if (cells.every((c) => c.length >= 3 && !/^\d+$/.test(c))) {
-      const l = linksOf(raw);
-      if (l.length === 2) teams = l;
-      continue;
-    }
-    // linha do AGREGADO: dois inteiros pequenos
-    if (!/^\d{1,2}$/.test(cells[0]) || !/^\d{1,2}$/.test(cells[1]) || teams.length < 2) continue;
+    if (!/^\d{1,2}$/.test(cells[0]) || !/^\d{1,2}$/.test(cells[1])) continue;
     const a = Number.parseInt(cells[0], 10);
     const b = Number.parseInt(cells[1], 10);
     if (a === b) continue; // agregado empatado não decide
-    return {
-      winner: a > b ? teams[0] : teams[1],
-      loser: a > b ? teams[1] : teams[0],
-      aggregate: [a, b],
-    };
+    // times: 2 linhas acima (1ª tentativa), depois 1 e 3
+    for (const off of [2, 1, 3]) {
+      const t = rows[k - off];
+      if (!t || t.cells.length !== 2) continue;
+      if (!t.cells.every((c) => c.length >= 3 && !/^\d+$/.test(c))) continue;
+      const links = linksOf(t.raw);
+      const teams =
+        links.length >= 2
+          ? links.slice(0, 2)
+          : t.cells.map((name) => ({ name, article: null as string | null })); // texto puro
+      return {
+        winner: a > b ? teams[0] : teams[1],
+        loser: a > b ? teams[1] : teams[0],
+        aggregate: [a, b],
+      };
+    }
   }
   return null;
 }
