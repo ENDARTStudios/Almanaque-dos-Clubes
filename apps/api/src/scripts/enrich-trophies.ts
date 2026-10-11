@@ -168,12 +168,24 @@ export const TROPHY_MAP: TrophyEntry[] = [
     file: 'Trofeo de la Conmebol Recopa.png',
     category: 'Trophy of CONMEBOL Recopa',
   },
+  // T517 — categoria: "UEFA European Championship trophy icons" (ícone do troféu,
+  // padrão já aceito no Copa del Rey e no Coppa UEFA). O troféu é a Taça Henri
+  // Delaunay: a foto 'Coupe Henri Delaunay 2017.jpg' está na categoria 'Henri
+  // Delaunay Cup' (categoria própria do troféu, mas sem 'troph' no nome — a
+  // invariante do teste exige 'troph').
+  {
+    qid: 'Q260858',
+    name: 'Campeonato Europeu de Futebol',
+    file: 'Euro trophy icon.png',
+    category: 'UEFA European Championship trophy icons',
+  },
   // GAP DECLARADO (T514):
   //  · Primeira Liga (Q182994): NÃO existe categoria do troféu português — a busca
   //    só acha "Trophy of Primeira Liga do BRASIL", que é OUTRA competição.
   // GAPS DECLARADOS (T515): MLS ("Philip F. Anschutz MLS Cup trophy" só tem fotos
   //  de pessoas com a taça; "Major League Soccer trophies" tem uma foto do Obama) e
-  //  Liga MX (não há categoria de troféu).
+  //  Liga MX (não há categoria de troféu) e FUTEBOL OLÍMPICO (não há categoria;
+  //  as medalhas olímpicas não são um troféu da competição).
 ];
 
 export interface CommonsFileInfo {
