@@ -154,9 +154,19 @@ export const TROPHY_MAP: TrophyEntry[] = [
     file: 'Coppauefa.png',
     category: 'UEFA Cup trophy',
   },
+  // T515 — categoria: "Trophy of Campeonato Brasileiro Série B" (foto da taça de 2018)
+  {
+    qid: 'Q610175',
+    name: 'Campeonato Brasileiro Série B',
+    file: 'Serie B 2018.jpg',
+    category: 'Trophy of Campeonato Brasileiro Série B',
+  },
   // GAP DECLARADO (T514):
   //  · Primeira Liga (Q182994): NÃO existe categoria do troféu português — a busca
   //    só acha "Trophy of Primeira Liga do BRASIL", que é OUTRA competição.
+  // GAPS DECLARADOS (T515): MLS ("Philip F. Anschutz MLS Cup trophy" só tem fotos
+  //  de pessoas com a taça; "Major League Soccer trophies" tem uma foto do Obama) e
+  //  Liga MX (não há categoria de troféu).
 ];
 
 export interface CommonsFileInfo {

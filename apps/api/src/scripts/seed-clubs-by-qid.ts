@@ -115,8 +115,79 @@ export const TARGET_CLUBS_T514: Array<{ lang: 'en' | 'pt'; article: string; note
   { lang: 'pt', article: 'C.F. Estrela da Amadora', note: 'Primeira Liga' },
 ];
 
+/**
+ * T515 — clubes ausentes de Série B, MLS e Liga MX. Derivados dos ARTIGOS das
+ * tabelas (15 temporadas parseadas → 91 QIDs → diff contra o acervo: 34 já
+ * existiam, 57 ausentes). Atenção: Vasco e Chapecoense existem no acervo SEM
+ * QID — o ingest ANEXA o QID (nunca duplica).
+ */
+export const TARGET_CLUBS_T515: Array<{ lang: 'en' | 'pt'; article: string; note: string }> = [
+  { lang: 'pt', article: 'ABC Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Amazonas Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'América Futebol Clube (Belo Horizonte)', note: 'Série B' },
+  { lang: 'pt', article: 'Associação Chapecoense de Futebol', note: 'Série B' },
+  { lang: 'pt', article: 'Associação Desportiva Confiança', note: 'Série B' },
+  { lang: 'pt', article: 'Associação Ferroviária de Esportes', note: 'Série B' },
+  { lang: 'pt', article: 'Athletic Club (Minas Gerais)', note: 'Série B' },
+  { lang: 'pt', article: 'Botafogo Futebol Clube (Ribeirão Preto)', note: 'Série B' },
+  { lang: 'pt', article: 'Brusque Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Centro Sportivo Alagoano', note: 'Série B' },
+  { lang: 'pt', article: 'Club de Regatas Vasco da Gama', note: 'Série B' },
+  { lang: 'pt', article: 'Clube do Remo', note: 'Série B' },
+  { lang: 'pt', article: 'Coritiba Foot Ball Club', note: 'Série B' },
+  { lang: 'pt', article: 'Cuiabá Esporte Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Esporte Clube Vitória', note: 'Série B' },
+  { lang: 'pt', article: 'Goiás Esporte Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Grêmio Esportivo Brasil', note: 'Série B' },
+  { lang: 'pt', article: 'Guarani Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Ituano Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Londrina Esporte Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Mirassol Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Paysandu Sport Club', note: 'Série B' },
+  { lang: 'pt', article: 'Sampaio Corrêa Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Tombense Futebol Clube', note: 'Série B' },
+  { lang: 'pt', article: 'Volta Redonda Futebol Clube', note: 'Série B' },
+  { lang: 'en', article: 'Atlanta United FC', note: 'MLS' },
+  { lang: 'en', article: 'Austin FC', note: 'MLS' },
+  { lang: 'en', article: 'CF Montréal', note: 'MLS' },
+  { lang: 'en', article: 'Charlotte FC', note: 'MLS' },
+  { lang: 'en', article: 'Chicago Fire FC', note: 'MLS' },
+  { lang: 'en', article: 'Columbus Crew', note: 'MLS' },
+  { lang: 'en', article: 'FC Cincinnati', note: 'MLS' },
+  { lang: 'en', article: 'Houston Dynamo FC', note: 'MLS' },
+  { lang: 'en', article: 'Inter Miami CF', note: 'MLS' },
+  { lang: 'en', article: 'Los Angeles FC', note: 'MLS' },
+  { lang: 'en', article: 'Minnesota United FC', note: 'MLS' },
+  { lang: 'en', article: 'Nashville SC', note: 'MLS' },
+  { lang: 'en', article: 'New England Revolution', note: 'MLS' },
+  { lang: 'en', article: 'New York City FC', note: 'MLS' },
+  { lang: 'en', article: 'Orlando City SC', note: 'MLS' },
+  { lang: 'en', article: 'San Diego FC', note: 'MLS' },
+  { lang: 'en', article: 'Sporting Kansas City', note: 'MLS' },
+  { lang: 'en', article: 'St. Louis City SC', note: 'MLS' },
+  { lang: 'en', article: 'Toronto FC', note: 'MLS' },
+  { lang: 'en', article: 'Atlético San Luis', note: 'Liga MX' },
+  { lang: 'en', article: 'C.F. Monterrey', note: 'Liga MX' },
+  { lang: 'en', article: 'C.F. Pachuca', note: 'Liga MX' },
+  { lang: 'en', article: 'Club América', note: 'Liga MX' },
+  { lang: 'en', article: 'Club Necaxa', note: 'Liga MX' },
+  { lang: 'en', article: 'Club Tijuana', note: 'Liga MX' },
+  { lang: 'en', article: 'Club Universidad Nacional', note: 'Liga MX' },
+  { lang: 'en', article: 'Cruz Azul', note: 'Liga MX' },
+  { lang: 'en', article: 'Deportivo Toluca F.C.', note: 'Liga MX' },
+  { lang: 'en', article: 'FC Juárez', note: 'Liga MX' },
+  { lang: 'en', article: 'Mazatlán F.C.', note: 'Liga MX' },
+  { lang: 'en', article: 'Santos Laguna', note: 'Liga MX' },
+  { lang: 'en', article: 'Tigres UANL', note: 'Liga MX' },
+];
+
 /** Todas as ondas curadas (--wave=all, default). */
-export const ALL_TARGET_CLUBS = [...TARGET_CLUBS, ...TARGET_CLUBS_T513, ...TARGET_CLUBS_T514];
+export const ALL_TARGET_CLUBS = [
+  ...TARGET_CLUBS,
+  ...TARGET_CLUBS_T513,
+  ...TARGET_CLUBS_T514,
+  ...TARGET_CLUBS_T515,
+];
 
 // ---------------------------------------------------------------------------
 // Tipos/leitores do Wikidata (subconjunto usado)
@@ -409,9 +480,11 @@ async function main(): Promise<number> {
       ? TARGET_CLUBS
       : wave === 't513'
         ? TARGET_CLUBS_T513
-        : wave === 't514'
-          ? TARGET_CLUBS_T514
-          : ALL_TARGET_CLUBS;
+        : wave === 't515'
+          ? TARGET_CLUBS_T515
+          : wave === 't514'
+            ? TARGET_CLUBS_T514
+            : ALL_TARGET_CLUBS;
   const prisma = new PrismaClient();
   try {
     // --- 1) alvos → QIDs (derivados do artigo, ou explícitos) ---

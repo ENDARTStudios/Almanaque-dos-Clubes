@@ -102,7 +102,9 @@ export function detectLang(headers: string[]): StandingsLang {
   if (/\brang\b/.test(j) || /\béquipe\b/.test(j) || /\bbp\b/.test(j)) return 'fr';
   if (/\bptn\b/.test(j) || /\bwed\b/.test(j) || /\bdv\b/.test(j)) return 'nl';
   if (/\bequipo\b/.test(j)) return 'es';
-  if (/\bequipe\b/.test(j)) return 'pt';
+  // 'equipe' E 'equipes' (a Série B usa o PLURAL: "Equipes"). A legenda COLADA
+  // ('equipevde') continua caindo em 'unknown', cujo léxico é ancorado.
+  if (/\bequipes?\b/.test(j)) return 'pt';
   if (/\bteam\b/.test(j)) return 'en';
   return 'unknown';
 }
@@ -141,7 +143,8 @@ const LEXICON: Record<StandingsLang, Lexicon> = {
     lost: [/^(d|der)\.?$/i],
     gf: [/^(gp|gf)\.?$/i, /^gols? pró/i],
     ga: [/^(gc|ga)\.?$/i, /^gols? contra/i],
-    pts: [/^(pts|pontos)/i],
+    // a Série B usa "P" para pontos (o "P" NÃO é usado por outra coluna em pt)
+    pts: [/^(pts|pontos)/i, /^p.?$/i],
     group: [/^(grp|grupo|group)$/i],
   },
   de: {
@@ -335,17 +338,22 @@ export interface ParseStandingsOptions {
 }
 
 /**
- * Extrai a classificação da PRIMEIRA tabela cujo cabeçalho casa; [] se nenhuma.
- * Com `requireGroup`, só aceita tabelas com coluna de grupo (`Grp`).
+ * TODAS as tabelas de classificação que casam, na ordem do artigo. Necessário
+ * para a Liga MX, que tem DOIS torneios por temporada (Apertura e Clausura): a
+ * 1ª tabela é o Apertura e a 2ª o Clausura. As demais (tabela geral/coeficientes)
+ * vêm depois e não são usadas.
  */
-export function parseStandings(html: string, opts: ParseStandingsOptions = {}): StandingRow[] {
+export function parseStandingsTables(
+  html: string,
+  opts: ParseStandingsOptions = {},
+): StandingRow[][] {
   const minRows = opts.minRows ?? 4;
+  const out: StandingRow[][] = [];
   for (const table of splitTables(html)) {
     const headers = headerCells(table);
     if (headers.length === 0 || !isStandingsHeader(headers)) continue;
     const c = resolveCols(headers);
     if (opts.requireGroup && c.group < 0) continue;
-
     const rows: StandingRow[] = [];
     const bodyMatch = table.slice(table.search(/<\/tr>/i) + 5);
     for (const tr of bodyMatch.split(/<tr\b/i).slice(1)) {
@@ -356,12 +364,8 @@ export function parseStandings(html: string, opts: ParseStandingsOptions = {}): 
       const position = num(plain[c.pos >= 0 ? c.pos : 0]);
       const rawCell = cellHtml[c.team >= 0 ? c.team : 1] ?? '';
       const { name: clubName, article } = clubFromCell(rawCell);
-      // nome de clube plausível: precisa de >= 3 LETRAS no total. Não exigir
-      // letras CONSECUTIVAS: "N.E.C." (Nijmegen) só tem letras isoladas e era
-      // descartado (bug 10/10 — a tabela do Eredivisie vinha com 17 de 18).
       const letterCount = (clubName.match(/[A-Za-zÀ-ÿ]/g) ?? []).length;
       if (position == null || letterCount < 3) continue;
-      // gols: colunas separadas (gf/ga) OU coluna única "99:32" (Bundesliga "Tore")
       let goalsFor = c.gf >= 0 ? num(plain[c.gf]) : null;
       let goalsAgainst = c.ga >= 0 ? num(plain[c.ga]) : null;
       if (c.gfga >= 0) {
@@ -385,9 +389,17 @@ export function parseStandings(html: string, opts: ParseStandingsOptions = {}): 
         group: c.group >= 0 ? plain[c.group]?.trim() || null : null,
       });
     }
-    if (rows.length >= minRows) return rows.sort((a, b) => a.position - b.position);
+    if (rows.length >= minRows) out.push(rows.sort((a, b) => a.position - b.position));
   }
-  return [];
+  return out;
+}
+
+/**
+ * Extrai a classificação da PRIMEIRA tabela cujo cabeçalho casa; [] se nenhuma.
+ * Com `requireGroup`, só aceita tabelas com coluna de grupo (`Grp`).
+ */
+export function parseStandings(html: string, opts: ParseStandingsOptions = {}): StandingRow[] {
+  return parseStandingsTables(html, opts)[0] ?? [];
 }
 
 /** Artilheiro: primeira linha com nome + número na seção de artilharia (heurística). */
@@ -508,12 +520,72 @@ function infoboxTeam(
 
 /** Extrai campeão/vice da copa a partir do infobox ("Colocações finais"). */
 export function parseCupPlacements(html: string): CupPlacements {
-  const champ = infoboxTeam(html, CHAMPION_LABELS);
-  const runner = infoboxTeam(html, RUNNERUP_LABELS);
+  return parseChampionByLabels(html, CHAMPION_LABELS, RUNNERUP_LABELS);
+}
+
+/**
+ * Campeão/vice do infobox com RÓTULOS explícitos — para competições cujo rótulo
+ * não é "Champion": a MLS usa **"MLS Cup"** para o vencedor do playoff.
+ */
+/** Atalho: um rótulo de campeão (ex.: MLS usa "MLS Cup"), vices padrão. */
+export function parseChampionByLabel(html: string, championLabel: string): CupPlacements {
+  return parseChampionByLabels(html, [championLabel], RUNNERUP_LABELS);
+}
+
+export function parseChampionByLabels(
+  html: string,
+  championLabels: string[],
+  runnerUpLabels: string[],
+): CupPlacements {
+  const champ = infoboxTeam(html, championLabels);
+  const runner = infoboxTeam(html, runnerUpLabels);
   return {
     champion: champ?.name ?? null,
     championArticle: champ?.article ?? null,
     runnerUp: runner?.name ?? null,
     runnerUpArticle: runner?.article ?? null,
   };
+}
+
+/**
+ * LIGA MX — dois torneios por temporada, ambos listados na MESMA célula do
+ * infobox: `<b>Apertura</b>:<br><a…>América</a><br>(16th title)<br><b>Clausura</b>:
+ * <br><a…>Toluca</a>`. Devolve os dois campeões separadamente.
+ */
+export interface SplitChampions {
+  apertura: { name: string; article: string | null } | null;
+  clausura: { name: string; article: string | null } | null;
+}
+
+export function parseSplitChampions(html: string): SplitChampions {
+  const cell =
+    infoboxCell(html, ['Champions', 'Campeões', 'Campeón', 'Campeones']) ??
+    infoboxCell(html, CHAMPION_LABELS);
+  const out: SplitChampions = { apertura: null, clausura: null };
+  if (!cell) return out;
+  // divide a célula nos marcadores <b>Apertura</b> / <b>Clausura</b>
+  const parts = cell.split(/<b>\s*(Apertura|Clausura|Verano|Invierno)\s*:?\s*<\/b>/i);
+  // parts = [antes, marcador1, conteúdo1, marcador2, conteúdo2, …]
+  for (let i = 1; i < parts.length; i += 2) {
+    const marker = parts[i].toLowerCase();
+    const content = parts[i + 1] ?? '';
+    const team = clubFromCell(content);
+    if (!team.name) continue;
+    if (marker === 'apertura') out.apertura = team;
+    else if (marker === 'clausura') out.clausura = team;
+  }
+  return out;
+}
+
+/** Célula `<td>` de um rótulo do infobox (HTML cru), ou null. */
+function infoboxCell(html: string, labels: string[]): string | null {
+  for (const label of labels) {
+    const re = new RegExp(
+      `<th[^>]*>\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*</th>\\s*<td[^>]*>([\\s\\S]*?)</td>`,
+      'i',
+    );
+    const m = re.exec(html);
+    if (m) return m[1];
+  }
+  return null;
 }
