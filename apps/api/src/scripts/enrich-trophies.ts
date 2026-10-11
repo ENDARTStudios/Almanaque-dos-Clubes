@@ -146,6 +146,17 @@ export const TROPHY_MAP: TrophyEntry[] = [
   //    (esboço à mão, 100x100, "free hand work"). Melhor null que imagem duvidosa.
   //  · Eredivisie (Q167541): não existe categoria de troféu (o "Johan Cruijff
   //    Schaal" é a SUPERCOPA, não a taça da liga).
+  // T514 — categoria: "UEFA Cup trophy" (+ "UEFA Europa League trophy icons").
+  // A Europa League sucedeu a Taça UEFA e o TROFÉU FÍSICO é o mesmo.
+  {
+    qid: 'Q18760',
+    name: 'UEFA Europa League',
+    file: 'Coppauefa.png',
+    category: 'UEFA Cup trophy',
+  },
+  // GAP DECLARADO (T514):
+  //  · Primeira Liga (Q182994): NÃO existe categoria do troféu português — a busca
+  //    só acha "Trophy of Primeira Liga do BRASIL", que é OUTRA competição.
 ];
 
 export interface CommonsFileInfo {

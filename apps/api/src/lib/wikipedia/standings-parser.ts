@@ -387,7 +387,7 @@ export interface TopScorer {
 // Âncoras por idioma: pt "Artilharia", en "Top scorers", es "Máximos goleadores",
 // it "Classifica marcatori".
 const SCORER_ANCHOR =
-  /Artilharia|Artilheiro|Top ?scorers?|Máximos goleadores|Máximos? artilheiros?|Goleadores|Classifica marcatori|Marcatori|Capocannonieri|Meilleurs buteurs|Classement des buteurs|Torschützenkönig|Torschützen|Topscorers/i;
+  /Artilharia|Artilheiro|Top ?goalscorers?|Top ?scorers?|Máximos goleadores|Máximos? artilheiros?|Goleadores|Classifica marcatori|Marcatori|Capocannonieri|Meilleurs buteurs|Classement des buteurs|Torschützenkönig|Torschützen|Topscorers/i;
 
 export function parseTopScorer(html: string): TopScorer | null {
   const idx = html.search(SCORER_ANCHOR);
@@ -447,12 +447,23 @@ export interface CupPlacements {
   runnerUpArticle: string | null;
 }
 
-const CHAMPION_LABELS = ['Campeão', 'Campeon', 'Champion', 'Campeón', 'Campione', 'Vencedor'];
+// A en.wikipedia usa os PLURAIS no infobox das copas europeias ("Champions",
+// "Runners-up") — as formas singulares não casariam.
+const CHAMPION_LABELS = [
+  'Campeão',
+  'Campeon',
+  'Champion',
+  'Champions',
+  'Campeón',
+  'Campione',
+  'Vencedor',
+];
 const RUNNERUP_LABELS = [
   'Vice-campeão',
   'Vice-campeao',
   'Vice',
   'Runner-up',
+  'Runners-up',
   'Subcampeón',
   'Subcampeon',
   'Second place',
@@ -472,22 +483,13 @@ function infoboxTeam(
     );
     const m = re.exec(html);
     if (!m) continue;
+    // A célula pode ter VÁRIOS links: nas copas europeias o PRIMEIRO é o
+    // flagicon da FEDERAÇÃO (`<a title="French Football Federation"><img …></a>`)
+    // e o clube vem depois. `clubFromCell` escolhe o de MAIOR texto de exibição —
+    // a bandeira não tem texto.
     const cell = m[1];
-    const link = /<a\b[^>]*href="\/wiki\/([^"#]+)"[^>]*>/i.exec(cell);
-    if (link) {
-      const target = decodeURIComponent(link[1]).replace(/_/g, ' ');
-      if (!FILE_PREFIX.test(target)) {
-        const t = /\btitle="([^"]*)"/i.exec(link[0]);
-        // o atributo title vem com ENTIDADES HTML (`l&#39;Ouest`) — sem decodificar, o
-        // QID do artigo não resolve no pageprops
-        const article = stripTags((t ? t[1] : target).trim());
-        return { name: article, article };
-      }
-    }
-    const name = stripTags(cell)
-      .replace(/\(.*?\)/g, '')
-      .trim();
-    if (name) return { name, article: null };
+    const { name, article } = clubFromCell(cell);
+    if (name && (name.match(/[A-Za-zÀ-ÿ]/g) ?? []).length >= 3) return { name, article };
   }
   return null;
 }
