@@ -286,6 +286,10 @@ async function main(): Promise<number> {
         console.log(`  ${season}: artigo "${title}" não existe — nada a fazer.`);
         continue;
       }
+      // O artilheiro lido é o da PRIMEIRA seção de artilharia do artigo. Na Liga
+      // MX (--dual-tournament) isso é o do APERTURA — o do Clausura está noutra
+      // seção, que o parser não separa com segurança: melhor null que repetir o
+      // artilheiro do Apertura no Clausura.
       const topScorer = parseTopScorer(html);
 
       // --- linhas: liga (classificação) ou copa.
@@ -472,7 +476,10 @@ async function main(): Promise<number> {
             !isCup && standings.length > 0
               ? standings.reduce((n, r) => n + (r.goalsFor ?? 0), 0) || null
               : parseInfoboxInt(html, /Gol\(o\)s|Goals scored|Goles|Reti/i),
-          topScorer: (topScorer ?? undefined) as unknown as Prisma.InputJsonValue,
+          // No modo dual só o 1º slot (Apertura) recebe o artilheiro lido; o 2º
+          // (Clausura) fica null — o dado do Apertura não vale para o Clausura.
+          topScorer: ((dual && slot !== slots[0] ? null : topScorer) ??
+            undefined) as unknown as Prisma.InputJsonValue,
           standings:
             matched.length > 0 ? (matched as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
           sourceUrl: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
