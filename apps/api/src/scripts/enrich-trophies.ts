@@ -133,6 +133,19 @@ export const TROPHY_MAP: TrophyEntry[] = [
     file: 'The Coppa Italia trophy.jpg',
     category: 'Coppa Italia trophy',
   },
+  // T513 — categoria: "Trophy of Fußball-Bundesliga (Germany)" (foto do troféu, sem pessoas)
+  {
+    qid: 'Q82595',
+    name: 'Bundesliga',
+    file: 'Trophy of Fußball-Bundesliga in Singapore, 2023.jpg',
+    category: 'Trophy of Fußball-Bundesliga (Germany)',
+  },
+  // GAPS DECLARADOS (T513) — NUNCA busca textual (lição T509):
+  //  · Ligue 1 (Q13394): "Ligue 1 trophy icons" só tem "Ligue 1 Trophy 2024.png"
+  //    (EM PEDIDO DE EXCLUSÃO desde jul/2026 — quebraria) e "Ligue1 trophy.svg"
+  //    (esboço à mão, 100x100, "free hand work"). Melhor null que imagem duvidosa.
+  //  · Eredivisie (Q167541): não existe categoria de troféu (o "Johan Cruijff
+  //    Schaal" é a SUPERCOPA, não a taça da liga).
 ];
 
 export interface CommonsFileInfo {

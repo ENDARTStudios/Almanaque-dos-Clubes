@@ -74,6 +74,27 @@ export const TARGET_CLUBS: Array<{ lang: 'en' | 'es' | 'pt'; article: string; no
   { lang: 'pt', article: 'Club The Strongest', note: 'Libertadores' },
 ];
 
+/**
+ * T513 — clubes ausentes de Bundesliga / Ligue 1 (Eredivisie não teve nenhum).
+ * Derivados dos ARTIGOS das tabelas de classificação (15 temporadas parseadas,
+ * artigos → QIDs → diff contra o acervo). NUNCA digitados (regra D-2026-10-09).
+ */
+export const TARGET_CLUBS_T513: Array<{ lang: 'de' | 'fr'; article: string; note: string }> = [
+  { lang: 'de', article: '1. FC Heidenheim', note: 'Bundesliga' },
+  { lang: 'de', article: 'FC Augsburg', note: 'Bundesliga' },
+  { lang: 'de', article: 'Hamburger SV', note: 'Bundesliga' },
+  { lang: 'de', article: 'RB Leipzig', note: 'Bundesliga' },
+  { lang: 'de', article: 'Werder Bremen', note: 'Bundesliga' },
+  { lang: 'fr', article: "Angers Sporting Club de l'Ouest", note: 'Ligue 1' },
+  { lang: 'fr', article: 'Athletic Club ajaccien', note: 'Ligue 1' },
+  { lang: 'fr', article: 'Clermont Foot 63', note: 'Ligue 1' },
+  { lang: 'fr', article: 'Football Club des Girondins de Bordeaux', note: 'Ligue 1' },
+  { lang: 'fr', article: 'Le Havre Athletic Club (football)', note: 'Ligue 1' },
+];
+
+/** Todas as ondas curadas (--wave=all, default). */
+export const ALL_TARGET_CLUBS = [...TARGET_CLUBS, ...TARGET_CLUBS_T513];
+
 // ---------------------------------------------------------------------------
 // Tipos/leitores do Wikidata (subconjunto usado)
 // ---------------------------------------------------------------------------
@@ -351,9 +372,17 @@ export function pickVenue(
 async function main(): Promise<number> {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { apply: { type: 'boolean', default: false }, qid: { type: 'string', default: '' } },
+    options: {
+      apply: { type: 'boolean', default: false },
+      qid: { type: 'string', default: '' },
+      // onda curada: 'all' (default) | 't512' | 't513'
+      wave: { type: 'string', default: 'all' },
+    },
   });
   const APPLY_ON = values.apply || process.argv.includes('--apply');
+  const wave = values.wave ?? 'all';
+  const targets =
+    wave === 't512' ? TARGET_CLUBS : wave === 't513' ? TARGET_CLUBS_T513 : ALL_TARGET_CLUBS;
   const prisma = new PrismaClient();
   try {
     // --- 1) alvos → QIDs (derivados do artigo, ou explícitos) ---
@@ -361,9 +390,9 @@ async function main(): Promise<number> {
     if (values.qid) {
       pairs = values.qid.split(',').map((q) => ({ qid: q.trim(), note: 'qid explícito' }));
     } else {
-      const map = await resolveArticleQids(TARGET_CLUBS);
+      const map = await resolveArticleQids(targets);
       pairs = [];
-      for (const t of TARGET_CLUBS) {
+      for (const t of targets) {
         const qid = map.get(`${t.lang}|${t.article}`);
         if (!qid) {
           console.log(`  ✗ não resolvi QID para ${t.lang}:${t.article} — pulado.`);
@@ -373,7 +402,7 @@ async function main(): Promise<number> {
       }
     }
     console.log(
-      `[t512] alvos=${pairs.length} · modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'} · QIDs derivados`,
+      `[t512/t513] onda=${wave} · alvos=${pairs.length} · modo=${APPLY_ON ? 'APPLY' : 'DRY-RUN'} · QIDs derivados`,
     );
 
     // --- 2) entidades + validação de "clube de futebol" ---
