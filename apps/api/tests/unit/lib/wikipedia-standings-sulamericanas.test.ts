@@ -36,6 +36,21 @@ describe('copa — Recopa Sul-Americana 2024 (FINAL EM DOIS JOGOS)', () => {
   });
 });
 
+describe('Recopa — variações reais da caixa do confronto (regressões)', () => {
+  it('2022: times em TEXTO PURO, sem link → ainda assim Palmeiras 4-2 Athletico-PR', () => {
+    const f = parseTwoLegFinal(fx('wikipedia-standings-rec2022.html'));
+    expect(f!.winner.name.toLowerCase()).toContain('palmeiras');
+    expect(f!.loser.name.toLowerCase()).toContain('athletico');
+    expect(f!.aggregate).toEqual([2, 4]);
+  });
+  it('2025: linha de FEDERAÇÕES (AFA | CBF) entre os times e o agregado → Racing 4-0 Botafogo', () => {
+    const f = parseTwoLegFinal(fx('wikipedia-standings-rec2025.html'));
+    expect(f!.winner.name.toLowerCase()).toContain('racing');
+    expect(f!.loser.name.toLowerCase()).toContain('botafogo');
+    expect(f!.aggregate).toEqual([4, 0]);
+  });
+});
+
 describe('copa — Mundial de Clubes FIFA', () => {
   it('2024: Real Madrid campeão, Pachuca vice', () => {
     const p = parseCupPlacements(fx('wikipedia-standings-cwc2024.html'));
