@@ -154,11 +154,35 @@ export function foundedYearOf(entity: Entity): number | null {
 }
 
 /**
- * Nome no acervo: rótulo **pt** (o produto é PT-first e é a convenção dos clubes
- * sul-americanos já existentes), com fallback en/es.
+ * Idioma preferido do rótulo por país — segue a convenção JÁ existente no acervo
+ * (espanhóis vêm com o rótulo es: "Real Madrid Club de Fútbol", "Getafe Club de
+ * Fútbol"; ingleses com en: "Manchester City F.C."; brasileiros/sul-americanos
+ * com pt). Fallback: pt → en → es.
  */
-export function pickName(entity: Entity): string | null {
-  for (const lang of ['pt', 'en', 'es']) {
+export const LABEL_LANG_BY_ISO: Record<string, string> = {
+  GB: 'en',
+  IE: 'en',
+  ES: 'es',
+  IT: 'it',
+  AR: 'es',
+  UY: 'es',
+  CL: 'es',
+  CO: 'es',
+  PE: 'es',
+  EC: 'es',
+  VE: 'es',
+  PY: 'es',
+  BO: 'es',
+  MX: 'es',
+  BR: 'pt',
+  PT: 'pt',
+};
+
+/** Nome no acervo: rótulo do idioma do país, com fallback pt → en → es. */
+export function pickName(entity: Entity, iso?: string | null): string | null {
+  const order =
+    iso && LABEL_LANG_BY_ISO[iso] ? [LABEL_LANG_BY_ISO[iso], 'pt', 'en', 'es'] : ['pt', 'en', 'es'];
+  for (const lang of order) {
     const v = entity.labels?.[lang]?.value?.trim();
     if (v) return v;
   }
@@ -238,28 +262,46 @@ async function resolveCountryIso(qids: string[]): Promise<Map<string, string>> {
 }
 
 export interface Venue {
-  name: string | null;
+  entity: Entity;
   capacity: number | null;
   image: string | null;
 }
 
-/** Estádio (P115): rótulo + capacidade (P1083) + imagem (P18 → Commons). */
+/** Estádio (P115): entidade + capacidade (P1083) + imagem (P18 → Commons). */
 async function resolveVenues(qids: string[]): Promise<Map<string, Venue>> {
   const map = new Map<string, Venue>();
   if (qids.length === 0) return map;
   const json = (await fetchJson(
     `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}` +
-      `&props=labels|claims&languages=pt|en|es&format=json`,
+      `&props=labels|claims&languages=pt|en|es|it&format=json`,
   )) as { entities?: Record<string, Entity> };
   for (const [qid, e] of Object.entries(json.entities ?? {})) {
     const image = claimString(e, 'P18');
     map.set(qid, {
-      name: pickName(e),
+      entity: e,
       capacity: claimAmount(e, 'P1083'),
       image: image ? commonsFilePath(image) : null,
     });
   }
   return map;
+}
+
+/**
+ * Escolhe o estádio ATUAL do clube entre os P115: o de MAIOR capacidade.
+ * (P115 lista a história do clube — o FC Barcelona tem o antigo "Velòdrom de la
+ * Bonanova" como primeiro valor; o estádio atual é o de maior capacidade.)
+ */
+export function pickVenue(
+  entity: Entity,
+  venues: Map<string, Venue>,
+): { qid: string; venue: Venue } | null {
+  let best: { qid: string; venue: Venue } | null = null;
+  for (const qid of claimIds(entity, PROP_HOME_VENUE)) {
+    const v = venues.get(qid);
+    if (!v) continue;
+    if (!best || (v.capacity ?? 0) > (best.venue.capacity ?? 0)) best = { qid, venue: v };
+  }
+  return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -318,7 +360,7 @@ async function main(): Promise<number> {
       ...new Set(valid.map((v) => claimIds(v.entity, 'P17')[0]).filter(Boolean)),
     ]);
     const venues = await resolveVenues([
-      ...new Set(valid.flatMap((v) => claimIds(v.entity, PROP_HOME_VENUE).slice(0, 1))),
+      ...new Set(valid.flatMap((v) => claimIds(v.entity, PROP_HOME_VENUE))),
     ]);
 
     // --- 4) dedup + diff (nunca cria duplicata) ---
@@ -326,11 +368,11 @@ async function main(): Promise<number> {
     let attached = 0;
     let skipped = 0;
     for (const v of valid) {
-      const name = pickName(v.entity);
       const iso = countryIso.get(claimIds(v.entity, 'P17')[0]) || null;
+      const name = pickName(v.entity, iso);
       const foundedYear = foundedYearOf(v.entity);
-      const venueQid = claimIds(v.entity, PROP_HOME_VENUE)[0];
-      const venue = venueQid ? venues.get(venueQid) : undefined;
+      const picked = pickVenue(v.entity, venues);
+      const venueName = picked ? pickName(picked.venue.entity, iso) : null;
       const logoFile = claimString(v.entity, 'P154');
 
       const existing = await prisma.club.findFirst({
@@ -347,7 +389,7 @@ async function main(): Promise<number> {
 
       const label =
         `${v.qid} "${name}" · ${iso ?? '?'} · fund=${foundedYear ?? '?'}` +
-        ` · estádio=${venue?.name ?? '?'}${venue?.capacity ? ` (${venue.capacity})` : ''} · ${v.note}`;
+        ` · estádio=${venueName ?? '?'}${picked?.venue.capacity ? ` (${picked.venue.capacity})` : ''} · ${v.note}`;
 
       // mesmo nome e sem QID → ANEXA (evita duplicata)
       const sameName = name
@@ -365,7 +407,7 @@ async function main(): Promise<number> {
               qid: v.qid,
               ...(iso ? { country: iso } : {}), // preenche só o que está nulo
               ...(foundedYear ? { foundedYear } : {}),
-              ...(venue?.name ? { stadiumName: venue.name } : {}),
+              ...(venueName ? { stadiumName: venueName } : {}),
             },
           });
         }
@@ -384,9 +426,9 @@ async function main(): Promise<number> {
             gender: 'men',
             kind: 'club',
             logoUrl: logoFile ? commonsFilePath(logoFile) : null,
-            stadiumName: venue?.name ?? null,
-            stadiumCapacity: venue?.capacity ?? null,
-            stadiumImage: venue?.image ?? null,
+            stadiumName: venueName,
+            stadiumCapacity: picked?.venue.capacity ?? null,
+            stadiumImage: picked?.venue.image ?? null,
             importedFrom: 'wikidata-t512',
             importedAt: new Date(),
             sourceUrl: `https://www.wikidata.org/wiki/${v.qid}`,

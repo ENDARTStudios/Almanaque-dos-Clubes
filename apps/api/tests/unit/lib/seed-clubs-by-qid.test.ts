@@ -3,6 +3,7 @@ import {
   isFootballClubEntity,
   foundedYearOf,
   pickName,
+  pickVenue,
   claimIds,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
@@ -76,16 +77,49 @@ describe('foundedYearOf', () => {
 });
 
 describe('pickName', () => {
-  it('prefere o rótulo pt (produto PT-first), com fallback en', () => {
+  it('usa o idioma do PAÍS (convenção já existente no acervo)', () => {
+    const liverpool: Entity = {
+      labels: { en: { value: 'Liverpool F.C.' }, pt: { value: 'Liverpool Football Club' } },
+    };
+    // GB → en (consistente com "Manchester City F.C." do acervo)
+    expect(pickName(liverpool, 'GB')).toBe('Liverpool F.C.');
+    const girona: Entity = {
+      labels: { es: { value: 'Girona Fútbol Club' }, pt: { value: 'Girona Futbol Club' } },
+    };
+    // ES → es (consistente com "Real Madrid Club de Fútbol", "Getafe Club de Fútbol")
+    expect(pickName(girona, 'ES')).toBe('Girona Fútbol Club');
+    // AR → es → "Club Atlético Boca Juniors" (mesma forma do "Club Atlético River Plate")
+    const boca: Entity = {
+      labels: { es: { value: 'Club Atlético Boca Juniors' }, en: { value: 'Boca Juniors' } },
+    };
+    expect(pickName(boca, 'AR')).toBe('Club Atlético Boca Juniors');
+  });
+
+  it('sem país cai em pt → en → es; sem rótulo devolve null', () => {
     expect(
-      pickName({
-        labels: { pt: { value: 'Club Atlético Boca Juniors' }, en: { value: 'Boca Juniors' } },
-      } as Entity),
-    ).toBe('Club Atlético Boca Juniors');
-    expect(pickName({ labels: { en: { value: 'Liverpool F.C.' } } } as Entity)).toBe(
-      'Liverpool F.C.',
+      pickName({ labels: { pt: { value: 'Club Libertad' }, en: { value: 'Libertad' } } } as Entity),
+    ).toBe('Club Libertad');
+    expect(pickName({ labels: { en: { value: 'The Strongest' } } } as Entity)).toBe(
+      'The Strongest',
     );
     expect(pickName({} as Entity)).toBeNull();
+  });
+});
+
+describe('pickVenue', () => {
+  it('escolhe o estádio de MAIOR capacidade (P115 lista a história do clube)', () => {
+    // forma real do FC Barcelona: primeiro valor é o antigo Velòdrom (sem capacidade)
+    const club = ent({ P115: [id('Q_velodrom'), id('Q_campnou')] });
+    const venues = new Map<
+      string,
+      { entity: unknown; capacity: number | null; image: string | null }
+    >([
+      ['Q_velodrom', { entity: {}, capacity: null, image: null }],
+      ['Q_campnou', { entity: {}, capacity: 99354, image: null }],
+    ]);
+    const picked = pickVenue(club, venues as never);
+    expect(picked?.qid).toBe('Q_campnou');
+    expect(picked?.venue.capacity).toBe(99354);
   });
 });
 
