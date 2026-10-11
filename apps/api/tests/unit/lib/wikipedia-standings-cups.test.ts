@@ -31,6 +31,14 @@ describe('copa — UCL 2024-25 (FASE DE LIGA, sem coluna de grupo)', () => {
   it('não há tabela combinada com "Grp" (o formato mudou) — o fallback é que resolve', () => {
     expect(parseStandings(html, { requireGroup: true, minRows: 8 })).toHaveLength(0);
   });
+  it('V/E/D nas colunas certas (a legenda "v t e" colada virava o cabeçalho em "teamvte" e o idioma caía em unknown)', () => {
+    // Liverpool 2024-25 (fase de liga): 8J · 7V · 0E · 1D · 21 pts — fato real
+    const r = parseStandings(html, { minRows: 8 })[0];
+    expect(r.won).toBe(7);
+    expect(r.drawn).toBe(0);
+    expect(r.lost).toBe(1);
+    expect(r.points).toBe(21);
+  });
   it('artilheiro (Top goalscorers)', () => {
     const s = parseTopScorer(html);
     expect(s).not.toBeNull();

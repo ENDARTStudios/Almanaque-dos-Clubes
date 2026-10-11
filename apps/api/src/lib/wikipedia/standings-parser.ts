@@ -38,12 +38,16 @@ const stripTags = (s: string): string =>
     // Elementos INVISÍVEIS são chave de ordenação, não conteúdo: a de.wikipedia
     // escreve "Tore" como `<span style="visibility:hidden">0</span>99:32<span …>0</span>`
     // → sem remover, o texto vira "099:320" e o split lê 99/320.
+    // Substitui por ESPAÇO (não por vazio): o `<style>` da legenda "v t e" fica
+    // ENTRE "team" e "vte" e, removido a seco, o cabeçalho virava "teamvte" — o
+    // `\bteam\b` falhava e o idioma caía em `unknown` (colunas erradas: empates
+    // viravam null e as derrotas liam a coluna de empates).
     .replace(
       /<(span|div|b|i)[^>]*style="[^"]*(?:visibility\s*:\s*hidden|display\s*:\s*none)[^"]*"[^>]*>[\s\S]*?<\/\1>/gi,
-      '',
+      ' ',
     )
-    .replace(/<sup[\s\S]*?<\/sup>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<sup[\s\S]*?<\/sup>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, '')
     // entidades numéricas (decimal E hexadecimal): a de.wikipedia cerca a posição
     // com U+2002 (`&#x2002;1.`) — sem decodificar, `num()` leria "2002" do próprio
