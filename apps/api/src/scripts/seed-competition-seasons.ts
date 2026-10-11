@@ -276,10 +276,17 @@ async function main(): Promise<number> {
       }
       const topScorer = parseTopScorer(html);
 
-      // --- linhas: liga (classificação) ou copa (tabela combinada da fase de grupos)
-      const standings: StandingRow[] = isCup
-        ? parseStandings(html, { requireGroup: true, minRows: 8 })
-        : parseStandings(html);
+      // --- linhas: liga (classificação) ou copa.
+      // Copa tem DOIS formatos reais:
+      //  · tabela combinada da fase de grupos com coluna "Grp" (Libertadores);
+      //  · FASE DE LIGA única, sem coluna de grupo (UCL/UEL desde 2024-25: 36 times).
+      // Nos anos com grupos de 4 (UCL até 2023-24) o minRows=8 recusa as tabelas de
+      // grupo (4 linhas) — melhor sem classificação do que com 1 grupo só.
+      const cupRows = () => {
+        const withGroup = parseStandings(html, { requireGroup: true, minRows: 8 });
+        return withGroup.length > 0 ? withGroup : parseStandings(html, { minRows: 8 });
+      };
+      const standings: StandingRow[] = isCup ? cupRows() : parseStandings(html);
       const placements = isCup ? parseCupPlacements(html) : null;
 
       if (!isCup && standings.length < 4) {

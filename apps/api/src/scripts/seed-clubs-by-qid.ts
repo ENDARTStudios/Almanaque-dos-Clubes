@@ -92,8 +92,31 @@ export const TARGET_CLUBS_T513: Array<{ lang: 'de' | 'fr'; article: string; note
   { lang: 'fr', article: 'Le Havre Athletic Club (football)', note: 'Ligue 1' },
 ];
 
+/**
+ * T514 — clubes ausentes de Champions League / Europa League / Primeira Liga.
+ * Derivados dos ARTIGOS das tabelas (10 temporadas UCL/UEL + 5 da Primeira Liga
+ * parseadas → 144 QIDs → diff contra o acervo: 130 já existiam, sobraram 14).
+ * São os mercados menores (UKR, CRO, ISR, GRE, CYP, AZE, SRB, POL, BUL, POR).
+ */
+export const TARGET_CLUBS_T514: Array<{ lang: 'en' | 'pt'; article: string; note: string }> = [
+  { lang: 'en', article: 'FC Shakhtar Donetsk', note: 'UCL' },
+  { lang: 'en', article: 'GNK Dinamo Zagreb', note: 'UCL' },
+  { lang: 'en', article: 'Maccabi Haifa F.C.', note: 'UCL' },
+  { lang: 'en', article: 'Olympiacos F.C.', note: 'UCL' },
+  { lang: 'en', article: 'Pafos FC', note: 'UCL' },
+  { lang: 'en', article: 'Qarabağ FK', note: 'UCL' },
+  { lang: 'en', article: 'Red Star Belgrade', note: 'UCL' },
+  { lang: 'en', article: 'AEK Athens F.C.', note: 'UEL' },
+  { lang: 'en', article: 'AEK Larnaca FC', note: 'UEL' },
+  { lang: 'en', article: 'FK RFS', note: 'UEL' },
+  { lang: 'en', article: 'Legia Warsaw', note: 'UEL' },
+  { lang: 'en', article: 'PAOK FC', note: 'UEL' },
+  { lang: 'en', article: 'PFC Ludogorets Razgrad', note: 'UEL' },
+  { lang: 'pt', article: 'C.F. Estrela da Amadora', note: 'Primeira Liga' },
+];
+
 /** Todas as ondas curadas (--wave=all, default). */
-export const ALL_TARGET_CLUBS = [...TARGET_CLUBS, ...TARGET_CLUBS_T513];
+export const ALL_TARGET_CLUBS = [...TARGET_CLUBS, ...TARGET_CLUBS_T513, ...TARGET_CLUBS_T514];
 
 // ---------------------------------------------------------------------------
 // Tipos/leitores do Wikidata (subconjunto usado)
@@ -382,7 +405,13 @@ async function main(): Promise<number> {
   const APPLY_ON = values.apply || process.argv.includes('--apply');
   const wave = values.wave ?? 'all';
   const targets =
-    wave === 't512' ? TARGET_CLUBS : wave === 't513' ? TARGET_CLUBS_T513 : ALL_TARGET_CLUBS;
+    wave === 't512'
+      ? TARGET_CLUBS
+      : wave === 't513'
+        ? TARGET_CLUBS_T513
+        : wave === 't514'
+          ? TARGET_CLUBS_T514
+          : ALL_TARGET_CLUBS;
   const prisma = new PrismaClient();
   try {
     // --- 1) alvos → QIDs (derivados do artigo, ou explícitos) ---
