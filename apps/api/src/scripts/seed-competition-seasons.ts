@@ -426,8 +426,11 @@ async function main(): Promise<number> {
                   name: matched.find((m) => m.position === 1)?.clubName,
                   article: matched.find((m) => m.position === 1)?.clubArticle,
                 };
-        const runnerSrc =
-          labeled?.runnerUp != null
+        const runnerSrc = dual
+          ? // Liga MX: o vice é o PERDEDOR DA FINAL, não o 2º da fase regular — e o
+            // infobox só dá os campeões. Melhor null que um vice que não é o vice.
+            { name: null, article: null }
+          : labeled?.runnerUp != null
             ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
             : isCup
               ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
