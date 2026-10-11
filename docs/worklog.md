@@ -1055,3 +1055,75 @@ Stage Summary:
 - 4 PRs nesta rodada (#500 UCL/UEL/PL, #501 namespaces, #502 alias B-SAD,
   #503 espaçamento de blocos, #504 este checkpoint); 117/117 testes; backend verde
 
+---
+
+Task ID: goal-2026-10-10/t515
+Agent: Doer (ZCode)
+Task: T515 — Campeonato Brasileiro Série B + Major League Soccer + Liga MX
+
+Work Log:
+- AS TRÊS JÁ EXISTIAM no acervo (Série B Q610175, Liga MX Q764690, MLS Q18543) —
+  nenhum registro necessário. Duas estruturas novas exigiram suporte:
+  1. LIGA MX — DOIS torneios por temporada (Apertura/Clausura): o infobox lista os
+     dois campeões na MESMA célula ("Apertura: América | Clausura: Toluca") e o
+     artigo tem DUAS tabelas (18 clubes cada). Novos `parseSplitChampions` +
+     `parseStandingsTables` + modo `--dual-tournament`: grava 2 temporadas com
+     rótulo `{ano} Aper` / `{ano} Clau` — 9 caracteres (cabe no VARCHAR(9)) e
+     ordena CRONOLOGICAMENTE (ao contrário de "Apertura 2024", que jogaria todos
+     os Aperturas para o fim da ordenação alfabética).
+  2. MLS — o título é decidido no PLAYOFF, então o infobox NÃO tem "Champions":
+     o vencedor está sob o rótulo **"MLS Cup"**. Novo `parseChampionByLabel`
+     (= `--champion-label`). E a tabela GERAL tem 29-30 clubes, DEPOIS das
+     conferências (14-15) → `--min-rows=20`.
+- 3 BUGS pegos na execução (todos corrigidos):
+  1. SÉRIE B 2021 não parseava (0 linhas): o cabeçalho é `pos. | equipes | p | j |
+     v | e | d | …` — **"Equipes" no PLURAL** (o `\bequipe\b` falhava → idioma caía
+     em `unknown`) e **pontos como "P"**. Agora o pt aceita `\bequipes?\b` e o
+     léxico pt aceita `P` para pontos (em pt o P não é usado por outra coluna).
+     Validado: Botafogo campeão 2021 (20V-10E-8D, 70 pts ✓ real).
+  2. LIGA MX gravava o MESMO artilheiro nos dois torneios: o parser lê a PRIMEIRA
+     seção de artilharia (= Apertura). Agora só o 1º slot recebe; o Clausura fica
+     null (gap declarado — o parser não separa as seções com segurança).
+  3. **`undefined` ≠ `Prisma.DbNull`**: o primeiro fix do artilheiro usava
+     `undefined`, e no Prisma isso significa "NÃO mexa no campo" → no UPDATE o
+     artilheiro do Apertura SOBREVIVEU no Clausura (o banco mostrou o mesmo
+     artilheiro nos dois torneios). `Prisma.DbNull` grava SQL NULL de verdade —
+     mesma armadilha já tratada no campo `standings`.
+  (+ o "vice" da Liga MX: a posição 2 da fase regular NÃO é o vice — o vice é o
+   perdedor da FINAL. No modo dual o vice agora é null.)
+- CLUBES: 15 temporadas parseadas localmente → 91 QIDs → 34 JÁ EXISTIAM → 57
+  ausentes (--wave=t515): **51 criados** (ABC, Amazonas, Athletic-MG, Botafogo-SP,
+  Brusque, Coritiba, Cuiabá, Ferroviária, Goiás, Guarani, Ituano, Londrina,
+  Mirassol, Tombense, Vitória + 19 da MLS: Atlanta, Austin, Charlotte, Chicago,
+  Cincinnati, Columbus, Houston, Inter Miami, LAFC, Minnesota, Nashville, New
+  England, NYC FC, Orlando, San Diego, Sporting KC, St. Louis, Toronto + 13 da
+  Liga MX: América, Cruz Azul, Monterrey, Pachuca, Tigres, Toluca…) e
+  **6 ANEXADOS** (clubes que já existiam SEM QID: Vasco da Gama, Chapecoense,
+  Remo, Paysandu, Sampaio Corrêa, Volta Redonda) — o ingest anexa o QID em vez de
+  duplicar (o acervo tem até uma duplicata legada do Vasco). Re-run = noop.
+- TROFÉUS: Série B curada ("Trophy of Campeonato Brasileiro Série B" → a taça de
+  2018). Total: 17. GAPS declarados: MLS (a categoria só tem fotos de PESSOAS com
+  a taça) e Liga MX (não há categoria).
+- EXECUÇÃO: 20 temporadas gravadas (5 Série B + 5 MLS + 10 Liga MX) →
+  **74/74 temporadas com campeão — ZERO null** em 14 competições (67 com tabela;
+  as 7 sem são as copas com grupos de 4 e a Libertadores 2021). 11.961 clubes.
+- CAMPEÕES conferidos contra a realidade: Série B → Botafogo 2021, Cruzeiro 2022,
+  Vitória 2023, Santos 2024; MLS → NYCFC 2021, LAFC 2022, Columbus Crew 2023,
+  LA Galaxy 2024; Liga MX → Atlas bi 2021-22, Pachuca, Tigres, América tricampeão
+  (2023 Aper/2024 Clau/2024 Aper), Toluca 2025.
+- UI validada no navegador (Liga MX): 10 temporadas com rótulos "2021 Aper" … 
+  "2026 Clau" em ordem CRONOLÓGICA, cada uma com campeão, artilheiro e a tabela
+  de 18 clubes.
+
+GAPS DECLARADOS (T515): artilheiro do Clausura (n/d), vice da Liga MX (é o
+perdedor da final, que o infobox não publica), troféus de MLS e Liga MX.
+DECLARAÇÃO (D-2026-10-10): nenhum dado de teste/placeholder — tudo tem fonte
+(Wikipedia, com URL) e proveniência.
+
+Stage Summary:
+- 74/74 temporadas com campeão (0 null), 14 competições, 17 troféus, 11.961 clubes
+- 51 clubes criados + 6 QIDs anexados (re-run noop); 3 gaps declarados
+- 5 PRs nesta rodada (#505 Série B/MLS/Liga MX, #506 vice da Liga MX,
+  #507 artilheiro do Clausura, #508 Prisma.DbNull, #509 este checkpoint);
+  123/123 testes; backend verde
+
