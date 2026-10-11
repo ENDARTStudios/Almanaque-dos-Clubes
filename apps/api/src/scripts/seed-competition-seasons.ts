@@ -87,7 +87,10 @@ export async function matchClub(
   // 1) QID é a chave canônica (independe de grafia/idioma)
   if (opts.qid) {
     const byQid = await prisma.club.findFirst({
-      where: { qid: opts.qid, deletedAt: null, kind: { not: 'national_team' } },
+      // NÃO filtrar por kind: o QID é autoritativo e uma SELEÇÃO também é um
+      // resultado válido (as Olimpíadas casam sub-23/femininas por QID) — o filtro
+      // antigo recusava essas linhas (T517).
+      where: { qid: opts.qid, deletedAt: null },
       select: { id: true, name: true },
     });
     if (byQid) return byQid;

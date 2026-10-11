@@ -11,6 +11,8 @@ import {
   TARGET_CLUBS_T515,
   TARGET_CLUBS_T516,
   TARGET_NATIONS_T517,
+  isNationalTeamEntity,
+  nationalTeamGender,
   ALL_TARGET_CLUBS,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
@@ -239,5 +241,44 @@ describe('listas curadas (ondas)', () => {
   it('não há artigo duplicado dentro da mesma onda', () => {
     const keys = ALL_TARGET_CLUBS.map((t) => `${t.lang}|${t.article}`);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+describe('isNationalTeamEntity / nationalTeamGender (T517)', () => {
+  it('aceita seleção com país (senior e feminina)', () => {
+    expect(
+      isNationalTeamEntity(ent({ P31: [id('Q6979593')], P641: [id('Q2736')], P17: [id('Q155')] })),
+    ).toBe(true);
+    // feminina: classe própria, ainda é seleção
+    expect(
+      isNationalTeamEntity(
+        ent({ P31: [id('Q23905105'), id('Q6979593')], P641: [id('Q2736')], P17: [id('Q30')] }),
+      ),
+    ).toBe(true);
+  });
+
+  it('aceita seleção SEM P17 quando a CLASSE é de seleção (sub-23 da Guiné, Q16581714)', () => {
+    expect(isNationalTeamEntity(ent({ P31: [id('Q23759293')], P641: [id('Q2736')] }))).toBe(true);
+  });
+
+  it('REJEITA país, federação, clube e pessoa', () => {
+    expect(isNationalTeamEntity(ent({ P31: [id('Q3624078')] }))).toBe(false); // país
+    expect(
+      isNationalTeamEntity(ent({ P31: [id('Q476028')], P641: [id('Q2736')], P17: [id('Q29')] })),
+    ).toBe(false); // clube
+    expect(isNationalTeamEntity(ent({ P31: [id('Q5')] }))).toBe(false); // pessoa
+  });
+
+  it('gênero vem do rótulo/descrição', () => {
+    expect(
+      nationalTeamGender({
+        labels: { en: { value: "Brazil women's national football team" } },
+      } as Entity),
+    ).toBe('women');
+    expect(
+      nationalTeamGender({
+        labels: { en: { value: 'Argentina national under-23 football team' } },
+      } as Entity),
+    ).toBe('men');
   });
 });
