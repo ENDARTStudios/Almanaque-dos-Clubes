@@ -118,15 +118,21 @@ async function main(): Promise<number> {
       console.log(`    ✓ P31 esperado presente (${[...want].join(',')})`);
     }
 
-    // 3) mesmo NOME+país sem QID ⇒ preenche o QID (evita duplicata)
+    // 3) mesmo NOME + PAÍS ⇒ já existe (evita duplicata).
+    // O país é OBRIGATÓRIO no critério: 'Bundesliga' existe na ÁUSTRIA (Q219592) —
+    // casar só por nome impediria criar a alemã (o MESMO bug de homônimo do T510).
     const byName = await prisma.competition.findMany({
-      where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        name: { equals: name, mode: 'insensitive' },
+        deletedAt: null,
+        ...(values.country ? { country: values.country } : {}),
+      },
       select: { id: true, name: true, qid: true, country: true },
     });
     const attach = byName.find((c) => !c.qid);
     if (attach) {
       console.log(
-        `  nome "${name}" já existe SEM qid (${attach.id}) → ${APPLY_ON ? 'preenchendo' : 'preencheria'} o qid.`,
+        `  nome "${name}" (${attach.country ?? '—'}) já existe SEM qid (${attach.id}) → ${APPLY_ON ? 'preenchendo' : 'preencheria'} o qid.`,
       );
       if (!APPLY_ON) return 0;
       await prisma.competition.update({ where: { id: attach.id }, data: { qid } });
@@ -135,7 +141,7 @@ async function main(): Promise<number> {
     }
     if (byName.length > 0) {
       console.log(
-        `  já existe "${name}" com qid=${byName.map((c) => c.qid).join(',')} — nada a fazer.`,
+        `  já existe "${name}" no país ${values.country ?? '—'} com qid=${byName.map((c) => c.qid).join(',')} — nada a fazer.`,
       );
       return 0;
     }
