@@ -403,9 +403,15 @@ export function parseTopScorer(html: string): TopScorer | null {
     const headers = [...table.slice(0, headEnd).matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/gi)].map(
       (m) => stripTags(m[1]).toLowerCase(),
     );
+    // A tabela precisa ter COLUNA DE JOGADOR **e** de gols. Sem isso, a tabela
+    // não é de artilharia: a Bundesliga tem uma tabela de "Tore" POR CLUBE e ela
+    // era aceita — o artilheiro saía "SC Freiburg (58)" (gols do clube).
     const iGoals = findCol(headers, [/^(gol|goles|goals|reti|buts|gols|tore)/i]);
     if (iGoals < 0) continue;
-    const iPlayer = findCol(headers, [/^(jugador|giocatore|player|jogador|buteur|nome|name)/i]);
+    const iPlayer = findCol(headers, [
+      /^(jugador|giocatore|player|jogador|buteur|nome|spieler|speler|torschützen)/i,
+    ]);
+    if (iPlayer < 0) continue;
     let best: TopScorer | null = null;
     const body = table.slice(headEnd + 5);
     for (const tr of body.split(/<tr\b/i).slice(1)) {
@@ -413,11 +419,12 @@ export function parseTopScorer(html: string): TopScorer | null {
         ...(tr.split(/<\/tr>/i)[0] ?? '').matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi),
       ].map((m) => stripTags(m[1]));
       if (cells.length <= iGoals) continue;
-      const goals = num(cells[iGoals]);
-      const name =
-        iPlayer >= 0 && cells[iPlayer]
-          ? cells[iPlayer]
-          : cells.find((c, k) => k !== iGoals && /[A-Za-zÀ-ÿ]{4}/.test(c) && !/^\d/.test(c));
+      // A célula de gols precisa ser um INTEIRO LIMPO: a tabela de hat-tricks tem
+      // uma coluna "goals" que na verdade são os MINUTOS ("23', 48', 50'") e ela
+      // era aceita como tabela de artilharia (artilheiro saía "Ricardo Pepi").
+      const rawGoals = (cells[iGoals] ?? '').trim();
+      const goals = /^\d+$/.test(rawGoals) ? Number.parseInt(rawGoals, 10) : null;
+      const name = cells[iPlayer];
       // Guard: gols plausíveis (recordes ~35-40; 'Flamengo (33778)' é outra coluna).
       if (name && goals != null && goals > 0 && goals <= 60 && (!best || goals > best.goals)) {
         best = { name: name.trim(), goals };
@@ -426,23 +433,10 @@ export function parseTopScorer(html: string): TopScorer | null {
     if (best) return best;
   }
 
-  // 2) Fallback heurístico (tabela sem cabeçalho reconhecível).
-  let best: TopScorer | null = null;
-  for (const table of splitTables(after)) {
-    for (const tr of table.split(/<tr\b/i).slice(1)) {
-      const cells = [
-        ...(tr.split(/<\/tr>/i)[0] ?? '').matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi),
-      ].map((m) => stripTags(m[1]));
-      if (cells.length < 2) continue;
-      const name = cells.find((c) => /[A-Za-zÀ-ÿ]{4}/.test(c) && !/^\d+$/.test(c));
-      const goals = num(cells[cells.length - 1]);
-      if (name && goals != null && goals > 0 && goals <= 60 && (!best || goals > best.goals)) {
-        best = { name: name.trim(), goals };
-      }
-    }
-    if (best) break;
-  }
-  return best;
+  // Sem tabela com cabeçalho reconhecível: NÃO adivinhar. A heurística antiga
+  // ("maior número da última coluna") produzia dado ERRADO (artilheiro = clube),
+  // e o princípio do projeto é melhor null que errado.
+  return null;
 }
 
 /** Colocações finais de uma COPA (infobox): campeão e vice-campeão. */

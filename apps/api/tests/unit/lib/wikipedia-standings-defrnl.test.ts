@@ -64,21 +64,25 @@ describe('parseStandings — NL (Eredivisie 2024/25)', () => {
   });
 });
 
-describe('parseTopScorer — âncoras DE/FR/NL', () => {
-  it('de (Torschützenkönig)', () => {
+describe('parseTopScorer — âncoras DE/FR/NL (valores REAIS de 2024-25)', () => {
+  it('de: Harry Kane, 26 gols (NUNCA um clube — a tabela "Tore" por clube era aceita)', () => {
     const s = parseTopScorer(fx('wikipedia-standings-bund2425.html'));
     expect(s).not.toBeNull();
-    expect(s!.goals).toBeGreaterThan(15);
+    expect(s!.name.toLowerCase()).toContain('kane');
+    expect(s!.goals).toBe(26);
   });
-  it('fr (Meilleurs buteurs)', () => {
+  it('fr: Ousmane Dembélé, 21 gols', () => {
     const s = parseTopScorer(fx('wikipedia-standings-ligue1_2425.html'));
     expect(s).not.toBeNull();
-    expect(s!.goals).toBeGreaterThan(15);
+    expect(s!.name.toLowerCase()).toContain('demb');
+    expect(s!.goals).toBe(21);
   });
-  it('nl (Topscorers)', () => {
-    const s = parseTopScorer(fx('wikipedia-standings-ere2425.html'));
-    expect(s).not.toBeNull();
-    expect(s!.goals).toBeGreaterThan(15);
+  it('nl: devolve null (a coluna de gols da tabela NL é SEM CABEÇALHO) — melhor null que errado', () => {
+    // A tabela real é "Pos. | Speler | Club | Wed | (vazio) | (vazio) | Gem": a
+    // coluna de gols não tem rótulo. A única tabela com "goals" é a de HAT-TRICKS
+    // (minutos: "23', 48'…") → não é artilharia. Sem rótulo confiável, devolve null
+    // em vez de "Ricardo Pepi" (que era o que a heurística antiga produzia).
+    expect(parseTopScorer(fx('wikipedia-standings-ere2425.html'))).toBeNull();
   });
 });
 
