@@ -368,7 +368,10 @@ async function main(): Promise<number> {
           );
           continue;
         }
-        if (isCup && !placements?.champion && standings.length < 8) {
+        // Copa precisa de ALGUM dado: colocações finais no infobox, tabela de
+        // grupos combinada OU final em dois jogos (Recopa) — o guard antigo não
+        // conhecia o `--two-leg-final` e descartava a Recopa inteira.
+        if (isCup && !placements?.champion && !twoLegFinal && standings.length < 8) {
           console.log(
             `  ${season}: copa sem colocações finais nem tabela de grupos — nada a fazer.`,
           );
