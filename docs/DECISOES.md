@@ -1656,3 +1656,36 @@ corpus amostrado — BR usa outras classes/P118 (Brasileirão Feminino et al): n
 por P118; (2) coords: o seed não traz P625 → mapa feminino vazio até onda de enriquecimento
 T471-estilo; (3) seleções nacionais femininas entram como "clubes" (classes do connector) —
 qualidade de dado a curar em onda futura.
+
+### [2026-10-11] Decisão: D-2026-10-11-auditar-por-producao — auditoria de marco ancora em PRODUÇÃO (curl + SELECT), nunca em documento/checklist/snapshot
+
+**Contexto:** uma análise externa, **sem ferramentas de web**, concluiu que "nenhum marco foi
+atingido" e que o projeto é uma "plataforma técnica vazia". A conclusão foi lida do bloco
+"STATUS CONSOLIDADO — 2026-09-02" de `docs/PLANO_MESTRE.md` **como se fosse o estado atual** —
+um snapshot de 5 semanas antes, que ainda registrava 1.889 clubes e "Ingestão Wikidata (script
+pronto, não executado)". O erro não estava no produto: estava no instrumento de medição.
+
+**Decisão:** auditoria de marco (o que está entregue) ancora em **produção**, com `curl` nas
+rotas públicas e `SELECT` read-only no Postgres via `railway ssh`. Documento, checklist e
+snapshot são **registro histórico datado**, nunca fonte de estado. É a R3 (dispatch ancora em
+query de produção) estendida ao próprio ato de auditar — e a causa raiz registrada daqui em
+diante para qualquer auditoria que chegue de fora.
+
+**Evidência da reconciliação (11-10-2026, deploy da API `211539ba`):** 28/28 rotas públicas
+retornando 200 com HTML real · 12.001 clubes (11.992 com QID, 6.472 com lat+lng, 502 femininos) ·
+105.211 jogadores (4.974 femininos) · 1.932 competições · **114 temporadas, 114 com campeão**,
+104 com vice, 78 com classificação, 70 com artilheiro · 293 entradas de ranking · 5.205 arestas
+WON com proveniência 100% · 19 competições com trophyImageUrl · 8 páginas legais no ar · Stripe
+LIVE (M3). **18 itens** que o documento marcava `[ ]` estão vivos; o checklist do PLANO_MESTRE
+foi corrigido no lugar, com banner de supersessão nos dois blocos de 02-09.
+
+**Gaps que permanecem (nomeados, finitos — o que a crítica acertou):** visualizador 360º · hino ·
+flâmula · uniformes históricos (`Club.kitHistory` com 0 registros) · ranking de jogadores (sem
+tabela) · `matches` vazia (0) · mídia em escala (logo 2,4%, foto 0,8%, estádio 4,4%) ·
+`Player.clubId` 100% nulo · estádios sem PostGIS (D-2026-10-01-postgis-production-deferred) ·
+RAG sem store vetorial · `/metrics` não exposto (404) · DAST e carga fora do CI · DPO nomeado.
+
+**Critério de marco (declarado):** percentual com denominador indefinido ("quantos clubes existem
+no planeta?") não mede marco. O critério que vale é o de **escopo** — e o Escopo 1 (competições de
+clubes continentais/nacionais + seleções principais, com campeão, vice, classificação e artilheiro)
+está COMPLETO desde T517. Ver `docs/worklog.md` (goal-2026-10-11/t518).

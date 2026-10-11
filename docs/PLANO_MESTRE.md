@@ -8,6 +8,8 @@
 ## 📋 PROGRESSO GERAL (CHECKLIST RESUMIDA — T002, 2026-08-11)
 
 > **Reconciliação 2026-09-02:** status consolidado atualizado em "STATUS CONSOLIDADO — 2026-09-02" (final do arquivo). Este checklist por fase reflete o estado por Fase; aquele reflete o estado por domínio com o backlog completo.
+>
+> **Reconciliação 2026-10-11 (⚠️ VIGENTE):** o estado atual está em **"📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)"** (final do arquivo). O bloco de 2026-09-02 e os checklists de escopo ficaram defasados por T443–T517 (ex.: ele registra 1.889 clubes/2.396 jogadores; a produção tem 12.001/105.211). **Regra: marco se audita pela PRODUÇÃO (`curl` + `SELECT`), nunca por este documento** — é exatamente a armadilha que produziu uma auditoria externa dizendo "nenhum marco atingido" em 11-10-2026. Os itens do checklist abaixo foram corrigidos no lugar em 2026-10-11 e marcados com a evidência.
 
 - [x] Fase 0 – Setup `[OBRIGATÓRIO]` ✅ (T002: lint 0 erros, typecheck 0 erros)
 - [x] Fase 1 – Infra base `[OBRIGATÓRIO]` ✅ (testes de integração 17/17)
@@ -263,6 +265,8 @@ Fila avança para M2 (Beta Fechada engajar: rankings 0-100 + favoritos + compara
 
 ## Estado Final do Projeto (reconciliado 2026-09-02)
 
+> ⚠️ **SUPERADO em 2026-10-11** — a tabela de % abaixo é a de 02-09-2026 (ex.: Compliance 10%, Features Core 5%, Dados 1%). O estado vigente está em **"📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)"**, no final do arquivo. Regra: **D-2026-10-11-auditar-por-producao**.
+
 > Sobreposição/resumo executivo da base técnica concluída. O detalhamento por domínio e o backlog completo estão em
 > **"## 📊 STATUS CONSOLIDADO — 2026-09-02"** (final deste arquivo) e em `./docs/06-devops-deployment/RECONCILIATION-REPORT.md`.
 
@@ -457,6 +461,8 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 ## 📊 STATUS CONSOLIDADO — 2026-09-02 (Relatório de Status)
 
+> ⚠️ **SUPERADO em 2026-10-11.** Este bloco é o **registro histórico de 02-09-2026** e NÃO descreve o estado atual. A versão vigente é a seção "📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)", no final do arquivo. Por decisão **D-2026-10-11-auditar-por-producao**, os itens de checklist abaixo que a produção já contradizia foram corrigidos no lugar (marcados com ✅/data) para não induzir auditorias futuras ao erro; o texto original de 02-09 permanece onde não houve re-verificação.
+
 > **Data:** 02/09/2026 · **Branch main:** `50af90c` · **Regime:** padrão operacional (CI verde).
 > Fonte: Relatório de Status do Projeto (02/09/2026) + governança SIMBIOTICO (T274–T401).
 
@@ -567,91 +573,96 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 **O que define o Almanaque como produto, não como plataforma:**
 
-- [~] **Mapa-múndi interativo** — **código pronto** (`/map` Leaflet, círculos por clube, popup; 113 clubes com coords; T65). **Live deploy web bloqueado por Vercel build-rate-limit (externo)**; transições fluídas continente→país ainda são milestone WS-C
-- [ ] **Barra de pesquisa global** preditiva (Meilisearch ou OpenSearch)
-- [x] **Ranking 0-100** com normalização MinMax (cron diário 03:00 UTC — T438: job BullMQ ativo + CLI + métricas; publica somente com clubes ranqueáveis; conteúdo completo aguarda ETL de partidas/títulos, M4)
-- [ ] **Ranking de jogadores** (mesmo algoritmo, isolado por gênero)
-- [ ] **Futebol feminino integrado** (normalização independente)
-- [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf)
-- [x] **Painel de favoritos em tempo real** (T439)
-- [x] **Comparadores clube×clube e jogador×jogador** (T440)
-- [x] **Carrossel de campeões** (T441)
-- [x] **Backup remoto R2 + drill semanal** (T446: pg_dump primário + restore drill counts idênticos + alerta anomalia tamanho) (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção)
-- [x] **Comparadores clube×clube e jogador×jogador** (T440: /compare com autocomplete duplo, tabela com líder por métrica, gráficos recharts responsivos/acessíveis, cache Redis 5min, deep-link com SEO dinâmico; métricas de partidas/gols honestamente vazias até o ETL M4)
-- [x] **Carrossel de campeões** (T441: GET /champions por hierarquia via KnowledgeGraph WON — ano mais recente vence, cache 1h; carrossel scroll-snap CSS puro com teclado/dots/aria-live; hierarquia sem dados → null+reason e estado vazio honesto na home; conteúdo aparece automaticamente com o ETL M4)
-- [ ] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio)
-- [ ] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico)
-- [ ] **Linha do tempo** de clubes e jogadores
-- [ ] **Comparações** (clube×clube, jogador×jogador, com gráficos)
-- [ ] **Uniformes históricos** por temporada (titular/reserva/alternativo)
+- [x] **Mapa-múndi interativo** — `/map` 200; `GET /geo/points` devolve pontos reais e `GET /clubs/geo-stats` o choropleth derivado (**3.829 clubes com país, 168 países, 97 estados**); o acervo tem **6.472 clubes com lat+lng**. A nota antiga de "live deploy bloqueado por build-rate-limit (externo)" era do T65 e não vale mais: a página está no ar. O que falta é o milestone visual continente→país (WS-C)
+- [x] **Barra de pesquisa global** — `/search` 200 e `GET /search/global?q=` devolvendo clubes com atribuição (busca textual `tsvector`; Meilisearch/OpenSearch segue como decisão do Operador)
+- [~] **Ranking 0-100** com normalização MinMax (cron diário 03:00 UTC — T438: job BullMQ ativo + CLI + métricas) — **parcial**: `GET /rankings` publica hoje **293 entradas** (posição + pontuação, faixa 0–2848). A escala normalizada 0-100 por clube depende do ETL de partidas (M4); as entradas atuais derivam das temporadas catalogadas
+- [ ] **Ranking de jogadores** — **não existe**: `ranking_entries` só referencia clube; não há tabela de ranking de jogador (débito M4)
+- [x] **Futebol feminino integrado** — **502 clubes e 4.974 jogadoras** com gênero próprio; ranking feminino publicado (Paulista Feminino 2026, Palmeiras 1º)
+- [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf) — **não existe** (nenhum asset 3D no repo)
+- [x] **Painel de favoritos em tempo real** (T439: WebSocket próprio /ws com ticket curto single-use — sem Supabase/SSE; RLS owner-only FORCE, soft-delete, rate-limit por usuário, E2E cross-user em produção) — `/favoritos` 200 + API `/favorites` + feed
+- [x] **Comparadores clube×clube e jogador×jogador** (T440: /compare com autocomplete duplo, tabela com líder por métrica, gráficos recharts responsivos/acessíveis, cache Redis 5min, deep-link com SEO dinâmico; métricas de partidas/gols honestamente vazias até o ETL M4) — `/compare` e `/clubs/compare` 200, `GET /compare/clubs` e `/compare/players` no ar
+- [x] **Carrossel de campeões** (T441: GET /champions por hierarquia via KnowledgeGraph WON — ano mais recente vence, cache 1h; carrossel scroll-snap CSS puro com teclado/dots/aria-live) — `GET /champions/carousel` ao vivo (Real Madrid, mundial 2023), com fonte por card
+- [~] **Perfil completo de clube** (história, elencos, conquistas, derrotas, hino, flâmula, estádio) — `/clubs/:id` renderiza (ex.: Chelsea — cidade, fundação 1905, competições, galeria de honra, estádio) sobre **12.001 clubes**. **Gaps de mídia: logo em 290 (2,4%) e estádio em 528 (4,4%); hino, flâmula e uniforme não existem** (ver seção de dados)
+- [x] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico) — `/players/:id` renderiza (carreira, nascimento, estatísticas) sobre **105.211 jogadores**. **Gaps: foto em 864 (0,8%) e `Player.clubId` 100% nulo** (vínculo clube-atual não ingerido)
+- [~] **Linha do tempo** de clubes e jogadores — API de timeline existe (WS-C-5); a superfície de UI não foi re-auditada nesta reconciliação
+- [x] **Comparações** (clube×clube, jogador×jogador, com gráficos) — ver "Comparadores" acima
+- [ ] **Uniformes históricos** por temporada (titular/reserva/alternativo) — a coluna `Club.kitHistory` existe mas tem **0 registros preenchidos**
+- [x] **Tabelas de competição** (classificação, artilheiro, campeão/vice) — **114 temporadas catalogadas, 114 com campeão, 104 com vice, 78 com classificação e 70 com artilheiro** (T508–T517), com parser Wikipedia multilíngue (`apps/api/src/lib/wikipedia/standings-parser.ts`) e proveniência por temporada; ao vivo: Copa do Mundo de Clubes 2025 — Chelsea 1º (7J·6V·18pts), PSG 2º
 
 #### 🔧 Produto — Infra Avançada (Fase 6)
 
-- [ ] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia) — cron = T451
-- [ ] **Web scrapers** (Python/BeautifulSoup para federações locais)
-- [ ] **IA RAG** com citações verificáveis (pgvector + LLM open-source)
-- [~] **Knowledge Graph** (jogador→clube→competição→título) — T448 fechou a camada `WON` (conquistas) com proveniência por aresta e leitura congelada; `PLAYED_FOR` feminino (WS-O womens) e demais relações conforme WS-D avança
-- [ ] **Upload antivírus** (ClamAV em container)
-- [ ] **Cache Redis** read-through em listas frequentes
-- [ ] **Fila BullMQ** completa (ETL, emails, reprocessamento de rankings)
-- [ ] **Exportação de dados** com rate limit + paginação
-- [ ] **Feature flags** com UI
+- [x] **ETL automático** (conectores RSSSF, FBref, Wikidata, Wikipedia) — **ativo em produção** desde T451 (`wikidata-incremental` diário 03:00 UTC + `integrity-check` semanal dom 04:00; D-2026-10-02-etl-scheduler-activated), somado às ondas de ingestão T473–T517 (RSSSF estaduais, pirâmide inglesa, tabelas Wikipedia por competição)
+- [~] **Web scrapers** — a extração de tabelas roda em **TypeScript** (`apps/api/src/lib/wikipedia/standings-parser.ts` via `action=parse`), não em Python/BeautifulSoup; federações locais seguem fora de escopo (CBF descartada por ToS)
+- [~] **IA RAG** com citações verificáveis (pgvector + LLM open-source) — **parcial**: `POST /ai/ask` existe e a página `/como-usamos-ia` está publicada, mas **não há pgvector** no schema (nenhum store vetorial)
+- [~] **Knowledge Graph** (jogador→clube→competição→título) — T448 fechou a camada `WON` com proveniência por aresta; **produção: 5.205 arestas, proveniência 100%**. `PLAYED_FOR` feminino (WS-O womens) e demais relações conforme WS-D avança
+- [ ] **Upload antivírus** (ClamAV em container) — **não implementado** (nenhuma referência no código; só citado nos planos)
+- [x] **Cache Redis** read-through em listas frequentes — integrado em clubs/compare (o no-op silencioso de produção foi corrigido no #313)
+- [x] **Fila BullMQ** completa (ETL, emails, reprocessamento de rankings) — ativa em produção (workers ETL/notificações; o hotfix #303 corrigiu o nome da fila no `createWorker`)
+- [x] **Exportação de dados** com rate limit + paginação — `GET /export` no ar e gated (401 sem auth); rate-limit/paginação não re-auditados nesta reconciliação
+- [ ] **Feature flags** com UI — **não existe** sistema de flags no código; o que existe são variáveis de ambiente (ex.: `LEGAL_PAGES_ENABLED`, `ETL_SCHEDULER_ENABLED`)
 
 #### 📊 Produto — Dados Reais
 
-- [~] **Seed de dados** — **1.889 clubes** + **895 competições** (via Wikidata, WS-D/2026-09-02, `./docs/07-operations-marketing/DATA-INGESTION.md`; recentemente com **type LEAGUE** por classe); **2.396 jogadores** notáveis (via Wikidata)
-- [ ] **Ingestão Wikidata** (script pronto no Escopo 2, não executado)
-- [~] **Arestas WON (títulos de clubes)** — T448 + T448b-1: conector P1346 + dedup idempotente + hierarquia/gênero congelados + fonte por aresta + galeria de honra + carrossel com tie-break determinístico (T448c); **produção: 5.157 arestas (mundial 16 · continental 268 · nacional 4.873), zero duplicação, proveniência 100%**; gap residual 514 (copas de onze/estaduais regionais) → T448b-2; refinamento de critério (edições futuras) com T449
-- [ ] **Ingestão RSSSF** (arquivo histórico global)
-- [ ] **Ingestão de federações** (divisões inferiores, futebol feminino, amador)
-- [ ] **Dados de estádios** (coordenadas PostGIS, curiosidades)
-- [ ] **Dados de hinos** (Wikimedia Commons)
-- [ ] **Dados de uniformes** (imagens históricas)
+- [x] **Seed de dados** — **12.001 clubes** (11.992 com `importedFrom`/QID via Wikidata) + **1.932 competições** + **105.211 jogadores** + **114 temporadas de competição** e **19 troféus** com imagem curada (contagens verbatim de produção em 2026-10-11)
+- [x] **Ingestão Wikidata** — **executada e ativa** (o "script pronto, não executado" era verdade em 02-09; hoje roda por cron diário — T451 — e pelas ondas T473–T517)
+- [x] **Arestas WON (títulos de clubes)** — T448 + ondas posteriores; **produção: 5.205 arestas com proveniência 100%**, zero duplicação, hierarquia/gênero congelados na escrita, fonte por aresta (CC0)
+- [~] **Ingestão RSSSF** (arquivo histórico global) — **7 estaduais** (T035) + pirâmide inglesa; o arquivo global completo segue pendente
+- [ ] **Ingestão de federações** (divisões inferiores, amador) — CBF descartada por ToS; não feita
+- [~] **Dados de estádios** — 528 clubes com `stadiumName`, 311 com imagem e 84 com registro em `stadiums`; **`stadiums.location`/PostGIS ausente em produção** (decisão de infra do Operador — T471)
+- [ ] **Dados de hinos** (Wikimedia Commons) — **não existem**: nenhuma coluna/tabela de hino
+- [ ] **Dados de uniformes** (imagens históricas) — `Club.kitHistory` existe como coluna, **0 preenchido**; `teamColors` em 2 clubes
+- [ ] **Partidas** — tabela `matches` **vazia (0 registros)**; é a dependência do ranking completo e dos gráficos de comparação (M4/T449)
 
 #### 🎨 Frontend (Fase 5)
 
-- [ ] **Páginas públicas:** clube, jogador, competição, partida, ranking
-- [ ] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos
-- [ ] **Páginas legais:** privacidade, termos, cookies, segurança, contato
-- [ ] **Checkout** (preço, periodicidade, renovação, limites visíveis antes do pagamento)
-- [ ] **Acessibilidade WCAG 2.1 AA** (labels, ARIA, contraste, teclado)
-- [ ] **Lighthouse > 90** em performance/acessibilidade/SEO
-- [ ] **PWA** (offline-first opcional)
-- [ ] **DOMPurify** em HTML dinâmico
+- [x] **Páginas públicas:** clube, jogador, competição, partida, ranking — `/clubs`, `/players`, `/competitions` (com abas de temporada) e `/rankings` respondem 200 com conteúdo; `/matches` ainda não tem dados (tabela vazia)
+- [x] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos — `/dashboard`, `/dashboard/subscription`, `/dashboard/history` e `/favoritos` 200
+- [x] **Páginas legais:** privacidade, termos, cookies, segurança, contato — **8 rotas 200** (`/privacidade`, `/termos`, `/cookies`, `/seguranca`, `/direitos-titular`, `/direitos-autorais`, `/termos-assinatura`, `/como-usamos-ia`)
+- [x] **Checkout** (preço, periodicidade, renovação, limites visíveis antes do pagamento) — `/planos` e `/checkout` 200 com mensal/anual/preço/renovação/limites; Stripe LIVE (ver M3)
+- [~] **Acessibilidade WCAG 2.1 AA** (labels, ARIA, contraste, teclado) — esforço aplicado (aria-live, navegação por teclado, dots do carrossel), mas **sem auditoria axe/Lighthouse automatizada** no repo; não re-verificado nesta reconciliação
+- [ ] **Lighthouse > 90** em performance/acessibilidade/SEO — **sem medição versionada** (Speed Insights entrou gateado no consentimento, mas não é o gate de Lighthouse)
+- [~] **PWA** (offline-first opcional) — `apps/web/src/app/manifest.ts` publicado; **sem service worker/offline**
+- [x] **DOMPurify** em HTML dinâmico — `apps/web/src/lib/sanitize.ts` + dependência declarada
 
 #### 🧪 Testes (Fase 8)
 
-- [ ] **Cobertura ≥ 80%** em services
-- [ ] **Testes E2E** (login → pesquisa → detalhes → favoritos)
-- [ ] **Testes de carga** (1.000 usuários concorrentes, p95 < 500ms)
-- [ ] **DAST** (OWASP ZAP semanal em staging)
-- [ ] **Testes do pipeline de IA** (citações verificáveis)
+- [~] **Cobertura ≥ 80%** em services — `test:coverage` existe (vitest + `@vitest/coverage-v8`), mas **o percentual não é medido nem versionado no repo**; não re-verificado nesta reconciliação
+- [x] **Testes E2E** (login → pesquisa → detalhes → favoritos) — **Playwright** em `apps/web/tests/e2e` (app, auth-nav, champions, checkout-i18n, club-titles, compare, consent, favorites, map-choropleth, entre outros)
+- [~] **Testes de carga** (1.000 usuários concorrentes, p95 < 500ms) — k6 existe em `scripts/k6/load-test.js`; **execução manual** (fora do CI), resultado não re-verificado
+- [ ] **DAST** (OWASP ZAP semanal em staging) — **sem configuração no repo** (só há testes de headers de segurança em `apps/api/tests/security`)
+- [ ] **Testes do pipeline de IA** (citações verificáveis) — não há pipeline de IA com citações a testar (ver RAG sem pgvector)
 
 #### 🔭 Observabilidade (Fase 9)
 
-- [ ] **Logs centralizados** (Loki ou Better Stack)
-- [ ] **Métricas** (Prometheus + Grafana)
-- [ ] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min)
-- [ ] **Uptime check externo** (UptimeRobot)
-- [~] **Backup automático** do PostgreSQL — **scripts backup/restore prontos e verificados** (round-trip, retenção 30d; `./docs/06-devops-deployment/BACKUP_DR.md`). **Cron diário** a configurar no Railway (scheduled job); Railway tem backups nativos (snapshots/PITR) como camada extra
+- [ ] **Logs centralizados** (Loki ou Better Stack) — não configurado
+- [~] **Métricas** (Prometheus + Grafana) — `apps/api/src/modules/observability/metrics.ts` existe no código, mas **nenhum endpoint `/metrics` está exposto em produção** (404 em 11-10-2026)
+- [~] **Alertas** (5xx > 1% em 5min, falhas auth > 50 em 1min) — `observability/alerts.ts` existe no código; entrega externa (Slack/webhook) não verificada
+- [ ] **Uptime check externo** (UptimeRobot) — não verificado
+- [~] **Backup automático** do PostgreSQL — **scripts backup/restore prontos e verificados** (round-trip, retenção 30d; `./docs/06-devops-deployment/BACKUP_DR.md`) + **backup remoto R2 com drill semanal** (T446: pg_dump primário, restore com counts idênticos, alerta de anomalia de tamanho). **Cron diário** no Railway é ação do Operador; Railway tem backups nativos (snapshots/PITR) como camada extra
 
 ### 📊 Resumo Executivo
 
-| Dimensão                    | Status       | % estimado |
-| --------------------------- | ------------ | ---------- |
-| **Infraestrutura & DevOps** | 🟢 Concluída | 95%        |
-| **Segurança & Hardening**   | 🟢 Concluída | 90%        |
-| **Autenticação & Sessão**   | 🟢 Concluída | 95%        |
-| **Schema & Migrations**     | 🟢 Concluído | 85%        |
-| **Compliance Legal**        | 🔴 Crítico   | 10%        |
-| **Features Core (produto)** | 🔴 Crítico   | 5%         |
-| **Dados reais (conteúdo)**  | 🔴 Crítico   | 1%         |
-| **Frontend UX**             | 🟡 Parcial   | 30%        |
-| **IA/ETL/Knowledge Graph**  | 🔴 Crítico   | 5%         |
-| **Testes avançados**        | 🟡 Parcial   | 40%        |
-| **Observabilidade**         | 🟡 Parcial   | 30%        |
+> Valores **corrigidos em 2026-10-11** por evidência de produção. As % são estimativa calibrada (a fonte de verdade é o checklist acima, item a item); o que mudou em relação à leitura de 02-09 está marcado.
+
+| Dimensão                    | Status       | % (02-09 → 11-10) | Base da mudança                                                        |
+| --------------------------- | ------------ | ----------------- | ---------------------------------------------------------------------- |
+| **Infraestrutura & DevOps** | 🟢 Concluída | 95% → 95%         | inalterado                                                             |
+| **Segurança & Hardening**   | 🟢 Concluída | 90% → 90%         | inalterado (P3: CSP→nonce, HSTS preload)                               |
+| **Autenticação & Sessão**   | 🟢 Concluída | 95% → 95%         | inalterado                                                             |
+| **Schema & Migrations**     | 🟢 Concluído | 85% → 90%         | +CompetitionSeason/geo/KG; falta PostGIS                               |
+| **Compliance Legal**        | 🟢 Quase     | 10% → 85%         | 8 páginas legais no ar · T445/T453 · CNPJ público · Stripe LIVE (M3)   |
+| **Features Core (produto)** | 🟡 Parcial   | 5% → 70%          | mapa, busca, favoritos, comparadores, carrossel, feminino, TPs, perfis |
+| **Dados reais (conteúdo)**  | 🟡 Parcial   | 1% → 40%          | 12.001 clubes · 105.211 jogadores · 114 temporadas · 5.205 WON         |
+| **Frontend UX**             | 🟢 Quase     | 30% → 85%         | 38 rotas (28 públicas 200) · checkout · i18n ×3                        |
+| **IA/ETL/Knowledge Graph**  | 🟡 Parcial   | 5% → 60%          | ETL ativo (T451) · WON 5.205 provado; RAG sem pgvector                 |
+| **Testes avançados**        | 🟡 Parcial   | 40% → 55%         | +Playwright E2E; falta cobertura medida, DAST e carga no CI            |
+| **Observabilidade**         | 🟡 Parcial   | 30% → 40%         | código existe; métricas/alertas não expostos/entregues                 |
+
+> A % de "Dados reais" tem denominador **indefinido** (quantos clubes existem no planeta?) — ela não é comparável a um marco. O critério que vale é o de escopo: **o Escopo 1 (competições de clubes continentais/nacionais + seleções principais, com campeão, vice, classificação e artilheiro) está COMPLETO** (T517, 114/114 temporadas com campeão em 21 competições).
 
 ### 🎯 Conclusão honesta
+
+> **A leitura abaixo é a de 02-09-2026 e está SUPERADA.** Ela foi citada por uma auditoria externa em 11-10-2026 como se vigente — e é o motivo da regra D-2026-10-11-auditar-por-producao. Mantida aqui como registro.
 
 **O projeto tem uma base técnica (infra + segurança + auth + CI) excepcionalmente sólida — nível produção empresarial.**
 Mas ainda **não é o produto Almanaque dos Clubes** descrito no Escopo 1/2. É uma plataforma pronta para hospedar o
@@ -661,19 +672,17 @@ Almanaque, mas faltam:
 2. **A experiência** (mapa-múndi, rankings, favoritos, 360º, comparações)
 3. **A legalidade** (banner cookies, termos, privacidade, gateway, CNPJ)
 
+**Conclusão vigente (11-10-2026):** dos três itens acima, **os três deixaram de ser verdadeiros como enunciado geral** — o conteúdo existe em escala (12.001 clubes/105.211 jogadores/114 temporadas com campeão), a experiência está no ar (mapa, busca, favoritos, comparadores, carrossel, feminino, perfis — 28 rotas públicas 200) e a legalidade foi publicada (8 páginas legais, CNPJ, Stripe LIVE em M3). O que **permanece aberto** é uma lista finita e nomeada: visualizador 360º, hino, flâmula, uniformes históricos, ranking dedicado de jogadores, tabela `matches` (partidas), cobertura de logo/foto (2,4%/0,8%), estádios sem PostGIS, RAG sem store vetorial, observabilidade sem exposição — todos listados no checklist acima.
+
 ### 🎲 Próximos marcos sugeridos
 
-**Para ir ao ar como Beta Fechada (100 usuários):**
+> Os cinco itens da "Beta Fechada (100 usuários)" foram **todos cumpridos** (compliance 85%, gateway LIVE, mapa no ar, acervo 12k clubes, perfis navegáveis) — e M1 (15-09), M3 (21-09) e o Escopo 1 (T517) foram declarados. O que resta é o **M4 (conteúdo/produto profundo)**:
 
-1. Compliance legal completo (pacote de publicação)
-2. Gateway de pagamento integrado
-3. Mapa-múndi interativo básico
-4. Seed de dados real (pelo menos 1.000 clubes via Wikidata)
-5. Perfis de clube/jogador navegáveis
-
-**Para Open Beta (1.000 usuários):** 6. Rankings 0-100 rodando em cron 7. Futebol feminino integrado 8. Painel de favoritos 9. ETL automático (Wikidata + RSSSF) 10. IA RAG com citações
-
-**Para v1.0 público:** 11. Knowledge Graph 12. Visualizador 360º 13. DAST + carga + observabilidade completos 14. Domínio próprio + DNSSEC
+1. ETL de partidas (`matches`) → destrava rankings completos e gráficos de comparação
+2. Ranking dedicado de jogadores (por gênero) + normalização 0-100 publicada
+3. Mídia em escala: logos de clube, fotos de jogador, uniformes históricos, hinos, flâmulas
+4. Visualizador 360º de troféus (Three.js) + troféus/estádios com curadoria licenciada
+5. Observabilidade exposta (métricas/alertas/logs) + DAST e carga no CI
 
 ---
 
@@ -758,3 +767,72 @@ Primeiro run + drenos: 74 cities preenchidas (P131, CC0, zero overwrite) · 0 er
 4 hotfixes de ativação (#301 414-chunk · #302 BullMQ maxRetries · #303 nome de fila no createWorker — ranking
 cron T425 provavelmente nunca consumiu; monitorar `rankings_last_run_*` · #305 anti-starving). Fila: Operador
 acompanha health; geo onda 2 = despacho novo.
+
+---
+
+## 📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)
+
+**Motivo:** uma auditoria externa, sem ferramentas de web, concluiu "**nenhum marco foi atingido** / plataforma
+técnica vazia" lendo o bloco "STATUS CONSOLIDADO — 2026-09-02" **como se fosse o estado atual**. A auditoria foi
+refeita contra a produção e o documento foi corrigido. Registro aqui o método e o resultado, para que a próxima
+auditoria não dependa de checklist.
+
+**Método (read-only, nenhuma escrita):** `curl` nas rotas públicas de `almanaquedosclubes.com` e nos endpoints de
+`api.almanaquedosclubes.com/api/v1` + `SELECT` no Postgres de produção via `railway ssh` (deploy da API
+`211539ba`, SUCCESS em 11-10-2026 19:03). Contagens verbatim, sem arredondamento.
+
+### Superfície pública (28 rotas testadas, todas 200 com HTML real)
+
+`/` · `/clubs` · `/competitions` · `/players` · `/rankings` · `/map` · `/search` · `/compare` · `/clubs/compare` ·
+`/favoritos` · `/planos` · `/checkout` · `/dashboard` · `/notifications` · `/mercado-da-bola` · `/metodologia` ·
+`/sobre` · `/como-usamos-ia` · `/privacidade` · `/termos` · `/cookies` · `/seguranca` · `/direitos-titular` ·
+`/direitos-autorais` · `/termos-assinatura` · `/auth/login` · `/auth/register` · `/preview/mapa` — **0 falhas**.
+
+### Acervo real (produção, 11-10-2026)
+
+| Dimensão                 | Número                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| Clubes                   | **12.001** (11.992 com QID/proveniência Wikidata; 6.472 com lat+lng; 502 femininos)  |
+| Jogadores                | **105.211** (4.974 femininos; 864 com foto)                                          |
+| Competições              | **1.932**                                                                            |
+| Temporadas de competição | **114** — **114 com campeão**, 104 com vice, 78 com classificação, 70 com artilheiro |
+| Ranking                  | **293 entradas** publicadas (posição + pontuação; faixa 0–2848)                      |
+| Knowledge Graph (WON)    | **5.205 arestas**, proveniência 100%                                                 |
+| Troféus com imagem       | **19 competições** (`trophyImageUrl`, Commons, curadoria por categoria — T511)       |
+
+Amostras ao vivo (não inventadas): Copa do Mundo de Clubes **2025** com classificação real (Chelsea 1º · 7J·6V·18pts ·
+17GP·5GC) e **2024** com campeão Real Madrid / vice Pachuca; `GET /champions/carousel` com Real Madrid (mundial 2023)
+e fonte por card; `GET /clubs/geo-stats` com 3.829 clubes mapeados em **168 países e 97 estados**; `GET /search/global?q=flamengo`
+devolvendo clubes com atribuição.
+
+### Itens retratados (eram `[ ]` em 02-09 e estão no ar)
+
+Mapa-múndi · barra de busca · futebol feminino integrado · perfil de clube · perfil de jogador · páginas públicas ·
+páginas privadas · páginas legais · checkout · DOMPurify · ETL automático · cache Redis · fila BullMQ · exportação de
+dados · ingestão Wikidata · arestas WON · tabelas de competição (classificação/artilheiro/campeão-vice) — todos com
+evidência acima. O item mais grave do documento antigo — "**Ingestão Wikidata (script pronto, não executado)**" — era
+verdade em 02-09 e **deixou de ser** em 02-10 (cron T451) e nas ondas T473–T517.
+
+### Gaps que permanecem abertos (lista finita, verificada)
+
+1. **Visualizador 360º** de troféus/bolas — não existe.
+2. **Hino e flâmula** — nenhuma coluna/tabela; não existem.
+3. **Uniformes históricos** — `Club.kitHistory` existe com **0 registros**.
+4. **Ranking de jogadores** — não há tabela (`ranking_entries` só referencia clube).
+5. **Ranking 0-100 global por clube** — parcial; a escala normalizada depende do ETL de partidas.
+6. **Partidas** — `matches` com **0 registros** (bloqueia rankings completos e gráficos de comparação).
+7. **Mídia em escala** — logo em 290/12.001 (2,4%), estádio em 528 (4,4%), foto de jogador em 864/105.211 (0,8%).
+8. **`Player.clubId`** — 100% nulo (vínculo clube-atual não ingerido).
+9. **Estádios** — 84 registros em `stadiums`, sem `location`/PostGIS em produção (decisão de infra do Operador).
+10. **RAG** — `POST /ai/ask` existe, mas sem store vetorial (pgvector) e sem citações verificáveis.
+11. **Observabilidade** — `metrics.ts`/`alerts.ts` no código, mas **sem `/metrics` exposto** (404) e entrega de alertas não verificada.
+12. **DAST e teste de carga** — sem configuração no CI (k6 existe como script manual); cobertura ≥80% não medida.
+13. **DPO nomeado/publicado** e **DNSSEC/HSTS preload** — pendências do Operador.
+
+### Decisão
+
+**D-2026-10-11-auditar-por-producao** — auditoria de marco (o que está entregue) ancora em **produção** (`curl` +
+`SELECT`), nunca em documento/checklist/snapshot. Corolário operacional: ao ler este arquivo, tratar o bloco de
+2026-09-02 e os checklists de fase como **histórico datado**; a fonte de verdade de estado é a produção. Reforça a R3
+(dispatch ancora em query de produção), agora estendida ao próprio ato de auditar. Este documento foi reconciliado no
+mesmo commit desta seção.
