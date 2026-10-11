@@ -82,7 +82,11 @@ interface Claim {
   mainsnak?: { datavalue?: { value?: unknown } };
   /** 'preferred' | 'normal' | 'deprecated' — o Wikidata marca o valor ATUAL como preferred. */
   rank?: string;
-  qualifiers?: Record<string, Claim[]>;
+  /**
+   * Qualificadores são SNAKS CRUS — NÃO têm o wrapper `mainsnak` que a claim tem:
+   * o caminho é `qualifiers.P580[0].datavalue.value.time` (e não `...mainsnak...`).
+   */
+  qualifiers?: Record<string, Array<{ datavalue?: { value?: unknown } }>>;
 }
 interface Entity {
   missing?: boolean;
@@ -307,9 +311,8 @@ export function pickVenue(
     return typeof v === 'object' && v !== null && 'id' in v ? (v as { id?: string }).id : undefined;
   };
   const startYear = (c: Claim): number => {
-    const time = (
-      c.qualifiers?.P580?.[0]?.mainsnak?.datavalue?.value as { time?: string } | undefined
-    )?.time;
+    // qualificador = snak cru (NÃO tem o wrapper `mainsnak` da claim)
+    const time = (c.qualifiers?.P580?.[0]?.datavalue?.value as { time?: string } | undefined)?.time;
     const y = time ? Number.parseInt(time.slice(1, 5), 10) : NaN;
     return Number.isFinite(y) ? y : -Infinity;
   };

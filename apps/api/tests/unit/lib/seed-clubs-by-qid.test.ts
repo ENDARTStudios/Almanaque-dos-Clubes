@@ -127,8 +127,9 @@ describe('pickVenue', () => {
   });
 
   it('sem preferred, usa o P580 MAIS RECENTE (San Lorenzo: Nuevo Gasómetro, não o Gasómetro antigo)', () => {
+    // FORMA REAL: qualificador é snak cru (`datavalue` direto, SEM `mainsnak`)
     const qual = (start: string) => ({
-      P580: [{ mainsnak: { datavalue: { value: { time: start } } } }],
+      P580: [{ datavalue: { value: { time: start } } }],
     });
     const club = {
       claims: {
