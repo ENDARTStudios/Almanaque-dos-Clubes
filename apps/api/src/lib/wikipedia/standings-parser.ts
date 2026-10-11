@@ -281,6 +281,14 @@ const num = (s: string | undefined): number | null => {
 const FILE_PREFIX = /^(File|Ficheiro|Archivo|Imagem|Imagen|Datei|Fichier|Immagine):/i;
 
 /**
+ * Links de NAMESPACE que não são artigo de clube. A tabela da Primeira Liga
+ * 2021-22 tem `<a href="/wiki/Predefinição:Futebol_B-SAD">`, que era escolhido como
+ * o "clube" da linha (o nome ia a "Predefinição:Futebol B-SAD").
+ */
+const NON_ARTICLE_PREFIX =
+  /^(Predefinição|Predefinicao|Template|Categoria|Category|Anexo|Portal|Ajuda|Help|Wikipedia|Wikipédia|Usuário|Usuário\(a\)|User|Discussão|Talk|Módulo|Module):/i;
+
+/**
  * Extrai o nome do clube de uma célula (HTML cru).
  *
  * A célula costuma conter OUTROS links antes do clube — a bandeira do estado/país
@@ -293,7 +301,7 @@ export function clubFromCell(cellHtml: string): { name: string; article: string 
   const links: Array<{ article: string; display: string }> = [];
   for (const m of cellHtml.matchAll(/<a\b[^>]*href="\/wiki\/([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
     const target = decodeURIComponent(m[1]).replace(/_/g, ' ');
-    if (FILE_PREFIX.test(target)) continue;
+    if (FILE_PREFIX.test(target) || NON_ARTICLE_PREFIX.test(target)) continue;
     const t = /\btitle="([^"]*)"/i.exec(m[0]);
     // o atributo title vem com ENTIDADES HTML (`l&#39;Ouest`) — sem decodificar, o
     // QID do artigo não resolve no pageprops

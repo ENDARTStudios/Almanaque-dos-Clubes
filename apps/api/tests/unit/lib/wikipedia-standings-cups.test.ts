@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
+  clubFromCell,
   parseStandings,
   parseTopScorer,
   parseCupPlacements,
@@ -64,5 +65,17 @@ describe('liga — Primeira Liga 2023-24 (PT)', () => {
     const rows = parseStandings(html);
     expect(rows.length).toBeGreaterThanOrEqual(18);
     expect(rows[0].clubName.toLowerCase()).toContain('sporting');
+  });
+});
+
+describe('clubFromCell — namespaces que NÃO são artigo', () => {
+  it('ignora link de TEMPLATE (Predefinição:) e fica com o clube', () => {
+    // forma real da Primeira Liga 2021-22: o link do template tem o texto MAIOR
+    const cell =
+      '<a href="/wiki/Predefinição:Futebol_B-SAD">Predefinição:Futebol B-SAD</a>' +
+      '<a href="/wiki/Belenenses_SAD">B-SAD</a>';
+    const { name, article } = clubFromCell(cell);
+    expect(name).toBe('B-SAD');
+    expect(article).toBe('Belenenses SAD');
   });
 });
