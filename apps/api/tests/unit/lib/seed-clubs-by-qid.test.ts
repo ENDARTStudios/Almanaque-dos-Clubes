@@ -8,6 +8,7 @@ import {
   TARGET_CLUBS,
   TARGET_CLUBS_T513,
   TARGET_CLUBS_T514,
+  TARGET_CLUBS_T515,
   ALL_TARGET_CLUBS,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
@@ -194,9 +195,21 @@ describe('listas curadas (ondas)', () => {
     }
   });
 
-  it('ALL_TARGET_CLUBS é a união das três ondas', () => {
+  it('T515 (Série B/MLS/Liga MX) tem 57 clubes, com idioma e artigo', () => {
+    expect(TARGET_CLUBS_T515).toHaveLength(57);
+    for (const t of TARGET_CLUBS_T515) {
+      expect(['en', 'pt']).toContain(t.lang);
+      expect(t.article.length).toBeGreaterThan(3);
+      expect(t.note).toMatch(/Série B|MLS|Liga MX/);
+    }
+  });
+
+  it('ALL_TARGET_CLUBS é a união das quatro ondas', () => {
     expect(ALL_TARGET_CLUBS.length).toBe(
-      TARGET_CLUBS.length + TARGET_CLUBS_T513.length + TARGET_CLUBS_T514.length,
+      TARGET_CLUBS.length +
+        TARGET_CLUBS_T513.length +
+        TARGET_CLUBS_T514.length +
+        TARGET_CLUBS_T515.length,
     );
   });
 

@@ -21,8 +21,11 @@ import { parseArgs } from 'node:util';
 import { PrismaClient, Prisma } from '@prisma/client';
 import {
   parseStandings,
+  parseStandingsTables,
   parseTopScorer,
   parseCupPlacements,
+  parseChampionByLabel,
+  parseSplitChampions,
   type StandingRow,
 } from '../lib/wikipedia/standings-parser.js';
 import { logger } from '../config/logger.js';
@@ -214,9 +217,18 @@ async function main(): Promise<number> {
       // Escopo do fallback de match por NOME (país ISO-2). Default: país da competição.
       // Também desempata competição homônima (ex.: 'Premier League' GB × UA).
       country: { type: 'string', default: '' },
+      // Mínimo de linhas da tabela. A MLS tem tabelas de CONFERÊNCIA (14-15) antes
+      // da geral (29) — com 20 pega a geral.
+      'min-rows': { type: 'string', default: '' },
+      // Rótulo do infobox que nomeia o campeão quando não é "Champion":
+      // a MLS usa "MLS Cup" (o título é decidido no playoff, não na tabela).
+      'champion-label': { type: 'string', default: '' },
+      // Liga MX: 2 torneios por temporada (Apertura/Clausura) → grava 2 temporadas.
+      'dual-tournament': { type: 'boolean', default: false },
     },
   });
   const APPLY_ON = values.apply || APPLY;
+  const dual = values['dual-tournament'] === true || process.argv.includes('--dual-tournament');
   const prisma = new PrismaClient();
   try {
     if (!values.competition || !values.seasons) {
@@ -286,132 +298,200 @@ async function main(): Promise<number> {
         const withGroup = parseStandings(html, { requireGroup: true, minRows: 8 });
         return withGroup.length > 0 ? withGroup : parseStandings(html, { minRows: 8 });
       };
-      const standings: StandingRow[] = isCup ? cupRows() : parseStandings(html);
+      const minRows = values['min-rows'] ? Number.parseInt(values['min-rows'], 10) : null;
+      const parseOpts = minRows && Number.isFinite(minRows) ? { minRows } : undefined;
+
+      // --- LIGA MX (--dual-tournament): DOIS torneios por artigo de temporada.
+      // O infobox lista os dois campeões ("Apertura: X | Clausura: Y") e o artigo
+      // tem duas tabelas na ordem Apertura, Clausura. Gravamos DUAS temporadas com
+      // rótulo `{ano} Aper` / `{ano} Clau` (9 chars — cabe no VARCHAR(9) — e ordena
+      // cronologicamente, ao contrário de "Apertura 2024").
+      const slots: Array<{
+        label: string;
+        standings: StandingRow[];
+        champName: string | null;
+        champArticle: string | null;
+      }> = [];
+      if (dual) {
+        const split = parseSplitChampions(html);
+        const tables = parseStandingsTables(html, parseOpts);
+        const y1 = Number.parseInt(/(\d{4})/.exec(season)?.[1] ?? '0', 10);
+        slots.push(
+          {
+            label: `${y1} Aper`,
+            standings: tables[0] ?? [],
+            champName: split.apertura?.name ?? null,
+            champArticle: split.apertura?.article ?? null,
+          },
+          {
+            label: `${y1 + 1} Clau`,
+            standings: tables[1] ?? [],
+            champName: split.clausura?.name ?? null,
+            champArticle: split.clausura?.article ?? null,
+          },
+        );
+      } else {
+        slots.push({
+          label: season,
+          standings: isCup ? cupRows() : parseStandings(html, parseOpts),
+          champName: null,
+          champArticle: null,
+        });
+      }
+
       const placements = isCup ? parseCupPlacements(html) : null;
+      // --champion-label: o rótulo do infobox não é "Champion" (MLS usa "MLS Cup")
+      const labeled = values['champion-label']
+        ? parseChampionByLabel(html, values['champion-label'])
+        : null;
 
-      if (!isCup && standings.length < 4) {
+      for (const slot of slots) {
+        const seasonLabel = slot.label;
+        const standings = slot.standings;
+        if (dual && standings.length < 4 && !slot.champName) {
+          console.log(`  ${seasonLabel}: sem tabela nem campeão no artigo — nada a fazer.`);
+          continue;
+        }
+        if (!dual && !isCup && standings.length < 4) {
+          console.log(
+            `  ${season}: classificação não encontrada no artigo (${standings.length} linhas).`,
+          );
+          continue;
+        }
+        if (isCup && !placements?.champion && standings.length < 8) {
+          console.log(
+            `  ${season}: copa sem colocações finais nem tabela de grupos — nada a fazer.`,
+          );
+          continue;
+        }
+
+        // --- resolve QIDs dos clubes (linhas + campeão/vice) via Wikipedia
+        const articleTitles = [
+          ...standings.map((r) => r.clubArticle).filter((a): a is string => !!a),
+          placements?.championArticle,
+          placements?.runnerUpArticle,
+          slot.champArticle,
+          labeled?.championArticle,
+          labeled?.runnerUpArticle,
+        ].filter((a): a is string => !!a);
+        const qidMap = await resolveQids(lang, articleTitles);
+
+        // --- match de clubes
+        const matched: Array<StandingRow & { clubId: string | null; matchedName: string | null }> =
+          [];
+        for (const row of standings) {
+          const qid = row.clubArticle ? qidMap.get(row.clubArticle) : undefined;
+          const club = await matchClub(prisma, {
+            rawName: row.clubName,
+            article: row.clubArticle,
+            qid: qid ?? null,
+            country,
+          });
+          matched.push({ ...row, clubId: club?.id ?? null, matchedName: club?.name ?? null });
+        }
+        const withClub = matched.filter((m) => m.clubId).length;
+        // inclui o ARTIGO (quando difere do nome): é dele que se DERIVA o QID para
+        // a ingestão (T512/T513) — a lição D-2026-10-09 proíbe QID de memória
+        const unmatched = matched
+          .filter((m) => !m.clubId)
+          .map((m) =>
+            m.clubArticle && m.clubArticle !== m.clubName
+              ? `${m.clubName} => ${m.clubArticle}`
+              : m.clubName,
+          );
+
+        // campeão/vice: infobox (copa, --champion-label, Liga MX) ou liga (posição 1/2)
+        const resolvePlacement = async (
+          name: string | null | undefined,
+          article: string | null | undefined,
+        ): Promise<MatchableClub | null> => {
+          if (!name) return null;
+          const qid = article ? qidMap.get(article) : undefined;
+          return matchClub(prisma, {
+            rawName: name,
+            article: article ?? null,
+            qid: qid ?? null,
+            country,
+          });
+        };
+        // fonte do campeão, por precedência: --dual-tournament → --champion-label →
+        // copa (infobox) → liga (posição 1)
+        const champSrc = slot.champName
+          ? { name: slot.champName, article: slot.champArticle }
+          : labeled?.champion
+            ? { name: labeled.champion, article: labeled.championArticle }
+            : isCup
+              ? { name: placements?.champion, article: placements?.championArticle }
+              : {
+                  name: matched.find((m) => m.position === 1)?.clubName,
+                  article: matched.find((m) => m.position === 1)?.clubArticle,
+                };
+        const runnerSrc =
+          labeled?.runnerUp != null
+            ? { name: labeled.runnerUp, article: labeled.runnerUpArticle }
+            : isCup
+              ? { name: placements?.runnerUp, article: placements?.runnerUpArticle }
+              : {
+                  name: matched.find((m) => m.position === 2)?.clubName,
+                  article: matched.find((m) => m.position === 2)?.clubArticle,
+                };
+        const champion = await resolvePlacement(champSrc.name, champSrc.article);
+        const runnerUp = await resolvePlacement(runnerSrc.name, runnerSrc.article);
+
+        // NÃO exibir o nome cru como se estivesse casado: se o clube não está no
+        // acervo, o rótulo é "SEM-CLUBE (nome)" — foi esse log que, ao mostrar o
+        // nome do infobox, me fez ler como "casado" quando o vice era null.
+        const fmtPlacement = (
+          matchedName: string | null | undefined,
+          raw: string | null | undefined,
+        ) => matchedName ?? (raw ? `SEM-CLUBE (${raw})` : '?');
         console.log(
-          `  ${season}: classificação não encontrada no artigo (${standings.length} linhas).`,
-        );
-        continue;
-      }
-      if (isCup && !placements?.champion && standings.length < 8) {
-        console.log(`  ${season}: copa sem colocações finais nem tabela de grupos — nada a fazer.`);
-        continue;
-      }
-
-      // --- resolve QIDs dos clubes (linhas + campeão/vice) via Wikipedia
-      const articleTitles = [
-        ...standings.map((r) => r.clubArticle).filter((a): a is string => !!a),
-        placements?.championArticle,
-        placements?.runnerUpArticle,
-      ].filter((a): a is string => !!a);
-      const qidMap = await resolveQids(lang, articleTitles);
-
-      // --- match de clubes
-      const matched: Array<StandingRow & { clubId: string | null; matchedName: string | null }> =
-        [];
-      for (const row of standings) {
-        const qid = row.clubArticle ? qidMap.get(row.clubArticle) : undefined;
-        const club = await matchClub(prisma, {
-          rawName: row.clubName,
-          article: row.clubArticle,
-          qid: qid ?? null,
-          country,
-        });
-        matched.push({ ...row, clubId: club?.id ?? null, matchedName: club?.name ?? null });
-      }
-      const withClub = matched.filter((m) => m.clubId).length;
-      // inclui o ARTIGO (quando difere do nome): é dele que se DERIVA o QID para
-      // a ingestão (T512/T513) — a lição D-2026-10-09 proíbe QID de memória
-      const unmatched = matched
-        .filter((m) => !m.clubId)
-        .map((m) =>
-          m.clubArticle && m.clubArticle !== m.clubName
-            ? `${m.clubName} => ${m.clubArticle}`
-            : m.clubName,
+          `  ${seasonLabel}: ${isCup ? 'copa' : 'liga'} · linhas=${standings.length} · casados=${withClub}` +
+            ` · campeão=${fmtPlacement(champion?.name, champSrc.name)}` +
+            ` · vice=${fmtPlacement(runnerUp?.name, runnerSrc.name)}` +
+            ` · artilheiro=${topScorer ? topScorer.name + ' (' + topScorer.goals + ')' : 'n/d'}` +
+            (unmatched.length > 0 ? ` · SEM-MATCH=[${unmatched.join(', ')}]` : '') +
+            ` · fonte=${lang}.wikipedia/${title}`,
         );
 
-      // campeão/vice: copa (infobox) ou liga (posição 1/2)
-      const resolvePlacement = async (
-        name: string | null | undefined,
-        article: string | null | undefined,
-      ): Promise<MatchableClub | null> => {
-        if (!name) return null;
-        const qid = article ? qidMap.get(article) : undefined;
-        return matchClub(prisma, {
-          rawName: name,
-          article: article ?? null,
-          qid: qid ?? null,
-          country,
+        if (!APPLY_ON) continue;
+
+        const data = {
+          competitionId: comp.id,
+          season,
+          championId: champion?.id ?? null,
+          runnerUpId: runnerUp?.id ?? null,
+          totalMatches:
+            !isCup && standings.length > 0
+              ? standings.reduce((n, r) => n + (r.played ?? 0), 0) / 2 || null
+              : parseInfoboxInt(html, /Partidas|Matches played|Partidos|Partite/i),
+          totalGoals:
+            !isCup && standings.length > 0
+              ? standings.reduce((n, r) => n + (r.goalsFor ?? 0), 0) || null
+              : parseInfoboxInt(html, /Gol\(o\)s|Goals scored|Goles|Reti/i),
+          topScorer: (topScorer ?? undefined) as unknown as Prisma.InputJsonValue,
+          standings:
+            matched.length > 0 ? (matched as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+          sourceUrl: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+          importedFrom: 'wikipedia',
+          importedAt: new Date(),
+        };
+        await prisma.competitionSeason.upsert({
+          where: { competitionId_season: { competitionId: comp.id, season: seasonLabel } },
+          create: { ...data, season: seasonLabel },
+          update: {
+            standings: data.standings,
+            topScorer: data.topScorer,
+            championId: data.championId,
+            runnerUpId: data.runnerUpId,
+            totalMatches: data.totalMatches,
+            totalGoals: data.totalGoals,
+            sourceUrl: data.sourceUrl,
+          },
         });
-      };
-      const champion = isCup
-        ? await resolvePlacement(placements?.champion, placements?.championArticle)
-        : await resolvePlacement(
-            matched.find((m) => m.position === 1)?.clubName,
-            matched.find((m) => m.position === 1)?.clubArticle,
-          );
-      const runnerUp = isCup
-        ? await resolvePlacement(placements?.runnerUp, placements?.runnerUpArticle)
-        : await resolvePlacement(
-            matched.find((m) => m.position === 2)?.clubName,
-            matched.find((m) => m.position === 2)?.clubArticle,
-          );
-
-      // NÃO exibir o nome cru como se estivesse casado: se o clube não está no
-      // acervo, o rótulo é "SEM-CLUBE (nome)" — foi esse log que, ao mostrar o
-      // nome do infobox, me fez ler como "casado" quando o vice era null.
-      const fmtPlacement = (
-        matchedName: string | null | undefined,
-        raw: string | null | undefined,
-      ) => matchedName ?? (raw ? `SEM-CLUBE (${raw})` : '?');
-      console.log(
-        `  ${season}: ${isCup ? 'copa' : 'liga'} · linhas=${standings.length} · casados=${withClub}` +
-          ` · campeão=${fmtPlacement(champion?.name, placements?.champion)}` +
-          ` · vice=${fmtPlacement(runnerUp?.name, placements?.runnerUp)}` +
-          ` · artilheiro=${topScorer ? topScorer.name + ' (' + topScorer.goals + ')' : 'n/d'}` +
-          (unmatched.length > 0 ? ` · SEM-MATCH=[${unmatched.join(', ')}]` : '') +
-          ` · fonte=${lang}.wikipedia/${title}`,
-      );
-
-      if (!APPLY_ON) continue;
-
-      const data = {
-        competitionId: comp.id,
-        season,
-        championId: champion?.id ?? null,
-        runnerUpId: runnerUp?.id ?? null,
-        totalMatches:
-          !isCup && standings.length > 0
-            ? standings.reduce((n, r) => n + (r.played ?? 0), 0) / 2 || null
-            : parseInfoboxInt(html, /Partidas|Matches played|Partidos|Partite/i),
-        totalGoals:
-          !isCup && standings.length > 0
-            ? standings.reduce((n, r) => n + (r.goalsFor ?? 0), 0) || null
-            : parseInfoboxInt(html, /Gol\(o\)s|Goals scored|Goles|Reti/i),
-        topScorer: (topScorer ?? undefined) as unknown as Prisma.InputJsonValue,
-        standings:
-          matched.length > 0 ? (matched as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
-        sourceUrl: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
-        importedFrom: 'wikipedia',
-        importedAt: new Date(),
-      };
-      await prisma.competitionSeason.upsert({
-        where: { competitionId_season: { competitionId: comp.id, season } },
-        create: data,
-        update: {
-          standings: data.standings,
-          topScorer: data.topScorer,
-          championId: data.championId,
-          runnerUpId: data.runnerUpId,
-          totalMatches: data.totalMatches,
-          totalGoals: data.totalGoals,
-          sourceUrl: data.sourceUrl,
-        },
-      });
-      console.log(`  ${season}: gravado (upsert idempotente).`);
-      await sleep(1000);
+        console.log(`  ${seasonLabel}: gravado (upsert idempotente).`);
+        await sleep(1000);
+      } // fim do loop de slots (1 temporada normal, 2 na Liga MX)
     }
     const total = await prisma.competitionSeason.count();
     console.log(`[t510] competition_seasons no acervo: ${total}`);
