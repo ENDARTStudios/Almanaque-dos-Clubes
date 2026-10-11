@@ -928,3 +928,65 @@ Stage Summary:
   1905) — o dado é EXATAMENTE o da fonte; e 16 dos 21 clubes ficam sem escudo
   (P154 ausente no Wikidata) — o cron noturno de mídia (04:00) pode preencher
 - Rankings/entries intocados; home/rankings/perfil do Liverpool = 200
+
+---
+
+Task ID: goal-2026-10-10/t513
+Agent: Doer (ZCode)
+Task: T513 — Bundesliga + Ligue 1 + Eredivisie (léxicos DE/FR/NL + clubes + troféus)
+
+Work Log:
+- PARSER — **três** léxicos novos. A spec previa DE e NL, mas **Ligue 1 é em
+  francês** → entrou um terceiro léxico (FR), senão as colunas sairiam trocadas.
+  Um léxico único casaria a coluna errada: 'g' = *gagnés* (fr), *gelijk* (nl),
+  *ganados* (es); 'n' = *nuls* (fr), *Niederlagen* (de).
+- 4 BUGS DE PARSER pegos pelas fixtures REAIS (todos com teste):
+  1. ENTIDADES NUMÉRICAS (`&#x2002;1.`) não eram decodificadas → `num()` lia
+     "2002" do próprio código da entidade e TODAS as posições da Bundesliga
+     ficavam iguais (Bayern não era o 1º!)
+  2. SPANS INVISÍVEIS de ordenação (`<span style="visibility:hidden">0</span>99:32`)
+     → o texto virava "099:320" e o split de "Tore" lia 99/320
+  3. "N.E.C." (Nijmegen) tem letras ISOLADAS → o teste exigia 3 letras
+     CONSECUTIVAS e descartava a linha (Eredivisie vinha com 17 de 18)
+  4. o atributo `title` do link traz ENTIDADES HTML ("l&#39;Ouest") → o QID não
+     resolvia no pageprops
+- 2 FALSOS POSITIVOS DO ARTILHEIRO (pegos no dry-run em produção):
+  5. BUNDESLIGA: a de.wikipedia tem uma tabela de "Tore" POR CLUBE — era aceita e
+     o artilheiro saía "SC Freiburg (58)" (gols do clube). Agora exige COLUNA DE
+     JOGADOR (spieler/speler/torschützen) além da de gols → Kane 26 ✓
+  6. EREDIVISIE: a única tabela com "goals" é a de HAT-TRICKS (minutos "23', 48'")
+     → artilheiro "Ricardo Pepi". Agora a célula de gols tem de ser INTEIRO LIMPO.
+  Também REMOVIDO o fallback heurístico antigo ("maior número da última coluna")
+  — era a origem dos dois erros. Sem cabeçalho confiável → null.
+- COMPETIÇÃO: a **Bundesliga alemã (Q82595) NÃO existia** — só a AUSTRÍACA
+  (Q219592). Criada com proveniência. `ensure-competition` casava só por NOME e
+  recusaria a alemã: corrigido para NOME+PAÍS (mesmo bug de homônimo do T510
+  no 'Premier League' GB×UA).
+- CLUBES: 15 temporadas parseadas LOCALMENTE → 74 clubes únicos → 64 já existiam
+  → **10 ausentes criados** (Heidenheim, Augsburg, Hamburger SV, RB Leipzig,
+  Werder Bremen, Angers, AC Ajaccio, Clermont, Bordeaux, Le Havre). Re-run = noop.
+  Novo `--wave=all|t512|t513`.
+- TROFÉUS: Bundesliga curada ("Trophy of Fußball-Bundesliga (Germany)").
+  **GAPS DECLARADOS**: Ligue 1 (a única opção é um PNG EM PEDIDO DE EXCLUSÃO ou um
+  esboço à mão 100x100) e Eredivisie (não há categoria de troféu — o Johan Cruijff
+  Schaal é a SUPERCOPA). Total agora: 15 troféus.
+- EXECUÇÃO: **15 temporadas gravadas** (5 por competição) + Bundesliga registrada.
+  **39/39 temporadas com campeão — ZERO null** em 8 competições.
+  Campeões validados: PL, La Liga, Serie A, Libertadores, Bundesliga (Bayern ×4 +
+  Leverkusen 2023/24 invicto), Ligue 1 (PSG ×5), Eredivisie (Ajax, Feyenoord, PSV ×3).
+  Artilheiros reais: Kane 36/26, Lewandowski 35, Füllkrug 16, Mbappé 27/28/29,
+  Dembélé 21.
+- UI validada no navegador (Bundesliga 2023/24): "Champion: Bayer 04 Leverkusen"
+  com a tabela REAL da temporada invicta (34J · 28V · 6E · 0D · 89GP · 24GC · 90pts)
+  e o troféu carregado.
+
+GAP DECLARADO (T513): artilheiro da **Eredivisie = null** — a tabela holandesa tem
+a coluna de gols SEM RÓTULO ("Pos|Speler|Club|Wed| | |Gem"); sem rótulo confiável
+devolvemos null em vez de "Ricardo Pepi" (que era o erro anterior).
+
+Stage Summary:
+- 39/39 temporadas com campeão (0 null), 8 competições, 15 troféus
+- 10 clubes criados (re-run noop); 2 gaps de troféu e 1 gap de artilheiro declarados
+- 6 PRs nesta rodada (#496 léxicos+clubes+troféu, #497 homônimo Bundesliga,
+  #498 artilheiro, #499 este checkpoint); 106/106 testes; backend verde
+
