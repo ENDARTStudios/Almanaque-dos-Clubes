@@ -652,7 +652,8 @@ async function main(): Promise<number> {
       // NÃO ser clube de futebol. O P31 das seleções varia demais para exigir
       // uma classe específica (a sub-23 do Brasil não tem Q6979593).
       const okEntity = kind === 'national_team' ? isNationalTeamEntity(e) : isFootballClubEntity(e);
-      if (!okEntity || !countryQid) {
+      // O país é exigido para CLUBE; a regra de seleção já aceita classe sem P17.
+      if (!okEntity || (kind !== 'national_team' && !countryQid)) {
         console.log(
           `  ✗ ${p.qid} "${pickName(e) ?? '?'}": não é ${
             kind === 'national_team' ? 'seleção' : 'clube'
