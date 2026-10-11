@@ -80,6 +80,9 @@ export const TARGET_CLUBS: Array<{ lang: 'en' | 'es' | 'pt'; article: string; no
 
 interface Claim {
   mainsnak?: { datavalue?: { value?: unknown } };
+  /** 'preferred' | 'normal' | 'deprecated' — o Wikidata marca o valor ATUAL como preferred. */
+  rank?: string;
+  qualifiers?: Record<string, Claim[]>;
 }
 interface Entity {
   missing?: boolean;
@@ -287,19 +290,53 @@ async function resolveVenues(qids: string[]): Promise<Map<string, Venue>> {
 }
 
 /**
- * Escolhe o estádio ATUAL do clube entre os P115: o de MAIOR capacidade.
- * (P115 lista a história do clube — o FC Barcelona tem o antigo "Velòdrom de la
- * Bonanova" como primeiro valor; o estádio atual é o de maior capacidade.)
+ * Escolhe o estádio ATUAL do clube entre os P115 (que listam a HISTÓRIA):
+ *   1) rank `preferred` (o Wikidata marca o valor atual assim — FC Barcelona:
+ *      Camp Nou);
+ *   2) senão, o `P580` (início) MAIS RECENTE (San Lorenzo: Nuevo Gasómetro/1993,
+ *      não o Gasómetro antigo de 75 mil lugares);
+ *   3) desempate por MAIOR capacidade.
+ * Claims `deprecated` são descartadas. `venues` já resolvido por QID.
  */
 export function pickVenue(
   entity: Entity,
   venues: Map<string, Venue>,
 ): { qid: string; venue: Venue } | null {
+  const claimQid = (c: Claim): string | undefined => {
+    const v = c.mainsnak?.datavalue?.value;
+    return typeof v === 'object' && v !== null && 'id' in v ? (v as { id?: string }).id : undefined;
+  };
+  const startYear = (c: Claim): number => {
+    const time = (
+      c.qualifiers?.P580?.[0]?.mainsnak?.datavalue?.value as { time?: string } | undefined
+    )?.time;
+    const y = time ? Number.parseInt(time.slice(1, 5), 10) : NaN;
+    return Number.isFinite(y) ? y : -Infinity;
+  };
+
+  const candidates = (entity.claims?.[PROP_HOME_VENUE] ?? [])
+    .filter((c) => c.rank !== 'deprecated')
+    .flatMap((c) => {
+      const qid = claimQid(c);
+      if (!qid || !venues.has(qid)) return [];
+      return [{ qid, rank: c.rank ?? 'normal', start: startYear(c) }];
+    });
+
+  const preferred = candidates.filter((x) => x.rank === 'preferred');
+  const pool = preferred.length > 0 ? preferred : candidates;
+
   let best: { qid: string; venue: Venue } | null = null;
-  for (const qid of claimIds(entity, PROP_HOME_VENUE)) {
-    const v = venues.get(qid);
-    if (!v) continue;
-    if (!best || (v.capacity ?? 0) > (best.venue.capacity ?? 0)) best = { qid, venue: v };
+  let bestStart = -Infinity;
+  for (const { qid, start } of pool) {
+    const venue = venues.get(qid) as Venue;
+    const better =
+      !best ||
+      start > bestStart ||
+      (start === bestStart && (venue.capacity ?? 0) > (best.venue.capacity ?? 0));
+    if (better) {
+      best = { qid, venue };
+      bestStart = start;
+    }
   }
   return best;
 }
