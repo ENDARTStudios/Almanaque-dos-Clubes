@@ -229,6 +229,9 @@ async function main(): Promise<number> {
       // Final em DOIS JOGOS (Recopa): o infobox não tem 'Campeão' — o campeão é o
       // do maior agregado na caixa do confronto.
       'two-leg-final': { type: 'boolean', default: false },
+      // Sufixo do RÓTULO da temporada (o título do artigo usa {season} puro).
+      // Jogos Olímpicos têm DOIS torneios no mesmo ano: '2008 M' e '2008 F'.
+      'label-suffix': { type: 'string', default: '' },
     },
   });
   const APPLY_ON = values.apply || APPLY;
@@ -356,7 +359,7 @@ async function main(): Promise<number> {
         : null;
 
       for (const slot of slots) {
-        const seasonLabel = slot.label;
+        const seasonLabel = slot.label + (values['label-suffix'] ?? '');
         const standings = slot.standings;
         if (dual && standings.length < 4 && !slot.champName) {
           console.log(`  ${seasonLabel}: sem tabela nem campeão no artigo — nada a fazer.`);
