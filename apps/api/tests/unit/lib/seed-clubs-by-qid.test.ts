@@ -5,6 +5,9 @@ import {
   pickName,
   pickVenue,
   claimIds,
+  TARGET_CLUBS,
+  TARGET_CLUBS_T513,
+  ALL_TARGET_CLUBS,
 } from '../../../src/scripts/seed-clubs-by-qid.js';
 
 // T512 — regra de aceitação da ingestão por QID. As formas abaixo são as REAIS
@@ -168,5 +171,25 @@ describe('claimIds', () => {
   it('extrai os QIDs de uma propriedade', () => {
     expect(claimIds(ent({ P17: [id('Q29')] }), 'P17')).toEqual(['Q29']);
     expect(claimIds(ent({}), 'P17')).toEqual([]);
+  });
+});
+
+describe('listas curadas (ondas)', () => {
+  it('T513 (Bundesliga/Ligue 1) tem os 10 clubes ausentes, com idioma e artigo', () => {
+    expect(TARGET_CLUBS_T513).toHaveLength(10);
+    for (const t of TARGET_CLUBS_T513) {
+      expect(['de', 'fr']).toContain(t.lang);
+      expect(t.article.length).toBeGreaterThan(3);
+      expect(t.note).toMatch(/Bundesliga|Ligue 1/);
+    }
+  });
+
+  it('ALL_TARGET_CLUBS é a união das ondas (T512 + T513)', () => {
+    expect(ALL_TARGET_CLUBS.length).toBe(TARGET_CLUBS.length + TARGET_CLUBS_T513.length);
+  });
+
+  it('não há artigo duplicado dentro da mesma onda', () => {
+    const keys = ALL_TARGET_CLUBS.map((t) => `${t.lang}|${t.article}`);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });

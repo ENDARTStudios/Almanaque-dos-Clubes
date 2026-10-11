@@ -315,7 +315,15 @@ async function main(): Promise<number> {
         matched.push({ ...row, clubId: club?.id ?? null, matchedName: club?.name ?? null });
       }
       const withClub = matched.filter((m) => m.clubId).length;
-      const unmatched = matched.filter((m) => !m.clubId).map((m) => m.clubName);
+      // inclui o ARTIGO (quando difere do nome): é dele que se DERIVA o QID para
+      // a ingestão (T512/T513) — a lição D-2026-10-09 proíbe QID de memória
+      const unmatched = matched
+        .filter((m) => !m.clubId)
+        .map((m) =>
+          m.clubArticle && m.clubArticle !== m.clubName
+            ? `${m.clubName} => ${m.clubArticle}`
+            : m.clubName,
+        );
 
       // campeão/vice: copa (infobox) ou liga (posição 1/2)
       const resolvePlacement = async (

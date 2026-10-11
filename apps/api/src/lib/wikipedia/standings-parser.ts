@@ -35,12 +35,25 @@ export interface StandingRow {
 
 const stripTags = (s: string): string =>
   s
+    // Elementos INVISÍVEIS são chave de ordenação, não conteúdo: a de.wikipedia
+    // escreve "Tore" como `<span style="visibility:hidden">0</span>99:32<span …>0</span>`
+    // → sem remover, o texto vira "099:320" e o split lê 99/320.
+    .replace(
+      /<(span|div|b|i)[^>]*style="[^"]*(?:visibility\s*:\s*hidden|display\s*:\s*none)[^"]*"[^>]*>[\s\S]*?<\/\1>/gi,
+      '',
+    )
     .replace(/<sup[\s\S]*?<\/sup>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<[^>]+>/g, '')
+    // entidades numéricas (decimal E hexadecimal): a de.wikipedia cerca a posição
+    // com U+2002 (`&#x2002;1.`) — sem decodificar, `num()` leria "2002" do próprio
+    // código da entidade e TODAS as posições sairiam iguais.
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(Number.parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(Number.parseInt(d, 10)))
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
-    .replace(/&#160;/g, ' ')
+    // zero-width (U+200B..U+200D, U+FEFF)
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -70,12 +83,20 @@ function findCol(headers: string[], patterns: RegExp[]): number {
   return -1;
 }
 
-export type StandingsLang = 'pt' | 'en' | 'es' | 'it' | 'unknown';
+export type StandingsLang = 'pt' | 'en' | 'es' | 'it' | 'de' | 'fr' | 'nl' | 'unknown';
 
-/** Detecta o idioma da tabela pelos rótulos distintivos do cabeçalho. */
+/**
+ * Detecta o idioma da tabela pelos rótulos distintivos do cabeçalho.
+ * A ORDEM importa: 'nl'/'de' precisam vir antes de 'en' (ambos usam "team"),
+ * e 'fr' antes de 'pt' (ambos têm "équipe"/"equipe" — mas `\bequipe\b` não casa
+ * "équipe", então não colidem de fato).
+ */
 export function detectLang(headers: string[]): StandingsLang {
   const j = ' ' + headers.join(' ') + ' ';
   if (/\bsquadra\b/.test(j)) return 'it';
+  if (/\bverein\b/.test(j) || /\btore\b/.test(j) || /\bpunkte\b/.test(j)) return 'de';
+  if (/\brang\b/.test(j) || /\béquipe\b/.test(j) || /\bbp\b/.test(j)) return 'fr';
+  if (/\bptn\b/.test(j) || /\bwed\b/.test(j) || /\bdv\b/.test(j)) return 'nl';
   if (/\bequipo\b/.test(j)) return 'es';
   if (/\bequipe\b/.test(j)) return 'pt';
   if (/\bteam\b/.test(j)) return 'en';
@@ -91,6 +112,8 @@ interface Lexicon {
   lost: RegExp[];
   gf: RegExp[];
   ga: RegExp[];
+  /** Coluna ÚNICA de gols no formato "99:32" (Bundesliga: "Tore"). */
+  gfga?: RegExp[];
   pts: RegExp[];
   group: RegExp[];
 }
@@ -116,6 +139,46 @@ const LEXICON: Record<StandingsLang, Lexicon> = {
     ga: [/^(gc|ga)\.?$/i, /^gols? contra/i],
     pts: [/^(pts|pontos)/i],
     group: [/^(grp|grupo|group)$/i],
+  },
+  de: {
+    // de.wikipedia: "Pl. | Verein | Sp. | S | U | N | Tore | Diff. | Punkte"
+    pos: [/^(pl\.?|pos|#)/i],
+    team: [/^verein\b/i],
+    played: [/^sp\.?$/i],
+    won: [/^s$/i],
+    drawn: [/^u$/i],
+    lost: [/^n$/i],
+    gf: [],
+    ga: [],
+    gfga: [/^tore/i], // "99:32" numa coluna só → split
+    pts: [/^punkte/i],
+    group: [/^(grp|gruppe)$/i],
+  },
+  fr: {
+    // fr.wikipedia: "Rang | Équipe | Pts | J | G | N | P | Bp | Bc | Diff"
+    pos: [/^(rang|pos|#)/i],
+    team: [/^équipe\b|^equipe\b/i],
+    played: [/^j$/i],
+    won: [/^g$/i],
+    drawn: [/^n$/i],
+    lost: [/^p$/i],
+    gf: [/^bp$/i],
+    ga: [/^bc$/i],
+    pts: [/^pts/i],
+    group: [/^(grp|groupe)$/i],
+  },
+  nl: {
+    // nl.wikipedia: "Pos | Team | Wed | W | G | V | Ptn | Dv | Dt | +/−"
+    pos: [/^(pos|#)/i],
+    team: [/^team\b|^club\b/i],
+    played: [/^wed$/i],
+    won: [/^w$/i],
+    drawn: [/^g$/i],
+    lost: [/^v$/i],
+    gf: [/^dv$/i],
+    ga: [/^dt$/i],
+    pts: [/^ptn$/i],
+    group: [/^(grp|groep)$/i],
   },
   en: {
     pos: [/^(pos|#)/i],
@@ -178,6 +241,8 @@ export interface StandingCols {
   lost: number;
   gf: number;
   ga: number;
+  /** Coluna única de gols "99:32" (Bundesliga "Tore"), ou -1. */
+  gfga: number;
   pts: number;
   group: number;
 }
@@ -195,6 +260,7 @@ function resolveCols(headers: string[]): StandingCols {
     lost: findCol(headers, L.lost),
     gf: findCol(headers, L.gf),
     ga: findCol(headers, L.ga),
+    gfga: findCol(headers, L.gfga ?? []),
     pts: findCol(headers, L.pts),
     group: findCol(headers, L.group),
   };
@@ -229,7 +295,9 @@ export function clubFromCell(cellHtml: string): { name: string; article: string 
     const target = decodeURIComponent(m[1]).replace(/_/g, ' ');
     if (FILE_PREFIX.test(target)) continue;
     const t = /\btitle="([^"]*)"/i.exec(m[0]);
-    const article = (t ? t[1] : target).trim();
+    // o atributo title vem com ENTIDADES HTML (`l&#39;Ouest`) — sem decodificar, o
+    // QID do artigo não resolve no pageprops
+    const article = stripTags((t ? t[1] : target).trim());
     links.push({ article, display: stripTags(m[2]).trim() });
   }
   const withText = links.filter((l) => l.display.length >= 3);
@@ -276,8 +344,21 @@ export function parseStandings(html: string, opts: ParseStandingsOptions = {}): 
       const position = num(plain[c.pos >= 0 ? c.pos : 0]);
       const rawCell = cellHtml[c.team >= 0 ? c.team : 1] ?? '';
       const { name: clubName, article } = clubFromCell(rawCell);
-      // nome de clube plausível: tem letra e não é cabeçalho/nota
-      if (position == null || !/[A-Za-zÀ-ÿ]{3}/.test(clubName)) continue;
+      // nome de clube plausível: precisa de >= 3 LETRAS no total. Não exigir
+      // letras CONSECUTIVAS: "N.E.C." (Nijmegen) só tem letras isoladas e era
+      // descartado (bug 10/10 — a tabela do Eredivisie vinha com 17 de 18).
+      const letterCount = (clubName.match(/[A-Za-zÀ-ÿ]/g) ?? []).length;
+      if (position == null || letterCount < 3) continue;
+      // gols: colunas separadas (gf/ga) OU coluna única "99:32" (Bundesliga "Tore")
+      let goalsFor = c.gf >= 0 ? num(plain[c.gf]) : null;
+      let goalsAgainst = c.ga >= 0 ? num(plain[c.ga]) : null;
+      if (c.gfga >= 0) {
+        const pair = /(\d+)\s*:\s*(\d+)/.exec(plain[c.gfga] ?? '');
+        if (pair) {
+          goalsFor = Number.parseInt(pair[1], 10);
+          goalsAgainst = Number.parseInt(pair[2], 10);
+        }
+      }
       rows.push({
         position,
         clubName,
@@ -286,8 +367,8 @@ export function parseStandings(html: string, opts: ParseStandingsOptions = {}): 
         won: c.won >= 0 ? num(plain[c.won]) : null,
         drawn: c.drawn >= 0 ? num(plain[c.drawn]) : null,
         lost: c.lost >= 0 ? num(plain[c.lost]) : null,
-        goalsFor: c.gf >= 0 ? num(plain[c.gf]) : null,
-        goalsAgainst: c.ga >= 0 ? num(plain[c.ga]) : null,
+        goalsFor,
+        goalsAgainst,
         points: c.pts >= 0 ? num(plain[c.pts]) : null,
         group: c.group >= 0 ? plain[c.group]?.trim() || null : null,
       });
@@ -306,7 +387,7 @@ export interface TopScorer {
 // Âncoras por idioma: pt "Artilharia", en "Top scorers", es "Máximos goleadores",
 // it "Classifica marcatori".
 const SCORER_ANCHOR =
-  /Artilharia|Artilheiro|Top scorers?|Máximos goleadores|Máximos? artilheiros?|Goleadores|Classifica marcatori|Marcatori|Capocannonieri|Meilleurs buteurs/i;
+  /Artilharia|Artilheiro|Top ?scorers?|Máximos goleadores|Máximos? artilheiros?|Goleadores|Classifica marcatori|Marcatori|Capocannonieri|Meilleurs buteurs|Classement des buteurs|Torschützenkönig|Torschützen|Topscorers/i;
 
 export function parseTopScorer(html: string): TopScorer | null {
   const idx = html.search(SCORER_ANCHOR);
@@ -403,7 +484,9 @@ function infoboxTeam(
       const target = decodeURIComponent(link[1]).replace(/_/g, ' ');
       if (!FILE_PREFIX.test(target)) {
         const t = /\btitle="([^"]*)"/i.exec(link[0]);
-        const article = (t ? t[1] : target).trim();
+        // o atributo title vem com ENTIDADES HTML (`l&#39;Ouest`) — sem decodificar, o
+        // QID do artigo não resolve no pageprops
+        const article = stripTags((t ? t[1] : target).trim());
         return { name: article, article };
       }
     }
