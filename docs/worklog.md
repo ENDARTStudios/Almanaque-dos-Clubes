@@ -2140,3 +2140,155 @@ Stage Summary:
   P31, 205 por nome), com proveniência por linha e zero falso positivo
 - 0 clubes femininos em competições masculinas; re-run do T529 limpo
 - Integridade intacta (matches/rankings/WON)
+
+---
+
+Task ID: T532
+Agent: DeepSeek Harness (deepseek-flash) — UI/UX
+Task: Toolchain de UI/UX do projeto (plugin `almanaque-design`) + reprojeto e copy da hero/home
+
+Work Log:
+
+- PLUGIN `plugins/almanaque-design/` (segundo plugin do repo, ao lado do `almanaque-dev`):
+  6 skills (`design-system-almanaque`, `hero-and-landing-patterns`, `conversion-copy`,
+  `web-accessibility-wcag`, `visual-qa-playwright`, `design-subagents`) + 4 papéis de
+  subagente (`design-critic`, `a11y-auditor`, `ux-copywriter`, `visual-qa-auditor`).
+  Catálogo atualizado em `plugins/marketplace.json`; doc em `docs/PLUGIN-ALMANAQUE-DESIGN.md`.
+- SYNC unificado: `plugins/scripts/sync-to-workspace.sh` cobre os DOIS plugins e três
+  destinos (`.zcode/skills`, `.zcode/agents`, `.dsh/skills`, `.dsh/agents`), com remoção de
+  sobras só depois de todas as cópias (o script antigo apagava os agentes do `almanaque-dev`
+  ao sincronizar o design no mesmo destino). O caminho antigo virou wrapper.
+- LIMITE CONSTATADO: o DSH descobre `.dsh/skills/` na ABERTURA da sessão; skill criada
+  depois não entra no catálogo nem é carregável pela tool `skill` na sessão em curso
+  (testado com skill de projeto E com skill em `~/.dsh/skills` — as duas indisponíveis até
+  reabrir). Sondas removidas; o conteúdo é lido direto do arquivo enquanto isso.
+- COPY (H→P→P→CTA, 3 idiomas) em `apps/web/src/i18n/wsC12.ts` — módulo aditivo, não mexe no
+  `Dictionary` global. Gancho: "Quem foi o maior: o seu palpite ou o dado com fonte?".
+  Promessa com uma única nota de honestidade (antes "em construção" aparecia 4× na página).
+  CTA primário único + microcopy de atrito; vocabulário canônico nos 3 idiomas.
+- HERO `apps/web/src/components/HeroSection.tsx`: camada escura editorial (`.theme-dark` em
+  `globals.css`, ver decisão), eyebrow + H1 + promessa + CTA + cartão de PROVA com campeão
+  vigente real e link da fonte, seções "Um acervo, quatro respostas" e "Como conferir em
+  30 segundos", e fecho com CTA final. `page.tsx` busca o campeão no servidor
+  (`/champions/carousel`, só com `sourceUrl`) e envolve o carrossel na MESMA camada escura
+  (antes a home alternava escuro → claro → escuro).
+- `apps/web/src/lib/format.ts`: `formatCount` com tag BCP 47 (`pt-br` → `pt-BR`) porque
+  `toLocaleString('pt-br')` não é tag válida para o `Intl`.
+- CORREÇÕES DE DEFEITO encontradas na própria verificação:
+  1. `useGsap` escondia o conteúdo sem scroll (full-page com blocos vazios) → rede de
+     segurança de revelação em 2 s (decisão registrada);
+  2. três cartões com "Acervo em crescimento" quando a API não responde → uma lacuna única
+     declarada;
+  3. legenda de contagens invertida (`hasTotals ? statsUnavailable : statsNoData`) → origem
+     do dado quando há número, lacuna quando não há;
+  4. bordas do cartão de prova fora do token (`color-mix` a 18%) → `border-border` em todo o
+     bloco.
+- CRÍTICA ADVERSARIAL (`design-critic` em contexto separado): REPROVADO com 4 bloqueios —
+  3 corrigidos (bordas fora do token, alternância claro/escuro, legenda invertida) e 1
+  refutado com razão registrada (2 botões full-width no mobile: são duas ações distintas com
+  alvo de 48 px, e colapsar o secundário em link textual reduziria a área de toque).
+- VERIFICAÇÃO: `pnpm --filter web typecheck` limpo; `pnpm --filter web test` 64/64 em 12
+  arquivos; contraste RENDERIZADO medido no Chromium (composição em canvas, 17 pares) —
+  **0 reprovações AA**; overflow horizontal 0 em 1440/768/390; 1 `h1`; ordem de headings
+  correta; screenshots antes/depois em `.tmp/shots/` (`before-*`, `v3-*`) e por idioma
+  (`locale-pt-br|en-us|es-es`).
+- LIMITE DO AMBIENTE: `pnpm --filter web lint` FALHA antes de analisar qualquer arquivo —
+  `eslint-plugin-react@7.37.5` chama `contextOrFilename.getFilename`, removido no ESLint
+  10.11.0 (`TypeError: Error while loading rule 'react/display-name'`). Defeito de
+  dependência pré-existente, não introduzido por esta tarefa; não foi tocado.
+- NÃO VERIFICADO: render com dados reais de produção (sem API local a hero mostra o estado
+  de lacuna); hover/focus capturados; leitor de tela real; galeria de campeões com cards
+  (a crítica notou que o esqueleto do carrossel é claro no escuro — `bg-foreground/5`).
+
+Stage Summary:
+- Projeto passa a ter toolchain de UI/UX instalada e versionada (6 skills + 4 papéis),
+  carregada a partir de `.dsh/skills` no DSH e `.zcode/` no ZCode, com fonte canônica no plugin
+- Home deixa de ter hero "simples e sem atrativo": gancho real, prova auditável, CTA único e
+  camada escura coerente do topo ao rodapé, em pt-BR/en-US/es-ES
+- Contraste medido no navegador com 0 reprovações AA; typecheck e 64 testes verdes
+Task ID: goal-2026-10-13/t533
+Agent: Doer (ZCode)
+Task: T533 — OBSERVAÇÃO DE ESTABILIDADE (Dia 0: baseline, instrumentação e correções)
+
+Work Log:
+- ESCOPO E LIMITE HONESTO: T533 pede 3-7 dias de observação. Nesta sessão foi
+  executado o **Dia 0** — baseline medido, verificação de que o cron VAI disparar,
+  análise dos problemas e as correções que a observação já revelou. Os dias 1-7 são
+  COLETA (comandos prontos abaixo); a série só existe com o tempo passar, e declarar
+  métricas de dias que não ocorreram seria inventar dado.
+
+- BASELINE (12-10-2026, produção):
+  · integridade: matches 15.981 · rankings 72 · ranking_entries 1.906 · WON 5.205 ·
+    clubes 11.987 (11.043 men / 944 women — pós-cura T531)
+  · mídia: uniformes 233 clubes · hinos 13 · tentativas registradas 1.000 ·
+    pendentes 10.842 (a 500/noite ≈ 22 noites)
+
+- CRON DE MÍDIA — VERIFICADO NO REDIS (não no log): BullMQ devolve
+  `enrich-all-media@0 7 * * *` registrado na fila `data-refresh`, junto de
+  integrity-check@0 4 * * 0, enrich-clubs-editorial@0 6 * * *, enrich-players-media@0 5 * * *,
+  enrich-clubs-media@0 4 * * *, wikidata-incremental@0 3 * * *; a fila `ranking` tem
+  ranking:compute@0 3 * * *. O job de mídia já foi executado 3× à mão (dry-run 500,
+  apply 500, recheck) = 1.500 clubes varridos, 0 erros, cursor avançando exatamente 500.
+
+- LATÊNCIA (medida DENTRO do container, 12 requisições por rota, espaçadas para não
+  esbarrar no limitador):
+  · /health            ~1,2-2,3 ms
+  · /rankings?limit=20  p50 4,1 ms  p95 8,7 ms  p99 8,7 ms   (12/12 = 200)
+  · /clubs?limit=20     p50 7,0 ms  p95 47,4 ms (1ª req fria) (12/12 = 200)
+  · /matches?limit=20   p50 9,2 ms  p95 17,1 ms              (12/12 = 200)
+  Zero 4xx/5xx nas 48 medições. A tabela `matches` multiplicou por 6,5 desde o T522 e
+  continua respondendo em ~9 ms.
+
+- MÉTRICAS DA PLATAFORMA (Railway, última 1h): CPU atual 0,02 vCPU (máx 0,17 de 8);
+  memória média 139 MB (máx 769 MB de 8 GB); HTTP 16 req com 100% 2xx, 0% 4xx, 0% 5xx,
+  error rate 0,0%; latência p50 2 ms · p90 3 ms · p95 3 ms · p99 3 ms.
+- CACHE (Redis): uptime ~60 dias · hits 1.383.464 · misses 648.094 ·
+  **hit rate 68,1%** · memória 3,56 MB · 0 chaves evictadas · 22 clientes · 79 chaves.
+- LOGS DA API: zero linhas de erro (level 50/60) no período observado.
+
+- PROBLEMAS IDENTIFICADOS E TRATADOS:
+  (1) **HEALTHCHECK PODIA RECEBER 429** (corrigido, #571). O probe do Railway bate em
+      /api/v1/health de dentro do container e o limitador global (100 req/min por
+      `request.ip`) põe o probe no MESMO balde de qualquer chamada interna. Medido: uma
+      rajada interna fez o health responder 429 em 1 ms. Um serviço saudável podia ser
+      marcado unhealthy por um vizinho de IP. Correção: `config: { rateLimit: false }`
+      na rota. PROVA EM PRODUÇÃO (antes/depois): 120 requisições seguidas no health =
+      **120×200, 0 não-200**; `/clubs` no mesmo IP = **100×200 + 20×429** (o limitador
+      continua valendo — não desliguei nada) e o `/health` seguiu **200 DURANTE o
+      esgotamento do limite** — era exatamente o cenário que derrubava o probe.
+  (2) **INVENTÁRIO DE CRONS INCOMPLETO** (corrigido, #571): o log de boot
+      `data-refresh scheduler agendado` listava 5 crons e omitia o `enrich-all-media`
+      (que estava registrado e rodando). Todo cron novo passa a entrar no inventário.
+  (3) **VERCEL PREVIEW VERMELHO — CAUSA-RAIZ ENCONTRADA**: não é defeito de build. O
+      link do check é `vercel.com/end-art-studios?upgradeToPro=build-rate-limit`, isto
+      é, a conta bateu o **limite de builds de preview do plano gratuito**. O deploy de
+      PRODUÇÃO do web está verde (workflow `deploy-web` success) e o site responde 200.
+      Não bloqueia entrega; ação sugerida (decisão do Operador, envolve plano):
+      reduzir previews (buildar só em branches selecionadas) ou subir de plano.
+
+- PROTOCOLO DOS DIAS 1-7 (comandos prontos, nenhum inventa métrica):
+  · cron de mídia (após 07:00 UTC): `railway logs --service Almanaque-dos-Clubes | grep -E "enrich-all-media: (processed|start|fim)"`
+  · cobertura avançando: SQL
+    `SELECT count(*) FILTER (WHERE "mediaEnrichment" IS NOT NULL) AS tentados,
+            count(*) FILTER (WHERE "kitHistory" IS NOT NULL) AS kits,
+            count(*) FILTER (WHERE "mediaEnrichment" IS NULL AND qid IS NOT NULL AND "deletedAt" IS NULL) AS pendentes
+     FROM clubs WHERE "deletedAt" IS NULL;`
+  · integridade diária: matches/rankings/entries/WON (o baseline acima é a referência)
+  · saúde de recursos: `railway metrics --service Almanaque-dos-Clubes`
+  · cache: INFO do Redis (hits/misses/hit rate)
+  · erros: `railway logs ... | grep -c '"level":50'` deve seguir 0
+
+GAPS DECLARADOS: os dias 1-7 não foram observados nesta sessão (não há como esperar
+3-7 dias dentro de uma execução) — o que existe é o Dia 0 medido e o protocolo. A
+estimativa do despacho de "1.500-3.500 clubes enriquecidos no período" só pode ser
+CONFIRMADA pela coleta: à taxa medida (500 varridos/noite, ~22% com uniforme) espera-se
+**~110 clubes novos com uniforme por noite, ~770 em 7 noites**, e o cursor avançando
+3.500 clubes varridos. Também fica aberto: nenhuma métrica de processo (CPU/RSS do
+container sob o cron) foi capturada DURANTE a execução noturna — o pico medido (769 MB)
+é da janela de deploy, não do job.
+
+Stage Summary:
+- Dia 0 completo: cron verificado no Redis, latência/recursos/cache/logs medidos
+- 2 fragilidades corrigidas com prova antes/depois (health fora do rate-limit;
+  inventário de cron) e a causa-raiz do Vercel Preview encontrada (limite do plano)
+- Baseline de integridade e cobertura registrado para servir de referência aos dias 1-7
