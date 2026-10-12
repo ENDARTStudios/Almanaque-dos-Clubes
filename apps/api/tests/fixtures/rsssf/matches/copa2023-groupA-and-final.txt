@@ -1,0 +1,22 @@
+# Fonte: RSSSF — https://www.rsssf.org/sacups/copa2023.html
+# Autor da página: Osvaldo José Gorgazzi / RSSSF — "(c) Copyright ... and RSSSF"; uso com atribuição.
+# Excerpt recortado do bloco <pre> para teste do parser T519 (conteúdo literal da fonte).
+Group A
+Apr  5: SD Aucas - CR Flamengo                2-1
+Apr  5: Ñublense - Racing Club                0-2x
+Apr 19: CR Flamengo - Ñublense                2-0
+Apr 20: Racing Club - SD Aucas                3-2
+May  2: Ñublense - SD Aucas                   2-1x
+May  4: Racing Club - CR Flamengo             1-1
+May 23: SD Aucas - Racing Club                1-2
+May 24: Ñublense - CR Flamengo                1-1x
+Jun  7: SD Aucas - Ñublense                   0-0
+Jun  8: CR Flamengo - Racing Club             2-1
+Jun 28: Racing Club - Ñublense                4-0
+Jun 28: CR Flamengo - SD Aucas                4-0
+
+Semifinals
+(Sep 28 & Oct 5)
+
+Final (Nov 4, Rio de Janeiro)
+Boca Juniors              Arg  Fluminense FC             Bra   1-2  aet
