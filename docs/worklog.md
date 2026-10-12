@@ -1858,3 +1858,76 @@ Work Log:
 GAPS DECLARADOS: todos os 19 troféus e as bolas oficiais sem modelo 3D na fonte;
 formato hospedável no Commons é só .stl; visualizador Three.js pendente do
 primeiro modelo real (pipeline pronto).
+
+Task ID: goal-2026-10-12/t527
+Agent: Doer (ZCode)
+Task: T527 — EXPANSÃO DA BASE DE PARTIDAS (além das 2.450 do T519/T520)
+
+Work Log:
+- ALVOS (discovery read-only da RSSSF, com exemplos literais): Brasileirão Série A
+  2020 (temporada Covid, vaza para jan/fev de 2021), Premier League 2022-23,
+  Libertadores 2022, Ligue 1 2023-24/2024-25, Bundesliga 2023-24/2024-25.
+  A Série B fica FORA: a RSSSF não publica rodada a rodada para ela (só a tabela
+  final) — gap declarado, como o despacho previa.
+- PARSER: 4 ajustes, cada um com teste — (a) `spillAfter` para a temporada Covid;
+  (b) `isTableRow` para não descartar clube cujo nome começa com número
+  ("1.FC Köln", "1.FSV Mainz 05"); (c) cabeçalho de rodada tolerando anotação no
+  colchete ("Round 7 [postponed from Sep 10-12...]"); (d) guard de nota multilinha
+  (abaixo).
+- TRÊS DEFEITOS REAIS, TODOS PEGOS PELA MEDIÇÃO (não por inspeção):
+  1. BARRAGEM FORA DO ESCOPO. O bloco 0 das páginas europeias lista, DEPOIS da
+     tabela final, a barragem de acesso/rebaixamento — que envolve clubes da
+     divisão DE BAIXO (Rodez, Paris FC, Elversberg). O parser encerra o round-robin
+     na primeira `Final Table:` lida APÓS alguma rodada (a tabela de abertura,
+     antes da rodada 1, continua ignorada). Temporadas europeias: 310/307 → 306
+     (18×34).
+  2. NOTA QUEBRADA EM DUAS LINHAS. A Ligue 1 2024-25 imprime a anotação do jogo
+     abandonado atravessando a quebra de linha; a sobra ("crowd trouble; result
+     stood]") contaminava a linha do jogo SEGUINTE — "Toulouse crowd trouble; ..."
+     virava nome de clube e dois jogos se perdiam. Agora: colchete aberto sem
+     fechamento é anotação; e a sobra é cortada do nome.
+  3. `spillAfter` NÃO CHEGAVA AO CALL SITE. O parser resolvia o ano certo e o
+     teste unitário passava, mas o `buildPlan` chamava `matchDate` SEM a opção: as
+     112 partidas de jan/fev de 2021 do BR 2020 foram gravadas com data de 2020.
+     Lição registrada na decisão (testar no PONTO DE MONTAGEM, não só na unidade).
+- REGRA DE PLACAR ANORMAL (reordenada): placar IMPRESSO na coluna = partida, mesmo
+  com nota de abandono (Montpellier 0-2 Saint-Etienne, "result stood"); SEM placar
+  na coluna (`abd`/`awd`) = gap declarado, nunca deduzido da anotação.
+- ALIASES CURADOS (alvo conferido em produção por nome+QID): Brest, Lyon,
+  Paris-SG, Rennes, Metz (homônimo "U.S. Acli Metz"), Sankt Pauli, Olimpia
+  (homônimo de 4 clubes; na Libertadores é o paraguaio) e RB Bragantino. Ausentes
+  declarados: Independiente Petrolero (BOL) e `Univ. Católica` (ambiguidade REAL:
+  CHI/Q427446 e EQU/Q2308911 no acervo, as duas jogaram 2022).
+- VALIDAÇÃO INDEPENDENTE: 30 amostras (5 por fonte, incluindo as datas de risco —
+  jan/fev da temporada cruzada e o vencimento Covid do BR 2020) conferidas contra
+  Wikipédia/jornalismo oficial: **30 OK / 0 divergências / 0 não verificáveis**.
+- APLICADO EM PRODUÇÃO (5 fontes, lotes, `skipDuplicates`): br criadas=380,
+  pl criadas=380, lib criadas=81, ligue1 criadas=612, bundesliga criadas=611 →
+  **2.064 novas**; matches 2.450 → **4.514** (5 competições / 15 temporadas).
+- RE-RUN NOOP: segunda passada das 5 fontes = `criadas=0` em todas (inclusive após
+  o reparo do BR 2020 — prova que o `dedupKey` acompanhou a data corrigida).
+- REPARO DO DEFEITO 3: 112 linhas do BR 2020 corrigidas em produção (date +1 ano +
+  dedupKey), `restantes_erradas=0`, e a temporada passou a ler
+  2020-08-08..2021-02-25 (exatamente o que o harness local dizia).
+- SMOKE NO PRODUTO (API ao vivo): `GET /clubs/:id/statistics` — Bayern com 34 J em
+  2023/24 e 2024/25 da Bundesliga; Flamengo com 38 J em cada uma das 5 temporadas
+  do Brasileirão (2020-2024) + Libertadores 2022.
+- INTEGRIDADE: matches 4.514 (dedupKeys distintos = 4.514, zero partida sem
+  temporada ou sem placar) · ranking_entries 893 · WON 5.205 · clubes ativos
+  11.987 — rankings e entries INTOCADOS (recalcular é do próximo cron, como o
+  despacho manda).
+
+GAPS DECLARADOS: Série B sem resultados rodada a rodada na RSSSF (só tabela
+final); Libertadores 2022 — 16 das 97 partidas ficam fora por clube não
+resolvido (Táchira, Independiente Petrolero ausentes do acervo; Universidad
+Católica ambígua entre CHI e EQU); L1 2023-24 Montpellier x Clermont (`abd`, sem
+placar na coluna) e BL 2024-25 Union x Bochum (`awd`, decisão disciplinar) — em
+ambos a fonte não imprime placar e deduzi-lo da nota seria inventar. Barragens de
+acesso/rebaixamento das ligas europeias ficam fora por desenho (clubes da divisão
+de baixo).
+
+Stage Summary:
+- 2.064 partidas novas em 5 competições (meta do gate era 500+) → matches 4.514
+- 30 amostras validadas contra fonte independente, 0 divergências
+- 3 defeitos corrigidos com teste de regressão cada; base em produção reparada
+- re-run noop provado; rankings/WON intactos

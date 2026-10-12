@@ -1979,3 +1979,65 @@ documentado como o gate previa.
 vez de Competition — âncora de script) e o merge foi antes do fim dos checks;
 corrigido no #552. Lição reforçada: nunca mergear com check pendente/falhando,
 mesmo quando o deploy da API sobe.
+
+### [2026-10-12] Decisao: D-2026-10-12-t527-limite-do-escopo-do-round-robin — o round-robin do campeonato termina na tabela final; barragem e playoff de acesso são de outra competição
+
+**Contexto:** as páginas de Ligue 1 e Bundesliga do RSSSF publicam, no MESMO bloco
+`<pre>` da divisão, depois da tabela final, a barragem de acesso/rebaixamento
+(1º/2º nível). Ela envolve clubes da divisão de baixo (Rodez, Paris FC,
+Elversberg) e, no caminho, reusa os rótulos "Round 1"/"Round 2" já usados pelas
+rodadas regulares. Ingeri-la como Ligue 1 gravaria clubes de Ligue 2 na temporada
+de Ligue 1 e inflaria a temporada (310 jogos em vez de 306).
+
+**Decisão:** o parser encerra a leitura do bloco na primeira linha `Final Table:`
+lida **depois** de pelo menos uma rodada. A tabela de abertura (antes da rodada 1)
+continua ignorada, porque o corte só vale depois de `started`.
+
+**Regras permanentes:**
+
+1. Temporada de liga = round-robin da divisão (20×38 ou 18×34). Qualquer seção
+   posterior à tabela final (`Promotion/Relegation Playoff`, `Final`, `First Leg`)
+   fica FORA — é outra competição, com clubes de outra divisão.
+2. Um jogo só entra com o placar IMPRESSO na coluna da fonte. Marcador de jogo
+   anormal (`abd`, `awd`, `x`) = gap declarado — deduzir o placar da anotação
+   ("awarded 0-2", "result stood") seria adivinhar. Com placar impresso E nota de
+   abandono, a partida entra e a nota vai íntegra para `sourceNote`.
+3. Aliases só com o alvo conferido na PRODUÇÃO (nome + QID lido do banco). Nome
+   homônimo sem discriminador confiável fica fora e vira gap (Universidad
+   Católica: CHI e EQU as duas no acervo e as duas jogaram 2022).
+4. O rótulo de temporada segue a convenção de CADA competição no acervo
+   (`CompetitionSeason.season`): Ligue 1 usa `2023-2024`, Bundesliga `2023/24`,
+   Premier League `2023-24` — e a linha `seasons` criada pelo seed espelha isso.
+5. Continuam sem entradas as competições cuja fonte não publica os jogos rodada a
+   rodada (Série B: só tabela final).
+
+**Resultado:** 2.064 partidas novas (4.514 no total), 30 amostras validadas contra
+fonte independente sem divergência, noop provado, rankings/WON intactos.
+
+### [2026-10-12] Decisao: D-2026-10-12-t527-opcao-nao-chega-ao-call-site — testar no PONTO DE MONTAGEM, não só na unidade
+
+**Contexto:** o T527 acrescentou a opção `spillAfter` (meses <= N pertencem ao ano
+seguinte) para a temporada Covid do Brasileirão 2020. O parser honrava a opção e o
+teste unitário de `resolveMatchYear`/`matchDate` passava. Mesmo assim, a produção
+gravou as 112 partidas de jan/fev de 2021 com data de jan/fev de **2020**: o
+`buildPlan` — o ponto onde o seed monta o plano — chamava `matchDate` sem repassar
+a opção. O teste cobria a função; ninguém cobria a LIGAÇÃO entre a opção da
+temporada e a chamada.
+
+**Decisão:** toda opção que atravessa camadas (parser → plano → gravação) precisa de
+teste no ponto de montagem (`buildPlan`), não só na unidade que a implementa.
+
+**Regras permanentes:**
+
+1. Teste de regressão para cada opção nova vai no nível do PLANO (`buildPlan` com o
+   `SOURCES` real), porque é lá que o defeito mora — a unidade passava feliz.
+2. Verificação pós-apply é OBRIGATÓRIA e por distribuição (min/max/contagem por
+   temporada), não só por total: o erro só apareceu ao comparar a janela de datas
+   com a esperada (2020-08-08..2021-02-25).
+3. Reparo de dado já publicado: UPDATE cirúrgico na mesma transação, incluindo a
+   chave natural (`dedupKey`), e prova de consistência pelo re-run do seed
+   (`criadas=0`; se a chave não acompanhasse, apareceriam 380 duplicatas).
+
+**Resultado:** defeito pego pela verificação de distribuição (não pela contagem
+total, que estava certa), 112 linhas reparadas, temporada lendo a janela correta, e
+o teste novo falha se a opção deixar de ser repassada.
