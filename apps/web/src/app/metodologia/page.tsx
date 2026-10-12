@@ -149,6 +149,71 @@ export default function MetodologiaPage() {
           </p>
         </section>
 
+        <section id="ranking-jogadores" className="scroll-mt-20">
+          <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
+            Ranking 0-100 de Jogadores (artilheiros)
+          </h2>
+          <p>
+            <strong>Status:</strong> publicado em 2026-10-12 para o Campeonato Brasileiro Série A de
+            2023, <em>rodadas 1 a 11</em> — a única janela em que a fonte publica os autores dos
+            gols. São 68 jogadores ranqueados, com pontos entre 0 e 100.
+          </p>
+          <p className="mt-2">
+            <strong>Fórmula:</strong>{' '}
+            <span>{'Pontos brutos = Gols × 4 + Assistências × 2 + Vitórias × 1'}</span> — a mesma
+            prevista no algoritmo desde a primeira versão.{' '}
+            <strong>Na prática só os gols entram</strong>: a fonte não publica assistências nem
+            vitórias por jogador, e não inventamos o que não existe (a pontuação bruta efetiva é{' '}
+            <code>gols × 4</code>).
+          </p>
+          <p className="mt-2">
+            <strong>Normalização:</strong> MinMax dentro do escopo (competição + temporada), igual à
+            do ranking de clubes — o maior pontuador vira 100 e o menor, 0. Empate de pontos brutos
+            é desempatado por gols e, depois, por nome (posição determinística).
+          </p>
+          <p className="mt-2">
+            <strong>Base auditável:</strong> cada entrada informa em quantas{' '}
+            <em>partidas o jogador marcou</em> — este é o dado que a fonte dá. Não são
+            &ldquo;aparições&rdquo; (a fonte não as publica) e o ranking não afirma o contrário.
+          </p>
+          <p className="mt-2">
+            <strong>Identidade do jogador:</strong> o nome impresso pela fonte é casado com o
+            cadastro do acervo por <em>igualdade de nome</em> (sem fuzzy) e passa por um filtro de
+            plausibilidade — não é goleiro e nasceu a partir de 1980. Nome com mais de um candidato
+            plausível <strong>não é ranqueado</strong>: preferimos o vazio ao chute. Um pequeno mapa
+            curado cobre os casos em que o acervo usa outro nome (ex.: &ldquo;Gabriel Barbosa&rdquo;
+            → &ldquo;Gabigol&rdquo;).
+          </p>
+          <p className="mt-2">
+            <strong>Limitações conhecidas:</strong> (i) cobre apenas o Brasileirão 2023 rodadas 1-11
+            — as demais competições do acervo (Premier League, Libertadores, Brasileirão
+            2021/2022/2024)
+            <strong>não têm autores de gol na fonte</strong>; (ii) gols contra (<code>og</code>) não
+            são creditados ao autor; (iii) jogadores que não estão no cadastro do acervo ficam de
+            fora (entre eles Flaco López, Raniele, Lelê e John Kennedy) — o gap é declarado, não
+            preenchido; (iv) a fonte publica os autores de gol de 102 dos 110 jogos da janela
+            (92,7%).
+          </p>
+          <p className="mt-2">
+            <strong>Fonte e atribuição:</strong> autores de gol e placares da{' '}
+            <a
+              href="https://www.rsssf.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              RSSSF
+            </a>
+            . <strong>Uso condicionado à atribuição adequada.</strong> Identidade dos jogadores
+            conferida no cadastro do acervo (Wikidata, CC0).
+          </p>
+          <p className="mt-2">
+            <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
+            <strong>endart.studios+contato@gmail.com</strong> — cada entrada linka o perfil do
+            jogador e a partida tem a URL da fonte.
+          </p>
+        </section>
+
         <section id="agregado-cross-division-inglaterra" className="scroll-mt-20">
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
             Agregado cross-division — Piloto Inglaterra 2022/23 (publicado em 2026-09-27)
