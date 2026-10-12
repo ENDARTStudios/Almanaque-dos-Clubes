@@ -199,7 +199,10 @@ export const SOURCES: Record<string, SourceSpec> = {
   lib: {
     competitionQid: 'Q184795', // Copa Libertadores
     kind: 'libertadores',
-    countries: [...CONMEBOL_COUNTRIES],
+    // T529 — além da CONMEBOL, o MÉXICO: clubes mexicanos jogaram a Libertadores
+    // como convidados (Atlas, Pumas, Toluca, Tigres). Sem `MX` no escopo, o alias do
+    // Atlas mexicano era bloqueado e a cascata caía no Atlas ARGENTINO.
+    countries: [...CONMEBOL_COUNTRIES, 'MX'],
     url: (f) => `https://www.rsssf.org/sacups/${f}.html`,
     // T529 — 2015 a 2021 somam-se a 2022-2024. 2025 não existe na fonte (404).
     // 2020 (Covid) teve a FINAL em 30/jan/2021: é o único jogo daquele ano em
