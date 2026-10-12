@@ -228,6 +228,24 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     }
   });
 
+  /** T524 — hino do clube (áudio livre + metadados; letra só com licença livre). */
+  app.get<{ Params: { id: string } }>('/clubs/:id/anthem', async (request, reply) => {
+    try {
+      const club = await prisma.club.findFirst({
+        where: { id: request.params.id, deletedAt: null },
+        select: { anthem: true },
+      });
+      if (!club) {
+        return reply
+          .status(404)
+          .send({ error: { code: 'NOT_FOUND', message: 'Clube não encontrado' } });
+      }
+      return reply.send({ data: { anthem: club.anthem ?? null } });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
   app.get<{ Params: { id: string } }>('/clubs/:id/statistics', async (request, reply) => {
     try {
       const data = await getClubStatistics(request.params.id);

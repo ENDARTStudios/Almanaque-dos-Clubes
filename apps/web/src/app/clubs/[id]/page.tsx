@@ -176,6 +176,33 @@ interface KitEntryPayload {
   sourceUrl: string;
 }
 
+interface AnthemPayload {
+  composer: string | null;
+  lyricist: string | null;
+  year: number | null;
+  official: boolean | null;
+  label: string | null;
+  note: string | null;
+  audioUrl: string | null;
+  audioLicense: string | null;
+  audioSourceUrl: string | null;
+  lyrics: null;
+  lyricsRestricted: boolean;
+  sourceUrl: string;
+  attribution: string;
+}
+
+async function getAnthem(id: string): Promise<AnthemPayload | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/anthem`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json.data as { anthem: AnthemPayload | null }).anthem ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function getKits(id: string): Promise<KitEntryPayload[] | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/kits`, { next: { revalidate: 300 } });
@@ -241,7 +268,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
-  const [stats, kits] = await Promise.all([getStatistics(id), getKits(id)]);
+  const [stats, kits, anthem] = await Promise.all([getStatistics(id), getKits(id), getAnthem(id)]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
 
@@ -555,6 +582,58 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               </div>
             ))}
           </div>
+        </Section>
+      ) : null}
+
+      {anthem ? (
+        <Section title={s.anthem} testid="club-anthem">
+          <p className="text-sm text-foreground" data-testid="anthem-label">
+            {anthem.label}
+            {anthem.official === false ? ` · ${s.anthemUnofficial}` : ''}
+          </p>
+          {anthem.composer || anthem.lyricist || anthem.year ? (
+            <p className="text-sm text-foreground/70 mt-1">
+              {anthem.composer ? `${s.anthemComposer}: ${anthem.composer}` : ''}
+              {anthem.lyricist && anthem.lyricist !== anthem.composer
+                ? ` · ${s.anthemLyricist}: ${anthem.lyricist}`
+                : ''}
+              {anthem.year ? ` · ${s.anthemYear}: ${anthem.year}` : ''}
+            </p>
+          ) : null}
+          {anthem.note ? <p className="text-sm text-foreground/50 mt-1">{anthem.note}</p> : null}
+          {anthem.audioUrl ? (
+            <div className="mt-3" data-testid="anthem-audio">
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio controls preload="none" src={anthem.audioUrl} className="w-full max-w-md">
+                <track kind="captions" />
+              </audio>
+              <p className="text-xs text-foreground/50 mt-1">
+                <a
+                  href={anthem.audioSourceUrl ?? '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {anthem.audioLicense}
+                </a>
+              </p>
+            </div>
+          ) : null}
+          {anthem.lyrics === null && anthem.lyricsRestricted ? (
+            <p className="text-xs text-foreground/50 mt-2" data-testid="anthem-lyrics-note">
+              {s.anthemLyricsRestricted}
+            </p>
+          ) : null}
+          <p className="text-xs text-foreground/40 mt-2">
+            <a
+              href={anthem.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              {anthem.attribution}
+            </a>
+          </p>
         </Section>
       ) : null}
 

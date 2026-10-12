@@ -48,6 +48,13 @@ export interface WsC2Strings {
     kitTypeGoalkeeper: string;
     kitTypeTraining: string;
     kitTypeOther: string;
+    anthem: string;
+    anthemComposer: string;
+    anthemLyricist: string;
+    anthemYear: string;
+    anthemLyricsRestricted: string;
+    anthemUnofficial: string;
+    anthemAudio: string;
     gaps: string;
     gapsIntro: string;
     notAvailable: string;
@@ -137,6 +144,13 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       kitTypeGoalkeeper: 'Goleiro',
       kitTypeTraining: 'Treino',
       kitTypeOther: 'Outro',
+      anthem: 'Hino',
+      anthemComposer: 'Composição',
+      anthemLyricist: 'Letra',
+      anthemYear: 'Ano',
+      anthemLyricsRestricted: 'Letra não disponível por restrições de direitos autorais.',
+      anthemUnofficial: 'Hino popular (não oficial)',
+      anthemAudio: 'Ouvir',
       gaps: 'Lacunas declaradas',
       gapsIntro: 'O acervo ainda não possui estes dados — exibidos como lacuna, nunca inventados:',
       notAvailable: 'Não disponível nesta fase.',
@@ -235,6 +249,13 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       kitTypeGoalkeeper: 'Goalkeeper',
       kitTypeTraining: 'Training',
       kitTypeOther: 'Other',
+      anthem: 'Anthem',
+      anthemComposer: 'Composed by',
+      anthemLyricist: 'Lyrics',
+      anthemYear: 'Year',
+      anthemLyricsRestricted: 'Lyrics unavailable due to copyright restrictions.',
+      anthemUnofficial: 'Popular anthem (unofficial)',
+      anthemAudio: 'Listen',
       gaps: 'Declared gaps',
       gapsIntro: 'The archive does not hold these data yet — shown as gaps, never invented:',
       notAvailable: 'Not available at this stage.',
@@ -333,6 +354,13 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       kitTypeGoalkeeper: 'Portero',
       kitTypeTraining: 'Entrenamiento',
       kitTypeOther: 'Otro',
+      anthem: 'Himno',
+      anthemComposer: 'Composición',
+      anthemLyricist: 'Letra',
+      anthemYear: 'Año',
+      anthemLyricsRestricted: 'Letra no disponible por restricciones de derechos de autor.',
+      anthemUnofficial: 'Himno popular (no oficial)',
+      anthemAudio: 'Escuchar',
       gaps: 'Lagunas declaradas',
       gapsIntro: 'El acervo aún no tiene estos datos — mostrados como laguna, nunca inventados:',
       notAvailable: 'No disponible en esta fase.',
