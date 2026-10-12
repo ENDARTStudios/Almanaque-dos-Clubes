@@ -2041,3 +2041,86 @@ teste no ponto de montagem (`buildPlan`), não só na unidade que a implementa.
 **Resultado:** defeito pego pela verificação de distribuição (não pela contagem
 total, que estava certa), 112 linhas reparadas, temporada lendo a janela correta, e
 o teste novo falha se a opção deixar de ser repassada.
+
+### [2026-10-12] Decisao: D-2026-10-12-t528-lote-que-avanca — todo lote de enriquecimento tem cursor de TENTATIVA; cobertura (varredura) não é rendimento (fonte)
+
+**Contexto:** a crítica do Operador era que os workstreams de mídia rendiam 0,02%-0,11%
+de cobertura e que o método artesanal não escala. A medição em produção mostrou que o
+problema tinha DUAS camadas — e a segunda era pior que a primeira:
+
+1. a curadoria era manual (22 clubes escolhidos a dedo nos T523-T526);
+2. **os jobs de lote já existentes não avançavam**: selecionavam por `campo IS NULL` +
+   `orderBy: name ASC`. Como nenhum dos 11.987 clubes tem os 5 campos de mídia
+   preenchidos (`com_os_5_campos=0`), nenhuma linha saía do filtro e o job reprocessava
+   os MESMOS 500 primeiros em ordem alfabética toda noite (escudo em 2,4%); o job de
+   texto avançava só enquanto o clube RECEBIA texto e travou na letra E (A = 82%,
+   B = 5,7%, C = 2,7%).
+
+**Decisão:** nenhum lote se seleciona por "campo vazio". Cada clube tentado ganha um
+REGISTRO DE TENTATIVA (`clubs.mediaEnrichment = { "<media>": { at, status } }`) e o
+cursor passa a ser esse registro. O lote avança sempre — inclusive quando a fonte não
+tem o dado, que vira GAP DECLARADO por clube (auditável no banco), nunca retrabalho
+silencioso nem campo eternamente vazio.
+
+**Regras permanentes:**
+
+1. Lote de enriquecimento = `WHERE "<cursor>" IS NULL` sobre o REGISTRO DE TENTATIVA,
+   nunca sobre o campo de conteúdo.
+2. Gap é dado: `status: 'no_source'` fica gravado com data — é o que prova que o clube
+   foi olhado e a fonte não tinha, e é o que permite estimar cobertura.
+3. COBERTURA ≠ RENDIMENTO, e o checkpoint declara os dois: o batch multiplica a
+   VARREDURA (500 clubes/noite, ~24 noites), mas o RENDIMENTO é da fonte (uniforme em
+   ~22% dos clubes varridos; hino e flâmula quase vazios). Nada é inventado para
+   aproximar os dois números.
+4. Idempotência se prova no MESMO lote (`--recheck`), e a seleção do recheck é SQL
+   explícito — `not: Prisma.DbNull` em campo JSON não é confiável (o modo recheck pegou
+   os PRÓXIMOS 500 em vez dos já tentados).
+5. Os jobs legados (`enrich-clubs-media`, `enrich-clubs-editorial`) continuam travados:
+   o conserto é aplicar o MESMO cursor e está declarado como pendência explícita, não
+   como sucesso.
+
+**Resultado:** job `enrich-all-media` no cron (07:00 UTC, 500 clubes/noite), uniformes
+de 11 para 233 clubes em duas execuções, gaps auditáveis por clube, noop provado.
+
+### [2026-10-13] Decisao: D-2026-10-13-t529-temporada-e-cascata — o ano é mês+rodada na faixa ambígua, o rótulo é da competição, e a cascata do resolver precisa de QID onde ela erra
+
+**Contexto:** a expansão para La Liga/Serie A/Libertadores antigos expôs três classes de
+erro que só aparecem quando se sai das competições já validadas:
+
+1. **Ano da temporada cruzada**: a Covid esticou a Serie A 2019-20 de 24/ago/2019 a
+   2/ago/2020 — o MESMO mês (agosto) nos dois extremos, então nenhum corte por mês
+   separa começo de fim. O fold por sequência ("o ano vira quando o mês volta") também
+   não serve: a fonte lista jogo ADIADO dentro da rodada original
+   (`r16: Dec 13, Dec 13, Jan 20, r17: Dec 19`) e a virada era contada duas vezes.
+2. **O último degrau da cascata escolhe o clube ERRADO**: `word-abbrev`/containment
+   ligaram `Peñarol` ao time FEMININO do Peñarol (que está com `gender='men'` no
+   acervo), `San Lorenzo` ao clube de Chiclayo, `Universitario` ao de Trujillo,
+   `Vélez Sársfield` ao de San Ramón, `Madrid` a uma **seleção regional**, `Málaga` ao
+   CD Málaga extinto, `Sporting` a um clube de MALTA, `Paraná` ao ADAP de Campo Mourão,
+   `Atlas` ao Atlas argentino (o da Libertadores é o mexicano).
+3. **A lista de ausentes estava sendo usada como "lista de clubes que não existem"** —
+   e um teste do T519 mostrou o efeito: marcar `LDU Quito` como ausente bloqueia o POOL
+   DA TEMPORADA, que é justamente o mecanismo que resolve o clube quando ele entrar no
+   acervo.
+
+**Decisão (três regras):**
+
+1. **Ano de temporada cruzada**: o MÊS decide (corte em agosto para as europeias); na
+   faixa ambígua (o mês do corte e o anterior) quem desempata é a RODADA — rodada na
+   segunda metade da temporada pertence ao ano seguinte. O rótulo da temporada é o da
+   COMPETIÇÃO no acervo (`CompetitionSeason.season`): Ligue 1 usa `2023-2024`,
+   Bundesliga `2023/24`, Premier League `2023-24`, Serie A `2015-2016` — conferido antes
+   de escrever, nunca presumido.
+2. **Cascata**: onde o degrau fraco (word-abbrev/containment) pode escolher outro clube,
+   entra alias EXPLÍCITO com QID lido da produção. Regra de ouro: alvo de alias é
+   conferido na fonte/produção, jamais digitado de memória.
+3. **Lista de ausentes = só o que casaria o clube ERRADO.** Clube que apenas não existe
+   no acervo fica de fora de propósito: aparece como "sem candidato" no relatório e pode
+   ser resolvido pelo pool da temporada no dia em que entrar no acervo.
+
+**Consequências operacionais registradas:** reparo de dados em produção é feito
+removendo as linhas erradas e deixando o seed RECRIAR as certas pela chave natural
+(`dedupKey`) — a chave é o árbitro, e o re-run prova o acervo (65 recriadas no T529; as
+38 do Paraná não voltaram, provando o ABSENT). E o DEFEITO DE ACERVO encontrado —
+entidades femininas com `gender='men'` (dezenas, incluindo seleções) — fica registrado
+como candidato à próxima rodada de cura (padrão T520).

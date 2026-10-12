@@ -1931,3 +1931,152 @@ Stage Summary:
 - 30 amostras validadas contra fonte independente, 0 divergências
 - 3 defeitos corrigidos com teste de regressão cada; base em produção reparada
 - re-run noop provado; rankings/WON intactos
+
+Task ID: goal-2026-10-12/t528
+Agent: Doer (ZCode)
+Task: T528 — JOB UNIFICADO DE MÍDIA EM BATCH (método artesanal -> processo de dados)
+
+Work Log:
+- DIAGNÓSTICO MEDIDO (o achado que reorganiza o problema): os jobs de enriquecimento
+  do scheduler já existiam, mas NÃO AVANÇAVAM.
+  (a) `enrich-clubs-media` (04:00, lote 500) seleciona clubes por `OR: [campo IS NULL]`
+      + `orderBy: name ASC`. Medido em produção: NENHUM dos 11.987 clubes tem os 5
+      campos de mídia preenchidos (`com_os_5_campos=0`), então nenhuma linha sai do
+      filtro — o job reprocessa OS MESMOS 500 primeiros em ordem alfabética toda noite.
+      Escudo parado em 290/11.987 (2,4%).
+  (b) `enrich-clubs-editorial` (06:00) avança só enquanto o clube RECEBE texto; trava
+      no primeiro clube sem sitelink. Prova na distribuição por letra: A = 729/885
+      (82%), B = 29/505 (5,7%), C = 27/1.011 (2,7%) — a varredura parou na letra E
+      (último nome com texto: "Esporte Clube Juventude").
+  Ou seja: a cobertura baixa não era só curadoria manual — o LOTE não avançava.
+- ENTREGA: migration aditiva `clubs.mediaEnrichment` JSONB (nullable, nenhuma linha
+  existente muda) com o registro por mídia `{ "<media>": { at, status } }`. Esse
+  registro é o CURSOR: o lote passa a selecionar quem NÃO tem tentativa, então avança
+  sempre — e o que a fonte não tem vira GAP DECLARADO por clube (auditável), nunca
+  retrabalho silencioso.
+- Serviço `enrich-all-media.service` (reusa o parser de kits do T523 e a verificação ao
+  vivo do T524/T525) + script CLI (`--apply`, `--batch`, `--recheck`) + cron
+  `enrich-all-media` às 07:00 UTC, lote 500, com health e log estruturado — mesmo padrão
+  do T451/T506. Teto próprio de 20 min (o lote mediu 7,6 min em dry-run contra o teto
+  global de 10 min).
+- REGRAS DURAS (testadas): peça de uniforme verificada AO VIVO no Commons (existe +
+  licença + sem pedido de exclusão); hino só em arquivo de áudio CITADO pela própria
+  página e verificado; flâmula só arquivo da CATEGORIA do clube cujo TÍTULO diz que é
+  flâmula (nunca busca textual solta); LETRA de hino nunca é publicada; campo já
+  preenchido nunca é sobrescrito (curadoria T523-T526 preservada).
+- PRODUÇÃO: dry-run 500 = 109 enriquecidos / 391 gaps / 0 erros (7,6 min); apply = 109;
+  cursor avançou exatamente 500 por rodada. Uniformes: 11 -> 233 clubes (21x a cobertura
+  artesanal). Pendentes: 10.842 -> ~24 noites a 500/noite.
+- DEFEITO PEGO SÓ EM PRODUÇÃO: o modo `--recheck` (que existe para provar idempotência)
+  filtrava com `mediaEnrichment: { not: Prisma.DbNull }` — filtro de NEGAÇÃO em campo
+  JSON que o Prisma não traduz de forma confiável. Resultado: em vez de reprocessar os já
+  tentados, pegou os PRÓXIMOS 500 e enriqueceu mais 113 clubes (dado legítimo, mas a
+  prova de noop não valia). Corrigido para SQL explícito (`"mediaEnrichment" IS NULL /
+  IS NOT NULL`) no #559.
+- GATE: job registrado no cron (07:00 UTC) ✓ · dry-run com enriched>0 ✓ · apply 500
+  processados ✓ · noop provado ✓ · log estruturado no formato
+  `enrich-all-media: processed=... enriched=...` ✓ · integridade preservada ✓.
+- HONESTIDADE SOBRE O RENDIMENTO: o batch multiplica a VARREDURA (500 clubes/noite,
+  ~24 noites para os 11.987), mas o RENDIMENTO é limitado pela fonte: uniforme aparece em
+  ~22% dos clubes varridos (a maioria das páginas da pt.Wikipedia não traz composição);
+  hino e flâmula seguem quase vazios (0 hinos e 1 flâmula no primeiro lote) porque a
+  fonte quase não tem o material — e nada é inventado para inflar o número. Estado final:
+  kit 11 -> 233 · hino 13 · flâmula 3.
+
+GAPS DECLARADOS: os jobs LEGADOS (`enrich-clubs-media` e `enrich-clubs-editorial`)
+continuam travados no mesmo lote alfabético — o defeito está diagnosticado com evidência
+e o conserto é aplicar aqui o MESMO cursor (`mediaEnrichment` por mídia); é mudança de
+comportamento de dois jobs de produção e ficou para um despacho próprio (não misturei no
+PR do job novo).
+
+Task ID: goal-2026-10-12/t529
+Agent: Doer (ZCode)
+Task: T529 — EXPANSÃO MASSIVA DE PARTIDAS (5 competições, 2015-2025)
+
+Work Log:
+- RESULTADO: matches 4.514 -> **15.987** (11.473 novas; a meta do gate era 5.000+).
+  7 competições / 60 temporadas. Novas: Brasileirão Série A 2015-2019, Premier League
+  2015-16 a 2021-22, Libertadores 2015-2021, **La Liga** (Q324867, `tabless/span{}`) e
+  **Serie A italiana** (Q15804, `tablesi/ital{}`) 2015-16 a 2024-25.
+- TRÊS REGRAS DE DATA NOVAS (cada uma com teste):
+  1. ANO DAS TEMPORADAS CRUZADAS (`resolveCrossYears`): a Covid esticou a Serie A 2019-20
+     de 24/ago/2019 a 2/ago/2020 — o MESMO mês nos dois extremos — e o fold "o ano vira
+     quando o mês volta" contava a virada duas vezes porque a fonte lista jogo ADIADO
+     dentro da rodada original (`r16: Dec 13, Dec 13, Jan 20, r17: Dec 19`). Regra: o MÊS
+     decide e, só na faixa ambígua (mês do corte e o anterior), a RODADA desempata.
+  2. SOBRA DE NOTA NÃO COME O NOME (`cutNoteTail`): o regex casava à esquerda no espaço
+     INTERNO do nome — em BR 2019 o jogo seguinte ao abandonado virava "São" em vez de
+     "São Paulo" (e a temporada ficava com 21 times).
+  3. GRUPOS NUMERADOS da Libertadores antiga (`Group 1..8`, não só A-H): recupera 2015-2017.
+- O RÓTULO DE TEMPORADA segue a convenção de CADA competição no acervo (Ligue 1
+  `2023-2024`, Bundesliga `2023/24`, Premier League `2023-24`, Serie A `2015-2016`) —
+  conferido em `CompetitionSeason.season` antes de escrever.
+- ALIASES: duas ondas de curadoria a partir do relatório de resolução (nunca por memória),
+  sempre com o alvo conferido em produção por nome+QID. A cascata genérica estava ligando
+  o clube ERRADO em 8 casos: `Madrid` -> "Madrid autonomous football team" (seleção
+  regional!), `Málaga` -> CD Málaga (clube extinto), `Sporting` -> clube de MALTA,
+  `Paraná` -> ADAP de Campo Mourão, `Peñarol` -> Peñarol WOMEN'S, `San Lorenzo` -> clube do
+  Peru, `Universitario` -> de Trujillo, `Vélez Sársfield` -> de San Ramón. Também:
+  Atlético/PR = Athletico/PR (rename), Sport = Sport do Recife (a cascata casava com o
+  Internacional), Atlas (MX, convidado da Libertadores — o escopo de países não incluía o
+  México).
+- CRITÉRIO DA LISTA DE AUSENTES (fixado aqui, e um teste do T519 mostrou por quê): a lista
+  existe para bloquear o que CASARIA O CLUBE ERRADO — não clubes que apenas não existem no
+  acervo (esses ficam como "sem candidato" e podem ser resolvidos pelo pool da temporada se
+  entrarem no acervo depois).
+- REPARO DE DADOS: 105 linhas mal ligadas (32 do Peñarol feminino, 18 do San Lorenzo
+  peruano, 5 do Universitario de Trujillo, 4 do Vélez de San Ramón, 6 do Atlas argentino,
+  38 do ADAP pelo Paraná) foram removidas e o seed recriou as CORRETAS pela chave natural
+  (65 recriadas; as 38 do Paraná ficaram de fora, como gap declarado, provando o ABSENT).
+- VALIDAÇÃO: 50 amostras (10 por competição, sorteio determinístico por md5) conferidas
+  contra fontes independentes — ver checkpoint.
+- NOOP: re-run das 5 fontes = `criadas=0` em todas. E as temporadas JÁ aplicadas
+  (BR 2020-24, PL 2022-25, L1, BL) seguiram com `criadas=0 puladas=380` depois de trocar a
+  regra de ano — prova de que as regras novas reproduzem as MESMAS datas.
+- INTEGRIDADE: matches 15.987 (dedupKeys distintos = 15.987) · rankings 72 ·
+  ranking_entries 1.907 · WON 5.205 · clubes 11.987 — nenhum registro sem temporada ou sem
+  placar.
+
+GAPS DECLARADOS: 2025-26 não publica rodada a rodada na fonte (BR 2025, PL 2025-26, La Liga
+2025-26, Serie A 2025-26) e a Libertadores 2025 não existe (404). Clubes que o acervo NÃO
+tem e por isso perdem os jogos (declarados "sem candidato"): Joinville, Paraná (BR); Eibar,
+Huesca, Sporting, Málaga (ES); Lecce, Como, Monza, Cremonese, Frosinone, Salernitana, SPAL
+(IT); LDU Quito, Independiente Petrolero, Táchira, Monagas, Universitario (Sucre), Mineros,
+Trujillanos, Sport Boys Warnes, Univ. de Concepción, Tigres UANL, Huracán e as duas
+"Universidad Católica" (ambíguas de verdade, CHI e EQU). São candidatos naturais da próxima
+onda de ingestão Wikidata.
+DEFEITO DE ACERVO REGISTRADO (não corrigido aqui): o acervo tem entidades FEMININAS com
+`gender='men'` (ex.: "Peñarol women's", "Albania women's national football team", dezenas)
+— é o que deixou um time feminino passar no filtro de gênero do resolver. Candidato a
+rodada de cura (padrão T520).
+
+Task ID: goal-2026-10-12/t530
+Agent: Doer (ZCode)
+Task: T530 — EXPANSÃO DE RANKINGS 0-100 PARA TODAS AS COMPETIÇÕES COM PARTIDAS
+
+Work Log:
+- PRÉ-REQUISITO CORRIGIDO: o CLI de cálculo aceitava só rótulo `YYYY` ou `YYYY-YY`; o
+  acervo também usa `YYYY-YYYY` (Ligue 1, Serie A) e `YYYY/YY` (Bundesliga) — e o
+  algoritmo filtra por `season: { name }`, exigindo o rótulo EXATO. Sem isso, La
+  Liga/Serie A/Ligue 1/Bundesliga não podiam ser calculadas.
+- LOTE: 54 pares (competição, temporada) com mais de 20 partidas processados em sequência
+  — 54/54 OK.
+- RESULTADO: rankings **26 -> 72** (+46 novos; a meta do gate era 30+), entradas 893 ->
+  **1.907**. La Liga (10 temporadas), Serie A (10), Bundesliga (2) e Ligue 1 (2) passaram a
+  ter ranking 0-100, junto com os que já existiam (Brasileirão, Premier League,
+  Libertadores e os globais).
+- ESCALA: conferida — todas as entradas dos 46 rankings novos estão entre 0 e 100 (max=100
+  em todas as amostradas). As ÚNICAS 20 entradas fora da escala são as LEGADAS
+  `Ranking CBF 2023` (2.190-2.848) e `Ranking CONMEBOL 2023` (1.600-2.800), que usam a
+  escala BRUTA da fonte — precedentes, não tocadas (a coexistência das duas escalas já
+  está registrada desde o T521).
+- IDEMPOTÊNCIA: re-run de um par = `skipped: true`, `rankingsPublicados: 0`.
+- INTEGRIDADE: matches 15.987 · ranking_entries 1.907 · WON 5.205 · clubes 11.987.
+
+Stage Summary (T528-T530):
+- T528: job unificado de mídia em batch com CURSOR por tentativa (07:00 UTC, 500
+  clubes/noite, ~24 noites de cobertura); uniformes 11 -> 233 clubes; o defeito que
+  congelava a cobertura foi medido e documentado
+- T529: 11.473 partidas novas (matches 4.514 -> 15.987) em 5 competições, 3 regras de data
+  novas, 8 clubes ligados errados curados com reparo de dados em produção
+- T530: rankings 26 -> 72 (+46), todas as competições com partidas cobertas
