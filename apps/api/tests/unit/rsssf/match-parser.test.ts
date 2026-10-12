@@ -218,3 +218,43 @@ describe('match-parser T519 — contagem do recorte', () => {
     expect(lib.matches.filter((m) => m.round === 'Group A')).toHaveLength(12);
   });
 });
+
+describe('match-parser T527 — expansão (spill, playoff, guard de tabela)', () => {
+  it('resolveMatchYear com spillAfter: jan-fev da temporada Covid vira ano seguinte', () => {
+    expect(resolveMatchYear(8, { mode: 'single', year: 2020 })).toBe(2020);
+    expect(resolveMatchYear(1, { mode: 'single', year: 2020, spillAfter: 5 })).toBe(2021);
+    expect(resolveMatchYear(2, { mode: 'single', year: 2020, spillAfter: 5 })).toBe(2021);
+    expect(resolveMatchYear(6, { mode: 'single', year: 2020, spillAfter: 5 })).toBe(2020);
+    const m = { month: 2, day: 25 } as never;
+    expect(
+      matchDate(m, { mode: 'single', year: 2020, spillAfter: 5 }).toISOString().slice(0, 10),
+    ).toBe('2021-02-25');
+  });
+
+  it('guard de tabela aceita time cujo nome começa com dígito e rejeita linha de tabela', () => {
+    const r = parseLeagueBlock(
+      'Final Table:\n 1.Manchester City         38  28  7  3  96-34  91  [C]  Champions\n' +
+        'Round 1\n[Aug 18]\n1.FC Koeln        2-1 Werder Bremen\n',
+    );
+    // a linha da tabela NÃO vira partida; o jogo do clube de Köln SIM
+    expect(r.matches).toHaveLength(1);
+    expect(r.matches[0]).toMatchObject({ homeName: '1.FC Koeln', homeGoals: 2, awayGoals: 1 });
+    expect(r.warnings).toHaveLength(0);
+  });
+
+  it('cabeçalho Round com anotação no colchete (Round 7 [postponed...]) é aceito', () => {
+    const r = parseLeagueBlock(
+      'Round 6\n[Sep 1]\nA 1-0 B\nRound 7 [postponed from Sep 10-12 due to mourning]\n[Jan 12]\nC 2-2 D\n',
+    );
+    expect(r.matches.map((m) => m.round)).toEqual(['6', '7']);
+    expect(r.matches[1]).toMatchObject({ dateRaw: 'Jan 12' });
+  });
+
+  it('Round repetido após a última rodada vira fase de playoff (P{N})', () => {
+    const r = parseLeagueBlock(
+      'Round 34\n[May 19]\nA 1-0 B\nRound 1 [May 21]\nC 2-1 D\nRound 2 [May 24]\nE 0-0 F\n',
+    );
+    expect(r.matches.map((m) => m.round)).toEqual(['34', 'P1', 'P2']);
+    expect(r.matches[1].dateRaw).toBe('May 21');
+  });
+});
