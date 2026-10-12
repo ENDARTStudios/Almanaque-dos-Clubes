@@ -48,6 +48,14 @@ export interface AliasTarget {
   name: string;
   qid?: string;
   city?: string;
+  /**
+   * T529 — temporadas em que este alias NÃO vale, porque a fonte usa o MESMO token
+   * para OUTRO clube naquele ano. Caso real: `Estudiantes` é o de La Plata (ARG) em
+   * 2015/2017/2018/2022 e o de Mérida (VEN) em 2020 — um alias global serviria os
+   * dois errado. Nas temporadas listadas o alias é ignorado e o token segue a
+   * cascata (virando gap declarado se não houver candidato).
+   */
+  exceptSeasons?: string[];
 }
 
 /**
@@ -164,7 +172,13 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   'River Plate': { name: 'Club Atlético River Plate', qid: 'Q15799' },
   Flamengo: { name: 'Clube de Regatas do Flamengo', qid: 'Q17479' },
   Santos: { name: 'Santos F.C.', qid: 'Q80955' },
-  Estudiantes: { name: 'Estudiantes de La Plata', qid: 'Q214940' },
+  // Em 2020 o MESMO token é o Estudiantes de MÉRIDA (VEN), que o acervo não tem:
+  // a exceção deixa aquele ano cair na cascata (gap) sem perder os outros.
+  Estudiantes: {
+    name: 'Estudiantes de La Plata',
+    qid: 'Q214940',
+    exceptSeasons: ['2020'],
+  },
   Melgar: { name: 'FBC Melgar', qid: 'Q602542' },
   Lanús: { name: 'Club Atlético Lanús', qid: 'Q324589' },
   'Atlético Tucumán': { name: 'Club Atlético Tucumán', qid: 'Q757470' },
@@ -312,6 +326,8 @@ function uniqueMatch(
 }
 
 export interface ResolveOptions {
+  /** Rótulo da temporada no acervo (para `exceptSeasons`). */
+  season?: string;
   /** Pool da temporada (participantes já catalogados) — tem precedência. */
   seasonPool?: ClubCandidate[];
   /** Pool global (todos os clubes ativos) — segunda instância. */
@@ -340,7 +356,8 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
   }
 
   const aliasTarget = RSSSF_TEAM_ALIASES[token];
-  if (aliasTarget) {
+  const aliasBlocked = aliasTarget?.exceptSeasons?.includes(opts.season ?? '') ?? false;
+  if (aliasTarget && !aliasBlocked) {
     const targetNorm = normalizeTeamName(aliasTarget.name);
     const cityNorm = aliasTarget.city ? normalizeTeamName(aliasTarget.city) : null;
     const byAlias = (pool: ClubCandidate[]) =>
