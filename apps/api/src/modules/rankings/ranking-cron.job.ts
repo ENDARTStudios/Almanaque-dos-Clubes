@@ -71,15 +71,18 @@ export async function runRankingJob(scope: {
   return withRlsContext({ role: 'SERVICE' }, async (tx) => {
     const repo = createPrismaRankingAlgorithmRepo(tx);
 
-    // Idempotência por ESCOPO (ano + competição), não por nome: há duas
-    // convenções de nome no acervo (a do cron e a do piloto da pirâmide inglesa)
-    // e comparar nome criaria um ranking duplicado para o mesmo escopo.
+    // Idempotência por ESCOPO (ano + competição + gênero), não por nome: o acervo
+    // tem duas convenções de nome (a do cron e a do piloto da pirâmide inglesa) e
+    // comparar nome criaria um ranking duplicado para o mesmo escopo. O gênero sai
+    // das ENTRADAS (o modelo Ranking não tem coluna de gênero) — sem ele, o run
+    // feminino encontraria o ranking masculino recém-criado e pularia.
     const existing = await tx.ranking.findFirst({
       where: {
         season: scope.season,
         competitionId: scope.competitionId ?? null,
         scope: null,
         publishedAt: { not: null },
+        entries: { some: { gender: scope.gender } },
       },
       select: { id: true },
     });
