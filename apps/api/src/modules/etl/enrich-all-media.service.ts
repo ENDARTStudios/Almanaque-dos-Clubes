@@ -462,26 +462,35 @@ export async function enrichAllMediaBatch(
     errors: 0,
   };
   try {
-    const clubs = (await prisma.club.findMany({
-      where: {
-        qid: { not: null },
-        deletedAt: null,
-        ...(opts.recheck
-          ? { mediaEnrichment: { not: Prisma.DbNull } }
-          : { mediaEnrichment: { equals: Prisma.DbNull } }),
-      },
-      select: {
-        id: true,
-        qid: true,
-        name: true,
-        kitHistory: true,
-        anthem: true,
-        pennants: true,
-        mediaEnrichment: true,
-      },
-      orderBy: { name: 'asc' },
-      take: limit,
-    })) as ClubRow[];
+    // A seleção do cursor é feita em SQL EXPLÍCITO: `not: Prisma.DbNull` em campo
+    // JSON não é confiável (em 12-10-2026 o modo `recheck` acabou pegando os PRÓXIMOS
+    // 500 em vez dos já tentados e avançou o cursor de novo). Aqui o predicado é
+    // literal — `IS NULL` / `IS NOT NULL` — sem depender da tradução do ORM.
+    const cursorRows = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT id FROM clubs
+      WHERE "deletedAt" IS NULL AND qid IS NOT NULL
+        AND "mediaEnrichment" IS ${opts.recheck ? Prisma.sql`NOT NULL` : Prisma.sql`NULL`}
+      ORDER BY name ASC
+      LIMIT ${limit}
+    `;
+    const ids = cursorRows.map((r) => r.id);
+    const clubs = (
+      ids.length
+        ? await prisma.club.findMany({
+            where: { id: { in: ids } },
+            select: {
+              id: true,
+              qid: true,
+              name: true,
+              kitHistory: true,
+              anthem: true,
+              pennants: true,
+              mediaEnrichment: true,
+            },
+            orderBy: { name: 'asc' },
+          })
+        : []
+    ) as ClubRow[];
     if (clubs.length === 0) return result;
 
     const qids = clubs.map((c) => c.qid).filter((q): q is string => Boolean(q));

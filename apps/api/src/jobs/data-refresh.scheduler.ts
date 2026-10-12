@@ -192,16 +192,31 @@ function record(jobName: string, status: 'success' | 'failure', durationMs: numb
   persistJobRun(jobName, entry);
 }
 
-/** Roda o handler com teto duro de 10 min (rejeita, não derruba o processo). */
+/**
+ * Teto por job. O padrão é 10 min; o lote de mídia faz 500 buscas na Wikipédia +
+ * Commons por rodada e mediu 7,6 min em dry-run (12-10-2026) — apertado demais
+ * para o apply, que ainda grava. O teto dele é 20 min (com margem, sem mudar o
+ * tamanho do lote que o despacho pede).
+ */
+const JOB_TIMEOUT_MS_BY_JOB: Record<string, number> = {
+  [JOB_ENRICH_ALL_MEDIA]: 20 * 60 * 1000,
+};
+
+function timeoutFor(jobName: string): number {
+  return JOB_TIMEOUT_MS_BY_JOB[jobName] ?? JOB_TIMEOUT_MS;
+}
+
+/** Roda o handler com teto duro (rejeita, não derruba o processo). */
 async function withTimeout(jobName: string, fn: () => Promise<void>): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = timeoutFor(jobName);
   try {
     await Promise.race([
       fn(),
       new Promise<never>((_, reject) => {
         timer = setTimeout(
-          () => reject(new Error(`${jobName}: timeout de ${JOB_TIMEOUT_MS / 60000} min`)),
-          JOB_TIMEOUT_MS,
+          () => reject(new Error(`${jobName}: timeout de ${limit / 60000} min`)),
+          limit,
         );
       }),
     ]);
