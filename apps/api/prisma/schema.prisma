@@ -80,6 +80,11 @@ model Club {
   kitHistory        Json?
   anthem        Json? // T524 — hino do clube: áudio (licença verificada), metadados (compositor/ano) e letra (só com licença livre)
   pennants      Json? // T525 — flâmulas do clube (imagens com licença verificada + curiosidades da fonte)
+  // T528 — registro de TENTATIVA por mídia: { "<media>": { at, status, reason? } }.
+  // É o CURSOR do job em lote `enrich-all-media` (e dos jobs de mídia/editorial):
+  // sem ele a seleção por `campo IS NULL` reprocessa o mesmo lote alfabético toda
+  // noite e a cobertura não avança. Gap vira registro auditável, não retrabalho.
+  mediaEnrichment Json?
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?

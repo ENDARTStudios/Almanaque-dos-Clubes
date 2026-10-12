@@ -1,0 +1,13 @@
+-- T528 — marcador de TENTATIVA de enriquecimento de mídia por clube (aditivo).
+--
+-- Por que existe: os jobs de lote do scheduler selecionavam clubes por
+-- `campo IS NULL` e ordenavam por nome — como a maioria dos clubes nunca sai do
+-- filtro (nenhum dos 11.987 tem os 5 campos de mídia preenchidos), o mesmo
+-- primeiro lote alfabético era reprocessado toda noite e a cobertura ficava
+-- parada (escudo 2,4%, texto editorial 7% — parou na letra E).
+--
+-- Aqui cada media tentada ganha um registro { "<media>": { at, status, reason? } }.
+-- O lote passa a selecionar clubes SEM registro da media alvo: o cursor avança
+-- sempre, inclusive quando a fonte não tem o dado (gap DECLARADO no próprio
+-- registro, auditável por clube). Nenhuma coluna existente muda.
+ALTER TABLE "clubs" ADD COLUMN IF NOT EXISTS "mediaEnrichment" JSONB;
