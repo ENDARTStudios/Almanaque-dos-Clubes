@@ -1928,3 +1928,26 @@ conhecida ≠ licenciada.
 
 **Resultado:** 13 clubes com anthem (meta 5+); 1 áudio CC BY 4.0; 13 letras
 null+nota; API + UI com player no ar. Migration aditiva; nada existente tocado.
+
+### [2026-10-12] Decisao: D-2026-10-12-t525-flamulas-gap-declarado — meta não atingível na fonte é declarada, não forçada
+
+**Contexto:** o gate de flâmulas pedia 5+ clubes; a medição no Commons (22 clubes ×
+6 termos, categorias e arquivos) encontrou apenas 2 flâmulas reais com licença livre
+(Bragantino 1965 comemorativa; Arsenal final da FA Cup 2001 — no museu do Anfield).
+O resto era ruído: banners de cidade, Wikivoyage, clubes homônimos.
+
+**Decisão:** publicar os 2 verificados e DECLARAR o gap dos outros 20 — flâmula sem
+imagem é seção oculta, nunca placeholder. A meta do gate não é cumprida à força
+quando a fonte não tem o material: honestidade > número.
+
+**Regras permanentes:**
+
+1. Mesma verificação de imagem do T523/T524 (imageinfo ao vivo: existe + licença +
+   sem exclusão); reprovada = fora.
+2. Curiosidade/descrição SÓ da página da fonte — nada de texto gerado.
+3. Busca do discovery fica documentada no worklog (termos + justificativa das
+   exclusões) para que o gap seja auditável.
+4. Idempotência por hash canônico; noop quando o estado não mudou.
+
+**Resultado:** 2 clubes/2 flâmulas publicadas (API + galeria na UI, i18n ×3);
+integridade intacta; noop provado.
