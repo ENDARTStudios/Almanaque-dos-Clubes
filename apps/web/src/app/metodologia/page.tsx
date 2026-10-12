@@ -77,28 +77,37 @@ export default function MetodologiaPage() {
 
         <section id="ranking-piloto-inglaterra" className="scroll-mt-20">
           <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
-            Ranking 0-100 (Piloto Inglaterra)
+            Ranking 0-100 (por competição e por ano)
           </h2>
           <p>
-            <strong>Status:</strong> piloto em produção. Cobre as 5 divisões inglesas da temporada
-            2022/23 (Premier League, Championship, League One, League Two e National League).
+            <strong>Status:</strong> em produção desde 2026-10-11 com base em{' '}
+            <em>partidas individuais</em> e <em>títulos</em>. Publicado para o Campeonato Brasileiro
+            Série A (2021-2024), a Premier League (2023-24 e 2024-25) e a Copa Libertadores (2023 e
+            2024), mais o <strong>agregado anual</strong> — todos os clubes do ano — de 2021 a 2025.
+            O piloto inglês de 2022/23 por divisão (5 divisões) segue publicado e auditável.
           </p>
           <p className="mt-2">
-            <strong>Fórmula piloto (por divisão, temporada 2023):</strong>{' '}
-            <span>{'Pontos brutos = Vitórias × 3 + Empates × 1'}</span> (os pontos da tabela de
-            classificação).
+            <strong>{'Fórmula (por clube, dentro do escopo):'}</strong>{' '}
+            <span>
+              {'Pontos brutos = Vitórias × 3 × peso + Empates × 1 × peso + Títulos × 50 × peso'}
+            </span>
+            . Os títulos vêm do grafo de conquistas (arestas WON, Wikidata CC0) e as partidas da
+            RSSSF (com atribuição); o peso vem da hierarquia da competição (mundial &gt; continental
+            &gt; nacional).
           </p>
           <p className="mt-2">
-            <strong>Peso:</strong> hierarquia <em>nacional</em> (3.0) para todas as divisões do
-            piloto.
+            <strong>Peso:</strong> hierarquia da competição (mundial 5.0 · continental 4.0 ·
+            nacional 3.0), a mesma resolução usada pelo comparador de clubes.
           </p>
           <p className="mt-2">
-            <strong>Normalização:</strong> MinMax <em>dentro de cada divisão, separadamente</em> —
-            1º lugar da divisão = 100; último = 0; demais proporcionais (arredondamento
-            determinístico). <strong>Desempate</strong> (apenas quando os pontos brutos são iguais):{' '}
-            <strong>{'maior saldo de gols (GF - GA)'}</strong>. As divisões são normalizadas{' '}
-            <strong>isoladamente</strong> — o 100 da Premier League <strong>não</strong> é
-            comparável ao 100 da National League (ver &ldquo;Agregado cross-division&rdquo; abaixo).
+            <strong>Normalização:</strong> MinMax <em>dentro de cada escopo</em> (competição +
+            temporada, ou o ano no agregado) e <strong>isolada por gênero</strong> — 1º lugar do
+            escopo = 100, último = 0, demais proporcionais (arredondamento determinístico). Escopos
+            diferentes <strong>não</strong> são comparáveis entre si: o 100 do Brasileirão não é o
+            100 da Premier League (ver &ldquo;Agregado cross-division&rdquo; abaixo).{' '}
+            <strong>Amostra mínima:</strong> o clube-ano só é ranqueado com ≥ 1 título ou ≥ 5
+            partidas; abaixo disso ele aparece <em>sem posição</em> com o motivo &ldquo;dados
+            insuficientes&rdquo; — e um escopo sem nenhum clube ranqueado não é publicado.
           </p>
           <p className="mt-2">
             <strong>Fonte e atribuição:</strong> baseado nas tabelas finais de classificação das
@@ -114,11 +123,19 @@ export default function MetodologiaPage() {
             . <strong>Uso condicionado à atribuição adequada.</strong>
           </p>
           <p className="mt-2">
-            <strong>Limitações conhecidas:</strong> (i) restrito à Inglaterra 2022/23; (ii) baseado
-            apenas em <em>tabelas finais de classificação</em> (não em partidas individuais); (iii)
-            títulos não incluídos nesta fase (limite do dado RSSSF tabelado); (iv) pontuação
-            normalizada por divisão — não há ranking único cross-division ativo; (v) dados
-            históricos podem conter lacunas e divergências entre fontes.
+            <strong>Limitações conhecidas:</strong> (i) a cobertura por <em>partidas</em> ainda é
+            parcial — Brasileirão 2021-2024, Premier League 2023-24/2024-25 e Libertadores 2023/2024
+            (as edições de 2025 dessas competições não existem na fonte); (ii) o ranking de jogador
+            segue sem dados (não há tabela de estatísticas por partida); (iii) os rankings ingleses
+            de 2022/23 por divisão e o piloto da pirâmide vêm de <em>tabelas finais</em> do pacote
+            RSSSF e carregam um defeito conhecido — o clube &ldquo;A.F.C. Liverpool&rdquo; aparece
+            no lugar do &ldquo;Liverpool F.C.&rdquo; (corrigido nos rankings novos deste ano,
+            pendente nos antigos, que não são recomputáveis sem as partidas daquela temporada); (iv){' '}
+            <strong>duas escalas convivem</strong> no acervo: os rankings 0-100 normalizados e dois
+            rankings históricos em escala BRUTA (&ldquo;Ranking CBF 2023&rdquo;, 2190-2848, e
+            &ldquo;Ranking CONMEBOL 2023&rdquo;, 1600-2800), que <strong>não</strong> são
+            comparáveis aos 0-100 e ficam identificados pelo próprio nome; (v) dados históricos
+            podem conter lacunas e divergências entre fontes.
           </p>
           <p className="mt-2">
             <strong>{'Nota de consistência (2026-09-27)'}:</strong> a versão anterior desta seção
@@ -127,7 +144,7 @@ export default function MetodologiaPage() {
             Regras de agregado cross-division permanecem em fase de desenho e não estão ativas.
           </p>
           <p className="mt-2">
-            <strong>Atualização e correções:</strong> última atualização em 25/09/2026. Encontrou um
+            <strong>Atualização e correções:</strong> última atualização em 11/10/2026. Encontrou um
             erro? Escreva para <strong>endart.studios+contato@gmail.com</strong>.
           </p>
         </section>
@@ -160,8 +177,8 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
-            fonte prevalecem no idioma original.
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de
+            uso da fonte prevalecem no idioma original.
           </p>
         </section>
 
@@ -307,8 +324,8 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
-            fonte prevalecem no idioma original.
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de
+            uso da fonte prevalecem no idioma original.
           </p>
         </section>
 
@@ -364,8 +381,8 @@ export default function MetodologiaPage() {
           </p>
           <p className="mt-2">
             <strong>Correções:</strong> encontrou um erro? Escreva para{' '}
-            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de uso da
-            fonte prevalecem no idioma original.
+            <strong>endart.studios+contato@gmail.com</strong>. Versão informativa; as condições de
+            uso da fonte prevalecem no idioma original.
           </p>
         </section>
 
@@ -407,11 +424,13 @@ export default function MetodologiaPage() {
               as edições correspondentes aguardam a semeadura das mães.
             </li>
             <li>
-              O ranking <strong>0-100 é um piloto (Inglaterra/RSSSF)</strong>, calculado a partir de
-              tabelas finais de classificação — não de partidas individuais — e sem títulos.
-              Rankings por jogos reais e para jogadores/técnicos aguardam ingestão granular. Não há
-              inteligência artificial operacional na plataforma — quando houver, será marcada e
-              documentada com fonte e citação.
+              O ranking <strong>0-100</strong> é calculado a partir de <em>partidas individuais</em>
+              (RSSSF, com atribuição) e de <em>títulos</em> (grafo de conquistas, Wikidata CC0) para
+              o Brasileirão Série A 2021-2024, a Premier League 2023-24/2024-25, a Copa Libertadores
+              2023/2024 e o agregado anual de 2021 a 2025, com normalização MinMax isolada por
+              escopo e por gênero. Rankings de jogadores/técnicos aguardam estatísticas por partida.
+              Não há inteligência artificial operacional na plataforma — quando houver, será marcada
+              e documentada com fonte e citação.
             </li>
           </ul>
         </section>
