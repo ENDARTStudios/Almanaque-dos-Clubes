@@ -1773,3 +1773,40 @@ rankings (prova mais forte), e isso fica registrado.
 (escala legada >100), 145 clubes ativos sem QID, duas competicoes homonimas "Campeonato
 Brasileiro Serie A" (`d6a8bdb1` x `5fd857e6`) e a corrida de isolamento entre testes de
 integracao (champions x compare) que deixou o `security-gate` flaky.
+
+### [2026-10-11] Decisao: D-2026-10-11-t521-ranking-0-100-por-competicao-e-ano - 13 rankings publicados sobre o pipeline que ja existia; nada recalculado sem prova
+
+**Descobri que o pipeline 0-100 ja existia** (T425/T438): vitorias x3 + empates x1 +
+titulos x50, pesos por hierarquia, MinMax isolado por genero, amostra minima
+(titulo>=1 OU partidas>=5), e a regra de nao publicar escopo vazio. O que faltava era
+publicar os escopos do Escopo 1 e torna-los distinguiveis/alcançaveis. Decisao: **nao
+reescrever o algoritmo** - reaproveita-lo e corrigir apenas o que impedia o uso.
+
+**Publicado (aditivo):** Brasileirao Serie A 2021-2024 (20 clubes cada), Premier League
+2023-24 (20) e 2024-25 (23), Copa Libertadores 2023 e 2024 (30 cada) e o agregado anual
+2021-2025 (58-82 clubes). Todos com pontos em 0-100 (verificado) e com proveniencia por
+clube (baseMatches/baseTitles/dataSourceIds).
+
+**Decisoes permanentes:**
+
+1. **Ranking publicado e imutavel** (o servico lanca Conflict em update/delete) - por
+   isso a correcao de qualquer ranking sai por RECALCULO em novo escopo, nunca por
+   edicao.
+2. **Nao se recalcula o que nao e recomputavel**: o "Premier League 2023" e a
+   "Piramide Inglesa 2023" carregam um clube errado (A.F.C. Liverpool no lugar do
+   Liverpool F.C.) e sao, na verdade, da temporada 2022-23 - sem as partidas daquela
+   temporada no acervo, ficam como estao, com o defeito DECLARADO em /metodologia.
+3. **Duas escalas convivem e sao identificadas pelo nome**: os 0-100 normalizados e os
+   historicos em escala bruta ("Ranking CBF 2023" 2190-2848, "Ranking CONMEBOL 2023"
+   1600-2800). Os >100 nao sao erro de normalizacao: sao outro produto.
+4. **Idempotencia por escopo (ano + competicao + genero)**, com o genero lido das
+   ENTRADAS - o nome passou a incluir a competicao para o usuario distinguir os escopos.
+
+**Pendencia colateral fechada sem escrita:** as duas "Campeonato Brasileiro Serie A"
+ja estavam resolvidas - a casca esta soft-deletada desde 27-09 com
+`deletionReason=dedupe_t448b2i` e zero dados (hard-delete proibido; preserva auditoria).
+
+**Resultado:** 13 rankings novos; integridade provada (os 11 pre-existentes com as
+mesmas 293 entradas e `updatedAt` anterior, re-run = noop, API/UI respondendo).
+Gaps: sem partidas de Serie A 2025 / PL 2025-26 / Libertadores 2025 (fonte nao tem) e
+ranking de jogador segue sem dado (nao ha estatistica por partida).

@@ -1448,3 +1448,80 @@ Stage Summary:
 - Bragantino: time B -> time A nas 4 temporadas, com rastro de auditoria
 - Brasileirao completo (380x4); matches 2.336 -> 2.450; re-run do T519 sem pendencia
 - Rankings intactos (md5 identico), WON/clubes intactos, noop provado, smoke 200
+
+Task ID: goal-2026-10-11/t521
+Agent: Doer (ZCode)
+Task: T521 - RANKING 0-100 global de clubes (MinMax por ano/competição) + pendências colaterais
+
+Work Log:
+- PR-1 (duas competições homônimas "Campeonato Brasileiro Série A") - RESOLVIDO, e a
+  resposta é "já estava resolvido": `d6a8bdb1` é casca VAZIA soft-deletada em
+  2026-09-27 com `deletionReason=dedupe_t448b2i` (0 temporadas, 0 partidas, 0
+  rankings); a viva `5fd857e6` (Q206813) tem as 4 temporadas, 1.520 partidas e 1
+  ranking. Não há o que fundir, e hard-delete é proibido - as duas ficam como estão
+  (a casca preserva auditoria do dedupe).
+- PR-2 (20 entradas de ranking com points>100) - CLASSIFICADO como escala BRUTA, não
+  erro: todas as 20 pertencem a "Ranking CBF 2023" (2190-2848) e "Ranking CONMEBOL
+  2023" (1600-2800), rankings históricos externos que nunca foram 0-100. Os 0-100
+  têm todos max=100. Decisão: documentar e MANTER SEPARADO (nome identifica a
+  escala) - nada recalculado.
+- AUDITORIA DOS EXISTENTES (o que mudou o plano): o pipeline 0-100 já existia
+  (T425/T438 - vitórias x3 + empates x1 + títulos x50, pesos por hierarquia, MinMax
+  isolado por gênero, amostra mínima, não publica vazio). Auditando os 6 rankings
+  ingleses de 2023 achei um DEFEITO real: o "Premier League 2023" (e a "Pirâmide
+  Inglesa 2023") trazem "A.F.C. Liverpool" na 5ª posição - o clube errado, do mesmo
+  bug de casamento de clube que o T519 corrigiu. Investigando, o ranking é na
+  verdade a temporada 2022-23 (traz Leicester/Leeds/Southampton, os rebaixados
+  daquele ano). Como NÃO temos as partidas de 2022-23 no acervo, o ranking é
+  IRRECUPERÁVEL por recálculo - então NÃO foi tocado (é o caminho não-destrutivo e
+  a integridade fica preservada) e o defeito vai DECLARADO na metodologia.
+  Consequência: o escopo virou 100% ADITIVO.
+- CÓDIGO (2 PRs, #532 e #533): (1) nome do ranking passa a incluir a competição
+  (sem isso os rankings de um mesmo ano eram indistinguíveis na UI); (2)
+  idempotência por ESCOPO (ano+competição+gênero) em vez de por nome - o acervo tem
+  duas convenções de nome e comparar nome criaria duplicata; o gênero sai das
+  ENTRADAS, não do nome (bug pego pelo CI: sem isso o run feminino pulava por causa
+  do masculino); (3) sentinela `?competitionId=global` para o agregado geral (antes
+  era impossível pedir "sem competição"); (4) seletor de Competição na UI + i18n x3;
+  (5) CLI aceita temporada cruzada ('2023-24') - recusava e travava a Premier League;
+  (6) guarda de vazio passa a contar só o gênero do escopo - BUG PRÉ-EXISTENTE que
+  publicava um ranking "Feminino" VAZIO sempre que o masculino tinha dados (origem do
+  "Ranking 0-100 2026 - Feminino" com 0 entradas, de 22-09).
+- PRODUÇÃO (deploy 73d12ad + fix): 13 rankings publicados - Brasileirão Série A 2021,
+  2022, 2023 e 2024 (20 clubes cada); Premier League 2023-24 (20) e 2024-25 (23);
+  Copa Libertadores 2023 e 2024 (30 cada); agregado anual de 2021 (67), 2022 (58),
+  2023 (82), 2024 (81) e 2025 (61). Todos com pontos DENTRO de 0-100 (verificado por
+  `bool_and(points BETWEEN 0 AND 100)` = true em todos; fora da faixa = 0).
+- AMOSTRAS conferidas na API: BR 2023 - Palmeiras 100, Grêmio 96, Flamengo 91,
+  Atlético-MG 91, Botafogo 87 (com baseMatches=38/clube); PL 2023-24 - Manchester
+  City 100, Arsenal 97, **Liverpool F.C. 88** (o clube CERTO, não o A.F.C. Liverpool
+  do legado); agregado 2023 - Real Madrid 100 (Mundial), Fluminense 70 (Libertadores),
+  Atlético-MG 65 (mistura partidas + títulos, como desenhado).
+- LIMPEZA: 7 rankings "Feminino" VAZIOS (0 entradas) removidos - os 6 criados por
+  este run (artefato do bug de guarda) + o "2026 - Feminino" de 22-09, mesma classe.
+  Nenhuma informação perdida (0 entradas = nenhum dado).
+- INTEGRIDADE: os 11 rankings pré-existentes (9 piloto/femininos + 2 de escala bruta)
+  seguem com as contagens exatas de antes (293 entradas no total) e `updatedAt` de
+  22-09/27-09/07-10 - nada de hoje, ou seja, NENHUMA linha pré-existente foi
+  modificada (rankings publicados são imutáveis por design no serviço). Re-run do
+  mesmo escopo = NOOP (`skipped: true`, 0 publicados). API: /rankings lista 25
+  publicados com nomes distinguíveis; /rankings/entries responde por competição e
+  pelo sentinela global; UI /rankings = 200.
+
+GAPS DECLARADOS: sem partidas de Série A 2025, PL 2025-26 e Libertadores 2025 (a
+fonte não tem); ranking de jogador continua sem dados (não há estatística por
+partida); os rankings ingleses 2022/23 e o piloto da pirâmide têm o defeito
+"A.F.C. Liverpool" e NÃO são recomputáveis (falta a temporada no acervo); duas
+escalas convivem (0-100 normalizado x bruto CBF/CONMEBOL) e ficam identificadas
+pelo nome.
+
+Stage Summary:
+- PR-1 e PR-2 fechados com evidência (nenhum deles exigia escrita)
+- 13 rankings 0-100 publicados (meta era 7+), todos com valores dentro de 0-100
+- Defeito real encontrado e declarado (A.F.C. Liverpool) sem tocar no que não é
+  recomputável; 7 rankings vazios de artefato removidos
+- 2 bugs de código corrigidos (idempotência sem gênero; CLI travando temporada
+  cruzada) + 1 pré-existente (ranking vazio por gênero)
+- Integridade provada (pré-existentes intactos, noop, 293 entradas preservadas)
+- Metodologia atualizada em /metodologia com a fórmula real, os escopos publicados,
+  a amostra mínima e as duas escalas

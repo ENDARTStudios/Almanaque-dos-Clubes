@@ -575,7 +575,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 - [x] **Mapa-múndi interativo** — `/map` 200; `GET /geo/points` devolve pontos reais e `GET /clubs/geo-stats` o choropleth derivado (**3.829 clubes com país, 168 países, 97 estados**); o acervo tem **6.472 clubes com lat+lng**. A nota antiga de "live deploy bloqueado por build-rate-limit (externo)" era do T65 e não vale mais: a página está no ar. O que falta é o milestone visual continente→país (WS-C)
 - [x] **Barra de pesquisa global** — `/search` 200 e `GET /search/global?q=` devolvendo clubes com atribuição (busca textual `tsvector`; Meilisearch/OpenSearch segue como decisão do Operador)
-- [~] **Ranking 0-100** com normalização MinMax (cron diário 03:00 UTC — T438: job BullMQ ativo + CLI + métricas) — **parcial**: `GET /rankings` publica hoje **293 entradas** (posição + pontuação, faixa 0–2848). A escala normalizada 0-100 por clube depende do ETL de partidas (M4); as entradas atuais derivam das temporadas catalogadas
+- [x] **Ranking 0-100** com normalização MinMax (cron diário 03:00 UTC — T438) — **publicado em 11-10-2026 (T521)**: 13 rankings novos (Brasileirão Série A 2021-2024, Premier League 2023-24/2024-25, Libertadores 2023/2024 e o agregado anual 2021-2025), todos com pontos **dentro de 0-100**, base auditável (partidas + títulos) e proveniência por clube. Os rankings históricos em escala BRUTA (CBF 2190-2848 · CONMEBOL 1600-2800) ficam separados e identificados pelo nome. Pendente: ranking de jogador (sem estatística por partida)
 - [ ] **Ranking de jogadores** — **não existe**: `ranking_entries` só referencia clube; não há tabela de ranking de jogador (débito M4)
 - [x] **Futebol feminino integrado** — **502 clubes e 4.974 jogadoras** com gênero próprio; ranking feminino publicado (Paulista Feminino 2026, Palmeiras 1º)
 - [ ] **Visualizador 360º de troféus/bolas** (Three.js, modelos .gltf) — **não existe** (nenhum asset 3D no repo)
@@ -679,7 +679,7 @@ Almanaque, mas faltam:
 > Os cinco itens da "Beta Fechada (100 usuários)" foram **todos cumpridos** (compliance 85%, gateway LIVE, mapa no ar, acervo 12k clubes, perfis navegáveis) — e M1 (15-09), M3 (21-09) e o Escopo 1 (T517) foram declarados. O que resta é o **M4 (conteúdo/produto profundo)**:
 
 1. ~~ETL de partidas (`matches`)~~ → **feito no T519/T520** (2.450 partidas); falta só consumir a série de partidas nos gráficos de comparação e no ranking
-2. Ranking dedicado de jogadores (por gênero) + normalização 0-100 publicada
+2. Ranking dedicado de jogadores (por gênero) — a normalização 0-100 de **clubes** foi publicada no T521; falta o de jogadores (sem estatística por partida)
 3. Mídia em escala: logos de clube, fotos de jogador, uniformes históricos, hinos, flâmulas
 4. Visualizador 360º de troféus (Three.js) + troféus/estádios com curadoria licenciada
 5. Observabilidade exposta (métricas/alertas/logs) + DAST e carga no CI
