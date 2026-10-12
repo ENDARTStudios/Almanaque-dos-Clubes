@@ -186,6 +186,18 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   'Athl. Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
   'Atl. Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
   'Atlético Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
+  // T529 — 2ª rodada de cura da Libertadores: o último degrau da cascata
+  // (word-abbrev) estava escolhendo o clube ERRADO — o time feminino do Peñarol
+  // (com gender='men' no acervo!), o San Lorenzo do PERU, o Universitario de
+  // TRUJILLO e o Vélez de San Ramón. O QID fixa o clube que a fonte quer dizer.
+  Peñarol: { name: 'Club Atlético Peñarol', qid: 'Q16320' },
+  'San Lorenzo': { name: 'Club Atlético San Lorenzo de Almagro', qid: 'Q218282' },
+  'San Lorenzo de Almagro': { name: 'Club Atlético San Lorenzo de Almagro', qid: 'Q218282' },
+  Universitario: { name: 'Club Universitario de Deportes', qid: 'Q19066' },
+  'Vélez Sársfield': { name: 'Club Atlético Vélez Sársfield', qid: 'Q215163' },
+  // O Atlas da Libertadores é o MEXICANO (o acervo também tem um clube argentino
+  // homônimo, que é com quem a cascata casava).
+  Atlas: { name: 'Atlas F.C.', qid: 'Q1023532' },
 };
 
 /**
@@ -222,6 +234,12 @@ export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   // temporada), resolve sozinho em vez de ficar bloqueado por esta lista.
   'Sporting',
   'Málaga',
+  // T529 — Brasileirão 2018: a fonte imprime `Paraná` para o **Paraná Clube**
+  // (Curitiba, que jogou a Série A em 2018) e a cascata casava com a
+  // "Associação Desportiva Atlética do Paraná" (Q260834), clube de **Campo Mourão**
+  // — outro clube. Como o Paraná Clube não existe no acervo, a temporada fica com
+  // esse gap declarado em vez de atribuir 38 jogos ao clube errado.
+  'Paraná',
 ]);
 
 function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
