@@ -1951,3 +1951,31 @@ quando a fonte não tem o material: honestidade > número.
 
 **Resultado:** 2 clubes/2 flâmulas publicadas (API + galeria na UI, i18n ×3);
 integridade intacta; noop provado.
+
+### [2026-10-12] Decisao: D-2026-10-12-t526-360-dependente-de-fonte — visualizador 360º constrói-se quando existir o 1º modelo real; fallback documentado até lá
+
+**Contexto:** o gap "Visualizador 360º" dependia de modelos 3D no Commons. A busca
+documentada (3 rodadas) concluiu: ZERO modelos de troféus reais ou bolas oficiais;
+o Commons hospeda apenas .stl (não glb/gltf); os únicos STLs de futebol são
+genéricos (bola escaneada, ícone, asset de jogo).
+
+**Decisão:** NÃO construir o visualizador Three.js agora — com 0 modelos seria
+código não-testável e dependência pesada sem valor. Entregues: migration aditiva
+(`competitions.trophyModel` JSONB) + pipeline de curadoria pronto
+(`seed-trophy-models`, verificação ao vivo, hash canônico). O fallback
+(`trophyImageUrl`, imagem estática) é o estado vigente de produção e está
+documentado como o gate previa.
+
+**Regras permanentes:**
+
+1. Modelo 3D só com a verificação de sempre (imageinfo ao vivo: existe + licença +
+   sem exclusão) e formato hospedável (.stl no Commons).
+2. STL genérico (bola escaneada, ícone) NÃO vira "troféu da competição X" — isso é
+   inventar.
+3. O visualizador Three.js se constrói quando o 1º modelo real for curado — e é
+   testável no dia seguinte ao deploy.
+
+**Hotfix registrado:** o migration-drift pegou o campo no model errado (Club em
+vez de Competition — âncora de script) e o merge foi antes do fim dos checks;
+corrigido no #552. Lição reforçada: nunca mergear com check pendente/falhando,
+mesmo quando o deploy da API sobe.
