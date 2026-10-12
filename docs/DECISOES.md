@@ -1689,3 +1689,49 @@ RAG sem store vetorial · `/metrics` não exposto (404) · DAST e carga fora do 
 no planeta?") não mede marco. O critério que vale é o de **escopo** — e o Escopo 1 (competições de
 clubes continentais/nacionais + seleções principais, com campeão, vice, classificação e artilheiro)
 está COMPLETO desde T517. Ver `docs/worklog.md` (goal-2026-10-11/t518).
+
+### [2026-10-11] Decisão: D-2026-10-11-t519-partidas-rsssf — `matches` populada com 2.336 partidas reais; RSSSF com atribuição obrigatória e quatro regras anti-fabricação
+
+**Contexto:** a tabela `matches` estava vazia desde o início do projeto — sem partidas
+não há ranking completo, estatística de jogador nem gráfico de comparação real. Esta
+rodada a popula a partir da RSSSF (fonte primária escolhida pelo Operador).
+
+**Feito (T519, 5 PRs #524-#528; deploy `4f89186`):** parser de partidas
+(`apps/api/src/lib/rsssf/match-parser.ts`) e resolver de clubes (`team-resolver.ts`),
+migration aditiva (`matches.scorers` JSONB + `matches.sourceNote` TEXT, nullable) e o
+script `seed-matches-rsssf` (dry-run/apply em lotes de 500/dedup por `dedupKey`).
+**Produção: 2.336 partidas** — Brasileirão Série A 2021-2024 (1.406), Premier League
+2023-24/2024-25 (760), Copa Libertadores 2023/2024 (170) — com data, placar, mando,
+rodada, proveniência (`importedFrom='rsssf'`, `sourceUrl` da página) e licença.
+Amostra de 10 partidas validada contra fonte INDEPENDENTE (Transfermarkt + Wikipédia PT,
+10/10 confirmadas) antes do apply; re-run provou NOOP (0 criadas, 2.336 puladas);
+`ranking_entries` (293), WON (5.205), jogadores (105.211) e clubes ativos (11.987)
+permaneceram intactos.
+
+**Licença (verificada antes de raspar):** rodapé da RSSSF — "You are free to copy this
+document in whole or part provided that proper acknowledgement is given to the author";
+charter §2 reserva copyright e veda lucro com o acervo; não há `robots.txt` (404) nem
+vedação a automação. **Decisão:** uso com **atribuição obrigatória** — toda partida grava
+`license='RSSSF'` + `sourceUrl`, e o `/metodologia` já credita a fundação; o acesso é
+contido (1 página por vez, ~1 req/s).
+
+**Regras anti-fabricação desta rodada (permanentes):**
+
+1. **`abd` não vira placar** — o jogo abandonado traz o placar só dentro da anotação
+   (`[abandoned at 1-1 in 65']`); a anotação sai antes do match ou o "1-1" viraria dado.
+2. **Agregação não vira partida** — o mata-mata da Libertadores é publicado como
+   confronto agregado (dois placares + pênaltis, sem data por jogo): entra só o que tem
+   data por jogo (grupos + final).
+3. **Ano nunca é inventado** — a fonte não imprime o ano; ele vem do contexto da
+   temporada (ano civil em BR/Libertadores; temporada cruzada na PL, com o corte no mês 7).
+4. **Homônimo do acervo não se resolve no chute** — o desambiguador é o pool da
+   temporada (os clubes que o próprio acervo já usa naquela competição+temporada) e,
+   onde ele não existe (Série A 2021), um alias explícito com alvo que o acervo já
+   escolheu; QID só o que o acervo gravou, conferido na fonte (D-2026-10-09).
+
+**Gaps declarados:** a fonte não tem jogos para Série A 2025, PL 2025-26 e Libertadores
+2025 (404); clubes ausentes do acervo deixam jogos fora (Vasco masculino 114,
+Chapecoense 38, Patronato 12, Monagas 12, Táchira 12, LDU Quito 12); autores de gols só
+existem no BR 2023 (102 partidas); PL 2023-24 perde 1 jogo abandonado. Achados de dado
+do acervo reportados e NÃO tocados (fora de escopo): `Cruzeiro Esporte Clube (female)`
+com `gender='men'` e Q5014111 (poliesportivo do Vasco) gravado como `women`.

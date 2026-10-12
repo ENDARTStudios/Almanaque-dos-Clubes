@@ -1295,3 +1295,83 @@ Stage Summary:
 - Regra nova: auditoria de marco ancora em PRODUÇÃO (curl + SELECT), nunca em documento/checklist
 - Gaps remanescentes nomeados e finitos (13), com dono declarado (M4 / Operador onde é infra)
 
+Task ID: goal-2026-10-11/t519
+Agent: Doer (ZCode)
+Task: T519 — PARTIDAS: popular `matches` (vazia) com histórico real da RSSSF
+
+Work Log:
+- FONTE (verificada antes de raspar): RSSSF. A licença de rodapé é "You are free to
+  copy this document in whole or part provided that proper acknowledgement is given
+  to the author"; charter §2 reserva copyright e proíbe lucro com o acervo. Não há
+  robots.txt (404) nem vedação a automação. Consequência de projeto: TODA partida
+  grava `license='RSSSF'` + `sourceUrl` da página (atribuição obrigatória) e o
+  acesso é contido (1 página por vez, ~1 req/s). Os 5 `rsssf-*.htm` que estavam no
+  disco eram páginas de ESTADUAIS de 09-10 (T035) — não serviam de base, só como
+  amostra do formato; nenhum dado veio deles.
+- O QUE A FONTE ENTREGA (medido, não presumido): BR Série A 2021-2024 com jogos
+  rodada a rodada (data `[Mmm DD]`, placar e, SÓ em 2023, autores dos gols);
+  Premier League 2023-24/2024-25 completas (2025-26 só tabela); Libertadores 2023 e
+  2024 (2025 devolve 404). Páginas em windows-1252, seções em blocos `<pre>`
+  separados por competição (bloco 0 = divisão principal; o resto é copa/Série B/C e
+  a pirâmide inglesa inteira).
+- PARSER (`apps/api/src/lib/rsssf/match-parser.ts`, 8 páginas → 2.474 jogos, 0 dup):
+  guardas contra dado falso — linha de tabela final não vira partida; a anotação
+  `[...]` sai antes do match (senão o jogo abandonado "abd ... [abandoned at 1-1 in
+  65']" viraria um placar 1-1); agregação de mata-mata (dois placares + pênaltis,
+  sem data por jogo) não vira partida; a final da Libertadores é jogo único com data
+  no cabeçalho `Final (Nov 4, Cidade)`. Ano sempre reconstruído: BR/Libertadores =
+  ano civil; PL = temporada cruzada (mês >= 7 é o ano de início; validado: `[Aug 11]`
+  = 2023 e `[May 19]` = 2024).
+- 3 BUGS REAIS pegos pelo caminho: (1) o padding de largura fixa deixa UM espaço
+  entre nome longo e placar (`Wolverhampton 1-4 Brighton`) — com `\s{2,}` a fonte
+  perdia 19 jogos por temporada na PL; (2) `htmlToText` (T448b) usava `<[^>]+>` e um
+  `<` órfão da página de 2023 (`(<i>Sep 28 & Oct 5</i><)`) iniciava um "tag" que
+  engolia o texto até o próximo `>` — apagava o cabeçalho da FINAL; corrigido para
+  tags que não cruzam linha; (3) o `buildPlan` não recebia o pool da temporada
+  (campo existia no tipo, faltava no ponto de chamada) — PL perdia Newcastle e
+  Southampton e a Libertadores caía para 71/194.
+- RESOLVER (`team-resolver.ts`): cascata determinística (alias curado → igualdade →
+  igualdade sem filtro de país → contenção com fronteira de palavra → abreviação
+  ALINHADA ao início), sempre exigindo UNICIDADE — empate vira gap declarado. Nada
+  de score fuzzy. O acervo tem HOMÔNIMOS reais ("Sociedade Esportiva Palmeiras" de
+  SP × a de Pato Branco; "São Paulo FC" × "São Paulo Futebol Clube" de Parnamirim;
+  "Cruzeiro E.C." × "Cruzeiro Esporte Clube" de Itaporanga) e o instrumento mais
+  forte para desempatar é o POOL DA TEMPORADA — os clubes que o próprio acervo já
+  usa naquela competição+temporada (classificação do T508+). Sem ele (Brasileirão
+  2021 não tem classificação no acervo), o alias explícito assume: `Corinthians`
+  chegava a casar ERRADO ("Corinthians Santo Andre") pela regra de abreviação.
+- QID: o discriminador do alias usa o QID que o PRÓPRIO acervo gravou (`América/MG`
+  → Q338285, com `city` vazio no acervo), conferido na fonte (Wikidata: "clube de
+  futebol brasileiro sediado em Belo Horizonte, Minas Gerais"). Nenhum QID digitado
+  de memória (D-2026-10-09).
+- MIGRATION aditiva e nullable (`20261011190000_t519_match_scorers`): `matches.scorers`
+  (JSONB: {raw, home[], away[], sidesVerified}) e `matches.sourceNote` (anotação da
+  fonte preservada sem interpretar: "played in Uberlândia-MG", "replay", e os
+  marcadores `x`/`y` da Libertadores). Tabela estava vazia — nenhuma linha existente
+  mudou. `migration-drift` verde no CI.
+- PRODUÇÃO (Railway, deploy 4f89186): dry-run nas 3 fontes → **amostra de 10 partidas
+  aplicada e validada contra fonte INDEPENDENTE (10/10 CONFIRMADO, Transfermarkt +
+  Wikipédia PT, zero divergência de data/placar/mando)** → apply em lotes de 500 →
+  **2.336 partidas: BR 2021-2024 (1.406), PL 2023-24/2024-25 (760), LIB 2023/2024
+  (170)** → re-run `--apply` provou NOOP (0 criadas, 2.336 puladas) → smoke
+  `GET /api/v1/matches` devolvendo dado real → integridade: `ranking_entries` 293,
+  `knowledge_graph` WON 5.205, jogadores 105.211 e clubes ativos 11.987 TODOS
+  inalterados.
+
+GAPS DECLARADOS (T519): a fonte não tem jogos para Série A 2025, PL 2025-26 e
+Libertadores 2025 (404) — nada foi inventado; clubes ausentes do acervo deixam os
+jogos fora: Vasco da Gama masculino (114 jogos), Chapecoense (38), Patronato (12),
+Monagas (12), Deportivo Táchira (12), LDU Quito (12); a PL 2023-24 perde 1 jogo
+abandonado (Bournemouth×Luton, com placar só na anotação) e a Libertadores perde o
+mata-mata (a fonte dá só a agregação do confronto, sem data por jogo); autores de
+gols existem só no BR 2023 (102 partidas); estádio não é impresso nas ligas;
+`status` gravado como FINISHED (só jogos encerrados entram). Dados do acervo
+achados de passagem e NÃO tocados (fora do escopo): `Cruzeiro Esporte Clube (female)`
+com gender='men'; Q5014111 (poliesportivo do Vasco) gravado como women.
+
+Stage Summary:
+- `matches`: 0 → **2.336 partidas reais**, com proveniência por partida e licença
+- 10/10 amostras validadas contra fonte independente; re-run noop provado
+- Rankings/KG/jogadores/clubes intactos; 125 testes de RSSSF; 750/750 unitários da API
+- 5 PRs nesta rodada (#524 parser+resolver+migration, #525 pool/QID, #526 homônimos,
+  #527 fiação do pool + variantes, #528 fecho da Libertadores)
