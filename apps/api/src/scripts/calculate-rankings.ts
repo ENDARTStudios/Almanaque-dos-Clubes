@@ -39,10 +39,11 @@ export function parseCalculateArgs(argv: string[]): CalculateRankingsArgs {
     },
   });
   const year = values.year ?? String(new Date().getUTCFullYear());
-  // Aceita ano civil (2023) e temporada cruzada ('2023-24', convenção das
-  // competições europeias no acervo) — o algoritmo lida com os dois rótulos.
-  if (!/^\d{4}(-\d{2})?$/.test(year)) {
-    throw new Error(`--year inválido: "${year}" (esperado YYYY ou YYYY-YY)`);
+  // Aceita os rótulos de temporada que o ACERVO usa (T530): ano civil (`2023`),
+  // cruzada curta (`2023-24`, Premier League/La Liga), cruzada longa
+  // (`2023-2024`, Ligue 1/Serie A) e com barra (`2023/24`, Bundesliga).
+  if (!/^\d{4}([-/]\d{2,4})?$/.test(year)) {
+    throw new Error(`--year inválido: "${year}" (esperado YYYY, YYYY-YY, YYYY-YYYY ou YYYY/YY)`);
   }
   const gender = values.gender === undefined ? null : (values.gender as 'men' | 'women' | null);
   if (gender !== null && gender !== 'men' && gender !== 'women') {
