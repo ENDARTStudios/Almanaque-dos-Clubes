@@ -463,6 +463,10 @@ export async function registerDataRefreshCron(): Promise<void> {
       enrichClubs: ENRICH_CLUBS_CRON_PATTERN,
       enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
       enrichEditorial: ENRICH_EDITORIAL_CRON_PATTERN,
+      // T533 — faltava no log de boot: um cron registrado que não aparece no
+      // inventário é observabilidade faltando (o job existe e roda, mas quem lê o
+      // boot não sabe). Todo cron novo entra aqui.
+      enrichAllMedia: ENRICH_ALL_MEDIA_CRON_PATTERN,
     },
     'data-refresh scheduler agendado (UTC)',
   );
