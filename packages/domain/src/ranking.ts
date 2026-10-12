@@ -26,6 +26,8 @@ export type UpdateRankingEntryInput = z.infer<typeof UpdateRankingEntrySchema>;
 export interface Ranking {
   id: string;
   name: string;
+  /** T522 — 'club' (padrão) | 'player'. */
+  type?: string;
   competitionId: string | null;
   season: string | null;
   // T449c-v2 — escopo do ranking (NULL = por competição/divisão; 'country_pyramid' = agregado).
@@ -41,7 +43,10 @@ export interface Ranking {
 export interface RankingEntry {
   id: string;
   rankingId: string;
-  clubId: string;
+  /** NULL em entrada de ranking de JOGADOR (T522). */
+  clubId: string | null;
+  /** T522 — preenchido em entrada de ranking de jogador. */
+  playerId?: string | null;
   // position NULL = registro sem posição publicada (dados insuficientes) — T425
   position: number | null;
   points: number | null;

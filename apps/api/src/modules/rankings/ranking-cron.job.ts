@@ -27,6 +27,7 @@ import { logger } from '../../config/logger.js';
 import { metrics } from '../../modules/observability/metrics.js';
 import {
   buildClubRanking,
+  buildPlayerRanking,
   createPrismaRankingAlgorithmRepo,
   type ClubRankingResult,
   type Gender,
@@ -34,7 +35,7 @@ import {
 import { recordJobRun } from '../../jobs/data-refresh.scheduler.js';
 import { pushLog } from '../../lib/observability/log-buffer.js';
 import { checkJobFailure } from '../../lib/observability/alerts.js';
-import { rankingNameFor } from './ranking-naming.js';
+import { playerRankingNameFor, rankingNameFor } from './ranking-naming.js';
 
 /** Horário UTC diário 03:00. */
 export const RANKING_CRON_PATTERN = '0 3 * * *' as const;
@@ -44,6 +45,8 @@ export interface RankingRunScope {
   season: string;
   competitionId?: string | null;
   gender?: Gender | null;
+  /** T522 — 'club' (padrão) | 'player'. */
+  type?: 'club' | 'player';
 }
 
 export interface RankingRunOutcome {
@@ -63,7 +66,86 @@ export interface RankingJobResult {
 }
 
 /** Persiste um Ranking (ano+escopo+gênero) se ainda não publicado (idempotente). */
+/** T522 — ranking de JOGADORES (sem dimensão de gênero). */
+export async function runPlayerRankingJob(scope: {
+  season: string;
+  competitionId?: string | null;
+}): Promise<RankingJobResult> {
+  return withRlsContext({ role: 'SERVICE' }, async (tx) => {
+    const repo = createPrismaRankingAlgorithmRepo(tx);
+    const competitionId = scope.competitionId ?? null;
+
+    // T522 — idempotência por (ano, competição, tipo). O gênero entra só para o
+    // ranking de clube (o de jogador não tem dimensão de gênero).
+    const existing = await tx.ranking.findFirst({
+      where: {
+        season: scope.season,
+        competitionId,
+        scope: null,
+        type: 'player',
+        publishedAt: { not: null },
+      },
+      select: { id: true },
+    });
+    if (existing) return { skipped: true, rankingId: null, result: null };
+
+    const competitionName = competitionId
+      ? ((await tx.competition.findUnique({ where: { id: competitionId }, select: { name: true } }))
+          ?.name ?? null)
+      : null;
+
+    const result = await buildPlayerRanking(repo, { season: scope.season, competitionId });
+    if (result.rankedCount === 0) {
+      logger.warn({ season: scope.season }, 'ranking de jogadores vazio — não publicado');
+      return { skipped: true, rankingId: null, result: null, empty: true };
+    }
+
+    const ranking = await tx.ranking.create({
+      data: {
+        name: playerRankingNameFor(scope.season, competitionName),
+        season: scope.season,
+        competitionId,
+        type: 'player',
+        publishedAt: new Date(),
+      },
+    });
+    for (const row of result.rows) {
+      await tx.rankingEntry.create({
+        data: {
+          rankingId: ranking.id,
+          playerId: row.playerId,
+          position: row.position,
+          points: row.points,
+          baseMatches: row.baseMatches,
+          baseTitles: 0,
+          dataSourceIds: row.dataSourceIds as Prisma.InputJsonValue,
+          reason: row.reason,
+          gender: null,
+        },
+      });
+    }
+    return { skipped: false, rankingId: ranking.id, result: null };
+  });
+}
+
+/**
+ * Dispatcher do job: `type='player'` vai para o ranking de jogadores; qualquer
+ * outro valor (default) vai para o de clubes, que separa por gênero.
+ */
 export async function runRankingJob(scope: {
+  season: string;
+  competitionId?: string | null;
+  gender: Gender;
+  type?: 'club' | 'player';
+}): Promise<RankingJobResult> {
+  if (scope.type === 'player') {
+    return runPlayerRankingJob({ season: scope.season, competitionId: scope.competitionId });
+  }
+  return runClubRankingJob(scope);
+}
+
+/** Publica o ranking de CLUBES (ano + competição + gênero). */
+async function runClubRankingJob(scope: {
   season: string;
   competitionId?: string | null;
   gender: Gender;
@@ -71,16 +153,17 @@ export async function runRankingJob(scope: {
   return withRlsContext({ role: 'SERVICE' }, async (tx) => {
     const repo = createPrismaRankingAlgorithmRepo(tx);
 
-    // Idempotência por ESCOPO (ano + competição + gênero), não por nome: o acervo
-    // tem duas convenções de nome (a do cron e a do piloto da pirâmide inglesa) e
-    // comparar nome criaria um ranking duplicado para o mesmo escopo. O gênero sai
-    // das ENTRADAS (o modelo Ranking não tem coluna de gênero) — sem ele, o run
-    // feminino encontraria o ranking masculino recém-criado e pularia.
+    // Idempotência por ESCOPO (ano + competição + gênero + tipo clube), não por
+    // nome: o acervo tem duas convenções de nome (a do cron e a do piloto da
+    // pirâmide inglesa) e comparar nome criaria um ranking duplicado para o mesmo
+    // escopo. O gênero sai das ENTRADAS (o modelo Ranking não tem coluna de
+    // gênero) — sem ele, o run feminino encontraria o masculino recém-criado.
     const existing = await tx.ranking.findFirst({
       where: {
         season: scope.season,
         competitionId: scope.competitionId ?? null,
         scope: null,
+        type: 'club',
         publishedAt: { not: null },
         entries: { some: { gender: scope.gender } },
       },
@@ -158,7 +241,9 @@ export async function runRankingJob(scope: {
 
 /** Roda o Ranking para um ano+escopo, separando por gênero (isolamento). */
 export async function runRankingForSeason(scope: RankingRunScope): Promise<RankingRunOutcome> {
-  const genders: Gender[] = scope.gender ? [scope.gender] : ['men', 'women'];
+  // O ranking de jogador não tem dimensão de gênero: roda uma única vez.
+  const genders: Gender[] =
+    scope.type === 'player' ? ['men'] : scope.gender ? [scope.gender] : ['men', 'women'];
   const results: ClubRankingResult[] = [];
   const rankingIds: string[] = [];
   let anyCreated = false;
@@ -169,6 +254,7 @@ export async function runRankingForSeason(scope: RankingRunScope): Promise<Ranki
       season: scope.season,
       competitionId: scope.competitionId,
       gender: g,
+      type: scope.type,
     });
     if (out.empty) emptyResults += 1;
     if (!out.skipped) anyCreated = true;

@@ -23,6 +23,8 @@ export interface CalculateRankingsArgs {
   year: string;
   competitionId: string | null;
   gender: 'men' | 'women' | null;
+  /** T522 — 'club' (padrão) | 'player'. */
+  type: 'club' | 'player';
 }
 
 /** Parse puro (testável). Lança em argumento inválido. */
@@ -33,6 +35,7 @@ export function parseCalculateArgs(argv: string[]): CalculateRankingsArgs {
       year: { type: 'string' },
       competition: { type: 'string' },
       gender: { type: 'string' },
+      type: { type: 'string' },
     },
   });
   const year = values.year ?? String(new Date().getUTCFullYear());
@@ -45,7 +48,11 @@ export function parseCalculateArgs(argv: string[]): CalculateRankingsArgs {
   if (gender !== null && gender !== 'men' && gender !== 'women') {
     throw new Error(`--gender inválido: "${String(values.gender)}" (use men|women)`);
   }
-  return { year, competitionId: values.competition ?? null, gender };
+  const type = values.type === 'player' ? 'player' : 'club';
+  if (values.type !== undefined && values.type !== 'club' && values.type !== 'player') {
+    throw new Error(`--type inválido: "${values.type}" (use club|player)`);
+  }
+  return { year, competitionId: values.competition ?? null, gender, type };
 }
 
 export async function main(argv: string[]): Promise<number> {
@@ -61,6 +68,7 @@ export async function main(argv: string[]): Promise<number> {
       season: args.year,
       competitionId: args.competitionId,
       gender: args.gender,
+      type: args.type,
     });
     logger.info(
       {

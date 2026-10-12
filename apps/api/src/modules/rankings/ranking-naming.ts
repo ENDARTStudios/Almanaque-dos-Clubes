@@ -19,3 +19,9 @@ export function rankingNameFor(
   const scopeLabel = competitionName ? ` ${competitionName}` : '';
   return `Ranking 0-100${scopeLabel} ${season} — ${genderLabel}`;
 }
+
+/** T522 — nome do ranking de JOGADORES (o dado não tem dimensão de gênero). */
+export function playerRankingNameFor(season: string, competitionName?: string | null): string {
+  const scopeLabel = competitionName ? ` ${competitionName}` : '';
+  return `Ranking de Jogadores 0-100${scopeLabel} ${season}`;
+}

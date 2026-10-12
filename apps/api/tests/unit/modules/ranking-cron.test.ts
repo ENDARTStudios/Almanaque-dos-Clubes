@@ -168,6 +168,12 @@ describe('T438 — parseCalculateArgs (CLI)', () => {
     expect(args.gender).toBeNull();
   });
 
+  it('aceita --type=player (ranking de jogadores) e recusa valor inválido', () => {
+    expect(parseCalculateArgs(['--year', '2023', '--type', 'player']).type).toBe('player');
+    expect(parseCalculateArgs([]).type).toBe('club');
+    expect(() => parseCalculateArgs(['--type', 'clubes'])).toThrow(/--type inválido/);
+  });
+
   it('aceita temporada cruzada YYYY-YY (Premier League)', () => {
     // As competições europeias usam rótulo de temporada cruzada no acervo
     // ('2023-24'); antes o CLI recusava e a Premier League não podia ser calculada.
@@ -185,7 +191,7 @@ describe('T438 — parseCalculateArgs (CLI)', () => {
       '--gender',
       'women',
     ]);
-    expect(args).toEqual({ year: '2023', competitionId: 'abc', gender: 'women' });
+    expect(args).toEqual({ year: '2023', competitionId: 'abc', gender: 'women', type: 'club' });
   });
 
   it('rejeita ano não-YYYY e gender inválido', () => {

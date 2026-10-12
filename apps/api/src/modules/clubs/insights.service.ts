@@ -331,7 +331,8 @@ export async function getClubRelated(id: string): Promise<ClubRelated | null> {
             take: 200,
           })
         : [];
-      const peerIds = otherEntries.map((e) => e.clubId);
+      // T522 — entradas de ranking de jogador têm clubId nulo: ficam fora dos pares de clube.
+      const peerIds = otherEntries.map((e) => e.clubId).filter((x): x is string => x !== null);
       const peers = peerIds.length
         ? await prisma.club.findMany({
             where: { id: { in: peerIds }, deletedAt: null },

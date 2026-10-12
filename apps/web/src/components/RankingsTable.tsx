@@ -28,8 +28,11 @@ interface RankingMeta {
 interface RankingEntryRow {
   position: number | null;
   points: number | null;
-  clubId: string;
-  clubName: string;
+  /** T522 — em ranking de jogador estes vêm nulos e playerId/playerName preenchidos. */
+  clubId: string | null;
+  clubName: string | null;
+  playerId?: string | null;
+  playerName?: string | null;
   country: string | null;
   state: string | null;
   city: string | null;
@@ -56,6 +59,7 @@ interface PublishedRanking {
   season: string | null;
   competitionId: string | null;
   scope?: string | null;
+  type?: string | null;
 }
 
 /** Opção do seletor de escopo: uma competição, ou o agregado geral (todos os clubes). */
@@ -79,12 +83,30 @@ export default function RankingsTable() {
   const [years, setYears] = useState<string[]>([]);
   const [competition, setCompetition] = useState('');
   const [scopes, setScopes] = useState<ScopeOption[]>([]);
+  const [type, setType] = useState<'club' | 'player'>('club');
+  const [allRankings, setAllRankings] = useState<PublishedRanking[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [meta, setMeta] = useState<RankingMeta | null>(null);
   const [rows, setRows] = useState<RankingEntryRow[]>([]);
   const [cursor, setCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // T522 — escopos publicados do TIPO selecionado (clubes x jogadores).
+  useEffect(() => {
+    const seen = new Set<string>();
+    const opts: ScopeOption[] = [];
+    for (const r of allRankings) {
+      if (r.scope) continue;
+      if ((r.type ?? 'club') !== type) continue;
+      const value = r.competitionId ?? 'global';
+      if (seen.has(value)) continue;
+      seen.add(value);
+      opts.push({ value, label: r.name });
+    }
+    setScopes(opts);
+    setCompetition('');
+  }, [allRankings, type]);
 
   const query = useCallback(
     (cursorPos: number | null): string => {
@@ -95,11 +117,12 @@ export default function RankingsTable() {
       if (search) params.set('search', search);
       if (view === 'pyramid') params.set('scope', 'country_pyramid');
       else if (competition) params.set('competitionId', competition);
+      if (view !== 'pyramid') params.set('type', type);
       params.set('limit', String(LIMIT));
       if (cursorPos !== null) params.set('cursor', String(cursorPos));
       return `/rankings/entries?${params.toString()}`;
     },
-    [year, gender, country, search, view, competition],
+    [year, gender, country, search, view, competition, type],
   );
 
   // Anos disponíveis (rankings publicados) para o filtro.
@@ -115,16 +138,7 @@ export default function RankingsTable() {
         setYears(seasons);
         // T521 — escopos publicados: cada competição e o agregado geral
         // (`competitionId` nulo vira o sentinela 'global' aceito pela API).
-        const seen = new Set<string>();
-        const opts: ScopeOption[] = [];
-        for (const r of res.data) {
-          if (r.scope) continue;
-          const value = r.competitionId ?? 'global';
-          if (seen.has(value)) continue;
-          seen.add(value);
-          opts.push({ value, label: r.name });
-        }
-        setScopes(opts);
+        setAllRankings(res.data);
       })
       .catch(() => undefined);
     return () => {
@@ -228,6 +242,20 @@ export default function RankingsTable() {
             ))}
           </select>
         </label>
+        {view === 'division' ? (
+          <label className="flex flex-col gap-1 text-sm text-foreground/70">
+            <span>{t.filterType}</span>
+            <select
+              aria-label={t.filterType}
+              className={selectClass}
+              value={type}
+              onChange={(e) => setType(e.target.value as 'club' | 'player')}
+            >
+              <option value="club">{t.typeClubs}</option>
+              <option value="player">{t.typePlayers}</option>
+            </select>
+          </label>
+        ) : null}
         {view === 'division' && scopes.length > 0 ? (
           <label className="flex flex-col gap-1 text-sm text-foreground/70">
             <span>{t.filterCompetition}</span>
@@ -346,12 +374,24 @@ export default function RankingsTable() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={`${r.clubId}-${r.position}`} className="border-t border-border">
+                <tr
+                  key={`${r.playerId ?? r.clubId}-${r.position}`}
+                  className="border-t border-border"
+                >
                   <td className="px-4 py-3 font-mono">{r.position}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/clubs/${r.clubId}`} className="text-primary hover:underline">
-                      {r.clubName}
-                    </Link>
+                    {r.playerId ? (
+                      <Link
+                        href={`/players/${r.playerId}`}
+                        className="text-primary hover:underline"
+                      >
+                        {r.playerName}
+                      </Link>
+                    ) : (
+                      <Link href={`/clubs/${r.clubId}`} className="text-primary hover:underline">
+                        {r.clubName}
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-semibold">{r.points}</td>
                   {view === 'pyramid' ? (

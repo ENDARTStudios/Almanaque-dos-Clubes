@@ -5,6 +5,8 @@ import type { Ranking, RankingEntry } from '@almanaque/domain';
 export interface ListRankingsParams {
   competitionId?: string;
   season?: string;
+  /** T522 — 'club' (padrão) | 'player'. */
+  type?: string;
   scope?: string;
   country?: string;
   published?: boolean;
@@ -24,6 +26,7 @@ export const rankingsRepository = {
     const {
       competitionId,
       season,
+      type,
       scope,
       country,
       published,
@@ -35,6 +38,7 @@ export const rankingsRepository = {
       where: {
         AND: [
           competitionId ? { competitionId } : {},
+          type ? { type } : {},
           season ? { season } : {},
           scope ? { scope } : {},
           country ? { country } : {},
@@ -88,12 +92,16 @@ export const rankingsRepository = {
         ranking: { select: { competition: { select: { level: true, qid: true } } } },
       },
     });
-    return rows.map((r) => ({
-      clubId: r.clubId,
-      level: r.ranking.competition?.level ?? null,
-      qid: r.ranking.competition?.qid ?? null,
-      points: r.points,
-    }));
+    // T522 — `clubId` é nullable no schema (entradas de ranking de jogador); aqui só
+    // interessam as entradas de clube.
+    return rows
+      .filter((r): r is typeof r & { clubId: string } => r.clubId !== null)
+      .map((r) => ({
+        clubId: r.clubId,
+        level: r.ranking.competition?.level ?? null,
+        qid: r.ranking.competition?.qid ?? null,
+        points: r.points,
+      }));
   },
 
   /** T449c-v1 — competições (com `level`) para enriquecer rankings (sem N+1). */
@@ -141,6 +149,8 @@ export const rankingsRepository = {
       competitionId?: string;
       /** T521 — só o agregado GERAL (competitionId IS NULL). */
       globalOnly?: boolean;
+      /** T522 — 'club' (padrão) | 'player'. */
+      type?: string;
       scope?: string;
       country?: string;
     } = {},
@@ -158,6 +168,7 @@ export const rankingsRepository = {
             : {}),
         // Default: ranking por competição/divisão (scope NULL). Só troca com `scope` explícito.
         ...(filter.scope ? { scope: filter.scope } : { scope: null }),
+        type: filter.type ?? 'club',
         ...(filter.country ? { country: filter.country } : {}),
       },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
@@ -196,6 +207,8 @@ export const rankingsRepository = {
       take: params.limit,
       include: {
         club: { select: { id: true, name: true, country: true, state: true, city: true } },
+        // T522 — entradas de ranking de jogador trazem o jogador (clubId é NULL).
+        player: { select: { id: true, fullName: true } },
       },
     });
   },

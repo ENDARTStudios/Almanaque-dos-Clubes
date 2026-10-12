@@ -30,6 +30,7 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
     const result = await rankingsService.list({
       competitionId: query.competitionId,
       season: query.season,
+      type: query.type,
       scope: query.scope,
       country: query.country,
       published,
@@ -54,6 +55,7 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
       year: query.year,
       competitionId: globalOnly ? undefined : query.competitionId,
       globalOnly,
+      type: query.type,
       scope: query.scope,
       gender: query.gender,
       country: query.country,

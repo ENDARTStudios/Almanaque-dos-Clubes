@@ -144,6 +144,8 @@ enum ClubStatus {
 model Player {
   id           String    @id @default(uuid())
   fullName     String
+  // T522 — entradas de ranking de jogador.
+  rankingEntries RankingEntry[]
   // WS-C-13
   officialSite           String?
   socialLinks            Json?
@@ -233,6 +235,8 @@ enum CompetitionType {
 model Ranking {
   id             String   @id @default(uuid())
   name           String
+  // T522 — 'club' (padrão) | 'player': separa o ranking de clube do de jogador.
+  type           String   @default("club")
   competitionId  String?
   competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   season         String?
@@ -250,6 +254,7 @@ model Ranking {
   @@index([competitionId])
   @@index([season])
   @@index([scope, country, season])
+  @@index([type])
   @@map("rankings")
 }
 
@@ -261,8 +266,11 @@ model RankingEntry {
   id            String   @id @default(uuid())
   rankingId     String
   ranking       Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
-  clubId        String
-  club          Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId        String?
+  club          Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  // T522 — ranking de JOGADOR: a entrada aponta para o jogador (clubId fica NULL).
+  playerId      String?
+  player        Player?    @relation(fields: [playerId], references: [id], onDelete: Cascade)
   // position NULL = registro sem posição publicada (dados insuficientes) — T425
   position      Int?     // 1 = primeiro, 2 = segundo, etc.; NULL = não ranqueado
   points        Int?     // 0-100 normalizado por gênero; NULL se dados insuficientes
@@ -279,6 +287,7 @@ model RankingEntry {
   @@unique([rankingId, position])
   @@index([rankingId])
   @@index([clubId])
+  @@index([playerId])
   @@index([position])
   @@index([gender])
   @@map("ranking_entries")

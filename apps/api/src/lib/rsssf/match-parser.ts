@@ -25,6 +25,10 @@ export interface RsssfScorer {
   player: string;
   /** "45+5" quando a fonte detalha acréscimos; null quando não imprime minuto. */
   minute: string | null;
+  /** T520 — a fonte marca gol contra com o sufixo `og` (o gol é do ADVERSÁRIO). */
+  ownGoal?: boolean;
+  /** T520 — a fonte marca pênalti com o sufixo `pen`. */
+  penalty?: boolean;
 }
 
 export interface RsssfScorers {
@@ -411,17 +415,50 @@ export function parseScorers(raw: string, homeGoals: number, awayGoals: number):
   };
 }
 
+/**
+ * Autores de gol de um lado. A fonte usa `Nome 45+6pen` e, quando o MESMO jogador
+ * volta a marcar, imprime só o minuto (`[Pedro 7pen, 90]` = dois gols do Pedro).
+ * T520 — gramática corrigida: (a) o sufixo `pen`/`og` faz parte do MINUTO, não do
+ * nome (antes "Tiquinho Soares 29pen" virava um "jogador" diferente de
+ * "Tiquinho Soares", inflando os nomes distintos); (b) entrada só com minuto é
+ * repetição do último jogador citado (antes o minuto era lido como jogador).
+ */
 function splitScorers(chunk: string): RsssfScorer[] {
   const text = chunk.trim();
   if (!text) return [];
-  return text
-    .split(',')
-    .map((e) => e.trim())
-    .filter(Boolean)
-    .map((entry) => {
-      const m = /^(.*?)\s+(\d+(?:\+\d+)?)$/.exec(entry);
-      return m ? { player: m[1].trim(), minute: m[2] } : { player: entry, minute: null };
-    });
+  const out: RsssfScorer[] = [];
+  let lastPlayer: string | null = null;
+  for (const raw of text.split(',')) {
+    const entry = raw.trim();
+    if (!entry) continue;
+    const m = /^(.*?)\s+(\d+(?:\+\d+)?)(pen|og)?$/i.exec(entry);
+    if (m) {
+      const player: string | null = m[1].trim() || lastPlayer;
+      if (!player) continue;
+      lastPlayer = player;
+      out.push({
+        player,
+        minute: m[2],
+        penalty: m[3]?.toLowerCase() === 'pen' || undefined,
+        ownGoal: m[3]?.toLowerCase() === 'og' || undefined,
+      });
+      continue;
+    }
+    // Só o minuto (`90`, `56pen`) → repetição do último jogador.
+    const only = /^(\d+(?:\+\d+)?)(pen|og)?$/i.exec(entry);
+    if (only && lastPlayer) {
+      out.push({
+        player: lastPlayer,
+        minute: only[1],
+        penalty: only[2]?.toLowerCase() === 'pen' || undefined,
+        ownGoal: only[2]?.toLowerCase() === 'og' || undefined,
+      });
+      continue;
+    }
+    out.push({ player: entry, minute: null });
+    lastPlayer = entry;
+  }
+  return out;
 }
 
 function monthDay(

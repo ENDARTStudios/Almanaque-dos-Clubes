@@ -170,6 +170,26 @@ describe('match-parser T519 — casos de borda', () => {
     expect(s.sidesVerified).toBe(true);
   });
 
+  it('gramática v2: sufixo pen/og vai no MINUTO, não no nome', () => {
+    // Antes, "Tiquinho Soares 29pen" virava um "jogador" distinto de
+    // "Tiquinho Soares" (inflava os nomes distintos e perdia o pênalti).
+    const s = parseScorers('Tiquinho Soares 29pen, 60pen', 2, 0);
+    expect(s.home.map((x) => x.player)).toEqual(['Tiquinho Soares', 'Tiquinho Soares']);
+    expect(s.home[0].penalty).toBe(true);
+    // Minuto solto = o MESMO jogador marcou de novo (fonte: `[Pedro 7pen, 90]`).
+    const p2 = parseScorers('Pedro 7pen, 90', 2, 0);
+    expect(p2.home.map((x) => ({ p: x.player, m: x.minute }))).toEqual([
+      { p: 'Pedro', m: '7' },
+      { p: 'Pedro', m: '90' },
+    ]);
+  });
+
+  it('marca gol contra (og) — o gol é do adversário, não do autor', () => {
+    const s = parseScorers('Sidimar 48og', 0, 1);
+    expect(s.away[0].ownGoal).toBe(true);
+    expect(s.away[0].player).toBe('Sidimar');
+  });
+
   it('parseScorers não atribui lado quando o placar não permite inferir', () => {
     const s = parseScorers('Cano 51, Kennedy 59', 2, 1);
     expect(s.home).toEqual([]);
