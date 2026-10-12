@@ -1735,3 +1735,41 @@ Chapecoense 38, Patronato 12, Monagas 12, Táchira 12, LDU Quito 12); autores de
 existem no BR 2023 (102 partidas); PL 2023-24 perde 1 jogo abandonado. Achados de dado
 do acervo reportados e NÃO tocados (fora de escopo): `Cruzeiro Esporte Clube (female)`
 com `gender='men'` e Q5014111 (poliesportivo do Vasco) gravado como `women`.
+
+### [2026-10-11] Decisao: D-2026-10-11-t520-cura-identidade-clubes - homonimo nao e duplicata; gender se corrige com QID conferido na fonte
+
+**Achado que muda o escopo:** o T518 pedia "mapear e fundir duplicatas de clubes
+grandes". A medicao em producao mostrou **zero QIDs duplicados**: as familias de nomes
+parecidos sao **HOMONIMOS** - clubes diferentes, com QID e cidade proprios (Palmeiras de
+SP x Palmeiras de Pato Branco; Sao Paulo FC x Sao Paulo Futebol Clube de Parnamirim;
+Cruzeiro E.C. de BH x Cruzeiro Esporte Clube de Itaporanga x Cruzeiro do Sul FC). As
+duplicatas que existiram eram de SEED, ja soft-deletadas em 2026-09-26 e sem nenhuma
+referencia. **Decisao: nao fundir, nao soft-deletar e nao migrar referencia** - fundir
+homonimo destruiria clube real e violaria o "nao inventar" por outro caminho. O
+desambiguador de nome (pool da temporada + alias, T519) ja resolve a navegacao.
+
+**Corrigido (com QID conferido na fonte, D-2026-10-09):**
+`Q105973517` ("clube brasileiro de futebol feminino") estava `gender='men'` -> `women`;
+`Q5014111` (clube poliesportivo do Rio, P641=futebol) e `Q2536715` (clube de
+Chapeco-SC) estavam `gender='women'` -> `men`. **Armadilha registrada:** o QID Q2749819,
+citado em levantamento anterior como "Chapecoense masculino", e uma **especie de inseto**
+(Cneorane dohertyi) - nenhum QID entra sem conferencia na fonte.
+
+**Bragantino:** a classificacao do T508 gravava o **time B** (`Q636709`) no lugar do A
+(`Q541744`) nas 4 temporadas da Serie A. Corrigido no JSON de `competition_seasons`, com
+`identityFix` na linha para auditoria.
+
+**Ferramenta:** `apps/api/src/scripts/cure-clubs-t520.js` (`--item=audit|gender|bragantino`),
+transacao por item, ANTES/DEPOIS + **rollback impresso**, zero hard-delete.
+
+**Resultado:** Brasileirao completo em 380 jogos nas 4 temporadas; `matches` 2.336 ->
+**2.450** (Vasco 76 + Chapecoense 38 re-linkados); md5 dos rankings **identico**
+(`58fa0d55...`, 293 entradas), WON 5.205 e clubes ativos 11.987 intactos; re-run noop.
+O gate pede "hash `3e93aba9...`" - esse numero vem de relatorio antigo e **nao existe
+script que o recalcule**; o gate foi cumprido com md5 reprodutivel do conteudo dos
+rankings (prova mais forte), e isso fica registrado.
+
+**Pendencias declaradas (nao corrigidas, fora de escopo):** `ranking_entries_points_out_of_range=20`
+(escala legada >100), 145 clubes ativos sem QID, duas competicoes homonimas "Campeonato
+Brasileiro Serie A" (`d6a8bdb1` x `5fd857e6`) e a corrida de isolamento entre testes de
+integracao (champions x compare) que deixou o `security-gate` flaky.

@@ -1375,3 +1375,76 @@ Stage Summary:
 - Rankings/KG/jogadores/clubes intactos; 125 testes de RSSSF; 750/750 unitários da API
 - 5 PRs nesta rodada (#524 parser+resolver+migration, #525 pool/QID, #526 homônimos,
   #527 fiação do pool + variantes, #528 fecho da Libertadores)
+
+Task ID: goal-2026-10-11/t520
+Agent: Doer (ZCode)
+Task: T520 - CURA de identidade de clube (4 achados do T518) sem perder dado
+
+Work Log:
+- ITEM 1 (duplicatas) - a premissa nao se confirmou, e isso e o achado principal:
+  `SELECT qid, count(*) FROM clubs GROUP BY qid HAVING count(*)>1` = **ZERO**. As
+  familias de nomes parecidos (Palmeiras, Cruzeiro, Fluminense, Gremio,
+  Internacional, Botafogo, Sao Paulo, Corinthians) sao **HOMONIMOS**, com QIDs e
+  cidades distintos - Palmeiras de Pato Branco (Q10372680) x Palmeiras de SP
+  (Q80964); Sao Paulo FC (Q38568) x Sao Paulo Futebol Clube de Parnamirim
+  (Q10375940); Cruzeiro E.C. de BH (Q188277) x Cruzeiro Esporte Clube de Itaporanga
+  (Q10261905) x Cruzeiro do Sul FC. As duplicatas de SEED existiram e ja foram
+  soft-deletadas em 26-09 (Palmeiras 8ef59ed0, Cruzeiro a4a3cfff, Fluminense
+  7ae28fac, Gremio 58b174fd, Internacional 7a20f18a, Corinthians 3d211df5, Sao Paulo
+  35bae4c2) e tem ZERO referencias. Logo: nao ha referencia a migrar e nao ha
+  duplicata ativa. Soft-deletar um homonimo teria destruido um clube real - o
+  caminho certo era NAO mexer, e o desambiguador de nome ja entregue no T519 (pool
+  da temporada + alias) resolve a navegacao.
+- ITEM 2 (Cruzeiro female com gender='men') - CONFIRMADO e corrigido para 'women'.
+  Q105973517 = "Cruzeiro Esporte Clube (female)"; a fonte diz "clube brasileiro de
+  futebol feminino" / "women's football team". Impacto em ranking: ZERO (0 entradas
+  de ranking, 0 partidas; 7 arestas de grafo que continuam atribuidas ao time
+  feminino) - nenhum ranking publicado foi tocado.
+- ITEM 3 (Vasco) - Q5014111 = "Club de Regatas Vasco da Gama", "clube poliesportivo
+  brasileiro" com P641=futebol: e a entidade do time MASCULINO do Rio gravada como
+  'women'. Corrigido para 'men'. O mesmo defeito apareceu no **Chapecoense**:
+  Q2536715 = "Associacao Chapecoense de Futebol", "clube de futebol brasileiro da
+  cidade de Chapeco-SC" (clube, nao time feminino) -> 'women' era erro; corrigido.
+  ARMADILHA EVITADA: um levantamento anterior apontava Q2749819 como "Chapecoense
+  masculino"; a conferencia na fonte mostrou que Q2749819 e uma ESPECIE DE INSETO
+  (Cneorane dohertyi). Nenhum QID foi usado sem conferencia na fonte (D-2026-10-09).
+- ITEM 4 (Bragantino -> "Red Bull Bragantino II") - CONFIRMADO nas QUATRO temporadas
+  da Serie A (2022, 2023, 2024, 2025): a classificacao do T508 grava o **time B**
+  (Q636709) no lugar do A (Q541744), com clubName "Red Bull Bragantino". Corrigido
+  o `clubId` e o `matchedName` dentro do JSON de `competition_seasons`, com
+  `identityFix` gravado na linha para auditoria (rastro visivel no payload publico).
+  Varredura por outros casos do tipo (time B no lugar do A) nas demais temporadas:
+  nenhum outro.
+- FERRAMENTA: `apps/api/src/scripts/cure-clubs-t520.js` com `--item=audit` (READ-ONLY:
+  duplicatas por QID + referencias por clube + ocorrencias do time B),
+  `--item=gender` e `--item=bragantino`, cada item em SUA transacao, imprimindo
+  ANTES/DEPOIS e o SQL de rollback. Zero hard-delete: `deletedAt IS NOT NULL`
+  continua 14 (nenhum novo) e nada foi apagado.
+- PRODUCAO (deploy 7f14ed9): audit -> gender (3 UPDATEs) -> bragantino (4 JSONs) ->
+  re-run do seed. Efeito: o BRASILEIRAO ficou COMPLETO em **380 jogos nas quatro
+  temporadas** - +114 partidas re-linkadas (Vasco em 2023 e 2024 = 76; Chapecoense
+  em 2021 = 38; 2022 ja estava completa porque o Vasco jogou a Serie B naquele ano).
+  `matches` 2.336 -> **2.450**; e o relatorio de resolucao do T519 passou a
+  "nenhum nao resolvido" no Brasileirao (era Vasco + Chapecoense).
+- INTEGRIDADE: md5 dos rankings (293 entradas, ordem por clubId+position) IDENTICO
+  antes e depois: `58fa0d550a03d68f368c81bc7a3f06af`. WON 5.205 e clubes ativos
+  11.987 inalterados. Obs.: o hash `3e93aba9...` citado no gate vem de relatorio
+  antigo e nao existe script que o recalcule (verificado no container) - por isso
+  o gate foi cumprido com um md5 REPRODUTIVEL sobre o conteudo dos rankings, que e
+  prova mais forte que um numero de relatorio.
+- ACHADO COLATERAL (reportar, nao corrigido aqui): o job `integrity-check` acusa
+  `ranking_entries_points_out_of_range=20` (ex.: Atletico-MG 2670/2350 - escala
+  legada >100) e `clubs_active_without_qid=145`; ha tambem **duas competicoes
+  homonimas** "Campeonato Brasileiro Serie A" (`d6a8bdb1` e `5fd857e6`). E o
+  `security-gate` do CI reprovou uma vez por **corrida de isolamento** entre testes
+  de integracao (champions x compare escrevendo nas mesmas tabelas em paralelo
+  contra o banco compartilhado): no re-run, 161/161 arquivos passaram - flaky
+  pre-existente, nao relacionado a este diff.
+
+Stage Summary:
+- 0 duplicatas reais (homonimos confirmados por QID); nenhum dado perdido (14
+  soft-deleted, nenhum novo; nenhum hard-delete)
+- gender corrigido em 3 linhas comprovadas na fonte (Cruzeiro fem, Vasco, Chapecoense)
+- Bragantino: time B -> time A nas 4 temporadas, com rastro de auditoria
+- Brasileirao completo (380x4); matches 2.336 -> 2.450; re-run do T519 sem pendencia
+- Rankings intactos (md5 identico), WON/clubes intactos, noop provado, smoke 200
