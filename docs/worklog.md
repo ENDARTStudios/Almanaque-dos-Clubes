@@ -1771,3 +1771,45 @@ Stage Summary:
   todos (regra crítica respeitada)
 - API + UI com player funcionais e no ar
 - Migration aditiva; rankings/partidas/kits intactos; noop provado (13×)
+
+Task ID: goal-2026-10-12/t525
+Agent: Doer (ZCode)
+Task: T525 — FLÂMULAS dos clubes (gap explícito do Escopo 1)
+
+Work Log:
+- DESCOBERTA ANTES DE CÓDIGO (read-only): 22 clubes × 6 termos
+  (pennant/flâmula/wimpel/fanion/banner), categorias e arquivos do Commons.
+  Resultado: RUÍDO dominante (banners de cidade e de estado, banners do Wikivoyage,
+  clubes homônimos — "Palmeiras" cidade na Bahia, "Internacional" feira do livro,
+  Santa Cecília FC e Horizonte FC de Fortaleza, Arsenal Kyiv...). Só DOIS arquivos
+  são flâmulas reais dos nossos clubes, ambos verificados ao vivo (imageinfo:
+  existe + licença + sem exclusão):
+  (a) Red Bull Bragantino — File:Flamula-comemorativa-bragantino-1965.jpg,
+      CC BY-SA 4.0, "Flâmula comemorativa do Bragantino - Campeão Paulista da
+      Segunda Divisão de 1965";
+  (b) Arsenal F.C. — File:Arsenal pennant 2001.jpg, CC BY 2.0, "Arsenal FC pennant
+      from FA Cup Final lost to Liverpool FC, Anfield Museum".
+- HONESTIDADE ANTES DA META: o gate pedia 5+ clubes; a fonte tem 2. A meta NÃO
+  foi atingida e o gap está DECLARADO para os outros 20 clubes — flâmula sem
+  imagem é seção oculta, nunca placeholder (regra do despacho).
+- MIGRATION aditiva (clubs.pennants JSONB, nullable) — nenhuma linha existente muda.
+- SCRIPT (seed-pennants): curadoria explícita (padrão T511) + verificação ao vivo
+  de cada arquivo; strip de utm_*; dedup/noop por hash canônico (lição T523).
+- APLICADO: 2 clubes / 2 flâmulas; re-run = 2× "já gravado idêntico" (noop).
+- API/UI: GET /clubs/:id/pennants (200; Bragantino traz 1965/CC BY-SA 4.0) e
+  seção "Flâmulas" no perfil com galeria (imagem, descrição, ano, curiosidade da
+  fonte, licença linkada — i18n ×3). No ar (testid club-pennants).
+- INTEGRIDADE: matches 2.450 · ranking_entries 893 · WON 5.205 · anthem 13 ·
+  kitHistory 11 — intocados.
+
+GAPS DECLARADOS: 20 dos 22 clubes sem flâmula utilizável no Commons (busca
+documentada: 6 termos, categorias e arquivos; ruído excluído com justificativa —
+banners de cidade/Wikivoyage, homônimos, clubes pequenos). Expansão futura: fotos
+de acervos museológicos (como a do Aberdeen no Aberdeen City Council Archives) se
+algum dia forem liberadas com licença livre.
+
+Stage Summary:
+- 2 clubes com pennants (Bragantino 1965 comemorativa; Arsenal FA Cup 2001),
+  100% licenças verificadas; re-run noop
+- API + galeria no ar; seção oculta quando não há flâmula
+- Gap declarado com a busca documentada; meta 5+ não atingível honestamente
