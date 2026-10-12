@@ -182,6 +182,12 @@ describe('T438 — parseCalculateArgs (CLI)', () => {
     expect(() => parseCalculateArgs(['--year', 'temporada'])).toThrow(/--year inválido/);
   });
 
+  it('T530: aceita os rótulos longos e com barra do acervo (Ligue 1, Serie A, Bundesliga)', () => {
+    expect(parseCalculateArgs(['--year', '2023-2024']).year).toBe('2023-2024');
+    expect(parseCalculateArgs(['--year', '2023/24']).year).toBe('2023/24');
+    expect(() => parseCalculateArgs(['--year', '2023-20245'])).toThrow(/--year inválido/);
+  });
+
   it('aceita --year, --competition e --gender', () => {
     const args = parseCalculateArgs([
       '--year',
