@@ -119,6 +119,23 @@ export const CLUB_SOURCES: Array<{ qid: string; name: string; pages: string[] }>
 // main
 // ---------------------------------------------------------------------------
 
+/**
+ * JSON canônico (chaves ordenadas recursivamente): o jsonb do Postgres NÃO
+ * preserva a ordem das chaves, então comparar `JSON.stringify` direto quebrava
+ * a idempotência (o re-run regravava tudo).
+ */
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    return `{${Object.keys(obj)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canonicalJson(obj[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
 export async function run(argv: string[]): Promise<number> {
   const { values } = parseArgs({
     args: argv,
@@ -253,10 +270,9 @@ export async function run(argv: string[]): Promise<number> {
       }
 
       if (!APPLY) continue;
-      const payload = JSON.stringify(dedup);
-      const hash = createHash('sha256').update(payload).digest('hex');
+      const hash = createHash('sha256').update(canonicalJson(dedup)).digest('hex');
       const currentHash = club.kitHistory
-        ? createHash('sha256').update(JSON.stringify(club.kitHistory)).digest('hex')
+        ? createHash('sha256').update(canonicalJson(club.kitHistory)).digest('hex')
         : null;
       if (hash === currentHash) {
         console.log(`   já gravado idêntico — noop`);
