@@ -78,6 +78,21 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   Avaí: { name: 'Avaí Futebol Clube' },
   Ceará: { name: 'Ceará Sporting Club' },
   Juventude: { name: 'Esporte Clube Juventude' },
+  // Homônimos do acervo desempatados pela escolha que o PRÓPRIO acervo fez na
+  // classificação do Brasileirão (T508+): "S.C. Corinthians Paulista" (e não
+  // "Corinthians Santo Andre"), "Fluminense F.C." (e não "Fluminense Esporte
+  // Clube", de Teresina), "São Paulo FC" (e não "São Paulo Futebol Clube", de
+  // Parnamirim). Indispensável em 2021 — temporada SEM classificação no acervo,
+  // logo sem pool de temporada para desempatar (o Corinthians chegava a casar
+  // com o clube de Santo André pela regra de abreviação).
+  Corinthians: { name: 'S.C. Corinthians Paulista' },
+  Fluminense: { name: 'Fluminense F.C.' },
+  Palmeiras: { name: 'Sociedade Esportiva Palmeiras' },
+  'São Paulo': { name: 'São Paulo FC' },
+  Grêmio: { name: 'Grêmio FBPA' },
+  Internacional: { name: 'S.C. Internacional' },
+  Botafogo: { name: 'Botafogo F.R.' },
+  Cruzeiro: { name: 'Cruzeiro E.C.' },
   // Libertadores
   'Ind. del Valle': { name: 'Independiente del Valle' },
   'Ind. Medellín': { name: 'Corporación Deportiva Independiente Medellín' },

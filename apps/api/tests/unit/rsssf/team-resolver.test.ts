@@ -32,6 +32,7 @@ const BR = [
   club('c4', 'Red Bull Bragantino', 'BR'),
   club('c5', 'Red Bull Bragantino II', 'BR'),
   club('c6', 'América Futebol Clube', 'BR', { qid: 'Q338285' }),
+  club('c9', 'Santos F.C.', 'BR'),
   club('c7', 'América Futebol Clube', 'BR', { qid: 'Q482251', city: 'Morrinhos' }),
   club('c8', 'Ceará Sporting Club', 'BR', { gender: 'women' }),
 ];
@@ -47,10 +48,16 @@ const all = [...BR, ...GB, ...UY];
 const opts = (countries: string[]) => ({ globalPool: all, countries });
 
 describe('team-resolver T519', () => {
-  it('resolven por contenção com fronteira de palavra', () => {
+  it('resolve por contenção com fronteira de palavra', () => {
+    const r = resolveRsssfTeam('Santos', opts(['BR']));
+    expect(r.club?.name).toBe('Santos F.C.');
+    expect(r.via).toBe('containment');
+  });
+
+  it('o alias de homônimo vence a contenção (Palmeiras de SP, não o de Pato Branco)', () => {
     const r = resolveRsssfTeam('Palmeiras', opts(['BR']));
     expect(r.club?.name).toBe('Sociedade Esportiva Palmeiras');
-    expect(r.via).toBe('containment');
+    expect(r.via).toBe('alias');
   });
 
   it('resolvem pelo alias curado quando o acervo usa outro nome (Atlético-MG)', () => {
