@@ -106,8 +106,8 @@ describe('team-resolver T519', () => {
     expect(r.club).toBeNull();
   });
 
-  it('clubes ausentes do acervo ficam declaradamente sem resolução', () => {
-    for (const t of ['Chapecoense', 'Vasco da Gama', 'Patronato']) {
+  it('clubes realmente ausentes do acervo ficam sem resolução (T520: Vasco e Chapecoense saíram daqui)', () => {
+    for (const t of ['Monagas SC', 'Patronato']) {
       expect(RSSSF_TEAM_ABSENT.has(t)).toBe(true);
       const r = resolveRsssfTeam(t, opts(['BR']));
       expect(r.club).toBeNull();
