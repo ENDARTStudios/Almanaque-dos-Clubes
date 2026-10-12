@@ -37,6 +37,17 @@ describe('T449a-close — /metodologia', () => {
     expect(metodologia).not.toMatch(/Vitórias×3 \+ Empates×1 \+ Gols Pró×0\.2/);
   });
 
+  it('documenta o ranking de JOGADORES (T522) com base, identidade e gaps', () => {
+    expect(metodologia).toContain('id="ranking-jogadores"');
+    expect(metodologia).toContain('Gols × 4 + Assistências × 2 + Vitórias × 1');
+    // Honestidade: a janela coberta e a ausência de assistências na fonte.
+    expect(metodologia).toMatch(/rodadas 1 a 11/);
+    expect(metodologia).toMatch(/só os gols entram|só os gols/);
+    // Identidade: regra de plausibilidade + jogadores fora do cadastro declarados.
+    expect(metodologia).toMatch(/não é goleiro/);
+    expect(metodologia).toContain('Flaco López');
+  });
+
   it('declara o agregado cross-division como proposto/não publicado (T449c-v2-pre C)', () => {
     expect(metodologia).toContain('id="agregado-cross-division-inglaterra"');
     expect(metodologia).toContain('Agregado cross-division');

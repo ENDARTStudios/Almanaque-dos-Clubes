@@ -1525,3 +1525,70 @@ Stage Summary:
 - Integridade provada (pré-existentes intactos, noop, 293 entradas preservadas)
 - Metodologia atualizada em /metodologia com a fórmula real, os escopos publicados,
   a amostra mínima e as duas escalas
+
+Task ID: goal-2026-10-12/t522
+Agent: Doer (ZCode)
+Task: T522 - RANKING 0-100 de JOGADORES a partir de autores de gol reais das partidas
+
+Work Log:
+- DESCOBERTA (read-only) antes de escrever: 102 partidas com `scorers` (todas do
+  Brasileirao 2023, 100% sidesVerified), 269 autores de gol, 185 "nomes" distintos
+  - e a partir daqui apareceram DOIS DEFEITOS DO MEU PROPRIO PARSER do T519:
+  (a) 15 "nomes" eram NUMEROS (`90`, `56pen`, `80`) porque a fonte imprime so o
+  minuto quando o MESMO jogador marca de novo (`[Pedro 7pen, 90]`); (b) o sufixo
+  `pen`/`og` ficava colado ao nome (`Tiquinho Soares 29pen` virava outro "jogador").
+  Corrigidos na gramatica v2 do parser - e como a agregacao RE-PARSEIA o texto
+  bruto (`scorers.raw`), as 2.450 partidas aplicadas ficaram INTOCADAS (o pedido
+  era nao tocar no que ja estava gravado).
+- COBERTURA DA FONTE: os autores de gol existem SO nas rodadas 1-11 do BR 2023
+  (102 de 110 jogos = 92,7% da janela). As demais competicoes do acervo (PL
+  2023-24/2024-25, Libertadores 2023/2024, BR 2021/2022/2024) NAO tem autores de
+  gol na fonte - gap declarado com evidencia (verificado nas paginas).
+- IDENTIDADE (o ponto critico, medido antes de implementar): `shortName` e NULL em
+  TODOS os 105.211 jogadores e ha homonimos massivos (488 "Artur"). Dos nomes
+  testados, um match exato de nome escolheria o HOMONIMO ERRADO em casos reais: o
+  acervo tem um "Everaldo" nascido em 1944 e o goleiro "Fabio", ambos casando com
+  artilheiros de 2023. Solucao: filtro de PLAUSIBILIDADE (nao goleiro, nascido
+  >=1980 e <=15 anos antes da partida) + exigencia de candidato UNICO + aliases
+  curados so onde o acervo usa outro nome (Ayrton Lucas Dantas de Medeiros,
+  Everaldo Stum, Paulo Henrique Ganso, Pedro Guilherme Abreu dos Santos, Gabigol).
+  Nomes ambiguos que restaram (Paulinho, Luciano, Gabriel Barbosa sem alias,
+  Raniele, Flaco Lopez, Lele, John Kennedy - estes simplesmente AUSENTES do
+  acervo) ficam FORA: preferimos o gap ao chute.
+- IMPLEMENTACAO: `lib/rankings/player-goals.ts` (puro: agregacao + plausibilidade +
+  aliases), `loadPlayerSeasonStats` lendo as PARTIDAS (sem tabela intermediaria -
+  a partida e a fonte unica da verdade) com resolucao por SQL normalizado sem
+  acento, `buildPlayerRanking` completado (antes devolvia SEMPRE points/position
+  NULL - era um stub; agora normaliza MinMax e ordena de forma deterministica:
+  gols -> nome), job com despacho por tipo (jogador nao tem dimensao de genero) e
+  CLI `--type=player`.
+- SCHEMA aditivo: `rankings.type` ('club' default | 'player'), `ranking_entries`
+  com `clubId` nullable + `playerId` (FK players). O `clubId` nullable gerou 5
+  ajustes de tipo mecanicos (repository/service/insights) - todos resolvidos.
+- PRODUCAO (deploy 09ba552): 1 ranking de jogadores publicado -
+  "Ranking de Jogadores 0-100 Campeonato Brasileiro Serie A 2023", 68 jogadores,
+  pontos 0-100 (verificado por bool_and), topo: Tiquinho Soares 100 (6 gols - a
+  gramatica v1 perdia os 3 penaltis dele), Roger Guedes 50, Hulk 50, Vitor Roque
+  50, Raphael Veiga 38, Pedro 38.
+- API/UI: `/rankings?type=player` (1), `/rankings/entries?type=player` com
+  `playerName` e link para o perfil, o caminho de CLUBE segue intacto (mesma
+  chamada sem `type` devolve o ranking de clubes), seletor Clubes/Jogadores na UI
+  (i18n x3), UI /rankings 200.
+- INTEGRIDADE: nenhum ranking pre-existente tocado (o job de jogador e aditivo e a
+  idempotencia e por (ano, competicao, tipo)); as 2.450 partidas permaneceram
+  intactas (a agregacao le o `raw`, nao reescreve nada).
+
+GAPS DECLARADOS: PL 2023-24/2024-25, Libertadores 2023/2024 e BR 2021/2022/2024
+nao tem autores de gol na fonte; BR 2023 coberto so nas rodadas 1-11; jogadores
+ausentes do cadastro (Flaco Lopez, Raniele, Lele, John Kennedy) e nomes ambiguos
+ficam fora do ranking; gol contra nao conta para o autor; assistencias e vitorias
+por jogador nao existem na fonte (a formula as preve, o dado nao existe).
+
+Stage Summary:
+- Ranking de jogadores 0-100 publicado: 68 jogadores, todos entre 0 e 100
+- 2 defeitos do parser de scorers encontrados e corrigidos (gramatica v2), sem
+  tocar nas partidas aplicadas
+- Resolucao de identidade com regra de plausibilidade + unicidade (evita homonimo
+  errado) e gaps declarados em vez de chutes
+- API `/rankings?type=player` e UI com seletor Clubes/Jogadores funcionais
+- Metodologia documentada; nenhum ranking ou partida pre-existente alterado

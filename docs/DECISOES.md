@@ -1810,3 +1810,37 @@ ja estavam resolvidas - a casca esta soft-deletada desde 27-09 com
 mesmas 293 entradas e `updatedAt` anterior, re-run = noop, API/UI respondendo).
 Gaps: sem partidas de Serie A 2025 / PL 2025-26 / Libertadores 2025 (fonte nao tem) e
 ranking de jogador segue sem dado (nao ha estatistica por partida).
+
+### [2026-10-12] Decisao: D-2026-10-12-t522-ranking-de-jogadores - identidade de jogador exige plausibilidade, nao match de nome
+
+**Feito (T522):** ranking 0-100 de jogadores publicado para o Brasileirao 2023 (rodadas
+1-11, a unica janela em que a fonte publica autores de gol): **68 jogadores**, pontos
+0-100, base auditavel = partidas em que marcaram. `loadPlayerSeasonStats` le as
+partidas (`matches.scorers`), o texto bruto e re-parseado com a gramatica v2 e a
+identidade e resolvida contra o cadastro de jogadores. Schema aditivo:
+`rankings.type`, `ranking_entries.playerId` + `clubId` nullable. API `/rankings?type=`
+e seletor Clubes/Jogadores na UI.
+
+**Regras permanentes:**
+
+1. **Identidade de jogador nao se resolve por match de nome.** Medido: `shortName` e
+   NULL em todos os 105.211 jogadores e ha homonimos massivos (488 "Artur"); um match
+   exato escolheria o homonimo errado (o acervo tem um "Everaldo" de 1944 e o goleiro
+   "Fabio"). Exige-se PLAUSIBILIDADE (nao goleiro, nascido >=1980) + candidato UNICO;
+   ambiguo = fora do ranking (gap), nunca chute.
+2. **A partida e a fonte unica da verdade do dado de jogador** - sem tabela de
+   estatistica intermediaria. A agregacao LE o `scorers.raw`; nao reescreve partida.
+3. **Nao inventar base**: a fonte so publica quem marcou, entao `baseMatches` e
+   "partidas em que marcou" (nao aparencias) e assistencias/vitorias por jogador ficam
+   de fora (a formula as preve; o dado nao existe).
+4. **Gol contra (`og`) nao e credito do autor** e nao entra na conta.
+
+**Gramatica dos autores (v2):** o sufixo `pen`/`og` faz parte do MINUTO (nao do nome) e
+entrada so com minuto repete o ultimo jogador - a v1 perdia os penaltis do Tiquinho
+Soares e contava 15 "nomes" que eram numeros. Correcao no parser, com a agregacao
+re-parseando o `raw`: as 2.450 partidas aplicadas ficaram intocadas.
+
+**Gaps declarados:** sem autores de gol na fonte para PL 2023-24/2024-25, Libertadores
+2023/2024 e BR 2021/2022/2024; BR 2023 apenas nas rodadas 1-11 (102/110 jogos = 92,7%);
+jogadores ausentes do cadastro (Flaco Lopez, Raniele, Lele, John Kennedy) e nomes
+ambiguos ficam fora.
