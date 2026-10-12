@@ -255,7 +255,13 @@ export function buildPlan(
       skipped.set('mandante = visitante', (skipped.get('mandante = visitante') ?? 0) + 1);
       continue;
     }
-    const date = matchDate(m, { mode: ctx.season.mode, year: ctx.season.yearStart });
+    // `spillAfter` PRECISA ser repassado: sem ele, a temporada Covid do BR 2020
+    // grava jan/fev de 2021 como jan/fev de 2020 (um ano atrás do real).
+    const date = matchDate(m, {
+      mode: ctx.season.mode,
+      year: ctx.season.yearStart,
+      spillAfter: ctx.season.spillAfter,
+    });
     const iso = date.toISOString().slice(0, 10);
     plan.push({
       homeClubId: homeId,
