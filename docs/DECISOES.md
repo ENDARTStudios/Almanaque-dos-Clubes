@@ -1844,3 +1844,26 @@ re-parseando o `raw`: as 2.450 partidas aplicadas ficaram intocadas.
 2023/2024 e BR 2021/2022/2024; BR 2023 apenas nas rodadas 1-11 (102/110 jogos = 92,7%);
 jogadores ausentes do cadastro (Flaco Lopez, Raniele, Lele, John Kennedy) e nomes
 ambiguos ficam fora.
+
+### [2026-10-12] Decisao: D-2026-10-12-t523-estatisticas-sob-demanda - estatistica de clube e calculada na hora (com cache), nao materializada
+
+**Feito (T523):** `GET /clubs/:id/statistics` (geral casa/fora, por
+competicao+temporada, top 10 confrontos) e head-to-head REAL no `/clubs/compare`
+(10 partidas + resumo). Agregacao pura sobre as partidas FINISHED com placar;
+86 clubes cobertos; validacao contra as tabelas oficiais do acervo (107
+clube-temporadas) sem divergencia fora do gap ja declarado.
+
+**Decisao de modelo:** calculo sob demanda + cache Redis de 5 min (Opcao B), NAO
+tabela materializada (Opcao A) nem JSONB no clube (Opcao C). Com 2.450 partidas a
+agregacao e de milissegundos; materializar adicionaria job de recalculo e risco de
+desatualizacao sem ganho mensuravel. **Limite declarado:** revisitar a partir de
+~10^5 partidas (ingestao granular) - o gatilho e latencia p95 sem cache, nao
+intuicao.
+
+**Pontuacao e de tabela, nao de ranking:** pontos = Vx3+E SEM o peso de hierarquia.
+Estatistica bruta e ranking 0-100 sao produtos diferentes e assim ficam.
+
+**Divergencias contra a tabela oficial sao diagnostico, nao defeito:** na
+Libertadores a estatistica reflete a base do acervo (sem os jogos contra clubes
+ausentes - gap T519). Regra permanente: quando estatistica e tabela oficial
+divergem, o SQL de cotejo diz ONDE e POR QUE antes de qualquer correcao.

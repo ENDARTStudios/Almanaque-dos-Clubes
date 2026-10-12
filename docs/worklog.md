@@ -1592,3 +1592,63 @@ Stage Summary:
   errado) e gaps declarados em vez de chutes
 - API `/rankings?type=player` e UI com seletor Clubes/Jogadores funcionais
 - Metodologia documentada; nenhum ranking ou partida pre-existente alterado
+
+Task ID: goal-2026-10-12/t523
+Agent: Doer (ZCode)
+Task: T523 - ESTATISTICAS agregadas por clube (2.450 partidas) + confronto direto real
+
+Work Log:
+- MODELO (Opcao B, declarada): calculo sob demanda + cache Redis de 5 min, SEM
+  tabela materializada e SEM migration. Com 2.450 partidas a agregacao e de
+  milissegundos; tabela materializada (Opcao A) exigiria job de recalculo e
+  conviveria com risco de desatualizacao sem ganho mensuravel. Limite para
+  revisitar: ~10^5 partidas (documentado no cabecalho do service).
+- API: `apps/api/src/modules/clubs/statistics.service.ts` com agregacao PURA
+  (`buildClubStatistics`/`accumulateMatch`, testadas) + carga Prisma; rota
+  `GET /clubs/:id/statistics` (404 para clube inexistente; ZEROS verdadeiros para
+  clube sem partidas - zero e verdade, nao ausencia). Pontos = Vx3+E (pontuacao de
+  tabela, SEM o peso de hierarquia do ranking - estatistica bruta nao e ranking).
+  So entram partidas FINISHED com os dois placares.
+- COMPARADOR: o `headToHead` de /clubs/compare era SEMPRE `matches: []`
+  ("honesto" enquanto a tabela estava vazia) e so existia com aresta explicita de
+  rivalidade. Agora carrega as PARTIDAS REAIS entre os dois (10 mais recentes,
+  data+placar+competicao) + resumo (jogos, vitorias A/B, empates, gols); `exists`
+  tambem fica true quando ha partidas mesmo sem aresta.
+- UI (i18n x3): secao "Estatisticas" no perfil do clube (tabela geral casa/fora +
+  por competicao/temporada + top 5 confrontos, server-side com revalidate 300 e
+  testids) e o comparador exibindo resumo + lista de partidas.
+- VALIDACAO DE CORRETUZA (o gate pediu 10 clubes; fiz 107 clube-temporadas de uma
+  vez): um SQL compara a estatistica calculada das partidas com as TABELAS
+  OFICIAIS do acervo (standings do T508, fonte Wikipedia) clube a clube. PL
+  2023-24 e 2024-25: 40/40 identicos. BR (linhas da tabela com clube casado): 0
+  divergencias. LIB 2023/2024: 10 divergencias - e TODAS sao o gap JA DECLARADO
+  no T519 (jogos contra Patronato/Monagas/LDU Quito/Tachira, clubes ausentes do
+  acervo, foram legitimamente pulados na ingestao). Caso concreto verificado:
+  Boca 2023 tem 5 jogos no acervo (Pereira x2, Colo Colo x2, final) - faltam
+  exatamente os 2 contra Monagas. Ou seja: a estatistica esta correta PARA A BASE;
+  a divergencia e o gap conhecido, nao defeito de calculo. Nota: linhas da
+  classificacao sem clubId (Vasco 2023/2024 etc., matching do T508 nao curado)
+  ficam fora deste cotejo - gap separado, ja conhecido.
+- PRODUCAO (deploy 7bbf189): 86 clubes com estatisticas (os distintos nas 2.450
+  partidas). Performance medida de fora: 456ms a frio, 254ms morno (<500ms ✓; o
+  RTT da rede domina - a agregacao e ms). Palmeiras: 164 jogos (152 BR + 12 LIB),
+  94V 37E 33D, 278:147, 319 pts; BR 2024 com 73 pontos = o real. h2h Palmeiras x
+  Flamengo: 8 jogos, 0-5-3, gols 4:10. UI no ar: secao renderizada no perfil
+  (club-stats-overall) e h2h no comparador (compare-h2h).
+- INTEGRIDADE: matches 2.450 intactos, 102 scorers intactos, WON 5.205,
+  ranking_entries 893 (68 de jogador + 825 de clube) - nada foi escrito; o
+  endpoint e read-only com cache.
+
+GAPS DECLARADOS: as estatisticas refletem a BASE do acervo - na Libertadores os
+jogos contra os 4 clubes ausentes nao contam (12 por temporada); a classificacao
+do Brasileirao ainda tem linhas sem clubId (matching T508 nao curado) - fora do
+escopo desta rodada; clube com 0 partidas no acervo nao tem 404, tem zeros (e
+verdade); a pontuacao e de tabela (sem peso de hierarquia) - e estatistica, nao
+ranking.
+
+Stage Summary:
+- GET /clubs/:id/statistics + h2h real no /clubs/compare, com cache de 5 min
+- 86 clubes com estatisticas; validacao contra tabelas oficiais (107
+  clube-temporadas): PL 40/40, BR 0 divergencias, LIB diverge so no gap declarado
+- UI: secao Estatisticas no perfil + confronto direto no comparador (i18n x3)
+- Performance < 500ms; nenhuma escrita no acervo (matches/rankings intactos)
