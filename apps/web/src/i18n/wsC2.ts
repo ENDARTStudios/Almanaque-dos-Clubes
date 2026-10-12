@@ -55,6 +55,8 @@ export interface WsC2Strings {
     anthemLyricsRestricted: string;
     anthemUnofficial: string;
     anthemAudio: string;
+    pennants: string;
+    pennantsCuriosities: string;
     gaps: string;
     gapsIntro: string;
     notAvailable: string;
@@ -151,6 +153,8 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       anthemLyricsRestricted: 'Letra não disponível por restrições de direitos autorais.',
       anthemUnofficial: 'Hino popular (não oficial)',
       anthemAudio: 'Ouvir',
+      pennants: 'Flâmulas',
+      pennantsCuriosities: 'Curiosidade',
       gaps: 'Lacunas declaradas',
       gapsIntro: 'O acervo ainda não possui estes dados — exibidos como lacuna, nunca inventados:',
       notAvailable: 'Não disponível nesta fase.',
@@ -256,6 +260,8 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       anthemLyricsRestricted: 'Lyrics unavailable due to copyright restrictions.',
       anthemUnofficial: 'Popular anthem (unofficial)',
       anthemAudio: 'Listen',
+      pennants: 'Pennants',
+      pennantsCuriosities: 'Did you know',
       gaps: 'Declared gaps',
       gapsIntro: 'The archive does not hold these data yet — shown as gaps, never invented:',
       notAvailable: 'Not available at this stage.',
@@ -361,6 +367,8 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       anthemLyricsRestricted: 'Letra no disponible por restricciones de derechos de autor.',
       anthemUnofficial: 'Himno popular (no oficial)',
       anthemAudio: 'Escuchar',
+      pennants: 'Banderines',
+      pennantsCuriosities: 'Curiosidad',
       gaps: 'Lagunas declaradas',
       gapsIntro: 'El acervo aún no tiene estos datos — mostrados como laguna, nunca inventados:',
       notAvailable: 'No disponible en esta fase.',
