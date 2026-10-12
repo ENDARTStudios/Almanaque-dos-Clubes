@@ -66,6 +66,8 @@ export interface SeasonSpec {
   /** Ano inicial da temporada (na PL, a temporada 2023-24 começa em 2023). */
   yearStart: number;
   mode: 'single' | 'cross';
+  /** Em `single`: meses <= spillAfter pertencem ao ano seguinte (BR 2020 → jan/fev 2021). */
+  spillAfter?: number;
 }
 
 export interface SourceSpec {
@@ -89,13 +91,43 @@ const libSeason = (y: number): SeasonSpec => ({
   mode: 'single',
 });
 
+const ligue1Season = (start: number): SeasonSpec => ({
+  label: `${start}-${start + 1}`, // acervo usa '2023-2024'
+  file: String(start + 1),
+  yearStart: start,
+  mode: 'cross',
+});
+const bundesligaSeason = (start: number): SeasonSpec => ({
+  label: `${start}/${String(start + 1).slice(2)}`, // acervo usa '2023/24'
+  file: String(start + 1),
+  yearStart: start,
+  mode: 'cross',
+});
+
 export const SOURCES: Record<string, SourceSpec> = {
+  ligue1: {
+    competitionQid: 'Q13394',
+    kind: 'league',
+    countries: ['FR'],
+    url: (f) => `https://www.rsssf.org/tablesf/fran${f}.html`,
+    seasons: [2023, 2024].map(ligue1Season),
+  },
+  bundesliga: {
+    competitionQid: 'Q82595',
+    kind: 'league',
+    countries: ['DE'],
+    url: (f) => `https://www.rsssf.org/tablesd/duit${f}.html`,
+    seasons: [2023, 2024].map(bundesligaSeason),
+  },
   br: {
     competitionQid: 'Q206813', // Campeonato Brasileiro Série A (verificado no acervo)
     kind: 'league',
     countries: ['BR'],
     url: (f) => `https://www.rsssf.org/tablesb/${f}.html`,
-    seasons: [2021, 2022, 2023, 2024].map(brSeason),
+    seasons: [
+      { ...brSeason(2020), spillAfter: 5 }, // Covid: temporada vaza para jan/fev de 2021
+      ...[2021, 2022, 2023, 2024].map(brSeason),
+    ],
   },
   pl: {
     competitionQid: 'Q9448', // Premier League
@@ -104,6 +136,7 @@ export const SOURCES: Record<string, SourceSpec> = {
     // A página inglesa é nomeada pelo ano de TÉRMINO: eng2024 = temporada 2023-24.
     url: (f) => `https://www.rsssf.org/tablese/${f}.html`,
     seasons: [
+      { label: '2022-23', file: 'eng2023', yearStart: 2022, mode: 'cross' },
       { label: '2023-24', file: 'eng2024', yearStart: 2023, mode: 'cross' },
       { label: '2024-25', file: 'eng2025', yearStart: 2024, mode: 'cross' },
     ],
@@ -113,7 +146,7 @@ export const SOURCES: Record<string, SourceSpec> = {
     kind: 'libertadores',
     countries: [...CONMEBOL_COUNTRIES],
     url: (f) => `https://www.rsssf.org/sacups/${f}.html`,
-    seasons: [2023, 2024].map(libSeason),
+    seasons: [2022, 2023, 2024].map(libSeason),
   },
 };
 

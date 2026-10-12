@@ -121,10 +121,23 @@ export function selectCompetitionBlock(
  * o `\s+\d+-\d+` só casa quando o que segue o espaço é um placar.
  */
 const LEAGUE_MATCH_RE = /^(\S.*?)\s+(\d+)-(\d+)\s+(\S.*?)\s*$/;
-const ROUND_RE = /^Round\s+(\d+)\s*(?:\[\s*([A-Za-z]{3})\s+(\d{1,2})\s*\])?\s*$/;
+/**
+ * Cabeçalho de rodada; tolera anotações no colchete (`Round 7 [postponed from
+ * Sep 10-12...]`) e data inline (`Round 38 [Feb 25]`).
+ */
+const ROUND_RE = /^Round\s+(\d+)(?:\s*\[([^\]]*)\])?\s*$/;
 const DATE_LINE_RE = new RegExp(`^\\[\\s*${MONTH_RE}\\s+(\\d{1,2})\\s*\\]$`);
 const SCORERS_RE = /^\s{2,}\[(.+)\]\s*$/;
-const TABLE_ROW_RE = /^\d+\./;
+/**
+ * Linha de tabela: posição (dígito+dot) + a linha contém >= 2 sequências de
+ * dígitos isoladas (jogos/ordem/etc). O guard por 'dígito+dot' sozinho quebraria
+ * times cujo nome começa com número (`1.FC Köln`, `1.FSV Mainz 05`).
+ */
+function isTableRow(homeName: string): boolean {
+  if (!/^\d+\./.test(homeName)) return false;
+  const runs = homeName.match(/(?:^|\s)\d{1,3}(?=\s|$)/g);
+  return (runs?.length ?? 0) >= 2;
+}
 /** Notas inline da fonte que NÃO são autores de gol (anotação de local/replay). */
 const NON_SCORER_NOTE_RE = /^(played in|replay|abandoned|match played|at\b)/i;
 const BRACKET_RE = /\[([^\]]*)\]/g;
@@ -157,6 +170,7 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
   const warnings: string[] = [];
   const matches: RsssfMatch[] = [];
   let started = false;
+  let maxRound = 0;
   let round: string | null = null;
   let date: { raw: string; month: number; day: number } | null = null;
   let last: RsssfMatch | null = null;
@@ -169,15 +183,26 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
       const r = ROUND_RE.exec(trimmed);
       if (!r) continue;
       started = true;
+      maxRound = Number(r[1]);
       round = r[1];
-      if (r[2]) date = monthDay(r[2], r[3]);
+      const inline = /\b([A-Za-z]{3})\s+(\d{1,2})\b/.exec(r[2] ?? '');
+      if (inline) date = monthDay(inline[1], inline[2]);
       continue;
     }
 
     const roundM = ROUND_RE.exec(trimmed);
     if (roundM) {
-      round = roundM[1];
-      if (roundM[2]) date = monthDay(roundM[2], roundM[3]);
+      const n = Number(roundM[1]);
+      // Fase de playoff/barragem: a fonte reusa 'Round 1/2' DEPOIS das rodadas da
+      // liga (Ligue 1). Rotular como P{N} distingue da rodada regular de mesmo número.
+      if (n <= maxRound) {
+        round = `P${n}`;
+      } else {
+        maxRound = n;
+        round = roundM[1];
+      }
+      const inline = /\b([A-Za-z]{3})\s+(\d{1,2})\b/.exec(roundM[2] ?? '');
+      if (inline) date = monthDay(inline[1], inline[2]);
       last = null;
       continue;
     }
@@ -209,7 +234,7 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
       const homeName = m[1].trim();
       const awayName = m[4].trim();
       // Guarda contra linhas de tabela (ex.: "1.Palmeiras ... 64-33 70").
-      if (TABLE_ROW_RE.test(homeName) || !/[A-Za-zÀ-ÿ]/.test(awayName)) continue;
+      if (isTableRow(homeName) || !/[A-Za-zÀ-ÿ]/.test(awayName)) continue;
       if (!date) {
         warnings.push(`match_without_date:${homeName} x ${awayName}`);
         continue;
@@ -360,6 +385,8 @@ export interface SeasonYearOptions {
   mode: 'single' | 'cross';
   /** Ano da temporada (em `cross`, o ano de INÍCIO da temporada europeia). */
   year: number;
+  /** Em `single`: meses <= spillAfter pertencem ao ano seguinte (BR 2020 → jan/fev 2021). */
+  spillAfter?: number;
   /** Em `cross`: meses >= splitMonth pertencem ao ano de início (default 7 = julho). */
   splitMonth?: number;
 }
@@ -371,7 +398,11 @@ export interface SeasonYearOptions {
  *   anteriores → ano+1. Verificado em 2023-24: `[Aug 11]`=2023 e `[May 19]`=2024.
  */
 export function resolveMatchYear(month: number, opts: SeasonYearOptions): number {
-  if (opts.mode === 'single') return opts.year;
+  if (opts.mode === 'single') {
+    // Temporada que vaza para o ano seguinte (BR 2020/Covid: jan-fev de 2021).
+    if (opts.spillAfter != null && month <= opts.spillAfter) return opts.year + 1;
+    return opts.year;
+  }
   const split = opts.splitMonth ?? 7;
   return month >= split ? opts.year : opts.year + 1;
 }
