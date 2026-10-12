@@ -102,6 +102,26 @@ describe('buildComparison (WS-C-7)', () => {
       rankingsA: [{ rankingName: 'Rank', position: 1, points: 90, season: '2025' }],
       rankingsB: null,
       h2hRelations: ['RIVAL', 'RIVAL', 'PART_OF'],
+      h2hMatches: [
+        {
+          date: '2023-04-15',
+          homeClubId: 'a',
+          awayClubId: 'b',
+          homeScore: 2,
+          awayScore: 1,
+          competitionName: 'Brasileirão',
+          season: '2023',
+        },
+        {
+          date: '2023-09-10',
+          homeClubId: 'b',
+          awayClubId: 'a',
+          homeScore: 1,
+          awayScore: 1,
+          competitionName: 'Brasileirão',
+          season: '2023',
+        },
+      ],
       currentYear: 2026,
     });
     expect(cmp.titles.clubA.total).toBe(1);
@@ -110,7 +130,17 @@ describe('buildComparison (WS-C-7)', () => {
     expect(cmp.rankings.clubB).toBeNull(); // sem ranking → null
     expect(cmp.recentTitles.clubA).toHaveLength(1);
     expect(cmp.recentTitles.clubB).toEqual([]);
-    expect(cmp.headToHead).toEqual({ exists: true, relations: ['PART_OF', 'RIVAL'], matches: [] });
+    expect(cmp.headToHead.exists).toBe(true);
+    expect(cmp.headToHead.relations).toEqual(['PART_OF', 'RIVAL']);
+    expect(cmp.headToHead.summary).toEqual({
+      played: 2,
+      winsA: 1,
+      draws: 1,
+      winsB: 0,
+      goalsA: 3,
+      goalsB: 2,
+    });
+    expect(cmp.headToHead.matches).toHaveLength(2);
   });
 
   it('sem aresta explícita → head-to-head não existe (nunca inferido)', () => {
@@ -122,10 +152,64 @@ describe('buildComparison (WS-C-7)', () => {
       rankingsA: null,
       rankingsB: null,
       h2hRelations: [],
+      h2hMatches: [],
       currentYear: 2026,
     });
     expect(cmp.headToHead.exists).toBe(false);
     expect(cmp.headToHead.relations).toEqual([]);
     expect(cmp.headToHead.matches).toEqual([]);
+    expect(cmp.headToHead.summary).toBeNull();
+  });
+
+  it('T523 — resumo do confronto direto a partir das partidas reais', () => {
+    const cmp = buildComparison({
+      clubA: club(),
+      clubB: club({ id: 'b' }),
+      titlesA: [],
+      titlesB: [],
+      rankingsA: null,
+      rankingsB: null,
+      h2hRelations: [],
+      h2hMatches: [
+        {
+          date: '2023-04-15',
+          homeClubId: 'a',
+          awayClubId: 'b',
+          homeScore: 2,
+          awayScore: 1,
+          competitionName: 'Brasileirão',
+          season: '2023',
+        },
+        {
+          date: '2023-09-10',
+          homeClubId: 'b',
+          awayClubId: 'a',
+          homeScore: 1,
+          awayScore: 1,
+          competitionName: 'Brasileirão',
+          season: '2023',
+        },
+        {
+          date: '2024-05-01',
+          homeClubId: 'a',
+          awayClubId: 'b',
+          homeScore: 0,
+          awayScore: 3,
+          competitionName: 'Brasileirão',
+          season: '2024',
+        },
+      ],
+      currentYear: 2026,
+    });
+    // Sem aresta de rivalidade, mas com partidas reais → existe.
+    expect(cmp.headToHead.exists).toBe(true);
+    expect(cmp.headToHead.summary).toEqual({
+      played: 3,
+      winsA: 1,
+      draws: 1,
+      winsB: 1,
+      goalsA: 3,
+      goalsB: 5,
+    });
   });
 });

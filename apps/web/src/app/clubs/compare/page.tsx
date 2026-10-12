@@ -39,14 +39,39 @@ interface CompareResponse {
     clubB: CompareResponse['titles']['clubA'];
   };
   rankings: {
-    clubA: Array<{ rankingName: string; position: number | null; points: number | null; season: string | null }> | null;
+    clubA: Array<{
+      rankingName: string;
+      position: number | null;
+      points: number | null;
+      season: string | null;
+    }> | null;
     clubB: CompareResponse['rankings']['clubA'];
   };
   recentTitles: {
     clubA: Array<{ year: number; competitionName: string | null; hierarchy: string }>;
     clubB: CompareResponse['recentTitles']['clubA'];
   };
-  headToHead: { exists: boolean; relations: string[]; matches: unknown[] };
+  headToHead: {
+    exists: boolean;
+    relations: string[];
+    summary: {
+      played: number;
+      winsA: number;
+      draws: number;
+      winsB: number;
+      goalsA: number;
+      goalsB: number;
+    } | null;
+    matches: Array<{
+      date: string;
+      homeClubId: string;
+      awayClubId: string;
+      homeScore: number;
+      awayScore: number;
+      competitionName: string | null;
+      season: string | null;
+    }>;
+  };
 }
 
 async function getComparison(a: string, b: string): Promise<CompareResponse | 'same' | null> {
@@ -138,9 +163,7 @@ export default async function ClubComparePage({
           />
 
           <section className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50">
-            <h2 className="text-xl font-heading font-bold text-foreground mb-4">
-              {s.totalTitles}
-            </h2>
+            <h2 className="text-xl font-heading font-bold text-foreground mb-4">{s.totalTitles}</h2>
             <TitleBars
               nameA={result.clubA.name}
               nameB={result.clubB.name}
@@ -150,27 +173,70 @@ export default async function ClubComparePage({
             />
           </section>
 
-          <section className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50" data-testid="compare-h2h">
-            <h2 className="text-xl font-heading font-bold text-foreground mb-3">
-              {s.headToHead}
-            </h2>
+          <section
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50"
+            data-testid="compare-h2h"
+          >
+            <h2 className="text-xl font-heading font-bold text-foreground mb-3">{s.headToHead}</h2>
             {result.headToHead.exists ? (
-              <p className="text-sm text-foreground">
-                {s.h2hWith}:{' '}
-                <span className="font-medium">{result.headToHead.relations.join(', ')}</span>
-              </p>
+              <div className="space-y-3">
+                {result.headToHead.relations.length > 0 ? (
+                  <p className="text-sm text-foreground">
+                    {s.h2hWith}:{' '}
+                    <span className="font-medium">{result.headToHead.relations.join(', ')}</span>
+                  </p>
+                ) : null}
+
+                {result.headToHead.summary ? (
+                  <p className="text-sm text-foreground" data-testid="compare-h2h-summary">
+                    {s.h2hPlayed}:{' '}
+                    <span className="font-medium">{result.headToHead.summary.played}</span> ·{' '}
+                    {result.clubA.name} {result.headToHead.summary.winsA} ×{' '}
+                    {result.headToHead.summary.winsB} {result.clubB.name} · {s.h2hDraws}:{' '}
+                    {result.headToHead.summary.draws} · {s.h2hGoals}:{' '}
+                    {result.headToHead.summary.goalsA}:{result.headToHead.summary.goalsB}
+                  </p>
+                ) : null}
+
+                {result.headToHead.matches.length > 0 ? (
+                  <div>
+                    <h3 className="text-xs uppercase tracking-wider text-foreground/50 mb-1">
+                      {s.h2hMatches}
+                    </h3>
+                    <ul className="text-sm space-y-1">
+                      {result.headToHead.matches.map((m) => {
+                        const home = m.homeClubId === a ? result.clubA.name : result.clubB.name;
+                        const away = m.homeClubId === a ? result.clubB.name : result.clubA.name;
+                        return (
+                          <li
+                            key={`${m.date}-${m.homeClubId}-${m.awayClubId}`}
+                            className="border-t border-border/50 py-1"
+                          >
+                            <span className="text-foreground/50">{m.date}</span> · {home}{' '}
+                            <span className="font-semibold">
+                              {m.homeScore} × {m.awayScore}
+                            </span>{' '}
+                            {away}
+                            {m.competitionName ? (
+                              <span className="text-foreground/50"> · {m.competitionName}</span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <p className="text-sm text-foreground/50">{s.h2hNone}</p>
             )}
           </section>
         </div>
-      ) : (
-        !result && (a && b) ? (
-          <p className="text-sm text-foreground/50" role="alert" data-testid="compare-error">
-            {s.error}
-          </p>
-        ) : null
-      )}
+      ) : !result && a && b ? (
+        <p className="text-sm text-foreground/50" role="alert" data-testid="compare-error">
+          {s.error}
+        </p>
+      ) : null}
     </div>
   );
 }

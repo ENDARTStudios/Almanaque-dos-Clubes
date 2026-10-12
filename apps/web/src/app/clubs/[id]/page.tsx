@@ -31,7 +31,7 @@ interface ClubProfile {
   /** T507 — texto editorial por idioma (Wikipedia, CC-BY-SA). */
   editorial?: Record<string, { extract?: string; sourceUrl?: string } | null> | null;
   socialLinks?: Record<string, { handle: string; url: string } | null> | null;
-  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
+  followersSnapshot?: (Record<string, number | null> & { updatedAt?: string }) | null;
   fullName: string | null;
   shortName: string | null;
   status: string;
@@ -106,6 +106,70 @@ interface ClubProfile {
   gaps: string[];
 }
 
+interface ClubStatisticsPayload {
+  overall: {
+    played: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDiff: number;
+    points: number;
+    home: {
+      played: number;
+      wins: number;
+      draws: number;
+      losses: number;
+      goalsFor: number;
+      goalsAgainst: number;
+    };
+    away: {
+      played: number;
+      wins: number;
+      draws: number;
+      losses: number;
+      goalsFor: number;
+      goalsAgainst: number;
+    };
+  };
+  byCompetition: Array<{
+    competitionName: string | null;
+    season: string | null;
+    played: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    points: number;
+  }>;
+  topRivals: Array<{
+    opponentId: string;
+    opponentName: string;
+    played: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+  }>;
+  opponents: number;
+}
+
+async function getStatistics(id: string): Promise<ClubStatisticsPayload | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/statistics`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data as ClubStatisticsPayload;
+  } catch {
+    return null;
+  }
+}
+
 async function getProfile(id: string): Promise<ClubProfile | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/profile`, { next: { revalidate: 300 } });
@@ -147,6 +211,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
+  const stats = await getStatistics(id);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
 
@@ -206,7 +271,11 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </div>
           </div>
           <div className="shrink-0">
-            <FavoriteButton clubId={club.id} initialCount={club.fansCount ?? undefined} countLabel="torcedores" />
+            <FavoriteButton
+              clubId={club.id}
+              initialCount={club.fansCount ?? undefined}
+              countLabel="torcedores"
+            />
           </div>
         </div>
 
@@ -233,7 +302,9 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             {club.infobox.presidente && (
               <InfoItem label="Presidente" value={club.infobox.presidente} />
             )}
-            {club.infobox.treinador && <InfoItem label="Treinador" value={club.infobox.treinador} />}
+            {club.infobox.treinador && (
+              <InfoItem label="Treinador" value={club.infobox.treinador} />
+            )}
             {club.infobox.alcunhas && <InfoItem label="Alcunhas" value={club.infobox.alcunhas} />}
             {club.infobox.mascote && <InfoItem label="Mascote" value={club.infobox.mascote} />}
             {club.infobox.local && <InfoItem label="Local" value={club.infobox.local} />}
@@ -427,6 +498,107 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       })()}
 
       <ClubTimeline clubId={club.id} locale={locale} />
+
+      {stats && stats.overall.played > 0 ? (
+        <Section title={s.statistics} testid="club-statistics">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse" data-testid="club-stats-overall">
+              <thead>
+                <tr className="text-left text-xs text-foreground/50 uppercase tracking-wider">
+                  <th className="py-2 pr-4 font-semibold">&nbsp;</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsPlayed}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsWins}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsDraws}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsLosses}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsGoalsFor}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsGoalsAgainst}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsGoalDiff}</th>
+                  <th className="py-2 px-2 font-semibold">{s.statsPoints}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(
+                  [
+                    [s.statsOverall, stats.overall],
+                    [s.statsHome, { ...stats.overall.home, goalDiff: 0, points: 0 }],
+                    [s.statsAway, { ...stats.overall.away, goalDiff: 0, points: 0 }],
+                  ] as const
+                ).map(([label, row]) => (
+                  <tr key={label} className="border-t border-border/50">
+                    <td className="py-2 pr-4 font-medium">{label}</td>
+                    <td className="py-2 px-2">{row.played}</td>
+                    <td className="py-2 px-2">{row.wins}</td>
+                    <td className="py-2 px-2">{row.draws}</td>
+                    <td className="py-2 px-2">{row.losses}</td>
+                    <td className="py-2 px-2">{row.goalsFor}</td>
+                    <td className="py-2 px-2">{row.goalsAgainst}</td>
+                    <td className="py-2 px-2">{row.goalDiff}</td>
+                    <td className="py-2 px-2 font-semibold">{row.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {stats.byCompetition.length > 0 ? (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-foreground/70 mb-2">
+                {s.statsByCompetition}
+              </h3>
+              <div className="overflow-x-auto">
+                <table
+                  className="w-full text-sm border-collapse"
+                  data-testid="club-stats-by-competition"
+                >
+                  <tbody>
+                    {stats.byCompetition.map((c) => (
+                      <tr
+                        key={`${c.competitionName ?? '-'}-${c.season ?? '-'}`}
+                        className="border-t border-border/50"
+                      >
+                        <td className="py-2 pr-4 font-medium">
+                          {c.competitionName ?? '—'}
+                          {c.season ? (
+                            <span className="text-foreground/50"> · {c.season}</span>
+                          ) : null}
+                        </td>
+                        <td className="py-2 px-2 text-foreground/70">
+                          {c.played} {s.statsPlayed.toLowerCase()} · {c.wins}V {c.draws}E {c.losses}
+                          D · {c.goalsFor}:{c.goalsAgainst} · {c.points}{' '}
+                          {s.statsPoints.toLowerCase()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+
+          {stats.topRivals.length > 0 ? (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-foreground/70 mb-2">{s.statsTopRivals}</h3>
+              <ul className="text-sm space-y-1">
+                {stats.topRivals.slice(0, 5).map((r) => (
+                  <li key={r.opponentId} className="border-t border-border/50 py-1.5">
+                    <Link href={`/clubs/${r.opponentId}`} className="text-primary hover:underline">
+                      {r.opponentName}
+                    </Link>{' '}
+                    <span className="text-foreground/70">
+                      — {r.played} {s.statsPlayed.toLowerCase()}: {r.wins}V {r.draws}E {r.losses}D ·{' '}
+                      {r.goalsFor}:{r.goalsAgainst}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </Section>
+      ) : stats ? (
+        <Section title={s.statistics} testid="club-statistics">
+          <p className="text-sm text-foreground/50">{s.statsEmpty}</p>
+        </Section>
+      ) : null}
 
       <Section title={s.competitions}>
         {club.competitions.available ? (
