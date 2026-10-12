@@ -221,10 +221,11 @@ export async function run(argv: string[]): Promise<number> {
         });
       }
 
-      // dedup por (season, type, label) mantendo o primeiro
+      // dedup: o mesmo uniforme pode aparecer no artigo E na infobox — a chave
+      // física é (temporada, tipo, padrão do corpo); o rótulo não entra.
       const seen = new Set<string>();
       const dedup = entries.filter((e) => {
-        const k = `${e.season}|${e.type}|${e.label}`;
+        const k = `${e.season}|${e.type}|${e.parts.body.pattern ?? e.image?.url ?? e.label}`;
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
