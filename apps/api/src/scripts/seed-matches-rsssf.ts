@@ -370,6 +370,7 @@ export async function run(argv: string[]): Promise<number> {
         competitionId: competition.id,
         seasonId,
         globalPool,
+        seasonPool,
         competitionName: competition.name,
       });
       report.source = `${sourceKey}:${season.label}`;

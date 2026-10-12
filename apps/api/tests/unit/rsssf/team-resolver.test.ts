@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   resolveRsssfTeam,
   RSSSF_TEAM_ABSENT,
+  tokenVariants,
   type ClubCandidate,
 } from '../../../src/lib/rsssf/team-resolver.js';
 
@@ -119,3 +120,36 @@ describe('team-resolver T519', () => {
     expect(r.club).toBeNull();
   });
 });
+
+describe('team-resolver T519 — variantes de token e pool sem país', () => {
+  it('tira prefixo/sufixo de tipo do clube (CR Flamengo, Millonarios FC, Barcelona SC)', () => {
+    expect(tokenVariants('cr flamengo')).toContain('flamengo');
+    expect(tokenVariants('millonarios fc')).toContain('millonarios');
+    expect(tokenVariants('barcelona sc')).toContain('barcelona');
+    expect(tokenVariants('se palmeiras')).toContain('palmeiras');
+  });
+
+  it('o pool da temporada resolve clube com country nulo no acervo (Libertadores)', () => {
+    // Vários clubes sul-americanos têm  null no acervo; o pool da
+    // temporada não passa pelo filtro de país justamente por isso.
+    const ldu: ClubCandidate = {
+      id: 'L1',
+      name: 'LDU Quito',
+      country: null,
+      state: null,
+      gender: 'men',
+      qid: null,
+    };
+    const r = resolveRsssfTeam('LDU Quito', {
+      seasonPool: [ldu],
+      globalPool: auditedClubs(),
+      countries: ['EC'],
+    });
+    expect(r.club?.name).toBe('LDU Quito');
+    expect(r.via).toBe('pool-exact');
+  });
+});
+
+function auditedClubs(): ClubCandidate[] {
+  return [];
+}

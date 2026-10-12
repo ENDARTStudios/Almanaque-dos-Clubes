@@ -125,6 +125,25 @@ function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
   return c.country != null && scope.includes(c.country);
 }
 
+/**
+ * Formas alternativas do token antes do match: a fonte às vezes imprime o clube
+ * com prefixo/sufixo de tipo (`CR Flamengo`, `Millonarios FC`, `Barcelona SC`).
+ * Tirar esses pedaços é normalização — não é adivinhação do clube.
+ */
+const TYPE_PREFIX = /^(cr|se|sc|sd|ca|fbc|ec|ac|cf|cd|cs|club|clube|ind|u)\s+/i;
+const TYPE_SUFFIX = /\s+(fc|sc|ec|ac|cf|cd|cs|fbpa|jrs)$/i;
+
+export function tokenVariants(tokenNorm: string): string[] {
+  const out = new Set<string>([tokenNorm]);
+  const noPrefix = tokenNorm.replace(TYPE_PREFIX, '');
+  if (noPrefix !== tokenNorm) out.add(noPrefix);
+  for (const base of [...out]) {
+    const noSuffix = base.replace(TYPE_SUFFIX, '');
+    if (noSuffix !== base && noSuffix.length >= 4) out.add(noSuffix);
+  }
+  return [...out];
+}
+
 /** Nome normalizado do candidato (também aceita popularName/officialName). */
 function namesOf(c: ClubCandidate): string[] {
   return [c.name, c.popularName, c.officialName].filter((n): n is string => !!n);
@@ -185,9 +204,12 @@ export interface ResolveOptions {
  */
 export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResolution {
   const tokenNorm = normalizeTeamName(token);
-  const inScope = (p: ClubCandidate[]) => p.filter((c) => candidatesFor(c, opts.countries));
-  const season = inScope(opts.seasonPool ?? []);
-  const global = inScope(opts.globalPool);
+  // O pool da temporada NÃO passa pelo filtro de país: ele já é, por construção,
+  // o conjunto de clubes que o acervo usa naquela competição+temporada. Isso é
+  // decisivo na Libertadores, onde vários clubes têm `country` nulo no acervo.
+  const season = (opts.seasonPool ?? []).filter((c) => c.gender === 'men');
+  const global = opts.globalPool.filter((c) => candidatesFor(c, opts.countries));
+  const variants = tokenVariants(tokenNorm);
 
   if (!tokenNorm) return { token, club: null, via: null, ambiguousWith: [] };
   if (RSSSF_TEAM_ABSENT.has(token)) {
@@ -215,7 +237,12 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
   }
 
   const exact = (pool: ClubCandidate[]) =>
-    uniqueMatch(pool, (c) => namesOf(c).some((n) => normalizeTeamName(n) === tokenNorm));
+    uniqueMatch(pool, (c) =>
+      namesOf(c).some((n) => {
+        const norm = normalizeTeamName(n);
+        return variants.some((v) => norm === v);
+      }),
+    );
   const sExact = exact(season);
   if (sExact.club) return { token, club: sExact.club, via: 'pool-exact', ambiguousWith: [] };
   const gExact = exact(global);
@@ -223,7 +250,10 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
 
   const contain = (pool: ClubCandidate[]) =>
     uniqueMatch(pool, (c) =>
-      namesOf(c).some((n) => hasWordBoundarySubstring(tokenNorm, normalizeTeamName(n))),
+      namesOf(c).some((n) => {
+        const norm = normalizeTeamName(n);
+        return variants.some((v) => hasWordBoundarySubstring(v, norm));
+      }),
     );
   const sContain = contain(season);
   if (sContain.club) return { token, club: sContain.club, via: 'containment', ambiguousWith: [] };
@@ -232,7 +262,10 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
 
   const abbrev = (pool: ClubCandidate[]) =>
     uniqueMatch(pool, (c) =>
-      namesOf(c).some((n) => matchesByAbbrev(tokenNorm, normalizeTeamName(n))),
+      namesOf(c).some((n) => {
+        const norm = normalizeTeamName(n);
+        return variants.some((v) => matchesByAbbrev(v, norm));
+      }),
     );
   const sAbbrev = abbrev(season);
   if (sAbbrev.club) return { token, club: sAbbrev.club, via: 'word-abbrev', ambiguousWith: [] };
