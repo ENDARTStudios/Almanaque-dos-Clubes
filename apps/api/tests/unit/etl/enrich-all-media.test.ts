@@ -263,6 +263,13 @@ function fakePrisma(rows: ClubRow[]) {
           return {};
         },
       },
+      $queryRaw: async (...args: unknown[]) => {
+        // A seleção do cursor roda em SQL cru; o predicado `IS NULL` / `IS NOT NULL`
+        // é exercitado em PRODUÇÃO (foi ali que a versão com `not: Prisma.DbNull`
+        // falhou). Aqui basta devolver os ids do cenário do teste.
+        void args;
+        return rows.map((r) => ({ id: r.id }));
+      },
       $disconnect: async () => undefined,
     },
   };
