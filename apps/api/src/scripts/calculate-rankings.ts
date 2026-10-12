@@ -36,7 +36,11 @@ export function parseCalculateArgs(argv: string[]): CalculateRankingsArgs {
     },
   });
   const year = values.year ?? String(new Date().getUTCFullYear());
-  if (!/^\d{4}$/.test(year)) throw new Error(`--year inválido: "${year}" (esperado YYYY)`);
+  // Aceita ano civil (2023) e temporada cruzada ('2023-24', convenção das
+  // competições europeias no acervo) — o algoritmo lida com os dois rótulos.
+  if (!/^\d{4}(-\d{2})?$/.test(year)) {
+    throw new Error(`--year inválido: "${year}" (esperado YYYY ou YYYY-YY)`);
+  }
   const gender = values.gender === undefined ? null : (values.gender as 'men' | 'women' | null);
   if (gender !== null && gender !== 'men' && gender !== 'women') {
     throw new Error(`--gender inválido: "${String(values.gender)}" (use men|women)`);
