@@ -110,12 +110,13 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
 /**
  * Times que a fonte imprime e o acervo NÃO tem — verificado em produção. Nunca
  * casam (o jogo vira gap declarado em vez de um match aproximado).
- * `Vasco da Gama`: o acervo só tem o feminino e um homônimo português; o clube
- * masculino do Rio (Q5014111 é o poliesportivo, gravado como `women`) está ausente.
+ *
+ * T520 — `Vasco da Gama` e `Chapecoense` SAÍRAM desta lista: os dois clubes
+ * existiam no acervo com `gender` errado ('women') e foram corrigidos na cura
+ * (Q5014111 = clube poliesportivo do RJ com futebol; Q2536715 = clube de
+ * Chapecó-SC). Continuam ausentes de verdade: Monagas, Táchira e Patronato.
  */
 export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
-  'Chapecoense',
-  'Vasco da Gama',
   'Monagas SC',
   'Deportivo Táchira FC',
   'Patronato',
