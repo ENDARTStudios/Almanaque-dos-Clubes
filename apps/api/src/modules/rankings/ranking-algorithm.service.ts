@@ -21,7 +21,14 @@
  *    feminino (WOMENS_COMPETITION_QIDS / metadata.gender='women') para que o
  *    feminino não seja esmagado pela escala masculina.
  */
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
+import {
+  aggregatePlayerGoals,
+  normalizePlayerName,
+  SCORER_ALIASES,
+  type CandidatePlayer,
+  type ScorerMatchRow,
+} from '../../lib/rankings/player-goals.js';
 import {
   WOMENS_COMPETITION_QIDS,
   WOMENS_GENDER_VALUE,
@@ -199,7 +206,13 @@ export interface RankingAlgorithmRepo {
 }
 
 /** Subconjunto do Prisma usado pelo repositório (aceita PrismaClient ou TransactionClient). */
-export type RankingDb = Pick<PrismaClient, 'match' | 'knowledgeGraph' | 'competition'>;
+export type RankingDb = Pick<
+  PrismaClient,
+  'match' | 'knowledgeGraph' | 'competition' | 'player'
+> & {
+  // T522 — leitura normalizada (sem acento) dos nomes de jogador.
+  $queryRaw: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+};
 
 // ---------------------------------------------------------------------------
 // Funções puras
@@ -497,8 +510,9 @@ export async function buildClubRanking(
 
 export interface PlayerRankingRow {
   playerId: string;
-  position: null;
-  points: null;
+  /** T522 — antes era sempre null (stub sem dados); agora recebe posição real. */
+  position: number | null;
+  points: number | null;
   rawPoints: number | null;
   baseMatches: number;
   dataSourceIds: string[];
@@ -519,35 +533,54 @@ export interface PlayerRankingResult {
  * devolve lista vazia → todos os jogadores-ano são NULL com motivo
  * 'dados insuficientes' (T425 §8, limitação documentada).
  */
+/**
+ * Ranking de jogador da temporada (0-100). Mesma normalização do clube-ano
+ * (MinMax dentro do escopo), agora com base REAL: os autores de gol das partidas
+ * (campo `matches.scorers`).
+ *
+ * Honestidade (T522):
+ *  - a base é `scoringMatches` — partidas em que o jogador MARCOU —, não
+ *    aparições (a fonte não as tem);
+ *  - assistências não existem na fonte → entram como 0 (a fórmula as prevê, mas
+ *    o dado não existe);
+ *  - amostra mínima = ≥1 gol (a fonte só publica quem marcou). O piso antigo de
+ *    PLAYER_MIN_MATCHES (3) pressupunha estatística por partida, que não existe;
+ *  - empate de pontos brutos é desempatado por gols e depois por nome, para a
+ *    posição ser determinística.
+ */
 export async function buildPlayerRanking(
   repo: RankingAlgorithmRepo,
   params: { season: string; competitionId?: string | null },
 ): Promise<PlayerRankingResult> {
   const stats = await repo.loadPlayerSeasonStats(params.season);
   const rows: PlayerRankingRow[] = [];
-  for (const s of stats) {
-    const meets = s.matches >= PLAYER_MIN_MATCHES && (s.goals > 0 || s.assists > 0);
-    if (meets) {
-      rows.push({
-        playerId: s.playerId,
-        position: null,
-        points: null,
-        rawPoints: computePlayerPoints({ goals: s.goals, assists: s.assists, wins: 0 }),
-        baseMatches: s.matches,
-        dataSourceIds: [],
-        reason: null,
-      });
-    } else {
-      rows.push({
-        playerId: s.playerId,
-        position: null,
-        points: null,
-        rawPoints: null,
-        baseMatches: s.matches,
-        dataSourceIds: [],
-        reason: INSUFFICIENT_DATA_REASON,
-      });
-    }
+  const qualified = stats
+    .filter((s) => s.goals > 0)
+    .sort((a, b) => b.goals - a.goals || a.playerId.localeCompare(b.playerId));
+  const scores = normalizeMinMax(
+    qualified.map((s) => computePlayerPoints({ goals: s.goals, assists: s.assists, wins: 0 })),
+  );
+  qualified.forEach((s, idx) => {
+    rows.push({
+      playerId: s.playerId,
+      position: idx + 1,
+      points: scores[idx] ?? 0,
+      rawPoints: computePlayerPoints({ goals: s.goals, assists: s.assists, wins: 0 }),
+      baseMatches: s.matches,
+      dataSourceIds: ['rsssf'],
+      reason: null,
+    });
+  });
+  for (const s of stats.filter((x) => x.goals <= 0)) {
+    rows.push({
+      playerId: s.playerId,
+      position: null,
+      points: null,
+      rawPoints: null,
+      baseMatches: s.matches,
+      dataSourceIds: [],
+      reason: INSUFFICIENT_DATA_REASON,
+    });
   }
   const rankedCount = rows.filter((r) => r.reason === null).length;
   return {
@@ -651,10 +684,100 @@ export function createPrismaRankingAlgorithmRepo(db: RankingDb): RankingAlgorith
       return { season, matches: algoMatches, titles: algoTitles };
     },
 
-    async loadPlayerSeasonStats() {
-      // Sem tabela de estatísticas jogador↔partida (gols/assistências) no schema.
-      // Retorna vazio → jogador-ano sempre NULL (limitação documentada, T425 §8).
-      return [];
+    /**
+     * T522 — Gols por jogador a partir das PARTIDAS (`matches.scorers`), sem
+     * tabela de estatística intermediária (fonte única da verdade). O texto bruto
+     * é re-parseado com a gramática v2, então as listas `home`/`away` gravadas
+     * pelo T519 seguem intocadas.
+     */
+    async loadPlayerSeasonStats(season) {
+      const seasonNum = Number.parseInt(season, 10) || null;
+      const seasonFilter =
+        seasonNum !== null
+          ? [
+              { season: { name: season } },
+              {
+                date: {
+                  gte: new Date(Date.UTC(seasonNum, 0, 1, 0, 0, 0)),
+                  lt: new Date(Date.UTC(seasonNum + 1, 0, 1, 0, 0, 0)),
+                },
+              },
+            ]
+          : [{ season: { name: season } }];
+
+      const matches = await db.match.findMany({
+        where: { OR: seasonFilter, scorers: { not: Prisma.DbNull } },
+        select: {
+          id: true,
+          competitionId: true,
+          homeScore: true,
+          awayScore: true,
+          scorers: true,
+          sourceUrl: true,
+          importedFrom: true,
+        },
+      });
+      const rows: ScorerMatchRow[] = matches.map((m) => {
+        const raw = (m.scorers as { raw?: unknown } | null)?.raw;
+        return {
+          id: m.id,
+          competitionId: m.competitionId,
+          homeScore: m.homeScore,
+          awayScore: m.awayScore,
+          scorersRaw: typeof raw === 'string' ? raw : null,
+          sourceUrl: m.sourceUrl,
+          importedFrom: m.importedFrom,
+        };
+      });
+      const names = new Set<string>();
+      for (const m of rows) {
+        if (!m.scorersRaw) continue;
+        for (const part of m.scorersRaw.split(/[;,]/)) {
+          const nome = part
+            .trim()
+            .replace(/\s+\d+(?:\+\d+)?(pen|og)?$/i, '')
+            .trim();
+          if (nome) names.add(nome);
+        }
+      }
+      if (names.size === 0) return [];
+
+      // Candidatos por nome NORMALIZADO (sem acento) — casamento exato, sem fuzzy.
+      const wanted = new Set<string>();
+      for (const n of names) {
+        wanted.add(normalizePlayerName(n));
+        const alias = SCORER_ALIASES[n];
+        if (alias) wanted.add(normalizePlayerName(alias));
+      }
+      const candidates = await db.$queryRaw`
+        SELECT id, "fullName", country, position, "birthDate", qid
+        FROM players
+        WHERE translate(lower("fullName"), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn') = ANY(${[
+          ...wanted,
+        ]}::text[])`;
+      const byNormalizedName = new Map<string, CandidatePlayer[]>();
+      for (const c of (candidates as Array<{
+        id: string;
+        fullName: string;
+        country: string | null;
+        position: string | null;
+        birthDate: Date | null;
+        qid: string | null;
+      }>) ?? []) {
+        const key = normalizePlayerName(c.fullName);
+        byNormalizedName.set(key, [...(byNormalizedName.get(key) ?? []), c]);
+      }
+
+      const agg = aggregatePlayerGoals(rows, {
+        byNormalizedName,
+        matchYear: seasonNum ?? undefined,
+      });
+      return agg.players.map((p) => ({
+        playerId: p.playerId,
+        goals: p.goals,
+        assists: 0,
+        matches: p.scoringMatches,
+      }));
     },
   };
 }

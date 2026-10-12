@@ -164,7 +164,8 @@ export const rankingsService = {
       const byClub = new Map(rows.filter((r) => r.level != null).map((r) => [r.clubId, r]));
       return {
         data: entries.map((e) => {
-          const t = byClub.get(e.clubId);
+          // T522 — entrada de jogador não tem clube (clubId NULL).
+          const t = e.clubId ? byClub.get(e.clubId) : undefined;
           return {
             ...e,
             divisionLevel: t?.level ?? null,
@@ -224,6 +225,8 @@ export const rankingsService = {
     competitionId?: string;
     /** T521 — só o agregado geral (competitionId IS NULL). */
     globalOnly?: boolean;
+    /** T522 — 'club' (padrão) | 'player'. */
+    type?: string;
     scope?: string;
     gender?: string;
     country?: string;
@@ -240,14 +243,19 @@ export const rankingsService = {
       competition: CompetitionTierPayload | null;
       scope: string | null;
       country: string | null;
+      type?: string;
       tierVersion: string | null;
       formulaVersion: string | null;
     } | null;
     data: Array<{
       position: number | null;
       points: number | null;
-      clubId: string;
-      clubName: string;
+      /** NULL em ranking de jogador (T522). */
+      clubId: string | null;
+      clubName: string | null;
+      /** T522 — preenchidos em ranking de jogador. */
+      playerId: string | null;
+      playerName: string | null;
       country: string | null;
       state: string | null;
       city: string | null;
@@ -267,6 +275,7 @@ export const rankingsService = {
       season: params.year,
       competitionId: params.competitionId,
       globalOnly: params.globalOnly,
+      type: params.type,
       scope: params.scope,
     });
     if (!ranking) return { ranking: null, data: [], cursor: null };
@@ -314,6 +323,7 @@ export const rankingsService = {
         competitionId: ranking.competitionId,
         competition: comp ? toCompetitionTier(comp) : null,
         scope: ranking.scope ?? null,
+        type: ranking.type,
         country: ranking.country ?? null,
         tierVersion: ranking.tierVersion ?? null,
         formulaVersion: ranking.formulaVersion ?? null,
@@ -321,15 +331,18 @@ export const rankingsService = {
       data: entries.map((e) => ({
         position: e.position,
         points: e.points,
-        clubId: e.club.id,
-        clubName: e.club.name,
-        country: e.club.country,
-        state: e.club.state,
-        city: e.club.city,
+        // T522 — entradas de clube têm clube; as de jogador têm jogador.
+        clubId: e.club?.id ?? null,
+        clubName: e.club?.name ?? null,
+        playerId: e.player?.id ?? null,
+        playerName: e.player?.fullName ?? null,
+        country: e.club?.country ?? null,
+        state: e.club?.state ?? null,
+        city: e.club?.city ?? null,
         baseMatches: e.baseMatches,
         baseTitles: e.baseTitles,
         gender: e.gender,
-        ...(ranking.scope === COUNTRY_PYRAMID_SCOPE
+        ...(ranking.scope === COUNTRY_PYRAMID_SCOPE && e.club
           ? { ...tierOf(e.club.id), adjustedScore: e.points }
           : {}),
       })),
@@ -365,10 +378,9 @@ export const rankingsService = {
     const byId = new Map(
       (await rankingsRepository.findCompetitionsByIds(compIds)).map((c) => [c.id, c]),
     );
+    const firstClub = entries[0]?.club ?? null;
     return {
-      club: entries[0]
-        ? { id: entries[0].club.id, name: entries[0].club.name }
-        : { id: clubId, name: '' },
+      club: firstClub ? { id: firstClub.id, name: firstClub.name } : { id: clubId, name: '' },
       data: entries.map((e) => {
         const comp = e.ranking.competitionId ? byId.get(e.ranking.competitionId) : undefined;
         return {
