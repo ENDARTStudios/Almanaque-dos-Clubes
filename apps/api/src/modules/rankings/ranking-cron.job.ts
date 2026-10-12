@@ -34,6 +34,7 @@ import {
 import { recordJobRun } from '../../jobs/data-refresh.scheduler.js';
 import { pushLog } from '../../lib/observability/log-buffer.js';
 import { checkJobFailure } from '../../lib/observability/alerts.js';
+import { rankingNameFor } from './ranking-naming.js';
 
 /** Horário UTC diário 03:00. */
 export const RANKING_CRON_PATTERN = '0 3 * * *' as const;
@@ -67,23 +68,32 @@ export async function runRankingJob(scope: {
   competitionId?: string | null;
   gender: Gender;
 }): Promise<RankingJobResult> {
-  const genderLabel = scope.gender === 'women' ? 'Feminino' : 'Masculino';
-  const rankingName = `Ranking 0-100 ${scope.season} — ${genderLabel}`;
-
   return withRlsContext({ role: 'SERVICE' }, async (tx) => {
     const repo = createPrismaRankingAlgorithmRepo(tx);
 
-    // Idempotência: se já existe Ranking publicado p/ o mesmo ano+escopo, NÃO recalcula/republica.
+    // Idempotência por ESCOPO (ano + competição), não por nome: há duas
+    // convenções de nome no acervo (a do cron e a do piloto da pirâmide inglesa)
+    // e comparar nome criaria um ranking duplicado para o mesmo escopo.
     const existing = await tx.ranking.findFirst({
       where: {
-        name: rankingName,
         season: scope.season,
         competitionId: scope.competitionId ?? null,
+        scope: null,
         publishedAt: { not: null },
       },
       select: { id: true },
     });
     if (existing) return { skipped: true, rankingId: null, result: null };
+
+    const competitionName = scope.competitionId
+      ? ((
+          await tx.competition.findUnique({
+            where: { id: scope.competitionId },
+            select: { name: true },
+          })
+        )?.name ?? null)
+      : null;
+    const rankingName = rankingNameFor(scope.season, scope.gender, competitionName);
 
     const result = await buildClubRanking(repo, {
       season: scope.season,

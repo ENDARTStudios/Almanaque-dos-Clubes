@@ -344,6 +344,7 @@ const en: Dictionary = {
         'Based on final league tables from English competitions (RSSSF). No titles in this phase.',
       pilotMethodology: 'See methodology',
       filterYear: 'Year',
+      filterCompetition: 'Competition',
       filterGender: 'Gender',
       filterCountry: 'Country',
       searchClub: 'Search club',

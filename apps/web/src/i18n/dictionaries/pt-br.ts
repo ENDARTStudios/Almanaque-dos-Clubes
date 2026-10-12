@@ -346,6 +346,7 @@ const pt: Dictionary = {
         'Baseado nas tabelas finais de classificação das ligas inglesas (RSSSF). Sem títulos nesta fase.',
       pilotMethodology: 'Ver metodologia',
       filterYear: 'Ano',
+      filterCompetition: 'Competição',
       filterGender: 'Gênero',
       filterCountry: 'País',
       searchClub: 'Buscar clube',

@@ -368,6 +368,7 @@ export interface Dictionary {
       pilotSubtitle: string;
       pilotMethodology: string;
       filterYear: string;
+      filterCompetition: string;
       filterGender: string;
       filterCountry: string;
       searchClub: string;
