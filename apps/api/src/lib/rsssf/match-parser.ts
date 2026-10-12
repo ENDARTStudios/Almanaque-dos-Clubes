@@ -140,12 +140,17 @@ function isTableRow(homeName: string): boolean {
 }
 /**
  * Nome contaminado pela SOBRA de uma anotação que a fonte quebrou em 2 linhas
- * (`Toulouse       crowd trouble; result stood]`). Corta no fragmento terminado
- * em `]` — fragmento assim nunca é nome de clube (colchete fechado já foi
- * removido antes). Sem isso o visitante viraria "Toulouse crowd trouble; ...".
+ * (`Toulouse       crowd trouble; result stood]`, `São Paulo        trouble]`).
+ * A fonte é de largura fixa: o fragmento de nota vem DEPOIS do último bloco de
+ * 2+ espaços, então cortamos ali — cortar "no primeiro não-espaço antes do `]`"
+ * comia o próprio nome quando ele tem espaço interno (virava "São" de "São Paulo").
  */
 function cutNoteTail(name: string): string {
-  return name.replace(/\s+\S[^\]]*\]\s*$/, '').trim();
+  const end = name.indexOf(']');
+  if (end < 0) return name.trim();
+  const head = name.slice(0, end);
+  const gap = head.lastIndexOf('  ');
+  return (gap >= 0 ? head.slice(0, gap) : head).trim();
 }
 /** A fonte marca jogo anormal no lugar do placar: `abd`/`awd` (ou a anotação). */
 const ABANDONED_RE = /\babd\b|\bawd\b|\babandoned\b|\bawarded\b/i;
@@ -193,7 +198,6 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
   const warnings: string[] = [];
   const matches: RsssfMatch[] = [];
   let started = false;
-  let maxRound = 0;
   let round: string | null = null;
   let date: { raw: string; month: number; day: number } | null = null;
   let last: RsssfMatch | null = null;
@@ -206,7 +210,6 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
       const r = ROUND_RE.exec(trimmed);
       if (!r) continue;
       started = true;
-      maxRound = Number(r[1]);
       round = r[1];
       const inline = /\b([A-Za-z]{3})\s+(\d{1,2})\b/.exec(r[2] ?? '');
       if (inline) date = monthDay(inline[1], inline[2]);
@@ -215,15 +218,11 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
 
     const roundM = ROUND_RE.exec(trimmed);
     if (roundM) {
-      const n = Number(roundM[1]);
-      // Fase de playoff/barragem: a fonte reusa 'Round 1/2' DEPOIS das rodadas da
-      // liga (Ligue 1). Rotular como P{N} distingue da rodada regular de mesmo número.
-      if (n <= maxRound) {
-        round = `P${n}`;
-      } else {
-        maxRound = n;
-        round = roundM[1];
-      }
+      // A rodada é gravada COMO A FONTE A IMPRIME. A antiga marca 'P{N}' (fase de
+      // playoff) saiu: a barragem de acesso já fica fora pelo corte na tabela
+      // final, e o rótulo inventado viraria dado falso quando a fonte lista
+      // rodadas fora de ordem (a La Liga reordena jogos adiados entre rodadas).
+      round = roundM[1];
       const inline = /\b([A-Za-z]{3})\s+(\d{1,2})\b/.exec(roundM[2] ?? '');
       if (inline) date = monthDay(inline[1], inline[2]);
       last = null;
@@ -304,7 +303,11 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
 const GROUP_MATCH_RE = new RegExp(
   `^${MONTH_RE}\\s+(\\d{1,2}):\\s+(.+?)\\s{2,}(\\d+)-(\\d+)\\s*([xy])?\\s*$`,
 );
-const SECTION_RE = /^(Group\s+[A-H])\b/;
+/**
+ * Título de seção de grupo. As páginas antigas (Libertadores 2015-2017) numeram os
+ * grupos (`Group 1`..`Group 8`); as novas usam letra (`Group A`..`Group H`).
+ */
+const SECTION_RE = /^(Group\s+(?:[A-H]|\d+))\b/;
 /**
  * Cabeçalho da final: `Final (Nov 4, Rio de Janeiro)`. NÃO ancorado no início
  * porque em copa2023 ele vem colado ao parêntese da semifinal anterior
@@ -446,6 +449,41 @@ export function resolveMatchYear(month: number, opts: SeasonYearOptions): number
 export function matchDate(match: RsssfMatch, opts: SeasonYearOptions): Date {
   const year = resolveMatchYear(match.month, opts);
   return new Date(Date.UTC(year, match.month - 1, match.day));
+}
+
+/**
+ * T529 — ANO de uma temporada CRUZADA (europeia), resolvido por mês + rodada.
+ *
+ * O corte por mês resolve quase tudo, mas a Covid esticou a temporada 2019-20 até
+ * agosto de 2020: a Serie A jogou de **24/ago/2019 a 2/ago/2020**, ou seja, o
+ * MESMO mês (agosto) aparece nos dois extremos — nenhum limiar separa o começo do
+ * fim. Na faixa ambígua (o mês do corte e o anterior) quem desempata é a RODADA:
+ * rodada na segunda metade da temporada está no ano seguinte.
+ *
+ * Também não serve o fold ingênuo "o ano vira quando o mês volta": a fonte lista
+ * jogos ADIADOS dentro da rodada original (`r16: Dec 13, Dec 13, Jan 20, r17: Dec 19`),
+ * o que faria a virada ser contada duas vezes.
+ *
+ * Vale só para `mode: 'cross'`; ano civil (BR/Libertadores) usa `resolveMatchYear`.
+ */
+export function resolveCrossYears(
+  matches: readonly { month: number; round: string }[],
+  startYear: number,
+  splitMonth = 8,
+): number[] {
+  const roundNumbers = matches
+    .map((m) => Number.parseInt(m.round, 10))
+    .filter((n) => Number.isFinite(n));
+  const maxRound = roundNumbers.length > 0 ? Math.max(...roundNumbers) : 0;
+  return matches.map((m) => {
+    if (m.month > splitMonth || m.month < splitMonth - 1) {
+      // Fora da faixa ambígua: o mês decide (com corte em agosto, set-dez são do
+      // ano de início e jan-jul do seguinte).
+      return m.month >= splitMonth ? startYear : startYear + 1;
+    }
+    const n = Number.parseInt(m.round, 10);
+    return maxRound > 0 && Number.isFinite(n) && n > maxRound / 2 ? startYear + 1 : startYear;
+  });
 }
 
 /**

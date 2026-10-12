@@ -5,8 +5,10 @@ import { dirname, join } from 'node:path';
 import {
   parseRsssfMatches,
   parseLeagueBlock,
+  parseLibertadoresBlock,
   parseScorers,
   resolveMatchYear,
+  resolveCrossYears,
   matchDate,
   stripNotes,
 } from '../../../src/lib/rsssf/match-parser.js';
@@ -250,11 +252,14 @@ describe('match-parser T527 — expansão (spill, playoff, guard de tabela)', ()
     expect(r.matches[1]).toMatchObject({ dateRaw: 'Jan 12' });
   });
 
-  it('Round repetido após a última rodada vira fase de playoff (P{N})', () => {
+  it('a rodada é gravada COMO A FONTE imprime (sem rótulo inventado de fase)', () => {
+    // A antiga marca 'P{N}' saiu: a barragem já é excluída pelo corte na tabela
+    // final, e rotular "Round 13" como "P13" viraria dado falso se a fonte listar
+    // rodadas fora de ordem (a La Liga reordena jogos adiados).
     const r = parseLeagueBlock(
       'Round 34\n[May 19]\nA 1-0 B\nRound 1 [May 21]\nC 2-1 D\nRound 2 [May 24]\nE 0-0 F\n',
     );
-    expect(r.matches.map((m) => m.round)).toEqual(['34', 'P1', 'P2']);
+    expect(r.matches.map((m) => m.round)).toEqual(['34', '1', '2']);
     expect(r.matches[1].dateRaw).toBe('May 21');
   });
 
@@ -295,5 +300,59 @@ describe('match-parser T527 — expansão (spill, playoff, guard de tabela)', ()
     );
     expect(r.matches).toHaveLength(0);
     expect(r.warnings.filter((w) => w.startsWith('abandoned_match:'))).toHaveLength(2);
+  });
+
+  it('T529: sobra de nota não come o nome do clube que tem espaço interno', () => {
+    // BR 2019, rodada 38: a nota do jogo abandonado (Cruzeiro x Palmeiras) atravessa
+    // a linha e a sobra (`trouble]`) cai no jogo SEGUINTE. A versão anterior cortava
+    // no primeiro espaço antes do `]` e transformava "São Paulo" em "São".
+    const r = parseLeagueBlock(
+      'Round 38 [Dec 8]\n' +
+        "Cruzeiro        0-2 Palmeiras       [abandoned at 0-2 in 86' due to crowd\n" +
+        'CSA             1-2 São Paulo        trouble]\n',
+    );
+    expect(r.matches.map((m) => m.awayName)).toEqual(['Palmeiras', 'São Paulo']);
+    expect(r.matches[1].homeName).toBe('CSA');
+  });
+
+  it('T529: grupos NUMERADOS da Libertadores antiga (Group 1..8) são aceitos', () => {
+    // Formato real da copa2015 (colunas alinhadas: 2+ espaços antes do placar).
+    const r = parseLibertadoresBlock(
+      'Group Phase\nGroup 1\n' +
+        'Feb 17: Atlas - Independiente Santa Fe        0-1\n' +
+        '  [Luis Carlos Arias 78]\n' +
+        'Feb 18: Colo Colo - Atlético Mineiro          2-0\n',
+    );
+    expect(r.matches).toHaveLength(2);
+    expect(r.matches[0].round).toBe('Group 1');
+    expect(r.matches[1].awayName).toBe('Atlético Mineiro');
+  });
+});
+
+describe('match-parser T529 — ano das temporadas cruzadas (Covid)', () => {
+  const m = (month: number, round: string) => ({ month, round });
+
+  it('mês decide fora da faixa ambígua (corte em agosto)', () => {
+    const years = resolveCrossYears([m(8, '1'), m(12, '10'), m(1, '20'), m(5, '38')], 2019);
+    expect(years).toEqual([2019, 2019, 2020, 2020]);
+  });
+
+  it('na faixa ambígua (jul-ago) a RODADA desempata: fim de temporada = ano+1', () => {
+    // Serie A 2019-20 jogou de 24/ago/2019 a 2/ago/2020 — agosto nos DOIS extremos.
+    const years = resolveCrossYears([m(8, '1'), m(8, '38'), m(7, '36')], 2019);
+    expect(years).toEqual([2019, 2020, 2020]);
+  });
+
+  it('jogo ADIADO listado fora de ordem não conta a virada duas vezes', () => {
+    // A fonte imprime `r16: Dec 13, Dec 13, Jan 20, r17: Dec 19, r18: Jan 5` — o jogo
+    // adiado de janeiro aparece ANTES das rodadas de dezembro. Dezembro é fora da
+    // faixa ambígua (o mês decide: 2019) e janeiro é da faixa (a rodada decide: 2020).
+    // O que importa: a rodada 18 de janeiro fica em 2020, e não em 2021 como no fold
+    // ingênuo (que contava a virada a cada salto para trás).
+    const years = resolveCrossYears(
+      [m(12, '16'), m(12, '16'), m(1, '16'), m(12, '17'), m(1, '18')],
+      2019,
+    );
+    expect(years).toEqual([2019, 2019, 2020, 2019, 2020]);
   });
 });
