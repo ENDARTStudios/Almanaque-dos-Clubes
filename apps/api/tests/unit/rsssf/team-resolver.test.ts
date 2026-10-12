@@ -31,8 +31,8 @@ const BR = [
   club('c3', 'Club Athletico Paranaense', 'BR'),
   club('c4', 'Red Bull Bragantino', 'BR'),
   club('c5', 'Red Bull Bragantino II', 'BR'),
-  club('c6', 'América Futebol Clube', 'BR', { city: 'Belo Horizonte' }),
-  club('c7', 'América Futebol Clube', 'BR', { city: 'Morrinhos' }),
+  club('c6', 'América Futebol Clube', 'BR', { qid: 'Q338285' }),
+  club('c7', 'América Futebol Clube', 'BR', { qid: 'Q482251', city: 'Morrinhos' }),
   club('c8', 'Ceará Sporting Club', 'BR', { gender: 'women' }),
 ];
 const GB = [
@@ -68,10 +68,10 @@ describe('team-resolver T519', () => {
     expect(r.club?.name).not.toContain('II');
   });
 
-  it('desempata homônimo pelo discriminador de cidade (América/MG)', () => {
+  it('desempata homônimo pelo QID do acervo (América/MG = Belo Horizonte)', () => {
     const r = resolveRsssfTeam('América/MG', opts(['BR']));
     expect(r.club?.id).toBe('c6');
-    expect(r.club?.city).toBe('Belo Horizonte');
+    expect(r.club?.qid).toBe('Q338285');
   });
 
   it('resolve abreviação de coluna fixa (Manchester C / Sheffield U)', () => {
@@ -99,7 +99,7 @@ describe('team-resolver T519', () => {
   });
 
   it('clubes ausentes do acervo ficam declaradamente sem resolução', () => {
-    for (const t of ['Chapecoense', 'Patronato']) {
+    for (const t of ['Chapecoense', 'Vasco da Gama', 'Patronato']) {
       expect(RSSSF_TEAM_ABSENT.has(t)).toBe(true);
       const r = resolveRsssfTeam(t, opts(['BR']));
       expect(r.club).toBeNull();
