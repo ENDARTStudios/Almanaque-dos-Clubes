@@ -609,7 +609,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [~] **Ingestão RSSSF** (arquivo histórico global) — **7 estaduais** (T035) + pirâmide inglesa; o arquivo global completo segue pendente
 - [ ] **Ingestão de federações** (divisões inferiores, amador) — CBF descartada por ToS; não feita
 - [~] **Dados de estádios** — 528 clubes com `stadiumName`, 311 com imagem e 84 com registro em `stadiums`; **`stadiums.location`/PostGIS ausente em produção** (decisão de infra do Operador — T471)
-- [ ] **Dados de hinos** (Wikimedia Commons) — **não existem**: nenhuma coluna/tabela de hino
+- [x] **Dados de hinos** — **publicado em 2026-10-12 (T524)**: `clubs.anthem` JSONB com 13 clubes (compositor/letrista/ano/oficial + fonte), 1 áudio livre verificado (São Paulo FC, CC BY 4.0) e **letra null em todos** — os hinos são protegidos por direitos autorais (os próprios artigos da pt.wiki avisam); a UI exibe a nota de restrição. API `/clubs/:id/anthem` + seção Hino com player. Gap: áudio livre só existe para 1 clube na fonte
 - [ ] **Dados de uniformes** (imagens históricas) — `Club.kitHistory` existe como coluna, **0 preenchido**; `teamColors` em 2 clubes
 - [x] **Partidas** — **2.450 partidas reais** (T519 + cura T520, 11-10-2026): Brasileirão Série A 2021-2024 (1.520 = 380×4, completo após re-linkar Vasco/Chapecoense), Premier League 2023-24/2024-25 (760), Libertadores 2023/2024 (170), com data, placar, mando, rodada, autores dos gols (2023), proveniência `rsssf` + `sourceUrl` por partida e `license`; 10/10 amostras conferidas contra Transfermarkt/Wikipédia PT. Destrava o ranking completo e os gráficos de comparação (M4/T449)
 

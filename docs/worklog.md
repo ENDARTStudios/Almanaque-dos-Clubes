@@ -1719,3 +1719,55 @@ Stage Summary:
 - Idempotência provada (0 escritas em source estável); 2 hotfixes de script
 - Gap declarado: não há imagens prontas 2021-2025 na fonte; composição futura
   via season-articles da EN-wiki para expandir cobertura
+
+Task ID: goal-2026-10-12/t524
+Agent: Doer (ZCode)
+Task: T524 — HINOS dos clubes (gap explícito do Escopo 1: "Hino")
+
+Work Log:
+- DESCOBERTA ANTES DE CÓDIGO (read-only, 18 clubes com seção Hino):
+  (a) ÁUDIO no Commons: apenas 1 — File:Hino-do-São-Paulo-FC.ogg, verificado ao
+  vivo: CC BY 4.0 (Orquestra e Coro CID, ~1977), sem pedido de exclusão.
+  (b) LETRA: os PRÓPRIOS ARTIGOS da pt.Wikipédia carregam o aviso "NÃO INSIRA A
+  LETRA DO HINO AQUI POIS A MESMA VIOLA DIREITOS AUTORAIS" (Flamengo, Palmeiras,
+  Internacional) e o pt.wikisource NÃO tem letra de nenhum dos 18. Sem verificação
+  de licença livre possível → letra = null em TODOS, com a nota de restrição
+  (regra crítica do despacho: nunca publicar letra sem licença verificada).
+  (c) O que resta de publicável e factual: os METADADOS (compositor/letrista/ano/
+  oficial) declarados nas seções — curados explicitamente no script, cada linha com
+  a URL da fonte (padrão T511: nada de busca aberta no apply).
+- MIGRATION aditiva (clubs.anthem JSONB, nullable) — nenhuma linha existente muda.
+- CURADORIA (13 clubes, cada fato literal da seção "Hino"): Fluminense 1916
+  (Antônio Cardoso de Menezes Filho) · Flamengo 1920 (Paulo Magalhães, Hymno
+  Rubro-Negro) · Palmeiras 1949 (Antonio Sergi) · Corinthians 1952 (Lauro D'Ávila /
+  Edmundo Russomanno) · Grêmio 1953 (Lupicínio Rodrigues) · Inter "Celeiro de Ases"
+  (Nélson Silva) · Fortaleza 1967 (Jackson de Carvalho) · Athletico-PR (Zinder
+  Lins / Genésio Ramalho) · Bahia (Adroaldo Ribeiro Costa) · Santos 1955 "Leão do
+  Mar" (Mangeri Neto e Sobrinho; controvérsia sobre hino oficial) · Atlético-MG
+  1969 (Vicente Motta) · Botafogo 1942 Lamartine Babo com official=FALSE (hino
+  POPULAR — o despacho pediu oficiais; a honestidade é marcar) · São Paulo FC com
+  o ÁUDIO (composição não declarada na fonte → null).
+- HOTFIX pego no dry-run de produção: 2 chaves não casavam com o nome do acervo
+  ("Clube Atlético Mineiro" → o acervo usa "Atlético-MG" (T519); "Bahia" →
+  "Esporte Clube Bahia"). Corrigido, re-aplicado: 13/13 gravados.
+- IDEMPOTÊNCIA: re-run após apply = 13× "já gravado idêntico" (hash canônico, lição
+  do T523-kits aplicada desde o primeiro commit).
+- API/UI: GET /clubs/:id/anthem (200; SPFC traz audioUrl CC BY 4.0 linkada;
+  Grêmio traz compositor/ano) · seção "Hino" no perfil: rótulo, composição/letra/
+  ano, nota do clube, PLAYER de áudio com licença linkada, nota de copyright da
+  letra (i18n ×3) — no ar (testid club-anthem). Sem hino → seção oculta.
+- INTEGRIDADE: matches 2.450 · ranking_entries 893 · WON 5.205 · kitHistory 11
+  clubes — intocados.
+
+GAPS DECLARADOS: áudio livre no Commons para apenas 1 dos 13 hinos (os demais
+sem fonte livre — gap de fonte, não de código); LETRA não publicável para
+nenhum (copyright — nota exibida na UI em vez do texto); 5 clubes do top 22 sem
+sequer seção Hino no artigo (Cuiabá, Bragantino, América-MG, Atlético-GO,
+Juventude); compositor/ano null onde a fonte não declara (São Paulo, Athletico-PR,
+Inter, Bahia).
+
+Stage Summary:
+- 13 clubes com anthem; 1 áudio CC BY 4.0 verificado ao vivo; letra null+nota em
+  todos (regra crítica respeitada)
+- API + UI com player funcionais e no ar
+- Migration aditiva; rankings/partidas/kits intactos; noop provado (13×)

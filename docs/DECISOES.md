@@ -1898,3 +1898,33 @@ Santos 10 - Grêmio 4 - Palmeiras 3 - Flamengo 3 - Botafogo 3 - Corinthians 2 -
 Arsenal 2 - Liverpool 1). API /clubs/:id/kits + seção no perfil (KitDiagram em
 CSS, i18n x3). Três hotfixes durante a rodada (flag --apply não declarada,
 clubes de foto fora de CLUB_SOURCES, noop canônico/jsonb + utm).
+
+### [2026-10-12] Decisao: D-2026-10-12-t524-hinos-letra-null-copyright — letra de hino NÃO é publicável sem licença livre verificada; metadados factuais são
+
+**Contexto:** os hinos de clubes brasileiros são obras protegidas — os próprios
+artigos da pt.Wikipédia carregam o aviso de que inserir a letra VIOLA direitos
+autorais (Flamengo, Palmeiras, Internacional), e o pt.wikisource não hospeda
+nenhuma letra dos 18 clubes do escopo. Áudio livre no Commons: apenas 1 (São Paulo
+FC, CC BY 4.0, verificado ao vivo).
+
+**Decisão:** o campo `anthem` publica (a) METADADOS factuais curados da seção
+"Hino" (compositor, letrista, ano, oficial ou popular — cada um com a URL da
+fonte), (b) ÁUDIO apenas com licença livre verificada ao vivo, e (c) **letra SEMPRE
+null** enquanto não houver verificação de licença livre — a UI exibe a nota de
+restrição no lugar do texto. Isso vale mesmo quando a letra "todo mundo conhece":
+conhecida ≠ licenciada.
+
+**Regras permanentes:**
+
+1. Letra sem licença livre verificada nunca entra — nem parcial, nem com
+   atribuição, nem "só um trecho".
+2. Metadado factual (quem compôs, quando) é publicável com atribuição à fonte.
+3. Áudio exige a mesma verificação de imagem/peça (imageinfo: existe + licença +
+   sem exclusão) antes de gravar.
+4. Hino POPULAR (torcida) não se rotula como oficial — Botafogo/Lamartine Babo
+   ficou marcado `official: false`.
+5. O nome do clube no seed é o NOME DO ACERVO (Atlético-MG, não "Clube Atlético
+   Mineiro") — mesmo padrão de T519/T520.
+
+**Resultado:** 13 clubes com anthem (meta 5+); 1 áudio CC BY 4.0; 13 letras
+null+nota; API + UI com player no ar. Migration aditiva; nada existente tocado.
