@@ -6,10 +6,12 @@
  *  2. as regras ESTRITAS de aceitação (nada entra por semelhança de nome);
  *  3. o que NÃO é sobrescrito (curadoria T523-T526 preservada).
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { PrismaClient } from '@prisma/client';
 import {
   attemptRecord,
   audioFileCandidates,
+  enrichAllMediaBatch,
   enrichOneClub,
   isFullyAttempted,
   isPennantFile,
@@ -17,6 +19,10 @@ import {
   type ClubRow,
 } from '../../../src/modules/etl/enrich-all-media.service.js';
 import type { KitPart } from '../../../src/lib/wikipedia/kit-composition.js';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const club = (over: Partial<ClubRow> = {}): ClubRow => ({
   id: 'c1',
@@ -190,5 +196,152 @@ describe('T528 — enrichOneClub (IO injetado)', () => {
     expect(out.media.pennants).toBe('enriched');
     expect(out.values.pennants?.[0]?.license).toBe('CC BY 2.0');
     expect(out.values.pennants?.[0]?.imageUrl).toContain('flamula.jpg');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Lote completo — `fetch` stubado (cobre também as funções de IO reais)
+// ---------------------------------------------------------------------------
+
+/** Roteador de `fetch` por URL: somente as chamadas que o job faz de verdade. */
+function stubFetch(over: { wikitext?: string; category?: string[]; license?: string | null } = {}) {
+  const fetchStub = async (input: unknown): Promise<unknown> => {
+    const url = String(input);
+    const json = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
+    if (url.includes('wikidata.org')) {
+      return json({
+        entities: {
+          Q1: { sitelinks: { ptwiki: { title: 'Clube de Teste' } } },
+          Q2: { sitelinks: {} }, // sem página pt/en → gap declarado
+        },
+      });
+    }
+    if (url.includes('pt.wikipedia.org')) {
+      return json({ parse: { wikitext: { '*': over.wikitext ?? '' } } });
+    }
+    if (url.includes('list=categorymembers')) {
+      return json({
+        query: { categorymembers: (over.category ?? []).map((title) => ({ title })) },
+      });
+    }
+    if (url.includes('commons.wikimedia.org')) {
+      const license = over.license === undefined ? 'CC BY-SA 4.0' : over.license;
+      return json({
+        query: {
+          pages: {
+            '1': {
+              imageinfo: [
+                {
+                  url: 'https://upload.wikimedia.org/a.ogg',
+                  extmetadata: license ? { LicenseShortName: { value: license } } : {},
+                },
+              ],
+            },
+          },
+        },
+      });
+    }
+    return json({});
+  };
+  return fetchStub;
+}
+
+interface FakeUpdate {
+  where: { id: string };
+  data: Record<string, unknown>;
+}
+
+function fakePrisma(rows: ClubRow[]) {
+  const updates: FakeUpdate[] = [];
+  return {
+    updates,
+    client: {
+      club: {
+        findMany: async () => rows,
+        update: async (args: FakeUpdate) => {
+          updates.push(args);
+          return {};
+        },
+      },
+      $disconnect: async () => undefined,
+    },
+  };
+}
+
+describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
+  it('dry-run: mede o lote e NÃO escreve', async () => {
+    vi.stubGlobal('fetch', stubFetch({ wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]' }));
+    const { client, updates } = fakePrisma([club({ id: 'a' }), club({ id: 'b', qid: 'Q2' })]);
+    const out = await enrichAllMediaBatch(500, {
+      apply: false,
+      prisma: client as unknown as PrismaClient,
+    });
+    expect(out.processed).toBe(2);
+    expect(out.enriched).toBe(1); // só o clube com hino verificado
+    expect(out.gaps).toBe(1); // o clube sem página na Wikipédia
+    expect(out.byMedia.anthem.found).toBe(1);
+    expect(updates).toHaveLength(0);
+  });
+
+  it('apply: grava os campos novos E o registro de tentativa nas três mídias', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubFetch({
+        wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]',
+        category: ['File:Flamula do Clube de Teste.jpg'],
+      }),
+    );
+    const { client, updates } = fakePrisma([club({ id: 'a' })]);
+    const out = await enrichAllMediaBatch(500, {
+      apply: true,
+      prisma: client as unknown as PrismaClient,
+    });
+    expect(out.enriched).toBe(1);
+    expect(updates).toHaveLength(1);
+    const data = updates[0]!.data;
+    expect(Object.keys(data.mediaEnrichment as object).sort()).toEqual([
+      'anthem',
+      'kits',
+      'pennants',
+    ]);
+    expect(data.anthem).toBeDefined();
+    expect(data.pennants).toBeDefined();
+  });
+
+  it('apply NUNCA sobrescreve campo já preenchido (curadoria T524 preservada)', async () => {
+    vi.stubGlobal('fetch', stubFetch({ wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]' }));
+    const { client, updates } = fakePrisma([club({ id: 'a', anthem: { composer: 'curado' } })]);
+    await enrichAllMediaBatch(500, { apply: true, prisma: client as unknown as PrismaClient });
+    expect(updates[0]!.data.anthem).toBeUndefined();
+    expect(updates[0]!.data.mediaEnrichment).toBeDefined(); // a tentativa é registrada
+  });
+
+  it('recheck: reprocessa os já tentados e prova o noop (enriched=0)', async () => {
+    vi.stubGlobal('fetch', stubFetch({ wikitext: 'sem uniforme aqui' }));
+    const tentado = {
+      kits: { at: 'T', status: 'no_source' },
+      anthem: { at: 'T', status: 'no_source' },
+      pennants: { at: 'T', status: 'no_source' },
+    };
+    const { client, updates } = fakePrisma([club({ id: 'a', mediaEnrichment: tentado })]);
+    const out = await enrichAllMediaBatch(500, {
+      apply: true,
+      recheck: true,
+      prisma: client as unknown as PrismaClient,
+    });
+    expect(out.processed).toBe(1);
+    expect(out.enriched).toBe(0);
+    expect(out.byMedia.kits.already).toBe(1);
+    expect(updates).toHaveLength(1);
+  });
+
+  it('lote vazio: não faz nada e não quebra', async () => {
+    vi.stubGlobal('fetch', stubFetch({}));
+    const { client } = fakePrisma([]);
+    const out = await enrichAllMediaBatch(500, {
+      apply: true,
+      prisma: client as unknown as PrismaClient,
+    });
+    expect(out).toMatchObject({ processed: 0, enriched: 0, gaps: 0 });
   });
 });
