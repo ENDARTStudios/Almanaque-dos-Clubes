@@ -103,6 +103,8 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   Nacional: { name: 'Club Nacional de Football' },
   'Cerro Porteños': { name: 'Cerro Porteño' },
   'SD Aucas': { name: 'Sociedad Deportiva Aucas' },
+  'Barcelona SC': { name: 'Barcelona S.C.' },
+  'Alianza Lima': { name: 'Club Alianza Lima' },
 };
 
 /**
@@ -247,6 +249,12 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
   if (sExact.club) return { token, club: sExact.club, via: 'pool-exact', ambiguousWith: [] };
   const gExact = exact(global);
   if (gExact.club) return { token, club: gExact.club, via: 'exact', ambiguousWith: [] };
+  // Segunda passada de IGUALDADE ignorando o filtro de país: vários clubes
+  // sul-americanos têm `country` nulo no acervo (LDU Quito, Millonarios). Só a
+  // igualdade de nome passa aqui — contenção/abreviação continuariam restritas
+  // ao escopo de país, para não casar homônimo de outro continente.
+  const gExactAny = exact(opts.globalPool.filter((c) => c.gender === 'men'));
+  if (gExactAny.club) return { token, club: gExactAny.club, via: 'exact', ambiguousWith: [] };
 
   const contain = (pool: ClubCandidate[]) =>
     uniqueMatch(pool, (c) =>
