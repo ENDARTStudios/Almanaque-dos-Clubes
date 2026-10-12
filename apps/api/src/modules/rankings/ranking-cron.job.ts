@@ -104,9 +104,16 @@ export async function runRankingJob(scope: {
       gender: scope.gender,
     });
 
-    // T438 — honestidade: sem nenhum clube ranqueado (ex.: sem partidas/títulos
-    // no acervo), NÃO publica ranking vazio.
-    if (result.rankedCount === 0) {
+    // T438 — honestidade: sem nenhum clube ranqueado NESTE GÊNERO (ex.: sem
+    // partidas/títulos do gênero no acervo), NÃO publica. A checagem é por gênero
+    // de propósito: `buildClubRanking` calcula os DOIS grupos (para normalizar
+    // isolado) e `rankedCount` soma ambos — contar o total publicava um ranking
+    // "Feminino" VAZIO sempre que o masculino tinha dados (era o caso do
+    // "Ranking 0-100 2026 — Feminino", com 0 entradas).
+    const scopeRanked = result.rows.filter(
+      (r) => r.gender === scope.gender && r.position !== null,
+    ).length;
+    if (scopeRanked === 0) {
       logger.warn(
         { season: scope.season, gender: scope.gender, rankedCount: 0 },
         'ranking vazio — não publicado',

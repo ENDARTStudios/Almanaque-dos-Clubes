@@ -168,6 +168,14 @@ describe('T438 — parseCalculateArgs (CLI)', () => {
     expect(args.gender).toBeNull();
   });
 
+  it('aceita temporada cruzada YYYY-YY (Premier League)', () => {
+    // As competições europeias usam rótulo de temporada cruzada no acervo
+    // ('2023-24'); antes o CLI recusava e a Premier League não podia ser calculada.
+    expect(parseCalculateArgs(['--year', '2023-24']).year).toBe('2023-24');
+    expect(() => parseCalculateArgs(['--year', '2023-2'])).toThrow(/--year inválido/);
+    expect(() => parseCalculateArgs(['--year', 'temporada'])).toThrow(/--year inválido/);
+  });
+
   it('aceita --year, --competition e --gender', () => {
     const args = parseCalculateArgs([
       '--year',
