@@ -6,7 +6,13 @@
  *  3. leitura do P21 nos dois formatos que a API do Wikidata devolve.
  */
 import { describe, expect, it } from 'vitest';
-import { genderVerdict, nameDeclaresFemale, p21Of } from '../../../src/scripts/cure-gender-t531.js';
+import {
+  classDeclares,
+  genderVerdict,
+  nameDeclaresFemale,
+  p21Of,
+  p31IdsOf,
+} from '../../../src/scripts/cure-gender-t531.js';
 
 describe('T531 — veredito da cura de gender', () => {
   it('P21 feminino corrige, independente do nome', () => {
@@ -50,5 +56,30 @@ describe('T531 — veredito da cura de gender', () => {
       }),
     ).toBe('Q6581072');
     expect(p21Of({ claims: {} })).toBeNull();
+  });
+
+  it('T531 — a CLASSE P31 é a evidência para time/clube (P21 só existe em pessoas)', () => {
+    // Medido: P21 vazio na seleção feminina da Albânia; o que diz "feminino" é o P31.
+    expect(classDeclares("women's national association football team")).toBe('female');
+    expect(classDeclares("women's association football club")).toBe('female');
+    expect(classDeclares('association football club')).toBeNull();
+    expect(classDeclares("men's association football club")).toBe('male');
+    // Classe diz feminino -> corrige mesmo com nome sem marcador.
+    expect(genderVerdict(null, 'Time Sem Marcador', ['female'])).toBe('wikidata_p31_womens');
+    // Classe diz masculino -> NÃO toca (falso candidato).
+    expect(genderVerdict(null, 'Something Women FC', ['male'])).toBe('wikidata_p31_mens');
+  });
+
+  it('lê os ids de P31 (string e objeto)', () => {
+    expect(
+      p31IdsOf({
+        claims: {
+          P31: [
+            { mainsnak: { datavalue: { value: { id: 'Q51481377', 'entity-type': 'item' } } } },
+            { mainsnak: { datavalue: { value: 'Q476028' } } },
+          ],
+        },
+      }),
+    ).toEqual(['Q51481377', 'Q476028']);
   });
 });
