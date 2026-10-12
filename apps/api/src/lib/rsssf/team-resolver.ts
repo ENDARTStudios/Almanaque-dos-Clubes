@@ -121,6 +121,31 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   // na Libertadores é o paraguaio. `RB Bragantino` é a forma usada no mata-mata.
   Olimpia: { name: 'Club Olimpia', qid: 'Q604589' },
   'RB Bragantino': { name: 'Red Bull Bragantino', qid: 'Q541744' },
+  // T529 — La Liga. A cascata genérica erra AQUI de um jeito perigoso: `Madrid`
+  // casava com "Madrid autonomous football team" (seleção regional!), `Málaga` com
+  // o extinto CD Málaga e `Sporting` com um clube de Malta. Os demais são homônimos
+  // internos do acervo (time B / clube histórico) que a rodada não desempata sozinha.
+  Atlético: { name: 'Atlético Madrid', qid: 'Q8701' },
+  Barcelona: { name: 'Fútbol Club Barcelona', qid: 'Q7156' },
+  Madrid: { name: 'Real Madrid Club de Fútbol', qid: 'Q8682' },
+  Deportivo: { name: 'Deportivo de A Coruña', qid: 'Q8760' },
+  Elche: { name: 'Elche Club de Fútbol', qid: 'Q10512' },
+  Espanyol: { name: 'RCD Espanyol de Barcelona', qid: 'Q8780' },
+  Getafe: { name: 'Getafe CF', qid: 'Q8806' },
+  Granada: { name: 'Granada CF', qid: 'Q8812' },
+  'Las Palmas': { name: 'Unión Deportiva Las Palmas', qid: 'Q11979' },
+  Sociedad: { name: 'Real Sociedad de Fútbol', qid: 'Q10315' },
+  Valencia: { name: 'Valencia Club de Fútbol', qid: 'Q10333' },
+  // O acervo tem DOIS "Athletic Club" masculinos: o QID fixa o de Bilbao.
+  Athletic: { name: 'Athletic Club', qid: 'Q8687' },
+  // T529 — Serie A. Homônimos internos (o acervo tem entidades "…and the Italian
+  // national football team" e o Milan feminino) — o QID evita o casamento errado.
+  Chievo: { name: 'AC ChievoVerona', qid: 'Q2037' },
+  Inter: { name: 'Inter Milan', qid: 'Q631' },
+  Juventus: { name: 'Juventus FC', qid: 'Q1422' },
+  Milan: { name: 'AC Milan', qid: 'Q1543' },
+  Roma: { name: 'AS Roma', qid: 'Q2739' },
+  Sampdoria: { name: 'U.C. Sampdoria', qid: 'Q1457' },
 };
 
 /**
@@ -146,6 +171,24 @@ export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   'Patronato',
   'Independiente Petrolero',
   'Indep. Petrolero',
+  // T529 — La Liga/Serie A: clubes que o acervo NÃO tem (conferido por nome em
+  // produção). `Málaga` entra aqui de propósito: o acervo só tem o extinto
+  // CD Málaga (Q124518) e o Málaga CF feminino — casar o Málaga CF masculino com
+  // o clube histórico seria dado falso, então o jogo vira gap.
+  // `Sporting` idem: sem o Sporting de Gijón no acervo, a cascata casaria com um
+  // clube de Malta. `Eibar`/`Huesca` também ausentes.
+  'Eibar',
+  'Huesca',
+  'Sporting',
+  'Málaga',
+  // Serie A
+  'Lecce',
+  'Como',
+  'Monza',
+  'Cremonese',
+  'Frosinone',
+  'Salernitana',
+  'SPAL',
 ]);
 
 function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
