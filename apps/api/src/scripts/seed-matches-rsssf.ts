@@ -293,6 +293,10 @@ export function buildPlan(
       globalPool: ctx.globalPool,
       seasonPool: ctx.seasonPool,
       countries: ctx.source.countries,
+      // T529 — o rótulo da temporada entra na resolução: há token que significa
+      // clubes DIFERENTES em anos diferentes (`Estudiantes` = La Plata em 2015 e
+      // Mérida/VEN em 2020). Ver `AliasTarget.exceptSeasons`.
+      season: ctx.season.label,
     });
     const id = r.club?.id ?? null;
     if (!id) {
@@ -452,6 +456,7 @@ export async function run(argv: string[]): Promise<number> {
             globalPool,
             seasonPool,
             countries: source.countries,
+            season: season.label,
           });
           console.log(
             `  ${t.padEnd(26)} ${r.club ? `-> ${r.club.name} (${r.via})` : `NAO RESOLVIDO ${r.ambiguousWith.slice(0, 4).join(' | ')}`}`,

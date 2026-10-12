@@ -153,3 +153,47 @@ describe('team-resolver T519 — variantes de token e pool sem país', () => {
 function auditedClubs(): ClubCandidate[] {
   return [];
 }
+
+describe('T529 — alias com temporada (mesmo token, clubes diferentes)', () => {
+  const laPlata: ClubCandidate = {
+    id: 'ar1',
+    name: 'Estudiantes de La Plata',
+    country: 'AR',
+    state: null,
+    gender: 'men',
+    qid: 'Q214940',
+    city: null,
+  };
+
+  it('`Estudiantes` resolve para La Plata nas temporadas em que é ele', () => {
+    const r = resolveRsssfTeam('Estudiantes', {
+      globalPool: [laPlata],
+      countries: ['AR', 'VE'],
+      season: '2015',
+    });
+    expect(r.club?.name).toBe('Estudiantes de La Plata');
+    expect(r.via).toBe('alias');
+  });
+
+  it('em 2020 o alias é suspenso e o token cai na cascata (no acervo real: ambíguo -> gap)', () => {
+    // O acervo tem mais de um clube que "contém" o token (Estudiantes de Medicina,
+    // Club Sportivo Estudiantes), então sem o alias a cascata não decide — que é o
+    // comportamento DESEJADO aqui: o clube certo (Mérida/VEN) não existe no acervo.
+    const medicina: ClubCandidate = {
+      id: 'pe1',
+      name: 'Estudiantes de Medicina',
+      country: 'PE',
+      state: null,
+      gender: 'men',
+      qid: 'Q5401913',
+      city: null,
+    };
+    const r = resolveRsssfTeam('Estudiantes', {
+      globalPool: [laPlata, medicina],
+      countries: ['AR', 'VE', 'PE'],
+      season: '2020',
+    });
+    expect(r.club).toBeNull();
+    expect(r.ambiguousWith.length).toBeGreaterThan(0);
+  });
+});
