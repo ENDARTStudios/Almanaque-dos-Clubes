@@ -21,6 +21,22 @@ export interface WsC2Strings {
     rankings: string;
     competitions: string;
     related: string;
+    statistics: string;
+    statsOverall: string;
+    statsHome: string;
+    statsAway: string;
+    statsPlayed: string;
+    statsWins: string;
+    statsDraws: string;
+    statsLosses: string;
+    statsGoalsFor: string;
+    statsGoalsAgainst: string;
+    statsGoalDiff: string;
+    statsPoints: string;
+    statsByCompetition: string;
+    statsTopRivals: string;
+    statsOpponent: string;
+    statsEmpty: string;
     gaps: string;
     gapsIntro: string;
     notAvailable: string;
@@ -83,6 +99,22 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       rankings: 'Rankings',
       competitions: 'Competições relacionadas',
       related: 'Conexões (grafo de conhecimento)',
+      statistics: 'Estatísticas',
+      statsOverall: 'Geral',
+      statsHome: 'Casa',
+      statsAway: 'Fora',
+      statsPlayed: 'Jogos',
+      statsWins: 'Vitórias',
+      statsDraws: 'Empates',
+      statsLosses: 'Derrotas',
+      statsGoalsFor: 'Gols pró',
+      statsGoalsAgainst: 'Gols contra',
+      statsGoalDiff: 'Saldo',
+      statsPoints: 'Pontos',
+      statsByCompetition: 'Por competição e temporada',
+      statsTopRivals: 'Confrontos mais frequentes',
+      statsOpponent: 'Adversário',
+      statsEmpty: 'Sem partidas registradas no acervo ainda.',
       gaps: 'Lacunas declaradas',
       gapsIntro: 'O acervo ainda não possui estes dados — exibidos como lacuna, nunca inventados:',
       notAvailable: 'Não disponível nesta fase.',
@@ -108,9 +140,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Competições relacionadas',
         no_related_edges: 'Conexões no grafo',
       },
-    aboutTitle: 'Sobre',
-    aboutSource: 'Fonte: Wikipédia (CC BY-SA)',
-    aboutCataloging: 'Descrição em catalogação (sem artigo na Wikipédia).',
+      aboutTitle: 'Sobre',
+      aboutSource: 'Fonte: Wikipédia (CC BY-SA)',
+      aboutCataloging: 'Descrição em catalogação (sem artigo na Wikipédia).',
     },
     search: {
       title: 'Busca global',
@@ -154,6 +186,22 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       rankings: 'Rankings',
       competitions: 'Related competitions',
       related: 'Connections (knowledge graph)',
+      statistics: 'Statistics',
+      statsOverall: 'Overall',
+      statsHome: 'Home',
+      statsAway: 'Away',
+      statsPlayed: 'Played',
+      statsWins: 'Wins',
+      statsDraws: 'Draws',
+      statsLosses: 'Losses',
+      statsGoalsFor: 'Goals for',
+      statsGoalsAgainst: 'Goals against',
+      statsGoalDiff: 'Goal diff',
+      statsPoints: 'Points',
+      statsByCompetition: 'By competition and season',
+      statsTopRivals: 'Most frequent matchups',
+      statsOpponent: 'Opponent',
+      statsEmpty: 'No matches recorded in the archive yet.',
       gaps: 'Declared gaps',
       gapsIntro: 'The archive does not hold these data yet — shown as gaps, never invented:',
       notAvailable: 'Not available at this stage.',
@@ -179,9 +227,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Related competitions',
         no_related_edges: 'Graph connections',
       },
-    aboutTitle: 'About',
-    aboutSource: 'Source: Wikipedia (CC BY-SA)',
-    aboutCataloging: 'Description being catalogued (no Wikipedia article).',
+      aboutTitle: 'About',
+      aboutSource: 'Source: Wikipedia (CC BY-SA)',
+      aboutCataloging: 'Description being catalogued (no Wikipedia article).',
     },
     search: {
       title: 'Global search',
@@ -225,6 +273,22 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       rankings: 'Rankings',
       competitions: 'Competiciones relacionadas',
       related: 'Conexiones (grafo de conocimiento)',
+      statistics: 'Estadísticas',
+      statsOverall: 'General',
+      statsHome: 'Casa',
+      statsAway: 'Fuera',
+      statsPlayed: 'Partidos',
+      statsWins: 'Victorias',
+      statsDraws: 'Empates',
+      statsLosses: 'Derrotas',
+      statsGoalsFor: 'Goles a favor',
+      statsGoalsAgainst: 'Goles en contra',
+      statsGoalDiff: 'Diferencia',
+      statsPoints: 'Puntos',
+      statsByCompetition: 'Por competición y temporada',
+      statsTopRivals: 'Enfrentamientos más frecuentes',
+      statsOpponent: 'Rival',
+      statsEmpty: 'Sin partidos registrados en el acervo todavía.',
       gaps: 'Lagunas declaradas',
       gapsIntro: 'El acervo aún no tiene estos datos — mostrados como laguna, nunca inventados:',
       notAvailable: 'No disponible en esta fase.',
@@ -250,9 +314,9 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
         no_related_competition: 'Competiciones relacionadas',
         no_related_edges: 'Conexiones del grafo',
       },
-    aboutTitle: 'Acerca de',
-    aboutSource: 'Fuente: Wikipedia (CC BY-SA)',
-    aboutCataloging: 'Descripción en catalogación (sin artículo en Wikipedia).',
+      aboutTitle: 'Acerca de',
+      aboutSource: 'Fuente: Wikipedia (CC BY-SA)',
+      aboutCataloging: 'Descripción en catalogación (sin artículo en Wikipedia).',
     },
     search: {
       title: 'Búsqueda global',

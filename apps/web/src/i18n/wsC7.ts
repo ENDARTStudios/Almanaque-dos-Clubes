@@ -25,6 +25,12 @@ export interface WsC7Strings {
     headToHead: string;
     h2hNone: string;
     h2hWith: string;
+    h2hMatches: string;
+    h2hPlayed: string;
+    h2hDraws: string;
+    h2hWinsA: string;
+    h2hWinsB: string;
+    h2hGoals: string;
     viewProfile: string;
     noRanking: string;
   };
@@ -51,6 +57,12 @@ export const wsC7Strings: Record<Locale, WsC7Strings> = {
       headToHead: 'Confronto direto',
       h2hNone: 'Sem confronto registrado no acervo',
       h2hWith: 'Aresta explícita no Knowledge Graph',
+      h2hMatches: 'Partidas entre eles (acervo)',
+      h2hPlayed: 'Jogos',
+      h2hDraws: 'Empates',
+      h2hWinsA: 'Vitórias do mandante da comparação',
+      h2hWinsB: 'Vitórias do outro clube',
+      h2hGoals: 'Gols',
       viewProfile: 'Ver perfil',
       noRanking: 'Sem ranking publicado',
     },
@@ -75,6 +87,12 @@ export const wsC7Strings: Record<Locale, WsC7Strings> = {
       headToHead: 'Head-to-head',
       h2hNone: 'No matchup recorded in the collection',
       h2hWith: 'Explicit edge in the Knowledge Graph',
+      h2hMatches: 'Matches between them (archive)',
+      h2hPlayed: 'Played',
+      h2hDraws: 'Draws',
+      h2hWinsA: 'Wins for the first club',
+      h2hWinsB: 'Wins for the other club',
+      h2hGoals: 'Goals',
       viewProfile: 'View profile',
       noRanking: 'No published ranking',
     },
@@ -99,6 +117,12 @@ export const wsC7Strings: Record<Locale, WsC7Strings> = {
       headToHead: 'Enfrentamiento directo',
       h2hNone: 'Sin enfrentamiento registrado en el acervo',
       h2hWith: 'Arista explícita en el Knowledge Graph',
+      h2hMatches: 'Partidos entre ellos (acervo)',
+      h2hPlayed: 'Partidos',
+      h2hDraws: 'Empates',
+      h2hWinsA: 'Victorias del primer club',
+      h2hWinsB: 'Victorias del otro club',
+      h2hGoals: 'Goles',
       viewProfile: 'Ver perfil',
       noRanking: 'Sin ranking publicado',
     },

@@ -53,13 +53,38 @@ export interface RecentTitleItem {
   hierarchy: RankHierarchy;
 }
 
+export interface H2HMatch {
+  date: string;
+  homeClubId: string;
+  awayClubId: string;
+  homeScore: number;
+  awayScore: number;
+  competitionName: string | null;
+  season: string | null;
+}
+
+export interface H2HSummary {
+  played: number;
+  winsA: number;
+  draws: number;
+  winsB: number;
+  goalsA: number;
+  goalsB: number;
+}
+
 export interface ClubComparison {
   clubA: CompareClub;
   clubB: CompareClub;
   titles: { clubA: HierarchyCount; clubB: HierarchyCount };
   rankings: { clubA: CompareRankingItem[] | null; clubB: CompareRankingItem[] | null };
   recentTitles: { clubA: RecentTitleItem[]; clubB: RecentTitleItem[] };
-  headToHead: { exists: boolean; relations: string[]; matches: unknown[] };
+  headToHead: {
+    exists: boolean;
+    relations: string[];
+    /** T523 — resumo do confronto direto nas partidas reais (null se nenhuma). */
+    summary: H2HSummary | null;
+    matches: H2HMatch[];
+  };
 }
 
 /** PURO — agrega títulos por hierarquia (+ total). */
@@ -103,8 +128,10 @@ export function buildComparison(input: {
   rankingsA: CompareRankingItem[] | null;
   rankingsB: CompareRankingItem[] | null;
   h2hRelations: string[];
+  h2hMatches: H2HMatch[];
   currentYear: number;
 }): ClubComparison {
+  const summary = buildH2HSummary(input.h2hMatches, input.clubA.id);
   return {
     clubA: input.clubA,
     clubB: input.clubB,
@@ -119,12 +146,32 @@ export function buildComparison(input: {
     },
     headToHead: {
       // Rivalidade/confronto só com aresta EXPLÍCITA entre os dois clubes —
-      // nunca inferida por geografia ou história (despacho WS-C-7).
-      exists: input.h2hRelations.length > 0,
+      // nunca inferida por geografia ou história (despacho WS-C-7). T523: as
+      // PARTIDAS reais entre os dois agora existem no acervo e entram aqui.
+      exists: input.h2hRelations.length > 0 || input.h2hMatches.length > 0,
       relations: [...new Set(input.h2hRelations)].sort(),
-      matches: [], // partidas detalhadas não existem no acervo (tabela vazia) — honesto
+      summary,
+      matches: input.h2hMatches,
     },
   };
+}
+
+/** PURO — resumo do confronto direto a partir das partidas entre A e B. */
+export function buildH2HSummary(matches: H2HMatch[], aId: string): H2HSummary | null {
+  if (matches.length === 0) return null;
+  const s: H2HSummary = { played: 0, winsA: 0, draws: 0, winsB: 0, goalsA: 0, goalsB: 0 };
+  for (const m of matches) {
+    s.played += 1;
+    const aIsHome = m.homeClubId === aId;
+    const aGoals = aIsHome ? m.homeScore : m.awayScore;
+    const bGoals = aIsHome ? m.awayScore : m.homeScore;
+    s.goalsA += aGoals;
+    s.goalsB += bGoals;
+    if (aGoals > bGoals) s.winsA += 1;
+    else if (aGoals === bGoals) s.draws += 1;
+    else s.winsB += 1;
+  }
+  return s;
 }
 
 interface ClubRow {
@@ -172,7 +219,7 @@ export async function getClubComparison(aId: string, bId: string): Promise<ClubC
     ]);
     if (!rowA || !rowB) return null;
 
-    const [titlesA, titlesB, rankingsA, rankingsB, h2hEdges] = await Promise.all([
+    const [titlesA, titlesB, rankingsA, rankingsB, h2hEdges, h2hRows] = await Promise.all([
       clubsRepository.listTitlesByClub(aId),
       clubsRepository.listTitlesByClub(bId),
       loadRankings(aId),
@@ -190,7 +237,39 @@ export async function getClubComparison(aId: string, bId: string): Promise<ClubC
           select: { relation: true, metadata: true },
         }),
       ),
+      // T523 — partidas REAIS entre os dois (todas; o payload leva as 10 mais recentes).
+      prisma.match.findMany({
+        where: {
+          status: 'FINISHED',
+          homeScore: { not: null },
+          awayScore: { not: null },
+          OR: [
+            { homeClubId: aId, awayClubId: bId },
+            { homeClubId: bId, awayClubId: aId },
+          ],
+        },
+        select: {
+          date: true,
+          homeClubId: true,
+          awayClubId: true,
+          homeScore: true,
+          awayScore: true,
+          competition: { select: { name: true } },
+          season: { select: { name: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
     ]);
+
+    const h2hMatches: H2HMatch[] = h2hRows.map((m) => ({
+      date: m.date.toISOString().slice(0, 10),
+      homeClubId: m.homeClubId,
+      awayClubId: m.awayClubId,
+      homeScore: m.homeScore ?? 0,
+      awayScore: m.awayScore ?? 0,
+      competitionName: m.competition?.name ?? null,
+      season: m.season?.name ?? null,
+    }));
 
     const toCompareItems = (
       items: Awaited<ReturnType<typeof loadRankings>>,
@@ -210,6 +289,7 @@ export async function getClubComparison(aId: string, bId: string): Promise<ClubC
       rankingsA: rankingsA.length > 0 ? toCompareItems(rankingsA) : null,
       rankingsB: rankingsB.length > 0 ? toCompareItems(rankingsB) : null,
       h2hRelations: h2hEdges.map((e) => e.relation),
+      h2hMatches: h2hMatches.slice(0, 10),
       currentYear: new Date().getUTCFullYear(),
     });
   });

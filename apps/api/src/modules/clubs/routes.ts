@@ -17,6 +17,7 @@ import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.j
 import { getClubProfile } from './profile.service.js';
 import { getClubRelated, getClubTimeline } from './insights.service.js';
 import { getClubComparison } from './compare.service.js';
+import { getClubStatistics } from './statistics.service.js';
 import {
   isActiveOwner,
   listOwners,
@@ -201,6 +202,24 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * GET /clubs/:id/geo — T466, geografia resolvida (país/estado/cidade + coordenadas).
    * Contrato consumido pelo mapa-múndi (T467). Nulos = dado ausente (honesto).
    */
+  /**
+   * T523 — Estatísticas agregadas do clube (partidas reais): geral com split
+   * casa/fora, por competição+temporada e top 10 confrontos diretos.
+   * Cálculo sob demanda com cache de 5 min (decisão de modelo no service).
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/statistics', async (request, reply) => {
+    try {
+      const data = await getClubStatistics(request.params.id);
+      if (!data)
+        return reply
+          .status(404)
+          .send({ error: { code: 'NOT_FOUND', message: 'Clube não encontrado' } });
+      return reply.send({ data });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
   app.get<{ Params: { id: string } }>('/clubs/:id/geo', async (request, reply) => {
     try {
       const geo = await clubsService.geo(request.params.id);
