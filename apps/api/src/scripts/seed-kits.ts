@@ -88,6 +88,9 @@ const DIRECT_KITS: Record<
 
 /** clube do acervo (por QID) → página(s) pt.wiki a parsear. */
 export const CLUB_SOURCES: Array<{ qid: string; name: string; pages: string[] }> = [
+  // Sem composição na pt.wiki, mas com FOTOS diretas curadas (DIRECT_KITS).
+  { qid: 'Q9617', name: 'Arsenal F.C.', pages: [] },
+  { qid: 'Q1130849', name: 'Liverpool F.C.', pages: [] },
   {
     qid: 'Q80987',
     name: 'Fluminense F.C.',
