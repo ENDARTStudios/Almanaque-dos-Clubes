@@ -257,4 +257,43 @@ describe('match-parser T527 — expansão (spill, playoff, guard de tabela)', ()
     expect(r.matches.map((m) => m.round)).toEqual(['34', 'P1', 'P2']);
     expect(r.matches[1].dateRaw).toBe('May 21');
   });
+
+  it('a tabela final ENCERRA o bloco: barragem/playoff depois dela fica fora', () => {
+    // Ligue 1 2023-24: após a rodada 34 vem a tabela final e, depois, a barragem
+    // de acesso/rebaixamento — que envolve clubes da divisão de baixo (Rodez).
+    const r = parseLeagueBlock(
+      'Final Table:\n 1.Paris-Saint-Germain FC 34 22 10 2 81-33 76 [C]\n' +
+        'Round 34\n[May 19]\nMetz 0-2 Paris-SG\n' +
+        'Final Table:\n 1.Paris-Saint-Germain FC 34 22 10 2 81-33 76 [C]  Champions\n' +
+        '16.FC Metz 34 8 5 21 35-58 29 [P] Relegation Playoff\n' +
+        'Promotion/Relegation Playoff 1st/2nd Level\nRound 1 [May 21]\nRodez 2-2 Paris FC\n' +
+        'Final\nFirst Leg [May 30]\nSaint-Etienne 2-1 Metz\n',
+    );
+    expect(r.matches).toHaveLength(1);
+    expect(r.matches[0]).toMatchObject({ round: '34', homeName: 'Metz', awayGoals: 2 });
+  });
+
+  it('nota quebrada em 2 linhas não contamina nomes (placar impresso = partida)', () => {
+    // Ligue 1 2024-25: a notação do jogo abandonado atravessa a quebra de linha e
+    // a sobra (`crowd trouble; result stood]`) entra na linha do jogo SEGUINTE.
+    const r = parseLeagueBlock(
+      'Round 26\n[Mar 16]\n' +
+        "Montpellier   0-2 Saint-Etienne [abandoned at 0-2 in 62' due to\n" +
+        'Strasbourg    2-1 Toulouse       crowd trouble; result stood]\n',
+    );
+    expect(
+      r.matches.map((m) => `${m.homeName} ${m.homeGoals}-${m.awayGoals} ${m.awayName}`),
+    ).toEqual(['Montpellier 0-2 Saint-Etienne', 'Strasbourg 2-1 Toulouse']);
+    expect(r.matches[0].sourceNote).toContain('abandoned');
+    expect(r.warnings).toHaveLength(0);
+  });
+
+  it('marcador no lugar do placar (abd/awd) fica fora, como gap declarado', () => {
+    const r = parseLeagueBlock(
+      'Round 8\n[Oct 8]\nMontpellier   abd Clermont      [abandoned at 4-2 in 90+2]\n' +
+        'Round 12\n[Dec 14]\nUnion  awd Bochum [awarded 0-2; originally 1-1]\n',
+    );
+    expect(r.matches).toHaveLength(0);
+    expect(r.warnings.filter((w) => w.startsWith('abandoned_match:'))).toHaveLength(2);
+  });
 });

@@ -138,6 +138,17 @@ function isTableRow(homeName: string): boolean {
   const runs = homeName.match(/(?:^|\s)\d{1,3}(?=\s|$)/g);
   return (runs?.length ?? 0) >= 2;
 }
+/**
+ * Nome contaminado pela SOBRA de uma anotação que a fonte quebrou em 2 linhas
+ * (`Toulouse       crowd trouble; result stood]`). Corta no fragmento terminado
+ * em `]` — fragmento assim nunca é nome de clube (colchete fechado já foi
+ * removido antes). Sem isso o visitante viraria "Toulouse crowd trouble; ...".
+ */
+function cutNoteTail(name: string): string {
+  return name.replace(/\s+\S[^\]]*\]\s*$/, '').trim();
+}
+/** A fonte marca jogo anormal no lugar do placar: `abd`/`awd` (ou a anotação). */
+const ABANDONED_RE = /\babd\b|\bawd\b|\babandoned\b|\bawarded\b/i;
 /** Notas inline da fonte que NÃO são autores de gol (anotação de local/replay). */
 const NON_SCORER_NOTE_RE = /^(played in|replay|abandoned|match played|at\b)/i;
 const BRACKET_RE = /\[([^\]]*)\]/g;
@@ -151,7 +162,19 @@ const BRACKET_RE = /\[([^\]]*)\]/g;
  */
 export function stripNotes(line: string): { clean: string; notes: string[] } {
   const notes: string[] = [];
-  const clean = line.replace(BRACKET_RE, (_all, inner: string) => {
+  // Anotação ABERTA (sem `]` de fechamento na mesma linha): a fonte quebra a nota
+  // em 2 linhas físicas — Ligue 1 2024-25:
+  //   `Montpellier   0-2 Saint-Etienne [abandoned at 0-2 in 62' due to`
+  //   `Strasbourg    2-1 Toulouse       crowd trouble; result stood]`
+  // Sem isso o `[...` viraria parte do nome do visitante (dado falso).
+  const openAt = line.indexOf('[');
+  let body = line;
+  if (openAt >= 0 && line.indexOf(']', openAt) < 0) {
+    const note = line.slice(openAt + 1).trim();
+    if (note) notes.push(note);
+    body = line.slice(0, openAt);
+  }
+  const clean = body.replace(BRACKET_RE, (_all, inner: string) => {
     const note = inner.trim();
     if (note) notes.push(note);
     return ' ';
@@ -207,6 +230,13 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
       continue;
     }
 
+    // Fim do round-robin: a fonte imprime a tabela final logo após a última rodada
+    // e, depois dela, playoff/barragem de acesso-rebaixamento (Ligue 1/Bundesliga)
+    // que envolve clubes da divisão DE BAIXO — fora do escopo da temporada desta
+    // competição. A tabela final de ABERTURA (antes da rodada 1) é ignorada porque
+    // o break só vale depois de `started`.
+    if (/^Final Table\b/i.test(trimmed)) break;
+
     const dateM = DATE_LINE_RE.exec(trimmed);
     if (dateM) {
       date = monthDay(dateM[1], dateM[2]);
@@ -222,17 +252,22 @@ export function parseLeagueBlock(text: string): RsssfParseResult {
 
     const { clean, notes } = stripNotes(trimmed);
     if (!clean) continue;
-    if (/\babd\b/i.test(clean)) {
-      // Jogo abandonado (ex.: Bournemouth x Luton 2023-24): a fonte imprime o
-      // placar só dentro da anotação. Não vira partida — vira gap declarado.
-      warnings.push(`abandoned_match:${clean}`);
-      continue;
-    }
 
     const m = LEAGUE_MATCH_RE.exec(clean);
-    if (m) {
-      const homeName = m[1].trim();
-      const awayName = m[4].trim();
+    if (!m) {
+      // SEM placar na coluna: a fonte usou um marcador de jogo anormal (`abd`,
+      // `awd`) ou `x`/`y`. Regra de honestidade: o placar final só entra se a
+      // FONTE o imprimiu na coluna — deduzi-lo da anotação seria adivinhar.
+      // Ex.: Bournemouth x Luton (PL 2023-24), Montpellier abd Clermont (L1
+      // 2023-24), Union awd Bochum (BL 2024-25, decisão disciplinar).
+      if (ABANDONED_RE.test(clean) || notes.some((n) => ABANDONED_RE.test(n))) {
+        warnings.push(`abandoned_match:${clean}`);
+      }
+      continue;
+    }
+    {
+      const homeName = cutNoteTail(m[1].trim());
+      const awayName = cutNoteTail(m[4].trim());
       // Guarda contra linhas de tabela (ex.: "1.Palmeiras ... 64-33 70").
       if (isTableRow(homeName) || !/[A-Za-zÀ-ÿ]/.test(awayName)) continue;
       if (!date) {
