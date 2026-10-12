@@ -38,13 +38,15 @@ export interface TeamResolution {
 
 /**
  * Alvo de alias: nome exato no acervo e, quando o acervo tem HOMÔNIMOS, um
- * discriminador (`city`) lido da própria linha do banco — ex.: há dois
- * "América Futebol Clube" masculinos no acervo (Belo Horizonte x Morrinhos);
- * a fonte distingue pelo sufixo de UF (`América/MG`), então o alias aponta para
- * o de Belo Horizonte. Nenhum QID é digitado de memória: tudo veio de SELECT.
+ * discriminador lido da própria linha do banco — `qid` (preferido) ou `city`.
+ * Ex.: há dois "América Futebol Clube" masculinos no acervo (Q338285 = Belo
+ * Horizonte/MG — conferido no Wikidata; e Q482251 = Morrinhos/GO) e a fonte
+ * distingue pelo sufixo de UF (`América/MG`). Nenhum QID vem de memória: são os
+ * que o PRÓPRIO acervo gravou, conferidos na fonte (D-2026-10-09).
  */
 export interface AliasTarget {
   name: string;
+  qid?: string;
   city?: string;
 }
 
@@ -63,12 +65,11 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   'CA Mineiro': { name: 'Atlético-MG' },
   'Athletico/PR': { name: 'Club Athletico Paranaense' },
   'Athletico Paranaense': { name: 'Club Athletico Paranaense' },
-  'América/MG': { name: 'América Futebol Clube', city: 'Belo Horizonte' },
-  'América Mineiro': { name: 'América Futebol Clube', city: 'Belo Horizonte' },
+  'América/MG': { name: 'América Futebol Clube', qid: 'Q338285' },
+  'América Mineiro': { name: 'América Futebol Clube', qid: 'Q338285' },
   'Atlético/GO': { name: 'Atlético Clube Goianiense' },
   Bragantino: { name: 'Red Bull Bragantino' },
   'Sport Recife': { name: 'Sport Club do Recife' },
-  'Vasco da Gama': { name: 'Club de Regatas Vasco da Gama' },
   Cuiabá: { name: 'Cuiabá Esporte Clube' },
   Criciúma: { name: 'Criciúma Esporte Clube' },
   Vitória: { name: 'Esporte Clube Vitória' },
@@ -89,9 +90,15 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   'SD Aucas': { name: 'Sociedad Deportiva Aucas' },
 };
 
-/** Aliases marcados explicitamente como ausentes no acervo (T519) — nunca casam. */
+/**
+ * Times que a fonte imprime e o acervo NÃO tem — verificado em produção. Nunca
+ * casam (o jogo vira gap declarado em vez de um match aproximado).
+ * `Vasco da Gama`: o acervo só tem o feminino e um homônimo português; o clube
+ * masculino do Rio (Q5014111 é o poliesportivo, gravado como `women`) está ausente.
+ */
 export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   'Chapecoense',
+  'Vasco da Gama',
   'Monagas SC',
   'Deportivo Táchira FC',
   'Patronato',
@@ -181,6 +188,7 @@ export function resolveRsssfTeam(token: string, opts: ResolveOptions): TeamResol
         pool,
         (c) =>
           namesOf(c).some((n) => normalizeTeamName(n) === targetNorm) &&
+          (!aliasTarget.qid || c.qid === aliasTarget.qid) &&
           (!cityNorm || (c.city != null && normalizeTeamName(c.city) === cityNorm)),
       );
     const inSeason = byAlias(season);

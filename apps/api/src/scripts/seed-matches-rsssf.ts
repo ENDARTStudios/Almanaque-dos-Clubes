@@ -47,6 +47,17 @@ const UA =
 const BATCH = 500;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/** Campos de clube usados na resolução (a mesma projeção nos dois pools). */
+const CLUB_FIELDS = {
+  id: true,
+  name: true,
+  country: true,
+  state: true,
+  gender: true,
+  qid: true,
+  city: true,
+} as const;
+
 export interface SeasonSpec {
   /** Rótulo da temporada como o acervo usa (ex.: "2023", "2023-24"). */
   label: string;
@@ -167,6 +178,8 @@ export function buildPlan(
     competitionId: string;
     seasonId: string | null;
     globalPool: ClubCandidate[];
+    /** Clubes que o acervo já usa na competição+temporada (desambigua homônimos). */
+    seasonPool?: ClubCandidate[];
     competitionName: string;
   },
 ): SeedReport {
@@ -180,6 +193,7 @@ export function buildPlan(
     if (cache.has(token)) return cache.get(token) ?? null;
     const r = resolveRsssfTeam(token, {
       globalPool: ctx.globalPool,
+      seasonPool: ctx.seasonPool,
       countries: ctx.source.countries,
     });
     const id = r.club?.id ?? null;
@@ -279,15 +293,7 @@ export async function run(argv: string[]): Promise<number> {
     const globalPool = (
       await prisma.club.findMany({
         where: { deletedAt: null, gender: 'men', country: { in: source.countries } },
-        select: {
-          id: true,
-          name: true,
-          country: true,
-          state: true,
-          gender: true,
-          qid: true,
-          city: true,
-        },
+        select: CLUB_FIELDS,
       })
     ).map(candidateFrom);
 
@@ -309,13 +315,39 @@ export async function run(argv: string[]): Promise<number> {
       if (!values.file) await sleep(1000);
       const parsed = parseRsssfMatches(html, { kind: source.kind });
 
+      // Pool da temporada: os clubes que o PRÓPRIO acervo já usa nesta competição
+      // e nesta temporada (classificação ingerida em T508+). É o desambiguador
+      // mais forte que existe — o acervo tem homônimos ("Sociedade Esportiva
+      // Palmeiras" ×2, "Cruzeiro E.C." ×2...) e esta é a escolha que ele já fez.
+      const compSeason = await prisma.competitionSeason.findFirst({
+        where: { competitionId: competition.id, season: season.label },
+        select: { standings: true },
+      });
+      const poolIds = new Set<string>();
+      const seasonRows = (compSeason?.standings as Array<{ clubId?: string | null }> | null) ?? [];
+      for (const r of seasonRows) if (r?.clubId) poolIds.add(r.clubId);
+      const seasonPool = poolIds.size
+        ? (
+            await prisma.club.findMany({
+              where: { id: { in: [...poolIds] }, deletedAt: null },
+              select: CLUB_FIELDS,
+            })
+          ).map(candidateFrom)
+        : [];
+
       if (values['resolve-report']) {
         const tokens = new Set(parsed.matches.flatMap((m) => [m.homeName, m.awayName]));
-        console.log(`\n[${sourceKey} ${season.label}] tokens=${tokens.size}`);
+        console.log(
+          `\n[${sourceKey} ${season.label}] tokens=${tokens.size} poolTemporada=${seasonPool.length}`,
+        );
         for (const t of [...tokens].sort()) {
-          const r = resolveRsssfTeam(t, { globalPool, countries: source.countries });
+          const r = resolveRsssfTeam(t, {
+            globalPool,
+            seasonPool,
+            countries: source.countries,
+          });
           console.log(
-            `  ${t.padEnd(26)} ${r.club ? `-> ${r.club.name} (${r.via})` : `NAO RESOLVIDO ${r.ambiguousWith.slice(0, 3).join(' | ')}`}`,
+            `  ${t.padEnd(26)} ${r.club ? `-> ${r.club.name} (${r.via})` : `NAO RESOLVIDO ${r.ambiguousWith.slice(0, 4).join(' | ')}`}`,
           );
         }
         continue;
