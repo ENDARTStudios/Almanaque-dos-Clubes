@@ -38,7 +38,8 @@ const match = (month: number, day: number, home: string, away: string): RsssfMat
 describe('buildPlan T527 — spillAfter da temporada Covid', () => {
   it('jan/fev pertencem ao ano SEGUINTE quando a temporada declara spillAfter', () => {
     const source = SOURCES.br!;
-    const season = source.seasons[0]!; // { label: '2020', spillAfter: 5 }
+    // A temporada Covid do BR é a de 2020 (rotulada '2020', com spillAfter).
+    const season = source.seasons.find((s) => s.label === '2020')!;
     expect(season.spillAfter).toBe(5);
 
     const report = buildPlan(

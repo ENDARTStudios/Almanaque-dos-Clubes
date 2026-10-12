@@ -31,6 +31,7 @@ import { decodeLegacyBytes } from '../lib/rsssf/decode-legacy-table.js';
 import {
   parseRsssfMatches,
   matchDate,
+  resolveCrossYears,
   type RsssfMatch,
   type RsssfSourceKind,
 } from '../lib/rsssf/match-parser.js';
@@ -103,6 +104,22 @@ const bundesligaSeason = (start: number): SeasonSpec => ({
   yearStart: start,
   mode: 'cross',
 });
+/** La Liga: a página é nomeada pelo ano de TÉRMINO (span2016 = 2015-16) e o
+ * acervo rotula '2015-16' (dois dígitos no fim, como a Premier League). */
+const laligaSeason = (start: number): SeasonSpec => ({
+  label: `${start}-${String(start + 1).slice(2)}`,
+  file: String(start + 1),
+  yearStart: start,
+  mode: 'cross',
+});
+/** Serie A italiana: também nomeada pelo ano de término, mas o acervo rotula com
+ * os dois anos completos ('2015-2016', como a Ligue 1). */
+const serieaSeason = (start: number): SeasonSpec => ({
+  label: `${start}-${start + 1}`,
+  file: String(start + 1),
+  yearStart: start,
+  mode: 'cross',
+});
 
 export const SOURCES: Record<string, SourceSpec> = {
   ligue1: {
@@ -125,8 +142,12 @@ export const SOURCES: Record<string, SourceSpec> = {
     countries: ['BR'],
     url: (f) => `https://www.rsssf.org/tablesb/${f}.html`,
     seasons: [
+      // T529 — 2015-2019 (2019 e anteriores: mesmas seções, cabeçalho de rodada
+      // tanto puro quanto com a data no colchete).
+      ...[2015, 2016, 2017, 2018, 2019].map(brSeason),
       { ...brSeason(2020), spillAfter: 5 }, // Covid: temporada vaza para jan/fev de 2021
       ...[2021, 2022, 2023, 2024].map(brSeason),
+      // 2025 fica FORA: a página não publica rodada a rodada (só tabela final).
     ],
   },
   pl: {
@@ -136,17 +157,58 @@ export const SOURCES: Record<string, SourceSpec> = {
     // A página inglesa é nomeada pelo ano de TÉRMINO: eng2024 = temporada 2023-24.
     url: (f) => `https://www.rsssf.org/tablese/${f}.html`,
     seasons: [
+      // T529 — 2015-16 a 2021-22 (eng2016..eng2022). 2025-26 fica FORA: a página
+      // eng2026 ainda não publica rodada a rodada (o parser acha 216 jogos de 124
+      // clubes, sinal de bloco deslocado — melhor gap declarado que dado sujo).
+      // 2019-20 (Covid) jogou até 26/jul/2020: corte em agosto.
+      ...[2015, 2016, 2017, 2018, 2019, 2020, 2021].map((start) => ({
+        label: `${start}-${String(start + 1).slice(2)}`,
+        file: `eng${start + 1}`,
+        yearStart: start,
+        mode: 'cross' as const,
+      })),
       { label: '2022-23', file: 'eng2023', yearStart: 2022, mode: 'cross' },
       { label: '2023-24', file: 'eng2024', yearStart: 2023, mode: 'cross' },
       { label: '2024-25', file: 'eng2025', yearStart: 2024, mode: 'cross' },
     ],
+  },
+  // T529 — La Liga (Espanha). O diretório é `tabless` (dois "s"): `tablesp` é
+  // Portugal. A página tem La Liga, Copa del Rey e Segunda na mesma página —
+  // o corte na tabela final isola as rodadas da primeira divisão.
+  laliga: {
+    competitionQid: 'Q324867',
+    kind: 'league',
+    countries: ['ES'],
+    url: (f) => `https://www.rsssf.org/tabless/span${f}.html`,
+    // 2015-16 a 2024-25 (10 temporadas) — TODAS com 380 jogos validados. 2025-26
+    // fica fora (a página só tem um trecho: 12 jogos). 2019-20 (Covid) jogou até
+    // 19/jul/2020 → corte em agosto.
+    seasons: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024].map(laligaSeason),
+  },
+  // T529 — Serie A italiana (rótulo do acervo com os dois anos completos).
+  seriea: {
+    competitionQid: 'Q15804',
+    kind: 'league',
+    countries: ['IT'],
+    url: (f) => `https://www.rsssf.org/tablesi/ital${f}.html`,
+    // 2015-16 a 2024-25. 2025-26 fica fora (a página não publica rodada a rodada).
+    // 2019-20 (Covid) jogou até 2/ago/2020 → corte em SETEMBRO (é a única que
+    // atravessa agosto).
+    seasons: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024].map(serieaSeason),
   },
   lib: {
     competitionQid: 'Q184795', // Copa Libertadores
     kind: 'libertadores',
     countries: [...CONMEBOL_COUNTRIES],
     url: (f) => `https://www.rsssf.org/sacups/${f}.html`,
-    seasons: [2022, 2023, 2024].map(libSeason),
+    // T529 — 2015 a 2021 somam-se a 2022-2024. 2025 não existe na fonte (404).
+    // 2020 (Covid) teve a FINAL em 30/jan/2021: é o único jogo daquele ano em
+    // jan/fev, então o `spillAfter: 1` acerta a final sem mexer no resto.
+    seasons: [
+      ...[2015, 2016, 2017, 2018, 2019].map(libSeason),
+      { ...libSeason(2020), spillAfter: 1 },
+      ...[2021, 2022, 2023, 2024].map(libSeason),
+    ],
   },
 };
 
@@ -243,7 +305,12 @@ export function buildPlan(
     return id;
   };
 
-  for (const m of matches) {
+  // T529 — ano por SEQUÊNCIA nas temporadas cruzadas (a Covid esticou 2019-20 até
+  // agosto de 2020, com agosto nos dois extremos: nenhum corte de mês resolve).
+  const crossYears =
+    ctx.season.mode === 'cross' ? resolveCrossYears(matches, ctx.season.yearStart) : null;
+
+  for (const [idx, m] of matches.entries()) {
     const homeId = resolve(m.homeName);
     const awayId = resolve(m.awayName);
     if (!homeId || !awayId) {
@@ -255,12 +322,10 @@ export function buildPlan(
       skipped.set('mandante = visitante', (skipped.get('mandante = visitante') ?? 0) + 1);
       continue;
     }
-    // `spillAfter` PRECISA ser repassado: sem ele, a temporada Covid do BR 2020
-    // grava jan/fev de 2021 como jan/fev de 2020 (um ano atrás do real).
     const date = matchDate(m, {
-      mode: ctx.season.mode,
-      year: ctx.season.yearStart,
-      spillAfter: ctx.season.spillAfter,
+      mode: 'single',
+      year: crossYears ? crossYears[idx]! : ctx.season.yearStart,
+      spillAfter: crossYears ? undefined : ctx.season.spillAfter,
     });
     const iso = date.toISOString().slice(0, 10);
     plan.push({
@@ -312,7 +377,7 @@ export async function run(argv: string[]): Promise<number> {
   const sourceKey = values.source ?? '';
   const source = SOURCES[sourceKey];
   if (!source) {
-    console.error('--source obrigatório: br | pl | lib');
+    console.error('--source obrigatório: br | pl | lib | ligue1 | bundesliga | laliga | seriea');
     return 2;
   }
   const limit = values.limit ? Number.parseInt(values.limit, 10) : Number.POSITIVE_INFINITY;
