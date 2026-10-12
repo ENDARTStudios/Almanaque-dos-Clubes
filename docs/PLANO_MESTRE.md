@@ -586,7 +586,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 - [x] **Perfil completo de jogador** (carreira, estatísticas, ranking histórico) — `/players/:id` renderiza (carreira, nascimento, estatísticas) sobre **105.211 jogadores**. **Gaps: foto em 864 (0,8%) e `Player.clubId` 100% nulo** (vínculo clube-atual não ingerido)
 - [~] **Linha do tempo** de clubes e jogadores — API de timeline existe (WS-C-5); a superfície de UI não foi re-auditada nesta reconciliação
 - [x] **Comparações** (clube×clube, jogador×jogador, com gráficos) — ver "Comparadores" acima
-- [ ] **Uniformes históricos** por temporada (titular/reserva/alternativo) — a coluna `Club.kitHistory` existe mas tem **0 registros preenchidos**
+- [x] **Uniformes históricos** por temporada (titular/reserva/alternativo) — **publicado em 2026-10-12 (T523-kits)**: 11 clubes com `kitHistory` (64 uniformes — Inter 13 · Fluminense 13 · Cruzeiro 13 · Santos 10 · Grêmio 4 · Palmeiras 3 · Flamengo 3 · Botafogo 3 · Corinthians 2 · Arsenal 2 · Liverpool 1), composição por peças verificadas no Commons (licença por arquivo) renderizada em CSS, + fotos curadas. Fonte: composição nos artigos da pt.Wikipédia (2 schemas). Gap: 2021-2025 completo não existe como imagem pronta na fonte; clubes sem composição na pt.wiki ficam de fora
 - [x] **Tabelas de competição** (classificação, artilheiro, campeão/vice) — **114 temporadas catalogadas, 114 com campeão, 104 com vice, 78 com classificação e 70 com artilheiro** (T508–T517), com parser Wikipedia multilíngue (`apps/api/src/lib/wikipedia/standings-parser.ts`) e proveniência por temporada; ao vivo: Copa do Mundo de Clubes 2025 — Chelsea 1º (7J·6V·18pts), PSG 2º
 
 #### 🔧 Produto — Infra Avançada (Fase 6)
