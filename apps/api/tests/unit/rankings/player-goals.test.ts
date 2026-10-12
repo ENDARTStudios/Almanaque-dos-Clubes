@@ -36,30 +36,32 @@ const index = (players: CandidatePlayer[]) => {
 
 describe('player-goals — plausibilidade do autor de gol', () => {
   it('recusa goleiro (não marca em jogada normal)', () => {
-    expect(isPlausibleScorer({ position: 'GOALKEEPER', birthDate: new Date(Date.UTC(1980, 0, 1)) })).toBe(
-      false,
-    );
+    expect(
+      isPlausibleScorer({ position: 'GOALKEEPER', birthDate: new Date(Date.UTC(1980, 0, 1)) }),
+    ).toBe(false);
   });
 
   it('recusa nascido antes de 1980 e menor de idade', () => {
-    expect(isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(1944, 0, 1)) })).toBe(
-      false,
-    );
-    expect(isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(2015, 0, 1)) })).toBe(
-      false,
-    );
+    expect(
+      isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(1944, 0, 1)) }),
+    ).toBe(false);
+    expect(
+      isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(2015, 0, 1)) }),
+    ).toBe(false);
   });
 
   it('aceita jogador de linha em idade plausível', () => {
-    expect(isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(1991, 0, 1)) })).toBe(
-      true,
-    );
+    expect(
+      isPlausibleScorer({ position: 'FORWARD', birthDate: new Date(Date.UTC(1991, 0, 1)) }),
+    ).toBe(true);
   });
 });
 
 describe('player-goals — resolução de nome', () => {
   it('resolve nome exato quando há um único candidato plausível', () => {
-    const ctx = { byNormalizedName: index([p('1', 'Endrick', { birthDate: new Date(Date.UTC(2006, 6, 21)) })]) };
+    const ctx = {
+      byNormalizedName: index([p('1', 'Endrick', { birthDate: new Date(Date.UTC(2006, 6, 21)) })]),
+    };
     expect(resolveScorer('Endrick', ctx)?.id).toBe('1');
   });
 
@@ -92,7 +94,9 @@ describe('player-goals — resolução de nome', () => {
 describe('player-goals — agregação', () => {
   const ctx = {
     byNormalizedName: index([
-      p('pedro', 'Pedro Guilherme Abreu dos Santos', { birthDate: new Date(Date.UTC(1997, 5, 20)) }),
+      p('pedro', 'Pedro Guilherme Abreu dos Santos', {
+        birthDate: new Date(Date.UTC(1997, 5, 20)),
+      }),
       p('yuri', 'Yuri Alberto', { birthDate: new Date(Date.UTC(2001, 2, 18)) }),
     ]),
   };
