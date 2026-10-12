@@ -55,7 +55,12 @@ const FEMININE_MARKERS = [
 ] as const;
 
 export type GenderVerdict =
-  'wikidata_p21_female' | 'name_declares_female' | 'wikidata_p21_male' | 'sem_fonte';
+  | 'wikidata_p21_female'
+  | 'wikidata_p31_womens'
+  | 'name_declares_female'
+  | 'wikidata_p21_male'
+  | 'wikidata_p31_mens'
+  | 'sem_fonte';
 
 /** PURO — o nome declara feminino? (marcador como palavra, não substring solta). */
 export function nameDeclaresFemale(name: string): boolean {
@@ -66,10 +71,60 @@ export function nameDeclaresFemale(name: string): boolean {
   return FEMININE_MARKERS.some((m) => new RegExp(`(^|[^a-z])${m}([^a-z]|$)`).test(norm));
 }
 
-/** PURO — veredito a partir do P21 e do nome. */
-export function genderVerdict(p21: string | null, name: string): GenderVerdict {
+/**
+ * PURO — o rótulo de uma CLASSE P31 declara feminino/masculino?
+ *
+ * Por que P31 e não P21: P21 ("sex or gender") só existe em PESSOAS — times e clubes
+ * não carregam P21 (medido: a seleção feminina da Albânia, Q934030, tem P21 vazio).
+ * O que o Wikidata usa para dizer "time/clube feminino" é o P31 — medido em
+ * Q23905105 ("women's national association football team") e Q51481377 ("women's
+ * association football club"). Então a verificação na fonte é pelo RÓTULO da classe.
+ */
+export function classDeclares(label: string): 'female' | 'male' | null {
+  const norm = label
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  if (
+    /(^|[^a-z])(women|female|feminin|femenin|femminile|femenil|damen|frauen|vrouwen|kobiety|femmes)([^a-z]|$)/.test(
+      norm,
+    )
+  ) {
+    return 'female';
+  }
+  if (/(^|[^a-z])(men|male|masculin|maschile|heren|mannen)([^a-z]|$)/.test(norm)) return 'male';
+  return null;
+}
+
+/** PURO — ids das classes P31 da entidade. */
+export function p31IdsOf(entity: {
+  claims?: Record<string, Array<{ mainsnak?: { datavalue?: { value?: unknown } } }>>;
+}): string[] {
+  return (entity.claims?.P31 ?? [])
+    .map((c) => {
+      const v = c.mainsnak?.datavalue?.value;
+      if (typeof v === 'string') return v;
+      if (v && typeof v === 'object' && 'id' in v) {
+        const id = (v as { id?: unknown }).id;
+        return typeof id === 'string' ? id : null;
+      }
+      return null;
+    })
+    .filter((x): x is string => x != null);
+}
+
+/** PURO — veredito a partir do P21, das classes P31 e do nome. */
+export function genderVerdict(
+  p21: string | null,
+  name: string,
+  p31Verdicts: Array<'female' | 'male' | null> = [],
+): GenderVerdict {
   if (p21 === FEMALE) return 'wikidata_p21_female';
   if (p21 === MALE) return 'wikidata_p21_male';
+  // Classe P31 dizendo "feminino" é a evidência mais forte para time/clube.
+  if (p31Verdicts.includes('female')) return 'wikidata_p31_womens';
+  // Nome engana: a classe diz MASCULINO -> não toca (falso candidato).
+  if (p31Verdicts.includes('male')) return 'wikidata_p31_mens';
   return nameDeclaresFemale(name) ? 'name_declares_female' : 'sem_fonte';
 }
 
@@ -106,8 +161,10 @@ export async function cureGender(
     corrected: 0,
     byVerdict: {
       wikidata_p21_female: 0,
+      wikidata_p31_womens: 0,
       name_declares_female: 0,
       wikidata_p21_male: 0,
+      wikidata_p31_mens: 0,
       sem_fonte: 0,
     },
     falseCandidates: [],
@@ -138,6 +195,20 @@ export async function cureGender(
     // Verificação P21 em lotes de 50.
     const entities = await fetchEntities(withQid.map((r) => r.qid!) as string[], { sleep });
 
+    // 2ª rodada: RÓTULOS das classes P31 — é o rótulo que diz "women's ... club/team".
+    const classIds = new Set<string>();
+    for (const e of entities.values()) {
+      if (e) for (const id of p31IdsOf(e)) classIds.add(id);
+    }
+    const classEntities = await fetchEntities([...classIds], { sleep });
+    const classVerdict = new Map<string, 'female' | 'male' | null>();
+    for (const [qid, e] of classEntities) {
+      const labels = [e?.labels?.pt?.value, e?.labels?.en?.value].filter(
+        (x): x is string => typeof x === 'string',
+      );
+      classVerdict.set(qid, labels.map(classDeclares).find((v) => v != null) ?? null);
+    }
+
     const toFix: Array<{
       id: string;
       name: string;
@@ -148,11 +219,10 @@ export async function cureGender(
     for (const row of withQid) {
       const entity = entities.get(row.qid!) ?? null;
       const p21 = entity ? p21Of(entity) : null;
-      let verdict = genderVerdict(p21, row.name);
-      // Entidade com QID mas sem resposta do Wikidata: decide pelo nome (mesma regra 3).
-      if (!entity && !opts.nameOnly) verdict = genderVerdict(null, row.name);
+      const p31Verdicts = entity ? p31IdsOf(entity).map((id) => classVerdict.get(id) ?? null) : [];
+      const verdict = genderVerdict(p21, row.name, p31Verdicts);
       report.byVerdict[verdict] += 1;
-      if (verdict === 'wikidata_p21_male') {
+      if (verdict === 'wikidata_p21_male' || verdict === 'wikidata_p31_mens') {
         report.falseCandidates.push({ name: row.name, qid: row.qid });
         continue;
       }
