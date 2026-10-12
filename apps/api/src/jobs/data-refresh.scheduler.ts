@@ -19,6 +19,7 @@ import {
   enrichPlayersMediaBatch,
   enrichClubsEditorialBatch,
 } from '../modules/etl/enrich-media.service.js';
+import { enrichAllMediaBatch } from '../modules/etl/enrich-all-media.service.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
 import { cache } from '../services/cache.js';
 import { checkJobFailure } from '../lib/observability/alerts.js';
@@ -42,6 +43,12 @@ export const ENRICH_CLUBS_BATCH = 500;
 export const ENRICH_PLAYERS_BATCH = 2000;
 export const ENRICH_EDITORIAL_CRON_PATTERN = '0 6 * * *' as const;
 export const ENRICH_EDITORIAL_BATCH = 500;
+// T528 — job unificado de mídia (uniforme/hino/flâmula), em BATCH e com CURSOR:
+// cada clube tentado ganha registro em `mediaEnrichment`, então o lote AVANÇA
+// mesmo quando a fonte não tem o dado (gap declarado por clube).
+export const JOB_ENRICH_ALL_MEDIA = 'enrich-all-media' as const;
+export const ENRICH_ALL_MEDIA_CRON_PATTERN = '0 7 * * *' as const;
+export const ENRICH_ALL_MEDIA_BATCH = 500;
 
 const JOB_TIMEOUT_MS = 10 * 60 * 1000;
 
@@ -93,6 +100,13 @@ const health: Record<string, JobHealthEntry> = {
     failureCount: 0,
     lastDurationMs: null,
   },
+  [JOB_ENRICH_ALL_MEDIA]: {
+    lastRunAt: null,
+    lastStatus: null,
+    successCount: 0,
+    failureCount: 0,
+    lastDurationMs: null,
+  },
 };
 
 export function getJobHealth(): Record<string, JobHealthEntry> {
@@ -127,6 +141,7 @@ const KNOWN_JOB_NAMES = [
   'enrich-clubs-media',
   'enrich-players-media',
   'enrich-clubs-editorial',
+  'enrich-all-media',
 ] as const;
 
 export async function getJobHealthMerged(): Promise<Record<string, JobHealthEntry>> {
@@ -262,6 +277,35 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         event: 'done',
         data: { processed: out.processed, updated: out.updated, skipped: out.skipped },
       });
+    } else if (job.name === JOB_ENRICH_ALL_MEDIA) {
+      // T528 — lote unificado de mídia com CURSOR por tentativa. O log sai no
+      // formato `enrich-all-media: processed=... enriched=...` (é o que o alerta
+      // de "enriched=0 por 3 dias" lê).
+      const out = await enrichAllMediaBatch(ENRICH_ALL_MEDIA_BATCH, { apply: true });
+      logger.info(
+        {
+          processed: out.processed,
+          enriched: out.enriched,
+          gaps: out.gaps,
+          errors: out.errors,
+          kits: out.byMedia.kits.found,
+          anthem: out.byMedia.anthem.found,
+          pennants: out.byMedia.pennants.found,
+        },
+        `enrich-all-media: processed=${out.processed} enriched=${out.enriched} gaps=${out.gaps}`,
+      );
+      pushLog({
+        level: 'info',
+        job: job.name,
+        event: 'done',
+        data: {
+          processed: out.processed,
+          enriched: out.enriched,
+          gaps: out.gaps,
+          errors: out.errors,
+          byMedia: out.byMedia,
+        },
+      });
     } else if (job.name === JOB_ENRICH_CLUBS_EDITORIAL) {
       // T507 (W5) — texto editorial (Wikipedia REST, CC-BY-SA).
       const out = await enrichClubsEditorialBatch(ENRICH_EDITORIAL_BATCH, { apply: true });
@@ -360,6 +404,20 @@ export async function registerDataRefreshCron(): Promise<void> {
     { pattern: ENRICH_EDITORIAL_CRON_PATTERN },
     {
       name: JOB_ENRICH_CLUBS_EDITORIAL,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
+      },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
+    'enrich-all-media-daily',
+    { pattern: ENRICH_ALL_MEDIA_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_ALL_MEDIA,
       data: {},
       opts: {
         attempts: 2,
