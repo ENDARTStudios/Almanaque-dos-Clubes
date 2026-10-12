@@ -105,6 +105,22 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   'SD Aucas': { name: 'Sociedad Deportiva Aucas' },
   'Barcelona SC': { name: 'Barcelona S.C.' },
   'Alianza Lima': { name: 'Club Alianza Lima' },
+  // T527 — Ligue 1: a fonte imprime a SIGLA da cidade e o acervo usa o nome
+  // oficial, que a cascata não alcança (`Lyon` não tem fronteira de palavra
+  // dentro de "Olympique Lyonnais"; `Paris-SG` é hifenizado). Alvos conferidos
+  // em produção por nome+QID (D-2026-10-09).
+  Brest: { name: 'Stade Brestois 29', qid: 'Q218372' },
+  Lyon: { name: 'Olympique Lyonnais', qid: 'Q704' },
+  'Paris-SG': { name: 'Paris Saint-Germain FC', qid: 'Q483020' },
+  Rennes: { name: 'Stade Rennais F.C.', qid: 'Q19509' },
+  // Homônimo no acervo: "U.S. Acli Metz" (Q106703334) e "FC Metz" (Q221525).
+  Metz: { name: 'FC Metz', qid: 'Q221525' },
+  // T527 — Bundesliga: a fonte imprime o nome sem o prefixo do tipo.
+  'Sankt Pauli': { name: 'FC St. Pauli', qid: 'Q6463' },
+  // T527 — Libertadores: `Olimpia` é homônimo de 4 clubes no acervo (PY/HN/UY/PE);
+  // na Libertadores é o paraguaio. `RB Bragantino` é a forma usada no mata-mata.
+  Olimpia: { name: 'Club Olimpia', qid: 'Q604589' },
+  'RB Bragantino': { name: 'Red Bull Bragantino', qid: 'Q541744' },
 };
 
 /**
@@ -115,11 +131,21 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
  * existiam no acervo com `gender` errado ('women') e foram corrigidos na cura
  * (Q5014111 = clube poliesportivo do RJ com futebol; Q2536715 = clube de
  * Chapecó-SC). Continuam ausentes de verdade: Monagas, Táchira e Patronato.
+ *
+ * T527 — `Independiente Petrolero` (BOL, Sucre): o acervo só tem o homônimo
+ * `Oriente Petrolero` (BO) e `Petroleros de Ciudad Madero` (MX) — nenhum é este.
+ * Também ausente a forma abreviada usada na fase de grupos (`Indep. Petrolero`).
+ * Fica de fora: `Univ. Católica`/`Universidad Católica` é AMBÍGUO de verdade (o
+ * acervo tem as duas — CHI/Q427446 e EQU/Q2308911 — e as duas jogaram 2022);
+ * ambiguidade é gap declarado, não chute.
  */
 export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   'Monagas SC',
   'Deportivo Táchira FC',
+  'Deportivo Táchira',
   'Patronato',
+  'Independiente Petrolero',
+  'Indep. Petrolero',
 ]);
 
 function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
