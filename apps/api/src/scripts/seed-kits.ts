@@ -119,7 +119,10 @@ export const CLUB_SOURCES: Array<{ qid: string; name: string; pages: string[] }>
 export async function run(argv: string[]): Promise<number> {
   const { values } = parseArgs({
     args: argv,
-    options: { club: { type: 'string' } },
+    options: {
+      club: { type: 'string' },
+      apply: { type: 'boolean', default: false },
+    },
     allowPositionals: true,
   });
   const prisma = new PrismaClient();
