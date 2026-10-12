@@ -1813,3 +1813,48 @@ Stage Summary:
   100% licenças verificadas; re-run noop
 - API + galeria no ar; seção oculta quando não há flâmula
 - Gap declarado com a busca documentada; meta 5+ não atingível honestamente
+
+Task ID: goal-2026-10-12/t526
+Agent: Doer (ZCode)
+Task: T526 — VISUALIZADOR 360º de troféus/bolas (gap explícito do Escopo 1)
+
+Work Log:
+- BUSCA DOCUMENTADA (3 rodadas, read-only, 12-10-2026):
+  (1) categorias de 3D no Commons: "3D models trophies" vazio; "GLB/GLTF files"
+  sem nada de futebol; "STL files sports" vazio; a categoria de bolas
+  (Association football balls) tem subcategorias de FOTOS, não modelos.
+  (2) arquivos por tipo+termo: "trophy filetype:model" = 0; "trophy stl" só
+  GENÉRICOS (troféu da Wikipédia, ícone do 3dicons.co, asset do SuperTuxKart);
+  "football ball glb"/"soccer ball 3d model" = bola escaneada genérica e
+  Soccer ball.stl — nenhuma bola oficial identificada.
+  (3) nomes específicos (libertadores/premier league/copa do brasil + stl/3d):
+  só PDFs de arquivo. CONCLUSÃO: 0 modelos 3D publicáveis.
+- FATO DE PLATAFORMA (documentado): o Commons hospeda apenas .stl para 3D —
+  os formatos preferidos do despacho (glb/gltf, WebGL-friendly) NEM SÃO
+  HOSPEDÁVEIS lá. Qualquer modelo real futuro virá como STL.
+- NÃO INVENTAR: publicar um STL genérico (bola escaneada, ícone) como "troféu da
+  Libertadores" seria inventar — 0 modelos publicados, como o despacho permite
+  ("se 0 modelos, publicar 0").
+- ENTREGA: migration aditiva (competitions.trophyModel JSONB, nullable) + pipeline
+  completo pronto (seed-trophy-models: verificação ao vivo, hash canônico,
+  dry-run/apply, mapa de curadoria vazio com o cabeçalho documentando a busca) —
+  quando o primeiro modelo real aparecer, curar 1 entrada e aplicar.
+- VISUALIZADOR Three.js NÃO construído: com 0 modelos seria código não-testável +
+  dependência pesada (three ~600KB) sem valor. Gate cumprido pela alternativa
+  prevista no próprio despacho: FALLBACK DOCUMENTADO = trophyImageUrl (imagem
+  estática das 19 competições, já em produção). Construir quando o 1º modelo chegar.
+- HOTFIX pego pelo CI: o migration-drift FALHOU (e o merge foi antes do término
+  dos checks — erro de processo meu): o campo trophyModel tinha sido inserido no
+  model ERRADO (Club em vez de Competition) porque o script de edição ancorou no
+  primeiro 'pennants' do arquivo. A migration criava a coluna em competitions e o
+  schema declarava em clubs — o drift check pegou exatamente o par ADD/DROP.
+  Corrigido (#552), CI verde, drift some.
+- PRODUÇÃO: deploy SUCCESS; seed rodou (0 modelos, gap impresso); coluna
+  trophyModel existe em competitions; integridade intacta (matches 2.450,
+  ranking_entries 893, WON 5.205).
+- GATE: "N troféus com modelo (pode ser 0)" → **0**; "fallback documentado" →
+  trophyImageUrl; "re-run noop" → trivial (0 curados, 0 escritas).
+
+GAPS DECLARADOS: todos os 19 troféus e as bolas oficiais sem modelo 3D na fonte;
+formato hospedável no Commons é só .stl; visualizador Three.js pendente do
+primeiro modelo real (pipeline pronto).
