@@ -667,6 +667,8 @@ model Match {
   season        Season?     @relation(fields: [seasonId], references: [id], onDelete: SetNull)
   homeScore     Int?
   awayScore     Int?
+  scorers       Json? // T519 — autores dos gols quando a fonte imprime ({raw, home[], away[], sidesVerified})
+  sourceNote    String? // T519 — anotação da fonte sobre a partida (ex.: "played in Uberlândia-MG", "replay")
   round         String?     // "1", "2", "final", "semifinal", etc.
   venue         String?     // nome do estádio (texto livre)
   stadiumId     String?

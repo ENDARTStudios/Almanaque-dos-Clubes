@@ -1,0 +1,75 @@
+# Fonte: RSSSF — https://www.rsssf.org/tablesb/braz2023.html
+# Autor da página: Eduardo Trindade / RSSSF — "(c) Copyright ... and RSSSF"; uso com atribuição.
+# Excerpt recortado do bloco <pre> para teste do parser T519 (conteúdo literal da fonte).
+Final Table:
+
+ 1.Palmeiras             38  20 10  8  64-33  70  [C]  Champions
+ 2.Grêmio                38  21  5 12  63-56  68  [P]
+ 3.Atlético/MG           38  19  9 10  52-32  66
+ 4.Flamengo              38  19  9 10  56-42  66
+ 5.Botafogo              38  18 10 10  58-37  64
+ 6.RB Bragantino         38  17 11 10  49-35  62
+ 7.Fluminense            38  16  8 14  51-47  56
+ 8.Athletico/PR          38  14 14 10  51-43  56
+ 9.Internacional         38  15 10 13  46-45  55
+10.Fortaleza             38  15  9 14  45-44  54
+11.São Paulo             38  14 11 13  40-38  53
+12.Cuiabá                38  14  9 15  40-39  51
+13.Corinthians           38  12 14 12  47-48  50
+14.Cruzeiro              38  11 14 13  35-32  47  [P]
+15.Vasco da Gama         38  12  9 17  41-51  45  [P]
+16.Bahia                 38  12  8 18  50-53  44  [P]
+------------------------------------------------
+17.Santos                38  11 10 17  39-64  43       Relegated
+18.Goiás                 38   9 11 18  36-53  38       Relegated
+19.Coritiba              38   8  6 24  41-73  30       Relegated
+20.América/MG            38   5  9 24  42-81  24       Relegated
+
+Round 1
+[Apr 15]
+Palmeiras       2-1 Cuiabá          
+  [Endrick 4, Flaco López 64; Raniele 45+5]
+América/MG      0-3 Fluminense      
+  [Germán Cano 51, John Kennedy 59, Lelê 71]
+Athletico/PR    2-0 Goiás           
+  [Pedro Henrique 35, Christian 57]
+Botafogo        2-1 São Paulo       
+  [Tiquinho Soares 3, Carlos Eduardo 88; Jonathan Calleri 16]
+Bragantino      2-1 Bahia           
+  [Bruninho 53, Eduardo Sasha 70; Everaldo 44]
+Fortaleza       1-1 Internacional   
+  [Moisés 56; Wanderson 53]
+Atlético/MG     1-2 Vasco da Gama   
+  [Maurício Lemos 45+4; Andrey Santos 4, Gabriel Pec 10]
+[Apr 16]
+Corinthians     2-1 Cruzeiro        
+  [Matheus Araújo 68, Róger Guedes 87; Oliveira 90+5]
+Flamengo        3-0 Coritiba        
+  [Ayrton Lucas 11, Gabriel Barbosa 55pen, Pedro 90+4]
+Grêmio          1-0 Santos          [played in Caxias do Sul-RS]
+  [João Pedro 43]
+
+Round 2
+[Apr 22]
+Fluminense      2-0 Athletico/PR    
+  [Lima 10, Nino 66]
+Cuiabá          1-1 Bragantino      
+  [Matheusinho 67; Thiago Borbas 85]
+São Paulo       3-0 América/MG      
+  [Luciano 20, Jonathan Calleri 82, Marcos Paulo 90+5]
+Cruzeiro        1-0 Grêmio          
+  [Bruno Rodrigues 64]
+[Apr 23]
+Internacional   2-1 Flamengo        
+  [Mauricio 66, 90+8; Gerson 62]
+Vasco da Gama   2-2 Palmeiras       
+  [Pedro Raul 28, Gabriel Pec 39; Rafael Navarro 45+1, Artur 62]
+Santos          0-0 Atlético/MG     
+Coritiba        0-3 Fortaleza       
+  [Silvio Romero 51, Yago Pikachu 82, 90]
+Goiás           3-1 Corinthians     
+  [Matheus Peixoto 30, Lucas Halter 80, Apodi 90+4; Róger Guedes 16]
+[Apr 24]
+Bahia           1-2 Botafogo        
+  [Vítor Jacaré 41; Júnior Santos 28, Tchê Tchê 77]
+

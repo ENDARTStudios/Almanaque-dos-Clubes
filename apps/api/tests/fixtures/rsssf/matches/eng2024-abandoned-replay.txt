@@ -1,0 +1,22 @@
+# Fonte: RSSSF — https://www.rsssf.org/tablese/eng2024.html
+# Autor da página: Ian King — página sob "(c) Copyright ... and RSSSF",
+# licença de cópia "provided that proper acknowledgement is given to the author".
+# Excerpt literal do bloco <pre> (T519): o jogo ABANDONADO (Bournemouth x Luton, 16/dez)
+# e o seu REPLAY (13/mar), ambos dentro da Round 17 da fonte.
+
+Round 17
+[Dec 15]
+Nottingham    0-2 Tottenham     
+[Dec 16]
+Bournemouth   abd Luton         [abandoned at 1-1 in 65' due to cardiac arrest Luton player Tom Lockyer]
+Chelsea       2-0 Sheffield U   
+Manchester C  2-2 Crystal P     
+Newcastle     3-0 Fulham        
+Burnley       0-2 Everton       
+[Dec 17]
+Arsenal       2-0 Brighton      
+Brentford     1-2 Aston Villa   
+West Ham      3-0 Wolverhampton 
+Liverpool     0-0 Manchester U  
+[Mar 13]
+Bournemouth   4-3 Luton         [replay]

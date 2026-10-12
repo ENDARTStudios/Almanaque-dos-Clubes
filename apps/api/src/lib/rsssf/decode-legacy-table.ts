@@ -27,7 +27,11 @@ const ENTITIES: Record<string, string> = {
 export function htmlToText(html: string): string {
   let out = html.replace(/\r/g, '').replace(/<br\s*\/?>/gi, '\n');
   out = out.replace(/<\/(p|div|tr|table|pre)>/gi, '\n');
-  out = out.replace(/<[^>]+>/g, '');
+  // Tags NÃO atravessam quebra de linha (`[^>\n]`): as páginas RSSSF têm `<`
+  // solto (ex.: `(<i>Sep 28 & Oct 5</i><)`), e com `<[^>]+>` o "tag" começava no
+  // `<` órfão e engolia o texto até o próximo `>` — apagando o cabeçalho
+  // `Final (Nov 4, Rio de Janeiro)` da Libertadores 2023.
+  out = out.replace(/<[^>\n]+>/g, '');
   for (const [k, v] of Object.entries(ENTITIES)) out = out.split(k).join(v);
   return out;
 }
