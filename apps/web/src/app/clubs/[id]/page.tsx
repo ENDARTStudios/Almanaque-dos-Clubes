@@ -192,6 +192,29 @@ interface AnthemPayload {
   attribution: string;
 }
 
+interface PennantPayload {
+  imageUrl: string;
+  sourceUrl: string;
+  license: string;
+  description: string | null;
+  year: number | null;
+  type: string | null;
+  curiosities: string | null;
+}
+
+async function getPennants(id: string): Promise<PennantPayload[] | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/pennants`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json.data as { pennants: PennantPayload[] }).pennants ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function getAnthem(id: string): Promise<AnthemPayload | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/anthem`, { next: { revalidate: 300 } });
@@ -268,7 +291,12 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
-  const [stats, kits, anthem] = await Promise.all([getStatistics(id), getKits(id), getAnthem(id)]);
+  const [stats, kits, anthem, pennants] = await Promise.all([
+    getStatistics(id),
+    getKits(id),
+    getAnthem(id),
+    getPennants(id),
+  ]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
 
@@ -580,6 +608,44 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                   )}
                 </p>
               </div>
+            ))}
+          </div>
+        </Section>
+      ) : null}
+
+      {pennants && pennants.length > 0 ? (
+        <Section title={s.pennants} testid="club-pennants">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {pennants.map((p, idx) => (
+              <figure
+                key={`${p.sourceUrl}-${idx}`}
+                className="rounded-lg border border-border/50 p-3"
+                data-testid="pennant-figure"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.imageUrl}
+                  alt={p.description ?? 'Flâmula'}
+                  className="max-h-56 w-auto mx-auto rounded object-contain"
+                />
+                <figcaption className="mt-2 text-xs text-foreground/70">
+                  {p.description}
+                  {p.year ? ` (${p.year})` : ''}
+                  {p.curiosities ? (
+                    <span className="block mt-1 text-foreground/50">
+                      {s.pennantsCuriosities}: {p.curiosities}
+                    </span>
+                  ) : null}
+                  <a
+                    href={p.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-1 text-primary hover:underline"
+                  >
+                    {p.license}
+                  </a>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </Section>
