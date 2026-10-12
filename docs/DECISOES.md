@@ -1867,3 +1867,34 @@ Estatistica bruta e ranking 0-100 sao produtos diferentes e assim ficam.
 Libertadores a estatistica reflete a base do acervo (sem os jogos contra clubes
 ausentes - gap T519). Regra permanente: quando estatistica e tabela oficial
 divergem, o SQL de cotejo diz ONDE e POR QUE antes de qualquer correcao.
+
+### [2026-10-12] Decisao: D-2026-10-12-t523-kits-composicao-nao-foto — uniforme do acervo é a COMPOSIÇÃO da fonte (peças verificadas), não aproximação
+
+**Contexto:** o gap "uniformes históricos" não tinha fonte direta — o Commons não
+hospeda "uniforme por temporada" pronto, e sim PEÇAS de padrão do template
+CamisaFutebol com temporada no código, e a composição (padrão+cor por parte,
+tipo) vive no wikitexto dos artigos da pt.Wikipédia, em dois schemas.
+
+**Decisão:** armazenar a COMPOSIÇÃO (peças + cores + tipo + temporada decodificada
+do código) e renderizar em CSS — não chutar fotos aproximadas nem exibir peça avulsa
+como se fosse uniforme. Fotos únicas entram só quando curadas explicitamente
+(Fluminense 2021/2022/2023, Arsenal x2, Liverpool 1892-96) e re-verificadas ao vivo.
+
+**Regras permanentes:**
+
+1. Peça sem arquivo verificado (existe + licença + sem exclusão) vira cor sólida —
+   nunca img de proveniência duvidosa.
+2. Temporada só entra se o CÓDIGO da fonte a indica (fluminense23h → 2023);
+   código sem ano → season=null ("corrente da fonte", ex.: comemorativo 120 anos).
+3. Padrão emprestado de outro clube é mantido como a fonte compõe (calção
+   sport23a no Fluminense) — composição é fato, não sugestão.
+4. Idempotência = mesmo estado da fonte → zero escrita. Se a fonte viva mudou
+   (artigo editado), regravar É o comportamento certo; blip de rede que gravou
+   "sem arquivo" a menos se corrige no re-run (aconteceu e foi documentado).
+5. URL do Commons entra sem utm_* — rastreador não se armazena.
+
+**Resultado:** 11 clubes, 64+ uniformes (Inter 13 - Fluminense 13 - Cruzeiro 13 -
+Santos 10 - Grêmio 4 - Palmeiras 3 - Flamengo 3 - Botafogo 3 - Corinthians 2 -
+Arsenal 2 - Liverpool 1). API /clubs/:id/kits + seção no perfil (KitDiagram em
+CSS, i18n x3). Três hotfixes durante a rodada (flag --apply não declarada,
+clubes de foto fora de CLUB_SOURCES, noop canônico/jsonb + utm).

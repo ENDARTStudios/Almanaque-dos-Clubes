@@ -1652,3 +1652,70 @@ Stage Summary:
   clube-temporadas): PL 40/40, BR 0 divergencias, LIB diverge so no gap declarado
 - UI: secao Estatisticas no perfil + confronto direto no comparador (i18n x3)
 - Performance < 500ms; nenhuma escrita no acervo (matches/rankings intactos)
+
+Task ID: goal-2026-10-12/t523-kits
+Agent: Doer (ZCode)
+Task: T523 — UNIFORMES HISTÓRICOS por temporada (gap explícito do Escopo 1)
+
+Work Log:
+- DESCOBERTA ANTES DE CÓDIGO (mudou o desenho): o Commons NÃO tem "uniforme por
+  temporada" pronto. Tem PEÇAS de padrão do template CamisaFutebol/
+  EquipamentoFutebol (corpo, mangas, calção, meião — File:Kit body <padrão>.png),
+  muitas com temporada no código (fluminense23h = 2023 titular), além de fotos
+  históricas esparsas. A COMPOSIÇÃO de cada uniforme vive no wikitexto dos artigos
+  da pt.Wikipédia, em DOIS schemas medidos: (a) chamadas de template; (b) parâmetros
+  numerados da infobox (skin1, skin_calção1, corpo1, braçoesquerdo1… —
+  Flamengo/Palmeiras/Botafogo).
+- FONTES (10 clubes + 2 de fotos): Fluminense (subpredefinição), Flamengo,
+  Palmeiras, Corinthians, Grêmio, Santos, Botafogo, Internacional, Cruzeiro
+  (artigos) + Arsenal/Liverpool (só fotos diretas). Cuiabá, Bragantino,
+  América-MG e a maioria dos PL: sem material utilizável → gap declarado.
+- LIB PURA (lib/wikipedia/kit-composition.ts): parser dos dois schemas +
+  decodificador de temporada (2 dígitos → 20yy; 4 dígitos plausível → ano
+  (1910, 1903); duas dezenas consecutivas → cruzada (2627 → 2026-27,
+  0809 → 2008-09)) + tipo pelo CÓDIGO da fonte (23g1 = goleiro, 23tr =
+  treino, sufixo h/a/t; corpo primeiro, título e ordem na tabela como fallback).
+  Verificação de CADA arquivo no Commons (imageinfo: existe + licença + sem
+  pedido de exclusão) — peça sem arquivo verificado vira COR SÓLIDA, nunca um
+  img de proveniência duvidosa. Strip de utm_* das URLs (rastreador fora).
+- SCRIPT (seed-kits): dry-run/apply, dedup por (temporada, tipo, padrão do
+  corpo) — o mesmo uniforme aparecia no artigo E na infobox —, idempotência por
+  hash canônico (JSON com chaves ordenadas: o jsonb do Postgres não preserva
+  ordem de chaves e o re-run regravava tudo).
+- APLICADO EM PRODUÇÃO: 11 clubes, 64+ uniformes — Inter 13, Fluminense 13
+  (incl. 3 fotos: 2021, 2022 terceira, 2023 goleiro), Cruzeiro 13, Santos 10,
+  Grêmio 4, Palmeiras 3 (2025-26/2026), Flamengo 3, Botafogo 3 (2026-27),
+  Corinthians 2 (1910 + 2026-27), Arsenal 2 (2004-05, 1991), Liverpool 1
+  (1892-96). 100% das peças com licença verificada; zero imagem em pedido de
+  exclusão (rejeitadas na verificação).
+- IDEMPOTÊNCIA PROVADA com nuance honesta: dois applies consecutivos → 0 e 0
+  escritas. MAS um apply intermediário regravou 2 clubes — causa real: FONTE
+  VIVA (o artigo do Santos mudou: a infobox passou a apontar o 3º uniforme para
+  outro padrão, e peças que falharam por blip de rede no apply anterior agora
+  resolvem). Não é bug: idempotência = mesmo estado da fonte → zero escrita.
+  Dois hotfixes no caminho: a flag --apply não estava declarada no parseArgs (o
+  script ignorava o apply) e Arsenal/Liverpool faltavam em CLUB_SOURCES (as
+  fotos diretas nunca seriam gravadas).
+- API/UI: GET /clubs/:id/kits (200) e seção "Uniformes" no perfil com
+  KitDiagram — composição em CSS (mangas+corpo/calção/meião, cor de fundo +
+  padrão por cima, como a Wikipédia renderiza) ou foto; temporada e tipo com
+  i18n ×3. No ar (testid club-kits).
+- INTEGRIDADE: matches 2.450 · ranking_entries 893 · WON 5.205 — intocados.
+
+GAPS DECLARADOS: uniformes por temporada 2021-2025 NÃO existem como imagens
+prontas na fonte — o que entra é o que a fonte compõe (Fluminense 2021-2023,
+Santos 2022-2026, Inter 2021-2023/2026, Cruzeiro 2022-2024/2026, Corinthians
+1910/2026-27, históricos 1903/1909/1921); clubes sem composição na pt.wiki
+(Cuiabá, Bragantino, América-MG, Fortaleza, Bahia, Juventude, Atlético-GO e a
+maioria dos PL) ficam de fora; peças com código sem ano → season=null
+("uniforme corrente da fonte", ex.: o 4º do Fluminense = comemorativo 120 anos);
+padrões reusados de outros clubes (calção sport23a no Fluminense) são
+mantidos como a fonte compõe; composição por season-article da EN-wiki (para
+cobrir mais temporadas/clubes) = trabalho futuro.
+
+Stage Summary:
+- 11 clubes com kitHistory (64 uniformes), 100% das peças com licença verificada
+- KitDiagram compõe em CSS como a Wikipédia; seção no perfil do clube no ar
+- Idempotência provada (0 escritas em source estável); 2 hotfixes de script
+- Gap declarado: não há imagens prontas 2021-2025 na fonte; composição futura
+  via season-articles da EN-wiki para expandir cobertura
