@@ -2156,3 +2156,86 @@ tem P21 vazio. O que o Wikidata usa para dizer "time/clube feminino" é o **P31
 positivo — amostra auditada na fonte (Urawa Red Diamonds Ladies, o item feminino do
 Ferencvárosi TC, Club YLA, Kindermann…). Depois da cura: **0 clubes femininos em
 competições masculinas** e o re-run do T529 sem casamento por gênero.
+
+### [2026-10-12] Decisão: D-2026-10-12-t532-plugin-design-e-camada-escura-escopada — a camada escura é ESCOPADA nos mesmos nomes de token, não um modo escuro
+
+Motivo: a hero precisava de acabamento editorial e a opção por "modo escuro global" foi
+descartada — mudaria contraste de todas as telas já testadas. **Decisão:** `.theme-dark`
+(em `apps/web/src/app/globals.css`) **redefine os MESMOS nomes de token** dentro do escopo
+(`--color-background`, `--color-foreground`, `--color-primary`, `--color-on-primary`,
+`--color-border`, `--color-ring`), então `bg-background` / `text-foreground` / `border-border`
+continuam valendo e nenhuma outra tela muda de cor. **Contrastes medidos** (WCAG 2.1, não
+estimados): fundo `#12100F`; texto `#F7F3EA` 17,13:1; `primary #E8412F` 4,72:1;
+`secondary #C9A227` 7,84:1; `on-primary #1A0E0B` sobre `primary` 4,70:1 — **branco sobre
+`#E8412F` dá 4,02:1 e REPROVA** para texto normal, por isso `on-primary` é escuro.
+**Armadilha registrada:** na Tailwind v4.3.3 os utilitários com modificador de opacidade
+emitem duas declarações — um literal do tema claro e um `color-mix(...var(--color-…))`
+dentro de `@supports (color: color-mix(in lab, red, red))`. O literal NÃO segue o token
+escopado; o `@supports` cobre os browsers atuais (medido no Chromium: `text-foreground/70`
+resolve certo), mas o caminho sem ambiguidade dentro da camada escura é explicitar
+`bg-[color-mix(in_oklab,var(--color-foreground)_6%,transparent)]`.
+Alternativas consideradas: (a) modo escuro global — descartado pelo risco de regressão em
+telas homologadas; (b) paleta própria da hero em classes novas — descartado por criar um
+segundo sistema de design; (c) manter a hero clara e só melhorar layout — descartado pelo
+pedido do Operador (editorial premium escuro).
+
+### [2026-10-12] Decisão: D-2026-10-12-t532-prova-e-lacuna-na-hero — prova é dado auditável do acervo; sem dado, declara-se UMA lacuna (nunca três placeholders)
+
+Motivo: a hero antiga renderizava "Acervo em crescimento" em **três** cartões idênticos
+quando a API não respondia — a mesma frase fingida de métrica, repetida. **Decisão:**
+(1) a prova da dobra é o **campeão vigente real** (`GET /champions/carousel`), escolhido
+entre os que têm `source.sourceUrl` — sem fonte, não entra; (2) as contagens só aparecem
+se houver número real da API, e a legenda declara a origem (`statsProvenance`, sem data
+de build para não acoplar a página à hora do deploy); (3) sem número, renderiza **um**
+bloco de lacuna declarada (`statsNoData`) em vez de três cartões com "—".
+Alternativas consideradas: (a) depoimento de usuário — descartado por risco de publicidade
+enganosa (CDC art. 37 §1º) e por não haver depoimento real do Operador; (b) contadores
+animados com valor padrão — descartado (inventa dado); (c) manter os três placeholders —
+descartado: foi o defeito que motivou a tarefa.
+
+### [2026-10-12] Decisão: D-2026-10-12-t532-reveal-fallback-gsap — conteúdo nunca depende da animação para existir
+
+Motivo: `gsap.fromTo(..., { opacity: 0 })` deixava seções invisíveis na captura de página
+inteira (o Playwright não rola o viewport, então o ScrollTrigger não dispara) e em qualquer
+ambiente sem ciclo de rolagem — a home ficou com blocos vazios no screenshot. **Decisão:**
+`apps/web/src/hooks/useGsap.ts` ganhou `revealStuck` + `useRevealFallback`: passados 2 s,
+todo alvo que ainda estiver com opacidade < 0,05 é revelado por `gsap.to`. A animação é
+enfeite; o conteúdo é a fonte da verdade. **Evidência:** antes do fallback o full-page
+mostrava "Um acervo, quatro respostas" com grade vazia; depois, todas as seções renderizam.
+Alternativas consideradas: (a) remover GSAP da home — descartado, a animação acrescenta;
+(b) revelar por CSS `animation` com `fill-mode: both` — descartado por não cobrir os hooks
+já usados por outras telas.
+### [2026-10-13] Decisao: D-2026-10-13-t533-probe-nao-compete-com-o-app — endpoint de saúde fora do rate-limit global, e todo cron registrado aparece no inventário de boot
+
+**Contexto (observação de estabilidade, T533):** o probe do Railway bate em
+`/api/v1/health` **de dentro do container**, e o limitador global da API (100 req/min
+por `request.ip`) coloca o probe no MESMO balde de qualquer chamada interna. Medido:
+uma rajada de requisições internas fez o health responder **429 em 1 ms** — um serviço
+saudável podia ser marcado unhealthy por causa de um vizinho de IP, e o healthcheck
+deixava de ser sinal de saúde para virar sinal de tráfego. No mesmo dia, o log de boot
+`data-refresh scheduler agendado` listava 5 crons e omitia o `enrich-all-media` (que
+estava registrado no Redis e rodando): inventário incompleto é observabilidade
+faltando.
+
+**Decisão:**
+
+1. **Probe não compete com o app.** O endpoint de saúde fica FORA do rate-limit
+   (`config: { rateLimit: false }`). O rate-limit protege contra abuso de API — a
+   saúde do container não é abuso. Provado: 120 requisições seguidas no health = 120×
+   200; `/clubs` no mesmo IP = 100×200 + 20×429 (o limitador segue valendo); e o
+   health responde 200 DURANTE o esgotamento do limite.
+2. **Todo cron registrado entra no inventário de boot.** Um job que roda mas não
+   aparece no log de inicialização não é observável por quem lê o boot. A lista do
+   `logger.info` de agendamento acompanha o `upsertJobScheduler` — se divergirem, o
+   inventário mente.
+3. **Verificar registro no Redis, não no log.** O `enrich-all-media` estava ausente do
+   log e presente no Redis (BullMQ `getJobSchedulers`): a fonte de verdade do
+   agendamento é o scheduler do BullMQ.
+4. **Falha de plano ≠ falha de build.** O check Vercel Preview vermelho era
+   `upgradeToPro=build-rate-limit` (limite de builds do plano gratuito), não defeito de
+   código: ler a causa-raiz antes de tratar como bug.
+
+**Resultado:** dois defeitos reais corrigidos com prova antes/depois em produção, a
+causa-raiz do Vercel documentada, e o baseline do Dia 0 (latência p50 2-9 ms, hit rate
+de cache 68,1%, 100% 2xx, CPU máx 0,17 vCPU, memória máx 769 MB, zero erros nos logs)
+registrado para servir de referência aos dias de coleta.
