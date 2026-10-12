@@ -146,6 +146,46 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   Milan: { name: 'AC Milan', qid: 'Q1543' },
   Roma: { name: 'AS Roma', qid: 'Q2739' },
   Sampdoria: { name: 'U.C. Sampdoria', qid: 'Q1457' },
+  // T529 — Premier League: homônimos internos (o acervo tem o time B e o clube
+  // histórico com o mesmo nome de base).
+  Southampton: { name: 'Southampton F.C.', qid: 'Q18732' },
+  Newcastle: { name: 'Newcastle United F.C.', qid: 'Q18716' },
+  Leeds: { name: 'Leeds United F.C.', qid: 'Q1128631' },
+  // T529 — Brasileirão: `Atlético/PR` é o MESMO clube do `Athletico/PR` (renomeado
+  // em 2019); `Sport` é o Sport do Recife (a cascata casava com Internacional!);
+  // `CSA` é o Centro Sportivo Alagoano.
+  'Atlético/PR': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
+  Sport: { name: 'Sport Club do Recife', qid: 'Q219098' },
+  CSA: { name: 'Centro Sportivo Alagoano', qid: 'Q928885' },
+  // T529 — Libertadores (2015-2021). Homônimos do acervo desempatados pelo QID do
+  // clube que a fonte quer dizer: o River de Buenos Aires (e não o de Montevidéu),
+  // o Atlético Nacional da COLÔMBIA (e não o argentino de mesmo nome), o Flamengo
+  // do Rio (o acervo tem um "Sociedad Deportiva Flamengo" espanhol) etc.
+  'River Plate': { name: 'Club Atlético River Plate', qid: 'Q15799' },
+  Flamengo: { name: 'Clube de Regatas do Flamengo', qid: 'Q17479' },
+  Santos: { name: 'Santos F.C.', qid: 'Q80955' },
+  Estudiantes: { name: 'Estudiantes de La Plata', qid: 'Q214940' },
+  Melgar: { name: 'FBC Melgar', qid: 'Q602542' },
+  Lanús: { name: 'Club Atlético Lanús', qid: 'Q324589' },
+  'Atlético Tucumán': { name: 'Club Atlético Tucumán', qid: 'Q757470' },
+  'Atlético Nacional': { name: 'Corporación Deportiva Club Atlético Nacional', qid: 'Q332605' },
+  'Atl. Nacional': { name: 'Corporación Deportiva Club Atlético Nacional', qid: 'Q332605' },
+  'Atl. Mineiro': { name: 'Atlético-MG' },
+  Guaraní: { name: 'Club Guaraní', qid: 'Q605044' },
+  'San José': { name: 'CD San José', qid: 'Q127904' },
+  Independiente: { name: 'Club Atlético Independiente', qid: 'Q214978' },
+  'Independiente Santa Fe': { name: 'Santa Fe Corporación Deportiva', qid: 'Q1424072' },
+  'Indep. Santa Fe': { name: 'Santa Fe Corporación Deportiva', qid: 'Q1424072' },
+  // Renomeado em 2019: o mesmo clube.
+  'Real Garcilaso': { name: 'Cusco FC', qid: 'Q602397' },
+  'Pumas UNAM': { name: 'Club Universidad Nacional', qid: 'Q1143000' },
+  Toluca: { name: 'Deportivo Toluca', qid: 'Q670186' },
+  // A fonte às vezes imprime o clube com o país entre parênteses.
+  'Grêmio (BRA)': { name: 'Grêmio FBPA' },
+  'Palmeiras (São Paulo)': { name: 'Sociedade Esportiva Palmeiras' },
+  'Athl. Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
+  'Atl. Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
+  'Atlético Paranaense': { name: 'Club Athletico Paranaense', qid: 'Q506832' },
 };
 
 /**
@@ -171,24 +211,17 @@ export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   'Patronato',
   'Independiente Petrolero',
   'Indep. Petrolero',
-  // T529 — La Liga/Serie A: clubes que o acervo NÃO tem (conferido por nome em
-  // produção). `Málaga` entra aqui de propósito: o acervo só tem o extinto
-  // CD Málaga (Q124518) e o Málaga CF feminino — casar o Málaga CF masculino com
-  // o clube histórico seria dado falso, então o jogo vira gap.
-  // `Sporting` idem: sem o Sporting de Gijón no acervo, a cascata casaria com um
-  // clube de Malta. `Eibar`/`Huesca` também ausentes.
-  'Eibar',
-  'Huesca',
+  // T529 — La Liga: `Málaga` entra aqui de propósito. O acervo só tem o extinto
+  // CD Málaga (Q124518) e o Málaga CF FEMININO — casar o Málaga CF masculino com o
+  // clube histórico seria dado falso. `Sporting` idem: sem o Sporting de Gijón no
+  // acervo, a cascata casava com um clube de MALTA.
+  //
+  // Critério da lista (lição do T529): entra aqui o que casaria o clube ERRADO.
+  // Clube que apenas NÃO EXISTE no acervo fica de fora de propósito — o gap aparece
+  // como "sem candidato" no relatório e, se ele entrar no acervo um dia (pool da
+  // temporada), resolve sozinho em vez de ficar bloqueado por esta lista.
   'Sporting',
   'Málaga',
-  // Serie A
-  'Lecce',
-  'Como',
-  'Monza',
-  'Cremonese',
-  'Frosinone',
-  'Salernitana',
-  'SPAL',
 ]);
 
 function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
