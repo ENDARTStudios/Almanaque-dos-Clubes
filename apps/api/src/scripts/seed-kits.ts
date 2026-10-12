@@ -29,6 +29,7 @@ import { createHash } from 'node:crypto';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { logger } from '../config/logger.js';
 import {
+  stripUtm,
   parseKitCalls,
   typeFromCall,
   decodeSeason,
@@ -237,7 +238,7 @@ export async function run(argv: string[]): Promise<number> {
           },
           sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle.replace(/ /g, '_'))}`,
           image: {
-            url: ii.url,
+            url: stripUtm(ii.url),
             sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle.replace(/ /g, '_'))}`,
             license: clean('LicenseShortName') as string,
           },

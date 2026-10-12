@@ -219,6 +219,15 @@ interface CommonsInfo {
   deleted: boolean;
 }
 
+/** Remove parâmetros de rastreamento (utm_*) da URL do arquivo. */
+export function stripUtm(url: string): string {
+  return url
+    .replace(/([?&])utm_[^&]*/g, '$1')
+    .replace(/\?&/, '?')
+    .replace(/&$/, '')
+    .replace(/\?$/, '');
+}
+
 async function commonsInfo(fileTitle: string): Promise<CommonsInfo | null> {
   const url =
     'https://commons.wikimedia.org/w/api.php?' +
@@ -253,7 +262,7 @@ async function commonsInfo(fileTitle: string): Promise<CommonsInfo | null> {
         const clean = (k: string) =>
           em[k]?.value ? em[k].value.replace(/<[^>]+>/g, '').trim() : null;
         return {
-          url: ii.url ?? null,
+          url: ii.url ? stripUtm(ii.url) : null,
           license: clean('LicenseShortName'),
           deleted: Boolean(clean('DeletionReason')),
         };
