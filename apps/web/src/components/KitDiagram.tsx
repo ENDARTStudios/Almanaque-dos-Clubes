@@ -89,7 +89,12 @@ export default function KitDiagram({ kit }: { kit: KitEntryView }) {
         </div>
       </div>
       <figcaption className="mt-1 text-xs text-foreground/50">
-        <a href={kit.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+        <a
+          href={kit.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+        >
           {kit.season ?? '—'}
         </a>
       </figcaption>

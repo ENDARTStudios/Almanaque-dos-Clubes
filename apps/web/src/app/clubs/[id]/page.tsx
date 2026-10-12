@@ -164,7 +164,13 @@ interface KitEntryPayload {
   label: string;
   parts?: Record<
     string,
-    { pattern: string | null; color: string | null; file: string | null; fileUrl: string | null; license: string | null }
+    {
+      pattern: string | null;
+      color: string | null;
+      file: string | null;
+      fileUrl: string | null;
+      license: string | null;
+    }
   >;
   image?: { url: string; sourceUrl: string; license: string };
   sourceUrl: string;

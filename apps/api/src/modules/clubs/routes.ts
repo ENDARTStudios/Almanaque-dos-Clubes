@@ -218,7 +218,9 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         select: { kitHistory: true },
       });
       if (!club) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Clube não encontrado' } });
+        return reply
+          .status(404)
+          .send({ error: { code: 'NOT_FOUND', message: 'Clube não encontrado' } });
       }
       return reply.send({ data: { kits: club.kitHistory ?? [] } });
     } catch (err) {
