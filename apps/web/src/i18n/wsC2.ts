@@ -37,6 +37,17 @@ export interface WsC2Strings {
     statsTopRivals: string;
     statsOpponent: string;
     statsEmpty: string;
+    kits: string;
+    kitsEmpty: string;
+    kitSeason: string;
+    kitType: string;
+    kitTypeHome: string;
+    kitTypeAway: string;
+    kitTypeThird: string;
+    kitTypeFourth: string;
+    kitTypeGoalkeeper: string;
+    kitTypeTraining: string;
+    kitTypeOther: string;
     gaps: string;
     gapsIntro: string;
     notAvailable: string;
@@ -115,6 +126,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Confrontos mais frequentes',
       statsOpponent: 'Adversário',
       statsEmpty: 'Sem partidas registradas no acervo ainda.',
+      kits: 'Uniformes',
+      kitsEmpty: '',
+      kitSeason: 'Temporada',
+      kitType: 'Tipo',
+      kitTypeHome: 'Titular',
+      kitTypeAway: 'Reserva',
+      kitTypeThird: 'Terceiro',
+      kitTypeFourth: 'Quarto',
+      kitTypeGoalkeeper: 'Goleiro',
+      kitTypeTraining: 'Treino',
+      kitTypeOther: 'Outro',
       gaps: 'Lacunas declaradas',
       gapsIntro: 'O acervo ainda não possui estes dados — exibidos como lacuna, nunca inventados:',
       notAvailable: 'Não disponível nesta fase.',
@@ -202,6 +224,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Most frequent matchups',
       statsOpponent: 'Opponent',
       statsEmpty: 'No matches recorded in the archive yet.',
+      kits: 'Kits',
+      kitsEmpty: '',
+      kitSeason: 'Season',
+      kitType: 'Type',
+      kitTypeHome: 'Home',
+      kitTypeAway: 'Away',
+      kitTypeThird: 'Third',
+      kitTypeFourth: 'Fourth',
+      kitTypeGoalkeeper: 'Goalkeeper',
+      kitTypeTraining: 'Training',
+      kitTypeOther: 'Other',
       gaps: 'Declared gaps',
       gapsIntro: 'The archive does not hold these data yet — shown as gaps, never invented:',
       notAvailable: 'Not available at this stage.',
@@ -289,6 +322,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Enfrentamientos más frecuentes',
       statsOpponent: 'Rival',
       statsEmpty: 'Sin partidos registrados en el acervo todavía.',
+      kits: 'Uniformes',
+      kitsEmpty: '',
+      kitSeason: 'Temporada',
+      kitType: 'Tipo',
+      kitTypeHome: 'Titular',
+      kitTypeAway: 'Suplente',
+      kitTypeThird: 'Tercero',
+      kitTypeFourth: 'Cuarto',
+      kitTypeGoalkeeper: 'Portero',
+      kitTypeTraining: 'Entrenamiento',
+      kitTypeOther: 'Otro',
       gaps: 'Lagunas declaradas',
       gapsIntro: 'El acervo aún no tiene estos datos — mostrados como laguna, nunca inventados:',
       notAvailable: 'No disponible en esta fase.',

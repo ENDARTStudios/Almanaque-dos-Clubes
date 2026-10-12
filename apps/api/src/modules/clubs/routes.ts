@@ -207,6 +207,27 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * casa/fora, por competição+temporada e top 10 confrontos diretos.
    * Cálculo sob demanda com cache de 5 min (decisão de modelo no service).
    */
+  /**
+   * T523-kits — uniformes do clube (kitHistory): composição por peças
+   * (verificadas no Commons) e/ou foto curada. Read-only.
+   */
+  app.get<{ Params: { id: string } }>('/clubs/:id/kits', async (request, reply) => {
+    try {
+      const club = await prisma.club.findFirst({
+        where: { id: request.params.id, deletedAt: null },
+        select: { kitHistory: true },
+      });
+      if (!club) {
+        return reply
+          .status(404)
+          .send({ error: { code: 'NOT_FOUND', message: 'Clube não encontrado' } });
+      }
+      return reply.send({ data: { kits: club.kitHistory ?? [] } });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
   app.get<{ Params: { id: string } }>('/clubs/:id/statistics', async (request, reply) => {
     try {
       const data = await getClubStatistics(request.params.id);

@@ -7,6 +7,7 @@ import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
 import FavoriteButton from '@/components/FavoriteButton';
+import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
 import ClubTimeline from '@/components/ClubTimeline';
@@ -157,6 +158,35 @@ interface ClubStatisticsPayload {
   opponents: number;
 }
 
+interface KitEntryPayload {
+  season: string | null;
+  type: string;
+  label: string;
+  parts?: Record<
+    string,
+    {
+      pattern: string | null;
+      color: string | null;
+      file: string | null;
+      fileUrl: string | null;
+      license: string | null;
+    }
+  >;
+  image?: { url: string; sourceUrl: string; license: string };
+  sourceUrl: string;
+}
+
+async function getKits(id: string): Promise<KitEntryPayload[] | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/kits`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json.data as { kits: KitEntryPayload[] }).kits ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function getStatistics(id: string): Promise<ClubStatisticsPayload | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/statistics`, {
@@ -211,7 +241,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
-  const stats = await getStatistics(id);
+  const [stats, kits] = await Promise.all([getStatistics(id), getKits(id)]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
 
@@ -498,6 +528,35 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       })()}
 
       <ClubTimeline clubId={club.id} locale={locale} />
+
+      {kits && kits.length > 0 ? (
+        <Section title={s.kits} testid="club-kits">
+          <div className="flex flex-wrap gap-6">
+            {kits.map((k, idx) => (
+              <div key={`${k.season}-${k.type}-${idx}`} className="text-center">
+                <KitDiagram
+                  kit={{
+                    season: k.season,
+                    type: k.type,
+                    label: k.label,
+                    parts: k.parts as never,
+                    image: k.image,
+                    sourceUrl: k.sourceUrl,
+                  }}
+                />
+                <p className="mt-1 text-xs text-foreground/70" data-testid="kit-label">
+                  {k.season ? `${s.kitSeason}: ${k.season} · ` : ''}
+                  {String(
+                    s[
+                      `kitType${k.type.charAt(0).toUpperCase()}${k.type.slice(1)}` as keyof typeof s
+                    ] ?? k.type,
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      ) : null}
 
       {stats && stats.overall.played > 0 ? (
         <Section title={s.statistics} testid="club-statistics">
