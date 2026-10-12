@@ -55,6 +55,13 @@ interface PublishedRanking {
   name: string;
   season: string | null;
   competitionId: string | null;
+  scope?: string | null;
+}
+
+/** Opção do seletor de escopo: uma competição, ou o agregado geral (todos os clubes). */
+interface ScopeOption {
+  value: string;
+  label: string;
 }
 
 const LIMIT = 25;
@@ -70,6 +77,8 @@ export default function RankingsTable() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [years, setYears] = useState<string[]>([]);
+  const [competition, setCompetition] = useState('');
+  const [scopes, setScopes] = useState<ScopeOption[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [meta, setMeta] = useState<RankingMeta | null>(null);
   const [rows, setRows] = useState<RankingEntryRow[]>([]);
@@ -85,11 +94,12 @@ export default function RankingsTable() {
       if (country) params.set('country', country);
       if (search) params.set('search', search);
       if (view === 'pyramid') params.set('scope', 'country_pyramid');
+      else if (competition) params.set('competitionId', competition);
       params.set('limit', String(LIMIT));
       if (cursorPos !== null) params.set('cursor', String(cursorPos));
       return `/rankings/entries?${params.toString()}`;
     },
-    [year, gender, country, search, view],
+    [year, gender, country, search, view, competition],
   );
 
   // Anos disponíveis (rankings publicados) para o filtro.
@@ -103,6 +113,18 @@ export default function RankingsTable() {
           ...new Set(res.data.map((r) => r.season).filter((s): s is string => !!s)),
         ].sort((a, b) => b.localeCompare(a));
         setYears(seasons);
+        // T521 — escopos publicados: cada competição e o agregado geral
+        // (`competitionId` nulo vira o sentinela 'global' aceito pela API).
+        const seen = new Set<string>();
+        const opts: ScopeOption[] = [];
+        for (const r of res.data) {
+          if (r.scope) continue;
+          const value = r.competitionId ?? 'global';
+          if (seen.has(value)) continue;
+          seen.add(value);
+          opts.push({ value, label: r.name });
+        }
+        setScopes(opts);
       })
       .catch(() => undefined);
     return () => {
@@ -206,6 +228,24 @@ export default function RankingsTable() {
             ))}
           </select>
         </label>
+        {view === 'division' && scopes.length > 0 ? (
+          <label className="flex flex-col gap-1 text-sm text-foreground/70">
+            <span>{t.filterCompetition}</span>
+            <select
+              aria-label={t.filterCompetition}
+              className={selectClass}
+              value={competition}
+              onChange={(e) => setCompetition(e.target.value)}
+            >
+              <option value="">{t.all}</option>
+              {scopes.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="flex flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterGender}</span>
           <select

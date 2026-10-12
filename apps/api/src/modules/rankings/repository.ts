@@ -136,13 +136,26 @@ export const rankingsRepository = {
 
   /** Último Ranking publicado que casa com os filtros (ano/competição/escopo/país). */
   async findLatestPublished(
-    filter: { season?: string; competitionId?: string; scope?: string; country?: string } = {},
+    filter: {
+      season?: string;
+      competitionId?: string;
+      /** T521 — só o agregado GERAL (competitionId IS NULL). */
+      globalOnly?: boolean;
+      scope?: string;
+      country?: string;
+    } = {},
   ): Promise<Ranking | null> {
     return prisma.ranking.findFirst({
       where: {
         publishedAt: { not: null },
         ...(filter.season ? { season: filter.season } : {}),
-        ...(filter.competitionId ? { competitionId: filter.competitionId } : {}),
+        // `globalOnly` filtra explicitamente o agregado geral (sem competição);
+        // sem ele, `competitionId` ausente significa "qualquer competição".
+        ...(filter.globalOnly
+          ? { competitionId: null }
+          : filter.competitionId
+            ? { competitionId: filter.competitionId }
+            : {}),
         // Default: ranking por competição/divisão (scope NULL). Só troca com `scope` explícito.
         ...(filter.scope ? { scope: filter.scope } : { scope: null }),
         ...(filter.country ? { country: filter.country } : {}),

@@ -222,6 +222,8 @@ export const rankingsService = {
   async getLatestRankedEntries(params: {
     year?: string;
     competitionId?: string;
+    /** T521 — só o agregado geral (competitionId IS NULL). */
+    globalOnly?: boolean;
     scope?: string;
     gender?: string;
     country?: string;
@@ -264,6 +266,7 @@ export const rankingsService = {
     const ranking = await rankingsRepository.findLatestPublished({
       season: params.year,
       competitionId: params.competitionId,
+      globalOnly: params.globalOnly,
       scope: params.scope,
     });
     if (!ranking) return { ranking: null, data: [], cursor: null };

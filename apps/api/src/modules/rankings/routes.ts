@@ -46,9 +46,14 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
     const query = (request.query as Record<string, string | undefined>) ?? {};
     const limit = Math.min(Math.max(parseInt(query.limit ?? '50', 10) || 50, 1), 100);
     const cursorRaw = parseInt(query.cursor ?? '', 10);
+    // T521 — `competitionId=global` é o sentinela do agregado GERAL (todos os
+    // clubes do ano, sem competição): a API precisa distinguir "qualquer
+    // competição" (parâmetro ausente) de "sem competição" (competitionId NULL).
+    const globalOnly = query.competitionId === 'global';
     const result = await rankingsService.getLatestRankedEntries({
       year: query.year,
-      competitionId: query.competitionId,
+      competitionId: globalOnly ? undefined : query.competitionId,
+      globalOnly,
       scope: query.scope,
       gender: query.gender,
       country: query.country,
