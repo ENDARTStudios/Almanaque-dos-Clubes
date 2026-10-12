@@ -615,7 +615,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 #### 🎨 Frontend (Fase 5)
 
-- [x] **Páginas públicas:** clube, jogador, competição, partida, ranking — `/clubs`, `/players`, `/competitions` (com abas de temporada) e `/rankings` respondem 200 com conteúdo; `/matches` já serve 2.450 partidas reais (T519/T520)
+- [x] **Páginas públicas:** clube, jogador, competição, partida, ranking — `/clubs`, `/players`, `/competitions` (com abas de temporada) e `/rankings` respondem 200 com conteúdo; `/matches` já serve 4.514 partidas reais (T519/T520/T527)
 - [x] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos — `/dashboard`, `/dashboard/subscription`, `/dashboard/history` e `/favoritos` 200
 - [x] **Páginas legais:** privacidade, termos, cookies, segurança, contato — **8 rotas 200** (`/privacidade`, `/termos`, `/cookies`, `/seguranca`, `/direitos-titular`, `/direitos-autorais`, `/termos-assinatura`, `/como-usamos-ia`)
 - [x] **Checkout** (preço, periodicidade, renovação, limites visíveis antes do pagamento) — `/planos` e `/checkout` 200 com mensal/anual/preço/renovação/limites; Stripe LIVE (ver M3)
@@ -678,7 +678,7 @@ Almanaque, mas faltam:
 
 > Os cinco itens da "Beta Fechada (100 usuários)" foram **todos cumpridos** (compliance 85%, gateway LIVE, mapa no ar, acervo 12k clubes, perfis navegáveis) — e M1 (15-09), M3 (21-09) e o Escopo 1 (T517) foram declarados. O que resta é o **M4 (conteúdo/produto profundo)**:
 
-1. ~~ETL de partidas (`matches`)~~ → **feito no T519/T520** (2.450 partidas); falta só consumir a série de partidas nos gráficos de comparação e no ranking
+1. ~~ETL de partidas (`matches`)~~ → **feito no T519/T520/T527** (4.514 partidas: BR Série A 2020-2024, Premier League 2022-25, Libertadores 2022-24, Ligue 1 e Bundesliga 2023-25); falta só consumir a série de partidas nos gráficos de comparação e no ranking
 2. Ranking dedicado de jogadores (por gênero) — a normalização 0-100 de **clubes** foi publicada no T521; falta o de jogadores (sem estatística por partida)
 3. Mídia em escala: logos de clube, fotos de jogador, uniformes históricos, hinos, flâmulas
 4. Visualizador 360º de troféus (Three.js) + troféus/estádios com curadoria licenciada
@@ -820,7 +820,7 @@ verdade em 02-09 e **deixou de ser** em 02-10 (cron T451) e nas ondas T473–T51
 3. **Uniformes históricos** — `Club.kitHistory` existe com **0 registros**.
 4. **Ranking de jogadores** — não há tabela (`ranking_entries` só referencia clube).
 5. **Ranking 0-100 global por clube** — parcial; a escala normalizada depende do ETL de partidas.
-6. ~~**Partidas** — `matches` com 0 registros~~ → **RESOLVIDO em 11-10-2026 (T519/T520)**: 2.450 partidas da RSSSF com proveniência por partida.
+6. ~~**Partidas** — `matches` com 0 registros~~ → **RESOLVIDO em 11-10-2026 (T519/T520) e ampliado em 12-10-2026 (T527)**: 4.514 partidas da RSSSF com proveniência por partida, em 5 competições (15 temporadas).
 7. **Mídia em escala** — logo em 290/12.001 (2,4%), estádio em 528 (4,4%), foto de jogador em 864/105.211 (0,8%).
 8. **`Player.clubId`** — 100% nulo (vínculo clube-atual não ingerido).
 9. **Estádios** — 84 registros em `stadiums`, sem `location`/PostGIS em produção (decisão de infra do Operador).
