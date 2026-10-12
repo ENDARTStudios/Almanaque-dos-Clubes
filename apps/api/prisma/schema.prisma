@@ -80,6 +80,7 @@ model Club {
   kitHistory        Json?
   anthem        Json? // T524 — hino do clube: áudio (licença verificada), metadados (compositor/ano) e letra (só com licença livre)
   pennants      Json? // T525 — flâmulas do clube (imagens com licença verificada + curiosidades da fonte)
+  trophyModel   Json? // T526 — modelo 3D do troféu (Commons só hospeda .stl; 0 modelos na fonte em 12-10-2026)
   longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
   importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt   DateTime?
