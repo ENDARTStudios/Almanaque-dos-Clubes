@@ -164,7 +164,7 @@ export const ANTHEMS: Record<
     audioSourceUrl: null,
     sourceUrl: WIKI('Botafogo de Futebol e Regatas'),
   },
-  Bahia: {
+  'Esporte Clube Bahia': {
     composer: 'Adroaldo Ribeiro Costa',
     lyricist: 'Adroaldo Ribeiro Costa',
     year: null,
@@ -188,7 +188,7 @@ export const ANTHEMS: Record<
     audioSourceUrl: null,
     sourceUrl: WIKI('Santos Futebol Clube'),
   },
-  'Clube Atlético Mineiro': {
+  'Atlético-MG': {
     composer: 'Vicente Motta',
     lyricist: 'Vicente Motta',
     year: 1969,
