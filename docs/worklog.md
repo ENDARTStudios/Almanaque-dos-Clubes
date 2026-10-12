@@ -2080,3 +2080,63 @@ Stage Summary (T528-T530):
 - T529: 11.473 partidas novas (matches 4.514 -> 15.987) em 5 competições, 3 regras de data
   novas, 8 clubes ligados errados curados com reparo de dados em produção
 - T530: rankings 26 -> 72 (+46), todas as competições com partidas cobertas
+
+Task ID: goal-2026-10-13/t531
+Agent: Doer (ZCode)
+Task: T531 — CURA DO DEFEITO DE GENDER NO ACERVO
+
+Work Log:
+- ORIGEM: o T529 encontrou partidas ligadas a clubes FEMININOS em ligas masculinas
+  (as 32 do "Peñarol women's" na Libertadores) porque dezenas de entidades femininas
+  estão gravadas com `gender='men'` no acervo.
+- DISCOVERY (duas frentes, em produção):
+  (a) por NOME, entre os 11.490 clubes 'men': 400 candidatos (369 seleções, 5 clubes
+      "(futebol feminino)", 12 com women/female, o resto damen/frauen/femminile/
+      vrouwen/kobiety/femmes);
+  (b) VARREDURA COMPLETA por Wikidata nos 11.490 clubes com QID (lotes de 50) — é o
+      que pega o defeito que o nome NÃO denuncia (ex.: `Adelaide United FC`, cujo item
+      no Wikidata é um clube feminino).
+- FONTE DA VERDADE (corrigido por medição, não por suposição): a primeira versão usava
+  P21 ("sex or gender") e deu ZERO leituras em 11.490 clubes. Medido na fonte: P21 é
+  propriedade de PESSOAS — a seleção feminina da Albânia (Q934030) tem P21 VAZIO. Para
+  time/clube o Wikidata usa o **P31 (instance of)**: Q23905105 ("women's national
+  association football team") e Q51481377 ("women's association football club"), e as
+  formas em português Q28140340 ("equipa de futebol feminino"). A cura passou a ler o
+  P31 e a buscar os RÓTULOS dessas classes (2ª rodada de lotes).
+- VEREDITO auditável: classe P31 declara feminino -> corrige (242); P21 = female ->
+  corrige; sem fonte, o NOME decide apenas se DECLARA feminino como PALAVRA (205);
+  classe P31 declara MASCULINO -> **não toca** (420 — é o contador de falsos
+  candidatos); o resto fica fora (10.623 'sem_fonte').
+- PROTECÇÃO VERIFICADA: a lista de falsos candidatos do run de produção inclui
+  AC Milan, AS Roma, Juventus FC, ACF Fiorentina, Chelsea F.C., Manchester United,
+  SC Freiburg, Olympique Lyonnais, Seleção Brasileira de Futebol, Seleção Argentina de
+  Futebol… — todos com classe masculina, todos INTOCADOS.
+- APLICADO: **447 entidades corrigidas** (meta do gate: 50+), com proveniência em
+  `metadata.genderCure` (regra, p21, sourceUrl do QID, at, task). Idempotente: o
+  criterio de seleção é `gender='men'`, então o re-run não tem o que corrigir.
+  Distribuição do acervo: homens 11.490 -> 11.043; mulheres 497 -> 944.
+- AUDITORIA NA FONTE (amostra das corrigidas com nome que NÃO denuncia): Urawa Red
+  Diamonds Ladies, Ferencvárosi TC (Q1000478 = o item FEMININO, P31 "women's
+  association football club"), Club YLA (P31 "equipa de futebol feminino"), Dostluk
+  Spor Kulübü, CAC Pontinha, Sociedade Esportiva Kindermann — todas femininas na
+  fonte. Zero falso positivo.
+- VALIDAÇÃO DO GATE: (1) `femininos_em_competicao_masculina = 0` (varredura nas 7
+  competições masculinas com partidas); (2) partidas ligadas a entidades corrigidas =
+  0 (o único caso, Peñarol, já havia sido reparado no T529); (3) re-run do T529
+  (dry-run das 5 fontes) sem nenhum casamento feminino e com `Peñarol -> Club Atlético
+  Peñarol`.
+- INTEGRIDADE: matches 15.981 · rankings 72 · ranking_entries 1.906 · WON 5.205 —
+  intocados (a cura escreve só `gender` + `metadata`).
+
+GAPS DECLARADOS: 10.623 entidades 'men' ficaram sem fonte que confirme o gênero
+(nem P21 nem classe P31 nem marcador no nome) — não foram tocadas de propósito:
+"não parecer feminino" NÃO é prova de ser masculino. Muitas linhas com `name` igual ao
+QID (ingest sem rótulo) também entram aí. Próxima melhoria natural: usar o P31 também
+para CARIMBAR o gênero positivo (men's club) como proveniência, e curar as entidades
+sem rótulo (nome = QID).
+
+Stage Summary:
+- 447 entidades femininas deixaram de estar marcadas como masculinas (242 por classe
+  P31, 205 por nome), com proveniência por linha e zero falso positivo
+- 0 clubes femininos em competições masculinas; re-run do T529 limpo
+- Integridade intacta (matches/rankings/WON)

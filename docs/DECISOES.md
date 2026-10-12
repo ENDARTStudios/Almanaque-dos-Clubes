@@ -2124,3 +2124,35 @@ removendo as linhas erradas e deixando o seed RECRIAR as certas pela chave natur
 38 do Paraná não voltaram, provando o ABSENT). E o DEFEITO DE ACERVO encontrado —
 entidades femininas com `gender='men'` (dezenas, incluindo seleções) — fica registrado
 como candidato à próxima rodada de cura (padrão T520).
+
+### [2026-10-13] Decisao: D-2026-10-13-t531-genero-tem-fonte — o gênero de um time/clube NÃO vem do P21; a evidência é a CLASSE P31, e o masculino é protegido por verificação
+
+**Contexto:** o T529 achou partidas ligadas a clubes femininos em ligas masculinas
+(32 do "Peñarol women's" na Libertadores) porque dezenas de entidades femininas estão
+gravadas com `gender='men'` no acervo. A cura tentada primeiro — ler o **P21**
+("sex or gender") de cada clube no Wikidata — deu **zero leituras em 11.490 clubes**.
+Medido na fonte: P21 é propriedade de PESSOAS; a seleção feminina da Albânia (Q934030)
+tem P21 vazio. O que o Wikidata usa para dizer "time/clube feminino" é o **P31
+(instance of)**: Q23905105 ("women's national association football team"), Q51481377
+("women's association football club") e Q28140340 ("equipa de futebol feminino").
+
+**Decisão:**
+
+1. **Verificação na fonte por CLASSE, não por nome.** A cura lê o P31 das entidades
+   candidatas, busca os RÓTULOS dessas classes (segunda rodada de lotes de 50) e só
+   então decide. Nome com marcador feminino é a ÚLTIMA regra, não a primeira.
+2. **O masculino é protegido ativamente.** Classe P31 declarando masculino ⇒ a entidade
+   **não é tocada** — é o contador de falsos candidatos do relatório (420 no run de
+   produção, entre eles AC Milan, AS Roma, Juventus, Chelsea, Manchester United,
+   Seleção Brasileira e Argentina). "Achar que parece feminino" nunca basta.
+3. **Silêncio não é prova.** Entidade sem P21, sem classe feminina E sem marcador no
+   nome fica FORA (10.623 no run): não parecer feminino não é prova de ser masculino.
+4. **Toda correção carrega proveniência** (`metadata.genderCure`: regra aplicada, p21,
+   `sourceUrl` do QID, data, tarefa) — a linha diz por que mudou e onde conferir.
+5. **Idempotência pelo predicado**: a seleção é `gender='men'`, então o re-run é vazio
+   por construção (não precisa de hash).
+
+**Resultado:** 447 entidades corrigidas (242 por classe P31, 205 por nome), zero falso
+positivo — amostra auditada na fonte (Urawa Red Diamonds Ladies, o item feminino do
+Ferencvárosi TC, Club YLA, Kindermann…). Depois da cura: **0 clubes femininos em
+competições masculinas** e o re-run do T529 sem casamento por gênero.
