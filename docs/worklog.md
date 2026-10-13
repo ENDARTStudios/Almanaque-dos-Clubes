@@ -2292,3 +2292,173 @@ Stage Summary:
 - 2 fragilidades corrigidas com prova antes/depois (health fora do rate-limit;
   inventário de cron) e a causa-raiz do Vercel Preview encontrada (limite do plano)
 - Baseline de integridade e cobertura registrado para servir de referência aos dias 1-7
+
+---
+
+Task ID: T533
+Agent: DeepSeek Harness (deepseek-flash) — UI/UX / curadoria de ferramentas
+Task: Analisar 25 ferramentas de UI-UX, adotar as de valor e transformar a régua de design em verificação executável
+
+Work Log:
+
+- PESQUISA em fonte primária (LICENSE, `package.json`, registry JSON, GitHub API) das 25 URLs.
+  Divisão em três frentes: skills/agent tooling, bibliotecas de animação, registries de
+  componentes e sites de referência. Veredito por classe em `docs/UI-UX-TOOLKIT.md` (tabela
+  completa com licença, modelo de instalação, incompatibilidades e veredito de cada uma).
+- ADOTADO: 4 skills de `emilkowalski/skills` (MIT, confirmado na API) vendorizadas e ADAPTADAS
+  como fonte canônica do plugin — `motion-craft`, `motion-review`, `ui-library-choices` e o papel
+  `motion-critic`. Adaptações: `framer-motion` -> `motion/react`; GSAP como dono declarado dos
+  reveals; nota de que a regra de `prefers-reduced-motion` do CSS não alcança GSAP/WAAPI.
+- PORTÃO NOVO `plugins/almanaque-design/tools/audit-motion.mjs` (+ `pnpm run ui:audit:ci`):
+  transforma a régua em verificação — `transition-all`, `scale(0)`, `ease-in`, animação de
+  propriedade de layout, import de `framer-motion`, `will-change` amplo, hover sem gate de
+  ponteiro, duração de UI > 300 ms, GSAP sem reduced-motion e alfa de texto abaixo do piso de
+  contraste. Primeira execução: **38 bloqueios reais** (todos `transition-all`).
+- CORRIGIDO (tudo medido, não estimado):
+  1. `transition-all` -> `transition` (utilitário nomeado do Tailwind v4) em **18 arquivos**;
+     conferi cada hover/focus afetado (shadow, bg, opacity, color, border, transform) para não
+     derrubar propriedade necessária. Portão agora: **0 bloqueios**.
+  2. `--color-foreground` `#7f1d1d` -> **`#340808`**: o sólido antigo dava 9,16:1 mas a escala de
+     alfa reprovava (`/60` = 3,46:1 · `/50` = 2,72:1 · `/40` = 2,17:1). Nova escala: `/60` = 4,72:1
+     · `/70` = 6,61:1 · sólido = 16,21:1. Piso de texto documentado em `globals.css`.
+  3. Piso de alfa: `/30`, `/40`, `/50` -> `/70` em **46 arquivos**.
+  4. Rodapé: `text-white/40|50|60` -> `/70|80|90` (2,78:1 -> 8,92–14,37:1); marca saiu de
+     `text-primary` (2,1:1 sobre o fundo escuro) para `text-white`.
+  5. Busca: cor explícita no placeholder **+ `placeholder:opacity-100`** (o navegador aplica
+     opacidade própria ao placeholder e derrubava para 3,5:1) — Navbar, SearchBar, GlobalSearch.
+  6. Anel de foco na camada escura: dourado sobre o CTA vermelho dava **1,66:1** (WCAG 2.2
+     1.4.11/2.4.13). Agora folga de 1 px na cor do fundo separa o anel (7,84:1).
+  7. Removidos dois tells de UI gerada por IA apontados pelo detector: o **tile de ícone 48 px
+     acima do h3** nos 6 feature cards (virou ícone em linha com o título) e o **chip minúsculo em
+     caixa alta acima do H1** (a informação virou a primeira frase da promessa). Saiu também o
+     ponto pulsante decorativo.
+  8. `useGsap.ts` passou a respeitar `prefers-reduced-motion` (a regra do CSS não alcança GSAP) e
+     o hover por GSAP ficou gated por `(hover: hover)`.
+- AUDITORIA EXTERNA: `npx impeccable@latest detect <url>` (Apache-2.0, 59 regras determinísticas
+  sobre o DOM renderizado, `DO_NOT_TRACK=1`). Achou **26 anti-padrões na produção** (19 de
+  contraste, 6 `icon-tile-stack`, 1 texto de 10 px). Depois das correções: **home local 26 -> 0
+  (exit 0)** e `/clubs` 6 -> 0.
+- DIVERGÊNCIA RESOLVIDA: minha medição dava `proofDisclaimer` 4,75:1 e `ctaNote` 4,95:1; o
+  subagente `a11y-auditor`, compondo o fundo REAL (glow + color-mix do cartão + grão), mediu
+  4,36:1 e 4,65:1. O método dele é o correto — meu script media contra o fundo chapado. Ambos
+  foram corrigidos por alfa (`/70` e `/75`), não por reinterpretação do número.
+- VERIFICAÇÃO: `pnpm --filter web typecheck` limpo; `pnpm --filter web test` **64/64** em 12
+  arquivos; contraste renderizado do hero **0 reprovações** em 17 pares; overflow horizontal 0 em
+  1440/768/390; 3 idiomas renderizando (pt-BR/en-US/es-ES); `pnpm run ui:audit:ci` exit 0.
+- NÃO VERIFICADO: leitor de tela real; zoom 200% com zoom de navegador real; toque em dispositivo
+  físico; frames perdidos em dispositivo médio (o portão é estático); `--color-primary` como texto
+  sobre fundo claro segue em 4,41:1 (reprova por 0,09) aguardando decisão de marca, porque a
+  correção escurece a cor em botões, mapa e gráficos.
+- LIMITE DO AMBIENTE (já registrado no T532): o DSH descobre `.dsh/skills/` na ABERTURA da sessão;
+  as 8 skills novas (`motion-craft`, `motion-review`, `ui-library-choices` + as 5 do T532) só
+  aparecem no catálogo após reabrir a sessão. Durante a sessão o conteúdo foi lido do arquivo.
+
+Stage Summary:
+- O projeto passa a ter régua de animação escrita, atribuída e verificável — 3 skills novas +
+  1 papel de subagente + 2 scripts (`audit-motion.mjs`, `run.mjs`) + 5 npm scripts
+- 25 ferramentas curadas com veredito em fonte primária: 1 adotada como skills, 1 usada como
+  auditoria externa, 6 como registry opcional, o resto referência ou vetado por licença/stack
+- Home local saiu de 26 anti-padrões para **0**; tema claro passou a cumprir WCAG AA na escala de
+  alfa inteira; 38 `transition-all` eliminados sem regressão de hover
+### Fecho da rodada T533 (revisão adversarial + correções)
+
+- CRÍTICA DE MOVIMENTO independente (`motion-critic`) rodou o portão (0 bloqueios) e revisou as
+  mudanças. Veredito **APROVADO**, com uma regressão real que eu não tinha visto:
+  `ChampionsCarousel.tsx:199` — o ponto ativo usava `w-2` → `w-6` e o `transition` nomeado
+  **não cobre `width`**, então o indicador passou a saltar. Corrigido com animação de pintura
+  (`scale-x-0 → scale-x-100` sobre caixa fixa), medido por injeção de classe: ativo pinta 24px,
+  inativo 0px, espaçamento estável em 44px entre o 1º e o 3º ponto.
+- O crítico também apontou `(hover: hover)` sem `(pointer: fine)` — corrigido para o par exigido
+  pela régua — e sugeriu a curva forte no GSAP, o que revelou um defeito mais grave: o GSAP
+  **falha em silêncio** com a string `cubic-bezier(...)` (medido: `parseEase` devolve `undefined`
+  e cai em `power1.out`). Trocado para `power4.out` (equivalente medido da curva) e virou regra
+  de **bloqueio** no portão (`css-ease-string-in-gsap`), porque é invisível em revisão de leitura.
+- Portão ajustado para o token atual (`--color-foreground: #340808`): o piso de texto é `/60`,
+  então a regra `low-alpha-text` passou a acusar `/1x`–`/5x` (antes comparava com o token antigo e
+  gerava 100 avisos falsos). Relatório ganhou a severidade `INFO`, separada de ATENÇÃO, e as
+  regras passaram a ser ordenadas por severidade (bloqueio → atenção → informativo).
+- Verificação final: `typecheck` limpo · **64/64** testes · portão **0 bloqueios / 0 atenção /
+  7 informativos** · contraste renderizado do hero **0 reprovações** · `impeccable detect` na home
+  local **exit 0 (zero achados)** · `--check` do sync sem drift.
+- Nenhuma dependência nova: `package.json` da raiz ganhou só 5 npm scripts; `apps/web/package.json`
+  e o lockfile estão intocados; zero import de `framer-motion`, `animejs` ou `components/ui`.
+Task ID: goal-2026-10-13/t534
+Agent: Operador + Doer (ZCode)
+Task: T534 — SESSÃO DE DECISÃO ESTRATÉGICA (Beta Aberta)
+
+Work Log:
+- BRIEFING apresentado com dado VERIFICADO antes das decisões (não com o número do
+  despacho): integridade (matches 15.981 · rankings 72 · entries 1.906 · WON 5.205 ·
+  clubes 11.987), prontidão técnica (100% 2xx, 0% erro, CPU máx 0,17 de 8 vCPU,
+  memória máx 769 MB de 8 GB, p99 3 ms na plataforma e 9,2 ms no /matches medido no
+  container), cache (hit rate 68,1%) e gaps de cobertura (uniformes ~22 noites;
+  hinos/flâmulas/360º limitados pela fonte).
+
+- VERIFICAÇÕES FEITAS PARA INFORMAR AS DECISÕES (não supostas):
+  · `trustProxy: true` está configurado e o teste empírico confirma: do IP externo,
+    exatamente 100×200 e depois 429 — o rate-limit é por IP REAL, não global. (Se
+    fosse global, seria bloqueador de Beta; descartado com prova.)
+  · k6 existe no repo (`scripts/k6/load-test.js`, `stress-test.js`, BASE_URL por env,
+    até 200 VUs) e JÁ foi executado em 12-08-2026 (T003): 3.710 req/s sustentados,
+    0% de erro, p95 78 ms — números de quando havia 2.450 partidas (hoje 15.981).
+  · Smoke das jornadas críticas (hoje): web `/`, `/clubs`, `/competitions`,
+    `/rankings`, `/privacidade`, `/termos`, `/planos` = 200; api `/health`, `/clubs`,
+    `/rankings`, `/matches`, `/competitions` = 200.
+  · Estado do repo COMPARTILHADO: 107 arquivos modificados NÃO commitados pela outra
+    sessão (76 em apps/** — todos em apps/web, ZERO em apps/api —, 14 em .zcode/,
+    4 em plugins/, 4 em docs/, mais AGENTS.md +18 linhas e .gitignore).
+
+- DECISÕES TOMADAS PELO OPERADOR (13-10-2026):
+  1. **Plano Vercel: MANTER GRATUITO.** O Preview vermelho é limite de builds do plano,
+     não defeito; produção está verde e a Beta não depende de preview. Reavaliar se o
+     loop de revisão visual virar gargalo.
+  2. **Carga: BETA DIRETA + OBSERVAÇÃO, sem k6.** A escala de uma Beta pequena está
+     coberta pela evidência existente (3.710 req/s medidos; 0% de erro hoje com 98% de
+     CPU livre), e rodar k6 de uma máquina só contra produção mediria o rate-limit
+     (provado: 429 após 100 req do mesmo IP), não o app.
+  3. **Coordenação: ISOLAR POR ÁREA, sem sequenciar.** Esta sessão toca apps/api +
+     docs de dados; a outra toca apps/web + plugins + .zcode. Regra dura dos dois
+     lados: NUNCA `git add -A` / `git stash` / `git checkout` amplo — só caminhos
+     explícitos.
+  4. **Data: AGUARDAR A JANELA DE 7 DIAS.**
+
+- BETA ABERTA AGENDADA: **20-10-2026**. A janela de observação do T533 são as 7
+  execuções do cron de mídia (07:00 UTC) de **13/10 a 19/10**; o fecho do T533
+  (checkpoint final com a série) é em **19-20/10**, e a abertura em **20-10-2026**.
+  Escolha do dia da semana pelo Operador se preferir outro (a data é dele).
+
+- AÇÕES TÉCNICAS EXECUTADAS NESTA SESSÃO:
+  · Correção de DOCUMENTAÇÃO que era erro meu (propagado no T527): o PLANO_MESTRE
+    afirmava que a PÁGINA `/matches` serve as partidas. Ela **não existe** (`/matches`
+    responde 404 no web; não há link quebrado no produto ✓). O que serve os dados é o
+    endpoint `GET /api/v1/matches` e as superfícies que os consomem (estatísticas por
+    clube e confronto direto no comparador). Item corrigido para `[~]` e registrado
+    como gap declarado da Beta.
+  · Regra de coordenação adotada do meu lado (caminhos explícitos no git) — e
+    declarada aqui para o outro lado seguir a mesma.
+  · Checklist de abertura da Beta preparado (abaixo), com o que está pronto e o que
+    fica como gap declarado.
+
+- CHECKLIST DE ABERTURA DA BETA (o que é verificável):
+  · [x] Smoke das jornadas críticas 200 (web e API) — medido hoje
+  · [x] Legal publicado (8 rotas) e pagamento Stripe LIVE
+  · [x] Observabilidade: `railway metrics` + `/jobs/health` + logs estruturados
+  · [x] Cron de mídia registrado e com cursor que avança (cobertura sobe sozinha)
+  · [x] Integridade com baseline registrado (T533 Dia 0) — referência para comparar
+  · [x] Health fora do rate-limit (probe não compete com o app)
+  · [ ] **Página `/matches` no web** — gap declarado (item de UI, não de dado)
+  · [ ] **Preview Vercel por PR** — limitado pelo plano (não afeta produção)
+  · [ ] **AGENTS.md editado pela sessão paralela** (+18 linhas, NÃO commitado) —
+        revisar antes de deixar entrar no main: é o arquivo que governa as instruções
+        dos agentes e uma sessão vizinha não deve mudá-lo sem o Operador
+  · [ ] **Nome do DPO** e demais itens de identidade/assinatura — Operador
+
+GAPS DECLARADOS: a janela de 7 dias ainda não ocorreu (a série de métricas é coleta dos
+dias 13-19/10); nenhum teste de carga concorrente real foi feito (decisão consciente:
+Beta direta + observação); a página `/matches` segue inexistente.
+
+Stage Summary:
+- 4 decisões tomadas e registradas, com a evidência que as fundamenta
+- Beta Aberta agendada para 20-10-2026 (após as 7 noites de cron: 13-19/10)
+- Erro de documentação meu corrigido (página /matches não existe) + checklist de
+  abertura com 3 itens abertos (um deles o AGENTS.md da sessão paralela)
