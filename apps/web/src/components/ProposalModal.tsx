@@ -72,7 +72,7 @@ export default function ProposalModal({ clubId, s, onClose, onSent }: Props) {
           rows={6}
           className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
         />
-        <div className="flex justify-between text-xs text-foreground/40 mt-1">
+        <div className="flex justify-between text-xs text-foreground/70 mt-1">
           <span>
             {text.trim().length}/{MAX} {s.chars} · {s.minChars}
           </span>
@@ -80,7 +80,7 @@ export default function ProposalModal({ clubId, s, onClose, onSent }: Props) {
 
         {text.trim().length > 0 && (
           <div className="mt-3">
-            <p className="text-xs uppercase tracking-wide text-foreground/40 mb-1">{s.preview}</p>
+            <p className="text-xs uppercase tracking-wide text-foreground/70 mb-1">{s.preview}</p>
             {/* pré-visualização em texto puro — a API sanitiza HTML */}
             <p className="text-sm text-foreground/80 whitespace-pre-line border border-border/50 rounded-lg p-3">
               {text}
@@ -89,7 +89,7 @@ export default function ProposalModal({ clubId, s, onClose, onSent }: Props) {
         )}
 
         {error && (
-          <p role="alert" className="text-xs text-red-500 mt-2">
+          <p role="alert" className="text-xs text-danger-ink mt-2">
             {error}
           </p>
         )}

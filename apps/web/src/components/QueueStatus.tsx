@@ -14,10 +14,10 @@ export interface QueueCountsView {
 }
 
 const BARS: Array<{ key: keyof QueueCountsView; color: string }> = [
-  { key: 'completed', color: 'bg-green-500' },
-  { key: 'failed', color: 'bg-red-500' },
-  { key: 'waiting', color: 'bg-amber-400' },
-  { key: 'active', color: 'bg-blue-500' },
+  { key: 'completed', color: 'bg-success-ink' },
+  { key: 'failed', color: 'bg-danger-ink' },
+  { key: 'waiting', color: 'bg-warn-ink' },
+  { key: 'active', color: 'bg-info-ink' },
   { key: 'delayed', color: 'bg-foreground/30' },
 ];
 

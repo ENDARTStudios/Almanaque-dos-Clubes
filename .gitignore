@@ -60,3 +60,7 @@ graft/
 # Turborepo (cache local) e runtime do husky
 .turbo/
 .husky/_/
+
+# Artefatos locais de QA visual (T532): screenshots e sondas descartáveis.
+# Os utilitários versionados ficam em plugins/almanaque-design/tools/.
+.tmp/

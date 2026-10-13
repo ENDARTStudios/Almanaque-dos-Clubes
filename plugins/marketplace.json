@@ -12,6 +12,18 @@
         "zh-CN": "Almanaque dos Clubes 的运维工作流：Railway 生产操作、QID/维基数据校验、维基百科表格解析器扩展、PR/部署流程与幂等种子脚本。"
       },
       "category": "developer-tools"
+    },
+    {
+      "name": "almanaque-design",
+      "source": "./almanaque-design",
+      "version": "0.1.0",
+      "description": "UI/UX design system do Almanaque dos Clubes: tokens e componentes, padrões de hero/landing, copy de conversão, régua de animação (emilkowalski/skills, MIT), acessibilidade WCAG 2.2 AA, portão anti-slop e QA visual.",
+      "displayName": "Almanaque Design",
+      "displayName_i18n": { "zh-CN": "Almanaque 设计" },
+      "description_i18n": {
+        "zh-CN": "Almanaque dos Clubes 的 UI/UX 设计系统：设计令牌与组件、首屏/落地页模式、转化文案、动效规范（源自 emilkowalski/skills，MIT）、WCAG 2.2 AA 无障碍、反粗糙度质量门与视觉 QA。"
+      },
+      "category": "design"
     }
   ]
 }

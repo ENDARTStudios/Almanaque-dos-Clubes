@@ -1,0 +1,11 @@
+{
+  "name": "almanaque-design",
+  "version": "0.1.0",
+  "description": "UI/UX design plugin for the Almanaque dos Clubes repository: design system, hero/landing patterns, conversion copy (hook→promise→proof→CTA), WCAG 2.2 AA accessibility, and Playwright visual QA.",
+  "private": true,
+  "dsh": {
+    "plugin": {
+      "skills": "./skills"
+    }
+  }
+}

@@ -31,12 +31,12 @@ function FavoritosPanel() {
         <h1 className="text-3xl sm:text-4xl font-heading font-bold">{t.title}</h1>
         <span
           className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full ${
-            live ? 'bg-green-100 text-green-700' : 'bg-foreground/5 text-foreground/50'
+            live ? 'bg-success-surface text-success-ink' : 'bg-foreground/5 text-foreground/70'
           }`}
         >
           <span
             aria-hidden="true"
-            className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-green-500 animate-pulse' : 'bg-foreground/30'}`}
+            className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-success-ink animate-pulse' : 'bg-foreground/30'}`}
           />
           {live ? t.live : t.offline}
         </span>
@@ -73,9 +73,9 @@ function FavoritosPanel() {
       {tab === 'club' && (
         <>
           {!loaded ? (
-            <p className="text-sm text-foreground/50">…</p>
+            <p className="text-sm text-foreground/70">…</p>
           ) : error ? (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-danger-ink">
               {t.error}
             </p>
           ) : favorites.length === 0 ? (
@@ -90,15 +90,15 @@ function FavoritosPanel() {
                   <div>
                     <Link
                       href={`/clubs/${f.clubId}`}
-                      className="font-heading font-semibold text-foreground hover:text-primary"
+                      className="font-heading font-semibold text-foreground hover:text-primary-ink"
                     >
                       {f.club.name}
                     </Link>
-                    <p className="text-xs text-foreground/50 mt-0.5">
+                    <p className="text-xs text-foreground/70 mt-0.5">
                       {[f.club.city, f.club.state, f.club.country].filter(Boolean).join(', ')}
                     </p>
                     {f.ranking ? (
-                      <p className="text-xs text-primary mt-1">
+                      <p className="text-xs text-primary-ink mt-1">
                         {t.rankingBadge
                           .replace('{position}', String(f.ranking.position))
                           .replace('{name}', f.ranking.name)}
@@ -108,7 +108,7 @@ function FavoritosPanel() {
                   <button
                     type="button"
                     onClick={() => void remove(f.clubId)}
-                    className="text-sm rounded-lg border border-border px-3 py-1.5 text-foreground/70 hover:border-red-300 hover:text-red-600"
+                    className="text-sm rounded-lg border border-border px-3 py-1.5 text-foreground/70 hover:border-danger-ink hover:text-danger-ink"
                   >
                     {t.remove}
                   </button>

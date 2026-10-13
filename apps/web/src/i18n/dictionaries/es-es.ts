@@ -13,6 +13,9 @@ const es: Dictionary = {
     competitions: 'Competiciones',
     map: 'Mapa',
     rankings: 'Rankings y Estadísticas',
+    shortClubs: 'Clubes',
+    shortPlayers: 'Jugadores',
+    shortRankings: 'Rankings',
     search: 'Buscar',
     login: 'Entrar',
     dashboard: 'Panel',
@@ -114,7 +117,6 @@ const es: Dictionary = {
       competitions: 'Competiciones históricas',
       matches: 'Partidos catalogados',
       rankings: 'Rankings publicados',
-      growing: 'Acervo en crecimiento',
     },
     featuresTitle: 'Todo sobre el Fútbol Mundial',
     featuresSubtitle:

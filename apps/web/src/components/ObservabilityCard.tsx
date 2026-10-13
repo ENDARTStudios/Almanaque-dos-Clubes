@@ -31,10 +31,10 @@ export default function ObservabilityCard({
 }) {
   const statusColor =
     health.lastStatus === 'success'
-      ? 'bg-green-100 text-green-700'
+      ? 'bg-success-surface text-success-ink'
       : health.lastStatus === 'failure'
-        ? 'bg-red-100 text-red-700'
-        : 'bg-foreground/5 text-foreground/50';
+        ? 'bg-danger-surface text-danger-ink'
+        : 'bg-foreground/5 text-foreground/70';
   const statusLabel =
     health.lastStatus === 'success'
       ? labels.success
@@ -50,7 +50,7 @@ export default function ObservabilityCard({
         <h3 className="font-heading font-semibold text-foreground text-sm truncate">{name}</h3>
         <span className={`text-xs rounded-full px-2 py-0.5 ${statusColor}`}>{statusLabel}</span>
       </div>
-      {schedule && <p className="text-xs text-foreground/40 mt-1 font-mono">{schedule}</p>}
+      {schedule && <p className="text-xs text-foreground/70 mt-1 font-mono">{schedule}</p>}
       <dl className="mt-3 space-y-1 text-xs text-foreground/60">
         <div className="flex justify-between gap-2">
           <dt>{labels.lastRun}</dt>

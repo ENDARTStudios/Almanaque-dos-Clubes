@@ -23,6 +23,11 @@
     "db:generate": "pnpm --filter @almanaque/api prisma:generate",
     "db:studio": "pnpm --filter @almanaque/api prisma:studio",
     "db:seed": "pnpm --filter @almanaque/api prisma:seed",
+    "ui:audit": "node plugins/almanaque-design/tools/audit-motion.mjs",
+    "ui:audit:ci": "node plugins/almanaque-design/tools/audit-motion.mjs --ci",
+    "ui:shot": "node plugins/almanaque-design/tools/run.mjs shot",
+    "ui:contrast": "node plugins/almanaque-design/tools/run.mjs contrast",
+    "ui:visual": "node plugins/almanaque-design/tools/run.mjs audit",
     "prepare": "husky || exit 0"
   },
   "onlyBuiltDependencies": [
@@ -45,6 +50,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.6",
+    "railway": "^3.13.1",
     "turbo": "^2.11.7",
     "vitest": "^4.1.10"
   },

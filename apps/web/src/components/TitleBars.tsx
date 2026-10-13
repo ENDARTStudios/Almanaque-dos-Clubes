@@ -50,7 +50,7 @@ export default function TitleBars({
           const max = Math.max(a, b, 1);
           return (
             <li key={h} data-testid={`title-bar-${h}`}>
-              <p className="text-xs text-foreground/50 mb-1">{hierarchyLabels[h]}</p>
+              <p className="text-xs text-foreground/70 mb-1">{hierarchyLabels[h]}</p>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2.5 bg-foreground/5 rounded-full overflow-hidden">

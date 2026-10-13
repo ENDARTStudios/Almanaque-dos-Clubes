@@ -8,7 +8,7 @@ export function SearchResults({ query }: { query: string }) {
       <p className="text-sm text-foreground/60">
         {t('common.resultsFor')} <span className="font-semibold text-foreground">&ldquo;{query}&rdquo;</span>
       </p>
-      <p className="text-sm text-foreground/40 mt-2">{t('common.resultsNote')}</p>
+      <p className="text-sm text-foreground/70 mt-2">{t('common.resultsNote')}</p>
     </div>
   );
 }

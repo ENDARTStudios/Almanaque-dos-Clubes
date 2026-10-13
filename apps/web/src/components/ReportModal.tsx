@@ -95,12 +95,12 @@ export default function ReportModal({ clubId, s, onClose, onSent }: Props) {
           placeholder={s.detailsPlaceholder}
           className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-1"
         />
-        <div className="text-xs text-foreground/40 text-right mb-3">
+        <div className="text-xs text-foreground/70 text-right mb-3">
           {details.length}/{MAX}
         </div>
 
         {error && (
-          <p role="alert" className="text-xs text-red-500 mb-2">
+          <p role="alert" className="text-xs text-danger-ink mb-2">
             {error}
           </p>
         )}

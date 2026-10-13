@@ -127,13 +127,13 @@ export default async function ClubComparePage({
 
       <div className="mb-8 text-sm text-foreground/60">
         {s.missingParams}{' '}
-        <Link href="/compare" className="text-primary hover:underline">
+        <Link href="/compare" className="text-primary-ink hover:underline">
           /compare
         </Link>
       </div>
 
       {result === 'same' && (
-        <p className="text-sm text-red-600" role="alert" data-testid="compare-same-club">
+        <p className="text-sm text-danger-ink" role="alert" data-testid="compare-same-club">
           {s.sameClub}
         </p>
       )}
@@ -200,7 +200,7 @@ export default async function ClubComparePage({
 
                 {result.headToHead.matches.length > 0 ? (
                   <div>
-                    <h3 className="text-xs uppercase tracking-wider text-foreground/50 mb-1">
+                    <h3 className="text-xs uppercase tracking-wider text-foreground/70 mb-1">
                       {s.h2hMatches}
                     </h3>
                     <ul className="text-sm space-y-1">
@@ -212,13 +212,13 @@ export default async function ClubComparePage({
                             key={`${m.date}-${m.homeClubId}-${m.awayClubId}`}
                             className="border-t border-border/50 py-1"
                           >
-                            <span className="text-foreground/50">{m.date}</span> · {home}{' '}
+                            <span className="text-foreground/70">{m.date}</span> · {home}{' '}
                             <span className="font-semibold">
                               {m.homeScore} × {m.awayScore}
                             </span>{' '}
                             {away}
                             {m.competitionName ? (
-                              <span className="text-foreground/50"> · {m.competitionName}</span>
+                              <span className="text-foreground/70"> · {m.competitionName}</span>
                             ) : null}
                           </li>
                         );
@@ -228,12 +228,12 @@ export default async function ClubComparePage({
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm text-foreground/50">{s.h2hNone}</p>
+              <p className="text-sm text-foreground/70">{s.h2hNone}</p>
             )}
           </section>
         </div>
       ) : !result && a && b ? (
-        <p className="text-sm text-foreground/50" role="alert" data-testid="compare-error">
+        <p className="text-sm text-foreground/70" role="alert" data-testid="compare-error">
           {s.error}
         </p>
       ) : null}

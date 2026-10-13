@@ -42,7 +42,7 @@ export default async function PlayersPage({
       <div className="mb-6">
         <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
       </div>
-      <p className="text-sm text-foreground/50 mt-2 mb-6">
+      <p className="text-sm text-foreground/70 mt-2 mb-6">
         Jogadores diferentes no acervo: {total}
       </p>
       {players.length ? (
@@ -51,9 +51,9 @@ export default async function PlayersPage({
             <Link
               key={p.id}
               href={`/players/${p.id}`}
-              className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
+              className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm mb-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
                 {p.fullName.slice(0, 2).toUpperCase()}
               </div>
               <h3 className="text-lg font-heading font-semibold text-foreground">{p.fullName}</h3>

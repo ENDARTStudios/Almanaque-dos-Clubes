@@ -54,7 +54,7 @@ export default function FavoritesFeed() {
     return (
       <section className="mt-8" data-testid="favorites-feed-empty">
         <h2 className="text-xl font-heading font-bold text-foreground mb-3">{t.feedTitle}</h2>
-        <p className="text-sm text-foreground/50">{t.feedEmpty}</p>
+        <p className="text-sm text-foreground/70">{t.feedEmpty}</p>
       </section>
     );
   }
@@ -72,18 +72,18 @@ export default function FavoritesFeed() {
             data-testid="favorites-feed-item"
             className="snap-start shrink-0 w-56 rounded-xl border border-border bg-background p-4"
           >
-            <p className="text-2xl font-heading font-bold text-primary tabular-nums">
+            <p className="text-2xl font-heading font-bold text-primary-ink tabular-nums">
               {it.year ?? '—'}
             </p>
             <Link
               href={`/clubs/${it.clubId}`}
-              className="mt-1 block text-sm font-medium text-foreground hover:text-primary truncate"
+              className="mt-1 block text-sm font-medium text-foreground hover:text-primary-ink truncate"
             >
               {it.clubName}
             </Link>
-            <p className="text-xs text-foreground/50 mt-0.5 line-clamp-2">
+            <p className="text-xs text-foreground/70 mt-0.5 line-clamp-2">
               {it.competitionId ? (
-                <Link href={`/competitions/${it.competitionId}`} className="hover:text-primary">
+                <Link href={`/competitions/${it.competitionId}`} className="hover:text-primary-ink">
                   {it.competitionName ?? '—'}
                 </Link>
               ) : (
@@ -95,7 +95,7 @@ export default function FavoritesFeed() {
                 href={it.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-2 text-xs text-foreground/40 hover:text-primary underline decoration-dotted underline-offset-2"
+                className="inline-block mt-2 text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
               >
                 fonte
               </a>

@@ -70,12 +70,12 @@ export default function ProposalDashboard({ clubId, s, refreshKey, onReviewed }:
   return (
     <div data-testid="proposal-dashboard">
       <h3 className="text-sm font-semibold text-foreground mb-2">{s.dashboardTitle}</h3>
-      {proposals === null && <p className="text-sm text-foreground/50">…</p>}
-      {proposals?.length === 0 && <p className="text-sm text-foreground/50">{s.noProposals}</p>}
+      {proposals === null && <p className="text-sm text-foreground/70">…</p>}
+      {proposals?.length === 0 && <p className="text-sm text-foreground/70">{s.noProposals}</p>}
       <ul className="space-y-3">
         {proposals?.map((p) => (
           <li key={p.id} className="border border-border/50 rounded-lg p-3 text-sm">
-            <p className="text-xs text-foreground/40 mb-1">
+            <p className="text-xs text-foreground/70 mb-1">
               {p.proposerName ?? '—'} · {new Date(p.createdAt).toLocaleString()}
             </p>
             <p className="text-foreground/80 whitespace-pre-line">{p.userDescription}</p>
@@ -93,7 +93,7 @@ export default function ProposalDashboard({ clubId, s, refreshKey, onReviewed }:
                     type="button"
                     disabled={busy}
                     onClick={() => review(p.id, 'reject', note)}
-                    className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                    className="text-xs bg-danger-ink text-on-danger px-3 py-1.5 rounded-lg disabled:opacity-50"
                   >
                     {busy ? s.reviewing : s.reject}
                   </button>
@@ -134,7 +134,7 @@ export default function ProposalDashboard({ clubId, s, refreshKey, onReviewed }:
         ))}
       </ul>
       {error && (
-        <p role="alert" className="text-xs text-red-500 mt-2">
+        <p role="alert" className="text-xs text-danger-ink mt-2">
           {error}
         </p>
       )}

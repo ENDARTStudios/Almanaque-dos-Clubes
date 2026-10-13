@@ -91,7 +91,7 @@ export default function FavoriteButton(props: FavoriteButtonProps) {
       data-testid={`favorite-${targetType}-${targetId}`}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
         active
-          ? 'border-primary bg-primary/10 text-primary'
+          ? 'border-primary bg-primary/10 text-primary-ink'
           : 'border-border text-foreground/70 hover:border-primary/50'
       } disabled:opacity-50`}
     >

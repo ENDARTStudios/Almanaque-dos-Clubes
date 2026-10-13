@@ -2866,3 +2866,60 @@ Stage Summary:
 - Serviço `media-worker` criado, ativo e consumindo SÓ ele a fila de mídia
 - API de volta ao baseline de latência (67 ms → 11 ms na plataforma) e com a flag virada
 - Batch continuando sem perda (uniformes 1.624 e subindo) · integridade intacta
+
+### T540 — verificação com DADO REAL do acervo (o que os estados vazios escondiam)
+
+O Operador pediu para verificar com dado real. Fiz, e o caminho até conseguir revelou três fatos
+que valem registro — inclusive UMA TENTATIVA MINHA QUE PIOROU O SSR (reportada, não escondida).
+
+**O que atrapalhou, em ordem, e como cada um foi resolvido:**
+1. **A hipótese inicial estava errada.** O `/rankings` mostrava "Erro ao carregar" e eu atribuí à
+   API local ausente. O motivo real era **CORS**: `api.almanaquedosclubes.com` não devolve
+   `Access-Control-Allow-Origin` para `http://localhost:<porta>`, então o **browser** não chama a
+   API de produção (o Server Component chama, porque o fetch dele é server-side).
+2. **Tentei um proxy same-origin no `next.config.ts`** (`/api/v1/*` -> API) para contornar o CORS.
+   **Isso quebrou o SSR**: `getApiBase()` devolveu `/api/v1` no servidor também, e `fetch` do Node
+   **não aceita URL relativa** — cada request passou a levar **120 s** (timeout). Revertido o
+   arquivo (verificado por `git diff --stat`: vazio). A ideia era correta; o acoplamento com o
+   `getApiBase` é que não é.
+3. **A CSP é o portão invisível**: pedir `localhost:3000` (o `DEV_API_URL` do browser) é bloqueado
+   pela CSP **antes da rede**, então nem `page.route` nem o painel de rede veem o request — foi o
+   que me fez perder duas rodadas supondo que o browser não estava chamando a API.
+4. **O stub precisa de CORS correto**: o cliente usa `credentials: 'include'`, e
+   `Access-Control-Allow-Origin: *` é **rejeitado** em request com credenciais. Com
+   `Access-Control-Allow-Origin: http://localhost:3210` + `Allow-Credentials: true`, funcionou.
+
+**Método que funcionou:** capturar as respostas REAIS da API server-side (sem CORS) para
+`.tmp/api-fixtures/` e servi-las ao browser por interceptação do domínio permitido pela CSP. O
+browser renderiza exatamente o dado de produção, sem tocar em produção.
+
+**O que o dado real provou:**
+| Página | Dado renderizado | Contraste medido |
+|---|---|---|
+| `/` | hero: **Real Madrid Club de Fútbol · FIFA Club World Cup · Temporada 2023** + fonte Wikidata; contagens **12.003 / 1.932 / 70**; carrossel com **16 cards** (Real Madrid Mundial, Sagi football team Não-FIFA, Flamengo Continental, Crystal Palace Continental) | 188 nós · 0 reprovando · overflow 0 |
+| `/rankings` | **23 linhas** reais: `1 Inter Milan 100 com base em 58 partidas / 0 títulos` … `23 Salernitana 1919 0` | 140 nós · 0 reprovando · overflow 0 |
+| `/clubs` | **50 cards** de clube | 192 nós · 0 reprovando · overflow 0 |
+| `/competitions` | **80 cards** de competição | 207 nós · 0 reprovando · overflow 0 |
+
+**Os pontos de paginação do carrossel, medidos com 16 cards reais** (era o item que eu tinha
+redimensionado às cegas no T537): ativo pinta **24 px**, inativo pinta **0 px**, caixa de layout
+24 px nos dois, **altura única de 8 px**, **gap estável de 4 px** entre todos, tablist de 264 px —
+sem overflow e sem colisão. A correção `scale-x-0 -> scale-x-100` sobre caixa fixa está validada
+com a quantidade real de pontos.
+
+**O que NÃO consegui verificar, e por quê (limitação de ambiente, não de código):** o **mapa**.
+Com dado real carregado (100 clubes + geo-stats), o overlay de erro do Next em dev cobre a página
+com `eval() is not supported … Content-Security-Policy`. O `unsafe-eval` foi removido do CSP de
+propósito (o próprio `next.config.ts` documenta que nada no bundle de PRODUÇÃO usa `eval`), então
+esse overlay é artefato de dev — mas ele impede a montagem do Leaflet localmente. O mapa segue com
+a geometria verificada por medição de código (container, `.theme-light`, skeletons) e as telas
+claras/`theme-light` verificadas nas outras rotas. **Verificação do mapa fica pendente de um
+ambiente sem o CSP de dev.**
+
+**Fato estrutural descoberto, para decisão futura:** a API de produção não libera CORS para
+`localhost`, e o `DEV_API_URL` do cliente aponta para `localhost:3000`. Ou seja, quem desenvolve o
+front localmente **não consegue usar a API de produção** para nada que hidrate (rankings,
+carrossel, mapa, charts, `/auth/me`) — e a CSP transforma a falha em "erro silencioso" (nenhuma
+requisição aparece). Não mudei nada disso: (a) afrouxar CORS de produção para aceitar `localhost` é
+decisão de segurança do dono; (b) o proxy same-origin exige o `getApiBase` separar cliente e
+servidor. Fica registrado como melhoria conhecida com a armadilha documentada.

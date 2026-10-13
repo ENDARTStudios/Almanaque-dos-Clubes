@@ -228,7 +228,7 @@ export default function SubscriptionManager() {
   })();
 
   return (
-    <div className="border border-border/50 rounded-xl p-6 bg-white mb-8">
+    <div className="border border-border/50 rounded-xl p-6 bg-background mb-8">
       <h2 className="text-xl font-heading font-bold mb-4">{l.plan}</h2>
       {loading ? (
         <p className="text-sm text-foreground/60">{l.loading}</p>
@@ -289,19 +289,19 @@ export default function SubscriptionManager() {
                 <span
                   className={
                     b.status === 'PAID'
-                      ? 'text-green-700'
+                      ? 'text-success-ink'
                       : b.status === 'REFUNDED'
-                        ? 'text-amber-700'
+                        ? 'text-warn-ink'
                         : 'text-foreground/60'
                   }
                 >
                   {b.status}
                 </span>
-                <span className="text-foreground/50">
+                <span className="text-foreground/70">
                   {new Date(b.createdAt).toLocaleDateString()}
                 </span>
                 {b.externalId && (
-                  <span className="text-foreground/40 text-xs truncate max-w-[16rem]">
+                  <span className="text-foreground/70 text-xs truncate max-w-[16rem]">
                     {b.externalId}
                   </span>
                 )}
@@ -336,7 +336,7 @@ export default function SubscriptionManager() {
             aria-modal="true"
             aria-labelledby="confirm-title"
             aria-describedby="confirm-desc"
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-xl bg-background p-6 shadow-xl"
             data-testid="confirm-destructive"
           >
             <h3
@@ -367,7 +367,7 @@ export default function SubscriptionManager() {
               <button
                 onClick={() => void act(confirm)}
                 disabled={!!busy}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                className="bg-danger-ink text-on-danger px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 data-testid="confirm-destructive-yes"
               >
                 {busy ? '...' : l.confirmYes}

@@ -19,7 +19,7 @@ interface Props {
 export default function ClubOwnersList({ owners, s }: Props) {
   if (owners.length === 0) {
     return (
-      <p className="text-sm text-foreground/50" data-testid="club-owners-empty">
+      <p className="text-sm text-foreground/70" data-testid="club-owners-empty">
         {s.noOwners}
       </p>
     );

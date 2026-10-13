@@ -47,23 +47,23 @@ export default function CookieConsentBanner() {
     return (
       <div
         data-testid="cookie-banner"
-        className="fixed bottom-0 inset-x-0 z-[70] bg-foreground text-white shadow-lg"
+        className="fixed bottom-0 inset-x-0 z-[70] border-t border-border bg-muted text-foreground shadow-lg"
         role="dialog"
         aria-label={b.title}
       >
         <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex-1 text-xs sm:text-sm text-white/80">
-            <p className="font-semibold text-white sm:mb-1">{b.title}</p>
+          <div className="flex-1 text-xs sm:text-sm text-foreground/80">
+            <p className="font-semibold text-foreground sm:mb-1">{b.title}</p>
             {/* Compacto no mobile: o banner fixo cobria ~2/3 do mapa em telas
                 pequenas e bloqueava a interação. Resumo em 2 linhas (3 no
                 desktop); texto completo em /cookies (link sempre visível). */}
             <p className="line-clamp-2 sm:line-clamp-3">{b.body}</p>
             <p className="sm:mt-1">
-              <Link href="/cookies" className="underline text-white/90">
+              <Link href="/cookies" className="underline text-primary-ink">
                 {dict.footer.cookies}
               </Link>{' '}
               ·{' '}
-              <Link href="/privacidade" className="underline text-white/90">
+              <Link href="/privacidade" className="underline text-primary-ink">
                 {dict.footer.privacy}
               </Link>
             </p>
@@ -111,11 +111,11 @@ export default function CookieConsentBanner() {
     >
       <div
         data-testid="cookie-preferences"
-        className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 text-foreground"
+        className="bg-background rounded-2xl shadow-xl max-w-lg w-full p-6 text-foreground"
       >
         <h2 className="text-xl font-heading font-bold mb-3">{b.title}</h2>
         <p className="text-sm text-foreground/60 mb-2">{b.necessary}</p>
-        <p className="text-xs text-foreground/50 mb-4">{b.necessaryAlways}</p>
+        <p className="text-xs text-foreground/70 mb-4">{b.necessaryAlways}</p>
         <div className="space-y-3 mb-5">
           {catOrder.map((c) => (
             <label
@@ -128,7 +128,7 @@ export default function CookieConsentBanner() {
                 data-testid={`cookie-cat-${c.key}`}
                 checked={choice[c.key]}
                 onChange={(e) => setChoice((prev) => ({ ...prev, [c.key]: e.target.checked }))}
-                className="h-4 w-4 text-primary"
+                className="h-4 w-4 text-primary-ink"
               />
             </label>
           ))}
@@ -155,7 +155,7 @@ export default function CookieConsentBanner() {
             {dict.common.back}
           </button>
         </div>
-        <p className="mt-4 text-xs text-foreground/50">
+        <p className="mt-4 text-xs text-foreground/70">
           <Link href="/cookies" className="underline">
             {dict.footer.cookies}
           </Link>{' '}

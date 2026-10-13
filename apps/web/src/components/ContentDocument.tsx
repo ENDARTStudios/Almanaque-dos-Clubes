@@ -33,17 +33,17 @@ export default function ContentDocument({
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="text-sm text-primary hover:underline">
+        <Link href="/" className="text-sm text-primary-ink hover:underline">
           {t('common.backHome')}
         </Link>
-        <div className="flex items-center gap-2 text-sm text-foreground/50">
+        <div className="flex items-center gap-2 text-sm text-foreground/70">
           {(['pt-br', 'en-us', 'es-es'] as Locale[]).map((l) => (
             <button
               key={l}
               onClick={() => setLocale(l)}
-              className={locale === l ? 'font-semibold text-primary' : 'hover:text-primary'}
+              className={locale === l ? 'font-semibold text-primary-ink' : 'hover:text-primary-ink'}
             >
               {LOCALE_NAMES[l]}
             </button>
@@ -101,7 +101,7 @@ export default function ContentDocument({
         ) : null}
       </div>
       {'note' in doc && doc.note ? (
-        <p className="mt-8 text-sm text-foreground/50 border-t border-border pt-4">
+        <p className="mt-8 text-sm text-foreground/70 border-t border-border pt-4">
           {withPrices(doc.note)}
         </p>
       ) : null}

@@ -57,7 +57,7 @@ export default function NotificationBadge() {
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notificações${unread > 0 ? ` (${unread} não lidas)` : ''}`}
         aria-expanded={open}
-        className="relative p-1.5 text-foreground/70 hover:text-primary transition-colors"
+        className="relative p-1.5 text-foreground/70 hover:text-primary-ink transition-colors"
         data-testid="notification-bell"
       >
         {/* ícone de sino inline (sem lib de ícones) */}
@@ -74,7 +74,7 @@ export default function NotificationBadge() {
           <span
             aria-live="polite"
             data-testid="notification-badge"
-            className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center"
+            className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center"
           >
             {unread > 99 ? '99+' : unread}
           </span>

@@ -13,14 +13,14 @@ function ClubCard({ club }: { club: Club }) {
   useGsapHover(ref);
   return (
     <Link href={`/clubs/${club.id}`}>
-      <div ref={ref} className="bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border border-border/50">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm mb-3">
+      <div ref={ref} className="bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 cursor-pointer border border-border/50">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
           {club.name.slice(0, 2).toUpperCase()}
         </div>
         <h3 className="text-lg font-heading font-semibold text-foreground">{club.name}</h3>
         {club.country && <p className="text-sm text-foreground/60 mt-1">{club.city ? `${club.city}, ` : ''}{club.country}</p>}
         {club.status && (
-          <span className={`inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full ${club.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+          <span className={`inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full ${club.status === 'ACTIVE' ? 'bg-success-surface text-success-ink' : 'bg-warn-surface text-warn-ink'}`}>
             {club.status === 'ACTIVE' ? 'Ativo' : club.status}
           </span>
         )}

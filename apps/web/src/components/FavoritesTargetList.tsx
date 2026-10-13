@@ -55,10 +55,10 @@ export default function FavoritesTargetList({
 
   const baseHref = targetType === 'player' ? '/players' : '/competitions';
 
-  if (items === null) return <p className="text-sm text-foreground/50">…</p>;
+  if (items === null) return <p className="text-sm text-foreground/70">…</p>;
   if (error)
     return (
-      <p role="alert" className="text-sm text-red-600">
+      <p role="alert" className="text-sm text-danger-ink">
         {t.error}
       </p>
     );
@@ -74,11 +74,11 @@ export default function FavoritesTargetList({
           <div>
             <Link
               href={`${baseHref}/${i.targetId}`}
-              className="font-medium text-foreground hover:text-primary"
+              className="font-medium text-foreground hover:text-primary-ink"
             >
               {i.name}
             </Link>
-            {i.qid && <span className="text-xs text-foreground/40"> · {i.qid}</span>}
+            {i.qid && <span className="text-xs text-foreground/70"> · {i.qid}</span>}
           </div>
           <button
             type="button"

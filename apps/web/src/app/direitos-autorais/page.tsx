@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 export default function DireitosAutoraisPage() {
   if (!legalPagesEnabled()) notFound();
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-2">
-        <Link href="/termos" className="text-sm text-primary hover:underline">
+        <Link href="/termos" className="text-sm text-primary-ink hover:underline">
           ← /termos
         </Link>
       </div>

@@ -24,7 +24,7 @@ export default function ReportButton({ clubId, hasReported, loggedIn, s, onRepor
   if (!loggedIn) return null;
   if (hasReported || done) {
     return (
-      <p className="text-xs text-foreground/40" data-testid="club-reported-already">
+      <p className="text-xs text-foreground/70" data-testid="club-reported-already">
         {s.reportedAlready}
       </p>
     );
@@ -36,7 +36,7 @@ export default function ReportButton({ clubId, hasReported, loggedIn, s, onRepor
         type="button"
         onClick={() => setOpen(true)}
         data-testid="club-report-open"
-        className="text-xs text-foreground/50 hover:text-red-600 transition-colors underline decoration-dotted"
+        className="text-xs text-foreground/70 hover:text-danger-ink transition-colors underline decoration-dotted"
       >
         ⚑ {s.report}
       </button>

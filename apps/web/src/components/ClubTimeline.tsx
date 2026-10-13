@@ -62,7 +62,7 @@ export default async function ClubTimeline({
         <h2 className="text-xl font-heading font-bold text-foreground">{s.title}</h2>
         {data.totalTitles > 0 && (
           <span
-            className="text-sm text-foreground/40 tabular-nums"
+            className="text-sm text-foreground/70 tabular-nums"
             aria-label={`${data.totalTitles}`}
           >
             {data.totalTitles}
@@ -71,7 +71,7 @@ export default async function ClubTimeline({
       </div>
 
       {data.timeline.length === 0 ? (
-        <p className="text-sm text-foreground/50" data-testid="club-timeline-empty">
+        <p className="text-sm text-foreground/70" data-testid="club-timeline-empty">
           {s.empty}
         </p>
       ) : (
@@ -87,7 +87,7 @@ export default async function ClubTimeline({
                   {t.competitionId ? (
                     <Link
                       href={`/competitions/${t.competitionId}`}
-                      className="hover:text-primary transition-colors"
+                      className="hover:text-primary-ink transition-colors"
                     >
                       {t.competitionName ?? '—'}
                     </Link>
@@ -95,12 +95,12 @@ export default async function ClubTimeline({
                     (t.competitionName ?? '—')
                   )}
                 </p>
-                <p className="text-xs text-foreground/40 mt-0.5">
+                <p className="text-xs text-foreground/70 mt-0.5">
                   {s.hierarchies[t.hierarchy as keyof typeof s.hierarchies] ?? t.hierarchy}
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="text-sm font-heading font-semibold text-primary tabular-nums">
+                <span className="text-sm font-heading font-semibold text-primary-ink tabular-nums">
                   {t.year ?? '—'}
                 </span>
                 {t.sourceUrl && (
@@ -108,7 +108,7 @@ export default async function ClubTimeline({
                     href={t.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-foreground/40 hover:text-primary underline decoration-dotted underline-offset-2"
+                    className="text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
                   >
                     {s.source}
                   </a>

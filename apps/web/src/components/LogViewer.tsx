@@ -26,8 +26,8 @@ export interface QueueJobView {
 
 const LEVEL_COLOR: Record<string, string> = {
   info: 'text-foreground/70',
-  warn: 'text-amber-600',
-  error: 'text-red-600',
+  warn: 'text-warn-ink',
+  error: 'text-danger-ink',
 };
 
 function Entry({ log }: { log: LogEntryView }) {
@@ -40,7 +40,7 @@ function Entry({ log }: { log: LogEntryView }) {
         className="w-full text-left font-mono text-xs flex gap-2 items-baseline"
         aria-expanded={open}
       >
-        <span className="text-foreground/40 shrink-0 tabular-nums">
+        <span className="text-foreground/70 shrink-0 tabular-nums">
           {new Date(log.at).toLocaleTimeString()}
         </span>
         <span className={`${LEVEL_COLOR[log.level] ?? ''} shrink-0 uppercase`}>{log.level}</span>
@@ -74,7 +74,7 @@ export default function LogViewer({
           {emptyLabel === '' ? '' : ''}
         </h3>
         {entries.length === 0 ? (
-          <p className="text-sm text-foreground/50">{emptyLabel}</p>
+          <p className="text-sm text-foreground/70">{emptyLabel}</p>
         ) : (
           <ul className="divide-y divide-border/40" aria-label="job logs">
             {entries.map((e, i) => (
@@ -89,16 +89,16 @@ export default function LogViewer({
           <ul className="divide-y divide-border/40" aria-label={queueLabel}>
             {queueJobs.map((j) => (
               <li key={String(j.id)} className="py-1.5 font-mono text-xs flex gap-2 items-baseline">
-                <span className="text-foreground/40 tabular-nums shrink-0">
+                <span className="text-foreground/70 tabular-nums shrink-0">
                   {new Date(j.timestamp).toLocaleTimeString()}
                 </span>
                 <span
-                  className={`shrink-0 uppercase ${j.state === 'failed' ? 'text-red-600' : 'text-green-700'}`}
+                  className={`shrink-0 uppercase ${j.state === 'failed' ? 'text-danger-ink' : 'text-success-ink'}`}
                 >
                   {j.state}
                 </span>
                 <span className="text-foreground font-semibold shrink-0">{j.name}</span>
-                <span className="text-foreground/50 truncate">
+                <span className="text-foreground/70 truncate">
                   {j.failedReason ??
                     (j.finishedOn != null && j.processedOn != null
                       ? `${((j.finishedOn - j.processedOn) / 1000).toFixed(1)}s`

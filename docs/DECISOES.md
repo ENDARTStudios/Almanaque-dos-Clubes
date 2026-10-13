@@ -2719,3 +2719,40 @@ infra apareceram no caminho e ficam registradas.
 baseline (67 ms → 11 ms de p50 na plataforma) com `/health`, `/clubs` e `/rankings` em
 200 e **zero 5xx da aplicação** (os 30 do relatório eram da janela de restart do proxy —
 provado por re-medição: o contador não subiu com 25 requisições novas, todas 2xx).
+
+### [2026-10-13] Decisão: D-2026-10-13-t540-verificacao-com-dado-real — o design se valida no dado de produção, e o caminho até ele expôs o CORS de dev
+
+Motivo: o Operador pediu verificação com dado real. **Resultado: o tema escuro se sustenta no dado
+real de produção** — 23 linhas de ranking (`1 Inter Milan 100`), 16 cards de campeão (Real Madrid ·
+FIFA Club World Cup 2023), 50 clubes, 80 competições, contagens 12.003/1.932/70, e **0 reprovações
+de contraste em 727 nós medidos** nesses estados preenchidos (além dos 2.056 já medidos nos estados
+vazios/erro).
+**Decisões tomadas durante a verificação:**
+1. **Revertido o proxy same-origin no `next.config.ts`.** Cheguei a implementá-lo para contornar o
+   CORS de dev, mas ele **quebrou o SSR**: `getApiBase()` devolveu `/api/v1` também no servidor e o
+   `fetch` do Node **não aceita URL relativa** — cada request passou a levar 120 s (timeout).
+   Revertido e confirmado por `git diff --stat` vazio. O proxy exige antes separar a base de
+   cliente e de servidor no `getApiBase`; fazer as duas coisas de uma vez era risco desnecessário.
+2. **Não afrouxar o CORS da API.** A API de produção não libera `Origin: http://localhost:<porta>`,
+   então nada que hidrata (rankings, carrossel, mapa, charts, `/auth/me`) funciona no dev. As duas
+   saídas possíveis foram consideradas: afrouxar CORS de produção (muda superfície de segurança por
+   causa de dev — recusado) ou proxy same-origin (exige o refactor do item 1). Fica como melhoria
+   conhecida, com a armadilha documentada, para decisão do dono da API.
+3. **Método de verificação com dado real, sem tocar produção:** capturar as respostas REAIS da API
+   server-side (sem CORS) e servi-las ao browser por interceptação do domínio que a CSP permite.
+   Detalhe que custou duas rodadas: o cliente usa `credentials: 'include'`, e
+   `Access-Control-Allow-Origin: *` é **rejeitado** em request com credenciais — o stub precisa da
+   origem exata + `Allow-Credentials: true`. E a CSP bloqueia `localhost:3000` **antes da rede**, o
+   que faz o request não aparecer em lugar nenhum (nem no `page.route`, nem no painel de rede) —
+   "erro silencioso" que me levou a supor que o browser não estava chamando a API.
+**Achado que a medição confirmou:** os pontos de paginação do carrossel (redimensionados às cegas
+no T537) estão corretos com os 16 cards reais — ativo pinta 24 px, inativo 0 px, layout fixo de
+24 px, altura única de 8 px, gap estável de 4 px, sem overflow.
+**Limite declarado:** o mapa não pôde ser verificado com dado real porque o overlay de erro do Next
+em dev (bloqueio de `eval` pelo CSP) cobre a página e impede a montagem do Leaflet. O `unsafe-eval`
+foi removido do CSP de propósito e nada no bundle de produção usa `eval` — é artefato de dev, não
+defeito do produto. **O mapa permanece como o único item não verificado com dado real.**
+Alternativas consideradas: (a) verificar só em produção após deploy — descartado: eu não faria
+verificação, faria torcida; (b) rodar a API localmente — descartado: o Postgres de produção não é
+alcançável localmente (skill `prod-railway`) e subir banco vazio não é dado real; (c) servir
+fixtures fixas escritas à mão — descartado: é justamente o que "dado real" exclui.

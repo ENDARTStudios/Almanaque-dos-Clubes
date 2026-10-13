@@ -129,7 +129,7 @@ export default function ChampionsCarousel() {
                 className="snap-start shrink-0 w-72 rounded-xl border border-border bg-background p-5 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary-ink">
                     {t[`hierarchy_${scope.hierarchy}` as keyof typeof t] ?? scope.hierarchy}
                     {scope.gender === 'women' ? ` · ${dict.pages.rankings.genderWomen}` : ''}
                     {scope.nonFifa ? (
@@ -144,7 +144,7 @@ export default function ChampionsCarousel() {
                   <TrophyIcon />
                 </div>
                 <Link href={`/clubs/${scope.champion.id}`} className="block group">
-                  <p className="text-lg font-heading font-semibold text-foreground group-hover:text-primary transition-colors">
+                  <p className="text-lg font-heading font-semibold text-foreground group-hover:text-primary-ink transition-colors">
                     {scope.champion.name}
                   </p>
                 </Link>
@@ -152,7 +152,7 @@ export default function ChampionsCarousel() {
                   {scope.competition.id ? (
                     <Link
                       href={`/competitions/${scope.competition.id}`}
-                      className="hover:text-primary transition-colors"
+                      className="hover:text-primary-ink transition-colors"
                     >
                       {scope.competition.name ?? '—'}
                     </Link>
@@ -160,15 +160,15 @@ export default function ChampionsCarousel() {
                     (scope.competition.name ?? '—')
                   )}
                 </p>
-                <p className="text-xs text-foreground/40 mt-0.5">
+                <p className="text-xs text-foreground/70 mt-0.5">
                   {c2.season}: {scope.season}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[11px] uppercase tracking-wide text-foreground/40">
+                  <span className="text-[11px] uppercase tracking-wide text-foreground/70">
                     {scope.source.type}
                   </span>
                   {scope.source.license && (
-                    <span className="text-[11px] text-foreground/40">· {scope.source.license}</span>
+                    <span className="text-[11px] text-foreground/70">· {scope.source.license}</span>
                   )}
                 </div>
                 {scope.source.sourceUrl && (
@@ -177,7 +177,7 @@ export default function ChampionsCarousel() {
                     target="_blank"
                     rel="noopener noreferrer"
                     data-testid={`champion-source-${scope.hierarchy}`}
-                    className="inline-block text-xs text-foreground/50 hover:text-primary transition-colors mt-1 underline decoration-dotted underline-offset-2"
+                    className="inline-block text-xs text-foreground/70 hover:text-primary-ink transition-colors mt-1 underline decoration-dotted underline-offset-2"
                   >
                     {c2.source}
                   </a>
@@ -187,8 +187,14 @@ export default function ChampionsCarousel() {
           </div>
 
           <div className="flex items-center justify-between mt-3">
-            <div className="flex gap-1.5" role="tablist" aria-label={t.dots}>
+            {/* `-space-x-2` compensa a caixa de 24px do ponto inativo (ver o comentário
+                no botão), mantendo a régua visual compacta de antes. */}
+            <div className="-space-x-2 flex" role="tablist" aria-label={t.dots}>
               {cards.map((scope, i) => (
+                // O ponto ativo anima em `scale-x-0 -> scale-x-100` sobre uma caixa de `w-6`
+                // fixa: o layout não muda, só a pintura — a transição roda na GPU e o portão
+                // `ui:audit` aceita. A caixa de 24px também melhora o alvo de toque
+                // (WCAG 2.5.8); antes o ponto inativo tinha 8px.
                 <button
                   key={`${scope.hierarchy}-${scope.competition.id}-${i}`}
                   type="button"
@@ -196,7 +202,7 @@ export default function ChampionsCarousel() {
                   aria-selected={current === i}
                   aria-label={`${t.dots} ${i + 1}`}
                   onClick={() => scrollTo(i)}
-                  className={`h-2 rounded-full transition-all ${current === i ? 'w-6 bg-primary' : 'w-2 bg-foreground/25'}`}
+                  className={`h-2 w-6 origin-center rounded-full transition-transform duration-200 ${current === i ? 'scale-x-100 bg-primary' : 'scale-x-0 bg-foreground/25'}`}
                 />
               ))}
             </div>
@@ -220,7 +226,7 @@ export default function ChampionsCarousel() {
             </div>
           </div>
 
-          <p className="text-xs text-foreground/40 mt-3">
+          <p className="text-xs text-foreground/70 mt-3">
             {c2.gapsNote}
             {municipalGap ? ` · ${c2.municipalGap}` : ''}
           </p>

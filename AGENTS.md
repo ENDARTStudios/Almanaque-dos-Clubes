@@ -19,7 +19,23 @@ Resumo das regras essenciais (valência completa em `docs/AGENTS.md`):
   `wiki-table-parser` (parser de tabelas), `release-loop` (PR→deploy→produção),
   `idempotent-seed` (seeds seguros); agentes `fonte-scout`, `prod-runner`, `gate-verifier`.
   A **fonte canônica é o plugin** `plugins/almanaque-dev/` — edite lá e rode
-  `bash plugins/almanaque-dev/scripts/sync-to-workspace.sh`. Ver [docs/PLUGIN-ALMANAQUE-DEV.md](docs/PLUGIN-ALMANAQUE-DEV.md).
+  `bash plugins/scripts/sync-to-workspace.sh`. Ver [docs/PLUGIN-ALMANAQUE-DEV.md](docs/PLUGIN-ALMANAQUE-DEV.md).
+- **UI/UX (plugin `almanaque-design`)**: design system, padrões de hero/landing, copy de
+  conversão (gancho→promessa→prova→CTA), acessibilidade WCAG 2.2 AA e QA visual com
+  Playwright: skills em `plugins/almanaque-design/skills/` (espelhadas em **`.dsh/skills/`**,
+  o diretório que o DSH varre) e papéis de subagente em `plugins/almanaque-design/agents/`
+  (`design-critic`, `a11y-auditor`, `ux-copywriter`, `visual-qa-auditor`, em `.zcode/agents/`
+  e `.dsh/agents/`). O mesmo `plugins/scripts/sync-to-workspace.sh` sincroniza os dois
+  plugins. Ver [docs/PLUGIN-ALMANAQUE-DESIGN.md](docs/PLUGIN-ALMANAQUE-DESIGN.md).
+  **Antes de mexer em qualquer tela, carregue a skill `design-system-almanaque`.**
+- **Régua de animação (T533)**: antes de escrever ou revisar movimento, carregue `motion-craft`
+  (curvas, durações, física, qual dos três motores usar) e `motion-review` (dez padrões não
+  negociáveis). O portão objetivo é `pnpm run ui:audit:ci` — falha se houver `transition-all`,
+  `scale(0)`, `ease-in`, animação de layout, import de `framer-motion`, GSAP sem
+  `prefers-reduced-motion` ou texto abaixo do piso de contraste. Detalhes dos três motores:
+  **GSAP** é dono dos reveals (`useGsap.ts`), **`motion/react`** (`motion@13`) é o motor de
+  spring/gesto/exit, e `animejs` está instalado **sem uso** (dívida). Curadoria das ferramentas
+  avaliadas em [docs/UI-UX-TOOLKIT.md](docs/UI-UX-TOOLKIT.md).
 
 <!-- BEGIN:turborepo-agent-rules -->
 

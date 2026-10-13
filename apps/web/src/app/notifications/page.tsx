@@ -79,7 +79,7 @@ function NotificationsList() {
               setOffset(0);
             }}
             className={`text-xs rounded-full px-3 py-1 border ${
-              !unreadOnly ? 'border-primary text-primary' : 'border-border text-foreground/60'
+              !unreadOnly ? 'border-primary text-primary-ink' : 'border-border text-foreground/60'
             }`}
           >
             {s.all}
@@ -91,7 +91,7 @@ function NotificationsList() {
               setOffset(0);
             }}
             className={`text-xs rounded-full px-3 py-1 border ${
-              unreadOnly ? 'border-primary text-primary' : 'border-border text-foreground/60'
+              unreadOnly ? 'border-primary text-primary-ink' : 'border-border text-foreground/60'
             }`}
           >
             {s.unreadOnly}
@@ -100,7 +100,7 @@ function NotificationsList() {
         <button
           type="button"
           onClick={markAll}
-          className="text-xs text-primary hover:underline"
+          className="text-xs text-primary-ink hover:underline"
           data-testid="notifications-mark-all"
         >
           {s.markAllRead}
@@ -108,13 +108,13 @@ function NotificationsList() {
       </div>
 
       {failed ? (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger-ink">
           {s.title}: ERROR
         </p>
       ) : items === null ? (
-        <p className="text-sm text-foreground/40">…</p>
+        <p className="text-sm text-foreground/70">…</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-foreground/50 py-10" data-testid="notifications-empty">
+        <p className="text-sm text-foreground/70 py-10" data-testid="notifications-empty">
           {s.empty}
         </p>
       ) : (
@@ -126,7 +126,7 @@ function NotificationsList() {
                 onClick={() => void markRead(n)}
                 className={`w-full text-left py-3 ${n.read ? 'opacity-60' : ''}`}
               >
-                <p className="text-xs font-medium text-primary">
+                <p className="text-xs font-medium text-primary-ink">
                   {notificationTypeLabel(n.type, s)}
                   {!n.read && (
                     <span
@@ -153,7 +153,7 @@ function NotificationsList() {
                     return p.clubId ? (
                       <Link
                         href={`/clubs/${p.clubId}`}
-                        className="hover:text-primary"
+                        className="hover:text-primary-ink"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {text}
@@ -163,7 +163,7 @@ function NotificationsList() {
                     );
                   })()}
                 </p>
-                <p className="text-xs text-foreground/40">
+                <p className="text-xs text-foreground/70">
                   {new Date(n.createdAt).toLocaleString()}
                 </p>
               </button>
@@ -176,7 +176,7 @@ function NotificationsList() {
         <button
           type="button"
           onClick={() => setOffset((o) => o + PAGE_SIZE)}
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary-ink hover:underline"
         >
           + {PAGE_SIZE}
         </button>

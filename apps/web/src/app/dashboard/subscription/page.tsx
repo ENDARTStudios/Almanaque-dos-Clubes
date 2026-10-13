@@ -43,7 +43,7 @@ export default async function SubscriptionPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <Link
         href="/dashboard"
-        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+        className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
       >
         &larr; Voltar ao Painel
       </Link>
@@ -54,14 +54,14 @@ export default async function SubscriptionPage() {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`rounded-xl p-6 shadow-md border ${plan.active ? 'border-primary ring-2 ring-primary/20' : 'border-border/50'} bg-white`}
+            className={`rounded-xl p-6 shadow-md border ${plan.active ? 'border-primary ring-2 ring-primary/20' : 'border-border/50'} bg-background`}
           >
             <h2 className="text-xl font-heading font-bold text-foreground">{plan.name}</h2>
-            <p className="text-2xl font-heading font-bold text-primary mt-2">{plan.price}</p>
+            <p className="text-2xl font-heading font-bold text-primary-ink mt-2">{plan.price}</p>
             <ul className="mt-4 space-y-2">
               {plan.features.map((f) => (
                 <li key={f} className="text-sm text-foreground/70 flex items-center gap-2">
-                  <span className="text-primary">✓</span> {f}
+                  <span className="text-primary-ink">✓</span> {f}
                 </li>
               ))}
             </ul>

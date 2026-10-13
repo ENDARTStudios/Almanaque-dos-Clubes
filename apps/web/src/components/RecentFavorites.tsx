@@ -41,9 +41,9 @@ export default function RecentFavorites({ items }: { items: RecentFavorite[] }) 
           data-testid={`recent-favorite-${f.targetType}`}
           className="rounded-xl border border-border bg-background p-3 hover:border-primary/50 transition-colors"
         >
-          <p className="text-xs uppercase tracking-wide text-foreground/40">{TYPE_LABEL[f.targetType]}</p>
+          <p className="text-xs uppercase tracking-wide text-foreground/70">{TYPE_LABEL[f.targetType]}</p>
           <p className="text-sm font-medium text-foreground mt-1 line-clamp-2">{f.targetName}</p>
-          <p className="text-xs text-foreground/40 mt-1">
+          <p className="text-xs text-foreground/70 mt-1">
             {new Date(f.addedAt).toLocaleDateString('pt-BR')}
           </p>
         </Link>

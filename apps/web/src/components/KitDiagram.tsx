@@ -57,7 +57,7 @@ export default function KitDiagram({ kit }: { kit: KitEntryView }) {
       <figure className="inline-block text-center" data-testid="kit-figure">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={kit.image.url} alt={kit.label} className="h-40 w-auto rounded object-contain" />
-        <figcaption className="mt-1 text-xs text-foreground/50">
+        <figcaption className="mt-1 text-xs text-foreground/70">
           <a
             href={kit.image.sourceUrl}
             target="_blank"
@@ -88,7 +88,7 @@ export default function KitDiagram({ kit }: { kit: KitEntryView }) {
           <Part part={p.socks} width="26px" height="26px" border={p.socks.color ?? undefined} />
         </div>
       </div>
-      <figcaption className="mt-1 text-xs text-foreground/50">
+      <figcaption className="mt-1 text-xs text-foreground/70">
         <a
           href={kit.sourceUrl}
           target="_blank"

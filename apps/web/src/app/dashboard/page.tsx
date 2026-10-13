@@ -22,7 +22,7 @@ export default function DashboardPage() {
       <div className="grid sm:grid-cols-3 gap-6">
         <Link
           href="/dashboard/subscription"
-          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
           <h2 className="text-lg font-heading font-semibold text-foreground">Assinatura</h2>
           <p className="text-sm text-foreground/60 mt-1">
@@ -31,28 +31,28 @@ export default function DashboardPage() {
         </Link>
         <Link
           href="/admin/observability"
-          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
           <h2 className="text-lg font-heading font-semibold text-foreground">Observabilidade</h2>
           <p className="text-sm text-foreground/60 mt-1">Crons, fila e alertas (admin).</p>
         </Link>
         <Link
           href="/admin/reports"
-          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
           <h2 className="text-lg font-heading font-semibold text-foreground">Moderação</h2>
           <p className="text-sm text-foreground/60 mt-1">Denúncias pendentes (admin).</p>
         </Link>
         <Link
           href="/favoritos"
-          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
           <h2 className="text-lg font-heading font-semibold text-foreground">Favoritos</h2>
           <p className="text-sm text-foreground/60 mt-1">Seus clubes e conquistas recentes.</p>
         </Link>
         <Link
           href="/dashboard/history"
-          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-6 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
           <h2 className="text-lg font-heading font-semibold text-foreground">Histórico</h2>
           <p className="text-sm text-foreground/60 mt-1">

@@ -139,7 +139,7 @@ export default async function CompetitionDetailPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/competitions"
-        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+        className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
       >
         &larr; {dict.pages.competitions.title}
       </Link>
@@ -150,13 +150,13 @@ export default async function CompetitionDetailPage({
           {comp.trophyImageUrl ? (
             <span
               data-testid="competition-trophy"
-              className="w-20 h-20 rounded-2xl bg-white border border-border/50 flex items-center justify-center overflow-hidden shrink-0"
+              className="w-20 h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={comp.trophyImageUrl} alt="" className="object-contain w-16 h-16" loading="lazy" />
             </span>
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-2xl shrink-0">
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-2xl shrink-0">
               {comp.name.slice(0, 2).toUpperCase()}
             </div>
           )}
@@ -175,7 +175,7 @@ export default async function CompetitionDetailPage({
                 </span>
               )}
               {comp.gender === 'women' ? (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary-ink">
                   {dict.pages.rankings.genderWomen}
                 </span>
               ) : null}
@@ -210,7 +210,7 @@ export default async function CompetitionDetailPage({
                 value={
                   <Link
                     href={`/clubs/${currentChampion.champion.id}`}
-                    className="text-primary hover:underline"
+                    className="text-primary-ink hover:underline"
                   >
                     {currentChampion.champion.name}
                   </Link>
@@ -261,7 +261,7 @@ export default async function CompetitionDetailPage({
                     <tr key={e.year} className="border-t border-border">
                       <td className="px-4 py-3 font-semibold">{e.year}</td>
                       <td className="px-4 py-3">
-                        <Link href={`/clubs/${e.champion.id}`} className="text-primary hover:underline">
+                        <Link href={`/clubs/${e.champion.id}`} className="text-primary-ink hover:underline">
                           {e.champion.name}
                         </Link>
                       </td>
@@ -280,7 +280,7 @@ export default async function CompetitionDetailPage({
         {tab === 'clubes' ? (
           overview && overview.participants.length > 0 ? (
             <>
-              <p className="text-xs text-foreground/40 mb-3">{t.participantsNote}</p>
+              <p className="text-xs text-foreground/70 mb-3">{t.participantsNote}</p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {overview.participants.map((c) => (
                   <Link
@@ -289,7 +289,7 @@ export default async function CompetitionDetailPage({
                     className="block bg-background rounded-xl p-4 shadow-sm border border-border/50 hover:border-primary/40 transition-colors"
                   >
                     <p className="font-heading font-semibold text-foreground">{c.name}</p>
-                    <p className="text-xs text-foreground/50 mt-1">
+                    <p className="text-xs text-foreground/70 mt-1">
                       {[c.city, c.country].filter(Boolean).join(', ') || '—'}
                     </p>
                   </Link>
@@ -311,10 +311,10 @@ export default async function CompetitionDetailPage({
                   key={w.clubId}
                   className="flex items-center gap-4 rounded-xl border border-border p-4"
                 >
-                  <span className="text-lg font-heading font-bold text-primary w-8 text-center">
+                  <span className="text-lg font-heading font-bold text-primary-ink w-8 text-center">
                     {i + 1}
                   </span>
-                  <Link href={`/clubs/${w.clubId}`} className="flex-1 text-foreground hover:text-primary">
+                  <Link href={`/clubs/${w.clubId}`} className="flex-1 text-foreground hover:text-primary-ink">
                     {w.name}
                   </Link>
                   <span className="text-sm font-semibold text-foreground/70">
@@ -350,7 +350,7 @@ export default async function CompetitionDetailPage({
                         {t.champion}:{' '}
                         <Link
                           href={`/clubs/${se.champion.id}`}
-                          className="text-primary hover:underline font-semibold"
+                          className="text-primary-ink hover:underline font-semibold"
                         >
                           {se.champion.name ?? se.champion.id}
                         </Link>
@@ -362,7 +362,7 @@ export default async function CompetitionDetailPage({
                         {t.runnerUp}:{' '}
                         <Link
                           href={`/clubs/${se.runnerUp.id}`}
-                          className="text-primary hover:underline"
+                          className="text-primary-ink hover:underline"
                         >
                           {se.runnerUp.name ?? se.runnerUp.id}
                         </Link>
@@ -404,7 +404,7 @@ export default async function CompetitionDetailPage({
                             <td className="px-3 py-2 font-semibold">{row.position}</td>
                             <td className="px-3 py-2">
                               {row.clubId ? (
-                                <Link href={`/clubs/${row.clubId}`} className="text-primary hover:underline">
+                                <Link href={`/clubs/${row.clubId}`} className="text-primary-ink hover:underline">
                                   {row.matchedName ?? row.clubName}
                                 </Link>
                               ) : (
@@ -424,14 +424,14 @@ export default async function CompetitionDetailPage({
                     </table>
                   </div>
                 ) : (
-                  <p className="text-sm text-foreground/50">{t.seasonsEmpty}</p>
+                  <p className="text-sm text-foreground/70">{t.seasonsEmpty}</p>
                 )}
                 {se.sourceUrl ? (
                   <a
                     href={se.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-2 text-xs text-foreground/50 hover:text-primary underline decoration-dotted underline-offset-2"
+                    className="inline-block mt-2 text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
                   >
                     {t.source} ({t.wikipedia})
                   </a>
@@ -441,7 +441,7 @@ export default async function CompetitionDetailPage({
           </div>
         ) : null}
 
-        {tab === 'visao' ? <p className="text-xs text-foreground/40 mt-6">{t.overviewHint}</p> : null}
+        {tab === 'visao' ? <p className="text-xs text-foreground/70 mt-6">{t.overviewHint}</p> : null}
       </div>
     </div>
   );
@@ -450,10 +450,10 @@ export default async function CompetitionDetailPage({
 function Info({ label, value, extra }: { label: string; value: React.ReactNode; extra?: string }) {
   return (
     <div>
-      <p className="text-xs text-foreground/40 uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-foreground/70 uppercase tracking-wider">{label}</p>
       <p className="text-sm font-medium text-foreground mt-0.5">
         {value}
-        {extra ? <span className="text-foreground/40"> · {extra}</span> : null}
+        {extra ? <span className="text-foreground/70"> · {extra}</span> : null}
       </p>
     </div>
   );
