@@ -212,6 +212,31 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   // O Atlas da Libertadores é o MEXICANO (o acervo também tem um clube argentino
   // homônimo, que é com quem a cascata casava).
   Atlas: { name: 'Atlas F.C.', qid: 'Q1023532' },
+  // T538 — os 18 clubes que o T529 declarou ausentes foram INGERIDOS (seed
+  // seed-absent-clubs-t538). O alias com QID resolve os tokens da fonte de forma
+  // determinística — sem ele, 'Sporting' ainda acharia o clube de MALTA e 'Paraná'
+  // o clube de Campo Mourão, porque ambos contêm o token.
+  Sporting: { name: 'Real Sporting de Gijón', qid: 'Q12278' },
+  Málaga: { name: 'Málaga Club de Fútbol', qid: 'Q8857' },
+  Paraná: { name: 'Paraná Clube', qid: 'Q838534' },
+  Eibar: { name: 'Sociedad Deportiva Eibar', qid: 'Q770740' },
+  Huesca: { name: 'Sociedad Deportiva Huesca', qid: 'Q11971' },
+  Lecce: { name: 'Unione Sportiva Lecce', qid: 'Q13391' },
+  Como: { name: 'Como 1907', qid: 'Q1120838' },
+  Monza: { name: 'Associazione Calcio Monza', qid: 'Q289482' },
+  Cremonese: { name: 'Unione Sportiva Cremonese', qid: 'Q759482' },
+  Frosinone: { name: 'Frosinone Calcio', qid: 'Q845043' },
+  Salernitana: { name: 'Unione Sportiva Salernitana 1919', qid: 'Q847587' },
+  // A fonte imprime 'SPAL'; o nome do clube no acervo é o do artigo pt.
+  SPAL: { name: 'Ars et Labor Ferrara', qid: 'Q13385' },
+  Joinville: { name: 'Joinville Esporte Clube', qid: 'Q2035444' },
+  Patronato: { name: 'Club Atlético Patronato', qid: 'Q1773830' },
+  'LDU Quito': { name: 'Liga Deportiva Universitaria (Quito)', qid: 'Q249643' },
+  'Monagas SC': { name: 'Monagas Sport Club', qid: 'Q1636856' },
+  'Deportivo Táchira': { name: 'Deportivo Táchira Fútbol Club', qid: 'Q178378' },
+  'Deportivo Táchira FC': { name: 'Deportivo Táchira Fútbol Club', qid: 'Q178378' },
+  'Independiente Petrolero': { name: 'Club Independiente Petrolero', qid: 'Q2018250' },
+  'Indep. Petrolero': { name: 'Club Independiente Petrolero', qid: 'Q2018250' },
 };
 
 /**
@@ -230,13 +255,11 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
  * acervo tem as duas — CHI/Q427446 e EQU/Q2308911 — e as duas jogaram 2022);
  * ambiguidade é gap declarado, não chute.
  */
-export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
-  'Monagas SC',
-  'Deportivo Táchira FC',
-  'Deportivo Táchira',
-  'Patronato',
-  'Independiente Petrolero',
-  'Indep. Petrolero',
+export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set<string>([
+  // T538 — SAÍRAM desta lista (os clubes foram INGERIDOS do Wikidata e agora têm
+  // alias determinístico abaixo): Monagas SC, Deportivo Táchira (e a variante 'FC'),
+  // Patronato, Independiente Petrolero (e 'Indep. Petrolero'). Ficam aqui só os que
+  // continuariam casando o clube ERRADO ou não existem em lugar nenhum.
   // T529 — La Liga: `Málaga` entra aqui de propósito. O acervo só tem o extinto
   // CD Málaga (Q124518) e o Málaga CF FEMININO — casar o Málaga CF masculino com o
   // clube histórico seria dado falso. `Sporting` idem: sem o Sporting de Gijón no
@@ -246,14 +269,10 @@ export const RSSSF_TEAM_ABSENT: ReadonlySet<string> = new Set([
   // Clube que apenas NÃO EXISTE no acervo fica de fora de propósito — o gap aparece
   // como "sem candidato" no relatório e, se ele entrar no acervo um dia (pool da
   // temporada), resolve sozinho em vez de ficar bloqueado por esta lista.
-  'Sporting',
-  'Málaga',
-  // T529 — Brasileirão 2018: a fonte imprime `Paraná` para o **Paraná Clube**
-  // (Curitiba, que jogou a Série A em 2018) e a cascata casava com a
-  // "Associação Desportiva Atlética do Paraná" (Q260834), clube de **Campo Mourão**
-  // — outro clube. Como o Paraná Clube não existe no acervo, a temporada fica com
-  // esse gap declarado em vez de atribuir 38 jogos ao clube errado.
-  'Paraná',
+  // T538 — 'Sporting', 'Málaga' e 'Paraná' também SAÍRAM: os três clubes certos
+  // entraram no acervo (Real Sporting de Gijón, Málaga CF, Paraná Clube) e agora
+  // têm alias com QID — o que resolve melhor do que bloquear (era um gap que custava
+  // ~500 partidas).
 ]);
 
 function candidatesFor(c: ClubCandidate, scope: string[]): boolean {
