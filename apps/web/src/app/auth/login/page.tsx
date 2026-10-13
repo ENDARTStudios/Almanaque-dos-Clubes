@@ -62,32 +62,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4 py-10">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border border-border/50">
+    <div className="min-h-[80vh] flex items-center justify-center bg-neutral-surface px-4 py-10">
+      <form onSubmit={handleSubmit} className="bg-background p-8 rounded-2xl shadow-md w-full max-w-md border border-border/50">
         <h1 className="text-3xl font-heading font-bold mb-2 text-center text-foreground">{t('auth.loginTitle')}</h1>
         <p className="text-center text-foreground/60 mb-8 text-sm">{t('auth.loginSubtitle')}</p>
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm border border-red-200">{error}</div>}
+        {error && <div className="bg-danger-surface text-danger-ink p-3 rounded-lg mb-4 text-sm border border-danger-ink">{error}</div>}
         <div className="mb-4">
           <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.email')}</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required />
+            className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" required />
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.password')}</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required />
+            className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" required />
         </div>
         <div className="flex justify-end mb-4 -mt-2">
-          <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline cursor-pointer">{t('auth.forgotPasswordLink')}</Link>
+          <Link href="/auth/forgot-password" className="text-xs text-primary-ink hover:underline cursor-pointer">{t('auth.forgotPasswordLink')}</Link>
         </div>
-        <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer">
+        <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition duration-200 cursor-pointer">
           {t('auth.loginSubmit')}
         </button>
         {googleEnabled && (
           <>
             <div className="flex items-center gap-3 my-4" aria-hidden="true">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-foreground/40">ou</span>
+              <span className="text-xs text-foreground/70">ou</span>
               <div className="h-px flex-1 bg-border" />
             </div>
             {/* Top-level GET: a API seta os cookies __Host- do próprio domínio
@@ -95,7 +95,7 @@ export default function LoginPage() {
             <a
               href={`${API_BASE}/auth/google`}
               data-testid="login-google"
-              className="w-full flex items-center justify-center gap-2 border border-border py-2.5 rounded-lg font-medium text-sm hover:bg-foreground/5 transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 border border-border py-2.5 rounded-lg font-medium text-sm hover:bg-foreground/5 transition duration-200"
             >
               <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
                 <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92a8.78 8.78 0 0 0 2.68-6.62z" />
@@ -108,7 +108,7 @@ export default function LoginPage() {
           </>
         )}
         <p className="text-sm text-center mt-4 text-foreground/60">
-          <Link href="/auth/register" className="text-primary hover:underline cursor-pointer">
+          <Link href="/auth/register" className="text-primary-ink hover:underline cursor-pointer">
             {t('auth.noAccount')} {t('auth.loginLink')}
           </Link>
         </p>

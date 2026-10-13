@@ -53,11 +53,11 @@ export default function DashboardStats({ stats }: { stats: DashboardStatsData })
           key={c.title}
           href={c.href}
           data-testid={c.testid}
-          className="bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 cursor-pointer"
+          className="bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
         >
-          <p className="text-3xl font-heading font-bold text-primary">{c.value}</p>
+          <p className="text-3xl font-heading font-bold text-primary-ink">{c.value}</p>
           <p className="text-sm font-medium text-foreground mt-1">{c.title}</p>
-          <p className="text-xs text-foreground/50 mt-0.5">{c.detail}</p>
+          <p className="text-xs text-foreground/70 mt-0.5">{c.detail}</p>
         </Link>
       ))}
     </div>

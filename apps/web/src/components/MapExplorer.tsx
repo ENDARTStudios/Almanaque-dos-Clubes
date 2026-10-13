@@ -13,7 +13,7 @@ import { api } from '@/lib/api';
 
 const WorldChoropleth = dynamic(() => import('./WorldChoropleth'), {
   ssr: false,
-  loading: () => <div className="h-[55vh] w-full bg-slate-100 rounded-2xl animate-pulse" />,
+  loading: () => <div className="h-[55vh] w-full bg-neutral-surface rounded-2xl animate-pulse" />,
 });
 
 interface ClubLite {
@@ -152,7 +152,7 @@ export default function MapExplorer({ stats }: { stats: GeoStats }) {
                 setCountryId(null);
                 setStateId(null);
               }}
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               {m.world}
             </button>
@@ -165,7 +165,7 @@ export default function MapExplorer({ stats }: { stats: GeoStats }) {
                   setCountryId(null);
                   setStateId(null);
                 }}
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 {CONTINENT_LABEL[activeContinent.code] ?? activeContinent.code}
               </button>
@@ -176,7 +176,7 @@ export default function MapExplorer({ stats }: { stats: GeoStats }) {
               /{' '}
               <button
                 onClick={() => setStateId(null)}
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 {activeCountry.name}
               </button>
@@ -276,7 +276,7 @@ export default function MapExplorer({ stats }: { stats: GeoStats }) {
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {clubs.map((c) => (
               <li key={c.id} className="rounded-xl border border-border p-4 text-sm">
-                <Link href={`/clubs/${c.id}`} className="font-semibold text-primary hover:underline">
+                <Link href={`/clubs/${c.id}`} className="font-semibold text-primary-ink hover:underline">
                   {c.name}
                 </Link>
                 <p className="text-foreground/60">

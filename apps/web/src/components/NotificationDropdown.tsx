@@ -113,7 +113,7 @@ export default function NotificationDropdown({
         <button
           type="button"
           onClick={markAll}
-          className="text-xs text-primary hover:underline"
+          className="text-xs text-primary-ink hover:underline"
           data-testid="notification-mark-all"
         >
           {s.markAllRead}
@@ -121,9 +121,9 @@ export default function NotificationDropdown({
       </div>
       <ul className="max-h-80 overflow-y-auto">
         {items === null ? (
-          <li className="px-3 py-3 text-sm text-foreground/40">{s.loading ?? '…'}</li>
+          <li className="px-3 py-3 text-sm text-foreground/70">{s.loading ?? '…'}</li>
         ) : items.length === 0 ? (
-          <li className="px-3 py-3 text-sm text-foreground/50">{s.empty}</li>
+          <li className="px-3 py-3 text-sm text-foreground/70">{s.empty}</li>
         ) : (
           items.map((n) => (
             <li key={n.id}>
@@ -135,7 +135,7 @@ export default function NotificationDropdown({
                   n.read ? 'opacity-60' : ''
                 }`}
               >
-                <p className="text-xs font-medium text-primary">
+                <p className="text-xs font-medium text-primary-ink">
                   {notificationTypeLabel(n.type, s)}
                   {!n.read && (
                     <span
@@ -145,7 +145,7 @@ export default function NotificationDropdown({
                   )}
                 </p>
                 <p className="text-sm text-foreground truncate">{itemText(n)}</p>
-                <p className="text-xs text-foreground/40">
+                <p className="text-xs text-foreground/70">
                   {new Date(n.createdAt).toLocaleString()}
                 </p>
               </button>
@@ -157,7 +157,7 @@ export default function NotificationDropdown({
         <Link
           href="/notifications"
           onClick={onClose}
-          className="text-xs text-primary hover:underline"
+          className="text-xs text-primary-ink hover:underline"
         >
           {s.title} →
         </Link>

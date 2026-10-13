@@ -84,7 +84,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/players"
-        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+        className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
       >
         &larr; Voltar para Jogadores
       </Link>
@@ -103,11 +103,11 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                 countLabel="fãs"
               />
             </div>
-            {p.shortName && <p className="text-sm text-foreground/40">({p.shortName})</p>}
+            {p.shortName && <p className="text-sm text-foreground/70">({p.shortName})</p>}
             {profile?.currentClub ? (
               <p className="text-sm text-foreground/70 mt-2">
                 {t.currentClub}:{' '}
-                <Link href={`/clubs/${profile.currentClub.id}`} className="text-primary hover:underline">
+                <Link href={`/clubs/${profile.currentClub.id}`} className="text-primary-ink hover:underline">
                   {profile.currentClub.name}
                 </Link>
               </p>
@@ -133,7 +133,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                   href={p.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-primary-ink hover:underline"
                 >
                   Ver no Wikidata
                 </a>
@@ -159,7 +159,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                     <tr key={`${row.clubId}-${row.year}-${i}`} className="border-t border-border">
                       <td className="px-4 py-3 font-semibold">{row.year}</td>
                       <td className="px-4 py-3">
-                        <Link href={`/clubs/${row.clubId}`} className="text-primary hover:underline">
+                        <Link href={`/clubs/${row.clubId}`} className="text-primary-ink hover:underline">
                           {row.clubName}
                         </Link>
                       </td>
@@ -180,10 +180,10 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             <ul className="space-y-2">
               {profile.achievements.map((a, i) => (
                 <li key={`${a.competitionId}-${a.year}-${i}`} className="rounded-xl border border-border p-4 text-sm">
-                  <Link href={`/competitions/${a.competitionId}`} className="text-primary hover:underline font-semibold">
+                  <Link href={`/competitions/${a.competitionId}`} className="text-primary-ink hover:underline font-semibold">
                     {a.competitionName}
                   </Link>
-                  {a.year != null ? <span className="text-foreground/50"> · {a.year}</span> : null}
+                  {a.year != null ? <span className="text-foreground/70"> · {a.year}</span> : null}
                 </li>
               ))}
             </ul>
@@ -204,7 +204,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                   className="block bg-background rounded-xl p-4 shadow-sm border border-border/50 hover:border-primary/40 transition-colors"
                 >
                   <p className="font-heading font-semibold text-foreground">{c.name}</p>
-                  {c.country ? <p className="text-xs text-foreground/50 mt-1">{c.country}</p> : null}
+                  {c.country ? <p className="text-xs text-foreground/70 mt-1">{c.country}</p> : null}
                 </Link>
               ))}
             </div>
@@ -220,7 +220,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <p className="text-xs text-foreground/40 uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-foreground/70 uppercase tracking-wider">{label}</p>
       <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
     </div>
   );

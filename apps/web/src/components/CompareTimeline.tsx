@@ -9,6 +9,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import {
+  CHART_GRID_PROPS,
+  CHART_LEGEND_STYLE,
+  CHART_SERIES_A,
+  CHART_SERIES_B,
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from '@/lib/chart-theme';
 import { useI18n } from '@/i18n/Provider';
 
 // T440 — Timeline de evolução no ranking (2 séries, recharts).
@@ -44,7 +53,7 @@ export default function CompareTimeline({
     return (
       <section aria-label={t.timelineTitle}>
         <h2 className="text-xl font-heading font-semibold mb-3">{t.timelineTitle}</h2>
-        <p className="text-sm text-foreground/50">{t.noData}</p>
+        <p className="text-sm text-foreground/70">{t.noData}</p>
       </section>
     );
   }
@@ -59,15 +68,19 @@ export default function CompareTimeline({
       >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#00000018" />
+            <CartesianGrid strokeDasharray="3 3" {...CHART_GRID_PROPS} />
             <XAxis dataKey="season" fontSize={12} />
             <YAxis domain={[0, 100]} fontSize={12} />
-            <Tooltip />
-            <Legend />
+            <Tooltip
+              contentStyle={CHART_TOOLTIP_STYLE}
+              labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+              itemStyle={CHART_TOOLTIP_ITEM_STYLE}
+            />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line
               type="monotone"
               dataKey={aName}
-              stroke="#b91c1c"
+              stroke={CHART_SERIES_A}
               strokeWidth={2}
               connectNulls
               dot
@@ -75,7 +88,7 @@ export default function CompareTimeline({
             <Line
               type="monotone"
               dataKey={bName}
-              stroke="#1d4ed8"
+              stroke={CHART_SERIES_B}
               strokeWidth={2}
               connectNulls
               dot
@@ -83,7 +96,7 @@ export default function CompareTimeline({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-foreground/40">
+      <p className="mt-2 text-xs text-foreground/70">
         {t.timelineTitle} — {aName} ({aHistory.length}) · {bName} ({bHistory.length})
       </p>
     </section>

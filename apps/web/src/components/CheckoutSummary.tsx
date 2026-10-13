@@ -46,7 +46,7 @@ export default function CheckoutSummary() {
         <div className="grid sm:grid-cols-2 gap-4">
           {(['PRO', 'ELITE'] as const).map((plan) => (
             <div key={plan}>
-              <p className="font-semibold text-primary mb-1">{plan}</p>
+              <p className="font-semibold text-primary-ink mb-1">{plan}</p>
               <ul className="list-disc pl-4 text-foreground/70 space-y-0.5">
                 {features[plan].map((feature) => (
                   <li key={feature}>{feature}</li>

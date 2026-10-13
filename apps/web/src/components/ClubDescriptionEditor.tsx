@@ -51,14 +51,14 @@ export default function ClubDescriptionEditor({ clubId, initial, s, onSaved }: P
             setFeedback(null);
           }}
           data-testid="club-edit-description"
-          className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all"
+          className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition"
         >
           {s.editDescription}
         </button>
         {feedback && (
           <p
             role="status"
-            className={`text-xs mt-1 ${feedback.ok ? 'text-green-600' : 'text-red-500'}`}
+            className={`text-xs mt-1 ${feedback.ok ? 'text-success-ink' : 'text-danger-ink'}`}
           >
             {feedback.msg}
           </p>
@@ -78,7 +78,7 @@ export default function ClubDescriptionEditor({ clubId, initial, s, onSaved }: P
         className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
       />
       <div className="flex items-center gap-2 mt-2">
-        <span className="text-xs text-foreground/40">
+        <span className="text-xs text-foreground/70">
           {text.length}/{MAX}
         </span>
         <button
@@ -99,7 +99,7 @@ export default function ClubDescriptionEditor({ clubId, initial, s, onSaved }: P
         </button>
       </div>
       {feedback && !feedback.ok && (
-        <p role="alert" className="text-xs text-red-500 mt-1">
+        <p role="alert" className="text-xs text-danger-ink mt-1">
           {feedback.msg}
         </p>
       )}

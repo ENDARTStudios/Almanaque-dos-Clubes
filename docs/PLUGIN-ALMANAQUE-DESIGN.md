@@ -15,11 +15,16 @@ copy (gancho→promessa→prova→CTA), acessibilidade e QA visual. Ele existe p
 | skill `web-accessibility-wcag` | Procedimento WCAG 2.2 AA: contraste **medido** (script), foco, teclado, alvos, semântica, i18n, movimento. |
 | skill `visual-qa-playwright` | Como subir a porta certa (há outros projetos Next na máquina), capturar 1440/768/390, medir overflow/alvos/headings/console e provar antes/depois. |
 | skill `design-subagents` | Catálogo dos papéis e como acioná-los pelo tool `subagent` do DSH. |
+| skill `motion-craft` | Régua de movimento: quando animar, curva, duração, física, performance, e qual dos três motores usar (CSS/WAAPI · `motion/react` · GSAP). *Adaptada de [emilkowalski/skills](https://github.com/emilkowalski/skills), MIT.* |
+| skill `motion-review` | Revisão formal de movimento: dez padrões não negociáveis, gatilhos de escalação, hierarquia de remédio e veredito BLOQUEADO/APROVADO. *Mesma origem.* |
+| skill `ui-library-choices` | Lista curada de bibliotecas, reconciliada com o `package.json` real: o que já está instalado, o que está liberado e o que é proibido. *Mesma origem.* |
 | agente `design-critic` | Crítica adversarial no fecho da tela: veredito APROVADO/REPROVADO com defeitos priorizados e citados. |
 | agente `a11y-auditor` | Auditoria de acessibilidade com o número medido de cada achado. |
+| agente `motion-critic` | Revisão adversarial de movimento: roda o portão, julga o que ele não vê (propósito, curva, origem, coesão) e devolve tabela + veredito. |
 | agente `ux-copywriter` | Reescreve/valida copy nos 3 idiomas sem prometer o que o acervo não entrega. |
 | agente `visual-qa-auditor` | QA visual objetivo: screenshots + overflow + alvos + console. |
 | `tools/run.mjs` + `shot`/`audit`/`contrast`/`locales` | Utilitários versionados de QA visual (Playwright). `contrast` mede o pixel realmente renderizado; os PNGs saem em `<repo>/.tmp/shots` (gitignored). |
+| `tools/audit-motion.mjs` | **Portão automático** da régua de movimento e UI (`pnpm run ui:audit:ci`). Falha o build em `transition-all`, `scale(0)`, `ease-in`, animação de layout, import de `framer-motion`, GSAP sem `prefers-reduced-motion` ou texto abaixo do piso de contraste. |
 
 ## Como ativar
 

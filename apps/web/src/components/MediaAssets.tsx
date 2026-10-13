@@ -6,7 +6,7 @@ import Image from 'next/image';
  * (nunca uma imagem inventada).
  */
 
-const SIGLA_BG = 'bg-primary/10 text-primary';
+const SIGLA_BG = 'bg-primary/10 text-primary-ink';
 
 export function ClubCrest({
   logoUrl,
@@ -21,7 +21,7 @@ export function ClubCrest({
     return (
       <span
         data-testid="club-crest"
-        className="shrink-0 rounded-2xl bg-white border border-border/50 flex items-center justify-center overflow-hidden"
+        className="shrink-0 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden"
         style={{ width: size, height: size }}
       >
         <Image
@@ -60,7 +60,7 @@ export function PlayerPhoto({
     return (
       <span
         data-testid="player-photo"
-        className="shrink-0 rounded-2xl bg-white border border-border/50 flex items-center justify-center overflow-hidden"
+        className="shrink-0 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden"
         style={{ width: size, height: size }}
       >
         <Image src={photoUrl} alt="" width={size} height={size} className="object-cover" unoptimized />
@@ -82,7 +82,7 @@ export function PlayerPhoto({
 /** Bandeira do país (flagcdn, domínio público) com sigla honesta de fallback. */
 export function CountryFlag({ iso2, name }: { iso2?: string | null; name?: string | null }) {
   if (!iso2 || !/^[A-Za-z]{2}$/.test(iso2)) {
-    return <span className="text-xs text-foreground/50">{name ?? '—'}</span>;
+    return <span className="text-xs text-foreground/70">{name ?? '—'}</span>;
   }
   const cc = iso2.toLowerCase();
   return (

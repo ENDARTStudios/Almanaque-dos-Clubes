@@ -45,16 +45,16 @@ export default async function ClubsPage({
         subtitleParams={{ n: total }}
       />
       <div className="mb-8">
-        <Suspense fallback={<div className="h-12 bg-gray-100 rounded-xl animate-pulse" />}>
+        <Suspense fallback={<div className="h-12 bg-neutral-surface rounded-xl animate-pulse" />}>
           <SearchBar placeholderKey="pages.clubs.placeholder" />
         </Suspense>
       </div>
       <Suspense
         fallback={
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
           </div>
         }
       >

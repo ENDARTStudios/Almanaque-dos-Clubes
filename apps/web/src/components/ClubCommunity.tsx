@@ -85,8 +85,8 @@ export default function ClubCommunity({ clubId }: Props) {
     <section aria-label={s.title} className="mt-8" data-testid="club-community">
       <h2 className="text-xl font-heading font-semibold text-foreground mb-3">{s.title}</h2>
 
-      {loading && <p className="text-sm text-foreground/50">…</p>}
-      {failed && !loading && <p className="text-sm text-foreground/50">{s.empty}</p>}
+      {loading && <p className="text-sm text-foreground/70">…</p>}
+      {failed && !loading && <p className="text-sm text-foreground/70">{s.empty}</p>}
 
       {!loading && !failed && (
         <div className="rounded-2xl border border-border/50 bg-background p-5 space-y-4">
@@ -127,12 +127,12 @@ export default function ClubCommunity({ clubId }: Props) {
               </p>
             </div>
           ) : (
-            <p className="text-sm text-foreground/50">{s.empty}</p>
+            <p className="text-sm text-foreground/70">{s.empty}</p>
           )}
 
           <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/50">
             <div>
-              <h3 className="text-xs uppercase tracking-wide text-foreground/40 mb-1">
+              <h3 className="text-xs uppercase tracking-wide text-foreground/70 mb-1">
                 {s.owners}
                 {isOwner && pendingCount > 0 && (
                   <span

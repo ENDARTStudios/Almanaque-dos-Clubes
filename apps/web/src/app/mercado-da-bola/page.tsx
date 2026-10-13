@@ -27,7 +27,7 @@ export default async function MercadoDaBolaPage() {
       <PageHeading titleKey="pages.market.title" subtitleKey="pages.market.subtitle" />
 
       <div className="mt-8 max-w-2xl space-y-4" data-testid="market-soon">
-        <p className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold">
+        <p className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary-ink text-sm font-semibold">
           {`🚧 ${m.emBreve}`}
         </p>
         <p className="text-foreground/80">{m.body}</p>

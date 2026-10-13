@@ -59,13 +59,13 @@ export default function CompareMetrics({
                   <th scope="row" className="px-4 py-3 text-left font-normal text-foreground/80">
                     {row.metric}
                     {row.note ? (
-                      <span className="block text-xs text-foreground/40">{row.note}</span>
+                      <span className="block text-xs text-foreground/70">{row.note}</span>
                     ) : null}
                   </th>
                   <td className="px-4 py-3 font-semibold">
                     {display(row.a)}
                     {leader === 'a' ? (
-                      <span className="ml-2 text-primary" aria-label={t.leader}>
+                      <span className="ml-2 text-primary-ink" aria-label={t.leader}>
                         ✓
                       </span>
                     ) : null}
@@ -73,12 +73,12 @@ export default function CompareMetrics({
                   <td className="px-4 py-3 font-semibold">
                     {display(row.b)}
                     {leader === 'b' ? (
-                      <span className="ml-2 text-primary" aria-label={t.leader}>
+                      <span className="ml-2 text-primary-ink" aria-label={t.leader}>
                         ✓
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 text-foreground/50">
+                  <td className="px-4 py-3 text-foreground/70">
                     {leader === 'a' ? aName : leader === 'b' ? bName : '—'}
                   </td>
                 </tr>

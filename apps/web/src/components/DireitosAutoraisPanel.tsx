@@ -121,7 +121,7 @@ export default function DireitosAutoraisPanel() {
           <p>
             {s.loggedIntro} <strong>{s.loggedStrong}</strong>
             {s.loggedManual}{' '}
-            <a className="text-primary hover:underline" href="mailto:endart.studios+direitos@gmail.com">
+            <a className="text-primary-ink hover:underline" href="mailto:endart.studios+direitos@gmail.com">
               endart.studios+direitos@gmail.com
             </a>{' '}
             {s.loggedWith}
@@ -180,9 +180,9 @@ export default function DireitosAutoraisPanel() {
             <input id="n-sig" required value={signature} onChange={(e) => setSignature(e.target.value)}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
           </div>
-          {err && <p className="text-sm text-red-500" role="alert">{err}</p>}
+          {err && <p className="text-sm text-danger-ink" role="alert">{err}</p>}
           <button type="submit" disabled={busy || !goodFaith || !accuracy}
-            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-on-primary hover:opacity-90 disabled:opacity-50">
             {busy ? s.sending : s.submitNotice}
           </button>
         </form>
@@ -207,7 +207,7 @@ export default function DireitosAutoraisPanel() {
           </button>
         </form>
         <p className="sr-only" aria-live="polite">{msg}</p>
-        {msg && <p className="mt-3 text-sm text-primary">{msg}</p>}
+        {msg && <p className="mt-3 text-sm text-primary-ink">{msg}</p>}
       </section>
 
       <section aria-label={s.mineTitle} className="max-w-2xl">
@@ -219,7 +219,7 @@ export default function DireitosAutoraisPanel() {
             {items.map((it) => (
               <li key={it.protocol} className="rounded-xl border border-border p-4 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <code className="text-primary break-all">{it.protocol}</code>
+                  <code className="text-primary-ink break-all">{it.protocol}</code>
                   <span className="text-foreground/70">{s.status[it.status] ?? it.status}</span>
                 </div>
                 <p className="text-foreground/60 mt-1">
@@ -239,7 +239,7 @@ function Header({ s }: { s: (typeof wsCopyrightStrings)['pt-br'] }) {
   return (
     <div className="mb-8">
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">{s.h1}</h1>
-      <p className="text-sm text-foreground/50">{s.subtitle}</p>
+      <p className="text-sm text-foreground/70">{s.subtitle}</p>
     </div>
   );
 }

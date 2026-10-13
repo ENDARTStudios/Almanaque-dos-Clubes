@@ -32,16 +32,16 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-foreground text-white mt-auto">
+    <footer className="bg-muted text-foreground mt-auto border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <span className="text-2xl font-heading font-bold text-primary">ALMANAQUE</span>
-            <p className="mt-2 text-sm text-white/60 max-w-xs">{t('footer.tagline')}</p>
+            <span className="text-2xl font-heading font-bold text-foreground">ALMANAQUE</span>
+            <p className="mt-2 text-sm text-foreground/80 max-w-xs">{t('footer.tagline')}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white/80 mb-3">
+            <h3 className="text-sm font-semibold text-foreground mb-3">
               {t('footer.platformTitle')}
             </h3>
             <ul className="space-y-2">
@@ -49,7 +49,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -59,13 +59,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.aboutTitle')}</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{t('footer.aboutTitle')}</h3>
             <ul className="space-y-2">
               {aboutLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -74,7 +74,7 @@ export default function Footer() {
               <li>
                 <a
                   href="mailto:endart.studios+contato@gmail.com"
-                  className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200"
+                  className="inline-flex items-center gap-1.5 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
                 >
                   <Mail className="w-3.5 h-3.5" /> {t('footer.contact')}
                 </a>
@@ -84,7 +84,7 @@ export default function Footer() {
                   href="https://t.me/AlmanaqueDosClubes"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors duration-200"
+                  className="inline-flex items-center gap-1.5 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
                 >
                   <Send className="w-3.5 h-3.5" /> {t('footer.telegram')}
                 </a>
@@ -93,13 +93,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white/80 mb-3">{t('footer.legalTitle')}</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{t('footer.legalTitle')}</h3>
             <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-white/50 hover:text-white transition-colors duration-200 cursor-pointer"
+                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -108,7 +108,7 @@ export default function Footer() {
             </ul>
             <button
               onClick={openCookieConsent}
-              className="mt-4 text-xs text-white/40 underline hover:text-white transition-colors duration-200 cursor-pointer"
+              className="mt-4 text-xs text-foreground/75 underline hover:text-foreground transition-colors duration-200 cursor-pointer"
             >
               {t('common.cookieBanner.footerManage')}
             </button>
@@ -128,7 +128,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-white/40">
+        <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-foreground/75">
           <span>{t('footer.copyright')}</span>
           <span className="text-center sm:text-right">
             END ART Studios · CNPJ 45.370.930/0001-75 · Osasco, SP — Brasil

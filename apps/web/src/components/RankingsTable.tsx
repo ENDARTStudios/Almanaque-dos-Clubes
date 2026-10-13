@@ -179,7 +179,7 @@ export default function RankingsTable() {
     () => year !== '' || gender !== '' || country !== '',
     [year, gender, country],
   );
-  const selectClass = 'rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground';
+  const selectClass = 'rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
 
   return (
     <div className="mt-8">
@@ -192,7 +192,7 @@ export default function RankingsTable() {
         <span className="text-foreground/60">{t.pilotSubtitle}</span>
         <Link
           href="/metodologia#ranking-piloto-inglaterra"
-          className="text-primary hover:underline"
+          className="text-primary-ink hover:underline"
         >
           {t.pilotMethodology}
         </Link>
@@ -209,7 +209,7 @@ export default function RankingsTable() {
             className={
               'rounded-lg border px-3 py-1.5 text-sm font-semibold ' +
               (view === v
-                ? 'border-primary bg-primary/10 text-primary'
+                ? 'border-primary bg-primary/10 text-primary-ink'
                 : 'border-border text-foreground/70 hover:bg-foreground/5')
             }
           >
@@ -321,24 +321,24 @@ export default function RankingsTable() {
         {meta?.competition?.divisionLabel ? (
           <span
             data-testid="ranking-division-badge"
-            className="rounded-full border border-border bg-white px-2 py-0.5 text-xs font-semibold text-foreground/70"
+            className="rounded-full border border-border bg-background px-2 py-0.5 text-xs font-semibold text-foreground/70"
           >
             {meta.competition.divisionLabel}
           </span>
         ) : null}
         {meta ? (
-          <p className="ml-auto text-xs text-foreground/50">
+          <p className="ml-auto text-xs text-foreground/70">
             {t.updated.replace('{name}', meta.name)}
           </p>
         ) : null}
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-600 py-6">
+        <p role="alert" className="text-sm text-danger-ink py-6">
           Erro ao carregar rankings.
         </p>
       ) : rows.length === 0 && !loading ? (
-        <p className="text-sm text-foreground/50 py-6">{t.empty}</p>
+        <p className="text-sm text-foreground/70 py-6">{t.empty}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
@@ -383,12 +383,12 @@ export default function RankingsTable() {
                     {r.playerId ? (
                       <Link
                         href={`/players/${r.playerId}`}
-                        className="text-primary hover:underline"
+                        className="text-primary-ink hover:underline"
                       >
                         {r.playerName}
                       </Link>
                     ) : (
-                      <Link href={`/clubs/${r.clubId}`} className="text-primary hover:underline">
+                      <Link href={`/clubs/${r.clubId}`} className="text-primary-ink hover:underline">
                         {r.clubName}
                       </Link>
                     )}
@@ -424,7 +424,7 @@ export default function RankingsTable() {
             {t.loadMore}
           </button>
         ) : null}
-        {loading ? <p className="text-sm text-foreground/50">…</p> : null}
+        {loading ? <p className="text-sm text-foreground/70">…</p> : null}
       </div>
       {hasFilters ? null : null}
     </div>

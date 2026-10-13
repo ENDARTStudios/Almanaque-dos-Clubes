@@ -142,7 +142,7 @@ export default function SocialEditor({
         {busy ? '…' : 'Salvar redes'}
       </button>
       {msg && (
-        <p role="status" className={`text-xs ${msg.ok ? 'text-green-600' : 'text-red-500'}`}>
+        <p role="status" className={`text-xs ${msg.ok ? 'text-success-ink' : 'text-danger-ink'}`}>
           {msg.text}
         </p>
       )}

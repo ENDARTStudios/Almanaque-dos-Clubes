@@ -126,7 +126,7 @@ export default function GlobalSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={s.placeholder}
-          className="flex-1 px-4 py-3 bg-white border border-border rounded-xl text-foreground placeholder:text-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+          className="flex-1 px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-foreground/80 placeholder:opacity-100 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
         />
         <div
           role="group"
@@ -155,7 +155,7 @@ export default function GlobalSearch() {
           value={gender ?? ''}
           onChange={(e) => setGender(e.target.value === '' ? null : (e.target.value as 'women'))}
           data-testid="search-gender"
-          className="rounded-xl border border-border px-3 py-2 text-sm bg-white"
+          className="rounded-xl border border-border px-3 py-2 text-sm bg-background"
         >
           <option value="">Gênero: todos</option>
           <option value="women">Feminino</option>
@@ -163,20 +163,20 @@ export default function GlobalSearch() {
       </div>
 
       <div id="global-search-results" aria-live="polite" className="mt-6">
-        {state === 'loading' && <p className="text-sm text-foreground/50">{s.loading}</p>}
+        {state === 'loading' && <p className="text-sm text-foreground/70">{s.loading}</p>}
         {state === 'error' && (
-          <p className="text-sm text-red-500" data-testid="search-error">
+          <p className="text-sm text-danger-ink" data-testid="search-error">
             {s.error}
           </p>
         )}
         {state === 'idle' && null}
         {state === 'done' && data && (
           <>
-            <p className="text-xs text-foreground/40 mb-3">
+            <p className="text-xs text-foreground/70 mb-3">
               {s.total.replace('{n}', String(data.pagination.total))}
             </p>
             {data.results.length === 0 ? (
-              <p className="text-sm text-foreground/50" data-testid="search-empty">
+              <p className="text-sm text-foreground/70" data-testid="search-empty">
                 {s.empty}
               </p>
             ) : (
@@ -200,22 +200,22 @@ export default function GlobalSearch() {
                       <span className="text-xs uppercase tracking-wider text-primary/80">
                         {typeLabel(r.type)}
                       </span>
-                      <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                      <p className="font-medium text-foreground group-hover:text-primary-ink transition-colors">
                         {r.name}
                       </p>
-                      <p className="text-xs text-foreground/50">
+                      <p className="text-xs text-foreground/70">
                         {r.subtitle ?? '—'}
                         {r.qid ? ` · ${r.qid}` : ''}
                       </p>
                       {r.attribution ? (
-                        <span className="text-[11px] text-foreground/40">{r.attribution.geo}</span>
+                        <span className="text-[11px] text-foreground/70">{r.attribution.geo}</span>
                       ) : null}
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="text-xs text-foreground/40 mt-4">{s.limitations}</p>
+            <p className="text-xs text-foreground/70 mt-4">{s.limitations}</p>
           </>
         )}
       </div>

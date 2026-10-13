@@ -53,7 +53,7 @@ export default async function RelatedClubs({
       <h2 className="text-xl font-heading font-bold text-foreground mb-4">{s.title}</h2>
 
       {related.length === 0 ? (
-        <p className="text-sm text-foreground/50" data-testid="related-clubs-empty">
+        <p className="text-sm text-foreground/70" data-testid="related-clubs-empty">
           {s.empty}
         </p>
       ) : (
@@ -63,17 +63,17 @@ export default async function RelatedClubs({
               <Link
                 href={`/clubs/${r.clubId}`}
                 data-testid="related-club-card"
-                className="block rounded-xl border border-border/60 p-4 hover:border-primary/50 hover:text-primary transition-colors"
+                className="block rounded-xl border border-border/60 p-4 hover:border-primary/50 hover:text-primary-ink transition-colors"
               >
                 <p className="text-sm font-medium truncate">{r.name}</p>
-                <p className="text-xs text-foreground/40 mt-1">
+                <p className="text-xs text-foreground/70 mt-1">
                   {[r.city, r.state, r.country].filter(Boolean).join(' · ') || '—'}
                 </p>
                 <span
                   className={`inline-block mt-2 text-xs rounded-full px-2.5 py-0.5 border ${
                     r.relationType === 'rival'
-                      ? 'border-primary/40 text-primary'
-                      : 'border-border text-foreground/50'
+                      ? 'border-primary/40 text-primary-ink'
+                      : 'border-border text-foreground/70'
                   }`}
                 >
                   {s.relations[r.relationType]}

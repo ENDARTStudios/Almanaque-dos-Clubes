@@ -17,11 +17,11 @@ export default function MetodologiaPage() {
   if (!legalPagesEnabled()) notFound();
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
         Metodologia e fontes
       </h1>
-      <p className="text-sm text-foreground/50 mb-8">
+      <p className="text-sm text-foreground/70 mb-8">
         Última atualização: 25/09/2026 · END ART Studios
       </p>
 
@@ -35,7 +35,7 @@ export default function MetodologiaPage() {
               href="https://www.wikidata.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               Wikidata
             </a>{' '}
@@ -45,7 +45,7 @@ export default function MetodologiaPage() {
               href="https://www.rsssf.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF
             </a>{' '}
@@ -62,7 +62,7 @@ export default function MetodologiaPage() {
               href="https://www.openstreetmap.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               OpenStreetMap
             </a>{' '}
@@ -116,7 +116,7 @@ export default function MetodologiaPage() {
               href="https://www.rsssf.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF
             </a>
@@ -200,7 +200,7 @@ export default function MetodologiaPage() {
               href="https://www.rsssf.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF
             </a>
@@ -258,7 +258,7 @@ export default function MetodologiaPage() {
               href="https://rsssfbrasil.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF / RSSSF Brasil
             </a>{' '}
@@ -275,7 +275,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/mg2023.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/mg2023.htm
               </a>
@@ -286,7 +286,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/mg2024.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/mg2024.htm
               </a>
@@ -297,7 +297,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/mg2025.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/mg2025.htm
               </a>
@@ -327,7 +327,7 @@ export default function MetodologiaPage() {
               href="https://rsssfbrasil.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF / RSSSF Brasil
             </a>
@@ -343,7 +343,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/go2023.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/go2023.htm
               </a>
@@ -354,7 +354,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/go2024.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/go2024.htm
               </a>
@@ -365,7 +365,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/go2025.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/go2025.htm
               </a>
@@ -405,7 +405,7 @@ export default function MetodologiaPage() {
               href="https://rsssfbrasil.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
             >
               RSSSF / RSSSF Brasil
             </a>
@@ -421,7 +421,7 @@ export default function MetodologiaPage() {
                 href="https://rsssfbrasil.com/tablesfq/pr2025.htm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary-ink hover:underline"
               >
                 rsssfbrasil.com/tablesfq/pr2025.htm
               </a>
@@ -506,11 +506,11 @@ export default function MetodologiaPage() {
             Encontrou um erro? A fonte de cada registro está a um clique (links &ldquo;fonte&rdquo;
             e &ldquo;Ver no Wikidata&rdquo; nas páginas do acervo). Correções na fonte são
             refletidas nas próximas importações; canais diretos: os indicados na{' '}
-            <Link href="/privacidade" className="text-primary hover:underline">
+            <Link href="/privacidade" className="text-primary-ink hover:underline">
               Política de Privacidade
             </Link>{' '}
             e nos{' '}
-            <Link href="/termos" className="text-primary hover:underline">
+            <Link href="/termos" className="text-primary-ink hover:underline">
               Termos de Uso
             </Link>
             .

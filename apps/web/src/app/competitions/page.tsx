@@ -55,7 +55,7 @@ function AnchorChip({ c }: { c: AnchorCompetition }) {
   return (
     <Link
       href={`/competitions/${c.id}`}
-      className="inline-block px-3 py-1.5 rounded-full border border-border text-sm text-foreground/80 hover:border-primary/50 hover:text-primary transition-colors"
+      className="inline-block px-3 py-1.5 rounded-full border border-border text-sm text-foreground/80 hover:border-primary/50 hover:text-primary-ink transition-colors"
     >
       {c.name}
     </Link>
@@ -89,7 +89,7 @@ export default async function CompetitionsPage({
           <select
             name="gender"
             defaultValue={sp.gender ?? ''}
-            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="men">{dict.pages.rankings.genderMen}</option>
@@ -101,7 +101,7 @@ export default async function CompetitionsPage({
           <select
             name="type"
             defaultValue={sp.type ?? ''}
-            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
@@ -115,7 +115,7 @@ export default async function CompetitionsPage({
             defaultValue={sp.country ?? ''}
             placeholder="BR"
             maxLength={2}
-            className="block mt-1 rounded-lg border border-border bg-white px-3 py-2 text-sm w-20"
+            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm w-20"
           />
         </label>
         <button type="submit" className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold">
@@ -169,12 +169,12 @@ export default async function CompetitionsPage({
             ))}
             <Link
               href="/competitions?search=feminino"
-              className="inline-block px-3 py-1.5 rounded-full text-sm text-primary hover:underline"
+              className="inline-block px-3 py-1.5 rounded-full text-sm text-primary-ink hover:underline"
             >
               {`${s.verTodasFeminino} →`}
             </Link>
           </div>
-          <p className="mt-2 text-xs text-foreground/40">{s.femininoNota}</p>
+          <p className="mt-2 text-xs text-foreground/70">{s.femininoNota}</p>
         </section>
 
         {/* Seleções / Internacionais — vazio honesto */}
@@ -182,7 +182,7 @@ export default async function CompetitionsPage({
           <h2 id="comp-selecoes" className="text-lg font-heading font-semibold mb-3">
             {`🌍 ${s.selecoes}`}
           </h2>
-          <p className="text-sm text-foreground/50" data-testid="selecoes-empty">
+          <p className="text-sm text-foreground/70" data-testid="selecoes-empty">
             {s.selecoesVazio}
           </p>
         </section>
@@ -196,9 +196,9 @@ export default async function CompetitionsPage({
       <Suspense
         fallback={
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
+            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
           </div>
         }
       >
@@ -208,9 +208,9 @@ export default async function CompetitionsPage({
               <Link
                 key={c.id}
                 href={`/competitions/${c.id}`}
-                className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
+                className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm mb-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
                   {c.name.slice(0, 2).toUpperCase()}
                 </div>
                 <h3 className="text-lg font-heading font-semibold text-foreground">{c.name}</h3>
@@ -220,7 +220,7 @@ export default async function CompetitionsPage({
                   <p className="text-sm text-foreground/60 mt-1">Internacional</p>
                 )}
                 {c.type ? (
-                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary-ink">
                     {c.type === 'LEAGUE'
                       ? 'Liga'
                       : c.type === 'CUP'

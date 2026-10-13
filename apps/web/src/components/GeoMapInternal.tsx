@@ -14,7 +14,7 @@ import { buildMapViewModel, type GeoPointsResponseDto } from '@/lib/map-viewmode
 
 const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   ssr: false,
-  loading: () => <div className="h-[55vh] w-full rounded-2xl bg-foreground/5 animate-pulse" />,
+  loading: () => <div className="theme-light h-[55vh] w-full animate-pulse rounded-2xl bg-muted" />,
 });
 
 /** Fallback do select enquanto /clubs/geo-stats não carrega (ou falha). */
@@ -128,13 +128,13 @@ export default function GeoMapInternal() {
           Mostrar clubes femininos
         </label>
         {vm && (
-          <span className="text-xs text-foreground/50" aria-live="polite">
+          <span className="text-xs text-foreground/70" aria-live="polite">
             {vm.points.length} com coordenada · {vm.withoutLocationCount} sem localização
           </span>
         )}
       </div>
 
-      <p className="text-xs text-foreground/50">
+      <p className="text-xs text-foreground/70">
         Clique em um país no mapa para selecioná-lo e aproximar · clique em um ponto para ver o
         clube · botões +/− ou duplo clique para zoom.
       </p>
@@ -147,7 +147,7 @@ export default function GeoMapInternal() {
         <div className="h-[55vh] w-full rounded-2xl bg-foreground/5 animate-pulse" />
       )}
       {state === 'error' && (
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="text-sm text-danger-ink">
           Não foi possível carregar os pontos agora.
         </p>
       )}
@@ -188,7 +188,7 @@ export default function GeoMapInternal() {
               Clubes com coordenada (lista)
             </h2>
             {vm.points.length === 0 ? (
-              <p className="text-sm text-foreground/50">
+              <p className="text-sm text-foreground/70">
                 Nenhum clube com coordenada para este país.
               </p>
             ) : (
@@ -197,12 +197,12 @@ export default function GeoMapInternal() {
                   <li key={p.id} className="py-2" data-testid="geo-list-item">
                     <p className="text-sm font-medium text-foreground">
                       {p.name}
-                      {p.qid ? <span className="text-foreground/40"> · {p.qid}</span> : null}
+                      {p.qid ? <span className="text-foreground/70"> · {p.qid}</span> : null}
                     </p>
-                    <p className="text-xs text-foreground/50">{p.subtitle ?? '—'}</p>
+                    <p className="text-xs text-foreground/70">{p.subtitle ?? '—'}</p>
                     {p.attribution ? (
                       <span
-                        className="text-[11px] text-foreground/40"
+                        className="text-[11px] text-foreground/70"
                         data-testid="geo-item-attribution"
                       >
                         {p.attribution.geo}
@@ -223,7 +223,7 @@ export default function GeoMapInternal() {
             </p>
           </section>
 
-          <p className="text-[11px] text-foreground/40">{vm.limitations.join(' · ')}</p>
+          <p className="text-[11px] text-foreground/70">{vm.limitations.join(' · ')}</p>
         </>
       )}
     </div>

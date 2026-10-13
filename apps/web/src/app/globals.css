@@ -281,18 +281,83 @@
 @import 'tailwindcss';
 
 @theme {
+  /* TEMA PADRÃO = ESCURO EDITORIAL (antes era claro).
+     Por que o padrão foi invertido em vez de espalhar `.theme-dark` por 38 rotas: o claro era o
+     padrão em `@theme` e a camada escura era a exceção, então cada página nova precisava lembrar
+     de pedir o escuro. Invertendo, o site inteiro herda a linguagem editorial por construção e a
+     exceção passa a ser explícita (`.theme-light`, hoje só o mapa — ver abaixo).
+     Valores medidos sobre `--color-background` `#12100f`:
+     foreground 17,13:1 · foreground/70 6,60:1 · foreground/60 4,72:1 · primary 4,72:1 ·
+     secondary 7,84:1 · border 3,18:1 (não-texto) · on-primary sobre primary 4,70:1. */
+  --color-primary: #e8412f;
+  /* `--color-primary-ink` é o PAR DE TEXTO de `--color-primary`. No escuro o vermelho vivo já
+     passa como texto (4,72:1), então o ink serve de reforço para links em corpo pequeno —
+     `#ff6a55` sobre `#12100f` dá 7,94:1. Ver `.theme-light` para o par claro. */
+  --color-primary-ink: #ff6a55;
+  --color-on-primary: #1a0e0b;
+  --color-secondary: #c9a227;
+  --color-accent: #e8412f;
+  --color-background: #12100f;
+  --color-foreground: #f7f3ea;
+  /* `muted` é ELEVação no escuro: precisa ser mais CLARO que o fundo (`#1c1917` citado antes
+     ficava mais escuro e lia como rebaixo em vez de cartão). #241f1d dá 15,86:1 com o texto. */
+  --color-muted: #241f1d;
+  --color-border: #6b625a;
+  --color-destructive: #e8412f;
+  /* Cor de TEXTO de perigo/erro. O repo usava `text-red-500/600/700` (26 arquivos) como cor de
+     erro, e nenhuma delas passa em AA sobre o fundo escuro — medido: `#dc2626` (red-600) sobre
+     `#12100f` dá 3,98:1. Este token é o par de texto, como `primary-ink` faz para a marca:
+     `#f87171` sobre `#12100f` = 7,11:1. */
+  --color-danger-ink: #f87171;
+  /* Par COMPLETO de perigo, pelo mesmo motivo que `on-primary` existe: preenchimento vermelho
+     pede texto escuro no tema escuro. `bg-danger-ink` + `text-white` daria 2,77:1 (branco sobre
+     `#f87171`), então botão destrutivo usa `bg-danger-ink text-on-danger` = 6,83:1.
+     `danger-surface` é o fundo TÊNU do badge de erro: `#f87171` sobre `#4a1512` = 5,40:1. */
+  --color-on-danger: #1a0e0b;
+  --color-danger-surface: #4a1512;
+  /* Cores SEMÂNTICAS de estado (sucesso / aviso / neutro), com o par superfície+texto.
+     Antes o repo usava utilitários crus do Tailwind (`bg-green-100 text-green-700`,
+     `bg-amber-400`, `bg-slate-100`…) em 10 arquivos. Todos aqueles pares assumem fundo CLARO:
+     sobre `#12100f` o `text-green-700` dá ~1,9:1. Aqui cada estado tem superfície e tinta
+     próprias, medidas sobre `#12100f`: success-ink 9,36:1 · warn-ink 10,19:1 · info-ink 6,88:1.
+     Em `.theme-light` os tokens voltam aos valores claros. */
+  --color-success-ink: #6ee7a8;
+  --color-success-surface: #123123;
+  --color-warn-ink: #fbbf24;
+  --color-warn-surface: #33260a;
+  --color-info-ink: #7dd3fc;
+  --color-neutral-surface: #241f1d;
+  --color-ring: #c9a227;
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+}
+
+/* EXCEÇÃO CLARA, explícita e escopada — só onde um terceiro impõe superfície clara.
+   Hoje: os tiles do OpenStreetMap (`/map`, `WorldMap`, `GeoMapCanvas`) são cartografia clara;
+   texto claro sobre eles seria ilegível e "escurecer" o mapa exigiria trocar de provedor de
+   tiles (decisão de produto, não de CSS). Então o MAPA fica claro e o resto do site, escuro. */
+.theme-light {
   --color-primary: #dc2626;
+  --color-primary-ink: #b91c1c;
   --color-on-primary: #ffffff;
   --color-secondary: #ef4444;
   --color-accent: #dc2626;
   --color-background: #fef2f2;
-  --color-foreground: #7f1d1d;
+  --color-foreground: #340808;
   --color-muted: #f0edf1;
   --color-border: #fecaca;
   --color-destructive: #dc2626;
+  --color-danger-ink: #dc2626;
+  --color-on-danger: #ffffff;
+  --color-danger-surface: #fee2e2;
+  --color-success-ink: #15803d;
+  --color-success-surface: #dcfce7;
+  --color-warn-ink: #b45309;
+  --color-warn-surface: #fef3c7;
+  --color-info-ink: #0369a1;
+  --color-neutral-surface: #f1f5f9;
   --color-ring: #dc2626;
-  --font-heading: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
+  color-scheme: light;
 }
 
 @layer base {
@@ -311,15 +376,56 @@
     font-weight: 700;
     letter-spacing: 0.02em;
   }
+  /* A11y (medido) — o anel de foco padrão é dourado (`--color-ring` `#c9a227`) e o CTA primário
+     é vermelho (`#e8412f`): o par dá 1,66:1, abaixo do 3:1 que a WCAG 2.2 (1.4.11 / 2.4.13) pede
+     para indicador de foco. O `outline-offset` maior não resolve sobre o próprio botão; a solução
+     é um anel duplo: uma folga de 1 px na cor do fundo separa o anel dourado do vermelho
+     (dourado × fundo = 7,84:1). Como o escuro passou a ser o PADRÃO, a regra vale globalmente e
+     não precisa mais de `.theme-dark`. */
   *:focus-visible {
     outline: 2px solid var(--color-ring);
-    outline-offset: 2px;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 1px var(--color-background);
   }
+}
+
+/* A superfície CLARA (`.theme-light`) redefine o anel para vermelho escuro e mantém a folga —
+   lá o par vermelho × fundo claro dá 4,41:1, que já passa o 3:1 de não-texto. */
+.theme-light *:focus-visible {
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  /* Largura de LEITURA (medida em `ch`, não em `rem`): a regra `line-length` do detector
+     mede os caracteres REAIS da linha renderizada e acusa acima de ~80. `max-w-3xl` (48rem
+     = 768px) parecia contido, mas em Barlow 16px rende ~99 caracteres por linha — o olho
+     perde o lugar na volta. Aqui a restrição é auto-referente à fonte: 65-70ch é a faixa
+     confortável de leitura. Usar nas páginas de texto corrido (legais, metodologia, sobre). */
+  .measure-readable {
+    max-width: 68ch;
+  }
+  /* Grade de campo: 1 linha de fundo + círculo central + meia-lua, como SVG inline
+     (custo zero de rede, escala com o container). Opacidade baixa de propósito. */
+  .theme-dark-grid {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='600' viewBox='0 0 960 600'%3E%3Cg fill='none' stroke='%23e8412f' stroke-width='1.5'%3E%3Cpath d='M0 300h960M480 0v600'/%3E%3Ccircle cx='480' cy='300' r='120'/%3E%3Cpath d='M0 60h60v480H0M960 60h-60v480h60'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    opacity: 0.07;
+  }
+  /* Textura de grão: mantém a superfície escura de parecer "chapada" sem imagem. */
+  .theme-dark-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    opacity: 0.05;
+  }
+  /* Halo quente atrás da dobra — dá profundidade sem imagem e sem custo de rede. */
+  .theme-dark-glow {
+    background:
+      radial-gradient(60rem 40rem at 78% 8%, rgba(232, 65, 47, 0.22), transparent 62%),
+      radial-gradient(42rem 32rem at 8% 92%, rgba(201, 162, 39, 0.12), transparent 60%);
   }
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out forwards;

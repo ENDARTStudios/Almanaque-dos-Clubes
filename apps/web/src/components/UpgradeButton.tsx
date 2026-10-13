@@ -28,11 +28,11 @@ export default function UpgradeButton({ plan, label }: { plan: string; label: st
       <button
         onClick={handleClick}
         disabled={busy}
-        className="w-full bg-primary text-on-primary py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200 cursor-pointer disabled:opacity-50"
+        className="w-full bg-primary text-on-primary py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition duration-200 cursor-pointer disabled:opacity-50"
       >
         {busy ? '...' : label}
       </button>
-      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger-ink">{error}</p>}
     </div>
   );
 }

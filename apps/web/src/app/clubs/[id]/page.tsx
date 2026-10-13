@@ -316,7 +316,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/clubs"
-        className="text-sm text-primary hover:underline mb-6 inline-block cursor-pointer"
+        className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
       >
         &larr; {s.backToClubs}
       </Link>
@@ -333,10 +333,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               {club.name}
             </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
-            {club.shortName && <p className="text-sm text-foreground/40">({club.shortName})</p>}
+            {club.shortName && <p className="text-sm text-foreground/70">({club.shortName})</p>}
             {club.gender === 'women' && (
               <span
-                className="inline-block mt-1 text-xs bg-primary/10 text-primary border border-primary/30 rounded-full px-2 py-0.5"
+                className="inline-block mt-1 text-xs bg-primary/10 text-primary-ink border border-primary/30 rounded-full px-2 py-0.5"
                 data-testid="club-gender-women"
               >
                 ♀ Feminino
@@ -348,7 +348,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                   href={`https://www.wikidata.org/wiki/${club.qid}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary-ink hover:underline"
                 >
                   {club.qid} · {s.wikidata}
                 </a>
@@ -413,7 +413,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     href={club.provenance.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline"
+                    className="text-primary-ink hover:underline"
                   >
                     {club.provenance.sourceUrl}
                   </a>
@@ -432,7 +432,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </li>
           )}
           {!club.provenance.source && !club.provenance.sourceUrl && (
-            <li className="text-foreground/50">{s.notAvailable}</li>
+            <li className="text-foreground/70">{s.notAvailable}</li>
           )}
         </ul>
       </Section>
@@ -447,7 +447,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               </span>
               {club.geo.coordPrecision === 'municipality' ||
               club.geo.coordPrecision === 'approximate' ? (
-                <span className="text-foreground/50"> · {s.coordApprox}</span>
+                <span className="text-foreground/70"> · {s.coordApprox}</span>
               ) : null}
             </p>
             {club.geo.attribution && (
@@ -460,7 +460,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
         ) : (
-          <p className="text-sm text-foreground/50">{s.noGeo}</p>
+          <p className="text-sm text-foreground/70">{s.noGeo}</p>
         )}
       </Section>
 
@@ -478,7 +478,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     {tl.competition?.id ? (
                       <Link
                         href={`/competitions/${tl.competition.id}`}
-                        className="hover:text-primary transition-colors"
+                        className="hover:text-primary-ink transition-colors"
                       >
                         {tl.competition.name ?? '—'}
                       </Link>
@@ -486,13 +486,13 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                       (tl.competition?.name ?? '—')
                     )}
                   </p>
-                  <p className="text-xs text-foreground/40 mt-0.5">
+                  <p className="text-xs text-foreground/70 mt-0.5">
                     {tl.hierarchy}
                     {tl.gender === 'women' ? ` · ${s.genderWomen}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-heading font-semibold text-primary tabular-nums">
+                  <span className="text-sm font-heading font-semibold text-primary-ink tabular-nums">
                     {tl.year ?? '—'}
                   </span>
                   {tl.sourceUrl && (
@@ -500,7 +500,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                       href={tl.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-foreground/40 hover:text-primary underline decoration-dotted underline-offset-2"
+                      className="text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
                     >
                       {s.source}
                     </a>
@@ -510,7 +510,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+          <p className="text-sm text-foreground/70">{s.notAvailable}</p>
         )}
       </Section>
 
@@ -524,19 +524,19 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{r.rankingName}</p>
-                  <p className="text-xs text-foreground/40 mt-0.5">
+                  <p className="text-xs text-foreground/70 mt-0.5">
                     {r.competitionName ?? r.scope ?? ''}
                     {r.season ? ` · ${s.season} ${r.season}` : ''}
                   </p>
                 </div>
                 <div className="text-right shrink-0 text-sm tabular-nums">
                   {r.position != null && (
-                    <span className="font-heading font-semibold text-primary">
+                    <span className="font-heading font-semibold text-primary-ink">
                       {s.position} {r.position}
                     </span>
                   )}
                   {r.points != null && (
-                    <span className="text-foreground/50 block text-xs">
+                    <span className="text-foreground/70 block text-xs">
                       {r.points} {s.points}
                     </span>
                   )}
@@ -545,7 +545,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+          <p className="text-sm text-foreground/70">{s.notAvailable}</p>
         )}
       </Section>
 
@@ -569,14 +569,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     href={sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-2 text-xs text-foreground/50 hover:text-primary underline decoration-dotted underline-offset-2"
+                    className="inline-block mt-2 text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
                   >
                     {s.aboutSource}
                   </a>
                 ) : null}
               </>
             ) : (
-              <p className="text-sm text-foreground/50">{s.aboutCataloging}</p>
+              <p className="text-sm text-foreground/70">{s.aboutCataloging}</p>
             )}
           </section>
         );
@@ -632,7 +632,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                   {p.description}
                   {p.year ? ` (${p.year})` : ''}
                   {p.curiosities ? (
-                    <span className="block mt-1 text-foreground/50">
+                    <span className="block mt-1 text-foreground/70">
                       {s.pennantsCuriosities}: {p.curiosities}
                     </span>
                   ) : null}
@@ -640,7 +640,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     href={p.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block mt-1 text-primary hover:underline"
+                    className="block mt-1 text-primary-ink hover:underline"
                   >
                     {p.license}
                   </a>
@@ -666,14 +666,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               {anthem.year ? ` · ${s.anthemYear}: ${anthem.year}` : ''}
             </p>
           ) : null}
-          {anthem.note ? <p className="text-sm text-foreground/50 mt-1">{anthem.note}</p> : null}
+          {anthem.note ? <p className="text-sm text-foreground/70 mt-1">{anthem.note}</p> : null}
           {anthem.audioUrl ? (
             <div className="mt-3" data-testid="anthem-audio">
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <audio controls preload="none" src={anthem.audioUrl} className="w-full max-w-md">
                 <track kind="captions" />
               </audio>
-              <p className="text-xs text-foreground/50 mt-1">
+              <p className="text-xs text-foreground/70 mt-1">
                 <a
                   href={anthem.audioSourceUrl ?? '#'}
                   target="_blank"
@@ -686,11 +686,11 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             </div>
           ) : null}
           {anthem.lyrics === null && anthem.lyricsRestricted ? (
-            <p className="text-xs text-foreground/50 mt-2" data-testid="anthem-lyrics-note">
+            <p className="text-xs text-foreground/70 mt-2" data-testid="anthem-lyrics-note">
               {s.anthemLyricsRestricted}
             </p>
           ) : null}
-          <p className="text-xs text-foreground/40 mt-2">
+          <p className="text-xs text-foreground/70 mt-2">
             <a
               href={anthem.sourceUrl}
               target="_blank"
@@ -708,7 +708,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse" data-testid="club-stats-overall">
               <thead>
-                <tr className="text-left text-xs text-foreground/50 uppercase tracking-wider">
+                <tr className="text-left text-xs text-foreground/70 uppercase tracking-wider">
                   <th className="py-2 pr-4 font-semibold">&nbsp;</th>
                   <th className="py-2 px-2 font-semibold">{s.statsPlayed}</th>
                   <th className="py-2 px-2 font-semibold">{s.statsWins}</th>
@@ -763,7 +763,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                         <td className="py-2 pr-4 font-medium">
                           {c.competitionName ?? '—'}
                           {c.season ? (
-                            <span className="text-foreground/50"> · {c.season}</span>
+                            <span className="text-foreground/70"> · {c.season}</span>
                           ) : null}
                         </td>
                         <td className="py-2 px-2 text-foreground/70">
@@ -785,7 +785,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               <ul className="text-sm space-y-1">
                 {stats.topRivals.slice(0, 5).map((r) => (
                   <li key={r.opponentId} className="border-t border-border/50 py-1.5">
-                    <Link href={`/clubs/${r.opponentId}`} className="text-primary hover:underline">
+                    <Link href={`/clubs/${r.opponentId}`} className="text-primary-ink hover:underline">
                       {r.opponentName}
                     </Link>{' '}
                     <span className="text-foreground/70">
@@ -800,7 +800,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         </Section>
       ) : stats ? (
         <Section title={s.statistics} testid="club-statistics">
-          <p className="text-sm text-foreground/50">{s.statsEmpty}</p>
+          <p className="text-sm text-foreground/70">{s.statsEmpty}</p>
         </Section>
       ) : null}
 
@@ -811,16 +811,16 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               <li key={c.id}>
                 <Link
                   href={`/competitions/${c.id}`}
-                  className="inline-block text-sm rounded-lg border border-border px-3 py-1.5 hover:border-primary/50 hover:text-primary transition-colors"
+                  className="inline-block text-sm rounded-lg border border-border px-3 py-1.5 hover:border-primary/50 hover:text-primary-ink transition-colors"
                 >
                   {c.name ?? '—'}
-                  {c.country ? <span className="text-foreground/40"> · {c.country}</span> : null}
+                  {c.country ? <span className="text-foreground/70"> · {c.country}</span> : null}
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+          <p className="text-sm text-foreground/70">{s.notAvailable}</p>
         )}
       </Section>
 
@@ -841,7 +841,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                       href={e.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline"
+                      className="text-primary-ink hover:underline"
                     >
                       {s.source}
                     </a>
@@ -851,7 +851,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-foreground/50">{s.notAvailable}</p>
+          <p className="text-sm text-foreground/70">{s.notAvailable}</p>
         )}
       </Section>
 
@@ -862,7 +862,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             {club.gaps.map((g) => (
               <li
                 key={g}
-                className="text-xs rounded-full border border-dashed border-border px-3 py-1 text-foreground/50"
+                className="text-xs rounded-full border border-dashed border-border px-3 py-1 text-foreground/70"
               >
                 {s.gapLabels[g] ?? g}
               </li>
@@ -897,7 +897,7 @@ function Section({
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-foreground/40 uppercase tracking-wider">{label}</dt>
+      <dt className="text-xs text-foreground/70 uppercase tracking-wider">{label}</dt>
       <dd className="text-sm font-medium text-foreground mt-0.5">{value}</dd>
     </div>
   );

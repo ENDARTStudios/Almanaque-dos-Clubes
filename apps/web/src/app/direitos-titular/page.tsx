@@ -19,16 +19,16 @@ export const metadata: Metadata = {
 export default function DireitosTitularPage() {
   if (!legalPagesEnabled()) notFound();
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-2">
-        <Link href="/privacidade" className="text-sm text-primary hover:underline">
+        <Link href="/privacidade" className="text-sm text-primary-ink hover:underline">
           ← /privacidade
         </Link>
       </div>
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
         Direitos do Titular
       </h1>
-      <p className="text-sm text-foreground/50 mb-8">LGPD, art. 18 · END ART Studios</p>
+      <p className="text-sm text-foreground/70 mb-8">LGPD, art. 18 · END ART Studios</p>
       <p className="text-foreground/70 mb-8 leading-relaxed">
         Exerça seus direitos com protocolo rastreável. O recebimento é confirmado na hora; a resposta
         conclusiva sai em até 15 dias no Brasil (LGPD, art. 18, §3, prorrogável, com comunicação à

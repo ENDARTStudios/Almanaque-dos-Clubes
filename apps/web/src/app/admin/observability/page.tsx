@@ -86,7 +86,7 @@ function ObservabilityPanel() {
 
   if (error === 'forbidden') {
     return (
-      <p role="alert" className="text-sm text-red-600 py-10" data-testid="obs-forbidden">
+      <p role="alert" className="text-sm text-danger-ink py-10" data-testid="obs-forbidden">
         {t.restricted}
       </p>
     );
@@ -105,33 +105,33 @@ function ObservabilityPanel() {
         <span
           className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full ${
             health?.schedulerEnabled
-              ? 'bg-green-100 text-green-700'
-              : 'bg-foreground/5 text-foreground/50'
+              ? 'bg-success-surface text-success-ink'
+              : 'bg-foreground/5 text-foreground/70'
           }`}
           data-testid="obs-scheduler"
         >
           <span
             aria-hidden="true"
-            className={`w-1.5 h-1.5 rounded-full ${health?.schedulerEnabled ? 'bg-green-500' : 'bg-foreground/30'}`}
+            className={`w-1.5 h-1.5 rounded-full ${health?.schedulerEnabled ? 'bg-success-ink' : 'bg-foreground/30'}`}
           />
           {health?.schedulerEnabled ? t.schedulerOn : t.schedulerOff}
         </span>
         <button
           type="button"
           onClick={() => void refresh()}
-          className="text-sm rounded-lg border border-border px-3 py-1.5 text-foreground/70 hover:border-primary/50 hover:text-primary"
+          className="text-sm rounded-lg border border-border px-3 py-1.5 text-foreground/70 hover:border-primary/50 hover:text-primary-ink"
         >
           {t.refresh}
         </button>
       </div>
       {updatedAt && (
-        <p className="text-xs text-foreground/40 -mt-4">
+        <p className="text-xs text-foreground/70 -mt-4">
           {t.lastUpdated} {new Date(updatedAt).toLocaleString()}
         </p>
       )}
 
       {error === 'error' && (
-        <p role="alert" className="text-sm text-red-600" data-testid="obs-error">
+        <p role="alert" className="text-sm text-danger-ink" data-testid="obs-error">
           {t.title}: ERROR
         </p>
       )}
@@ -173,9 +173,9 @@ function ObservabilityPanel() {
               }}
             />
           ) : (
-            <p className="text-sm text-foreground/50">{health?.queueError ?? t.loading}</p>
+            <p className="text-sm text-foreground/70">{health?.queueError ?? t.loading}</p>
           )}
-          <p className="text-xs text-foreground/40 mt-3 font-mono">
+          <p className="text-xs text-foreground/70 mt-3 font-mono">
             {t.schedules}:{' '}
             {Object.entries(health?.schedules ?? {})
               .map(([k, v]) => `${k}=${v}`)
@@ -189,10 +189,10 @@ function ObservabilityPanel() {
         >
           <h2 className="text-sm font-heading font-semibold text-foreground mb-3">{t.alerts}</h2>
           {health?.alerts.backlog && (
-            <p className="text-xs text-red-600 mb-1">[ALERT] {t.backlog}</p>
+            <p className="text-xs text-danger-ink mb-1">[ALERT] {t.backlog}</p>
           )}
           {health?.alerts.integrityDrift?.drift && (
-            <p className="text-xs text-red-600 mb-1">
+            <p className="text-xs text-danger-ink mb-1">
               [ALERT] {t.integrityDrift}:{' '}
               {health.alerts.integrityDrift.findings
                 .map((f) => `${f.check}=${f.count}`)
@@ -200,13 +200,13 @@ function ObservabilityPanel() {
             </p>
           )}
           {(health?.alerts.active ?? []).length === 0 ? (
-            <p className="text-sm text-foreground/50">{t.alertsNone}</p>
+            <p className="text-sm text-foreground/70">{t.alertsNone}</p>
           ) : (
             <ul className="space-y-1 font-mono text-xs">
               {health!.alerts.active.map((a, i) => (
                 <li key={`${a.at}-${i}`} className="text-foreground/70">
-                  <span className="text-foreground/40">{new Date(a.at).toLocaleTimeString()}</span>{' '}
-                  <span className="text-red-600 uppercase">{a.kind}</span>{' '}
+                  <span className="text-foreground/70">{new Date(a.at).toLocaleTimeString()}</span>{' '}
+                  <span className="text-danger-ink uppercase">{a.kind}</span>{' '}
                   {a.job ? `(${a.job}) ` : ''}
                   {a.message}
                 </li>
@@ -227,14 +227,14 @@ function ObservabilityPanel() {
             {slo.slo.map((s) => (
               <li key={s.job} className="flex flex-wrap items-center gap-2 justify-between">
                 <span className="font-mono text-foreground">{s.job}</span>
-                <span className="text-foreground/50 font-mono">{s.schedule}</span>
+                <span className="text-foreground/70 font-mono">{s.schedule}</span>
                 <span
                   className={`rounded-full px-2 py-0.5 ${
                     s.sloMet === null
-                      ? 'bg-foreground/5 text-foreground/50'
+                      ? 'bg-foreground/5 text-foreground/70'
                       : s.sloMet
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-success-surface text-success-ink'
+                        : 'bg-danger-surface text-danger-ink'
                   }`}
                 >
                   {s.sloMet === null ? t.sloUnknown : s.sloMet ? t.sloMet : t.sloMissed}

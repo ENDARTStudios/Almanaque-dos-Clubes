@@ -77,7 +77,7 @@ export default function SocialLinks({
           href={officialSite}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+          className="text-sm text-primary-ink hover:underline inline-flex items-center gap-1"
         >
           🌐 {new URL(officialSite).hostname.replace(/^www\./, '')}
         </a>
@@ -104,7 +104,7 @@ export default function SocialLinks({
         );
       })}
       {updatedLabel && (
-        <span className="text-[10px] text-foreground/30 w-full">{updatedLabel}</span>
+        <span className="text-[10px] text-foreground/70 w-full">{updatedLabel}</span>
       )}
     </div>
   );

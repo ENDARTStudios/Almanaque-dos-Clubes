@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
@@ -8,17 +8,17 @@ export default function LegalDocument({ kind }: { kind: 'terms' | 'privacy' }) {
   const doc = dict.legal[kind];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="text-sm text-primary hover:underline">
+        <Link href="/" className="text-sm text-primary-ink hover:underline">
           {t('common.backHome')}
         </Link>
-        <div className="flex items-center gap-2 text-sm text-foreground/50">
+        <div className="flex items-center gap-2 text-sm text-foreground/70">
           {(['pt-br', 'en-us', 'es-es'] as Locale[]).map((l) => (
             <button
               key={l}
               onClick={() => setLocale(l)}
-              className={locale === l ? 'font-semibold text-primary' : 'hover:text-primary'}
+              className={locale === l ? 'font-semibold text-primary-ink' : 'hover:text-primary-ink'}
             >
               {LOCALE_NAMES[l]}
             </button>
@@ -29,7 +29,7 @@ export default function LegalDocument({ kind }: { kind: 'terms' | 'privacy' }) {
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
         {doc.title}
       </h1>
-      <p className="text-sm text-foreground/50 mb-8">
+      <p className="text-sm text-foreground/70 mb-8">
         {/* T469 — versão/data POR documento (vinham hardcoded e compartilhados). */}
         {t('legal.updatedLabel')}: {doc.updated ?? '2026-09-19'} ({doc.version ?? 'v1.2'}) · END ART
         Studios · CNPJ 45.370.930/0001-75

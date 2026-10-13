@@ -30,7 +30,7 @@ export default function ProposalButton({
     return (
       <p className="text-sm text-foreground/60">
         {s.proposeLogin}{' '}
-        <Link href="/auth/login" className="text-primary hover:underline">
+        <Link href="/auth/login" className="text-primary-ink hover:underline">
           {s.loginLink}
         </Link>
       </p>
@@ -51,7 +51,7 @@ export default function ProposalButton({
         type="button"
         onClick={() => setOpen(true)}
         data-testid="proposal-open"
-        className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all"
+        className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition"
       >
         {s.propose}
       </button>

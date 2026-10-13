@@ -124,7 +124,7 @@ export default function DireitosTitularPanel() {
         <p>
           {s.loggedIntro} <strong>{s.loggedStrong}</strong>
           {s.loggedManual}{' '}
-          <a className="text-primary hover:underline" href="mailto:endart.studios+privacidade@gmail.com">
+          <a className="text-primary-ink hover:underline" href="mailto:endart.studios+privacidade@gmail.com">
             endart.studios+privacidade@gmail.com
           </a>
           .
@@ -139,15 +139,15 @@ export default function DireitosTitularPanel() {
         </p>
         <p className="text-sm">
           {s.saibaMais}{' '}
-          <a className="text-primary hover:underline" href="/privacidade">
+          <a className="text-primary-ink hover:underline" href="/privacidade">
             {s.saibaMaisPrivacidade}
           </a>
           ,{' '}
-          <a className="text-primary hover:underline" href="/termos">
+          <a className="text-primary-ink hover:underline" href="/termos">
             {s.saibaMaisTermos}
           </a>{' '}
           e{' '}
-          <a className="text-primary hover:underline" href="/metodologia">
+          <a className="text-primary-ink hover:underline" href="/metodologia">
             {s.saibaMaisMetodologia}
           </a>
           .
@@ -214,7 +214,7 @@ export default function DireitosTitularPanel() {
           </fieldset>
           <div>
             <label htmlFor="dsr-desc" className="block text-sm text-foreground/70 mb-1">
-              {s.descricao} <span className="text-foreground/40">{s.opcional}</span>
+              {s.descricao} <span className="text-foreground/70">{s.opcional}</span>
             </label>
             <textarea
               id="dsr-desc"
@@ -225,17 +225,17 @@ export default function DireitosTitularPanel() {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
             />
           </div>
-          {err && <p className="text-sm text-red-500" role="alert">{err}</p>}
+          {err && <p className="text-sm text-danger-ink" role="alert">{err}</p>}
           <button
             type="submit"
             disabled={busy}
-            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-on-primary hover:opacity-90 disabled:opacity-50"
           >
             {busy ? s.enviando : s.registrar}
           </button>
         </form>
         <p className="sr-only" aria-live="polite">{msg}</p>
-        {msg && <p className="mt-3 text-sm text-primary">{msg}</p>}
+        {msg && <p className="mt-3 text-sm text-primary-ink">{msg}</p>}
       </section>
 
       <section aria-label={s.ariaPedidos} className="max-w-2xl">
@@ -247,7 +247,7 @@ export default function DireitosTitularPanel() {
             {items.map((it) => (
               <li key={it.protocol} className="rounded-xl border border-border p-4 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <code className="text-primary break-all">{it.protocol}</code>
+                  <code className="text-primary-ink break-all">{it.protocol}</code>
                   <span className="text-foreground/70">{s.status[it.status] ?? it.status}</span>
                 </div>
                 <p className="text-foreground/60 mt-1">
@@ -258,7 +258,7 @@ export default function DireitosTitularPanel() {
                   <button
                     onClick={() => void cancel(it.protocol)}
                     disabled={busy}
-                    className="mt-2 text-sm text-primary hover:underline disabled:opacity-50"
+                    className="mt-2 text-sm text-primary-ink hover:underline disabled:opacity-50"
                   >
                     {s.cancelar}
                   </button>
@@ -318,7 +318,7 @@ export default function DireitosTitularPanel() {
           <button
             onClick={() => void deleteAccount()}
             disabled={busy || confirmText !== s.excluirFrase || !password}
-            className="rounded-lg bg-red-600 px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-danger-ink px-5 py-2 text-sm font-medium text-on-danger hover:opacity-90 disabled:opacity-50"
           >
             {s.excluirBtn}
           </button>

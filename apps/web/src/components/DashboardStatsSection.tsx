@@ -59,7 +59,7 @@ export default function DashboardStatsSection() {
     <section aria-label="Seu resumo" className="mb-10" data-testid="dashboard-stats-section">
       <h2 className="text-xl font-heading font-semibold text-foreground mb-1">
         {data.user.name ? `Olá, ${data.user.name.split(' ')[0]}` : 'Olá'}
-        <span className="text-sm font-normal text-foreground/50 ml-2">
+        <span className="text-sm font-normal text-foreground/70 ml-2">
           Membro desde {memberSince}
         </span>
       </h2>
@@ -81,7 +81,7 @@ export default function DashboardStatsSection() {
       {/* WS-C-14 — tracking de pageViews/searches PREPARADO mas DESATIVADO até
           WS-L (cookie consent). Placeholder honesto. */}
       {!data.tracking.enabled && (
-        <p className="text-xs text-foreground/40 mt-6" data-testid="tracking-coming-soon">
+        <p className="text-xs text-foreground/70 mt-6" data-testid="tracking-coming-soon">
           📊 Estatísticas de exploração — em breve (requer consentimento de cookies, WS-L).
         </p>
       )}

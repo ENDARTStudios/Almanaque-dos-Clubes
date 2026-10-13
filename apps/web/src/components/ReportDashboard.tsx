@@ -77,22 +77,22 @@ export default function ReportDashboard({ s }: { s: ReportStrings }) {
   return (
     <div data-testid="report-dashboard">
       <h3 className="text-sm font-semibold text-foreground mb-3">{s.dashboardTitle}</h3>
-      {reports === null && <p className="text-sm text-foreground/50">…</p>}
+      {reports === null && <p className="text-sm text-foreground/70">…</p>}
       {reports?.length === 0 && (
-        <p className="text-sm text-foreground/50" data-testid="reports-empty">
+        <p className="text-sm text-foreground/70" data-testid="reports-empty">
           {s.noReports}
         </p>
       )}
       <ul className="space-y-3">
         {reports?.map((r) => (
           <li key={r.id} className="border border-border/50 rounded-lg p-4 text-sm space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/50">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/70">
               <span className="bg-foreground/5 border border-border/50 rounded-full px-2 py-0.5">
                 {r.targetType === 'club_description' ? 'club' : 'proposal'} ·{' '}
                 {r.targetClubName ?? r.targetId.slice(0, 8)}
               </span>
               <span
-                className={`rounded-full px-2 py-0.5 ${r.reportCount > 1 ? 'bg-red-100 text-red-700 font-semibold' : 'bg-foreground/5'}`}
+                className={`rounded-full px-2 py-0.5 ${r.reportCount > 1 ? 'bg-danger-surface text-danger-ink font-semibold' : 'bg-foreground/5'}`}
                 title={s.count}
               >
                 ⚑ {r.reportCount}
@@ -128,7 +128,7 @@ export default function ReportDashboard({ s }: { s: ReportStrings }) {
                   className="w-full border border-border rounded-lg px-3 py-1.5 text-xs"
                 />
                 {action === 'remove_content' && (
-                  <p className="text-xs text-red-600">{s.confirmRemove}</p>
+                  <p className="text-xs text-danger-ink">{s.confirmRemove}</p>
                 )}
                 <div className="flex gap-2">
                   <button
@@ -177,7 +177,7 @@ export default function ReportDashboard({ s }: { s: ReportStrings }) {
         ))}
       </ul>
       {error && (
-        <p role="alert" className="text-xs text-red-500 mt-2">
+        <p role="alert" className="text-xs text-danger-ink mt-2">
           {error}
         </p>
       )}

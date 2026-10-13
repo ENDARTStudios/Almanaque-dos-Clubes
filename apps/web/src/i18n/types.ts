@@ -26,6 +26,12 @@ export interface Dictionary {
     competitions: string;
     map: string;
     rankings: string;
+    /** Rótulos CURTOS para a barra superior — o nome completo ("Jogadores & Treinadores")
+     *  quebra em duas linhas num menu horizontal e a barra vira uma bagunça. O nome completo
+     *  continua valendo para o painel mobile e para SEO/rótulo acessível. */
+    shortClubs: string;
+    shortPlayers: string;
+    shortRankings: string;
     search: string;
     login: string;
     dashboard: string;
@@ -181,7 +187,6 @@ export interface Dictionary {
       competitions: string;
       matches: string;
       rankings: string;
-      growing: string;
     };
     featuresTitle: string;
     featuresSubtitle: string;

@@ -1,0 +1,8 @@
+{
+  "name": "almanaque-design",
+  "version": "0.1.0",
+  "description": "UI/UX design system do Almanaque dos Clubes: tokens e componentes, padrões de hero/landing, copy de conversão (gancho→promessa→prova→CTA), régua de animação e movimento (adaptada de emilkowalski/skills, MIT), acessibilidade WCAG 2.2 AA, portão automático anti-slop e QA visual com Playwright.",
+  "author": { "name": "END ART Studios" },
+  "skills": "./skills",
+  "agents": "./agents"
+}

@@ -85,19 +85,19 @@ export default function CompareTable({
     <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50" data-testid="compare-table">
       {/* Cabeçalhos com link para os perfis (empilham no mobile) */}
       <div className="grid grid-cols-1 sm:grid-cols-[minmax(6rem,1fr)_2fr_2fr] gap-3 sm:gap-6">
-        <span className="text-xs text-foreground/40 uppercase tracking-wider sm:invisible" aria-hidden="true">
+        <span className="text-xs text-foreground/70 uppercase tracking-wider sm:invisible" aria-hidden="true">
           {strings.viewProfile}
         </span>
         {[clubA, clubB].map((c) => (
           <div key={c.id} className="min-w-0">
             <Link
               href={`/clubs/${c.id}`}
-              className="text-lg font-heading font-bold text-foreground hover:text-primary transition-colors"
+              className="text-lg font-heading font-bold text-foreground hover:text-primary-ink transition-colors"
             >
               {c.name}
             </Link>
-            <p className="text-xs text-foreground/40 mt-0.5">
-              <Link href={`/clubs/${c.id}`} className="hover:text-primary">
+            <p className="text-xs text-foreground/70 mt-0.5">
+              <Link href={`/clubs/${c.id}`} className="hover:text-primary-ink">
                 {strings.viewProfile}
               </Link>
               {c.qid && (
@@ -107,7 +107,7 @@ export default function CompareTable({
                     href={`https://www.wikidata.org/wiki/${c.qid}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-primary"
+                    className="hover:text-primary-ink"
                   >
                     {c.qid}
                   </a>
@@ -124,13 +124,13 @@ export default function CompareTable({
             key={row.label}
             className="grid grid-cols-1 sm:grid-cols-[minmax(6rem,1fr)_2fr_2fr] gap-1 sm:gap-6 py-3"
           >
-            <dt className="text-xs text-foreground/40 uppercase tracking-wider">{row.label}</dt>
+            <dt className="text-xs text-foreground/70 uppercase tracking-wider">{row.label}</dt>
             <dd className="text-sm text-foreground">{row.a}</dd>
             <dd className="text-sm text-foreground">{row.b}</dd>
           </div>
         ))}
         <div className="grid grid-cols-1 sm:grid-cols-[minmax(6rem,1fr)_2fr_2fr] gap-1 sm:gap-6 py-3">
-          <dt className="text-xs text-foreground/40 uppercase tracking-wider">{strings.recentTitles}</dt>
+          <dt className="text-xs text-foreground/70 uppercase tracking-wider">{strings.recentTitles}</dt>
           <dd className="text-sm text-foreground" data-testid="compare-recent-a">{recents(recentA)}</dd>
           <dd className="text-sm text-foreground" data-testid="compare-recent-b">{recents(recentB)}</dd>
         </div>

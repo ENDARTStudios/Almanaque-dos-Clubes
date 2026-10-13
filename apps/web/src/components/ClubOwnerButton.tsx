@@ -25,7 +25,7 @@ export default function ClubOwnerButton({ clubId, isOwner, s, loggedIn, onChange
     return (
       <p className="text-sm text-foreground/60">
         {s.loginToBecome}{' '}
-        <Link href="/auth/login" className="text-primary hover:underline">
+        <Link href="/auth/login" className="text-primary-ink hover:underline">
           {s.loginLink}
         </Link>
       </p>
@@ -66,7 +66,7 @@ export default function ClubOwnerButton({ clubId, isOwner, s, loggedIn, onChange
           onClick={leave}
           disabled={busy}
           data-testid="club-leave-owner"
-          className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all disabled:opacity-50"
+          className="text-sm border border-border px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition disabled:opacity-50"
         >
           {s.leaveOwner}
         </button>
@@ -76,13 +76,13 @@ export default function ClubOwnerButton({ clubId, isOwner, s, loggedIn, onChange
           onClick={become}
           disabled={busy}
           data-testid="club-become-owner"
-          className="text-sm bg-primary text-on-primary px-3 py-1.5 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50"
+          className="text-sm bg-primary text-on-primary px-3 py-1.5 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
         >
           {s.becomeOwner}
         </button>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-500 mt-1">
+        <p role="alert" className="text-xs text-danger-ink mt-1">
           {error}
         </p>
       )}

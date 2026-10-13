@@ -15,7 +15,7 @@ export default function MapPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">Mapa-múndi</h1>
-      <p className="text-foreground/60 max-w-3xl mt-2 mb-6">
+      <p className="text-foreground/60 measure-readable mt-2 mb-6">
         Clubes com coordenada auditável, por país. A <strong>lista</strong> é o caminho principal; o
         mapa é acessório. Clubes sem coordenada <strong>não</strong> são plotados — aparecem no
         contador de “sem localização” (vazio-honesto). Atribuição por fonte logo abaixo do mapa.

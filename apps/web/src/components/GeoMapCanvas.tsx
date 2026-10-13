@@ -252,7 +252,7 @@ export default function GeoMapCanvas({
       ref={ref}
       role="img"
       aria-label="Mapa (acessório). A lista abaixo é o caminho principal."
-      className="h-[55vh] w-full rounded-2xl overflow-hidden border border-border bg-muted/30"
+      className="theme-light h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-muted"
     />
   );
 }
