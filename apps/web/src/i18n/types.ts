@@ -193,6 +193,7 @@ export interface Dictionary {
     features: { title: string; desc: string }[];
   };
   auth: {
+    or: string;
     loginTitle: string;
     loginSubtitle: string;
     email: string;

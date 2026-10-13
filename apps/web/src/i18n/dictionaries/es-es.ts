@@ -149,6 +149,7 @@ const es: Dictionary = {
     ],
   },
   auth: {
+    or: 'o',
     loginTitle: 'Entrar',
     loginSubtitle: 'Accede a tu cuenta de Almanaque dos Clubes',
     email: 'Correo',
