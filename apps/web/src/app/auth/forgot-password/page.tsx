@@ -1,8 +1,10 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
+import { AuthPanel } from '@/components/auth/AuthPanel';
 
 export default function ForgotPasswordPage() {
   const { t } = useI18n();
@@ -22,29 +24,45 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-neutral-surface px-4 py-10">
-      <div className="bg-background p-8 rounded-2xl shadow-md w-full max-w-md border border-border/50">
-        <h1 className="text-3xl font-heading font-bold mb-2 text-center text-foreground">{t('auth.forgotPasswordTitle')}</h1>
-        <p className="text-center text-foreground/60 mb-8 text-sm">{t('auth.forgotPasswordSubtitle')}</p>
-        {error && <div className="bg-danger-surface text-danger-ink p-3 rounded-lg mb-4 text-sm border border-danger-ink">{error}</div>}
-        {sent ? (
-          <div className="bg-success-surface text-success-ink p-3 rounded-lg mb-4 text-sm border border-success-ink">{t('auth.forgotPasswordSent')}</div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.email')}</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" required />
-            </div>
-            <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition duration-200 cursor-pointer">
-              {t('auth.forgotPasswordSubmit')}
-            </button>
-          </form>
-        )}
-        <p className="text-sm text-center mt-6 text-foreground/60">
-          <Link href="/auth/login" className="text-primary-ink hover:underline cursor-pointer">{t('auth.backToLogin')}</Link>
-        </p>
-      </div>
-    </div>
+    <AuthPanel
+      title={t('auth.forgotPasswordTitle')}
+      subtitle={t('auth.forgotPasswordSubtitle')}
+      footer={
+        <Link href="/auth/login" className="auth-card__link">
+          {t('auth.backToLogin')}
+        </Link>
+      }
+    >
+      {error && (
+        <div role="alert" className="auth-card__error">
+          {error}
+        </div>
+      )}
+      {sent ? (
+        <div role="status" className="auth-card__success">
+          {t('auth.forgotPasswordSent')}
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="auth-card__form">
+          <div className="auth-card__field">
+            <label htmlFor="forgot-email" className="auth-card__label">
+              {t('auth.email')}
+            </label>
+            <input
+              id="forgot-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="auth-card__input"
+              required
+            />
+          </div>
+          <button type="submit" className="auth-card__submit">
+            {t('auth.forgotPasswordSubmit')}
+          </button>
+        </form>
+      )}
+    </AuthPanel>
   );
 }
