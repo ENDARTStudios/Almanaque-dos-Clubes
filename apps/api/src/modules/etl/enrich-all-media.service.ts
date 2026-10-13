@@ -450,8 +450,17 @@ export async function enrichOneClub(club: ClubRow, deps: ClubDeps): Promise<Club
  */
 export async function enrichAllMediaBatch(
   limit: number,
-  opts: { apply: boolean; prisma?: PrismaClient; recheck?: boolean } = { apply: false },
+  opts: {
+    apply: boolean;
+    prisma?: PrismaClient;
+    recheck?: boolean;
+    /** T535 — requisições em voo por rodada (default 4). O gargalo é rede, não CPU. */
+    concurrency?: number;
+    /** T535 — callback de progresso (o `--full` usa para reportar a cada N clubes). */
+    onProgress?: (feitos: number, total: number) => void;
+  } = { apply: false },
 ): Promise<AllMediaBatchResult> {
+  const concurrency = Math.max(1, Math.min(8, opts.concurrency ?? 4));
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
   const result: AllMediaBatchResult = {
@@ -498,7 +507,11 @@ export async function enrichAllMediaBatch(
     const fileCache = new Map<string, KitPart>();
     const at = new Date().toISOString();
 
-    for (const club of clubs) {
+    // T535 — pool de concorrência: o gargalo é I/O de rede (wikitext da Wikipédia +
+    // verificação no Commons), não CPU. Rodar em série media ~1,1 req/s; o Wikimedia
+    // atende bem um cliente identificado com poucas requisições em voo. `concurrency`
+    // é configurável (default 4) e o UA é identificado — e cada fetch já tem retry.
+    const perClub = async (club: ClubRow): Promise<void> => {
       result.processed += 1;
       let outcome: ClubMediaOutcome;
       try {
@@ -525,7 +538,7 @@ export async function enrichAllMediaBatch(
       if (outcome.updated) result.enriched += 1;
       else result.gaps += 1;
 
-      if (!opts.apply) continue;
+      if (!opts.apply) return;
       const data: Prisma.ClubUpdateInput = {
         mediaEnrichment: attemptRecord(outcome.media, at) as unknown as Prisma.InputJsonValue,
       };
@@ -540,6 +553,12 @@ export async function enrichAllMediaBatch(
         data.pennants = outcome.values.pennants as unknown as Prisma.InputJsonValue;
       }
       await prisma.club.update({ where: { id: club.id }, data });
+    };
+
+    for (let i = 0; i < clubs.length; i += concurrency) {
+      const chunk = clubs.slice(i, i + concurrency);
+      await Promise.all(chunk.map((c) => perClub(c)));
+      opts.onProgress?.(i + chunk.length, clubs.length);
     }
     return result;
   } finally {

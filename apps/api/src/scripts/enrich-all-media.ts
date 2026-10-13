@@ -26,6 +26,9 @@ export async function run(argv: string[]): Promise<number> {
       batch: { type: 'string', default: String(DEFAULT_BATCH) },
       apply: { type: 'boolean', default: false },
       recheck: { type: 'boolean', default: false },
+      full: { type: 'boolean', default: false },
+      concurrency: { type: 'string', default: '4' },
+      'max-iter': { type: 'string', default: '60' },
     },
     allowPositionals: true,
   });
@@ -33,7 +36,50 @@ export async function run(argv: string[]): Promise<number> {
   const prisma = new PrismaClient();
   try {
     const started = Date.now();
-    const out = await enrichAllMediaBatch(batch, { apply: values.apply, prisma });
+    // T535 — `--full`: laço até não sobrar clube pendente, com progresso a cada
+    // `reportEvery` clubes. Roda em background (nohup) sem depender do cron nem do
+    // timeout de job; o cursor de tentativa garante que cada clube é visto UMA vez.
+    let out = await enrichAllMediaBatch(batch, { apply: values.apply, prisma });
+    if (values.full) {
+      const total = {
+        processed: out.processed,
+        enriched: out.enriched,
+        gaps: out.gaps,
+        errors: out.errors,
+      };
+      const byMedia = out.byMedia;
+      let iter = 1;
+      const maxIter = Number.parseInt(values['max-iter'] ?? '60', 10);
+      while (out.processed > 0 && iter < maxIter) {
+        iter += 1;
+        out = await enrichAllMediaBatch(batch, {
+          apply: values.apply,
+          prisma,
+          concurrency: Number.parseInt(values.concurrency ?? '4', 10),
+          onProgress: (feitos, totalLote) => {
+            if ((total.processed + feitos) % 1000 === 0) {
+              console.log(
+                `   progresso: ${total.processed + feitos} clubes processados (lote ${feitos}/${totalLote}, iter ${iter})`,
+              );
+            }
+          },
+        });
+        total.processed += out.processed;
+        total.enriched += out.enriched;
+        total.gaps += out.gaps;
+        total.errors += out.errors;
+        for (const k of ['kits', 'anthem', 'pennants'] as const) {
+          byMedia[k].found += out.byMedia[k].found;
+          byMedia[k].gap += out.byMedia[k].gap;
+          byMedia[k].already += out.byMedia[k].already;
+        }
+        console.log(
+          `   iter ${iter}: processados=${out.processed} enriquecidos=${out.enriched} ` +
+            `acumulado=${total.processed} (${Math.round((Date.now() - started) / 1000)}s)`,
+        );
+      }
+      out = { ...out, ...total, byMedia };
+    }
     const trophies = await prisma.competition.count({
       where: { trophyImageUrl: { not: null }, trophyModel: { equals: Prisma.DbNull } },
     });
