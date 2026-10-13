@@ -68,6 +68,18 @@ export const queues = {
       removeOnFail: { count: 100 },
     },
   }),
+  // T542 — fila DEDICADA da mídia (uniforme/hino/flâmula). Existe para que o lote
+  // longo possa rodar num SERVIÇO separado: ele é intensivo em rede e CPU (parse de
+  // wikitext) e, rodando no mesmo container da API, subiu a latência p50 de 2 ms
+  // para 67 ms (medido no T535). Quem processa esta fila é o serviço `media-worker`;
+  // a API só a alimenta (a menos que MEDIA_WORKER_LOCAL=1, modo de transição).
+  mediaEnrich: new Queue('media-enrich', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: { count: 50 },
+      removeOnFail: { count: 100 },
+    },
+  }),
 } as const;
 
 export type QueueName = keyof typeof queues;
