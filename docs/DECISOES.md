@@ -2641,3 +2641,81 @@ arquivos em voo (inclusive os 3 dicionários i18n e `i18n/types.ts`).
 **Resultado:** `/matches` responde 200 com filtros por competição/temporada/data
 funcionando, facets de 7 competições/32 temporadas e clube clicável; dois defeitos de API
 corrigidos; zero colisão com a outra sessão.
+
+### [2026-10-13] Decisão: D-2026-10-13-t539-tema-escuro-como-padrao-do-site — o padrão foi invertido, e a exceção clara é só o mapa
+
+Motivo: o Operador pediu para expandir o UI/UX (a linguagem editorial escura da home) para todo o
+site. **O erro de arquitetura era o padrão**: o claro estava em `@theme` e o escuro era uma camada
+escopada (`.theme-dark`), então **cada página nova precisava lembrar de pedir o escuro**. Decisão:
+**inverter o padrão** — o escuro passa a ser o valor de `@theme` e o escopo `.theme-light` vira a
+exceção declarada. Assim o site inteiro herda a linguagem por construção, em vez de 38 páginas
+carregando uma classe cada.
+**Onde a cor clara estava FIXADA (o que a inversão obrigou a tratar):**
+- **`bg-white` em ~20 lugares** (formulários de auth, cards, selects, ranking, cookie banner) —
+  trocados por `bg-background`.
+- **`body` com `bg-white`** (`layout.tsx`) — trocado por `bg-background`.
+- **Rodapé e banner de cookies** — usavam o padrão invertido do tema claro (`bg-foreground` +
+  `text-white`), que no escuro virava **creme com texto branco, ilegível** (visto no screenshot).
+  Convertidos para `bg-muted text-foreground` (superfície elevada) com os textos em tokens.
+- **26 arquivos com `text-red-500/600/700`** — nenhum passa em AA no escuro (`#dc2626` sobre
+  `#12100f` = **3,98:1**). Criado `--color-danger-ink` (`#f87171` = 7,11:1) e migradas 37
+  ocorrências.
+- **16 arquivos com cores cruas do Tailwind** (`bg-green-100 text-green-700`, `bg-amber-400`,
+  `bg-slate-100`, `text-yellow-700`…). Todos assumem fundo claro. Criados os tokens semânticos
+  `success/warn/info-ink` + `*-surface` e `neutral-surface`, medidos no escuro (9,36 / 10,19 /
+  6,88:1). **Zero cor crua restante no repo.**
+- **3 gráficos Recharts** (`CompareRadar`, `CompareTimeline`, `CompareTitles`) — grades em
+  `#00000018` (desapareciam no escuro), séries em `#b91c1c`/`#1d4ed8` (**azul fora do design
+  system**) e `Tooltip`/`Legend` com fundo branco inline do Recharts. Centralizado em
+  `lib/chart-theme.ts`: grades via `currentColor`, séries nos tokens da marca (vermelho × dourado),
+  caixas com os tokens do tema.
+- **`--color-muted` no escuro é ELEVAÇÃO**: `#1c1917` era mais escuro que o fundo e lia como
+  rebaixo; passou a `#241f1d` (mais claro que `#12100f`).
+- **EXCEÇÃO DECLARADA: os mapas.** Tiles do OpenStreetMap e GeoJSON do Natural Earth são base
+  cartográfica clara; texto claro sobre eles seria ilegível e "escurecer o mapa" exige trocar de
+  provedor de tiles (decisão de produto). `WorldMap`, `WorldChoropleth` e `GeoMapCanvas` (mais os
+  skeletons de carregamento) usam `.theme-light`. **Só superfície de terceiro que impõe fundo
+  claro pode usar essa classe** — não é licença para "deixar uma seção clara".
+**Verificação:** varredura de contraste em **26 rotas / 1.878 nós de texto** medindo o fundo REAL
+composto (canvas, cobre alfa e oklab): **0 reprovações** e **0 overflow horizontal**; e
+`impeccable detect` (59 regras sobre o DOM) com **zero achados** em `/`, `/clubs`, `/rankings`,
+`/compare`, `/planos`, `/metodologia`, `/map`. `typecheck` limpo · 64/64 testes.
+Alternativas consideradas: (a) aplicar `.theme-dark` página a página — descartado: 38 edições
+repetidas e frágeis, e a próxima página nova nasceria clara; (b) modo escuro global com alternância
+para o usuário — descartado por escopo: o pedido é a linguagem visual do produto, não preferência
+de usuário, e um toggle exigiria persistência, flash-on-load e o dobro de verificação;
+(c) escurecer os tiles do mapa via filtro CSS — descartado: inverte a legibilidade da cartografia
+(rótulos) e degrada a leitura do dado, que é a função do mapa.
+### [2026-10-13] Decisao: D-2026-10-13-t543-worker-proprio-e-menor-privilegio — o serviço de fila tem imagem e entrypoint próprios, e NÃO herda o scheduler nem os segredos que não usa
+
+**Contexto:** o serviço `media-worker` foi provisionado para tirar o lote de mídia de
+dentro da API (a latência p50 ia de 2 ms a 67 ms durante o lote). Três decisões de
+infra apareceram no caminho e ficam registradas.
+
+**Decisão:**
+
+1. **Serviço de fila = imagem própria com entrypoint próprio.** O ENTRYPOINT em exec
+   form do image da API termina em `exec node .../server.js`: `startCommand` do Railway
+   viraria argumento, não comando — e serviços do Railway buildam do repo, não da
+   imagem um do outro. Duplicar o Dockerfile (`Dockerfile.worker`) é o preço, e a cópia
+   é curta de propósito para o diff ficar óbvio quando a da API mudar.
+2. **O worker NÃO migra nem expõe HTTP.** Migrations são do deploy da API (duas réplicas
+   migrando é corrida) e o healthcheck HTTP da raiz seria reprovado pelo serviço de fila
+   (deploy marcado unhealthy) — daí o `railway.worker.json` sem healthcheck.
+3. **Menor privilégio em serviço novo, inclusive contra o próprio projeto.** As
+   variáveis vêm por REFERÊNCIA (`${{Almanaque-dos-Clubes.*}}`) para não duplicar
+   segredo, mas **`ETL_SCHEDULER_ENABLED` e `RANKING_CRON_AUTO` ficam de fora**: num
+   worker eles registrariam o scheduler inteiro e **duplicariam os crons** do projeto.
+   `GITHUB_TOKEN`, `BACKUP_SECRET`, `STRIPE_*`, `R2_*` e `RESEND_*` também não vão: o
+   worker não usa e não precisa poder usar.
+4. **Migração de consumidor sem janela**: a API consumia as duas filas por padrão
+   (`MEDIA_WORKER_LOCAL != '0'`) e só soltou a de mídia depois que o novo serviço provou
+   estar consumindo. A prova não é "o serviço subiu" — é `active: 1` na fila e a linha
+   de log da API dizendo que não consome mais.
+5. **Enfileirar à mão sempre com `attempts`.** 11 dos 22 jobs do lote manual morreram em
+   restart com `attempts=1`; o cursor preservou os clubes, mas trabalho em voo se perde.
+
+**Resultado:** serviço criado e consumindo sozinho a fila `media-enrich`; API de volta ao
+baseline (67 ms → 11 ms de p50 na plataforma) com `/health`, `/clubs` e `/rankings` em
+200 e **zero 5xx da aplicação** (os 30 do relatório eram da janela de restart do proxy —
+provado por re-medição: o contador não subiu com 25 requisições novas, todas 2xx).
