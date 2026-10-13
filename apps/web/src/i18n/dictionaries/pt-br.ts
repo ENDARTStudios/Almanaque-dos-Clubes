@@ -148,6 +148,7 @@ const pt: Dictionary = {
     ],
   },
   auth: {
+    or: 'ou',
     loginTitle: 'Entrar',
     loginSubtitle: 'Acesse sua conta no Almanaque dos Clubes',
     email: 'Email',

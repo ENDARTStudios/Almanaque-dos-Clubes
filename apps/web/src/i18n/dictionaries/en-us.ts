@@ -148,6 +148,7 @@ const en: Dictionary = {
     ],
   },
   auth: {
+    or: 'or',
     loginTitle: 'Log in',
     loginSubtitle: 'Access your Almanaque dos Clubes account',
     email: 'Email',
