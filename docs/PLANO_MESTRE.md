@@ -615,7 +615,7 @@ Commits atômicos por tarefa. Referenciar o ID da tarefa.
 
 #### 🎨 Frontend (Fase 5)
 
-- [x] **Páginas públicas:** clube, jogador, competição, partida, ranking — `/clubs`, `/players`, `/competitions` (com abas de temporada) e `/rankings` respondem 200 com conteúdo; `/matches` já serve 15.987 partidas reais (T519/T520/T527/T529)
+- [~] **Páginas públicas:** clube, jogador, competição, ranking — `/clubs`, `/players`, `/competitions` (com abas de temporada), `/rankings`, `/planos`, `/termos`, `/privacidade` respondem 200 com conteúdo. **CORREÇÃO (T534, 13-10-2026):** não existe PÁGINA `/matches` no web (`/matches` responde 404); o que serve as 15.987 partidas é o endpoint `GET /api/v1/matches` e as superfícies que as consomem — estatísticas por clube (`/clubs/:id/statistics`) e confronto direto no comparador. A promessa de "página de partida" na Fase 5 **continua aberta** (item de UI, não de dado) e entrou no checklist da Beta Aberta como gap declarado.
 - [x] **Páginas privadas:** área do usuário, assinatura, histórico, favoritos — `/dashboard`, `/dashboard/subscription`, `/dashboard/history` e `/favoritos` 200
 - [x] **Páginas legais:** privacidade, termos, cookies, segurança, contato — **8 rotas 200** (`/privacidade`, `/termos`, `/cookies`, `/seguranca`, `/direitos-titular`, `/direitos-autorais`, `/termos-assinatura`, `/como-usamos-ia`)
 - [x] **Checkout** (preço, periodicidade, renovação, limites visíveis antes do pagamento) — `/planos` e `/checkout` 200 com mensal/anual/preço/renovação/limites; Stripe LIVE (ver M3)
@@ -671,6 +671,15 @@ Almanaque, mas faltam:
 1. **O conteúdo** (99% dos clubes, competições e jogadores do planeta ainda não foram ingeridos)
 2. **A experiência** (mapa-múndi, rankings, favoritos, 360º, comparações)
 3. **A legalidade** (banner cookies, termos, privacidade, gateway, CNPJ)
+
+**Beta Aberta agendada (D-2026-10-13-t534):** **20-10-2026**, após a janela de
+observação de 7 noites (cron de mídia 13-19/10, 07:00 UTC). Decisões da sessão T534:
+plano Vercel permanece **gratuito** (preview limitado não afeta produção); **sem carga
+sintética** antes da Beta (k6 de 08/2026 já mediu 3.710 req/s e o rate-limit por IP
+inviabiliza teste de máquina única contra produção); coordenação entre sessões por
+**isolamento de área** (nunca `git add -A` amplo). Itens abertos do checklist: página
+`/matches` no web (gap de UI), preview Vercel por PR (limite de plano), revisão do
+`AGENTS.md` editado por sessão paralela, nome do DPO (Operador).
 
 **Conclusão vigente (11-10-2026):** dos três itens acima, **os três deixaram de ser verdadeiros como enunciado geral** — o conteúdo existe em escala (12.001 clubes/105.211 jogadores/114 temporadas com campeão), a experiência está no ar (mapa, busca, favoritos, comparadores, carrossel, feminino, perfis — 28 rotas públicas 200) e a legalidade foi publicada (8 páginas legais, CNPJ, Stripe LIVE em M3). O que **permanece aberto** é uma lista finita e nomeada: visualizador 360º, hino, flâmula, uniformes históricos, ranking dedicado de jogadores, tabela `matches` (partidas), cobertura de logo/foto (2,4%/0,8%), estádios sem PostGIS, RAG sem store vetorial, observabilidade sem exposição — todos listados no checklist acima.
 

@@ -2239,3 +2239,131 @@ faltando.
 causa-raiz do Vercel documentada, e o baseline do Dia 0 (latência p50 2-9 ms, hit rate
 de cache 68,1%, 100% 2xx, CPU máx 0,17 vCPU, memória máx 769 MB, zero erros nos logs)
 registrado para servir de referência aos dias de coleta.
+
+### [2026-10-12] Decisão: D-2026-10-12-t533-skills-de-movimento-vendorizadas — a régua de animação do repo passa a ser uma skill com fonte declarada
+
+Motivo: o repo tinha três motores de animação (CSS/WAAPI, `motion@13`, GSAP) e nenhuma régua
+escrita — cada tela decidia curva, duração e propriedade por conta própria, e o `transition-all`
+se espalhou por 38 lugares. **Decisão:** vendorizar e **adaptar** quatro skills de
+[`emilkowalski/skills`](https://github.com/emilkowalski/skills) (**MIT**, confirmado na GitHub API)
+como fonte canônica do plugin: `motion-craft` (framework de decisão, curvas, durações, física,
+performance, qual motor usar), `motion-review` (dez padrões não negociáveis + gatilhos de
+escalação + veredito) e `ui-library-choices` (lista curada reconciliada com o `package.json`
+real), mais o papel de subagente `motion-critic`. Adaptações obrigatórias: `framer-motion` →
+**`motion/react`** (o pacote instalado é `motion@13`), GSAP como dono declarado dos reveals da
+home, e a nota de que a regra de `prefers-reduced-motion` do `globals.css` **não alcança** GSAP nem
+WAAPI. A régua virou código em `plugins/almanaque-design/tools/audit-motion.mjs`
+(`pnpm run ui:audit:ci`), porque padrão que só existe em prosa não sobrevive à próxima rodada.
+Alternativas consideradas: (a) `npx skills add` da origem — descartado por não deixar adaptação
+nem atribuição versionada; (b) instalar `impeccable` como dependência — descartado (exige rede e
+tem telemetria); ele fica como passo externo opcional.
+
+### [2026-10-12] Decisão: D-2026-10-12-t533-foreground-e-piso-de-alfa — o foreground do tema claro muda para a escala de alfa inteira passar em AA
+
+Motivo: auditoria do DOM renderizado (`impeccable detect`) achou **26 anti-padrões na produção**,
+dos quais **19 eram contraste**: a produção usa `text-foreground/60`, `/50` e `/40` em quase toda
+tela clara. Medido em Python/Node com a fórmula WCAG: com `--color-foreground: #7f1d1d` sobre
+`#fef2f2`, o sólido dá 9,16:1 mas a escala desaba — `/60` = 3,46:1 · `/50` = 2,72:1 ·
+`/40` = 2,17:1 (todos reprovam em 4,5:1). **Decisão:** `--color-foreground` passa a **`#340808`**,
+que devolve AA à escala inteira: `/60` = 4,72:1 · `/70` = 6,61:1 · sólido = 16,21:1. O piso de uso
+de texto passa a ser **`/60`** (abaixo disso, só decorativo) e as 46 ocorrências de `/30`, `/40` e
+`/50` foram elevadas a `/70` em 167 pontos. Rodapé passou a `text-white/70|80|90` (era 2,78:1;
+agora 8,92–14,37:1) e a marca saiu de `text-primary` (2,1:1 sobre o fundo escuro) para branco.
+Placeholder de busca ganhou cor explícita **e** `placeholder:opacity-100`, porque o navegador
+aplica opacidade própria ao placeholder e derrubava para 3,5:1. Anel de foco na camada escura:
+dourado `#c9a227` sobre o CTA vermelho dava **1,66:1** — passou a ter folga de 1 px na cor do
+fundo, separando o anel (7,84:1). **Resultado medido:** `impeccable detect` na home local de
+26 → 0 (exit 0) e `/clubs` de 6 → 0.
+**Aberto e não decidido unilateralmente:** `--color-primary: #dc2626` como **texto** sobre fundo
+claro dá 4,41:1 (reprova por 0,09). São ~150 usos de `text-primary`; a correção de uma linha é
+`#b91c1c` (5,91:1), mas escurece a cor de marca em botões, mapa e gráficos — decisão do dono da
+marca, não do agente. O hero escuro não é afetado (token escopado `#e8412f`, 4,72:1).
+
+### [2026-10-12] Decisão: D-2026-10-12-t533-curadoria-das-25-ferramentas — registry sim, plataforma proprietária não; e nada de segundo sistema de design
+
+Motivo: o Operador pediu análise de 25 ferramentas de UI/UX. Cada veredito foi verificado em fonte
+primária (LICENSE, `package.json`, registry JSON, GitHub API). **Decisão, por classe:**
+(1) **registry shadcn** (ObsidianUI, KokonutUI, Bklit, React Bits, loading.daniasyrofi, bencho)
+entra **só o que for copiado**, atrás dos nossos tokens, e só com necessidade concreta — nenhum
+deles vira dependência de runtime; **ObsidianUI primeiro** por declarar Next 16 + React 19 +
+Tailwind v4. (2) **licença proprietária ou ausente não entra**: 21st.dev (termos proíbem
+redistribuição/treino e o conteúdo é dos autores) e Aceternity (licença não encontrada nos
+componentes gratuitos) são referência visual apenas. (3) **GPL-3.0 não entra** (FigmaToCode).
+(4) **FigmaToCode não resolve gargalo** (não avalia design, gera código). (5) Replit, Kobra
+(licença comercial paga) e Taste Skill/UI UX Pro Max (impõem linguagem visual própria) ficam de
+fora. (6) `impeccable` (**Apache-2.0**) fica como **passo externo opcional** — 59 regras
+determinísticas sobre o DOM renderizado, exige rede, telemetria com opt-out `DO_NOT_TRACK=1`.
+Registrado em `docs/UI-UX-TOOLKIT.md` com a tabela completa.
+Alternativas consideradas: (a) adotar 21st.dev como fonte de componentes — descartado por risco
+jurídico num produto que publica política de direitos autorais; (b) instalar Bklit para os gráficos
+— descartado: puxa `@base-ui/react` + `@visx/*` + `d3-*` por gráfico e o Recharts já cobre;
+(c) instalar `framer-motion` porque Componentry importa dele — descartado: o pacote correto
+(`motion`) já está instalado e o portão agora acusa o import errado.
+### [2026-10-12] Decisão: D-2026-10-12-t533-curva-por-motor-e-ponto-do-carrossel — `cubic-bezier()` é sintaxe de CSS; no GSAP a string falha em silêncio
+
+Motivo: a régua vendorizada prescreve a curva forte `cubic-bezier(0.23, 1, 0.32, 1)` para entrada.
+Ao aplicar ao GSAP, medi `gsap.parseEase('cubic-bezier(0.23, 1, 0.32, 1)')` com o `gsap@3.15.0` do
+repo: **devolve `undefined`** e o GSAP cai no padrão `power1.out` — a curva "forte" vira fraca
+**sem erro nenhum** (falha silenciosa, o tipo mais caro de achar). Medido: progresso em
+.25/.50/.75 — CSS `cubic-bezier(0.23,1,0.32,1)` = 0,775/0,966/0,997 · `power4.out` =
+0,763/0,969/0,999 · `power3.out` = 0,684/0,938/0,996 · `expo.out` = 0,823/0,977/0,998.
+**Decisão:** em GSAP a curva é **`power4.out`** (equivalente mais próximo); em CSS/WAAPI é
+`cubic-bezier(0.23, 1, 0.32, 1)`; em Motion é o array `[0.23, 1, 0.32, 1]`. Registrado na skill
+`motion-craft` com a tabela, e virou **regra de bloqueio** no portão (`css-ease-string-in-gsap`),
+porque o erro é invisível em revisão de código. Todas as chamadas de `useGsap.ts` passaram a
+`power4.out`.
+**Segundo defeito, achado pelo `motion-critic`:** trocar `transition-all` por `transition` no ponto
+de paginação do `ChampionsCarousel` removeu a animação de `width` (`w-2` → `w-6`) — o ponto ativo
+passou a **saltar**. `transition` cobre ~21 propriedades, mas não `width`/`height` (de propósito).
+**Decisão:** o ponto ativo anima em `scale-x-0 → scale-x-100` sobre caixa fixa de `w-6` (pintura,
+não layout — roda na GPU e o layout não reflui), com `-space-x-2` no container para compensar.
+Medido por injeção de classe no DOM real: ativo pinta 24px, inativo 0px, e a distância entre o 1º
+e o 3º ponto é 44px **independente** de qual está ativo. Efeito colateral bom: o alvo de toque do
+ponto deixou de ter 8px e passou a ter 24px (WCAG 2.5.8).
+Alternativas consideradas: (a) `transition-[width]` — resolve a animação mas anima propriedade de
+layout (o que a própria régua proíbe) e o portão acusaria; (b) `w-2` + `scale-x-[3]` — cresce
+visualmente sem reservar espaço e o ponto ativo **invade** o vizinho; (c) manter o salto — aceito
+pelo crítico, mas deixaria um controle de paginação prometendo transição que não existe.
+### [2026-10-13] Decisao: D-2026-10-13-t534-beta-aberta — Beta direta com observação de 7 noites, sem teste de carga sintético, e coordenação entre sessões por ISOLAMENTO DE ÁREA
+
+**Contexto (sessão de decisão T534):** com o sistema saudável (0% de erro, CPU máx
+0,17 de 8 vCPU, p99 3 ms) e 107 arquivos de outra sessão não commitados na mesma
+árvore de trabalho, o Operador decidiu os quatro pontos em aberto.
+
+**Decisões:**
+
+1. **Plano Vercel: manter o gratuito.** O Preview vermelho nos PRs é limite de builds
+   do plano (`upgradeToPro=build-rate-limit`), não defeito de build; a produção está
+   verde e a Beta não depende de preview. Reavaliar se a revisão visual por PR virar
+   gargalo — decisão de dinheiro, do Operador.
+2. **Sem carga sintética antes da Beta.** A escala de uma Beta pequena está coberta
+   pela evidência: 3.710 req/s sustentados com 0% de erro (k6 de 12-08-2026) e hoje
+   0% de erro com 98% de CPU livre. Além disso, k6 de uma máquina só contra produção
+   **mediria o rate-limit** — provado: do mesmo IP, 100 requisições passam e a 101ª
+   vem 429. A carga real do Beta é a medição mais fiel.
+3. **Coordenação entre sessões: isolamento por ÁREA, não sequenciamento.** Uma sessão
+   toca `apps/api` + docs de dados; a outra toca `apps/web` + `plugins` + `.zcode`.
+   **Regra dura dos dois lados: nunca `git add -A` / `git stash` / `git checkout`
+   amplo — só caminhos explícitos.** Motivo: na mesma árvore, `git add -A` já varreu
+   um arquivo de outra sessão para dentro de um commit meu; com 107 arquivos em voo, o
+   mesmo gesto apagaria ou misturaria trabalho de terceiros.
+4. **Beta Aberta em 20-10-2026**, depois das 7 execuções do cron de mídia (07:00 UTC)
+   de 13 a 19/10 — a janela que o T533 pediu e que a data agora usa como critério.
+
+**Regras permanentes:**
+
+1. Teste de carga só com fonte de IPs independente (ou exceção explícita e temporária
+   do rate-limit autorizada pelo Operador) — senão o resultado mede o limitador.
+2. Observação de estabilidade tem JANELA declarada e baseline registrado; "0 erros"
+   numa hora ociosa não é o mesmo que "0 erros com o cron rodando".
+3. Duas sessões no mesmo repositório exigem caminhos explícitos no git e áreas de
+   escrita disjuntas (por diretório). Arquivo de OUTRA sessão não se apaga nem se
+   adota: reporta-se ao Operador (foi o caso do `AGENTS.md` editado por ela e ainda
+   não commitado).
+4. Documentação que afirma superfície de produto precisa ser conferida na ROTA, não
+   no plano: o `/matches` estava documentado como página pública e responde 404 — o
+   erro era meu, propagado de um bloco de status para o PLANO_MESTRE.
+
+**Resultado:** Beta Aberta agendada para 20-10-2026, com checklist de abertura (3 itens
+abertos: página `/matches`, preview do Vercel, `AGENTS.md` da sessão paralela) e o
+baseline do Dia 0 como referência de comparação.
