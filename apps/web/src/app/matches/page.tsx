@@ -238,15 +238,15 @@ export default async function MatchesPage({
                         {m.homeClub.name}
                       </Link>
                     ) : (
-                      <span className="text-foreground/40">—</span>
+                      <span className="text-foreground/70">—</span>
                     )}
-                    <span className="mx-2 text-foreground/40">×</span>
+                    <span className="mx-2 text-foreground/70">×</span>
                     {m.awayClub ? (
                       <Link href={`/clubs/${m.awayClub.id}`} className="text-primary-ink underline">
                         {m.awayClub.name}
                       </Link>
                     ) : (
-                      <span className="text-foreground/40">—</span>
+                      <span className="text-foreground/70">—</span>
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 font-medium text-foreground">
@@ -255,7 +255,7 @@ export default async function MatchesPage({
                   <td className="px-4 py-3 text-foreground/60">{m.competition?.name ?? '—'}</td>
                   <td className="px-4 py-3 text-foreground/60">
                     {m.season?.name ?? '—'}
-                    {m.round ? <span className="ml-1 text-foreground/40">· {m.round}</span> : null}
+                    {m.round ? <span className="ml-1 text-foreground/70">· {m.round}</span> : null}
                   </td>
                 </tr>
               ))}
