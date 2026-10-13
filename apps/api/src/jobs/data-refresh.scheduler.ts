@@ -371,6 +371,19 @@ export async function registerDataRefreshCron(): Promise<void> {
   createWorker(DATA_REFRESH_QUEUE, (job) =>
     withTimeout(job.name, () => dataRefreshJobHandler(job)),
   );
+  // T542 — a fila de mídia é consumida AQUI por padrão (MEDIA_WORKER_LOCAL != '0'),
+  // para que a migração seja sem janela: o Operador sobe o serviço `media-worker` e só
+  // então põe MEDIA_WORKER_LOCAL=0 na API. Enquanto a flag não for '0', o
+  // comportamento é EXATAMENTE o de antes.
+  if (process.env.MEDIA_WORKER_LOCAL !== '0') {
+    createWorker('mediaEnrich', (job) => withTimeout(job.name, () => dataRefreshJobHandler(job)));
+    logger.info({ local: true }, 'fila media-enrich consumida pela API (MEDIA_WORKER_LOCAL!=0)');
+  } else {
+    logger.info(
+      { local: false },
+      'fila media-enrich NÃO é consumida pela API — dedicada ao serviço media-worker',
+    );
+  }
 
   await queues.dataRefresh.upsertJobScheduler(
     'wikidata-incremental-daily',
@@ -439,7 +452,10 @@ export async function registerDataRefreshCron(): Promise<void> {
       },
     );
   } // fim do bloco desativado no T536
-  await queues.dataRefresh.upsertJobScheduler(
+  // T542 — a agenda alimenta a fila DEDICADA (`media-enrich`), que é consumida pelo
+  // serviço `media-worker` (mesmo image, entrypoint próprio). Assim o lote longo não
+  // compete com a API pela CPU do mesmo container (medido no T535: p50 2 ms -> 67 ms).
+  await queues.mediaEnrich.upsertJobScheduler(
     'enrich-all-media-daily',
     { pattern: ENRICH_ALL_MEDIA_CRON_PATTERN },
     {
