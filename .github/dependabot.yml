@@ -1,5 +1,15 @@
 # Dependabot auto-config para o monorepo Almanaque dos Clubes
 # Mantém dependências atualizadas e seguras automaticamente.
+#
+# `groups` (adicionado em 2026-10-13) — sem isto o dependabot abria um PR por pacote e alguns
+# desses PRs são INSOLÚVEIS sozinhos:
+#   * `react` e `react-dom` precisam da MESMA versão exata. O CI reprovava com
+#     "Incompatible React versions: The 'react' and 'react-dom' packages must have the exact
+#     same version. Instead got: react 19.3.0 / react-dom 19.2.8" — e o problema não era o bump,
+#     era os dois virem separados: mergear um quebrava o outro.
+#   * Os plugins `@fastify/*` são liberados como lote pelo ecossistema; ver o PR separado de
+#     `@fastify/compress` duplicado (o mesmo pacote em `/` e em `/apps/api`) foi o sintoma.
+# Agrupar resolve na origem e reduz o número de PRs a revisar.
 
 version: 2
 updates:
@@ -20,6 +30,30 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      # O React exige que `react` e `react-dom` tenham a MESMA versão; os tipos andam junto.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+      # Ferramentas de build/teste do front: sobem juntas ou não sobem.
+      web-tooling:
+        patterns:
+          - "next"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "vitest"
+          - "@vitest/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # apps/api
   - package-ecosystem: "npm"
@@ -38,6 +72,23 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      # O ecossistema Fastify libera os plugins em lote.
+      fastify:
+        patterns:
+          - "@fastify/*"
+          - "fastify"
+        update-types:
+          - "minor"
+          - "patch"
+      # Fila e cache mudam de contrato juntos.
+      fila:
+        patterns:
+          - "bullmq"
+          - "ioredis"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -47,3 +98,7 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
