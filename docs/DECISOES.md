@@ -2536,3 +2536,108 @@ futebol; o Patronato passa pela cláusula alternativa P641/P115).
 
 **Resultado:** 18 clubes (16 novos + 2 ajustados), **+1.254 partidas recuperadas**
 (15.981 → 17.235) e a lista de clubes ausentes zerada.
+
+### [2026-10-12] Decisão: D-2026-10-12-t537-navbar-escuro-e-limpeza-de-scrolltrigger — a barra entrou na camada escura, e o defeito real era escopo de limpeza do GSAP
+
+Motivo: o Operador pediu que a barra superior saísse da cor antiga e entrasse na proposta de design
+(editorial escuro). **Decisão de cor:** o `<nav>` passou a usar a camada `.theme-dark` — é GLOBAL,
+então vale em todas as rotas, e a superfície (`div.bg-background`) deixou de ter opacidade/blur: com
+fundo escuro o `backdrop-filter` fazia vazar o corpo claro por baixo (medido: `rgb(220,220,220)`
+com 94% de opacidade + blur). A barra cresceu de 64 para 80 px (bloco de 72 + 8 px de faixa que
+fecha o vão com o `main`, agora `pt-20`), e o input de busca trocou `bg-white` fixo pelo token —
+com o `theme-dark` o placeholder ficava claro sobre branco.
+**O defeito real, porém, não era cor:** em `/clubs` a barra ficava permanentemente em
+`opacity: 0.1339` + `translate3d(0, 26px, 0)` — translúcida sobre o corpo branco, o "cinza sujo"
+que o Operador via. A causa era o cleanup dos hooks de GSAP:
+`return () => { ScrollTrigger.getAll().forEach((t) => t.kill()); }` matava **todos** os
+ScrollTriggers da página. Quando qualquer componente desmontava, a animação de QUALQUER outro
+elemento era destruída no meio do tween e ficava congelada no estado parcial — o navbar era a
+vítima visível. **Decisão:** cada hook guarda o tween que criou e limpa só ele
+(`tween.scrollTrigger?.kill(); tween.kill();`), nos três hooks (`fadeIn`, `counter`, `stagger`).
+Medição depois da correção, nos três tempos (800 ms / 2 s / 5 s): `opacity: 1`,
+`translate(0px, 0px)`, pixel `rgb(18,16,15)` estável — antes o valor não mudava nem aos 5 s.
+Alternativas consideradas: (a) remover a animação de entrada do navbar — descartado: mascara o
+defeito e remove polimento legítimo; (b) trocar `bg-background` por cor fixa escura — descartado:
+sairia do sistema de tokens e quebraria a camada escura; (c) manter opacidade + blur — descartado
+por vazamento de cor medido.
+### [2026-10-13] Decisão: D-2026-10-13-t538-pitr-e-backups-em-producao — o Postgres de produção não tinha NENHUMA recuperação
+
+Motivo: com Railway e Vercel em PRO, auditei o que os planos liberam em vez de supor. Achado grave,
+confirmado pela CLI (`railway postgres pitr status --service Postgres`):
+**`Status: disabled` · `Bucket wired: no`** — o Postgres de produção **não tinha recuperação
+contínua**. O único backup existente era manual, de **2026-08-22**, e **já havia expirado em
+2026-09-21**. O audit trail (`railway postgres history`) mostrou que a tentativa anterior de
+configurar isso às 02:20 falhou com `Manual backups and backup schedules are only available for Pro
+workspaces`, e a das 02:52 registrou `ok` mas **não persistiu** (a releitura devolvia "No backup
+schedule configured for Postgres"). **Decisão:** habilitar PITR e o agendamento, que são recursos
+PRO e **aditivos/reversíveis** (`pitr disable` existe), sem downtime:
+- `railway postgres pitr enable --service Postgres` → `Status: enabled`, `Bucket wired: yes`
+  (a Railway provisiona o bucket S3-compatível sozinha; o projeto já tinha credenciais R2, mas não
+  foi preciso configurar nada).
+- `railway postgres pitr schedule set --daily --weekly --monthly --service Postgres` →
+  **confirmado na releitura**: DIÁRIO (retenção 6 dias) · SEMANAL (27 dias) · MENSAL (~89 dias).
+**Aberta por decisão do dono do dado (não apliquei):**
+- **HA do Postgres** — `railway postgres ha convert --service postgres --replicas 2` cria cluster
+  Patroni+etcd+HAProxy com failover automático, mas é mutação de infraestrutura de banco em
+  produção, com conversão que gera backup de expiração de 21 dias. Custo é metered (compute das
+  réplicas + etcd + HAProxy). Precede decisão explícita.
+- **PgBouncer** — `railway postgres pgbouncer add --service postgres --pool-mode transaction`.
+  Sem dor de conexão medida hoje, então não vale adicionar um componente com estado próprio.
+**Não feito de propósito:** migrar o `railway.json` para IaC. O `railway config migrate` (dry-run)
+**descarta `restartPolicyType` e `restartPolicyMaxRetries`** — o schema novo não tem esses campos.
+O arquivo atual funciona até **2026-12-01**; migrar agora perderia configuração sem ganho imediato.
+Decisão registrada para não ser esquecida antes do prazo.
+Alternativas consideradas: (a) esperar o Operador habilitar pelo dashboard — descartado: a CLI já
+está autenticada, o recurso é o de maior valor da assinatura PRO e a exposição é perda de dados sem
+backup; (b) habilitar HA junto — descartado por ser mutação de infraestrutura de banco em produção;
+(c) confiar no backup manual expirado — descartado: um backup que expirou não é backup.
+### [2026-10-13] Decisao: D-2026-10-13-t540-delete-em-lote-e-fonte-do-legado — DELETE em lote exige filtro explícito; e dado legado recuperado carrega a ressalva da sua fonte
+
+**Contexto:** o recálculo dos rankings (T538) apagou em lote os rankings daquelas
+competições e levou junto dois rankings **legados** (`Ranking CBF 2023`, `Ranking
+CONMEBOL 2023`, 20 entradas, escala bruta) que tinham `competitionId`. Não era o
+objetivo. Ao recuperá-los, a fonte encontrada foi o **próprio repositório**
+(`apps/api/prisma/seed.ts`) — com o comentário "aproximação realista" nas duas tabelas.
+
+**Decisão:**
+
+1. **DELETE em lote sempre com filtro explícito.** Nunca
+   `DELETE WHERE competitionId IN (…)` sem cláusula que proteja o que está fora do
+   escopo (legado/pré-existente). Operação em lote é cirurgia: o filtro *nega* o resto.
+2. **Recuperar é melhor que perder — mas com a ressalva da fonte junto.** Os valores
+   voltaram EXATAMENTE como estavam, e a marca de "aproximação, não tabela oficial" fica
+   gravada em campos que a API expõe (`scope='legacy_seed_approximation'`,
+   `formulaVersion='cbf-2023-raw'`), não num comentário que ninguém lê.
+3. **Restaurar é cirúrgico, não "rodar o seed".** `prisma/seed.ts` é idempotente nos
+   clubes, mas CRIA clubes/competições/permissões de demonstração — em produção ele
+   sujaria o acervo. A restauração toca só os 2 rankings e as 20 entradas.
+4. **Alternativa oferecida ao Operador:** ingerir a tabela OFICIAL 2023 da CBF e da
+   CONMEBOL (existem publicamente) e substituir as aproximações. Não fiz por conta
+   própria porque trocar dado é decisão dele, não do agente.
+
+**Resultado:** rankings 68 → 70 com os valores originais preservados e a ressalva
+auditável; a regra do DELETE em lote passa a valer para todo recálculo futuro.
+
+### [2026-10-13] Decisao: D-2026-10-13-t541-worktree-e-a-api-que-nao-renderizava — tarefa em área da outra sessão se faz em worktree isolado; e página nova revela defeito na API
+
+**Contexto:** a página `/matches` prometida no PLANO_MESTRE não existia (404), e
+implementá-la exigia mexer em `apps/web` — exatamente onde a sessão paralela tinha 85
+arquivos em voo (inclusive os 3 dicionários i18n e `i18n/types.ts`).
+
+**Decisão:**
+
+1. **Tarefa que cai na área da outra sessão roda em `git worktree` isolado.** Árvore
+   própria, branch própria, e o commit leva SÓ os arquivos da tarefa (caminhos
+   explícitos). Resultado: 6 arquivos meus, zero dela — sem pedir que ninguém pare.
+2. **i18n de página nova usa módulo aditivo** (`i18n/wsT541.ts`), como a regra 4 do
+   design system já manda — foi o que permitiu não tocar os dicionários em voo.
+3. **Página nova é teste da API.** Ao montar a tela apareceram dois defeitos reais que
+   nenhum teste pegava: a listagem de `/matches` **não trazia as relações** (só ids, não
+   renderiza nome) e `dateFrom`/`dateTo` eram **aceitos na rota e ignorados** no
+   repositório (filtro que não filtra). Consumir a própria API na UI é auditoria.
+4. **O que não deu para fazer, declara-se:** o link no `Navbar` ficou de fora (arquivo
+   em voo). Página acessível por URL, link entra depois — dito, não escondido.
+
+**Resultado:** `/matches` responde 200 com filtros por competição/temporada/data
+funcionando, facets de 7 competições/32 temporadas e clube clicável; dois defeitos de API
+corrigidos; zero colisão com a outra sessão.
