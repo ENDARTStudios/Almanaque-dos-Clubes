@@ -33,6 +33,10 @@ export const matchesRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
       }),
     );
   });
+  // T541 — facets ANTES de '/matches/:id' (senão 'facets' casaria como id).
+  app.get('/matches/facets', async (_request, reply) => {
+    return reply.send(await matchesService.facets());
+  });
   app.get<{ Params: { id: string } }>('/matches/:id', async (request, reply) => {
     try {
       return reply.send({ data: await matchesService.getById(request.params.id) });

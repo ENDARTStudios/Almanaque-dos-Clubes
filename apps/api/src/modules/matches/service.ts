@@ -24,6 +24,10 @@ export const matchesService = {
     ]);
     return { data, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
   },
+  /** T541 — facets para os filtros da página /matches. */
+  async facets() {
+    return matchesRepository.facets();
+  },
   async getById(id: string): Promise<Match> {
     const match = await matchesRepository.findById(id);
     if (!match) throw new NotFoundError('Partida', id);

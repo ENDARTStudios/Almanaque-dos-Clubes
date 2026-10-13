@@ -161,3 +161,49 @@ describe('CRUD /matches (T138)', () => {
     }
   });
 });
+
+describe('T541 — listagem renderizável, filtro de data e facets', () => {
+  it('a LISTA traz os nomes (relações) — sem isso a página não renderiza', async () => {
+    if (!dbOk) return;
+    const list = await app.inject({
+      method: 'GET',
+      url: `/api/v1/matches?homeClubId=${homeId}&limit=1`,
+    });
+    expect(list.statusCode).toBe(200);
+    const row = list.json().data[0];
+    expect(row.homeClub?.name).toContain('T138 Casa');
+    expect(row.awayClub?.name).toContain('T138 Visitante');
+  });
+
+  it('dateFrom/dateTo FILTRAM de verdade (antes a rota aceitava e o repo ignorava)', async () => {
+    if (!dbOk) return;
+    const inside = await app.inject({
+      method: 'GET',
+      url: `/api/v1/matches?homeClubId=${homeId}&dateFrom=2026-10-01&dateTo=2026-10-31`,
+    });
+    expect(inside.statusCode).toBe(200);
+    expect(inside.json().total).toBeGreaterThanOrEqual(1);
+
+    const outside = await app.inject({
+      method: 'GET',
+      url: `/api/v1/matches?homeClubId=${homeId}&dateFrom=2020-01-01&dateTo=2020-01-31`,
+    });
+    expect(outside.statusCode).toBe(200);
+    expect(outside.json().total).toBe(0);
+  });
+
+  it('GET /matches/facets devolve competições e temporadas com contagem', async () => {
+    if (!dbOk) return;
+    const res = await app.inject({ method: 'GET', url: '/api/v1/matches/facets' });
+    expect(res.statusCode).toBe(200);
+    const { competitions, seasons } = res.json();
+    expect(Array.isArray(competitions)).toBe(true);
+    expect(Array.isArray(seasons)).toBe(true);
+    // O acervo tem partidas em 7 competições — o facet não pode devolver lista vazia.
+    expect(competitions.length).toBeGreaterThan(0);
+    for (const c of competitions) {
+      expect(typeof c.name).toBe('string');
+      expect(c.count).toBeGreaterThan(0);
+    }
+  });
+});
