@@ -1,9 +1,11 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
+import { AuthPanel } from '@/components/auth/AuthPanel';
 
 export default function ResetPasswordPage() {
   const { t } = useI18n();
@@ -29,40 +31,70 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-neutral-surface px-4 py-10">
-      <div className="bg-background p-8 rounded-2xl shadow-md w-full max-w-md border border-border/50">
-        <h1 className="text-3xl font-heading font-bold mb-2 text-center text-foreground">{t('auth.resetPasswordTitle')}</h1>
-        <p className="text-center text-foreground/60 mb-8 text-sm">{t('auth.resetPasswordSubtitle')}</p>
-        {error && <div className="bg-danger-surface text-danger-ink p-3 rounded-lg mb-4 text-sm border border-danger-ink">{error}</div>}
-        {done ? (
-          <div className="space-y-4">
-            <div className="bg-success-surface text-success-ink p-3 rounded-lg text-sm border border-success-ink">{t('auth.resetPasswordSuccess')}</div>
-            <Link href="/auth/login" className="block w-full text-center bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition duration-200 cursor-pointer">
-              {t('auth.backToLogin')}
-            </Link>
+    <AuthPanel
+      title={t('auth.resetPasswordTitle')}
+      subtitle={t('auth.resetPasswordSubtitle')}
+      footer={
+        <Link href="/auth/login" className="auth-card__link">
+          {t('auth.backToLogin')}
+        </Link>
+      }
+    >
+      {error && (
+        <div role="alert" className="auth-card__error">
+          {error}
+        </div>
+      )}
+      {done ? (
+        <div className="auth-card__form">
+          <div role="status" className="auth-card__success">
+            {t('auth.resetPasswordSuccess')}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.resetPasswordNew')}</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" required minLength={8} />
-              <p className="text-xs text-foreground/70 mt-1">{t('auth.passwordHelp')}</p>
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.resetPasswordConfirm')}</label>
-              <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
-                className="w-full border border-border rounded-lg px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" required minLength={8} />
-            </div>
-            <button type="submit" className="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold hover:opacity-90 transition duration-200 cursor-pointer">
-              {t('auth.resetPasswordSubmit')}
-            </button>
-          </form>
-        )}
-        <p className="text-sm text-center mt-6 text-foreground/60">
-          <Link href="/auth/login" className="text-primary-ink hover:underline cursor-pointer">{t('auth.backToLogin')}</Link>
-        </p>
-      </div>
-    </div>
+          <Link href="/auth/login" className="auth-card__submit">
+            {t('auth.backToLogin')}
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="auth-card__form">
+          <div className="auth-card__field">
+            <label htmlFor="reset-password" className="auth-card__label">
+              {t('auth.resetPasswordNew')}
+            </label>
+            <input
+              id="reset-password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="auth-card__input"
+              required
+              minLength={8}
+              aria-describedby="reset-password-help"
+            />
+            <p id="reset-password-help" className="auth-card__help">
+              {t('auth.passwordHelp')}
+            </p>
+          </div>
+          <div className="auth-card__field">
+            <label htmlFor="reset-confirm" className="auth-card__label">
+              {t('auth.resetPasswordConfirm')}
+            </label>
+            <input
+              id="reset-confirm"
+              type="password"
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              className="auth-card__input"
+              required
+              minLength={8}
+            />
+          </div>
+          <button type="submit" className="auth-card__submit">
+            {t('auth.resetPasswordSubmit')}
+          </button>
+        </form>
+      )}
+    </AuthPanel>
   );
 }
