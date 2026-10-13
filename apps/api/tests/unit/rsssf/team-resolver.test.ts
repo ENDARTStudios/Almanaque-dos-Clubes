@@ -106,13 +106,58 @@ describe('team-resolver T519', () => {
     expect(r.club).toBeNull();
   });
 
-  it('clubes realmente ausentes do acervo ficam sem resolução (T520: Vasco e Chapecoense saíram daqui)', () => {
-    for (const t of ['Monagas SC', 'Patronato']) {
-      expect(RSSSF_TEAM_ABSENT.has(t)).toBe(true);
-      const r = resolveRsssfTeam(t, opts(['BR']));
-      expect(r.club).toBeNull();
-      expect(r.via).toBeNull();
-    }
+  it('T538: a lista de ausentes ficou VAZIA — os clubes que faltavam foram ingeridos', () => {
+    // T520 tirou Vasco/Chapecoense (gender errado); T538 tirou Monagas, Táchira,
+    // Patronato, Independiente Petrolero, Sporting, Málaga e Paraná (ingeridos do
+    // Wikidata, agora com alias determinístico). Não sobrou nenhum token bloqueado.
+    expect([...RSSSF_TEAM_ABSENT]).toEqual([]);
+  });
+
+  it('T538: token de clube ingerido resolve por alias com QID (determinístico)', () => {
+    const monagas: ClubCandidate = {
+      id: 've1',
+      name: 'Monagas Sport Club',
+      country: 'VE',
+      state: null,
+      gender: 'men',
+      qid: 'Q1636856',
+      city: null,
+    };
+    const r = resolveRsssfTeam('Monagas SC', {
+      globalPool: [monagas],
+      countries: ['VE'],
+      season: '2018',
+    });
+    expect(r.club?.name).toBe('Monagas Sport Club');
+    expect(r.via).toBe('alias');
+  });
+
+  it('T538: `Paraná` deixou de casar o clube de Campo Mourão (alias com QID)', () => {
+    const adap: ClubCandidate = {
+      id: 'br1',
+      name: 'Associação Desportiva Atlética do Paraná',
+      country: 'BR',
+      state: null,
+      gender: 'men',
+      qid: 'Q260834',
+      city: 'Campo Mourão',
+    };
+    const parana: ClubCandidate = {
+      id: 'br2',
+      name: 'Paraná Clube',
+      country: 'BR',
+      state: null,
+      gender: 'men',
+      qid: 'Q838534',
+      city: 'Curitiba',
+    };
+    const r = resolveRsssfTeam('Paraná', {
+      globalPool: [adap, parana],
+      countries: ['BR'],
+      season: '2018',
+    });
+    expect(r.club?.qid).toBe('Q838534');
+    expect(r.via).toBe('alias');
   });
 
   it('token sem candidato devolve null sem inventar (Sport United)', () => {
