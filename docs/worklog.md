@@ -2615,3 +2615,141 @@ Stage Summary:
 - T538: 18 clubes ingeridos ⇒ +1.254 partidas recuperadas e lista de ausentes VAZIA
 - T539: gaps fechados × limitação de fonte levantados; T537 bloqueado por colisão de
   sessões (declarado, não forçado); remoção involuntária de 2 rankings legados reportada
+
+### T537 — barra na camada escura, "é" em vez de "já foi", e dois defeitos de raiz
+
+- COPY: "Tudo o que o futebol já foi" -> **"Tudo o que o futebol é"** (3 idiomas). A objeção do
+  Operador é precisa: o futebol não é acervo do que passou, é coisa viva e presente — e o presente
+  casa com o H1 "é eterno".
+- BARRA: entrou na camada `.theme-dark`, 64 -> 80 px, superfície sem opacidade/blur, input de
+  busca usando token em vez de `bg-white` fixo.
+- DEFEITO DE RAIZ (o "cinza sujo"): o navbar de `/clubs` ficava congelado em `opacity: 0.1339` +
+  `translate3d(0, 26px, 0)` PARA SEMPRE. Causa: `ScrollTrigger.getAll().forEach((t) => t.kill())`
+  no cleanup dos hooks — matava todos os ScrollTriggers da página, então a animação de qualquer
+  elemento era destruída no meio quando outro componente desmontava. Corrigido para limpar só o
+  tween de cada hook. Antes/depois medido: `opacity 0.13 -> 1`, `y 26px -> 0`, pixel
+  `rgb(220,220,220) -> rgb(18,16,15)`, estável em 800 ms / 2 s / 5 s.
+- Também registrado: boa parte do meu diagnóstico inicial foi contaminado por medir DURANTE o
+  fade-in (espera de 2 s não bastava; a animação começa depois do `networkidle`). Passar a medir em
+  três tempos e logar `inline opacity/transform` junto com o pixel foi o que separou artefato de
+  defeito real.
+- VERIFICAÇÃO: `typecheck` limpo · 64/64 testes · contraste renderizado 0 reprovações ·
+  `impeccable detect` ZERO achados em `/`, `/clubs`, `/rankings`, `/metodologia` · 3 idiomas com
+  H1 de 2 linhas e overflow 0.
+### T538 — PRO do Railway/Vercel auditado: o banco de produção estava sem recuperação
+
+- ACHADO GRAVE (confirmado por CLI, não por suposição): `railway postgres pitr status` devolvia
+  `Status: disabled` + `Bucket wired: no`. O único backup era manual, de **22/08**, **expirado em
+  21/09**. A tentativa anterior (audit trail, 02:20) havia falhado por falta de PRO; a das 02:52
+  registrou `ok` mas **não persistiu**.
+- FEITO: `railway postgres pitr enable --service Postgres` -> `Status: enabled`,
+  `Bucket wired: yes`; `railway postgres pitr schedule set --daily --weekly --monthly` ->
+  **persistido e confirmado na releitura** (diário 6d · semanal 27d · mensal ~89d). Ambos aditivos
+  e reversíveis, sem downtime.
+- VERIFICADO NO LADO VERCEL: produção deployando (último há 1 min, 46 s), previews a cada push,
+  `apps/web/vercel.json` com `deploymentEnabled.main: false` — exatamente a Opção 2 que o
+  `deploy-web.yml` listava como PENDENTE e reversível, então o workflow agora é redundante.
+  Root Directory `apps/web`, Node 24.x, framework Next.js. Skew Protection: projeto criado em
+  28/07/2026 (posterior a 19/11/2024) com Next 16 — a doc diz que já vem ligada para framework
+  suportado; **não confirmei pelo dashboard** (a CLI não expõe o toggle).
+- NÃO FEITO DE PROPÓSITO: migrar `railway.json` para IaC. O `railway config migrate` (dry-run)
+  **descarta `restartPolicyType` e `restartPolicyMaxRetries`** — o schema novo não tem esses
+  campos. O arquivo funciona até 2026-12-01; migrar agora perderia configuração sem ganho.
+- ABERTO PARA DECISÃO DO OPERADOR (não apliquei por serem mutação de infraestrutura de produção):
+  HA do Postgres (`railway postgres ha convert --replicas 2`, custo metered) e PgBouncer (sem dor
+  de conexão medida). WAF/Firewall, Rolling Releases, Observability Plus e Speed Insights Plus são
+  configuração de dashboard/conta — a CLI não as expõe, então não as toquei.
+### T538 (cont.) — o que ficou bloqueado por exigir navegador, e o estado final verificado
+
+- Para o `pitr status` reportar a COBERTURA real do archiver, a Railway precisa identificar o
+  operador por chave SSH. Gerei a chave (`~/.ssh/id_ed25519`, ainda não existia) e a resposta
+  passou de `no_ssh_key` para **`signup_required`** com link de validação:
+  `https://railway.com/ssh-signup?code=9t0GNfYZ-cUEkAw7sFwkVA`. Isso é **exceção prevista** na
+  política CLI-first do repo (OAuth de navegador que o ambiente não contorna) — rolado ao Operador,
+  não "delegado como tarefa web".
+- ESTADO FINAL VERIFICADO POR LEITURA (independente do SSH, que só afeta o diagnóstico):
+  - `railway postgres pitr status` -> `Status: enabled` · `Bucket wired: yes`
+  - `railway postgres pitr schedule list` -> `DAILY` (retenção 518400s = 6 d) ·
+    `WEEKLY` (2332800s = 27 d) · `MONTHLY` (7689600s = 89 d)
+  - `railway status` -> serviço `Almanaque-dos-Clubes` **Online**, plano **pro**, região sfo,
+    deploy `c236b548` do commit `dac191c` em `main`
+  - `vercel ls almanaque-dos-clubes` -> produção `Ready` (46 s) e previews por push
+- Ou seja: a RECUPERAÇÃO está ligada e o agendamento está persistido; o que falta é apenas o
+  `railway ssh` voltar a funcionar para o projeto (que a skill `prod-railway` já usa para rodar
+  script/SQL dentro do container) e para o diagnóstico mostrar a cobertura do archiver.
+Task ID: goal-2026-10-13/t540-t541-t542
+Agent: Doer (ZCode)
+Task: T540 (recuperar rankings legados) · T541 (página /matches em worktree) · T542 (serviço de mídia)
+
+Work Log:
+- T540 — RANKINGS LEGADOS RECUPERADOS. A fonte é o **próprio repositório**: os valores
+  estão hardcoded em `apps/api/prisma/seed.ts`. **Ressalva registrada, não maquiada:** o
+  comentário do seed diz "aproximação realista" — são valores plausíveis autorados para
+  o seed, NÃO a tabela oficial da CBF/CONMEBOL. A restauração marca isso em campos que a
+  API já expõe: `scope='legacy_seed_approximation'` e `formulaVersion='cbf-2023-raw'`/
+  `'conmebol-2023-raw'` (o model Ranking não tem JSONB livre — e não precisa).
+  · NÃO rodamos `prisma/seed.ts` em produção (ele cria clubes/competições/permissões de
+  demonstração); o script restaura só os 2 rankings + 20 entradas, resolve os clubes por
+  nome EXATO e ABORTA se algum não resolver, preserva a escala bruta e é idempotente.
+  · Resultado: rankings 68 → **70** (CBF 2.848-2.190 · CONMEBOL 2.800-1.600) ✓.
+  · Regra do Operador acatada e registrada: DELETE em lote exige filtro explícito.
+- T541 — `/matches` NO AR (era 404). Feito em **worktree isolado** (`git worktree add`,
+  árvore própria) e o commit levou **exatamente 6 arquivos meus** — nenhum dos 85 em voo
+  da sessão paralela. Dois defeitos de API corrigidos no caminho:
+  · a LISTA não trazia as RELAÇÕES (só ids) → não renderizava nomes; agora inclui
+    homeClub/awayClub/competition/season (aditivo);
+  · `dateFrom`/`dateTo` eram ACEITOS na rota e IGNORADOS no repositório (filtro que não
+    filtrava) → `where` único para lista e contagem, com as datas aplicadas;
+  · `GET /matches/facets` (novo) → **7 competições / 32 temporadas** com contagem
+    (nenhum filtro que devolve vazio, nenhuma lista hardcoded).
+  · Web: página em Server Component com filtros em `<form method=get>` (funciona SEM JS,
+  acessível por teclado, estado na URL), clube clicável, paginação, rodapé de
+  proveniência, empty-honesto; `i18n/wsT541.ts` aditivo (regra 4 do design system).
+  · Verificado ao vivo: **`/matches` = 200**.
+  · CI pegou uma dependência de ordem minha nos testes novos (rodavam depois do DELETE
+  do bloco CRUD e viam zero partidas; o facet dava 0 porque a partida do outro bloco não
+  tem competição e o CI tem banco limpo, não a produção) → bloco reescrito autossuficiente.
+  · PENDENTE DECLARADO: o link no `Navbar` não entrou (arquivo com modificação em voo da
+  outra sessão). A página é acessível por URL e o link entra quando ela commitar.
+- T542 — SERVIÇO DE MÍDIA: **código entregue e INERTE** (risco zero até o Operador agir).
+  · fila DEDICADA `media-enrich` (antes o lote ia para `data-refresh`, junto de outros 5
+  jobs) + entrypoint próprio `scripts/media-worker.ts` que consome SÓ a fila de mídia —
+  reusando o **mesmo image da API** (não precisa de app novo nem Dockerfile; `apps/worker`
+  é dev-only: tsx/typescript em devDependencies, sem build);
+  · **migração sem janela**: a API continua consumindo a mídia por padrão e só para com
+  `MEDIA_WORKER_LOCAL=0` — sobe o serviço, confere, flipa a flag;
+  · FALTA (é infra, e é a sua parte): `railway add --service media-worker` (mesmo repo),
+  start command `node apps/api/dist/scripts/media-worker.js`, env `DATABASE_URL`/`REDIS_URL`
+  por referência ao serviço da API, e depois `MEDIA_WORKER_LOCAL=0`. Validação: `railway
+  metrics` com a API de volta ao p50 de ~2 ms. Orçamento medido: **$0,0654 no período,
+  estimativa $5,51/mês** — um serviço pequeno ocioso entra com folga.
+  · Nota de infra: `railway.json` é config-as-code do serviço da API; o serviço novo
+  precisa de start command próprio (variável do serviço ou IaC) — a CLI avisa que o
+  config-as-code está sendo substituído por `.railway/railway.ts`.
+
+- BATCH DE MÍDIA (T535) — rodando pelo worker, progresso medido JÁ no fim desta sessão:
+  **6.482 clubes varridos · 1.172 com uniforme** (eram 233 antes desta rodada) ·
+  5.376 pendentes (~1,6 h na taxa medida de ~0,9 clube/s). O lote continua depois da
+  sessão; o cursor de tentativa garante que ninguém se repete.
+
+- AGENTS.md DA SESSÃO PARALELA: inspecionado a pedido do Operador. O diff (+18 linhas) é
+  **legítimo e útil** — documenta o plugin de design, a régua de animação
+  (`motion-craft`/`motion-review`, portão `pnpm run ui:audit:ci`) e corrige o caminho do
+  `sync-to-workspace.sh`. **NÃO conflita** com nenhuma decisão desta sessão (nada sobre
+  git, permissões ou coordenação) → não revertido; diff guardado em
+  `D:\AITEMP\agents-md-sessao-paralela.diff`. Fica o alerta: quando ela commitar, o
+  arquivo entra no `main` sem revisão sua.
+  · Detalhe útil do diff: a régua de animação reprova `transition-all` — a página do T541
+  foi escrita sem ele (e o próprio design system ainda cita `transition-all` no padrão de
+  card, o que é uma inconsistência a corrigir lá).
+
+- INTEGRIDADE FINAL: matches **17.265** · rankings **70** · entries **1.879** · WON
+  **5.205** · clubes **12.003** · uniformes **1.172** (subindo).
+
+Stage Summary:
+- T540: os 2 rankings legados voltaram, com os valores originais e a marca de aproximação
+  (recuperável, não perdido) · regra do DELETE em lote registrada
+- T541: `/matches` no ar (200) com filtros reais, facets e i18n aditivo — sem colidir com
+  a sessão paralela (worktree isolado, 6 arquivos meus)
+- T542: código do serviço de mídia entregue e inerte; criação do serviço é a sua parte,
+  com os passos e a validação escritos
