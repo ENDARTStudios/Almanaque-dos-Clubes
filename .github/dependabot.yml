@@ -1,5 +1,23 @@
 # Dependabot auto-config para o monorepo Almanaque dos Clubes
 # Mantém dependências atualizadas e seguras automaticamente.
+#
+# Duas correções entraram em 2026-10-13, ambas por PRs que o CI reprovava e que nunca
+# ficariam verdes:
+#
+# 1. `groups` — sem agrupamento o dependabot abre um PR por pacote, e alguns desses pacotes são
+#    INSOLÚVEIS sozinhos:
+#      * `react` e `react-dom` precisam da MESMA versão exata. O CI reprovava com
+#        "Incompatible React versions: The 'react' and 'react-dom' packages must have the exact
+#        same version. Instead got: react 19.3.0 / react-dom 19.2.8" — e o defeito não era o
+#        bump, era os dois virem separados (#603 e #602).
+#      * o ecossistema Fastify libera os plugins em lote.
+# 2. `exclude-paths` na entrada da RAIZ — ela subia dependências que só existem em
+#    sub-workspaces: o `@fastify/compress` (que vive só em apps/api) gerou o PR #601 com a
+#    mudança IDÊNTICA ao #590 (dois PRs para um bump). Foi essa mesma entrada que produziu um
+#    `apps/web/pnpm-lock.yaml` aninhado, alvo errado do PR #511.
+#
+# Regra geral: o lockfile é COMPARTILHADO (um só, na raiz). PRs que mexem nele precisam entrar
+# em sequência, e agrupar por família é o que reduz o número de sequências.
 
 version: 2
 updates:
@@ -16,10 +34,36 @@ updates:
       - "dependencies"
       - "automated"
     versioning-strategy: increase
+    # A raiz NÃO deve mexer no que pertence aos sub-workspaces: cada um tem a sua entrada.
+    exclude-paths:
+      - "apps/**"
+      - "packages/**"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+      web-tooling:
+        patterns:
+          - "next"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "vitest"
+          - "@vitest/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # apps/api
   - package-ecosystem: "npm"
@@ -38,6 +82,29 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      fastify:
+        patterns:
+          - "@fastify/*"
+          - "fastify"
+        update-types:
+          - "minor"
+          - "patch"
+      fila:
+        patterns:
+          - "bullmq"
+          - "ioredis"
+        update-types:
+          - "minor"
+          - "patch"
+      # `prisma` (dev) e `@prisma/client` andam SEMPRE juntos: mesmo par do react/react-dom.
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/client"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -47,3 +114,7 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
