@@ -16,10 +16,40 @@ updates:
       - "dependencies"
       - "automated"
     versioning-strategy: increase
+    # `exclude-paths` impede que a entrada da RAIZ suba dependências que só existem em
+    # sub-workspaces. Sem isso o dependabot abriu PRs para pacotes que **não estão declarados no
+    # manifest da raiz**: o `@fastify/compress` (que vive só em apps/api) gerou o PR #601 com a
+    # MESMA mudança do #590 — dois PRs para um bump.
+    exclude-paths:
+      - "apps/**"
+      - "packages/**"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      # O React exige que `react` e `react-dom` tenham a MESMA versão; os tipos andam junto.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+      web-tooling:
+        patterns:
+          - "next"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "vitest"
+          - "@vitest/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # apps/api
   - package-ecosystem: "npm"
@@ -38,6 +68,23 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    groups:
+      # O ecossistema Fastify libera os plugins em lote.
+      fastify:
+        patterns:
+          - "@fastify/*"
+          - "fastify"
+        update-types:
+          - "minor"
+          - "patch"
+      # Fila e cache mudam de contrato juntos.
+      fila:
+        patterns:
+          - "bullmq"
+          - "ioredis"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -47,3 +94,7 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
