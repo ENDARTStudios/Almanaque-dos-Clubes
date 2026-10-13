@@ -28,7 +28,7 @@
     "@fastify/rate-limit": "^11.2.1",
     "@fastify/swagger": "^9.9.2",
     "@fastify/swagger-ui": "^6.1.2",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.19.3",
     "argon2": "^0.45.0",
     "bullmq": "^6.3.12",
     "dotenv": "^18.0.4",
@@ -45,7 +45,7 @@
     "@types/node": "^22.9.0",
     "@types/ws": "^8.18.2",
     "@vitest/coverage-v8": "^5.0.3",
-    "prisma": "^5.22.0",
+    "prisma": "^6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
