@@ -231,7 +231,8 @@ export const RSSSF_TEAM_ALIASES: Record<string, AliasTarget> = {
   SPAL: { name: 'Ars et Labor Ferrara', qid: 'Q13385' },
   Joinville: { name: 'Joinville Esporte Clube', qid: 'Q2035444' },
   Patronato: { name: 'Club Atlético Patronato', qid: 'Q1773830' },
-  'LDU Quito': { name: 'Liga Deportiva Universitaria (Quito)', qid: 'Q249643' },
+  // O acervo (e o rótulo pt do Wikidata) usa "...de Quito", não o título do artigo.
+  'LDU Quito': { name: 'Liga Deportiva Universitaria de Quito', qid: 'Q249643' },
   'Monagas SC': { name: 'Monagas Sport Club', qid: 'Q1636856' },
   'Deportivo Táchira': { name: 'Deportivo Táchira Fútbol Club', qid: 'Q178378' },
   'Deportivo Táchira FC': { name: 'Deportivo Táchira Fútbol Club', qid: 'Q178378' },

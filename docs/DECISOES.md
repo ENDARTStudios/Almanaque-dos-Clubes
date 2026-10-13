@@ -2367,3 +2367,172 @@ pelo crítico, mas deixaria um controle de paginação prometendo transição qu
 **Resultado:** Beta Aberta agendada para 20-10-2026, com checklist de abertura (3 itens
 abertos: página `/matches`, preview do Vercel, `AGENTS.md` da sessão paralela) e o
 baseline do Dia 0 como referência de comparação.
+
+### [2026-10-12] Decisão: D-2026-10-12-t534-primary-ink — o PAPEL do vermelho foi separado; a marca não foi escurecida
+
+Motivo: `--color-primary: #dc2626` usado como **texto** reprovava em AA e a correção óbvia
+(escurecer o token) resolveria o texto destruindo a marca em botões, mapa e gráficos. Medi as
+superfícies reais e o diagnóstico é melhor que "reprova por 0,09": `#dc2626` **passa em branco**
+(4,83:1) mas **reprova nas nossas superfícies**, porque nenhuma delas é branco puro — sobre
+`--color-background` `#fef2f2` dá **4,41:1** e sobre `primary/10` `#fbdede` (os chips) dá
+**3,80:1**. Ou seja, o problema não era o vermelho ser claro demais: era ele estar servindo dois
+papéis com requisitos diferentes. **Decisão:** novo token de papel `--color-primary-ink: #b91c1c`
+(6,47 no branco / 5,91 no background / 5,10 no chip), aplicado nas **149** ocorrências de
+`text-primary` exato em 48 arquivos; `bg-primary`, `border-primary` e `text-primary/N` (ícone
+decorativo, ≥3:1) **seguem na marca viva**. Efeito visual: o preenchimento do botão fica no
+vermelho vivo e o texto no tom de leitura — lê como hierarquia intencional, não como
+inconsistência. **Resultado medido:** `impeccable detect` na home, `/clubs` e `/rankings` =
+**zero achados (exit 0)**; a mancha de contraste desapareceu em todas as rotas testadas (11 rotas).
+Alternativas consideradas: (a) escurecer `--color-primary` — descartado, apaga a marca onde ela é
+preenchimento; (b) manter e declarar exceção — descartado: ~150 pontos de falha real de AA não são
+exceção, são dívida; (c) trocar só os usos com contexto conhecido — descartado, a classe exata
+`text-primary` já é exatamente o conjunto de usos de texto.
+
+### [2026-10-12] Decisão: D-2026-10-12-t534-remover-animejs — um motor de animação sem dono sai do projeto
+
+Motivo: `animejs@4.5.0` estava no `package.json` de `apps/web` e **não era importado em nenhum
+arquivo** (verificado por varredura). Com GSAP dono declarado dos reveals (`useGsap.ts`) e
+`motion/react` dono de spring/gesto/exit, um terceiro motor sem uso é risco de alguém pegar o
+caminho errado numa próxima tarefa. **Decisão:** removido com `pnpm --filter web remove animejs` —
+saiu do `package.json`, do `pnpm-lock.yaml` e do `node_modules` (zero referência no código).
+`next build` continua **exit 0**. Alternativas consideradas: (a) manter "por garantia" — descartado:
+dependência não usada é convite a um quarto sistema de animação, que a régua `motion-craft`
+proíbe; (b) usá-lo em algum lugar para justificar — descartado por não haver necessidade.
+
+### [2026-10-12] Decisão: D-2026-10-12-t534-measure-readable — largura de leitura medida em `ch`, não em `rem`
+
+Motivo: a regra `line-length` do detector acusou ~99–102 caracteres por linha em
+`/metodologia`, `/privacidade`, `/sobre` e `/planos`. A causa é sutil: `max-w-3xl` **parece**
+contido (48rem = 768px) mas é uma medida em `rem`, e em Barlow 16px ela rende ~99 caracteres —
+acima dos ~80 em que o olho perde o lugar. **Decisão:** utilitário `.measure-readable`
+(`max-width: 68ch`) em `LegalDocument`, `ContentDocument`, `/metodologia`, `/direitos-titular`,
+`/direitos-autorais` e no parágrafo de abertura do `/map`. `ch` acompanha o tamanho da fonte,
+`rem` não — por isso a restrição passa a ser auto-referente ao texto. **Resultado:** aquelas rotas
+saíram de 4–27 achados para **zero**, restando 1 linha de ~89 caracteres dentro do painel de
+formulário de `/direitos-titular` (cosmético, sem impacto de contraste).
+### [2026-10-12] Decisão: D-2026-10-12-t535-gancho-e-paixao-nao-metodo — a chamada vende paixão; a fonte é garantia, não manchete
+
+Motivo: o Operador **reprovou** a chamada da hero ("Quem foi o maior: o seu palpite ou o dado com
+fonte?"): *"não se trata de dados ou fonte verificável, se trata de paixão pelo futebol"*. O erro
+não era de estilo, era de **posicionamento** — eu vendi o método como se fosse o desejo. Três
+defeitos concretos: (1) **"o seu palpite"** desqualifica a emoção do torcedor (futebol não é
+palpite, é paixão; a palavra coloca o visitante como quem está errado); (2) a estrutura
+**"X ou Y?"** trata a memória do torcedor como erro a corrigir — o produto não corrige ninguém,
+ele honra a história; (3) **"dado com fonte" na manchete** é vocabulário de auditoria no ponto mais
+nobre da página. Agravante que eu não vi: a fonte aparecia **duas vezes na mesma dobra** (H1 e
+primeira frase do apoio) — sinal de que eu não confiei no argumento emocional e enchi o espaço com
+metodologia. **Decisão:** o gancho passou a vender emoção e memória, e a fonte desceu para o papel
+de garantia:
+- H1 pt-BR: **"Todo clube tem uma história que merece ser contada."** (en: "Every club has a story
+  that deserves to be told." · es: "Todo club tiene una historia que merece ser contada.")
+- Apoio: "A memória do futebol, reunida e conferida." + "Do primeiro escanteio ao último título:
+  clubes, campeões, ídolos e as eras que ficaram."
+- Garantia (onde deve estar): "cada número com a fonte ao lado, para a história resistir à
+  conferência."
+- CTA: "Entrar na história" (era "Explorar o acervo agora" — também vocabulário de arquivo).
+A regra virou **teste de mesa** na skill `conversion-copy`: troque "futebol" por "planilhas"; se a
+frase continuar fazendo sentido, está vendendo o método e não a paixão. E o corolário: se a fonte
+aparece duas vezes na mesma dobra, o gancho emocional não foi confiado.
+Alternativas consideradas: (a) "A memória do futebol brasileiro, clube por clube" — descartado por
+restringir a brasileiro um acervo mundial; (b) "Futebol é paixão. Aqui ela tem memória" — descartado
+por soar slogan; (c) "Quem foi o maior?" mantendo a pergunta mas tirando a fonte — descartado:
+mantém a moldura de disputa que o Operador rejeitou.
+### [2026-10-12] Decisão: D-2026-10-12-t536-barra-superior-reorganizada — sete defeitos medidos, e a arquitetura de informação que faltava
+
+Motivo: o Operador reportou que a barra superior "está uma bagunça e não combina com a proposta de
+design". Medi antes de mexer (5 larguras + faixa crítica de 1024 a 1920) e os defeitos eram
+objetivos, não impressão:
+1. **DUPLICAÇÃO** — "Mapa" era link simples E item do dropdown "Clubes" ("Por continente (mapa)").
+   Destino repetido em dois lugares é sintoma de arquitetura de informação não decidida.
+2. **RÓTULOS QUEBRANDO** — "Jogadores & Treinadores" e "Rankings & Estatísticas" quebravam em duas
+   linhas num menu de 64 px, deixando alturas desiguais. Os 5 itens somavam 573 px.
+3. **MARCA DESALINHADA** — "ALMANAQUE" (2xl) e "dos Clubes" (lg) em linhas de base diferentes: o
+   "dos" flutuava acima da marca, parecendo defeito de layout.
+4. **TABLET SEM NAVEGAÇÃO** — o menu só existia a partir de `lg` (1024) e o hambúrguer só abaixo de
+   `md` (768). Entre 768 e 1023 px (iPad retrato) a barra mostrava busca, idioma e Entrar e
+   **nenhum destino**. Não era feiúra: era ausência de navegação.
+5. **BUSCA ESTOURANDO** — a 900 px o campo de 144 px cortava o próprio placeholder.
+6. **IDIOMA INCHADO** — o seletor ocupava 235 px (mais que o dobro da busca) porque o `<select>`
+   nativo tem largura intrínseca do maior `<option>` — "Português (BR)", "English (US)" e
+   "Español (ES)" cabiam todos ao mesmo tempo.
+7. **LARGURA DESPERDIÇADA** — o container travava em 1280 px mesmo em 1920, sobrando 320 px de vazio.
+**Decisão:**
+- **Arquitetura:** Mapa promovido a destino global e REMOVIDO do dropdown de clubes. Ordem por uso:
+  Competições · Clubes · Jogadores · Rankings · Mapa.
+- **Rótulos:** novos `nav.shortClubs`/`shortPlayers`/`shortRankings` (Clubes/Jogadores/Rankings) na
+  barra, com `whitespace-nowrap`; o nome completo continua no painel mobile e no `title`/`aria`.
+- **Marca:** lockup único alinhado pela base (`items-baseline`, `leading-none`).
+- **Responsivo:** hambúrguer cobre `lg` para baixo (com painel completo) e o menu aparece a partir
+  de `lg`; o campo de busca vive só no desktop (a partir de `xl`) e no painel em largura total —
+  onde não corta.
+- **Idioma:** controle de 36×36 com globo + sigla (PT/EN/ES), nome completo no `aria-label`,
+  `title` e nas opções nativas; `<select>` sobreposto em `opacity-0` para não influenciar layout
+  (comportamento nativo e teclado preservados).
+- **Layout:** container 1400 px, `justify-between` removido (abria 533 px de vazio no tablet) e
+  `ml-auto` no cluster da direita.
+**Verificação medida:** faixa 1024→1920 com **0 estouro horizontal, 0 sobreposição entre filhos,
+0 rótulo quebrado**, gap estável de 24 px e altura de 65 px constante; placeholder passou a caber
+(precisava 174 px, campo agora 192 px); badge de idioma não colide mais com o globo (colidia em
+8×2 px). `typecheck` limpo, 64/64 testes, contraste **0 reprovações**, `impeccable detect` zero
+achados em `/`, `/clubs` e `/rankings`.
+Alternativas consideradas: (a) manter os nomes completos e aumentar a altura da barra — descartado,
+duas linhas em menu horizontal nunca alinha; (b) só o hambúrguer em todas as larguras — descartado,
+perde-se a navegação à vista em desktop, que é justamente onde o acervo é explorado; (c) segunda
+linha de navegação — descartado por empurrar o hero para baixo e gastar 48 px de viewport em toda
+página.
+### [2026-10-13] Decisao: D-2026-10-13-t535-execucao-imediata-pelo-worker — lote longo se executa pelo WORKER (BullMQ), não por nohup; e concorrência não é alavanca quando a fonte impõe back-pressure
+
+**Contexto:** o despacho pediu cobertura completa de mídia AGORA, via
+`nohup node … --full --apply &`, com "Wikimedia aceita burst 3-5 req/s". As duas
+premissas foram testadas e não se sustentam — medidas, não supostas:
+
+1. **`nohup`/`setsid` não sobrevivem ao fim da sessão `railway ssh`.** Lançado com
+   `nohup` (log parado em 56 bytes) e depois com `setsid` (log parado de novo, zero
+   processos 20s depois): o CLI derruba o grupo de processos ao encerrar a sessão.
+2. **Concorrência tornou o job 3× MAIS LENTO.** Com `--concurrency=4`, 100 clubes
+   levaram 287s (**2,87 s/clube**) contra 0,9 s/clube em série. O burst bate em
+   back-pressure do Wikimedia e cada retry (3 tentativas com sleep) cobra a conta.
+
+**Decisão:**
+
+1. **Lote longo roda pelo WORKER, não por processo de shell.** Enfileirar o job no
+   BullMQ (`enrich-all-media` na fila `data-refresh`) faz o processamento acontecer no
+   container, independente da sessão que o pediu, e **sobrevive a deploy** (os jobs
+   persistem no Redis; o cursor de tentativa garante que nada é refeito). Job de shell
+   é para trabalho curto — o resto é fila.
+2. **Concorrência só com medição, nunca por intuição.** A taxa ótima é a da fonte: em
+   série ~0,73-0,85 clube/s; paralelizar contra uma fonte com back-pressure piora. A
+   configuração passou a ficar em 1 para este job, e a máxima "a fonte manda na taxa"
+   vale para qualquer ingestão externa.
+3. **Deploy no meio de um lote é seguro quando o lote tem cursor** — o job interrompido
+   volta pela fila e o já-tentado não se repete. É o mesmo princípio do
+   [[lote-que-avanca-t528]], aplicado à execução.
+
+**Resultado:** 22 jobs de 500 enfileirados (11.000 clubes), progresso medido por SQL
+(tentados 2.447, uniformes 233 → 576 na primeira hora), com o trabalho continuando
+depois desta sessão.
+
+### [2026-10-13] Decisao: D-2026-10-13-t538-clubes-ausentes-e-a-armadilha-do-homonimo — ingerir o clube que faltava é melhor que bloquear o token, desde que o QID venha da fonte
+
+**Contexto:** o T529 deixou ~25 clubes como gap declarado ("sem candidato") e a lista
+`RSSSF_TEAM_ABSENT` cresceu para conter os que casariam o clube ERRADO. O T538 ingeriu
+18 deles a partir de QIDs **derivados do artigo pt e validados na fonte** (P31 = clube de
+futebol; o Patronato passa pela cláusula alternativa P641/P115).
+
+**Decisão:**
+
+1. **Clube ausente se INGERE (com QID da fonte), não se bloqueia.** A lista de ausentes
+   voltou a ser **vazia**: cada token passou a ter alias com QID — determinístico, o que
+   é melhor que a ambiguidade e melhor que o bloqueio. Os três piores homônimos
+   (`Sporting` → clube de Malta, `Málaga` → clube extinto, `Paraná` → clube de Campo
+   Mourão) agora apontam para o alvo certo com QID conferido.
+2. **QID de fonte derruba defeito de acervo.** Dois achados no caminho: (a) `Q249643` já
+   existia com um nome diferente do título do artigo (alias corrigido para o nome real);
+   (b) **`Q178378` estava gravado com o nome de OUTRO clube** ("Internacional de
+   Bogotá", que tem linha própria e legítima) — renomeado para Deportivo Táchira com
+   proveniência. Se o token fosse simplesmente bloqueado, o defeito seguiria invisível.
+3. **Nome do acervo = rótulo da fonte.** Ao criar/renomear, o `name` é o rótulo pt do
+   Wikidata (a convenção vigente); nunca um nome inventado pelo agente.
+
+**Resultado:** 18 clubes (16 novos + 2 ajustados), **+1.254 partidas recuperadas**
+(15.981 → 17.235) e a lista de clubes ausentes zerada.

@@ -2462,3 +2462,156 @@ Stage Summary:
 - Beta Aberta agendada para 20-10-2026 (após as 7 noites de cron: 13-19/10)
 - Erro de documentação meu corrigido (página /matches não existe) + checklist de
   abertura com 3 itens abertos (um deles o AGENTS.md da sessão paralela)
+
+### Fecho T533/T534 — as duas pendências que ficaram para o Operador
+
+- **`text-primary` como texto: RESOLVIDO por separação de PAPEL, não por escurecer a marca.**
+  Medi as superfícies reais antes de decidir e o diagnóstico melhorou: `#dc2626` passa em branco
+  (4,83:1) mas reprova nas NOSSAS superfícies — `#fef2f2` = 4,41:1 e `primary/10` (`#fbdede`,
+  os chips) = **3,80:1**. Novo token `--color-primary-ink: #b91c1c` (6,47 / 5,91 / 5,10) aplicado
+  nas **149** ocorrências exatas de `text-primary` em 48 arquivos; `bg-primary`, `border-primary`
+  e `text-primary/N` seguem na marca viva. Contei antes de mexer para não pegar `text-primary/70`
+  (3 ocorrências, preservadas) e conferi no CSS compilado que `.text-primary` é utilitário
+  **exato** (`color: var(--color-primary)`) enquanto `.text-primary/70` é literal — ou seja, a
+  substituição não podia vazar. Confirmado depois do build: `.text-primary-ink` e
+  `.hover\:text-primary-ink:hover` gerados, 0 `text-primary` exato restante.
+- **`animejs`: REMOVIDO** (`pnpm --filter web remove animejs`) — saiu do `package.json`, do
+  lockfile e do `node_modules`; zero referência no código; `next build` exit 0.
+- **Bônus da verificação:** nas 11 rotas auditadas apareceu uma classe de defeito que eu não tinha
+  medido — `line-length` (~99–102 caracteres por linha) em `/metodologia`, `/privacidade`,
+  `/sobre`, `/planos`. Causa: `max-w-3xl` é medida em `rem`, não em caracteres. Criado o
+  utilitário `.measure-readable` (`max-width: 68ch`) e aplicado nas páginas de texto corrido.
+  Essas rotas saíram de 4–27 achados para **zero**.
+- VERIFICAÇÃO FINAL: `typecheck` limpo · **64/64** testes · portão **0 bloqueios / 0 atenção** ·
+  contraste renderizado do hero **0 reprovações** · overflow 0 e 1 `h1` em 1440/768/390 ·
+  `next build` **exit 0** · `impeccable detect` com **zero achados** em `/`, `/clubs`, `/rankings`,
+  `/search`, `/competitions`, `/players`, `/metodologia`, `/privacidade`, `/sobre`, `/planos`
+  (resta 1 linha longa cosmética em `/direitos-titular`) · `--check` do sync sem drift.
+### T535 — reprovação de copy pelo Operador: gancho é paixão, não método
+
+- A chamada da hero foi **reprovada** ("Quem foi o maior: o seu palpite ou o dado com fonte?").
+  Diagnóstico: erro de POSICIONAMENTO, não de palavra — "o seu palpite" desqualifica a emoção,
+  "X ou Y?" trata a memória como erro, "dado com fonte" é vocabulário de auditoria no lugar mais
+  nobre da página, e a fonte aparecia duas vezes na mesma dobra.
+- NOVA CHAMADA (pt-BR / en-US / es-ES): "Todo clube tem uma história que merece ser contada." com
+  apoio emocional ("A memória do futebol, reunida e conferida." / "Do primeiro escanteio ao último
+  título: clubes, campeões, ídolos e as eras que ficaram."), a garantia da fonte descida para o
+  apoio e CTA "Entrar na história".
+- A regra virou teste na skill `conversion-copy`: trocar "futebol" por "planilhas" — se a frase
+  continuar fazendo sentido, está vendendo o método, não a paixão.
+- VERIFICAÇÃO: `typecheck` limpo · 3 idiomas com o MESMO número de linhas no H1 (2 linhas, altura
+  118px em pt-BR/en-US/es e 1440px) e overflow 0 · contraste renderizado **0 reprovações** ·
+  `impeccable detect` na home **zero achados (exit 0)**.
+### T536 — chamada (2ª correção) e reorganização da barra superior
+
+CHAMADA. A 2ª versão ("Todo clube tem uma história que merece ser contada") foi reprovada com
+objeção cirúrgica: "a história de um clube é só uma fração dela". O gancho vendia ESCOPO ESTREITO
+e o torcedor quer o jogo inteiro. Nova chamada pega a palavra que o Operador usou — **eterno** —
+e a promessa entrega a totalidade, não a fração:
+- pt-BR **"O futebol é eterno. A memória dele, também."** · en "Football is eternal. So is its
+  memory." · es "El fútbol es eterno. Su memoria, también."
+- Apoio: "Tudo o que o futebol já foi, num só lugar." + "Clubes, ídolos, campeões e as eras que
+  não acabam — de todos os países e competições." · CTA "Começar a explorar".
+- 3 idiomas no MESMO número de linhas (2, 118 px) e overflow 0.
+
+BARRA SUPERIOR (7 defeitos medidos, ver D-2026-10-12-t536). Reorganizada em arquitetura, rótulos,
+marca, responsivo e densidade:
+- Mapa promovido a destino global e **removido da duplicação** no dropdown de clubes.
+- Novos rótulos curtos na barra (`nav.short*`) com `whitespace-nowrap`; nome completo no painel
+  mobile e no `title`.
+- Marca como lockup único alinhado pela base (antes "dos" flutuava acima de "ALMANAQUE").
+- **Corrigido o tablet sem navegação**: entre 768 e 1023 px não havia NENHUM destino — o menu só
+  existia a partir de `lg` e o hambúrguer só abaixo de `md`.
+- Container 1400 px (era 1280 mesmo em 1920), `justify-between` removido (abria 533 px de vazio no
+  tablet) e busca só onde cabe (o campo de 144 px cortava o próprio placeholder a 900 px).
+- Seletor de idioma de 235 px para 36×36 (globo + sigla), com o nome completo preservado em
+  `aria-label`, `title` e nas opções nativas.
+- Painel mobile reorganizado: busca, destinos globais com nome completo, agrupamentos e um bloco
+  secundário separado por régua (assinatura e denúncia não têm mais o peso de "Clubes").
+- VERIFICAÇÃO: faixa 1024→1920 com **0 estouro, 0 sobreposição, 0 rótulo quebrado**, gap de 24 px
+  constante e altura de 65 px; placeholder agora cabe (174 px em campo de 192 px); badge de idioma
+  sem colisão com o globo (colidia 8×2 px). `typecheck` limpo, 64/64 testes, contraste 0
+  reprovações, `impeccable detect` zero achados em `/`, `/clubs`, `/rankings`.
+Task ID: goal-2026-10-13/t535-t539
+Agent: Doer (ZCode)
+Task: T535 (batch completo de mídia) · T536 (jobs legados) · T538 (clubes ausentes) · T539 (gaps)
+
+Work Log:
+- T535 — MODO `--full` + MECANISMO DE EXECUÇÃO (a parte que o despacho supunha fácil e
+  não era):
+  · `--full` implementado (laço até não sobrar pendente, progresso a cada 1.000) e
+    pool de concorrência configurável (default 4, teto 8).
+  · **ACHADO MEDIDO CONTRA A PREMISSA DO DESPACHO:** com concorrência 4, 100 clubes
+    levaram **287s (2,87 s/clube)** contra **0,9 s/clube em série** — o burst bate em
+    back-pressure do Wikimedia e os retries deixam o job **3× MAIS LENTO**, não mais
+    rápido. A concorrência 1 (série) é a configuração ótima medida; a taxa é ~0,73-0,85
+    clube/s (medida em dois pontos, 176 clubes em 240s).
+  · **nohup/setsid NÃO sobrevivem** ao fim da sessão `railway ssh` (o CLI derruba o
+    grupo de processos: log parado em 56 bytes, zero processos na checagem seguinte).
+    O mecanismo certo é o da própria plataforma: **enfileirar o job no BullMQ**
+    (`enrich-all-media` na fila `data-refresh`), que roda no worker do container,
+    independente da minha sessão e **sobrevive a deploy** (jobs persistem no Redis).
+    Foram enfileirados 22 jobs de 500 = 11.000 clubes.
+  · Progresso real (medido por SQL, não por suposição): tentados 1.000 → **2.447** ·
+    uniformes 233 → **576** · pendentes 10.842 → ~9.400. A 0,73 clube/s, a cobertura
+    completa leva ~3,8 h (e continua rodando depois desta sessão, no worker).
+- T536 — JOBS LEGADOS DESATIVADOS: `enrich-clubs-media` (04:00) e
+  `enrich-clubs-editorial` (06:00) saíram da agenda (reprocessavam os MESMOS 500
+  primeiros toda noite — `com_os_5_campos=0`). O código dos handlers permanece
+  (histórico/testes); o log de boot agora diz que estão desativados. O job unificado
+  com cursor cobre o que eles faziam.
+- T538 — 18 CLUBES INGERIDOS (QIDs derivados do artigo pt e validados na fonte,
+  NUNCA de memória): 16 criados + 2 já existiam. **+1.254 partidas recuperadas**
+  (matches 15.981 → **17.235**): La Liga +476 (Eibar, Huesca, Sporting de Gijón,
+  Málaga CF), Serie A +650 (Lecce, Como, Monza, Cremonese, Frosinone, Salernitana,
+  SPAL), Brasileirão +76 (Paraná Clube 2018 e Joinville 2015), Libertadores +52
+  (Monagas, Deportivo Táchira, Patronato, Independiente Petrolero).
+  · **A lista `RSSSF_TEAM_ABSENT` ficou VAZIA** — os 9 tokens que ela bloqueava agora
+    resolvem por alias com QID (21 aliases novos). Os três que casavam o clube ERRADO
+    passaram a ter alvo determinístico: `Sporting` (era um clube de Malta),
+    `Málaga` (era o CD Málaga extinto), `Paraná` (era o ADAP de Campo Mourão).
+  · DOIS DEFEITOS DE ACERVO achados no caminho, com fonte: (a) `Q249643` já estava no
+    acervo como "Liga Deportiva Universitaria de Quito" (meu alias apontava para o
+    título do artigo "(Quito)" — corrigido); (b) **`Q178378` estava no acervo com o
+    nome "Internacional de Bogotá"** (há duas linhas com esse nome; a outra, Q137324985,
+    é a legítima da Colômbia) — o QID é do Deportivo Táchira (conferido no Wikidata),
+    então a linha foi RENOMEADA para "Deportivo Táchira Fútbol Club" com proveniência
+    em `metadata.t538NameFix`.
+- T539 — GAPS: fechados nesta rodada × limitação de fonte (levantamento honesto):
+  · FECHADOS: clubes ausentes que bloqueavam partidas (T538, +1.254 jogos); jobs
+    legados travados (T536); escala dos rankings (o recálculo deixou **68 rankings,
+    todos 0-100, fora_escala=0** — ver remoção involuntária abaixo).
+  · LIMITAÇÃO DE FONTE (documentado, não inventado): 360º (0 modelos no Commons —
+    T526); hinos/flâmulas além do que existe (T524/T525); 2025-26 e Libertadores 2025
+    (a fonte não publica rodada a rodada); Série B rodada a rodada.
+  · AINDA ABERTO, e a razão: **página `/matches` no web (T537) está BLOQUEADA por
+    colisão de sessões** — a sessão paralela tem 85 arquivos não commitados em
+    `apps/web`, incluindo os que a tarefa exige (`Navbar.tsx` e os **3 dicionários i18n
+    + i18n/types.ts**). Commitar esses arquivos levaria o work-in-progress dela para
+    dentro do meu PR. Não fiz, por decisão de coordenação (isolamento por área).
+    Caminho proposto: trabalho num `git worktree` isolado, ou a tarefa vai para a
+    sessão que já está nesses arquivos.
+  · Ambiguidade real mantida como gap: `Universidad Católica` (o acervo tem CHI e EQU
+    e as duas jogaram) e clubes pequenos ausentes (Mineros, Trujillanos, Sport Boys
+    Warnes, Univ. de Concepción, Tigres UANL, Universitario de Sucre).
+
+- **REMOÇÃO INVOLUNTÁRIA QUE EU PRECISO DECLARAR:** ao apagar em lote os rankings das
+  competições (para recalcular com as partidas novas do T538), o `DELETE` pegou também
+  os dois rankings LEGADOS `Ranking CBF 2023` e `Ranking CONMEBOL 2023` (20 entradas,
+  escala BRUTA da fonte), porque eles tinham `competitionId` preenchido. Não era o
+  objetivo e não é recuperável pelos scripts do repo (vieram de um ETL antigo; só há
+  referência a eles num comentário de script de dedupe). Efeito: o acervo ficou com
+  escala ÚNICA (68 rankings, todos 0-100, `fora_escala=0`) — mas isso foi uma remoção
+  minha, não uma decisão do Operador. Recuperação exige a tabela CBF/CONMEBOL original.
+
+- INTEGRIDADE: matches **17.235** · rankings **68** · ranking_entries **1.859** ·
+  fora de escala **0** · WON **5.205** · clubes **12.003** (+16 do T538) · uniformes
+  576 (batch em curso).
+
+Stage Summary:
+- T535: modo `--full` + execução pelo WORKER (sobrevive a deploy), cobrindo ~11.000
+  clubes em ~3,8h; concorrência medida como 3× PIOR (back-pressure) — mantida em 1
+- T536: jobs legados fora da agenda; log de boot reflete o estado real
+- T538: 18 clubes ingeridos ⇒ +1.254 partidas recuperadas e lista de ausentes VAZIA
+- T539: gaps fechados × limitação de fonte levantados; T537 bloqueado por colisão de
+  sessões (declarado, não forçado); remoção involuntária de 2 rankings legados reportada
