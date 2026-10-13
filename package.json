@@ -52,7 +52,7 @@
     "prettier": "^3.9.6",
     "railway": "^3.13.1",
     "turbo": "^2.11.7",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.4"
   },
   "lint-staged": {
     "{apps,packages,scripts}/**/*.{ts,tsx}": [
