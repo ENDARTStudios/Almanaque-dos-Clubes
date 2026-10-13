@@ -64,3 +64,10 @@ graft/
 # Artefatos locais de QA visual (T532): screenshots e sondas descartáveis.
 # Os utilitários versionados ficam em plugins/almanaque-design/tools/.
 .tmp/
+
+# Lockfile ANINHADO e orfao. O monorepo tem UM lockfile, na raiz: o CI
+# (.github/workflows/deploy-web.yml) e TODOS os Dockerfiles copiam `pnpm-lock.yaml` da raiz.
+# Este arquivo em apps/web nao era lido por ninguem, mas ficava congelado — e o dependabot o
+# escolhia como alvo, abrindo PRs que o CI reprovava com ERR_PNPM_OUTDATED_LOCKFILE contra a
+# RAIZ (o PR #511 estava assim). Removido em 2026-10-13: nao ha fonte de verdade dupla.
+apps/web/pnpm-lock.yaml
