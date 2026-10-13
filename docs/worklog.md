@@ -2753,3 +2753,116 @@ Stage Summary:
   a sessão paralela (worktree isolado, 6 arquivos meus)
 - T542: código do serviço de mídia entregue e inerte; criação do serviço é a sua parte,
   com os passos e a validação escritos
+
+### T539 — tema escuro expandido para o site inteiro
+
+- INVERSÃO DE PADRÃO: o claro estava em `@theme` e o escuro era a exceção (`.theme-dark`), então
+  cada página nova precisava lembrar de pedir o escuro. Agora o escuro é o `@theme` e
+  `.theme-light` é a exceção declarada. O site inteiro herda a linguagem por construção.
+- SUPERFÍCIES CLARAS FIXAS convertidas: `bg-white` (~20 pontos: auth, cards, selects, ranking,
+  cookie banner), `body`, rodapé e banner de cookies. O rodapé e o banner usavam o padrão invertido
+  do tema claro (`bg-foreground` + `text-white`) e no escuro ficavam **creme com texto branco,
+  ilegível** — visto no screenshot antes de corrigir. Agora `bg-muted` + `text-foreground`.
+- CORES CRUAS DO TAILWIND eliminadas: `text-red-500/600/700` em 26 arquivos (37 ocorrências,
+  `#dc2626` sobre `#12100f` = 3,98:1) -> novo `--color-danger-ink` (7,11:1); e `bg-green-100`,
+  `text-green-700`, `bg-amber-400`, `bg-slate-100`, `text-yellow-700`… em 16 arquivos -> tokens
+  `success/warn/info-ink` + `*-surface` + `neutral-surface`. **Zero cor crua restante.**
+- GRÁFICOS: novo `apps/web/src/lib/chart-theme.ts`. Grades `#00000018` (invisíveis no escuro) ->
+  `currentColor`; séries `#b91c1c`/`#1d4ed8` (azul fora do design system) -> vermelho × dourado da
+  marca; `Tooltip`/`Legend` do Recharts traziam fundo BRANCO inline e viraram retângulo branco no
+  meio do gráfico escuro -> estilizados com tokens.
+- `--color-muted` no escuro é ELEVAÇÃO: `#1c1917` era mais escuro que o fundo e lia como rebaixo;
+  passou a `#241f1d`.
+- EXCEÇÃO DECLARADA E ESCOPADA: os mapas (`WorldMap`, `WorldChoropleth`, `GeoMapCanvas` + skeletons)
+  usam `.theme-light`, porque os tiles do OSM e o GeoJSON do Natural Earth são base cartográfica
+  clara e texto claro sobre eles seria ilegível.
+- VERIFICAÇÃO: varredura de contraste em **26 rotas / 1.878 nós de texto**, medindo o fundo REAL
+  composto em canvas (cobre alfa e oklab): **0 reprovações · 0 overflow horizontal**.
+  `impeccable detect` (59 regras) com **zero achados** em `/`, `/clubs`, `/rankings`, `/compare`,
+  `/planos`, `/metodologia`, `/map`. `typecheck` limpo · 64/64 testes · portão de movimento
+  0 bloqueios.
+- SKILL ATUALIZADA: `design-system-almanaque` passa a documentar o escuro como padrão, a tabela de
+  tokens com os dois temas, a regra de não usar cor crua, o guia do `chart-theme` e a armadilha de
+  opacidade da Tailwind v4.3.3 (que já produziu o bug da barra cinza-clara).
+### T539 (fecho) — correções que a varredura de contraste revelou DEPOIS da inversão
+
+A inversão do tema expôs três classes de defeito que não existiam no tema claro, todas achadas por
+medição e não por inspeção visual:
+- **`bg-red-*` de FUNDO** (6 utilitários: `bg-red-50/100/500/600`, `border-red-200/300`) em 12
+  arquivos — o passe anterior só tinha migrado `text-red-*`. Criado `--color-danger-surface`
+  (`#4a1512`, `danger-ink` sobre ele = 5,40:1) e `bg-red-*` -> `bg-danger-*`.
+- **`bg-danger-ink text-white` = 2,77:1.** Branco sobre o vermelho CLARO do tema escuro reprova
+  (é o mesmo defeito que `on-primary` resolveu para a marca). Criado `--color-on-danger`
+  (`#1a0e0b` = 6,83:1 sobre `danger-ink`) e corrigidos os botões destrutivos em
+  `DireitosTitularPanel`, `ProposalDashboard`, `SubscriptionManager`.
+- **`bg-primary text-white` = 4,02:1** em `DireitosAutoraisPanel`, `DireitosTitularPanel` e
+  `NotificationBadge` — 3 pontos que usavam branco fixo em vez do token `text-on-primary`, que o
+  resto do app já usava. Corrigidos. **Zero `text-white` no site.**
+- A varredura final (34 rotas, 2.056 nós de texto, fundo real composto em canvas) fecha com
+  **0 reprovações de WCAG AA e 0 rotas com overflow horizontal**.
+- Registrado na skill `design-system-almanaque`: a tabela de tokens dos dois temas, a regra de
+  nenhuma cor crua do Tailwind, o guia do `lib/chart-theme.ts` para Recharts, a exceção
+  `.theme-light` restrita ao mapa e a armadilha de opacidade da Tailwind v4.3.3.
+Task ID: goal-2026-10-13/t543
+Agent: Doer (ZCode)
+Task: T543 — PROVISIONAR o serviço `media-worker` no Railway
+
+Work Log:
+- PRÉ-REQUISITO (infra na main antes de criar o serviço, porque o serviço builda do
+  repo): 3 arquivos NOVOS, nenhum existente alterado (#581).
+  · `apps/api/Dockerfile.worker`: cópia do Dockerfile da API mudando só o entrypoint e
+    removendo o `EXPOSE`. **Cópia, e não reuso, por um motivo medido:** o ENTRYPOINT em
+    exec form do image da API termina em `exec node apps/api/dist/server.js`, então o
+    `startCommand` do Railway viraria ARGUMENTO do entrypoint, não comando. E serviços
+    do Railway buildam do repo, não da imagem um do outro.
+  · `apps/api/entrypoint.worker.sh`: NÃO aplica `prisma migrate deploy` (quem migra é o
+    deploy da API; duas réplicas migrando é corrida e o worker não deve travar no boot).
+  · `apps/api/railway.worker.json`: config SEM healthcheck — a da raiz aponta para
+    `/api/v1/health`, que o worker não serve, e o deploy seria marcado unhealthy.
+- SERVIÇO CRIADO: `railway add --repo ENDARTStudios/Almanaque-dos-Clubes --branch main
+  --service media-worker` → id `4aa0081a-…`. (O comando `railway service new` do
+  despacho NÃO existe nesta versão da CLI: `railway service` só tem list/delete/link/
+  source/status/logs/redeploy/restart/scale ✓ — a alternativa do despacho, `railway add`,
+  era a certa.)
+- VARIÁVEIS por REFERÊNCIA (sem duplicar segredo): DATABASE_URL, REDIS_URL, APP_URL,
+  LOG_LEVEL, PRISMA_SCHEMA_PROVIDER, JWT_SECRET, JWT_REFRESH_SECRET vindos de
+  `${{Almanaque-dos-Clubes.*}}`, mais RAILWAY_DOCKERFILE_PATH e RAILWAY_CONFIG_FILE.
+  **Deliberadamente NÃO copiei** `ETL_SCHEDULER_ENABLED` nem `RANKING_CRON_AUTO` — no
+  worker eles registrariam o scheduler inteiro e **duplicariam os crons** (dois
+  agendadores no mesmo projeto). Também não copiei GITHUB_TOKEN/BACKUP_SECRET/STRIPE/R2/
+  RESEND: o worker não usa e princípio do menor privilégio vale para serviço novo.
+- DEPLOY: SUCCESS. Log de boot prova as três coisas ao mesmo tempo:
+  `media-worker: iniciando (sem migrations) — consumindo a fila media-enrich`
+  (entrypoint próprio ✓) e `media-worker: consumindo a fila de mídia queue="media-enrich"`
+  (conectado ao Redis ✓, fila certa ✓).
+- CONSUMO ISOLADO PROVADO: enfileirei 11 jobs de prova/serviço real em `media-enrich`;
+  com a API ainda no modo de transição, a fila mostrou `active: 2` (DOIS consumidores —
+  o desenho da flag funcionando). Depois de `MEDIA_WORKER_LOCAL=0` na API + redeploy, a
+  fila passou a `active: 1` e o log da API confirmou:
+  `fila media-enrich NÃO é consumida pela API — dedicada ao serviço media-worker`.
+- LATÊNCIA NORMALIZADA (plataforma, janela 1h): API **p50 67 ms → 11 ms** com o lote
+  fora dela. (O "~2 ms" do despacho é o p50 do `/health`; os endpoints de dado medidos
+  DENTRO do container ficam em 4-9 ms — registrando a distinção para não maquiar número.)
+- BATCH SEM PERDA: uniformes **1.224 → 1.624** e pendentes **4.918 → 3.191** durante a
+  migração; o cursor de tentativa garante que clube visto não se repete.
+- INVESTIGAÇÃO DO "Error Rate 31,9%": o breakdown mostrou 30×5xx. Medi de novo depois de
+  25 requisições reais: o 5xx ficou **exatamente em 30** enquanto o total subia 97 → 122
+  (as 25 caíram todas em 2xx) → os 30 erros foram da JANELA DE RESTART (proxy da Railway
+  enquanto o container subia), não do app. Zero 5xx nos logs da aplicação e `/health`,
+  `/clubs`, `/rankings` respondendo 200. Não descartei sem provar.
+- ACHADO DECLARADO (e já corrigido pelo desenho): dos 22 jobs que eu havia enfileirado
+  no T535 na fila antiga, **21 completaram e 11 FALHARAM** — interrompidos pelos deploys,
+  com `attempts=1` (não retentam). Nada foi perdido: o cursor manteve os clubes
+  pendentes, e o trabalho restante foi reenfileirado na fila nova. Lição: enfileirar à
+  mão deve sempre passar `attempts` para sobreviver a restart.
+
+GAPS DECLARADOS: a CLI avisa que config-as-code (`railway.json`) está sendo substituído
+por IaC (`.railway/railway.ts`) — a migração é decisão do Operador (prazo declarado pela
+Railway: 2026-12-01). E os limites de recurso agora aparecem como 24 vCPU/24 GB no
+relatório da CLI (antes 8/8) — provavelmente o plano/workspace mudou; não é efeito desta
+tarefa.
+
+Stage Summary:
+- Serviço `media-worker` criado, ativo e consumindo SÓ ele a fila de mídia
+- API de volta ao baseline de latência (67 ms → 11 ms na plataforma) e com a flag virada
+- Batch continuando sem perda (uniformes 1.624 e subindo) · integridade intacta

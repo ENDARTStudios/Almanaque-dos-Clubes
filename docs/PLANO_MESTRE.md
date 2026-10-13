@@ -672,6 +672,13 @@ Almanaque, mas faltam:
 2. **A experiência** (mapa-múndi, rankings, favoritos, 360º, comparações)
 3. **A legalidade** (banner cookies, termos, privacidade, gateway, CNPJ)
 
+**Infra de produção (T543, 13-10-2026):** o enriquecimento de mídia roda em serviço
+Railway SEPARADO (`media-worker`, fila dedicada `media-enrich`) — o lote longo não
+compete mais com a API pela CPU do container (latência p50: 67 ms durante o lote →
+11 ms depois do isolamento). O serviço tem imagem/entrypoint próprios, não migra, não
+expõe HTTP e não recebe `ETL_SCHEDULER_ENABLED`/`RANKING_CRON_AUTO` (registraria o
+scheduler duplicado) nem os segredos que não usa.
+
 **Beta Aberta agendada (D-2026-10-13-t534):** **20-10-2026**, após a janela de
 observação de 7 noites (cron de mídia 13-19/10, 07:00 UTC). Decisões da sessão T534:
 plano Vercel permanece **gratuito** (preview limitado não afeta produção); **sem carga
