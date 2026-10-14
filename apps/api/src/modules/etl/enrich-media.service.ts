@@ -10,6 +10,7 @@
  * mapa de NOMES de cor validados; cor desconhecida é logada (nunca inventada).
  */
 import { PrismaClient, Prisma } from '@prisma/client';
+import { selectPendingClubs, stampMediaAttempt } from './media-cursor.js';
 import {
   fetchEntities,
   commonsFilePath,
@@ -125,31 +126,29 @@ export async function enrichClubsMediaBatch(
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
   try {
-    const clubs = await prisma.club.findMany({
-      where: {
-        qid: { not: null },
-        deletedAt: null,
-        ...(opts.country ? { country: opts.country } : {}),
-        OR: [
-          { logoUrl: null },
-          { stadiumName: null },
-          { stadiumImage: null },
-          { stadiumCapacity: null },
-          { teamColors: { equals: Prisma.DbNull } },
-        ],
-      },
-      select: {
-        id: true,
-        qid: true,
-        logoUrl: true,
-        stadiumName: true,
-        stadiumImage: true,
-        stadiumCapacity: true,
-        teamColors: true,
-      },
-      take: limit,
-      orderBy: { name: 'asc' },
+    // T547 — seleção pelo CURSOR de tentativa (não por `campo IS NULL`): era o
+    // `OR: [campo null]` + `orderBy name` que fazia o job reprocessar os MESMOS 500
+    // primeiros toda noite (nenhum clube sai do filtro) e congelar a cobertura.
+    const pendentes = await selectPendingClubs(prisma, {
+      limit,
+      media: ['logo'],
+      country: opts.country,
     });
+    const clubs = pendentes.length
+      ? await prisma.club.findMany({
+          where: { id: { in: pendentes.map((p) => p.id) } },
+          select: {
+            id: true,
+            qid: true,
+            logoUrl: true,
+            stadiumName: true,
+            stadiumImage: true,
+            stadiumCapacity: true,
+            teamColors: true,
+          },
+          orderBy: { name: 'asc' },
+        })
+      : [];
     if (clubs.length === 0) return { processed: 0, updated: 0, skipped: 0, unknownColors: [] };
 
     // Fase A — clubes
@@ -248,6 +247,9 @@ export async function enrichClubsMediaBatch(
       }
       if (opts.apply) {
         await prisma.club.update({ where: { id: club.id }, data: data as Prisma.ClubUpdateInput });
+        // T547 — carimba a TENTATIVA (mesclando no registro): sem isso o clube volta à
+        // fila para sempre, com ou sem dado na fonte.
+        await stampMediaAttempt(prisma, club.id, 'logo', 'enriched');
         updated += 1;
       }
     }
@@ -360,17 +362,19 @@ export async function enrichClubsEditorialBatch(
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
   try {
-    const clubs = await prisma.club.findMany({
-      where: {
-        qid: { not: null },
-        deletedAt: null,
-        editorialText: { equals: Prisma.DbNull },
-        ...(opts.country ? { country: opts.country } : {}),
-      },
-      select: { id: true, qid: true, name: true },
-      take: limit,
-      orderBy: { name: 'asc' },
+    // T547 — mesmo cursor do job de mídia (chave 'editorial').
+    const pendentes = await selectPendingClubs(prisma, {
+      limit,
+      media: ['editorial'],
+      country: opts.country,
     });
+    const clubs = pendentes.length
+      ? await prisma.club.findMany({
+          where: { id: { in: pendentes.map((p) => p.id) } },
+          select: { id: true, qid: true, name: true },
+          orderBy: { name: 'asc' },
+        })
+      : [];
     if (clubs.length === 0) return { processed: 0, updated: 0, skipped: 0, unknownColors: [] };
 
     // Sitelinks (pt/en/es) por lote de 50.
@@ -398,11 +402,15 @@ export async function enrichClubsEditorialBatch(
       const titles = e ? sitelinksFromEntity(e) : {};
       if (Object.keys(titles).length === 0) {
         skipped += 1;
+        // T547 — sem sitelink é GAP DECLARADO: carimba a tentativa. Sem isso este clube
+        // bloqueia a fila para sempre — era o que travava o job na letra E.
+        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'editorial', 'no_source');
         continue;
       }
       const editorial = await buildEditorial(titles, { sleep });
       if (!editorial) {
         skipped += 1;
+        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'editorial', 'no_source');
         continue;
       }
       if (opts.apply) {
@@ -416,6 +424,7 @@ export async function enrichClubsEditorialBatch(
           },
         });
         updated += 1;
+        await stampMediaAttempt(prisma, club.id, 'editorial', 'enriched');
       }
     }
     return { processed: clubs.length, updated, skipped, unknownColors: [] };
