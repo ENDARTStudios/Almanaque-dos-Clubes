@@ -7,14 +7,22 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../../src/config/prisma.js';
 import {
   selectPendingClubs,
+  selectPendingPlayers,
   stampMediaAttempt,
   stampMediaAttempts,
+  stampPlayerAttempt,
 } from '../../src/modules/etl/media-cursor.js';
 
 let dbOk = true;
 const suf = Date.now();
 let aId = '';
 let bId = '';
+// T550 — jogadores: nunca tentado, estagnado (>7d) e recente.
+let pNovoId = '';
+let pEstagnadoId = '';
+let pRecenteId = '';
+
+const diasAtras = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 
 beforeAll(async () => {
   try {
@@ -31,10 +39,28 @@ beforeAll(async () => {
   });
   aId = a.id;
   bId = b.id;
+
+  const novo = await prisma.player.create({
+    data: { fullName: `T550 novo ${suf}`, qid: `Q95${suf}`, importedFrom: 't550-test' },
+  });
+  const estagnado = await prisma.player.create({
+    data: { fullName: `T550 estagnado ${suf}`, qid: `Q94${suf}`, importedFrom: 't550-test' },
+  });
+  const recente = await prisma.player.create({
+    data: { fullName: `T550 recente ${suf}`, qid: `Q93${suf}`, importedFrom: 't550-test' },
+  });
+  pNovoId = novo.id;
+  pEstagnadoId = estagnado.id;
+  pRecenteId = recente.id;
+  // Carimbos com data controlada (o `at` é parâmetro justamente para poder testar isso).
+  await stampPlayerAttempt(prisma, estagnado.id, 'no_source', diasAtras(10));
+  await stampPlayerAttempt(prisma, recente.id, 'enriched', diasAtras(1));
 });
 
 afterAll(async () => {
-  if (dbOk) await prisma.club.deleteMany({ where: { importedFrom: 't547-test' } });
+  if (!dbOk) return;
+  await prisma.club.deleteMany({ where: { importedFrom: 't547-test' } });
+  await prisma.player.deleteMany({ where: { importedFrom: 't550-test' } });
 });
 
 describe('T547 — cursor de mídia', () => {
@@ -72,5 +98,52 @@ describe('T547 — cursor de mídia', () => {
     expect(soEditorial.map((p) => p.id)).toContain(bId); // 'editorial' ainda pendente
     const soLogo = await selectPendingClubs(prisma, { limit: 5000, media: ['logo'] });
     expect(soLogo.map((p) => p.id)).not.toContain(bId); // 'logo' já tentado
+  });
+});
+
+/**
+ * T550 — o cursor de JOGADOR. Limite alto de propósito: a fila é global, e a asserção tem
+ * de valer com o acervo cheio (105.211 jogadores em produção), não só com a fixture.
+ */
+const LIMITE_TUDO = 1_000_000;
+
+describe('T550 — cursor de jogador (perfil)', () => {
+  it('recente (tentado ontem) fica fora da fila; nunca tentado entra', async () => {
+    if (!dbOk) return;
+    const fila = await selectPendingPlayers(prisma, { limit: LIMITE_TUDO });
+    const ids = fila.map((p) => p.id);
+    expect(ids).toContain(pNovoId);
+    expect(ids).not.toContain(pRecenteId);
+  });
+
+  it('estagnado só volta quando `refreshDays` é pedido (a revisita é decisão explícita)', async () => {
+    if (!dbOk) return;
+    const semRefresh = await selectPendingPlayers(prisma, { limit: LIMITE_TUDO });
+    expect(semRefresh.map((p) => p.id)).not.toContain(pEstagnadoId);
+    const comRefresh = await selectPendingPlayers(prisma, { limit: LIMITE_TUDO, refreshDays: 7 });
+    expect(comRefresh.map((p) => p.id)).toContain(pEstagnadoId);
+  });
+
+  it('nunca tentado vem ANTES do estagnado (a revisita não inane o fim da fila)', async () => {
+    if (!dbOk) return;
+    const fila = await selectPendingPlayers(prisma, { limit: LIMITE_TUDO, refreshDays: 7 });
+    const ids = fila.map((p) => p.id);
+    expect(ids.indexOf(pNovoId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(pEstagnadoId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(pNovoId)).toBeLessThan(ids.indexOf(pEstagnadoId));
+  });
+
+  it('o carimbo do jogador não toca o registro do clube (tabelas separadas)', async () => {
+    if (!dbOk) return;
+    const clube = await prisma.club.findUnique({
+      where: { id: bId },
+      select: { mediaEnrichment: true },
+    });
+    expect(clube?.mediaEnrichment ?? null).not.toBeNull(); // segue com o registro do T547
+    const jogadorNovo = await prisma.player.findUnique({
+      where: { id: pNovoId },
+      select: { mediaEnrichment: true },
+    });
+    expect(jogadorNovo?.mediaEnrichment ?? null).toBeNull(); // nunca tentado, sem registro
   });
 });
