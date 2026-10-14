@@ -1,0 +1,124 @@
+name: Dependabot — regenerar lockfile
+
+# POR QUE ESTE WORKFLOW EXISTE
+#
+# O dependabot não mantém de forma confiável a coerência entre o `package.json` e o
+# `pnpm-lock.yaml` num workspace pnpm. O sintoma, medido em 20 PRs seguidos:
+#
+#   [ERR_PNPM_OUTDATED_LOCKFILE] Cannot install with "frozen-lockfile" because
+#   pnpm-lock.yaml is not up to date with <ROOT>/apps/api/package.json
+#   - dotenv (lockfile: ^18.0.4, manifest: ^18.0.7)
+#
+# O padrão observado (importa para entender o escopo disto):
+#   - FALHA quando o bump vive num sub-workspace (`/apps/api`, `/apps/web`) ou quando a
+#     entrada da raiz cruza de diretório: o dependabot altera só o manifest, ou só a lockfile.
+#   - FUNCIONA quando o bump é de nível raiz e ele consegue resolver o grafo inteiro.
+# Ou seja: não é "o dependabot não funciona" — é que ele não fecha o grafo nos sub-workspaces.
+#
+# `groups` e `exclude-paths` no `dependabot.yml` reduzem o número de PRs, mas NÃO resolvem
+# isso: é um problema de geração, não de agrupamento. Este workflow regenera a lockfile e a
+# devolve para a branch do PR, para ele nascer verde em vez de apodrecer vermelho.
+#
+# SEGURANÇA — por que `pull_request_target` é aceitável AQUI:
+#   `pull_request_target` roda no contexto do repositório base, com acesso a token de escrita.
+#   É perigoso quando faz checkout do código do PR e o executa. Este workflow NÃO executa código
+#   do PR como se fosse confiável: a condição `github.actor == 'dependabot[bot]'` é avaliada
+#   antes de qualquer step, e as branches do dependabot são criadas pelo próprio GitHub neste
+#   repositório — não são forks. O que é escrito fica limitado por uma checagem explícita: se a
+#   resolução alterar QUALQUER arquivo além do `pnpm-lock.yaml`, o job falha SEM dar push.
+#   Não existe alternativa com `pull_request`: nesse evento o `GITHUB_TOKEN` é somente leitura,
+#   e não permitiria devolver a correção para a branch.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
+
+concurrency:
+  # Um por PR: dois pushes simultâneos na mesma branch se atropelam.
+  group: dependabot-lockfile-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate-lockfile:
+    # O portão de segurança — só roda para o bot, nunca para PR de terceiro.
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout da branch do PR
+        uses: actions/checkout@v7
+        with:
+          # A branch head, não o merge ref: é para ela que vamos empurrar.
+          ref: ${{ github.event.pull_request.head.ref }}
+          # Token com escrita explícito — é o que permite o push de volta.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with: { node-version: 22 }
+
+      - name: Regenerar a lockfile
+        run: |
+          set -euo pipefail
+          # `--lockfile-only`: resolve o grafo e reescreve SÓ o pnpm-lock.yaml.
+          # `--no-frozen-lockfile`: é o que permite a correção acontecer — o modo congelado,
+          # usado pelo CI para validar, é exatamente o que está reprovando.
+          pnpm install --lockfile-only --no-frozen-lockfile
+
+      - name: Conferir que SÓ a lockfile mudou
+        id: diff
+        run: |
+          set -euo pipefail
+          # `--name-only` (e não parsing de `git status`) porque cobre renome/remoção sem
+          # depender de posição de coluna.
+          #
+          # Qualquer arquivo além do lockfile significa que a resolução mexeu em algo que não
+          # deveria (manifest, workspace, .npmrc). Nesse caso é melhor FALHAR e alguém olhar do
+          # que empurrar uma mudança silenciosa para a branch do bot.
+          changed="$(git diff --name-only | grep -v '^pnpm-lock.yaml$' || true)"
+          if [ -n "$changed" ]; then
+            echo "::error title=Resolução mexeu em arquivo inesperado::Esperado só pnpm-lock.yaml, mas também mudou: $changed"
+            exit 1
+          fi
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "mudou=false" >> "$GITHUB_OUTPUT"
+            echo "A lockfile já estava coerente — nada a fazer."
+          else
+            echo "mudou=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- pnpm-lock.yaml
+          fi
+
+      - name: Emendar a lockfile no commit do dependabot
+        if: steps.diff.outputs.mudou == 'true'
+        env:
+          # O SHA que o evento diz ser o head do PR. Serve de "lease" para o push: se alguém
+          # empurrou depois do nosso checkout, o push é recusado em vez de sobrescrever.
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "dependabot-lockfile[bot]"
+          git config user.email "dependabot-lockfile[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          # `--amend`: a correção entra NO commit do dependabot. Um commit extra "fix lockfile"
+          # apareceria no PR e, depois do squash, no histórico do main — ruído permanente para
+          # uma correção mecânica. O autor passa a ser este bot, o que é honesto: o lockfile
+          # foi regenerado aqui.
+          # `--no-verify`: o hook de pre-commit do repo quebra no ESLint 10 e REVERTERIA as
+          # mudanças (armadilha documentada na skill `release-loop`).
+          git commit --amend --no-edit --no-verify
+          # `[dependabot skip]` na mensagem: sem isso, na próxima rodada o dependabot acha que
+          # perdeu o controle da branch, fecha este PR e abre outro — justamente o vaivém que
+          # este workflow existe para eliminar. Escrito via `-F -` (heredoc) e não por
+          # substituição de comando, que com mensagem de várias linhas é frágil.
+          if ! git log -1 --pretty=%B | grep -q '\[dependabot skip\]'; then
+            git log -1 --pretty=%B > /tmp/msg.txt
+            printf '\n[dependabot skip]\n' >> /tmp/msg.txt
+            git commit --amend --no-verify -F /tmp/msg.txt
+          fi
+          git push --force-with-lease="refs/heads/${HEAD_REF}:${EXPECTED_SHA}" origin "HEAD:${HEAD_REF}"
+          echo "Lockfile regenerada e emendada no commit do dependabot."
