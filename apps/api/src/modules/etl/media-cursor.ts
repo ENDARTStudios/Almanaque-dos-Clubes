@@ -51,7 +51,9 @@ export async function selectPendingClubs(
   // — sem o guarda `IS NULL` a linha NÃO é selecionada, ou seja, o cursor excluía
   // exatamente quem nunca foi tentado (medido no CI: seleção voltava vazia).
   const precisa = Prisma.join(
-    opts.media.map((m) => Prisma.sql`("mediaEnrichment" IS NULL OR NOT ("mediaEnrichment" ? ${m}))`),
+    opts.media.map(
+      (m) => Prisma.sql`("mediaEnrichment" IS NULL OR NOT ("mediaEnrichment" ? ${m}))`,
+    ),
     ' OR ',
   );
   const estagnado =
