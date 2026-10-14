@@ -293,10 +293,7 @@ function fakePrisma(rows: ClubRow[]) {
 describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
   it('dry-run: mede o lote e NÃO escreve', async () => {
     vi.stubGlobal('fetch', stubFetch({ wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]' }));
-    const { client, updates } = fakePrisma([
-      club({ id: 'a' }),
-      club({ id: 'b', qid: 'Q2' }),
-    ]);
+    const { client, updates } = fakePrisma([club({ id: 'a' }), club({ id: 'b', qid: 'Q2' })]);
     const out = await enrichAllMediaBatch(500, {
       apply: false,
       prisma: client as unknown as PrismaClient,
