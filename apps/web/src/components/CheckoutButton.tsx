@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useI18n } from '@/i18n/Provider';
 import { api } from '@/lib/api';
-import { formatPrice, PLAN_CENTS, type BillingCurrency } from '@/lib/pricing';
+import { formatPrice, PLAN_CENTS, yearlyCents, type BillingCurrency } from '@/lib/pricing';
 
 // A moeda NÃO é determinada aqui. A API deriva a moeda da localização real do
 // usuário (país do IP) e NUNCA aceita a moeda vinda do cliente ou do idioma.
@@ -94,7 +94,8 @@ export default function CheckoutButton({
       <div className="rounded-xl border border-border p-4 mb-4 text-sm">
         {(['PRO', 'ELITE'] as const).map((plan) => {
           const monthly = PLAN_CENTS[plan];
-          const yearly = Math.round(monthly * 12 * 0.85);
+          // T545 — mesmo cálculo do texto da página (fonte única em lib/pricing).
+          const yearly = yearlyCents(monthly);
           return (
             <div key={plan} className="flex flex-wrap items-baseline gap-x-2">
               <span className="font-semibold text-foreground">{plan === 'PRO' ? l.pro : l.elite}:</span>

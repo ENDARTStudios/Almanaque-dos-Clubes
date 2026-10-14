@@ -253,8 +253,10 @@ interface FakeUpdate {
 
 function fakePrisma(rows: ClubRow[]) {
   const updates: FakeUpdate[] = [];
+  const rawExecs: string[] = [];
   return {
     updates,
+    rawExecs,
     client: {
       club: {
         findMany: async () => rows,
@@ -262,6 +264,19 @@ function fakePrisma(rows: ClubRow[]) {
           updates.push(args);
           return {};
         },
+      },
+      // T547 — a tentativa é gravada por MESCLA (`||` no JSONB), não por substituição do
+      // objeto: o fake registra as chamadas para os testes conferirem o patch.
+      $executeRaw: async (...args: unknown[]) => {
+        // O patch é INTERPOLADO (`${patch}::jsonb`), não fragmento estático: junta os
+        // valores para os testes conferirem o que foi mesclado.
+        rawExecs.push(
+          args
+            .slice(1)
+            .map((v) => JSON.stringify(v))
+            .join(' '),
+        );
+        return 1;
       },
       $queryRaw: async (...args: unknown[]) => {
         // A seleção do cursor roda em SQL cru; o predicado `IS NULL` / `IS NOT NULL`
@@ -298,7 +313,7 @@ describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
         category: ['File:Flamula do Clube de Teste.jpg'],
       }),
     );
-    const { client, updates } = fakePrisma([club({ id: 'a' })]);
+    const { client, updates, rawExecs } = fakePrisma([club({ id: 'a' })]);
     const out = await enrichAllMediaBatch(500, {
       apply: true,
       prisma: client as unknown as PrismaClient,
@@ -306,21 +321,27 @@ describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
     expect(out.enriched).toBe(1);
     expect(updates).toHaveLength(1);
     const data = updates[0]!.data;
-    expect(Object.keys(data.mediaEnrichment as object).sort()).toEqual([
-      'anthem',
-      'kits',
-      'pennants',
-    ]);
+    // T547 — a tentativa NÃO vai mais no update do Prisma (substituiria o objeto e
+    // apagaria as chaves dos outros jobs): vai por mescla SQL com as três mídias.
+    expect(data.mediaEnrichment).toBeUndefined();
     expect(data.anthem).toBeDefined();
     expect(data.pennants).toBeDefined();
+    const patch = rawExecs.join(' ');
+    expect(patch).toContain('kits');
+    expect(patch).toContain('anthem');
+    expect(patch).toContain('pennants');
   });
 
   it('apply NUNCA sobrescreve campo já preenchido (curadoria T524 preservada)', async () => {
     vi.stubGlobal('fetch', stubFetch({ wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]' }));
-    const { client, updates } = fakePrisma([club({ id: 'a', anthem: { composer: 'curado' } })]);
+    const { client, updates, rawExecs } = fakePrisma([
+      club({ id: 'a', anthem: { composer: 'curado' } }),
+    ]);
     await enrichAllMediaBatch(500, { apply: true, prisma: client as unknown as PrismaClient });
-    expect(updates[0]!.data.anthem).toBeUndefined();
-    expect(updates[0]!.data.mediaEnrichment).toBeDefined(); // a tentativa é registrada
+    // Não há NADA a gravar (o único campo encontrado já existia) — o update é omitido
+    // de propósito; a tentativa ainda é registrada para o cursor avançar.
+    expect(updates).toHaveLength(0);
+    expect(rawExecs.length).toBeGreaterThan(0);
   });
 
   it('recheck: reprocessa os já tentados e prova o noop (enriched=0)', async () => {
@@ -330,7 +351,7 @@ describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
       anthem: { at: 'T', status: 'no_source' },
       pennants: { at: 'T', status: 'no_source' },
     };
-    const { client, updates } = fakePrisma([club({ id: 'a', mediaEnrichment: tentado })]);
+    const { client, updates, rawExecs } = fakePrisma([club({ id: 'a', mediaEnrichment: tentado })]);
     const out = await enrichAllMediaBatch(500, {
       apply: true,
       recheck: true,
@@ -339,7 +360,8 @@ describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
     expect(out.processed).toBe(1);
     expect(out.enriched).toBe(0);
     expect(out.byMedia.kits.already).toBe(1);
-    expect(updates).toHaveLength(1);
+    expect(updates).toHaveLength(0); // nada a gravar (já estava tudo lá)
+    expect(rawExecs.length).toBeGreaterThan(0); // mas a tentativa é re-carimbada
   });
 
   it('lote vazio: não faz nada e não quebra', async () => {

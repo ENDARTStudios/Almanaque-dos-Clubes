@@ -57,6 +57,7 @@ const en: Dictionary = {
     platformPlayers: 'Players',
     platformCompetitions: 'Competitions',
     platformRankings: 'Rankings',
+      platformMatches: 'Matches',
     platformSearch: 'Advanced Search',
     aboutTitle: 'About',
     aboutUs: 'About us',
@@ -188,6 +189,8 @@ const en: Dictionary = {
       title: 'Clubs',
       subtitle: 'Explore {n} football clubs registered.',
       placeholder: 'Search clubs by name, country or city...',
+      loadError:
+        'The list could not be loaded right now — reload the page to try again.',
     },
     players: {
       title: 'Players',
@@ -420,13 +423,13 @@ const en: Dictionary = {
         {
           title: 'Pro',
           body: [
-            '{proMonthly}/month or {proMonthly} annual with 15% off (12 × monthly). Expanded search and analysis, with AI features and citations when indicated at checkout. Payment via Stripe, only after express confirmation.',
+            '{proMonthly}/month or {proYearly} annual with 15% off (12 × monthly). Expanded search and analysis, with AI features and citations when indicated at checkout. Payment via Stripe, only after express confirmation.',
           ],
         },
         {
           title: 'Elite',
           body: [
-            '{eliteMonthly}/month or {eliteMonthly} annual with 15% off (12 × monthly). Advanced limits and features indicated at checkout, including API or export when expressly included.',
+            '{eliteMonthly}/month or {eliteYearly} annual with 15% off (12 × monthly). Advanced limits and features indicated at checkout, including API or export when expressly included.',
           ],
         },
         {
