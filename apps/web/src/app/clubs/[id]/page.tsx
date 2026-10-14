@@ -322,13 +322,16 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       </Link>
 
       <header className="bg-background rounded-2xl p-6 sm:p-8 shadow-md border border-border/50">
-        <div className="flex items-start gap-6">
+        {/* T546 — `flex-wrap` + `min-w` real: com `min-w-0` a coluna do título podia
+            encolher a ZERO (medido: h1 com largura 0px a 390px) e o botão de ações
+            ficava SOBRE o nome do clube. */}
+        <div className="flex flex-wrap items-start gap-4 sm:gap-6">
           <ClubCrest
             logoUrl={(club as { media?: { logoUrl?: string | null } }).media?.logoUrl}
             name={club.name}
             size={80}
           />
-          <div className="flex-1 min-w-0">
+          <div className="min-w-[12rem] flex-1 break-words">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {club.name}
             </h1>
@@ -724,8 +727,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                 {(
                   [
                     [s.statsOverall, stats.overall],
-                    [s.statsHome, { ...stats.overall.home, goalDiff: 0, points: 0 }],
-                    [s.statsAway, { ...stats.overall.away, goalDiff: 0, points: 0 }],
+                    // T548 — sem forçar `goalDiff: 0, points: 0`: a API não manda esses
+                    // campos por casa/fora, e imprimir 0 é afirmar um dado que não existe.
+                    [s.statsHome, stats.overall.home],
+                    [s.statsAway, stats.overall.away],
                   ] as const
                 ).map(([label, row]) => (
                   <tr key={label} className="border-t border-border/50">
@@ -736,8 +741,8 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     <td className="py-2 px-2">{row.losses}</td>
                     <td className="py-2 px-2">{row.goalsFor}</td>
                     <td className="py-2 px-2">{row.goalsAgainst}</td>
-                    <td className="py-2 px-2">{row.goalDiff}</td>
-                    <td className="py-2 px-2 font-semibold">{row.points}</td>
+                    <td className="py-2 px-2">{row.goalDiff ?? '—'}</td>
+                    <td className="py-2 px-2 font-semibold">{row.points ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>

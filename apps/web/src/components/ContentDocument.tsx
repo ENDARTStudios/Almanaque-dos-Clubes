@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
-import { formatPrice, PLAN_CENTS, type BillingCurrency } from '@/lib/pricing';
+import { formatPrice, PLAN_CENTS, yearlyCents, type BillingCurrency } from '@/lib/pricing';
 
 export type DocNamespace =
   'sobre' | 'planos' | 'seguranca' | 'cookiePolicy' | 'ia' | 'termosAssinatura';
@@ -29,7 +29,11 @@ export default function ContentDocument({
     return text
       .replaceAll('{free}', formatPrice(currency, PLAN_CENTS.FREE, locale))
       .replaceAll('{proMonthly}', formatPrice(currency, PLAN_CENTS.PRO, locale))
-      .replaceAll('{eliteMonthly}', formatPrice(currency, PLAN_CENTS.ELITE, locale));
+      .replaceAll('{eliteMonthly}', formatPrice(currency, PLAN_CENTS.ELITE, locale))
+      // T545 — os tokens ANUAIS existem porque o texto reusava o mensal aqui
+      // ("R$ 4,90 anual"), contradizendo o botão de checkout logo abaixo.
+      .replaceAll('{proYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.PRO), locale))
+      .replaceAll('{eliteYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.ELITE), locale));
   };
 
   return (

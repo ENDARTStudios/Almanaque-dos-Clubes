@@ -62,3 +62,17 @@ export function formatPrice(
 
 /** Valores em centavos (preço de tabela mensal). */
 export const PLAN_CENTS = { FREE: 0, PRO: 490, ELITE: 990 } as const;
+
+/**
+ * T545 — desconto do plano anual e a conta do valor anual.
+ *
+ * FONTE ÚNICA de propósito: o texto da página de planos e o botão de checkout
+ * calculavam o anual cada um do seu jeito — e divergiram na tela ("R$ 4,90 anual"
+ * no texto contra R$ 49,98 no botão). A partir daqui, os dois chamam ESTA função.
+ */
+export const YEARLY_DISCOUNT = 0.85;
+
+/** Valor anual em centavos: 12 × mensal com o desconto do plano anual. */
+export function yearlyCents(monthlyCents: number): number {
+  return Math.round(monthlyCents * 12 * YEARLY_DISCOUNT);
+}

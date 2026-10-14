@@ -22,10 +22,12 @@ async function getClubs(searchParams: { [key: string]: string | undefined }) {
   try {
     const base = getApiBase();
     const res = await fetch(base + '/clubs?' + params.toString(), { cache: 'no-store' });
-    if (!res.ok) return { data: [], total: 0 };
+    // T548 — falha de API devolve `total: null` (lacuna declarada), não 0: o subtítulo
+    // imprimia "Explore 0 clubes de futebol cadastrados" como se fosse fato.
+    if (!res.ok) return { data: [], total: null };
     return await res.json();
   } catch {
-    return { data: [], total: 0 };
+    return { data: [], total: null };
   }
 }
 
@@ -41,8 +43,10 @@ export default async function ClubsPage({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <PageHeading
         titleKey="pages.clubs.title"
-        subtitleKey="pages.clubs.subtitle"
-        subtitleParams={{ n: total }}
+        // T548 — quando a API falha, a linha do subtítulo DECLARA a lacuna; antes ela
+        // imprimia "Explore 0 clubes de futebol cadastrados" como se fosse fato.
+        subtitleKey={total == null ? 'pages.clubs.loadError' : 'pages.clubs.subtitle'}
+        {...(total == null ? {} : { subtitleParams: { n: total } })}
       />
       <div className="mb-8">
         <Suspense fallback={<div className="h-12 bg-neutral-surface rounded-xl animate-pulse" />}>
