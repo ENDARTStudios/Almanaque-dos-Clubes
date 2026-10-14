@@ -38,6 +38,7 @@ import {
   type KitPart,
 } from '../../lib/wikipedia/kit-composition.js';
 import { sitelinksFromEntity } from './connectors/wikipedia-editorial.connector.js';
+import { stampMediaAttempts } from './media-cursor.js';
 
 export const ALL_MEDIA_USER_AGENT =
   'AlmanaqueDosClubes/1.0 (https://almanaquedosclubes.com; contato@almanaquedosclubes.com)';
@@ -539,9 +540,7 @@ export async function enrichAllMediaBatch(
       else result.gaps += 1;
 
       if (!opts.apply) return;
-      const data: Prisma.ClubUpdateInput = {
-        mediaEnrichment: attemptRecord(outcome.media, at) as unknown as Prisma.InputJsonValue,
-      };
+      const data: Prisma.ClubUpdateInput = {};
       // Nunca sobrescreve campo já preenchido (preserva a curadoria T523-T526).
       if (outcome.values.kits && club.kitHistory == null) {
         data.kitHistory = outcome.values.kits as unknown as Prisma.InputJsonValue;
@@ -552,7 +551,14 @@ export async function enrichAllMediaBatch(
       if (outcome.values.pennants && club.pennants == null) {
         data.pennants = outcome.values.pennants as unknown as Prisma.InputJsonValue;
       }
-      await prisma.club.update({ where: { id: club.id }, data });
+      if (Object.keys(data).length > 0) {
+        await prisma.club.update({ where: { id: club.id }, data });
+      }
+      // T547 — a tentativa vai por MESCLA atômica (`||` no JSONB), não por substituição:
+      // os jobs de escudo/estádio/cores e de texto gravam as chaves DELES no mesmo
+      // objeto, e uma escrita inteira apagaria os cursores vizinhos (cada job voltaria
+      // ao início). `attemptRecord` continua sendo a fonte do formato.
+      await stampMediaAttempts(prisma, club.id, outcome.media, at);
     };
 
     for (let i = 0; i < clubs.length; i += concurrency) {

@@ -253,3 +253,19 @@ describe('T541 — listagem renderizável, filtro de data e facets', () => {
     for (const c of competitions) expect(c.count).toBeGreaterThan(0);
   });
 });
+
+describe('T548 — data inválida no filtro não é 500', () => {
+  it('dateFrom/dateTo inválidos → 400 com código claro', async () => {
+    if (!dbOk) return;
+    for (const bad of ['2026-13-45', '2026-02-30', 'hoje', '13/10/2026']) {
+      const res = await app.inject({ method: 'GET', url: `/api/v1/matches?dateFrom=${bad}` });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error?.code).toBe('INVALID_DATE');
+    }
+    const ok = await app.inject({
+      method: 'GET',
+      url: '/api/v1/matches?dateFrom=2026-01-01&dateTo=2026-12-31&limit=1',
+    });
+    expect(ok.statusCode).toBe(200);
+  });
+});
