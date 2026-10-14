@@ -318,7 +318,10 @@ export async function enrichPlayersMediaBatch(
       const e = entities.get(p.qid!);
       if (!e) {
         skipped += 1;
-        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
+        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
+        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
+        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
+        // registrado para não parecer que a fila de jogadores anda.
         continue;
       }
       const data: Record<string, unknown> = {};
@@ -345,7 +348,10 @@ export async function enrichPlayersMediaBatch(
       }
       if (Object.keys(data).length === 0) {
         skipped += 1;
-        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
+        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
+        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
+        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
+        // registrado para não parecer que a fila de jogadores anda.
         continue;
       }
       if (opts.apply) {
