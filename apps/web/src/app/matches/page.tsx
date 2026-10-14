@@ -133,7 +133,7 @@ export default async function MatchesPage({
       <form method="get" className="rounded-xl border border-border bg-background p-5 shadow-sm">
         <fieldset className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <legend className="sr-only">{t.filters.legend}</legend>
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="text-foreground/60">{t.filters.competition}</span>
             <select
               name="competitionId"
@@ -148,7 +148,7 @@ export default async function MatchesPage({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="text-foreground/60">{t.filters.season}</span>
             <select
               name="seasonId"
@@ -163,7 +163,7 @@ export default async function MatchesPage({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="text-foreground/60">{t.filters.from}</span>
             <input
               type="date"
@@ -172,7 +172,7 @@ export default async function MatchesPage({
               className="rounded-lg border border-border bg-background px-3 py-2 text-foreground"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="text-foreground/60">{t.filters.to}</span>
             <input
               type="date"
