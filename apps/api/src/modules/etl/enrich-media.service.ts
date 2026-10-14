@@ -199,6 +199,11 @@ export async function enrichClubsMediaBatch(
       const e = clubEntities.get(club.qid!);
       if (!e) {
         skipped += 1;
+        // Regra do cursor: TODO caminho de saída da iteração carimba a tentativa —
+        // inclusive este (sem entidade na fonte). Sem o carimbo, o clube fica preso na
+        // cabeça da fila e o lote não avança (medido em produção: a fila andou só 22
+        // dos 50 processados).
+        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
         continue;
       }
       const data: Record<string, unknown> = {};
@@ -243,6 +248,7 @@ export async function enrichClubsMediaBatch(
       }
       if (Object.keys(data).length === 0) {
         skipped += 1;
+        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
         continue;
       }
       if (opts.apply) {
@@ -312,6 +318,10 @@ export async function enrichPlayersMediaBatch(
       const e = entities.get(p.qid!);
       if (!e) {
         skipped += 1;
+        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
+        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
+        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
+        // registrado para não parecer que a fila de jogadores anda.
         continue;
       }
       const data: Record<string, unknown> = {};
@@ -338,6 +348,10 @@ export async function enrichPlayersMediaBatch(
       }
       if (Object.keys(data).length === 0) {
         skipped += 1;
+        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
+        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
+        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
+        // registrado para não parecer que a fila de jogadores anda.
         continue;
       }
       if (opts.apply) {
