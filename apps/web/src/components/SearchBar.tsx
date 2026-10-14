@@ -37,6 +37,10 @@ export default function SearchBar({
             </svg>
           </div>
           <input
+            // T546 — o componente é compartilhado por /clubs e /competitions: sem
+            // `aria-label`, as duas buscas ficavam sem nome acessível (só placeholder,
+            // que não é nome — WCAG 4.1.2/3.3.2, nível A).
+            aria-label={t(placeholderKey)}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

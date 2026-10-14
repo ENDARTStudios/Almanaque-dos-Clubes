@@ -179,7 +179,10 @@ export default function RankingsTable() {
     () => year !== '' || gender !== '' || country !== '',
     [year, gender, country],
   );
-  const selectClass = 'rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
+  // T548 — `max-w-full`: o select de competição media 428px e estourava a linha a
+  // 390px (+54px de overflow) e a 320px (+124px).
+  const selectClass =
+    'max-w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
 
   return (
     <div className="mt-8">
@@ -403,7 +406,9 @@ export default function RankingsTable() {
                   ) : (
                     <td className="px-4 py-3 text-foreground/60">
                       {t.baseOf
-                        .replace('{m}', String(r.baseMatches ?? 0))
+                        // T548 — base ausente é LACUNA, não zero: "0 partidas" é um
+                        // número com cara de real afirmando algo que o acervo não sabe.
+                        .replace('{m}', r.baseMatches == null ? '—' : String(r.baseMatches))
                         .replace('{t}', String(r.baseTitles ?? 0))}
                     </td>
                   )}

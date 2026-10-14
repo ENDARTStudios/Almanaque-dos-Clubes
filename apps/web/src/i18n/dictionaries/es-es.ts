@@ -57,6 +57,7 @@ const es: Dictionary = {
     platformPlayers: 'Jugadores',
     platformCompetitions: 'Competiciones',
     platformRankings: 'Rankings',
+      platformMatches: 'Partidos',
     platformSearch: 'Búsqueda Avanzada',
     aboutTitle: 'Acerca de',
     aboutUs: 'Sobre nosotros',
@@ -190,6 +191,8 @@ const es: Dictionary = {
       title: 'Clubes',
       subtitle: 'Explora {n} clubes de fútbol registrados.',
       placeholder: 'Buscar clubes por nombre, país o ciudad...',
+      loadError:
+        'No se pudo cargar la lista ahora — recarga la página para intentarlo de nuevo.',
     },
     players: {
       title: 'Jugadores',
@@ -423,13 +426,13 @@ const es: Dictionary = {
         {
           title: 'Pro',
           body: [
-            '{proMonthly}/mes o {proMonthly} anual con 15% de descuento (12 × mensual). Búsqueda y análisis ampliados, con funciones de IA y citas cuando se indiquen en el checkout. Pago vía Stripe, solo tras confirmación expresa.',
+            '{proMonthly}/mes o {proYearly} anual con 15% de descuento (12 × mensual). Búsqueda y análisis ampliados, con funciones de IA y citas cuando se indiquen en el checkout. Pago vía Stripe, solo tras confirmación expresa.',
           ],
         },
         {
           title: 'Elite',
           body: [
-            '{eliteMonthly}/mes o {eliteMonthly} anual con 15% de descuento (12 × mensual). Límites y funciones avanzadas indicados en el checkout, incluida API o exportación cuando se incluya expresamente.',
+            '{eliteMonthly}/mes o {eliteYearly} anual con 15% de descuento (12 × mensual). Límites y funciones avanzadas indicados en el checkout, incluida API o exportación cuando se incluya expresamente.',
           ],
         },
         {
