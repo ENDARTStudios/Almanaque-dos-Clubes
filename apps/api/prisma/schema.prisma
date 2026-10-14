@@ -165,6 +165,9 @@ model Player {
   gender       String?
   // T502 — P18 Wikidata (Wikimedia Commons, CC-BY-SA/CC0)
   photoUrl     String?
+  // T550 — cursor de TENTATIVA do job de perfil (foto/país/posição), mesma ideia de
+  // `clubs.mediaEnrichment` (T528): `{ "profile": { at, status } }`.
+  mediaEnrichment Json?
   position     String?
   clubId       String?
   club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)

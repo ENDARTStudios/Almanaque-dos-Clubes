@@ -52,7 +52,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
+                    className="inline-block min-h-[24px] py-1 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -68,7 +68,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
+                    className="inline-block min-h-[24px] py-1 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -77,7 +77,7 @@ export default function Footer() {
               <li>
                 <a
                   href="mailto:endart.studios+contato@gmail.com"
-                  className="inline-flex items-center gap-1.5 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
+                  className="inline-flex min-h-[24px] items-center gap-1.5 py-1 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
                 >
                   <Mail className="w-3.5 h-3.5" /> {t('footer.contact')}
                 </a>
@@ -87,7 +87,7 @@ export default function Footer() {
                   href="https://t.me/AlmanaqueDosClubes"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
+                  className="inline-flex min-h-[24px] items-center gap-1.5 py-1 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200"
                 >
                   <Send className="w-3.5 h-3.5" /> {t('footer.telegram')}
                 </a>
@@ -102,7 +102,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
+                    className="inline-block min-h-[24px] py-1 text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -111,7 +111,7 @@ export default function Footer() {
             </ul>
             <button
               onClick={openCookieConsent}
-              className="mt-4 text-xs text-foreground/75 underline hover:text-foreground transition-colors duration-200 cursor-pointer"
+              className="inline-block min-h-[24px] py-1 mt-4 text-xs text-foreground/75 underline hover:text-foreground transition-colors duration-200 cursor-pointer"
             >
               {t('common.cookieBanner.footerManage')}
             </button>
@@ -121,7 +121,7 @@ export default function Footer() {
                   key={l}
                   onClick={() => setLocale(l)}
                   aria-label={l}
-                  className={`text-lg leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
+                  className={`inline-flex h-6 w-6 items-center justify-center text-lg leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
                   title={l}
                 >
                   {LOCALE_FLAGS[l]}

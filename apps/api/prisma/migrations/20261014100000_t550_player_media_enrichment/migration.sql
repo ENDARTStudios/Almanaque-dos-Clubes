@@ -1,0 +1,13 @@
+-- T550 — cursor de TENTATIVA de enriquecimento de mídia por JOGADOR (aditivo).
+--
+-- Por que existe: `enrichPlayersMediaBatch` selecionava jogadores por
+-- `photoUrl/country/position IS NULL` ordenado por `fullName`, sem nenhum registro de
+-- tentativa. Dos 105.211 jogadores do acervo, a maioria permanece no filtro (Wikidata não
+-- tem foto de todos), então o lote relia o MESMO começo do alfabeto toda noite — o mesmo
+-- defeito que congelou a mídia dos clubes antes do T528 (escudo parou em 2,4%).
+--
+-- A coluna espelha `clubs.mediaEnrichment` (T528): um registro por mídia tentada,
+-- `{ "<media>": { at, status } }`. No jogador a chave é `profile` (foto P18 / país P27 /
+-- posição P413, que o job preenche numa passada só). Nenhuma coluna existente muda;
+-- registro ausente = nunca tentado, que é o critério de seleção do cursor.
+ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "mediaEnrichment" JSONB;
