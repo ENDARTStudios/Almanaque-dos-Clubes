@@ -399,59 +399,54 @@ export async function registerDataRefreshCron(): Promise<void> {
       },
     },
   );
-  // T536 — os dois jobs LEGADOS de enriquecimento foram DESATIVADOS: eles
-  // selecionavam por `campo IS NULL` + `orderBy: name ASC` e, como nenhum clube tem
-  // os 5 campos preenchidos, reprocessavam os MESMOS 500 primeiros toda noite
-  // (escudo parado em 2,4%; editorial parado na letra E). O job unificado
-  // `enrich-all-media` tem cursor de tentativa e cobre kit/hino/flâmula; escudo,
-  // estádio, cores e texto editorial continuam sendo feitos pelo caminho
-  // incremental do wikidata-incremental + enrich-all-media quando aplicável.
-  // O CÓDIGO dos handlers permanece (histórico e testes), só a AGENDA sai.
-  const LEGACY_DISABLED = true;
-  if (!LEGACY_DISABLED) {
-    await queues.dataRefresh.upsertJobScheduler(
-      'enrich-clubs-media-daily',
-      { pattern: ENRICH_CLUBS_CRON_PATTERN },
-      {
-        name: JOB_ENRICH_CLUBS_MEDIA,
-        data: {},
-        opts: {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 60_000 },
-          removeOnComplete: { count: 10 },
-          removeOnFail: { count: 50 },
-        },
+  // T536 desativou estes dois jobs porque estavam travados (`campo IS NULL` +
+  // `orderBy: name ASC` reprocessava os MESMOS 500 primeiros toda noite). O T547 os
+  // RELIGA com o cursor de tentativa (`mediaEnrichment`) que o job unificado usa —
+  // porque medimos que o unificado cobre só kit/hino/flâmula e escudo, estádio, cores
+  // e texto editorial ficaram SEM job nenhum (cores em 2 de 12.003 clubes; escudo
+  // parado em 290 desde o T533).
+  await queues.dataRefresh.upsertJobScheduler(
+    'enrich-clubs-media-daily',
+    { pattern: ENRICH_CLUBS_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_CLUBS_MEDIA,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
       },
-    );
-    await queues.dataRefresh.upsertJobScheduler(
-      'enrich-players-media-daily',
-      { pattern: ENRICH_PLAYERS_CRON_PATTERN },
-      {
-        name: JOB_ENRICH_PLAYERS_MEDIA,
-        data: {},
-        opts: {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 60_000 },
-          removeOnComplete: { count: 10 },
-          removeOnFail: { count: 50 },
-        },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
+    'enrich-players-media-daily',
+    { pattern: ENRICH_PLAYERS_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_PLAYERS_MEDIA,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
       },
-    );
-    await queues.dataRefresh.upsertJobScheduler(
-      'enrich-clubs-editorial-daily',
-      { pattern: ENRICH_EDITORIAL_CRON_PATTERN },
-      {
-        name: JOB_ENRICH_CLUBS_EDITORIAL,
-        data: {},
-        opts: {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 60_000 },
-          removeOnComplete: { count: 10 },
-          removeOnFail: { count: 50 },
-        },
+    },
+  );
+  await queues.dataRefresh.upsertJobScheduler(
+    'enrich-clubs-editorial-daily',
+    { pattern: ENRICH_EDITORIAL_CRON_PATTERN },
+    {
+      name: JOB_ENRICH_CLUBS_EDITORIAL,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
       },
-    );
-  } // fim do bloco desativado no T536
+    },
+  );
   // T542 — a agenda alimenta a fila DEDICADA (`media-enrich`), que é consumida pelo
   // serviço `media-worker` (mesmo image, entrypoint próprio). Assim o lote longo não
   // compete com a API pela CPU do mesmo container (medido no T535: p50 2 ms -> 67 ms).
@@ -487,11 +482,9 @@ export async function registerDataRefreshCron(): Promise<void> {
     {
       wikidata: WIKIDATA_CRON_PATTERN,
       integrity: INTEGRITY_CRON_PATTERN,
-      // T536 — os dois legados estão DESATIVADOS (cursor ausente); ficam aqui
-      // apenas como registro do que existiu.
-      enrichClubsDesativado: ENRICH_CLUBS_CRON_PATTERN,
+      enrichClubs: ENRICH_CLUBS_CRON_PATTERN,
       enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
-      enrichEditorialDesativado: ENRICH_EDITORIAL_CRON_PATTERN,
+      enrichClubsEditorial: ENRICH_EDITORIAL_CRON_PATTERN,
       // T533 — faltava no log de boot: um cron registrado que não aparece no
       // inventário é observabilidade faltando (o job existe e roda, mas quem lê o
       // boot não sabe). Todo cron novo entra aqui.
