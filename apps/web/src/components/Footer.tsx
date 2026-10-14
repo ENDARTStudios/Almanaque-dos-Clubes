@@ -13,6 +13,9 @@ export default function Footer() {
     { href: '/players', label: t('footer.platformPlayers') },
     { href: '/competitions', label: t('footer.platformCompetitions') },
     { href: '/rankings', label: t('footer.platformRankings') },
+    // T545 — o Navbar está bloqueado pela sessão paralela; o link entra aqui para a
+    // seção não ficar órfã (o encaixe no Navbar entra quando ela mergear).
+    { href: '/matches', label: t('footer.platformMatches') },
     { href: '/search', label: t('footer.platformSearch') },
   ];
 

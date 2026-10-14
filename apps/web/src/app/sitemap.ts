@@ -11,7 +11,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    {
+        {
+      // T545 — a página existia e respondia 200 desde o T541, mas ficou fora do
+      // sitemap (e sem link no site): invisível para busca e para o usuário.
+      url: `${baseUrl}/matches`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+{
       url: `${baseUrl}/rankings`,
       lastModified: new Date(),
       changeFrequency: 'daily',
