@@ -186,10 +186,13 @@ export default function ChampionsCarousel() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between mt-3">
+          {/* T549 — `flex-wrap`: pontos (24px cada, ~264px com 17 escopos) + setas (88px)
+              passavam de 288px úteis a 320px e empurravam a linha para 368px (+48px de
+              overflow, Reflow 1.4.10). Com `flex-wrap` as setas descem em vez de vazar. */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
             {/* `-space-x-2` compensa a caixa de 24px do ponto inativo (ver o comentário
                 no botão), mantendo a régua visual compacta de antes. */}
-            <div className="-space-x-2 flex" role="tablist" aria-label={t.dots}>
+            <div className="-space-x-2 flex flex-wrap min-w-0" role="tablist" aria-label={t.dots}>
               {cards.map((scope, i) => (
                 // O ponto ativo anima em `scale-x-0 -> scale-x-100` sobre uma caixa de `w-6`
                 // fixa: o layout não muda, só a pintura — a transição roda na GPU e o portão

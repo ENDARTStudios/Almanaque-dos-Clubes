@@ -179,10 +179,12 @@ export default function RankingsTable() {
     () => year !== '' || gender !== '' || country !== '',
     [year, gender, country],
   );
-  // T548 — `max-w-full`: o select de competição media 428px e estourava a linha a
-  // 390px (+54px de overflow) e a 320px (+124px).
+  // T549 — `max-w-full` sozinho era inócuo: o `<label>` é item de `flex flex-wrap` com
+  // `min-width: auto`, então o select de competição (rótulo longo = 428px) esticava o pai e
+  // o `max-width: 100%` resolvia contra os próprios 428px (overflow de +54px a 390px e
+  // +124px a 320px). A correção é `min-w-0` no label (deixa encolher) + `w-full` no select.
   const selectClass =
-    'max-w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
+    'w-full max-w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
 
   return (
     <div className="mt-8">
@@ -229,7 +231,7 @@ export default function RankingsTable() {
         </p>
       ) : null}
       <div className="flex flex-wrap items-end gap-3 mb-4">
-        <label className="flex flex-col gap-1 text-sm text-foreground/70">
+        <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterYear}</span>
           <select
             aria-label={t.filterYear}
@@ -246,7 +248,7 @@ export default function RankingsTable() {
           </select>
         </label>
         {view === 'division' ? (
-          <label className="flex flex-col gap-1 text-sm text-foreground/70">
+          <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
             <span>{t.filterType}</span>
             <select
               aria-label={t.filterType}
@@ -260,7 +262,7 @@ export default function RankingsTable() {
           </label>
         ) : null}
         {view === 'division' && scopes.length > 0 ? (
-          <label className="flex flex-col gap-1 text-sm text-foreground/70">
+          <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
             <span>{t.filterCompetition}</span>
             <select
               aria-label={t.filterCompetition}
@@ -277,7 +279,7 @@ export default function RankingsTable() {
             </select>
           </label>
         ) : null}
-        <label className="flex flex-col gap-1 text-sm text-foreground/70">
+        <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterGender}</span>
           <select
             aria-label={t.filterGender}
@@ -290,7 +292,7 @@ export default function RankingsTable() {
             <option value="women">{t.genderWomen}</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-foreground/70">
+        <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
           <span>{t.filterCountry}</span>
           <select
             aria-label={t.filterCountry}
@@ -306,7 +308,7 @@ export default function RankingsTable() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-foreground/70">
+        <label className="flex min-w-0 flex-col gap-1 text-sm text-foreground/70">
           <span>{t.searchClub}</span>
           <input
             type="text"
@@ -391,7 +393,10 @@ export default function RankingsTable() {
                         {r.playerName}
                       </Link>
                     ) : (
-                      <Link href={`/clubs/${r.clubId}`} className="text-primary-ink hover:underline">
+                      <Link
+                        href={`/clubs/${r.clubId}`}
+                        className="text-primary-ink hover:underline"
+                      >
                         {r.clubName}
                       </Link>
                     )}
