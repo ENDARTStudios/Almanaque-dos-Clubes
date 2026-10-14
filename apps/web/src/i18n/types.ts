@@ -73,6 +73,8 @@ export interface Dictionary {
     platformCompetitions: string;
     platformRankings: string;
     platformSearch: string;
+    // T545 — link alternativo de /matches no rodapé (o Navbar aguarda a sessão paralela).
+    platformMatches: string;
     aboutTitle: string;
     aboutUs: string;
     plans: string;
@@ -229,7 +231,8 @@ export interface Dictionary {
     passwordMismatch: string;
   };
   pages: {
-    clubs: { title: string; subtitle: string; placeholder: string };
+    // T548 — mensagem honesta quando a API falha (antes imprimia "0 clubes").
+    clubs: { title: string; subtitle: string; placeholder: string; loadError: string };
     players: { title: string; subtitle: string; placeholder: string };
     competitions: {
       title: string;

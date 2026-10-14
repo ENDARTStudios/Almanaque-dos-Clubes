@@ -726,13 +726,29 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               <tbody>
                 {(
                   [
-                    [s.statsOverall, stats.overall],
+                    { label: s.statsOverall, row: stats.overall },
                     // T548 — sem forçar `goalDiff: 0, points: 0`: a API não manda esses
                     // campos por casa/fora, e imprimir 0 é afirmar um dado que não existe.
-                    [s.statsHome, stats.overall.home],
-                    [s.statsAway, stats.overall.away],
-                  ] as const
-                ).map(([label, row]) => (
+                    // `null` mantém as TRÊS linhas com o tipo uniforme (senão a união
+                    // não deixa ler os campos) e a tabela mostra "—".
+                    { label: s.statsHome, row: { ...stats.overall.home, goalDiff: null, points: null } },
+                    { label: s.statsAway, row: { ...stats.overall.away, goalDiff: null, points: null } },
+                  ] as Array<{
+                    label: string;
+                    // Tipo EXPLÍCITO (e não interseção com o shape do overall): casa/fora
+                    // não trazem saldo nem pontos, então os dois são opcionais aqui.
+                    row: {
+                      played: number;
+                      wins: number;
+                      draws: number;
+                      losses: number;
+                      goalsFor: number;
+                      goalsAgainst: number;
+                      goalDiff?: number | null;
+                      points?: number | null;
+                    };
+                  }>
+                ).map(({ label, row }) => (
                   <tr key={label} className="border-t border-border/50">
                     <td className="py-2 pr-4 font-medium">{label}</td>
                     <td className="py-2 px-2">{row.played}</td>
