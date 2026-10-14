@@ -47,8 +47,11 @@ export async function selectPendingClubs(
   prisma: PrismaClient,
   opts: PendingClubQueryOptions,
 ): Promise<Array<{ id: string; qid: string; name: string }>> {
+  // ATENÇÃO à lógica de três valores: `NULL ? 'logo'` é NULL, e `NOT NULL` continua NULL
+  // — sem o guarda `IS NULL` a linha NÃO é selecionada, ou seja, o cursor excluía
+  // exatamente quem nunca foi tentado (medido no CI: seleção voltava vazia).
   const precisa = Prisma.join(
-    opts.media.map((m) => Prisma.sql`NOT ("mediaEnrichment" ? ${m})`),
+    opts.media.map((m) => Prisma.sql`("mediaEnrichment" IS NULL OR NOT ("mediaEnrichment" ? ${m}))`),
     ' OR ',
   );
   const estagnado =
