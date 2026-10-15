@@ -17,6 +17,75 @@
 import { PrismaClient } from '@prisma/client';
 import { extractSocial } from '../modules/social/social-links.js';
 
+/**
+ * A REGRA POR ALVO, num lugar só: tabela, coluna do site e o `WHERE` de elegibilidade.
+ *
+ * As três colunas divergem de verdade, e cada divergência já causou (ou quase causou) defeito:
+ *   `clubs.website`              contra `officialSite` nos outros dois — escrever no campo errado
+ *                                criaria coluna inexistente;
+ *   `deletedAt` existe em clubs e competitions, NÃO existe em players — era o `42703` silencioso;
+ *   a elegibilidade pergunta pela coluna de site DAQUELE alvo.
+ *
+ * Antes isto estava escrito à mão em cada ramo, e o ramo `all` ficou para trás usando a base de
+ * clube para jogadores. Uma tabela por alvo não pode divergir de si mesma.
+ */
+const ALVO = {
+  club: { tabela: 'clubs', site: 'website' },
+  player: { tabela: 'players', site: '"officialSite"' },
+  competition: { tabela: 'competitions', site: '"officialSite"' },
+} as const;
+
+/** `WHERE` de elegibilidade de um alvo. Exportada para o teste cobrir os três. */
+export function baseDeSelecao(target: 'club' | 'player' | 'competition'): string {
+  const { site } = ALVO[target];
+  const colunas = `qid IS NOT NULL AND ("socialLinks" IS NULL OR ${site} IS NULL)`;
+  // `players` NÃO tem `deletedAt` no modelo: incluí-lo ali é `42703` (undefined_column).
+  const softDelete = target === 'competition' || target === 'club' ? '"deletedAt" IS NULL AND ' : '';
+  return `${softDelete}${colunas}`;
+}
+
+/** Colunas do SELECT de um alvo. */
+function colunasDe(target: 'club' | 'player' | 'competition'): string {
+  return `id, qid, ${ALVO[target].site}, "socialLinks"`;
+}
+
+/**
+ * Monta o patch de UPDATE a partir do extraído do Wikidata, respeitando ZERO OVERWRITE.
+ *
+ * Devolve `{}` quando não há nada a escrever — o chamador usa isso para pular o alvo.
+ *
+ * Duas regras que custaram bug, e por isso estão nomeadas e testadas:
+ *
+ * 1. **`socialLinks` vazio é `null`, `undefined` OU `{}`.** A coluna é Json e 127 jogadores em
+ *    produção a tinham como OBJETO VAZIO. `{}` é TRUTHY em JavaScript, então o teste antigo
+ *    (`if (!t.socialLinks)`) PULAVA esses registros: o patch saía vazio, o alvo era cortado, e
+ *    o `--apply` reportava `updated=0` depois de ter extraído dados do Wikidata com sucesso.
+ *    "Não tem nenhuma chave" é a pergunta certa.
+ * 2. **O campo do site muda de nome por alvo**: `clubs.website` contra
+ *    `players/competitions.officialSite`. Escrever no campo errado criaria coluna inexistente.
+ */
+export function montarPatch(
+  alvo: { officialSite?: string | null; socialLinks?: unknown; website?: string | null },
+  extraido: { officialSite: string | null; socialLinks: Record<string, unknown> },
+  target: 'club' | 'player' | 'competition',
+): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  const ehClube = target === 'club' || 'website' in alvo;
+
+  if (extraido.officialSite && !alvo.officialSite) {
+    if (ehClube) patch.website = extraido.officialSite;
+    else patch.officialSite = extraido.officialSite;
+  }
+
+  const socialLinksVazio =
+    alvo.socialLinks == null ||
+    (typeof alvo.socialLinks === 'object' &&
+      Object.keys(alvo.socialLinks as object).length === 0);
+  if (socialLinksVazio) patch.socialLinks = extraido.socialLinks;
+
+  return patch;
+}
+
 const UA = 'AlmanaqueDosClubes-WikidataBot/1.0 (+https://almanaquedosclubes.com)';
 const ENTITY_URL = (qids: string[]) =>
   `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}&props=claims&format=json`;
@@ -86,45 +155,36 @@ interface Target {
   website?: string | null;
   officialSite?: string | null;
   socialLinks: unknown;
+  /** Qual tabela este alvo veio. No ramo `all` os três tipos vêm juntos, e o tipo decide
+   *  o campo do site (`website` vs `officialSite`) E a tabela do UPDATE. */
+  kind: 'club' | 'player' | 'competition';
 }
 
 async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
-  // Raw SQL: filtros null em Json via shorthand/sentinels têm comportamento
-  // inconsistente nesta instalação — SQL direto é determinístico.
-  const base = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR website IS NULL)`;
-  // competitions tem soft-delete (T448b-2i); players NÃO tem deletedAt no
-  // modelo — usar base própria (a coluna inexistente derrubava o enrich de
-  // players com 42703; o branch nunca tinha rodado em produção).
-  const baseOther = `"deletedAt" IS NULL AND qid IS NOT NULL AND ("socialLinks" IS NULL OR "officialSite" IS NULL)`;
-  const basePlayer = `qid IS NOT NULL AND ("socialLinks" IS NULL OR "officialSite" IS NULL)`;
-  const select = `id, qid, website, "socialLinks"`;
-  const selectOther = `id, qid, "officialSite", "socialLinks"`;
-  if (TARGET === 'club') {
-    return prisma.$queryRawUnsafe(
-      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ) as unknown as Promise<Target[]>;
+  // Raw SQL: filtros null em Json via shorthand/sentinels tem comportamento inconsistente nesta
+  // instalacao — SQL direto e deterministico. A regra de cada alvo vem de `baseDeSelecao` e
+  // `colunasDe`, e nao e reescrita aqui: era a duplicacao que deixava o ramo `all` para tras.
+  const consultar = async (
+    kind: 'club' | 'player' | 'competition',
+  ): Promise<Target[]> => {
+    const linhas = (await prisma.$queryRawUnsafe(
+      `SELECT ${colunasDe(kind)} FROM ${ALVO[kind].tabela} WHERE ${baseDeSelecao(kind)} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
+    )) as unknown as Array<Record<string, unknown>>;
+    return linhas.map((l) => ({ ...l, kind }) as unknown as Target);
+  };
+
+  if (TARGET === 'club' || TARGET === 'player' || TARGET === 'competition') {
+    return consultar(TARGET);
   }
-  if (TARGET === 'player') {
-    return prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM players WHERE ${basePlayer} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ) as unknown as Promise<Target[]>;
-  }
-  if (TARGET === 'competition') {
-    return prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ) as unknown as Promise<Target[]>;
-  }
-  const [clubs, players, comps] = (await Promise.all([
-    prisma.$queryRawUnsafe(
-      `SELECT ${select} FROM clubs WHERE ${base} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ),
-    prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM players WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ),
-    prisma.$queryRawUnsafe(
-      `SELECT ${selectOther} FROM competitions WHERE ${baseOther} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
-    ),
-  ])) as unknown as Target[][];
+
+  // `all`: os tres tipos convivem na mesma lista, cada um com o seu `kind`. O ramo anterior
+  // consultava jogadores com a base de clube (coluna `deletedAt` inexistente) e devolvia alvos
+  // SEM tipo, o que fazia o UPDATE cair na tabela errada.
+  const [clubs, players, comps] = await Promise.all([
+    consultar('club'),
+    consultar('player'),
+    consultar('competition'),
+  ]);
   return [...clubs, ...players, ...comps];
 }
 
@@ -152,28 +212,26 @@ async function main(): Promise<void> {
       const ex = extractSocial(ent.claims as never);
       if (!ex.hasAnything) continue;
 
-      // Zero overwrite: nenhum campo não-nulo é sobrescrito.
-      const patch: Record<string, unknown> = {};
-      const isClub = 'website' in t || TARGET === 'club';
-      if (ex.officialSite && !t.officialSite) {
-        if (isClub) patch.website = ex.officialSite;
-        else patch.officialSite = ex.officialSite;
-        stats.officialSite++;
-      }
+      // Estatística por plataforma (informativa, não decide escrita).
+      if (ex.officialSite) stats.officialSite++;
       if (ex.socialLinks.youtube) stats.youtube++;
       if (ex.socialLinks.twitter) stats.twitter++;
       if (ex.socialLinks.facebook) stats.facebook++;
       if (ex.socialLinks.instagram) stats.instagram++;
 
-      if (!t.socialLinks) patch.socialLinks = ex.socialLinks;
+      // A montagem do patch vive em `montarPatch`, exportada e testada — ver o comentário dela
+      // sobre o `{}` truthy, que é o bug que fazia `--apply` reportar `updated=0`.
+      const patch = montarPatch(t, ex, t.kind);
 
       if (Object.keys(patch).length === 0) continue;
       wouldUpdate++;
       if (!APPLY) continue;
 
-      if (isClub) {
+      // A tabela vem do `kind` do ALVO, não do TARGET da execução: no ramo `all` os três tipos
+      // convivem na mesma lista, e usar o TARGET mandaria jogador para a tabela de clube.
+      if (t.kind === 'club') {
         await prisma.club.update({ where: { id: t.id }, data: patch });
-      } else if (TARGET === 'player') {
+      } else if (t.kind === 'player') {
         await prisma.player.update({ where: { id: t.id }, data: patch });
       } else {
         await prisma.competition.update({ where: { id: t.id }, data: patch });
