@@ -68,7 +68,16 @@ export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
     const active = pMode === mode;
     return (
       <div className={paneClass(pMode, false)} inert={!active}>
-        <h1 className="auth-card__title">{title}</h1>
+        {/* T554 — só o painel ATIVO expõe `<h1>`: os dois formulários coexistem no DOM
+            (a troca é animada, então `display:none` não serve), e dois `<h1>` na mesma
+            página quebram 1.3.1/2.4.6 e o heading-order. O painel inativo usa `<p>` com a
+            MESMA classe — `.auth-card__title` define margem e tamanho, e o preflight
+            zera o peso do heading, então o desenho não muda. */}
+        {active ? (
+          <h1 className="auth-card__title">{title}</h1>
+        ) : (
+          <p className="auth-card__title">{title}</p>
+        )}
         <p className="auth-card__subtitle">{subtitle}</p>
         {children}
       </div>

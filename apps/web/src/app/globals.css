@@ -858,6 +858,18 @@
   .auth-card__link:hover {
     text-decoration: underline;
   }
+  /**
+   * T554 — variante para link que é alvo por si só (ex.: "Esqueci minha senha?"), onde
+   * WCAG 2.5.8 pede ≥24px. Não vai na classe base de propósito: os links de
+   * Termos/Privacidade do cadastro são texto inline no meio da frase e têm a exceção da
+   * norma — crescer ali desalinharia a linha com o checkbox.
+   */
+  .auth-card__link--target {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px 0;
+  }
   .auth-card__error {
     margin-bottom: 16px;
     padding: 10px 12px;

@@ -23,7 +23,9 @@ test.describe('Almanaque dos Clubes — E2E', () => {
 
   test('pagina de registro tem formulario', async ({ page }) => {
     await page.goto('/auth/register');
-    await expect(page.locator('h1')).toContainText('Criar Conta');
+    // T554 — o texto real é "Criar conta" (a asserção dizia "Criar Conta" e nunca casou).
+    // Com o h1 único, este locator resolve exatamente 1 elemento.
+    await expect(page.locator('h1')).toContainText('Criar conta');
     await page.fill('input[type="email"]', 'new@example.com');
     await page.fill('input[type="password"]', 'Str0ng!Pass');
   });
