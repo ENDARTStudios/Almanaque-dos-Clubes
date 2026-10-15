@@ -295,8 +295,7 @@ const es: Dictionary = {
         femininoNota:
           'Conquistas femeninas aún no catalogadas en el grafo (rankings femeninos pospuestos — D-2026-10-06).',
         selecoes: 'Selecciones e Internacionales',
-        selecoesVazio:
-          'Ninguna competición de selecciones catalogada en el acervo todavía (Mundial, Copa América, Euro: próximamente).',
+        selecoesVazio: 'No se pudieron cargar las competiciones internacionales ahora.',
         verTodasFeminino: 'ver todas',
         todas: 'Todas las competiciones',
       },
