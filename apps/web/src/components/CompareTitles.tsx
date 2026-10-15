@@ -1,7 +1,6 @@
 'use client';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
-  CHART_GRID_PROPS,
   CHART_LEGEND_STYLE,
   CHART_SERIES_A,
   CHART_SERIES_B,

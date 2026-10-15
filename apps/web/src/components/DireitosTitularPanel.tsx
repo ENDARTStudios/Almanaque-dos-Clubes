@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { api } from '@/lib/api';
 import { getApiBase } from '@/lib/api-base';
@@ -26,6 +27,7 @@ const FIELD_OPTIONS = ['account', 'billing', 'subscriptions', 'favorites', 'sess
 export default function DireitosTitularPanel() {
   const { status } = useAuth();
   const { locale } = useI18n();
+  const router = useRouter();
   const s = wsTitularStrings[locale] ?? wsTitularStrings['pt-br'];
   const [items, setItems] = useState<Dsr[]>([]);
   const [type, setType] = useState(s.types[0]!.value);
@@ -110,7 +112,11 @@ export default function DireitosTitularPanel() {
     setErr(null);
     try {
       await api.del('/legal/rights/me/account', { confirmation: confirmText, password });
-      window.location.href = '/';
+      // `router.replace` em vez de `window.location.href`: a conta acabou de ser excluída, e
+      // uma navegação dura faria o app inteiro recarregar com a sessão já inválida, disparando
+      // uma cascata de 401 antes de a home pintar. `replace` e não `push` porque a tela de
+      // direitos do titular não deve voltar no botão "voltar" de uma conta que não existe mais.
+      router.replace('/');
     } catch (e2) {
       setErr(e2 instanceof Error ? e2.message : s.errExcluir);
       setBusy(false);

@@ -35,11 +35,19 @@ export default function WorldChoropleth({
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.GeoJSON | null>(null);
 
-  // refs para o estilo ler o estado atual sem recriar o mapa
+  /* Refs para o estilo do Leaflet ler o estado ATUAL sem recriar o mapa — o `styleFor` é
+     chamado pelo Leaflet, fora do ciclo de render, então precisa de uma referência viva.
+     A escrita mudou de lugar: antes era `ref.current = prop` no CORPO do componente, que é
+     mutação durante o render — o React Compiler proíbe (`react-hooks/refs`), e o lint do
+     `apps/web` não rodava no CI para apontar. Agora a escrita vive num efeito.
+     A janela de um commit em que o callback leria o valor anterior é fechada pelo efeito de
+     re-estilo logo abaixo, que reaplica `styleFor` quando as contagens mudam. */
   const countsRef = useRef(countsByIso2);
   const activeRef = useRef(activeCountry);
-  countsRef.current = countsByIso2;
-  activeRef.current = activeCountry;
+  useEffect(() => {
+    countsRef.current = countsByIso2;
+    activeRef.current = activeCountry;
+  }, [countsByIso2, activeCountry]);
 
   function styleFor(f: GeoFeature): L.PathOptions {
     const iso = isoOf(f);

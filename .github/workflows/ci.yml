@@ -83,6 +83,16 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # O script `lint` da RAIZ varre apenas `apps/api`, `apps/worker` e `packages/**` — o
+      # `apps/web` NUNCA era lintado em pipeline nenhum. Quando ligamos, o linter nem executava
+      # (o `eslint-plugin-react` declara peer até `^9.7` e chama `context.getFilename()`,
+      # removido no ESLint 10, que o dependabot tinha instalado): TODA regra do plugin React
+      # morria, em silêncio, porque ninguém rodava. Com o ESLint fixado em 9, 39 problemas
+      # acumulados apareceram. Este passo é o que impede que voltem a se acumular.
+      - name: Lint (apps/web)
+        working-directory: apps/web
+        run: pnpm exec eslint .
+
       - name: Build @almanaque/domain
         run: pnpm --filter @almanaque/domain build
 

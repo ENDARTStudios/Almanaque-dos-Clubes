@@ -35,14 +35,12 @@ async function registerAndLogin(
 
 test.describe('T439 — favoritos cross-user (produção)', () => {
   let clubId = '';
-  let clubName = '';
 
   test.beforeAll(async ({ request }) => {
     const res = await request.get(`${API}/clubs?limit=1`);
     const body = await res.json();
     clubId = body.data[0].id;
-    clubName = body.data[0].name;
-  });
+      });
 
   test('A favorita na página do clube → aparece em /favoritos sem reload (WS) → B não vê e não remove', async ({
     browser,

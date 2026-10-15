@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 // WS-C-13 — seção "Site oficial e redes sociais". Presentacional (server-safe).
 

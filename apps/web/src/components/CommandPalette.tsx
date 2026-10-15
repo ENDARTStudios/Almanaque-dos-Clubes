@@ -77,31 +77,49 @@ export default function CommandPalette({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const s = wsC2Strings[locale].search;
   const p = s.palette;
 
   const [q, setQ] = useState('');
+  /** Resultados e estado pertencem ao termo que os produziu — ver `termoBuscado` abaixo. */
   const [results, setResults] = useState<SearchResult[]>([]);
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [termoBuscado, setTermoBuscado] = useState('');
   const [active, setActive] = useState(0);
-  const [mounted, setMounted] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
+  /** Termo da requisição em voo. Escrito SÓ dentro do callback assíncrono — ver o efeito de busca. */
+  const pedidoAtual = useRef('');
 
-  // O portal só existe no cliente. Sem isto o SSR tentaria renderizar em `document`.
-  useEffect(() => setMounted(true), []);
+  /* O portal depende de `document`, que não existe no servidor. Não uso um estado `mounted`
+     com efeito: `open` já começa falso no SSR e vira verdadeiro só por interação, então quando
+     o portal renderiza o componente está necessariamente hidratado e `document` existe. Um
+     `useState(false)` + `setMounted(true)` num efeito era um render extra para chegar à mesma
+     garantia — e era uma das violações de `set-state-in-effect` que o lint acusou. */
+
+  /* O termo ATUAL manda na tela; o que está guardado só vale se for dele.
+     Isto substitui dois `setState` que existiam no efeito de busca (zerar a lista quando o
+     termo é curto demais). Derivar em vez de zerar: o efeito deixa de escrever estado no
+     caminho de saída, e a lista não pode ficar "presa" mostrando o resultado de um termo
+     anterior enquanto o novo não chega. */
+  const termo = q.trim();
+  const respondeAoTermoAtual = termo.length >= MIN_CHARS && termoBuscado === termo;
 
   /** Agrupa preservando a ORDEM de relevância que a API devolveu dentro de cada grupo. */
   const groups = useMemo(() => {
     const ordem: Array<'club' | 'competition' | 'player'> = ['club', 'competition', 'player'];
     const rotulo = { club: p.groupClubs, competition: p.groupCompetitions, player: p.groupPlayers };
+    // O filtro por termo vive AQUI DENTRO, e nao numa variavel intermediaria: uma variavel
+    // condicional usada como dependencia faz o `useMemo` recalcular a cada render
+    // (`react-hooks/exhaustive-deps`), que e exatamente o que o memo existe para evitar.
+    const base = respondeAoTermoAtual ? results : [];
     return ordem
-      .map((tipo) => ({ tipo, rotulo: rotulo[tipo], itens: results.filter((r) => r.type === tipo) }))
+      .map((tipo) => ({ tipo, rotulo: rotulo[tipo], itens: base.filter((r) => r.type === tipo) }))
       .filter((g) => g.itens.length > 0);
-  }, [results, p.groupClubs, p.groupCompetitions, p.groupPlayers]);
+  }, [results, respondeAoTermoAtual, p.groupClubs, p.groupCompetitions, p.groupPlayers]);
 
   /** Lista ACHATADA na mesma ordem visual — é o que a navegação por seta percorre. */
   const flat = useMemo(() => groups.flatMap((g) => g.itens), [groups]);
@@ -170,31 +188,31 @@ export default function CommandPalette({
   // seria `AbortController`, mas `api.get` NÃO aceita `signal`, e contornar o cliente de API
   // custaria a renovação de sessão e o tratamento de erro que ele concentra.
   //
-  // Então a guarda é por SEQUÊNCIA: só aplica a resposta se o termo dela ainda for o termo
-  // atual. É a mesma garantia de corretude daqui (a resposta velha é descartada) sem abortar a
-  // requisição — o que se perde é só a economia de banda, não a exatidão.
-  const termoAtual = useRef('');
+  // Então a guarda é por SEQUÊNCIA: cada requisição anota o termo que a pediu, e a resposta é
+  // DESCARTADA se o termo vigente já não for o dela. O ref é escrito apenas dentro do callback
+  // assíncrono — nunca no corpo do efeito. Escrever ref ou estado no corpo do efeito é o que a
+  // regra `set-state-in-effect` do React Compiler aponta, e é o motivo de o `termoAtual.current`
+  // anterior ter saído.
   useEffect(() => {
     if (!open) return;
     const termo = q.trim();
-    termoAtual.current = termo;
-    if (termo.length < MIN_CHARS) {
-      setResults([]);
-      setState('idle');
-      return;
-    }
+    // Termo curto não busca: não agenda nada e NÃO escreve estado (a lista visível é derivada
+    // de `termoBuscado`, então não há o que zerar). Este era o segundo ponto que o lint acusava.
+    if (termo.length < MIN_CHARS) return;
     const id = window.setTimeout(() => {
+      pedidoAtual.current = termo;
+      setTermoBuscado(termo);
       setState('loading');
       api
         .get<SearchResponse>(`/search/global?q=${encodeURIComponent(termo)}&type=all&limit=12`)
         .then((res) => {
-          if (termoAtual.current !== termo) return; // resposta obsoleta: descarta
+          if (pedidoAtual.current !== termo) return; // obsoleta: o termo já mudou
           setResults(res.results ?? []);
           setActive(0);
           setState('done');
         })
         .catch(() => {
-          if (termoAtual.current !== termo) return;
+          if (pedidoAtual.current !== termo) return;
           setState('error');
         });
     }, DEBOUNCE_MS);
@@ -240,9 +258,8 @@ export default function CommandPalette({
     if (typeof el?.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
   }, [active]);
 
-  if (!mounted || !open) return null;
+  if (!open) return null;
 
-  const termo = q.trim();
   const curto = termo.length > 0 && termo.length < MIN_CHARS;
   let idx = -1;
 
@@ -264,7 +281,12 @@ export default function CommandPalette({
         data-testid="command-palette"
       >
         {/* ── Campo ─────────────────────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+        {/* O `py-4` no container e o `min-h-11` (44px) no input e no botão NÃO são estética:
+            medido em 390px com toque, o campo e o botão de fechar tinham 24px de altura, abaixo
+            do piso de 44px do WCAG 2.2 (2.5.8, Target Size). Em telefone o alvo pequeno é o
+            defeito que mais custa — não é o texto que falha, é o dedo que erra.
+            `min-h-11` no INPUT, e não só no container, porque é o input que recebe o toque. */}
+        <div className="flex min-h-16 items-center gap-3 border-b border-border px-5 py-3">
           <SearchIcon className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
           <input
             ref={inputRef}
@@ -279,14 +301,14 @@ export default function CommandPalette({
             onKeyDown={onKeyDown}
             placeholder={s.placeholder}
             aria-label={s.placeholder}
-            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-ink-3"
+            className="min-h-11 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-ink-3"
             data-testid="palette-input"
           />
           <button
             type="button"
             onClick={onClose}
             aria-label={p.hintClose}
-            className="shrink-0 rounded-lg p-1 text-ink-3 transition-colors duration-200 hover:text-foreground"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-3 transition-colors duration-200 hover:text-foreground"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

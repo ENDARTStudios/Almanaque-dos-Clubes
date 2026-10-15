@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { wsC8Strings, notificationTypeLabel } from '@/i18n/wsC8';
@@ -60,6 +61,7 @@ export default function NotificationDropdown({
   onChanged: () => void;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const { locale } = useI18n();
   const s = wsC8Strings[locale].notifications;
   const [items, setItems] = useState<NotificationItem[] | null>(null);
@@ -88,7 +90,10 @@ export default function NotificationDropdown({
     onChanged();
     onClose();
     const href = itemHref(n);
-    if (href) window.location.href = href;
+    // `router.push` em vez de `window.location.href`: a navegação dura recarregava o
+    // app inteiro para ir a uma rota interna, perdendo o estado do painel — e a regra
+    // `@next/next/no-location-assign-relative-destination` aponta exatamente isso.
+    if (href) router.push(href);
   };
 
   const markAll = async () => {
