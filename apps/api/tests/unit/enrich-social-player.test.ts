@@ -1,13 +1,17 @@
 /**
- * enrich-social-wikidata — os dois defeitos SILENCIOSOS que a página do jogador escondia.
+ * enrich-social-wikidata — os TRÊS defeitos silenciosos que a página do jogador escondia.
  *
  * Contexto: o perfil de jogador renderiza `<SocialLinks>`, mas em produção 105.187 jogadores
  * eram elegíveis e ZERO tinham dado. O componente se protege contra vazio (`return null`), então
- * nada na tela denunciava. Os testes abaixo cobrem as duas causas, e ambas são de lógica pura —
+ * nada na tela denunciava. Os testes abaixo cobrem as três causas, e todas são de lógica pura —
  * não precisam de banco nem de rede.
  */
 import { describe, it, expect } from 'vitest';
-import { baseDeSelecao, montarPatch } from '../../src/scripts/enrich-social-wikidata.js';
+import {
+  baseDeSelecao,
+  montarPatch,
+  ordemDeSelecao,
+} from '../../src/scripts/enrich-social-wikidata.js';
 
 const EXTRAIDO = {
   officialSite: 'https://exemplo.org',
@@ -42,6 +46,23 @@ describe('baseDeSelecao — a coluna `deletedAt` não existe em players', () => 
     for (const alvo of ['club', 'player', 'competition'] as const) {
       expect(baseDeSelecao(alvo)).toContain('qid IS NOT NULL');
     }
+  });
+});
+
+describe('ordemDeSelecao — sem isto o script reprocessa os mesmos para sempre', () => {
+  it('põe `socialLinks IS NULL` PRIMEIRO', () => {
+    // O defeito medido: das 12 primeiras linhas elegíveis em produção, só 1 tinha
+    // `socialLinks` nulo. Com `createdAt` puro, cada execução gastava a cota do Wikidata nos
+    // mesmos registros já enriquecidos, e 105.084 dos 105.187 elegíveis nunca eram alcançados.
+    expect(ordemDeSelecao()).toContain('"socialLinks" IS NOT NULL');
+    // `false` ordena antes de `true` no Postgres — é isso que dá o efeito de "nulo primeiro".
+    expect(ordemDeSelecao().indexOf('"socialLinks" IS NOT NULL')).toBeLessThan(
+      ordemDeSelecao().indexOf('"createdAt"'),
+    );
+  });
+
+  it('mantém `createdAt` como desempate determinístico', () => {
+    expect(ordemDeSelecao()).toContain('"createdAt" ASC');
   });
 });
 
