@@ -62,6 +62,20 @@ describe('T385 — superfície de métodos HTTP (7.6)', () => {
     expect(res.headers.allow).toBe(ALLOW_HEADER);
   });
 
+  it('T554 — resposta CURTA carrega o cabeçalho CORS (sem isso o browser só vê erro de rede)', async () => {
+    // Medido em produção antes do conserto: numa rajada no login, 8 de 18 respostas 429
+    // voltavam com `retry-after` e SEM `access-control-allow-origin` — o browser reporta
+    // "blocked by CORS policy" e o usuário não lê o "tente de novo". O `@fastify/cors`
+    // (onRequest) precisa ser registrado ANTES de todo hook que encerra a resposta.
+    const res = await app.inject({
+      method: 'TRACE',
+      url: '/api/v1/health',
+      headers: { origin: 'https://almanaquedosclubes.com' },
+    });
+    expect(res.statusCode).toBe(405);
+    expect(res.headers['access-control-allow-origin']).toBe('https://almanaquedosclubes.com');
+  });
+
   it('aceita OPTIONS como preflight CORS (204 com Allow-Methods)', async () => {
     const res = await app.inject({
       method: 'OPTIONS',
