@@ -199,6 +199,17 @@ const es: Dictionary = {
     passwordMismatch: 'Las contraseñas no coinciden.',
   },
   pages: {
+    byCountry: {
+      title: 'Por país',
+      filterPlaceholder: 'Filtrar país…',
+      filterLabel: 'Filtrar país',
+      clear: 'quitar el filtro de país',
+      empty: 'Ningún país con ese nombre.',
+      showAll: 'Ver los {n} países',
+      clubs: 'clubes',
+      players: 'jugadores',
+      error: 'No se pudo cargar el índice de países — la lista completa sigue abajo.',
+    },
     clubs: {
       title: 'Clubes',
       subtitle: 'Explora {n} clubes de fútbol registrados.',

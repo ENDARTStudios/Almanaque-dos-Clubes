@@ -1,5 +1,9 @@
 import { CreatePlayerSchema, NotFoundError, type Player } from '@almanaque/domain';
-import { playersRepository, type ListPlayersParams } from './repository.js';
+import {
+  playersRepository,
+  type ListPlayersParams,
+  type PlayerCountryIndex,
+} from './repository.js';
 import { prisma } from '../../config/prisma.js';
 
 export const playersService = {
@@ -32,6 +36,18 @@ export const playersService = {
     const player = await playersRepository.findById(id);
     if (!player) throw new NotFoundError('Jogador', id);
     return player;
+  },
+
+  /**
+   * Índice de países para o AGRUPAMENTO da página `/players`.
+   *
+   * Contado pela mesma coluna que `list({ country })` filtra (`country`, ISO2), então o número
+   * do índice é o número que o clique devolve — é exatamente o cuidado que motivou o
+   * `/clubs/countries` existir em separado do `/clubs/geo-stats`, onde a FK cobre 32% do acervo
+   * contra 94% da coluna.
+   */
+  async countryIndex(): Promise<PlayerCountryIndex> {
+    return playersRepository.countryIndex();
   },
 
   async update(id: string, input: unknown): Promise<Player> {

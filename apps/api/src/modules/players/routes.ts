@@ -39,6 +39,17 @@ export const playersRoutes: FastifyPluginAsync = async (app: FastifyInstance) =>
     return reply.send(result);
   });
 
+  /**
+   * GET /players/countries — índice de países para o AGRUPAMENTO da página `/players`.
+   *
+   * Contado pela coluna `country` (ISO2), a MESMA que `GET /players?country=XX` filtra, então o
+   * número do índice é o número que o clique devolve. Declarada ANTES de `/players/:id`: rota
+   * estática não pode ser capturada pelo parâmetro.
+   */
+  app.get('/players/countries', async (_request, reply) => {
+    return reply.send({ data: await playersService.countryIndex() });
+  });
+
   // WS-C-12 — auth opcional: fansCount (público) + isFavorited (logado).
   app.get<{ Params: { id: string } }>(
     '/players/:id',

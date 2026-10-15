@@ -243,6 +243,19 @@ export interface Dictionary {
     passwordMismatch: string;
   };
   pages: {
+    // T556 — índice de países: o agrupamento de `/clubs` e `/players`.
+    byCountry: {
+      title: string;
+      filterPlaceholder: string;
+      filterLabel: string;
+      clear: string;
+      empty: string;
+      /** `{n}` é o total de países. */
+      showAll: string;
+      clubs: string;
+      players: string;
+      error: string;
+    };
     // T548 — mensagem honesta quando a API falha (antes imprimia "0 clubes").
     clubs: { title: string; subtitle: string; placeholder: string; loadError: string };
     players: { title: string; subtitle: string; placeholder: string };
