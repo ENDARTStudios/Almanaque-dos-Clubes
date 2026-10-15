@@ -302,6 +302,19 @@
   /* `muted` é ELEVação no escuro: precisa ser mais CLARO que o fundo (`#1c1917` citado antes
      ficava mais escuro e lia como rebaixo em vez de cartão). #241f1d dá 15,86:1 com o texto. */
   --color-muted: #241f1d;
+  /* ── CAMADA DE SUPERFÍCIE E ESCALA DE TINTA (conceito visual) ────────────────────────────
+     `surface` é a superfície elevada do conceito: cartão, paleta de comando, linha de tabela.
+     No escuro ela separa do fundo por BORDA, não por contraste de fundo (1,06:1 entre as duas)
+     — é assim que a prancha funciona, e é o que evita o "cartão flutuante" genérico.
+     `surface-2` é o degrau seguinte: cabeçalho de tabela, selo, avatar.
+     `ink-2`/`ink-3` são a escala de TINTA por PAPEL, e existem porque `text-foreground/70`
+     resolve por opacidade: a mesma classe rende contraste diferente conforme a superfície
+     embaixo. Medidos sobre fundo E sobre surface: ink-2 8,58/8,07 · ink-3 5,39/5,07 — os dois
+     passam em AA nas DUAS superfícies, então a tinta não depende de onde ela cai. */
+  --color-surface: #1a1715;
+  --color-surface-2: #211d1a;
+  --color-ink-2: #b3aea3;
+  --color-ink-3: #8d8880;
   --color-border: #6b625a;
   --color-destructive: #e8412f;
   /* Cor de TEXTO de perigo/erro. O repo usava `text-red-500/600/700` (26 arquivos) como cor de
@@ -345,6 +358,14 @@
   --color-background: #fef2f2;
   --color-foreground: #340808;
   --color-muted: #f0edf1;
+  /* Par claro da camada de superfície. `surface` aqui é BRANCO de verdade: no tema claro a
+     elevação se lê por fundo mais claro que o `#fef2f2` do fundo, não por borda.
+     Tintas medidas sobre `#fef2f2` e sobre branco: ink-2 6,70/7,33 · ink-3 5,01/5,48 —
+     acima do piso 4,5 nas duas superfícies. */
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f2f2;
+  --color-ink-2: #5c554e;
+  --color-ink-3: #6f6862;
   --color-border: #fecaca;
   --color-destructive: #dc2626;
   --color-danger-ink: #dc2626;
@@ -399,6 +420,35 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  /* NÚMERO — a tipografia do dado. Existe como utilitário, e não como classe solta em cada
+     lugar, porque três decisões precisam andar SEMPRE juntas:
+       1. `--font-heading` (Barlow Condensed): número em display é editorial, não é corpo;
+       2. `font-variant-numeric: tabular-nums`: sem isto as colunas de tabela "dançam" entre
+          linhas, porque `1` é mais estreito que `8` na fonte proporcional. Era o defeito mais
+          visível na tabela de rankings antes do conceito;
+       3. `font-feature-settings: "tnum"`: o mesmo pedido em forma explícita, para os motores
+          que ignoram a propriedade de alto nível.
+     Aplicar em QUALQUER número que fique em coluna ou que mude de valor na tela. */
+  .num {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.01em;
+  }
+  /* Rótulo-selo: caixa alta, tracking largo, miúdo. É o denominador comum das seções.
+     Cuidado com o TELL: usado como kicker minúsculo logo acima de um título grande, ele é o
+     molde `kicker-above-heading`, que o detector reprova. O uso legítimo é rotular um VALOR
+     (`FONTE`, `TÍTULOS`, `WIKIDATA`), não anunciar a seção seguinte. */
+  .eyebrow {
+    /* 11px é o PISO do detector (`undersized-ui-text` reprova abaixo). Estava 10,5px — o mesmo
+       defeito que a auditoria apontou no quadro de conceito; a lição vale nos dois lugares. */
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-3);
   }
   /* Largura de LEITURA (medida em `ch`, não em `rem`): a regra `line-length` do detector
      mede os caracteres REAIS da linha renderizada e acusa acima de ~80. `max-w-3xl` (48rem

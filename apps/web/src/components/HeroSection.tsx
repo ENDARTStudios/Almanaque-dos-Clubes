@@ -203,25 +203,30 @@ export default function HeroSection({
                   {stats.map((stat) => (
                     <div
                       key={stat.label}
-                      className="stat-item flex flex-col rounded-xl border border-border bg-[color-mix(in_oklab,var(--color-foreground)_4%,transparent)] px-3 py-4 text-center"
+                      className="stat-item flex flex-col rounded-xl border border-border bg-surface px-4 py-4"
                     >
-                      <dd className="font-heading text-2xl font-bold text-primary-ink sm:text-3xl">
+                      {/* Base do conceito: número em `.num` (Barlow Condensed + numeral tabular)
+                          e SEMPRE com o rótulo embaixo. Duas mudanças deliberadas em relação à
+                          versão anterior: a tinta saiu de `text-primary-ink` para
+                          `text-foreground` (o vermelho da marca fica reservado a CTA e estado —
+                          usado em número, ele deixava de significar "aja aqui"), e o
+                          alinhamento saiu do centro para a esquerda, que é o que permite
+                          comparar três números em coluna. */}
+                      <dd className="num text-3xl leading-none text-foreground">
                         {stat.value != null ? formatCount(stat.value, locale) : '—'}
                       </dd>
-                      <dt className="mt-1 text-[11px] leading-tight text-[color-mix(in_oklab,var(--color-foreground)_70%,transparent)]">
-                        {stat.label}
-                      </dt>
+                      <dt className="mt-2 text-[0.8125rem] leading-tight text-ink-2">{stat.label}</dt>
                     </div>
                   ))}
                 </dl>
-                <p data-testid="hero-stats-note" className="mt-3 text-xs text-foreground/70">
+                <p data-testid="hero-stats-note" className="mt-3 text-xs text-ink-2">
                   {c12.statsProvenance}
                 </p>
               </>
             ) : (
               <p
                 data-testid="hero-stats-gap"
-                className="mt-6 rounded-xl border border-dashed border-border bg-[color-mix(in_oklab,var(--color-foreground)_4%,transparent)] px-4 py-4 text-xs leading-relaxed text-foreground/60"
+                className="mt-6 rounded-xl border border-dashed border-border bg-surface px-4 py-4 text-xs leading-relaxed text-ink-2"
               >
                 {c12.statsNoData}
               </p>

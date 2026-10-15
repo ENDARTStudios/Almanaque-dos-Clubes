@@ -4,6 +4,7 @@ import HeroSection, {
   type HeroChampion,
   type HeroTotals,
 } from '@/components/HeroSection';
+import HomeExplore from '@/components/HomeExplore';
 import ChampionsCarousel from '@/components/ChampionsCarousel';
 import { getApiBase } from '@/lib/api-base';
 import type { CarouselScope } from '@/lib/carousel';
@@ -70,6 +71,10 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection initialTotals={totals} champion={champion} />
+      {/* Conceito visual — a camada de exploração: o acervo é a interface. Vem logo depois
+          da dobra porque responde à pergunta que a dobra levanta ("12.003 clubes… e daí?").
+          Recebe o MESMO `totals` do servidor: nenhuma prancha carrega dado próprio. */}
+      <HomeExplore totals={totals} />
       <HomeFeatures />
       {/* T441 — campeões vigentes por hierarquia (dados auditáveis do KnowledgeGraph).
           Na mesma camada escura da dobra: a home não pode alternar escuro → claro →

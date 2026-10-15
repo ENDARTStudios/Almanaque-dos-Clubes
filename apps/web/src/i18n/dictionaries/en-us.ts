@@ -119,7 +119,18 @@ const en: Dictionary = {
       matches: 'Catalogued matches',
       rankings: 'Published rankings',
     },
-    featuresTitle: 'All About World Football',
+    explore: {
+      label: 'Start wherever you like',
+      title: 'The archive is the interface',
+      clubs: 'Clubs & national teams',
+      competitions: 'Competitions',
+      rankings: 'Rankings',
+      map: 'World map',
+      inArchive: 'in the archive',
+      worldwide: 'The whole world',
+      sideBySide: 'Side by side',
+      compare: 'Compare',
+    },    featuresTitle: 'All About World Football',
     featuresSubtitle: 'Historical data under construction with modern search and analysis tools.',
     features: [
       {

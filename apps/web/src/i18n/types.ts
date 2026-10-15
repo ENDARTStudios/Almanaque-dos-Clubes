@@ -190,6 +190,18 @@ export interface Dictionary {
       matches: string;
       rankings: string;
     };
+    explore: {
+      label: string;
+      title: string;
+      clubs: string;
+      competitions: string;
+      rankings: string;
+      map: string;
+      compare: string;
+      inArchive: string;
+      worldwide: string;
+      sideBySide: string;
+    };
     featuresTitle: string;
     featuresSubtitle: string;
     features: { title: string; desc: string }[];
