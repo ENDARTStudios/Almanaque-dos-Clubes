@@ -14,7 +14,7 @@ import { buildMapViewModel, type GeoPointsResponseDto } from '@/lib/map-viewmode
 
 const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   ssr: false,
-  loading: () => <div className="theme-light h-[55vh] w-full animate-pulse rounded-2xl bg-muted" />,
+  loading: () => <div className="h-[55vh] w-full animate-pulse rounded-2xl bg-muted" />,
 });
 
 /** Fallback do select enquanto /clubs/geo-stats não carrega (ou falha). */

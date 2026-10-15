@@ -9,8 +9,11 @@ import type { CSSProperties } from 'react';
  * superfície escura isso vira um retângulo branco no meio do gráfico. As linhas de grade tinham
  * `#00000018` fixo, que simplesmente desaparecia no fundo escuro.
  *
- * As cores usam as variáveis CSS do tema (e não hex fixo), então o mesmo componente funciona na
- * superfície escura (padrão do site) e na clara (`.theme-light`, exceção do mapa).
+ * As cores usam as variáveis CSS do tema (e não hex fixo), então o mesmo componente acompanha
+ * o tema vigente sem alteração: hoje o CLARO é o padrão e o escuro é a exceção `.theme-dark`.
+ * O motivo de existir continua o mesmo, só espelhado: o Recharts desenha `Tooltip` e `Legend`
+ * com fundo BRANCO e texto escuro inline, que sobre uma superfície escura vira um retângulo
+ * branco no meio do gráfico.
  */
 export const CHART_TOOLTIP_STYLE: CSSProperties = {
   backgroundColor: 'var(--color-background)',
