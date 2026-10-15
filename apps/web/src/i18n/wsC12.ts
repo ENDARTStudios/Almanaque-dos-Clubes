@@ -33,6 +33,20 @@ export interface HeroLandingStrings {
   proofSeason: string;
   proofEmpty: string;
   proofDisclaimer: string;
+  /** T568 — carrossel de campeoes na hero (mundial + continentais). */
+  carousel: {
+    tierWorld: string;
+    tierContinental: string;
+    tierOther: string;
+    carouselRole: string;
+    carouselLabel: string;
+    slideRole: string;
+    prev: string;
+    next: string;
+    /** Conector "de": "1 de 4". */
+    of: string;
+    source: string;
+  };
   /** Prova quantitativa — legenda com a origem e a data da consulta (não bordão). */
   statsProvenance: string;
   /** Lacuna declarada: quando a API não responde, uma nota substitui os cartões. */
@@ -57,9 +71,9 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
     /* "é", não "já foi": o futebol não é um acervo do que passou — é uma coisa viva e presente
        (correção do Operador). O presente também é coerente com o H1 "é eterno". */
     eyebrow: 'Tudo o que o futebol é, num só lugar.',
-    promise: 'Clubes, ídolos, campeões e as eras que não acabam — de todos os países e competições.',
-    promiseNote:
-      'E cada número com a fonte ao lado, para a história resistir à conferência.',
+    promise:
+      'Clubes, ídolos, campeões e as eras que não acabam — de todos os países e competições.',
+    promiseNote: 'E cada número com a fonte ao lado, para a história resistir à conferência.',
     ctaPrimary: 'Começar a explorar',
     ctaPrimaryNote: 'Sem cadastro para explorar.',
     ctaSecondary: 'Criar conta gratuita',
@@ -67,10 +81,21 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
     proofSource: 'Fonte',
     proofSeason: 'Temporada',
     proofEmpty: 'Nenhum campeão auditável publicado ainda.',
+    carousel: {
+      tierWorld: 'Campeão mundial',
+      tierContinental: 'Campeão continental',
+      tierOther: 'Campeão',
+      carouselRole: 'carrossel',
+      carouselLabel: 'Campeões vigentes no acervo',
+      slideRole: 'slide',
+      prev: 'Campeão anterior',
+      next: 'Próximo campeão',
+      of: 'de',
+      source: 'ver fonte',
+    },
     proofDisclaimer:
       'Escolhido entre os campeões com fonte verificada; hierarquias sem dado auditável ficam de fora.',
-    statsProvenance:
-      'Contagens do acervo, lidas da API pública e conferíveis em /metodologia.',
+    statsProvenance: 'Contagens do acervo, lidas da API pública e conferíveis em /metodologia.',
     statsNoData:
       'Contagens indisponíveis agora — a lacuna é declarada, não estimada. Elas voltam quando a API pública responde.',
     featuresTitle: 'Um acervo, quatro respostas',
@@ -98,7 +123,8 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
   'en-us': {
     hook: 'Football is eternal.\u00a0So is its memory.',
     eyebrow: 'Everything football is, in one place.',
-    promise: 'Clubs, idols, champions and the eras that never end — from every country and competition.',
+    promise:
+      'Clubs, idols, champions and the eras that never end — from every country and competition.',
     promiseNote: 'And a source beside every number, so the story survives being checked.',
     ctaPrimary: 'Start exploring',
     ctaPrimaryNote: 'No sign-up to explore.',
@@ -107,6 +133,18 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
     proofSource: 'Source',
     proofSeason: 'Season',
     proofEmpty: 'No auditable champion published yet.',
+    carousel: {
+      tierWorld: 'World champion',
+      tierContinental: 'Continental champion',
+      tierOther: 'Champion',
+      carouselRole: 'carousel',
+      carouselLabel: 'Reigning champions in the archive',
+      slideRole: 'slide',
+      prev: 'Previous champion',
+      next: 'Next champion',
+      of: 'of',
+      source: 'view source',
+    },
     proofDisclaimer:
       'Picked from champions with a verified source; hierarchies without auditable data stay out.',
     statsProvenance:
@@ -138,7 +176,8 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
   'es-es': {
     hook: 'El fútbol es eterno.\u00a0Su memoria, también.',
     eyebrow: 'Todo lo que el fútbol es, en un solo lugar.',
-    promise: 'Clubes, ídolos, campeones y las eras que no terminan — de todos los países y competiciones.',
+    promise:
+      'Clubes, ídolos, campeones y las eras que no terminan — de todos los países y competiciones.',
     promiseNote: 'Y cada número con su fuente al lado, para que la historia resista el cotejo.',
     ctaPrimary: 'Empezar a explorar',
     ctaPrimaryNote: 'Sin registro para explorar.',
@@ -147,6 +186,18 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
     proofSource: 'Fuente',
     proofSeason: 'Temporada',
     proofEmpty: 'Aún no hay campeón auditable publicado.',
+    carousel: {
+      tierWorld: 'Campeón mundial',
+      tierContinental: 'Campeón continental',
+      tierOther: 'Campeón',
+      carouselRole: 'carrusel',
+      carouselLabel: 'Campeones vigentes en el acervo',
+      slideRole: 'slide',
+      prev: 'Campeón anterior',
+      next: 'Campeón siguiente',
+      of: 'de',
+      source: 'ver fuente',
+    },
     proofDisclaimer:
       'Elegido entre campeones con fuente verificada; las jerarquías sin dato auditable quedan fuera.',
     statsProvenance:

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { caminhoInternoSeguro } from '@/lib/redirect-safe';
 import { getApiBase } from '@/lib/api-base';
 import { useI18n } from '@/i18n/Provider';
 
@@ -20,6 +21,7 @@ const API_BASE = getApiBase();
  */
 export function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,7 +49,16 @@ export function LoginForm() {
     setError('');
     try {
       await api.post('/auth/login', { email, password });
-      router.push('/');
+      /* T567 — volta para onde o usuário estava, e não para a home.
+       *
+       * O `/admin` manda para cá com `?next=/admin`; sem honrar o parâmetro, o Operador entrava e
+       * caía na home, tendo de navegar de novo até a área restrita — que era o "login não
+       * habilitado" que ele relatou.
+       *
+       * O caminho passa por `caminhoInternoSeguro` porque aceitar `next` cru é OPEN REDIRECT:
+       * `/auth/login?next=https://site-falso.com` levaria alguém JÁ AUTENTICADO para um site de
+       * terceiro logo depois de digitar a senha — a tela em que ele mais confia no remetente. */
+      router.push(caminhoInternoSeguro(params.get('next')));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginErrorDefault'));
     }

@@ -152,4 +152,19 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     });
     expect(res.statusCode).toBe(403);
   });
+
+  it('(i) T569 — a resposta de recusa continua sendo 403 limpo', async () => {
+    if (!dbOk || !isPostgres) return;
+    /* A auditoria é fire-and-forget de propósito: se o banco estiver fora, a recusa precisa
+       acontecer mesmo assim. Um 500 no lugar do 403 já diria ao atacante que ele acertou um
+       caminho interessante. */
+    const token = tokenDe(INTRUSO_ADMIN, ['admin']);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/jobs/health',
+      headers: auth(token),
+    });
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toContain('FORBIDDEN');
+  });
 });

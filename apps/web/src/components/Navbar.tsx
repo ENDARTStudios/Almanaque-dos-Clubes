@@ -76,14 +76,19 @@ export default function Navbar() {
       key: 'competicoes',
       label: t('nav.competitions'),
       items: [
-        ...[
-          ['BR', 'competitions.countryBR'],
-          ['GB', 'competitions.countryGB'],
-          ['IT', 'competitions.countryIT'],
-          ['FR', 'competitions.countryFR'],
-          ['ES', 'competitions.countryES'],
-          ['NO', 'competitions.countryNO'],
-        ].map(([cc, key]) => ({ label: t(key), href: `/competitions?country=${cc}` })),
+        /* T566 — as chaves eram `competitions.countryXX` e moram em `nav.sub.countryXX`.
+         *
+         * O `t()` resolve por caminho e, quando não encontra, devolve a PRÓPRIA CHAVE. Era isso
+         * que o Operador via no menu: "competitions.countryBR" em vez de "Brasil". Falha silenciosa
+         * do tipo mais traiçoeiro — a interface funciona, não quebra, só mostra texto técnico onde
+         * deveria haver nome de país.
+         *
+         * Os rótulos vêm do dicionário porque `nav.sub.country*` já é a fonte única dos nomes de
+         * país usados na navegação (os itens de clube usam o mesmo conjunto). */
+        ...['BR', 'GB', 'IT', 'FR', 'ES', 'NO'].map((cc) => ({
+          label: t(`nav.sub.country${cc}`),
+          href: `/competitions?country=${cc}`,
+        })),
         {
           label: t('nav.sub.continental'),
           href: '/competitions/9d50e9fa-bc31-4ea8-af77-e429f451ff52',
