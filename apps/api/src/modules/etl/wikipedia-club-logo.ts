@@ -49,10 +49,24 @@ export const PERFIS_WIKI: Record<string, InfoboxPerfil> = {
     explicitos: ['logo', 'wappen'],
     ambiguos: ['bild', 'image'],
   },
+  // T553 — ES: template real medido em artigo (Real Madrid): o escudo vem no campo
+  // `Imagen principal`, que é explícito (`imagen` sozinho fica ambíguo).
+  eswiki: {
+    template: /\{\{\s*Ficha de equipo de f[úu]tbol\b/i,
+    explicitos: ['escudo', 'logo', 'imagen principal'],
+    ambiguos: ['imagen', 'imagen2'],
+  },
+  // T553 — IT: template medido (Juventus): `{{Squadra di calcio}}`. Nem todo artigo traz
+  // o escudo no infobox, daí os três nomes possíveis em explícito.
+  itwiki: {
+    template: /\{\{\s*Squadra di calcio\b/i,
+    explicitos: ['stemma', 'logo', 'stemma societario'],
+    ambiguos: ['immagine', 'image'],
+  },
 };
 
 /** Wikis tentadas, na ordem — a PT primeiro porque é a fonte já aprovada no acervo. */
-export const WIKIS_ESCUDO = ['ptwiki', 'enwiki', 'dewiki'] as const;
+export const WIKIS_ESCUDO = ['ptwiki', 'enwiki', 'dewiki', 'eswiki', 'itwiki'] as const;
 export type WikiEscudo = (typeof WIKIS_ESCUDO)[number];
 
 function normalizar(nome: string): string {
@@ -66,9 +80,12 @@ function normalizar(nome: string): string {
  */
 export function arquivoDoValor(valor: string): string | null {
   const semComentario = valor.replace(/<!--[\s\S]*?-->/g, '');
-  const link = /\[\[\s*(?:ficheiro|imagem|file|image)\s*:\s*([^\]|]+?)\s*(?:\|[^\]]*)?\]\]/i.exec(
-    semComentario,
-  );
+  // T553 — o namespace do link é LOCAL: `Archivo:` (es), `Datei:` (de), `Fichier:` (fr).
+  // Sem eles, o escudo do Real Madrid (`[[Archivo:Logo…]]`) passava batido.
+  const link =
+    /\[\[\s*(?:ficheiro|imagem|archivo|datei|fichier|file|image)\s*:\s*([^\]|]+?)\s*(?:\|[^\]]*)?\]\]/i.exec(
+      semComentario,
+    );
   const primeiro = link ? link[1]! : (semComentario.split(/[|\n]/)[0] ?? '');
   const nome = normalizar(primeiro.replace(/^\[\[|\]\]$/g, ''));
   if (!nome) return null;
