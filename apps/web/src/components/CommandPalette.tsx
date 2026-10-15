@@ -232,9 +232,12 @@ export default function CommandPalette({
   };
 
   // Mantém o item ativo visível. `block: 'nearest'` evita o salto quando ele já está na tela.
+  // A checagem de tipo NÃO é para agradar teste: `scrollIntoView` não é universal (jsdom não
+  // tem, e motores antigos também não), e sem a guarda o efeito inteiro estoura — o que
+  // derrubaria a paleta por causa de uma melhoria puramente cosmética.
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>('[data-ativo="true"]');
-    el?.scrollIntoView({ block: 'nearest' });
+    if (typeof el?.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
   }, [active]);
 
   if (!mounted || !open) return null;
@@ -300,6 +303,13 @@ export default function CommandPalette({
           ) : state === 'done' && flat.length === 0 ? (
             <p className="px-5 py-6 text-sm text-ink-2" data-testid="palette-empty">
               {p.noResults}
+            </p>
+          ) : state === 'loading' ? (
+            /* Estado de CARREGANDO. Antes a paleta ficava em branco entre a tecla e a resposta,
+               o que numa rede lenta parece que a busca não funcionou. `aria-live` no container
+               já anuncia a mudança. */
+            <p className="px-5 py-6 text-sm text-ink-2" data-testid="palette-loading">
+              {s.loading}
             </p>
           ) : flat.length === 0 ? (
             <p className="px-5 py-6 text-sm text-ink-3">{p.tooShort}</p>
