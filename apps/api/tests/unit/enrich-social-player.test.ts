@@ -56,8 +56,12 @@ describe('montarPatch — zero overwrite, e `{}` NÃO é "tem dado"', () => {
   });
 
   it('`null` e `undefined` também geram patch', () => {
-    expect(montarPatch({ socialLinks: null, officialSite: null }, EXTRAIDO, 'player').socialLinks).toBeDefined();
-    expect(montarPatch({ socialLinks: undefined, officialSite: null }, EXTRAIDO, 'player').socialLinks).toBeDefined();
+    expect(
+      montarPatch({ socialLinks: null, officialSite: null }, EXTRAIDO, 'player').socialLinks,
+    ).toBeDefined();
+    expect(
+      montarPatch({ socialLinks: undefined, officialSite: null }, EXTRAIDO, 'player').socialLinks,
+    ).toBeDefined();
   });
 
   it('socialLinks COM dado NÃO é sobrescrito (zero overwrite)', () => {
@@ -86,7 +90,10 @@ describe('montarPatch — zero overwrite, e `{}` NÃO é "tem dado"', () => {
   });
 
   it('sem nada extraído do Wikidata, o patch fica vazio (o alvo é pulado)', () => {
-    const vazio = { officialSite: null, socialLinks: { youtube: null, twitter: null, facebook: null, instagram: null } };
+    const vazio = {
+      officialSite: null,
+      socialLinks: { youtube: null, twitter: null, facebook: null, instagram: null },
+    };
     const patch = montarPatch({ socialLinks: {}, officialSite: null }, vazio, 'player');
     // `socialLinks` ainda entra (o alvo não tinha dado), mas o site não.
     expect(patch.officialSite).toBeUndefined();
@@ -97,7 +104,11 @@ describe('montarPatch — zero overwrite, e `{}` NÃO é "tem dado"', () => {
     // Depois de um apply, socialLinks fica com as QUATRO chaves (as ausentes vêm como null),
     // então `Object.keys(...).length` é 4 e o alvo deixa de ser elegível.
     const gravado = EXTRAIDO.socialLinks;
-    const patch = montarPatch({ socialLinks: gravado, officialSite: 'https://exemplo.org' }, EXTRAIDO, 'player');
+    const patch = montarPatch(
+      { socialLinks: gravado, officialSite: 'https://exemplo.org' },
+      EXTRAIDO,
+      'player',
+    );
     expect(patch).toEqual({});
   });
 });

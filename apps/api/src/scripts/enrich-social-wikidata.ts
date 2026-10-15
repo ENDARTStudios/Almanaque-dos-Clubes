@@ -40,7 +40,8 @@ export function baseDeSelecao(target: 'club' | 'player' | 'competition'): string
   const { site } = ALVO[target];
   const colunas = `qid IS NOT NULL AND ("socialLinks" IS NULL OR ${site} IS NULL)`;
   // `players` NÃO tem `deletedAt` no modelo: incluí-lo ali é `42703` (undefined_column).
-  const softDelete = target === 'competition' || target === 'club' ? '"deletedAt" IS NULL AND ' : '';
+  const softDelete =
+    target === 'competition' || target === 'club' ? '"deletedAt" IS NULL AND ' : '';
   return `${softDelete}${colunas}`;
 }
 
@@ -79,8 +80,7 @@ export function montarPatch(
 
   const socialLinksVazio =
     alvo.socialLinks == null ||
-    (typeof alvo.socialLinks === 'object' &&
-      Object.keys(alvo.socialLinks as object).length === 0);
+    (typeof alvo.socialLinks === 'object' && Object.keys(alvo.socialLinks as object).length === 0);
   if (socialLinksVazio) patch.socialLinks = extraido.socialLinks;
 
   return patch;
@@ -164,9 +164,7 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   // Raw SQL: filtros null em Json via shorthand/sentinels tem comportamento inconsistente nesta
   // instalacao — SQL direto e deterministico. A regra de cada alvo vem de `baseDeSelecao` e
   // `colunasDe`, e nao e reescrita aqui: era a duplicacao que deixava o ramo `all` para tras.
-  const consultar = async (
-    kind: 'club' | 'player' | 'competition',
-  ): Promise<Target[]> => {
+  const consultar = async (kind: 'club' | 'player' | 'competition'): Promise<Target[]> => {
     const linhas = (await prisma.$queryRawUnsafe(
       `SELECT ${colunasDe(kind)} FROM ${ALVO[kind].tabela} WHERE ${baseDeSelecao(kind)} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
     )) as unknown as Array<Record<string, unknown>>;
