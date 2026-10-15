@@ -51,6 +51,25 @@ function colunasDe(target: 'club' | 'player' | 'competition'): string {
 }
 
 /**
+ * ORDEM de seleção: `socialLinks IS NULL` primeiro, `createdAt` depois.
+ *
+ * Exportada e testada porque é a diferença entre o script funcionar e não funcionar em escala,
+ * e o defeito era invisível. Com `ORDER BY "createdAt" ASC` puro, toda execução rebuscava OS
+ * MESMOS registros mais antigos — já enriquecidos nas execuções anteriores.
+ *
+ * Medido em produção: das 12 primeiras linhas elegíveis, apenas **1** tinha `socialLinks` nulo;
+ * as outras 11 já estavam preenchidas. Como **105.084 dos 105.187** elegíveis estão nulos, o lote
+ * gastava a cota inteira do Wikidata reprocessando quem já tinha dado — e o `updated=0` era
+ * CORRETO, porque naqueles alvos realmente não havia o que escrever.
+ *
+ * Nulo-primeiro faz o trabalho RENDER: cada execução alcança registros virgens. O `IS NOT NULL`
+ * ordena `false` (0) antes de `true` (1) no Postgres, que é o que dá o efeito desejado.
+ */
+export function ordemDeSelecao(): string {
+  return `ORDER BY ("socialLinks" IS NOT NULL), "createdAt" ASC`;
+}
+
+/**
  * Monta o patch de UPDATE a partir do extraído do Wikidata, respeitando ZERO OVERWRITE.
  *
  * Devolve `{}` quando não há nada a escrever — o chamador usa isso para pular o alvo.
@@ -166,7 +185,10 @@ async function loadTargets(prisma: PrismaClient): Promise<Target[]> {
   // `colunasDe`, e nao e reescrita aqui: era a duplicacao que deixava o ramo `all` para tras.
   const consultar = async (kind: 'club' | 'player' | 'competition'): Promise<Target[]> => {
     const linhas = (await prisma.$queryRawUnsafe(
-      `SELECT ${colunasDe(kind)} FROM ${ALVO[kind].tabela} WHERE ${baseDeSelecao(kind)} ORDER BY "createdAt" ASC LIMIT ${LIMIT}`,
+      // A ORDEM vem de `ordemDeSelecao`, testada — ver o comentario dela sobre por que
+      // `createdAt` puro fazia o script reprocessar os mesmos registros para sempre.
+      `SELECT ${colunasDe(kind)} FROM ${ALVO[kind].tabela} WHERE ${baseDeSelecao(kind)} ` +
+        `${ordemDeSelecao()} LIMIT ${LIMIT}`,
     )) as unknown as Array<Record<string, unknown>>;
     return linhas.map((l) => ({ ...l, kind }) as unknown as Target);
   };
