@@ -112,6 +112,24 @@ describe('T552 — perfis EN/DE (o acervo é internacional)', () => {
     expect(escudoDeWikitext(wikitext, PERFIS_WIKI.dewiki!)).toBe('Wappen Beispiel.svg');
   });
 
+  it('ES: {{Ficha de equipo de fútbol}} com `Imagen principal` e namespace Archivo:', () => {
+    // Template e campo MEDIDOS no artigo do Real Madrid; o link usa o namespace local
+    // `Archivo:` — sem ele, o escudo passava batido.
+    const wikitext =
+      '{{Ficha de equipo de fútbol con datos de temporada\n| Nombre = Real Madrid C. F.\n| Imagen principal =[[Archivo:Logo Real Madrid (España).jpg|200px]]\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.eswiki!)).toBe('Logo Real Madrid (España).jpg');
+  });
+
+  it('IT: {{Squadra di calcio}} com |stemma= entra', () => {
+    const wikitext =
+      '{{Squadra di calcio\n|nome squadra = Juventus FC\n|stemma = Juventus_FC_logo.svg\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.itwiki!)).toBe('Juventus FC logo.svg');
+  });
+
+  it('DE: namespace Datei: também é aceito no valor', () => {
+    expect(arquivoDoValor('[[Datei:Wappen_Beispiel.svg|120px]]')).toBe('Wappen Beispiel.svg');
+  });
+
   it('o perfil separa as wikis: PT não casa infobox em inglês', () => {
     const wikitext = '{{Infobox football club\n|logo = X_logo.png\n}}';
     expect(escudoDeWikitext(wikitext, PERFIS_WIKI.ptwiki!)).toBeNull();
