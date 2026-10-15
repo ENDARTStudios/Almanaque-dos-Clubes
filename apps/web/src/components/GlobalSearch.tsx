@@ -32,6 +32,8 @@ interface SearchResponse {
   type: 'all' | 'club' | 'competition' | 'player';
   results: SearchResult[];
   pagination: { limit: number; offset: number; total: number };
+  /** T561 — distribuição completa do termo por tipo (independente do filtro ativo). */
+  counts?: { all: number; club: number; competition: number; player: number };
   limitations: string[];
 }
 
@@ -139,6 +141,7 @@ export default function GlobalSearch() {
               type="button"
               aria-pressed={type === t}
               onClick={() => setType(t)}
+              data-testid={`search-type-${t}`}
               className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                 type === t
                   ? 'bg-primary text-on-primary'
@@ -146,6 +149,19 @@ export default function GlobalSearch() {
               }`}
             >
               {typeLabel(t)}
+              {/* T561 — a contagem ao lado do rótulo. Sem ela, o usuário filtrando por clubes
+                  não saberia que existem 33 jogadores sem CLICAR na aba — e cada clique é uma
+                  requisição. O número vem de `counts`, que é a distribuição completa do termo,
+                  independente do filtro ativo. */}
+              {data?.counts ? (
+                <span
+                  className="num ml-1.5 text-xs opacity-80"
+                  data-testid={`search-count-${t}`}
+                  aria-label={`${data.counts[t]} resultados`}
+                >
+                  {data.counts[t]}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
