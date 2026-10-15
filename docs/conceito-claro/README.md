@@ -1,14 +1,20 @@
-# Conceito visual — versão CLARA
+# Conceito visual — versão CLARA (paleta vinho)
 
-> Prancha de conceito, gerada com o **FigCraft** a partir de um script versionado. **Isto é
-> desenho, não código em produção.** Nada do site foi alterado para produzir estas imagens.
+> Prancha de conceito, gerada com o **FigCraft** a partir de scripts versionados.
+>
+> **Estado:** a paleta vinho **foi implementada** no `apps/web` (ver o PR do tema claro). O que
+> continua sendo desenho, e não código, são os quadros de busca e de sistema: a paleta de
+> comando do quadro 03 **não** foi construída.
 
 | Arquivo | O que mostra |
 |---|---|
 | [01---home.png](01---home.png) | A dobra em fundo claro: hierarquia, prova com fonte, faixa de números, prateleiras |
 | [02---tabela.png](02---tabela.png) | Tabela densa: numeral tabular, pódio, procedência no rodapé |
-| [03---busca.png](03---busca.png) | A busca como paleta de comando, com o acervo a uma tecla |
+| [03---busca.png](03---busca.png) | A busca como paleta de comando, com o acervo a uma tecla — **não implementada** |
 | [04---sistema.png](04---sistema.png) | A paleta com o contraste medido, tipografia e movimento |
+| [comparador-de-paletas.png](comparador-de-paletas.png) | Os seis esquemas que originaram a escolha do vinho |
+| [estados-comparador.png](estados-comparador.png) | As duas famílias de cor de estado (fria e quente) |
+| [estados-02---em-contexto.png](estados-02---em-contexto.png) | Os estados num painel real: tabela, alerta e barra de progresso |
 | `almanaque-conceito-claro.figcraft` | Arquivo nativo (abre no FigCraft) |
 
 Reproduzir:
@@ -116,9 +122,71 @@ mais fácil de esquecer e o mais visível se esquecido.
 - **Responsivo não está desenhado**: os quatro quadros são 1440px.
 - **A sombra não foi medida** — ela não afeta contraste de texto, mas afeta a percepção de
   profundidade, e isso só se avalia em tela de verdade.
-- **O bronze `#7a5e2e` tem 5,28:1 sobre a faixa `#f2efea`**, que é o seu pior caso na prancha.
-  Passa, mas com menos margem que o resto — se ele for usado sobre uma superfície mais escura
-  que a faixa, precisa nova medição.
-- **A dessaturação foi feita por matiz e saturação em HSL**, não em OKLCH. Ficou coerente a
-  olho e mede bem, mas um ajuste perceptual fino (luminosidade constante entre as três cores)
-  pediria OKLCH e não foi feito.
+- **O ouro `#94600a` tem 4,65:1 sobre a faixa `#f2efea`**, o seu pior caso na prancha. Passa,
+  mas com menos margem que o resto — é o valor que mais perto do piso chegou em toda a paleta,
+  e por isso o rótulo de 11px do cartão de prova usa vinho e não ouro.
+- **A dessaturação intermediária foi feita em HSL**, não em OKLCH. A paleta final (vinho) veio
+  de valores escolhidos no comparador e medidos um a um, então isso deixou de ser um limite
+  dela — mas um ajuste perceptual fino de luminosidade entre as três cores ainda pediria OKLCH.
+
+---
+
+# Estados semânticos
+
+Ramo próprio da prancha, porque as cores de **estado** (sucesso, aviso, perigo, informação)
+foram recalibradas **por cálculo** na inversão para o claro e nunca tinham sido vistas
+renderizadas — o ponto que ficou declarado como o mais frágil.
+
+Os arquivos: [estados-comparador.png](estados-comparador.png) (as duas famílias lado a lado) e
+[estados-02---em-contexto.png](estados-02---em-contexto.png) (num painel real, com tabela,
+alerta de topo e barra de progresso). Reproduzir:
+`node plugins/almanaque-design/tools/state-board.mjs .tmp/fig/estados.json`.
+
+## O que a medição mostrou
+
+As quatro cores passam em AA com folga, nas duas superfícies:
+
+| Papel | Badge (tinta sobre superfície) | Tinta no papel |
+|---|---|---|
+| Sucesso | 5,63:1 | 5,84:1 |
+| Aviso | 5,33:1 | 5,77:1 |
+| Perigo | 5,30:1 | 6,10:1 |
+| Informação | 5,49:1 | 6,32:1 |
+
+## A pergunta que sobrou não era de contraste
+
+Ao **ver** a prancha apareceu outro problema: o verde, o azul e o vermelho de convenção são
+**frios**, e o site inteiro é quente (papel quente, vinho, ouro). Na mesma tela eles parecem
+**enxertados**, de outro design system.
+
+É o **mesmo tipo de defeito do painel de auth quase-preto**: o detector de contraste não vê,
+porque não é problema de leitura. É de coerência. Por isso as duas famílias foram desenhadas e
+comparadas:
+
+| | O que é | Custo |
+|---|---|---|
+| **A · Fria — ESCOLHIDA** | Verde, âmbar, vermelho e azul de convenção | Coesão com o papel quente |
+| B · Quente | Oliva, âmbar, telha e petróleo — mesma família do vinho | Curva de aprendizado: verde e vermelho continuam ali, mas com outro tom |
+
+**Decisão do Operador: família A.** O critério foi o risco cognitivo: as cores de estado
+aparecem em **badge pequeno** e **painel de admin**, e convenção forte em alerta vale mais que
+coesão de matiz. A família B fica documentada como alternativa **avaliada e recusada** — não
+como pendência.
+
+## O que esta rodada corrigiu no código
+
+**`--color-info-surface` não existia.** O tema claro tinha `--color-info-ink: #1d4ed8` **sem** a
+superfície correspondente, então `bg-info-surface` simplesmente não existia. A falta era
+silenciosa porque nenhum componente usa o par de informação ainda — mas é um par **incompleto**
+numa escala que declara ter quatro estados, e o primeiro componente que precisasse dele
+escreveria um hex solto. Criado com `#dbeafe` (5,49:1 sobre a tinta de informação).
+
+## Uma correção ao que eu havia afirmado
+
+Eu tinha dito que `bg-foreground/5 text-foreground/70` (o badge neutro) **reprovava** em AA.
+**Medi o composto real e está errado**: o `/70` cai sobre o fundo **já composto** pelo `/5`, não
+sobre o papel. O par rende **6,54:1** e passa.
+
+Os cinco `color-mix(foreground 70%)` que troquei por `ink-2` continuam trocados, mas o motivo
+**não** era reprovação — é que `ink-2` é token explícito e não depende de qual superfície está
+embaixo. A afirmação anterior era conservadora demais, e fica retificada aqui.
