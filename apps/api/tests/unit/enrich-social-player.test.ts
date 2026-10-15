@@ -49,19 +49,19 @@ describe('baseDeSelecao — a coluna `deletedAt` não existe em players', () => 
   });
 });
 
-describe('ordemDeSelecao — sem isto o script reprocessa os mesmos para sempre', () => {
-  it('põe `socialLinks IS NULL` PRIMEIRO', () => {
-    // O defeito medido: das 12 primeiras linhas elegíveis em produção, só 1 tinha
-    // `socialLinks` nulo. Com `createdAt` puro, cada execução gastava a cota do Wikidata nos
-    // mesmos registros já enriquecidos, e 105.084 dos 105.187 elegíveis nunca eram alcançados.
-    expect(ordemDeSelecao()).toContain('"socialLinks" IS NOT NULL');
-    // `false` ordena antes de `true` no Postgres — é isso que dá o efeito de "nulo primeiro".
-    expect(ordemDeSelecao().indexOf('"socialLinks" IS NOT NULL')).toBeLessThan(
-      ordemDeSelecao().indexOf('"createdAt"'),
-    );
+describe('ordemDeSelecao — a chave e a TENTATIVA, nao o dado', () => {
+  it('ordena por `socialLinksUpdatedAt`, que faz a fila ANDAR', () => {
+    // Duas tentativas erradas antes desta, ambas medidas em producao:
+    //   `createdAt` puro -> rebuscava os mais antigos JA enriquecidos (1 em 12 tinha nulo);
+    //   `("socialLinks" IS NOT NULL)` -> pegava os mais antigos NULOS, que nao tem dado no
+    //     Wikidata: o patch saia vazio, nada era gravado, e eles ficavam no topo PARA SEMPRE
+    //     (quatro lotes de 500 processaram as mesmas pessoas, banco inalterado).
+    // A tentativa e o que tira o registro da fila, tenha ele dado ou nao.
+    expect(ordemDeSelecao()).toContain('"socialLinksUpdatedAt"');
+    expect(ordemDeSelecao()).not.toContain('"socialLinks" IS NOT NULL');
   });
 
-  it('mantém `createdAt` como desempate determinístico', () => {
+  it('mantem `createdAt` como desempate deterministico', () => {
     expect(ordemDeSelecao()).toContain('"createdAt" ASC');
   });
 });
