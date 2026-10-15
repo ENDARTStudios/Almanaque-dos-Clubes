@@ -83,7 +83,10 @@ export default function Navbar() {
           ['ES', 'competitions.countryES'],
           ['NO', 'competitions.countryNO'],
         ].map(([cc, key]) => ({ label: t(key), href: `/competitions?country=${cc}` })),
-        { label: t('nav.sub.continental'), href: '/competitions/9d50e9fa-bc31-4ea8-af77-e429f451ff52' },
+        {
+          label: t('nav.sub.continental'),
+          href: '/competitions/9d50e9fa-bc31-4ea8-af77-e429f451ff52',
+        },
         { label: t('nav.sub.women'), href: '/competitions?search=feminino' },
         { label: t('nav.sub.allCompetitions'), href: '/competitions' },
       ],
@@ -115,7 +118,9 @@ export default function Navbar() {
         key={entry.href}
         href={entry.href}
         title={entry.full}
-        className="text-sm font-medium whitespace-nowrap text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
+        // T554 — `py-1`: o alvo media 20px (WCAG 2.5.8 pede ≥24). O header não cresce
+        // porque o logo e os botões de ação já são mais altos que 28px.
+        className="text-sm font-medium whitespace-nowrap py-1 text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
       >
         {entry.label}
       </Link>
@@ -126,7 +131,7 @@ export default function Navbar() {
           aria-expanded={openDesktop === entry.key}
           onClick={() => setOpenDesktop((o) => (o === entry.key ? null : entry.key))}
           onBlur={() => setTimeout(() => setOpenDesktop((o) => (o === entry.key ? null : o)), 150)}
-          className="flex items-center gap-1 text-sm font-medium whitespace-nowrap text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
+          className="flex items-center gap-1 text-sm font-medium whitespace-nowrap py-1 text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
         >
           {entry.label}
           <span aria-hidden="true" className="text-[10px]">
@@ -182,224 +187,226 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {/* Esquerda: hambúrguer (abaixo de lg) + marca como UM lockup alinhado pela base. */}
             <div className="flex min-w-0 items-center gap-2">
-            <button
-              type="button"
-              data-testid="nav-mobile-toggle"
-              aria-expanded={mobileOpen}
-              aria-controls="nav-panel"
-              aria-label={t('nav.menu')}
-              onClick={() => setMobileOpen((o) => !o)}
-              className="-ml-2 shrink-0 rounded-lg p-2 text-foreground/80 transition-colors hover:bg-foreground/5 lg:hidden"
-            >
-              <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
-              <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
-              <span aria-hidden="true" className="block h-0.5 w-5 bg-current" />
-            </button>
-            <Link href="/" className="flex shrink-0 items-baseline gap-1.5">
-              <span className="font-heading text-2xl font-bold leading-none text-primary-ink">
-                ALMANAQUE
-              </span>
-              <span className="hidden font-heading text-base leading-none text-foreground/70 sm:inline">
-                dos Clubes
-              </span>
-            </Link>
-          </div>
+              <button
+                type="button"
+                data-testid="nav-mobile-toggle"
+                aria-expanded={mobileOpen}
+                aria-controls="nav-panel"
+                aria-label={t('nav.menu')}
+                onClick={() => setMobileOpen((o) => !o)}
+                className="-ml-2 shrink-0 rounded-lg p-2 text-foreground/80 transition-colors hover:bg-foreground/5 lg:hidden"
+              >
+                <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
+                <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
+                <span aria-hidden="true" className="block h-0.5 w-5 bg-current" />
+              </button>
+              <Link href="/" className="flex shrink-0 items-baseline gap-1.5">
+                <span className="font-heading text-2xl font-bold leading-none text-primary-ink">
+                  ALMANAQUE
+                </span>
+                <span className="hidden font-heading text-base leading-none text-foreground/70 sm:inline">
+                  dos Clubes
+                </span>
+              </Link>
+            </div>
 
-          {/* Centro: navegação, a partir de lg (antes exigia 1024 px e quebrava rótulo). */}
-          <div className="ml-6 hidden items-center gap-6 lg:flex">
-            {entries.map((e, i) => renderEntry(e, i))}
-          </div>
+            {/* Centro: navegação, a partir de lg (antes exigia 1024 px e quebrava rótulo). */}
+            <div className="ml-6 hidden items-center gap-6 lg:flex">
+              {entries.map((e, i) => renderEntry(e, i))}
+            </div>
 
-          {/* Direita: busca (desktop) + idioma + conta. `ml-auto` garante que a direita fique
+            {/* Direita: busca (desktop) + idioma + conta. `ml-auto` garante que a direita fique
               sempre colada à borda, sem o vão irregular que existia no tablet. */}
-          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-            {/* A busca da navbar virou GATILHO da paleta de comando (conceito, quadro 03): a
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+              {/* A busca da navbar virou GATILHO da paleta de comando (conceito, quadro 03): a
                 busca é o produto numa enciclopédia, então ela abre uma superfície própria em vez
                 de navegar para uma página. É um `<button>` e não um `<input>` porque abrir um
                 overlay é uma AÇÃO, não um campo — um input que na verdade é botão confunde
                 leitor de tela e o autocomplete do navegador. O atalho aparece no rótulo para o
                 caminho de teclado ficar descobrível. */}
-            <button
-              type="button"
-              onClick={() => openPalette()}
-              aria-label={palette.open}
-              aria-keyshortcuts="Meta+K Control+K"
-              data-testid="nav-search-trigger"
-              className="hidden items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-1.5 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink xl:flex"
-            >
-              <SearchIcon className="h-4 w-4" aria-hidden="true" />
-              <span className="w-40 text-left 2xl:w-52">{t('nav.searchPlaceholder')}</span>
-              <kbd className="rounded border border-border px-1.5 py-0.5 font-sans text-[10px] text-ink-3">
-                ⌘K
-              </kbd>
-            </button>
-            <LanguageSelector />
-            {status === 'loading' ? (
-              <div
-                data-testid="nav-auth-loading"
-                className="h-9 w-20 animate-pulse rounded-lg bg-foreground/10"
-              />
-            ) : user ? (
-              <div className="flex items-center gap-2">
-                <NotificationBadge />
-                <div className="relative" data-testid="nav-user-menu">
-                  <button
-                    onClick={() => setMenuOpen((o) => !o)}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-semibold text-primary-ink transition duration-200 hover:bg-primary/20"
-                  >
-                    <span data-testid="nav-user-name">
-                      {user.name?.split(' ')[0] || user.email.split('@')[0]}
-                    </span>
-                    <span aria-hidden="true" className="text-[10px]">
-                      ▾
-                    </span>
-                  </button>
-                  {menuOpen && (
-                    <div
-                      data-testid="nav-user-dropdown"
-                      className="absolute right-0 z-50 mt-2 w-52 rounded-xl border border-border bg-background py-2 shadow-lg"
-                    >
-                      <p className="truncate px-4 py-1 text-xs text-foreground/70">{user.email}</p>
-                      <Link
-                        href="/dashboard"
-                        onClick={closeMenu}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                      >
-                        {t('nav.dashboard')}
-                      </Link>
-                      <Link
-                        href="/favoritos"
-                        onClick={closeMenu}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                      >
-                        {t('pages.favoritos.title')}
-                      </Link>
-                      <Link
-                        href="/dashboard/subscription"
-                        onClick={closeMenu}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                      >
-                        {t('nav.subscription')}
-                      </Link>
-                      <button
-                        onClick={() => {
-                          closeMenu();
-                          void logout();
-                        }}
-                        className="block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-foreground/5"
-                      >
-                        {t('nav.signOut')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <Link
-                href="/auth/login"
-                data-testid="nav-login"
-                className="cursor-pointer rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-on-primary transition duration-200 hover:opacity-90"
+              <button
+                type="button"
+                onClick={() => openPalette()}
+                aria-label={palette.open}
+                aria-keyshortcuts="Meta+K Control+K"
+                data-testid="nav-search-trigger"
+                className="hidden items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-1.5 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink xl:flex"
               >
-                {t('nav.login')}
-              </Link>
-            )}
+                <SearchIcon className="h-4 w-4" aria-hidden="true" />
+                <span className="w-40 text-left 2xl:w-52">{t('nav.searchPlaceholder')}</span>
+                <kbd className="rounded border border-border px-1.5 py-0.5 font-sans text-[10px] text-ink-3">
+                  ⌘K
+                </kbd>
+              </button>
+              <LanguageSelector />
+              {status === 'loading' ? (
+                <div
+                  data-testid="nav-auth-loading"
+                  className="h-9 w-20 animate-pulse rounded-lg bg-foreground/10"
+                />
+              ) : user ? (
+                <div className="flex items-center gap-2">
+                  <NotificationBadge />
+                  <div className="relative" data-testid="nav-user-menu">
+                    <button
+                      onClick={() => setMenuOpen((o) => !o)}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-semibold text-primary-ink transition duration-200 hover:bg-primary/20"
+                    >
+                      <span data-testid="nav-user-name">
+                        {user.name?.split(' ')[0] || user.email.split('@')[0]}
+                      </span>
+                      <span aria-hidden="true" className="text-[10px]">
+                        ▾
+                      </span>
+                    </button>
+                    {menuOpen && (
+                      <div
+                        data-testid="nav-user-dropdown"
+                        className="absolute right-0 z-50 mt-2 w-52 rounded-xl border border-border bg-background py-2 shadow-lg"
+                      >
+                        <p className="truncate px-4 py-1 text-xs text-foreground/70">
+                          {user.email}
+                        </p>
+                        <Link
+                          href="/dashboard"
+                          onClick={closeMenu}
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
+                        >
+                          {t('nav.dashboard')}
+                        </Link>
+                        <Link
+                          href="/favoritos"
+                          onClick={closeMenu}
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
+                        >
+                          {t('pages.favoritos.title')}
+                        </Link>
+                        <Link
+                          href="/dashboard/subscription"
+                          onClick={closeMenu}
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
+                        >
+                          {t('nav.subscription')}
+                        </Link>
+                        <button
+                          onClick={() => {
+                            closeMenu();
+                            void logout();
+                          }}
+                          className="block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-foreground/5"
+                        >
+                          {t('nav.signOut')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  data-testid="nav-login"
+                  className="cursor-pointer rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-on-primary transition duration-200 hover:opacity-90"
+                >
+                  {t('nav.login')}
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Painel (abaixo de lg): agora é o ÚNICO caminho de navegação nessa faixa, então traz
+          {/* Painel (abaixo de lg): agora é o ÚNICO caminho de navegação nessa faixa, então traz
             busca, destinos globais e os agrupamentos — com o nome completo dos rótulos, que
             aqui cabem. */}
-        {mobileOpen ? (
-          <div
-            id="nav-panel"
-            data-testid="nav-mobile-panel"
-            className="border-t border-border pb-4 pt-3 lg:hidden"
-          >
-            {/* No painel mobile a busca também abre a paleta, que é onde o teclado virtual e a
-                lista agrupada funcionam melhor que uma página intermediária. */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                openPalette();
-              }}
-              aria-label={palette.open}
-              data-testid="nav-search-trigger-mobile"
-              className="mb-3 flex w-full items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-2 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink"
+          {mobileOpen ? (
+            <div
+              id="nav-panel"
+              data-testid="nav-mobile-panel"
+              className="border-t border-border pb-4 pt-3 lg:hidden"
             >
-              <SearchIcon className="h-4 w-4" aria-hidden="true" />
-              <span className="text-left">{t('nav.searchPlaceholder')}</span>
-            </button>
+              {/* No painel mobile a busca também abre a paleta, que é onde o teclado virtual e a
+                lista agrupada funcionam melhor que uma página intermediária. */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  openPalette();
+                }}
+                aria-label={palette.open}
+                data-testid="nav-search-trigger-mobile"
+                className="mb-3 flex w-full items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-2 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink"
+              >
+                <SearchIcon className="h-4 w-4" aria-hidden="true" />
+                <span className="text-left">{t('nav.searchPlaceholder')}</span>
+              </button>
 
-            <ul className="space-y-1">
-              {dropdowns.map((d) => (
-                <li key={d.key}>
-                  <button
-                    type="button"
-                    aria-expanded={mobileSub === d.key}
-                    onClick={() => setMobileSub((s) => (s === d.key ? null : d.key))}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/5"
-                  >
-                    {d.label}
-                    <span aria-hidden="true" className="text-[10px]">
-                      ▾
-                    </span>
-                  </button>
-                  {mobileSub === d.key ? (
-                    <ul className="pb-2 pl-3">
-                      {d.items.map((item) => (
-                        <li key={item.href + item.label}>
-                          <Link
-                            href={item.href}
-                            onClick={closeMobile}
-                            className="block rounded-lg px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-primary-ink"
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              ))}
-
-              {/* Destinos globais com o nome COMPLETO (aqui há espaço vertical). */}
-              {plainLinks.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    onClick={closeMobile}
-                    className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/5"
-                  >
-                    {l.full}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* Bloco secundário: separado por régua, para o painel não ser uma lista plana
-                onde assinatura e denúncia têm o mesmo peso de "Clubes". */}
-            <div className="mt-3 border-t border-border pt-3">
               <ul className="space-y-1">
-                {[
-                  { href: '/mercado-da-bola', label: t('nav.market') },
-                  { href: '/favoritos', label: t('pages.favoritos.title') },
-                  { href: '/planos', label: t('footer.plans') },
-                ].map((l) => (
+                {dropdowns.map((d) => (
+                  <li key={d.key}>
+                    <button
+                      type="button"
+                      aria-expanded={mobileSub === d.key}
+                      onClick={() => setMobileSub((s) => (s === d.key ? null : d.key))}
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/5"
+                    >
+                      {d.label}
+                      <span aria-hidden="true" className="text-[10px]">
+                        ▾
+                      </span>
+                    </button>
+                    {mobileSub === d.key ? (
+                      <ul className="pb-2 pl-3">
+                        {d.items.map((item) => (
+                          <li key={item.href + item.label}>
+                            <Link
+                              href={item.href}
+                              onClick={closeMobile}
+                              className="block rounded-lg px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-primary-ink"
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))}
+
+                {/* Destinos globais com o nome COMPLETO (aqui há espaço vertical). */}
+                {plainLinks.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
                       onClick={closeMobile}
-                      className="block rounded-lg px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-primary-ink"
+                      className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/5"
                     >
-                      {l.label}
+                      {l.full}
                     </Link>
                   </li>
                 ))}
               </ul>
+
+              {/* Bloco secundário: separado por régua, para o painel não ser uma lista plana
+                onde assinatura e denúncia têm o mesmo peso de "Clubes". */}
+              <div className="mt-3 border-t border-border pt-3">
+                <ul className="space-y-1">
+                  {[
+                    { href: '/mercado-da-bola', label: t('nav.market') },
+                    { href: '/favoritos', label: t('pages.favoritos.title') },
+                    { href: '/planos', label: t('footer.plans') },
+                  ].map((l) => (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        onClick={closeMobile}
+                        className="block rounded-lg px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-primary-ink"
+                      >
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
         </div>
       </div>
     </nav>
