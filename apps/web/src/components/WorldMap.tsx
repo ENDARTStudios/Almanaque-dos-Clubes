@@ -53,7 +53,7 @@ export default function WorldMap({ clubs }: { clubs: MapPoint[] }) {
   return (
     <div
       ref={ref}
-      className="theme-light h-[70vh] w-full overflow-hidden rounded-2xl border border-border/50"
+      className="h-[70vh] w-full overflow-hidden rounded-2xl border border-border/50"
     />
   );
 }

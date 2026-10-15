@@ -108,13 +108,13 @@ export default function WorldChoropleth({
   return (
     // Mapa DECORATIVO: aria-hidden. A navegação acessível é a lista de regiões
     // (aria-live/breadcrumb) com contagem — o mapa não é a única forma de navegar.
-    // `.theme-light` é a EXCEÇÃO declarada do tema escuro: o dado é geográfico e a base
-    // cartográfica (GeoJSON Natural Earth + tiles OSM) é clara; texto/controles claros sobre
-    // ela é o correto. Ver `globals.css` > `.theme-light`.
+    // Sem classe de tema: o CLARO é o padrão do site desde a inversão, e a base cartográfica
+    // (GeoJSON Natural Earth + tiles OSM) já é clara — texto e controles escuros sobre ela são
+    // o correto sem precisar de override. A antiga `.theme-light` virou redundante.
     <div
       ref={ref}
       aria-hidden="true"
-      className="theme-light h-[55vh] sm:h-[60vh] w-full rounded-2xl border border-border/50 bg-background"
+      className="h-[55vh] sm:h-[60vh] w-full rounded-2xl border border-border/50 bg-background"
     />
   );
 }

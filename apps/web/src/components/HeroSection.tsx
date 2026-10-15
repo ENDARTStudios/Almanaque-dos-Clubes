@@ -71,10 +71,11 @@ export default function HeroSection({
       className="relative isolate overflow-hidden bg-background text-foreground"
       aria-labelledby="hero-title"
     >
-      {/* Camadas decorativas: halo + grade de campo + grão (CSS/SVG inline, sem rede). */}
-      <div className="theme-dark-glow pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-      <div className="theme-dark-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-      <div className="theme-dark-grain pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+      {/* As três camadas decorativas (`theme-dark-glow`/`-grid`/`-grain`) foram REMOVIDAS na
+          inversão para o tema claro. Elas eram um gradiente quente e um grão desenhados para
+          somar luz sobre fundo quase-preto; sobre papel claro o mesmo gradiente vira MANCHA, e
+          a grade de campo vira sujeira. Em fundo claro a hierarquia vem de espaço e de sombra,
+          não de camada — foi o que a prancha do conceito mostrou (ver docs/conceito-claro). */}
 
       <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8 lg:pb-20">
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
@@ -91,14 +92,14 @@ export default function HeroSection({
               {c12.hook}
             </h1>
 
-            <p data-testid="hero-promise" className="mt-6 max-w-xl text-lg text-foreground/75 text-balance">
+            <p data-testid="hero-promise" className="mt-6 max-w-xl text-lg text-ink-2 text-balance">
               <span className="font-semibold text-foreground">{c12.eyebrow}</span>{' '}
               {c12.promise}
             </p>
 
             <p
               data-testid="hero-promise-note"
-              className="mt-3 max-w-xl border-l-2 border-primary/60 pl-3 text-sm text-foreground/60"
+              className="mt-3 max-w-xl border-l-2 border-primary/60 pl-3 text-sm text-ink-2"
             >
               {c12.promiseNote}
             </p>
@@ -119,18 +120,22 @@ export default function HeroSection({
               </Link>
             </div>
 
-            <p data-testid="hero-cta-note" className="mt-3 text-sm text-foreground/75">
+            <p data-testid="hero-cta-note" className="mt-3 text-sm text-ink-2">
               {c12.ctaPrimaryNote}
             </p>
           </div>
 
           {/* ---- Prova: campeão vigente com fonte --------------------------- */}
           <div ref={proofRef}>
-            <article className="rounded-2xl border border-border bg-[color-mix(in_oklab,var(--color-foreground)_6%,transparent)] p-6 shadow-lg">
+            <article className="rounded-2xl border border-border bg-surface-2 p-6 shadow-lg">
               <div className="flex items-center justify-between gap-4">
+                {/* Rótulo-selo em VINHO, não em ouro. Motivo medido: o ouro da paleta
+                    (`#94600a`) rende 4,44:1 sobre o `surface-2` deste cartão, e 11px em caixa
+                    alta é texto NORMAL — reprova em AA. O vinho rende 6,99:1 no mesmo fundo e
+                    mantém o rótulo dentro da família de acento. */}
                 <p
                   data-testid="hero-proof-label"
-                  className="text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary"
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-ink"
                 >
                   {c12.proofTitle}
                 </p>
@@ -150,7 +155,7 @@ export default function HeroSection({
                     <p className="font-heading text-2xl font-bold sm:text-3xl">{champion.name}</p>
                   )}
 
-                  <p className="mt-1 text-sm text-foreground/75">
+                  <p className="mt-1 text-sm text-ink-2">
                     {champion.competitionId ? (
                       <Link
                         href={`/competitions/${champion.competitionId}`}
@@ -164,7 +169,7 @@ export default function HeroSection({
                   </p>
 
                   {champion.season != null && (
-                    <p className="mt-1 text-xs text-foreground/60">
+                    <p className="mt-1 text-xs text-ink-2">
                       {c12.proofSeason}: {champion.season}
                     </p>
                   )}
@@ -186,7 +191,7 @@ export default function HeroSection({
                 <p className="mt-4 text-sm text-ink-2">{c12.proofEmpty}</p>
               )}
 
-              <p data-testid="hero-proof-disclaimer" className="mt-4 text-xs text-foreground/70">
+              <p data-testid="hero-proof-disclaimer" className="mt-4 text-xs text-ink-2">
                 {c12.proofDisclaimer}
               </p>
             </article>
@@ -209,7 +214,9 @@ export default function HeroSection({
                           usado em número, ele deixava de significar "aja aqui"), e o
                           alinhamento saiu do centro para a esquerda, que é o que permite
                           comparar três números em coluna. */}
-                      <dd className="num text-3xl leading-none text-foreground">
+                      {/* Número em VINHO, como na prancha do conceito: é o destaque editorial
+                          do dado, e o acento é o que o faz destacar sem precisar de corpo maior. */}
+                      <dd className="num text-3xl leading-none text-primary-ink">
                         {stat.value != null ? formatCount(stat.value, locale) : '—'}
                       </dd>
                       <dt className="mt-2 text-[0.8125rem] leading-tight text-ink-2">{stat.label}</dt>
@@ -258,7 +265,7 @@ export function HomeFeatures() {
       <section className="bg-background py-16 text-foreground sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold sm:text-4xl">{c12.featuresTitle}</h2>
-          <p className="mt-3 max-w-2xl text-foreground/70">{c12.featuresSubtitle}</p>
+          <p className="mt-3 max-w-2xl text-ink-2">{c12.featuresSubtitle}</p>
 
           <div ref={featuresRef} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {dict.home.features.map((feat, index) => {
@@ -266,7 +273,7 @@ export function HomeFeatures() {
               return (
                 <article
                   key={feat.title}
-                  className="feature-card rounded-xl border border-border bg-[color-mix(in_oklab,var(--color-foreground)_5%,transparent)] p-6 transition-colors duration-200 hover:border-primary/60"
+                  className="feature-card rounded-xl border border-border bg-surface-2 p-6 transition-colors duration-200 hover:border-primary/60"
                 >
                   {/* Ícone EM LINHA com o título, em fluxo, sem tile arredondado:
                       o "quadradinho com ícone acima do h3" é o template genérico de
@@ -276,7 +283,7 @@ export function HomeFeatures() {
                     <Icon className="h-[18px] w-[18px] shrink-0 text-primary-ink" aria-hidden="true" />
                     <h3 className="text-lg font-semibold">{feat.title}</h3>
                   </div>
-                  <p className="mt-2.5 text-sm leading-relaxed text-foreground/75">{feat.desc}</p>
+                  <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{feat.desc}</p>
                 </article>
               );
             })}
@@ -284,7 +291,11 @@ export function HomeFeatures() {
         </div>
       </section>
 
-      <section className="theme-dark bg-[color-mix(in_oklab,var(--color-foreground)_4%,var(--color-background))] py-16 text-foreground sm:py-20">
+      {/* Faixa de "como funciona" — `bg-muted` é o degrau NEUTRO quente (o mesmo papel que
+          `surface-2` cumpre nos cartões). Antes esta seção forçava `.theme-dark` e um
+          `color-mix` para criar contraste; com o claro como padrão, a faixa tonal já resolve:
+          `muted` é mais escuro que o papel e separa a seção sem precisar de tema próprio. */}
+      <section className="bg-muted py-16 text-foreground sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold sm:text-4xl">{c12.howTitle}</h2>
           {/* Número grande acima do título era o mesmo tell, na variante "numbered step".
@@ -299,7 +310,7 @@ export function HomeFeatures() {
                   </span>
                   <h3 className="text-lg font-semibold">{step.title}</h3>
                 </div>
-                <p className="mt-2.5 text-sm leading-relaxed text-foreground/75">{step.desc}</p>
+                <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{step.desc}</p>
               </li>
             ))}
           </ol>
@@ -316,10 +327,11 @@ export function HomeClosing() {
 
   return (
     <section className="relative overflow-hidden bg-background py-16 text-foreground sm:py-20">
-      <div className="theme-dark-glow pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+      {/* Última camada escura removida. Em fundo claro o "fecho dramático" vem do CTA e do
+          espaço em volta, não de um gradiente — que aqui viraria mancha, não luz. */}
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
         <h2 className="text-3xl font-bold text-balance sm:text-4xl">{c12.closingTitle}</h2>
-        <p className="mx-auto mt-4 max-w-xl text-foreground/70">{c12.closingDesc}</p>
+        <p className="mx-auto mt-4 max-w-xl text-ink-2">{c12.closingDesc}</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/search"

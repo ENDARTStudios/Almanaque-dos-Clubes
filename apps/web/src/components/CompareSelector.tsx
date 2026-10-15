@@ -217,7 +217,11 @@ export default function CompareSelector({
             </label>
             <input
               id={`cmp-${f.label}`}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              // `placeholder:` explícito: o navegador aplica cor E opacidade próprias ao
+              // `::placeholder`, e sem declarar as duas o "Buscar clube A…" renderiza em 3,5:1
+              // (medido pelo detector) e reprova em AA. `opacity-100` é obrigatório — sem ele a
+              // cor é multiplicada pela opacidade do user agent e não sai o valor escrito.
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-ink-2 placeholder:opacity-100"
               placeholder={f.ph}
               value={f.sel ? f.sel.label : f.term}
               onChange={(e) => {
