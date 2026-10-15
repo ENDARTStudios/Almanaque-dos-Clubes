@@ -57,7 +57,7 @@ const pt: Dictionary = {
     platformPlayers: 'Jogadores',
     platformCompetitions: 'Competições',
     platformRankings: 'Rankings',
-      platformMatches: 'Partidas',
+    platformMatches: 'Partidas',
     platformSearch: 'Busca Avançada',
     aboutTitle: 'Sobre',
     aboutUs: 'Sobre nós',
@@ -130,7 +130,8 @@ const pt: Dictionary = {
       worldwide: 'O mundo inteiro',
       sideBySide: 'Lado a lado',
       compare: 'Comparar',
-    },    featuresTitle: 'Tudo sobre o Futebol Mundial',
+    },
+    featuresTitle: 'Tudo sobre o Futebol Mundial',
     featuresSubtitle: 'Dados históricos em construção com ferramentas modernas de busca e análise.',
     features: [
       {
@@ -230,9 +231,11 @@ const pt: Dictionary = {
         continental: 'Continentais',
         nacionais: 'Nacionais por país',
         feminino: 'Feminino',
-        femininoNota: 'Conquistas femininas ainda não catalogadas no grafo (rankings femininos adiados — D-2026-10-06).',
+        femininoNota:
+          'Conquistas femininas ainda não catalogadas no grafo (rankings femininos adiados — D-2026-10-06).',
         selecoes: 'Seleções & Internacionais',
-        selecoesVazio: 'Nenhuma competição de seleções catalogada no acervo ainda (Copa do Mundo, Copa América, Eurocopa: em breve).',
+        selecoesVazio:
+          'Nenhuma competição de seleções catalogada no acervo ainda (Copa do Mundo, Copa América, Eurocopa: em breve).',
         verTodasFeminino: 'ver todas',
         todas: 'Todas as competições',
       },
@@ -242,7 +245,8 @@ const pt: Dictionary = {
       subtitle: 'Transferências, rumores e valores de mercado.',
       emBreve: 'Em breve',
       body: 'O Almanaque é um acervo estatístico com proveniência auditável — não publica rumores. A área de mercado entrará no ar com fontes verificadas de transferências e valores.',
-      bodyCta: 'Enquanto isso, o acervo já mostra torcedores e redes sociais em cada perfil de clube.',
+      bodyCta:
+        'Enquanto isso, o acervo já mostra torcedores e redes sociais em cada perfil de clube.',
       cta: 'Ver perfis de clubes',
     },
     competitionProfile: {
@@ -256,7 +260,13 @@ const pt: Dictionary = {
       totalEditions: 'Edições catalogadas',
       yearShort: 'Temp.',
       tabsLabel: 'Seções da competição',
-      tabs: { overview: 'Visão Geral', editions: 'Edições', clubs: 'Clubes', topWinners: 'Maiores Campeões', seasons: 'Temporadas' },
+      tabs: {
+        overview: 'Visão Geral',
+        editions: 'Edições',
+        clubs: 'Clubes',
+        topWinners: 'Maiores Campeões',
+        seasons: 'Temporadas',
+      },
       season: 'Temporada',
       pos: 'Pos',
       club: 'Clube',
@@ -278,7 +288,8 @@ const pt: Dictionary = {
       champion: 'Campeão',
       titles: 'títulos',
       editionsEmpty: 'Edições em catalogação.',
-      participantsNote: 'Participantes = clubes com títulos catalogados nesta competição (a aresta PARTICIPATED_IN ainda não existe no grafo).',
+      participantsNote:
+        'Participantes = clubes com títulos catalogados nesta competição (a aresta PARTICIPATED_IN ainda não existe no grafo).',
       participantsEmpty: 'Participantes em catalogação.',
       overviewHint: 'Os dados vêm do grafo com proveniência auditável (arestas WON).',
     },
@@ -1044,6 +1055,22 @@ const pt: Dictionary = {
     withdrawInfo: 'Arrependimento em 7 dias:',
     includedTitle: 'Recursos incluídos (por plano)',
     paymentsSoon: 'Pagamentos em breve.',
+    // T555 — resumo pré-confirmação prometido pelos Termos (seção 5).
+    summaryTitle: 'Resumo antes de confirmar',
+    priceLabel: 'Preço total do período',
+    monthlyWord: 'Mensal',
+    yearlyWord: 'Anual',
+    discountLabel: 'Desconto',
+    discountValue: '15% no plano anual (equivale a 12 × o mensal com desconto)',
+    taxesLabel: 'Tributos',
+    taxesValue: 'Nenhum tributo é acrescentado ao valor exibido no checkout.',
+    methodLabel: 'Meio de pagamento',
+    methodValue: 'Cartão de crédito, processado pelo Stripe',
+    providerLabel: 'Fornecedor',
+    providerValue: 'END ART Studios — CNPJ 45.370.930/0001-75',
+    nextChargeLabel: 'Data da cobrança seguinte',
+    renewalLabel: 'Renovação',
+    renewalValue: 'Automática, no fim de cada período. Cancele quando quiser no painel.',
   },
 };
 

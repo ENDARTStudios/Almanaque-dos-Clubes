@@ -25,31 +25,62 @@ const LABELS: Record<
   }
 > = {
   'pt-br': {
-    subscribe: 'Assinar', monthly: 'mensal', yearly: 'anual (15% off)', pro: 'Pro', elite: 'Elite',
-    error: 'Não foi possível iniciar o pagamento.', soon: 'Pagamentos em breve.',
-    perMonth: '/mês', perYear: '/ano', yearlyDetail: '12 × {price} com 15% de desconto',
-    renewal: 'Assinatura recorrente: renova automaticamente no fim do período; cancele a qualquer momento no painel. Primeira cobrança na confirmação.',
+    subscribe: 'Assinar',
+    monthly: 'mensal',
+    yearly: 'anual (15% off)',
+    pro: 'Pro',
+    elite: 'Elite',
+    error: 'Não foi possível iniciar o pagamento.',
+    soon: 'Pagamentos em breve.',
+    perMonth: '/mês',
+    perYear: '/ano',
+    yearlyDetail: '12 × {price} com 15% de desconto',
+    renewal:
+      'Assinatura recorrente: renova automaticamente no fim do período; cancele a qualquer momento no painel. Primeira cobrança na confirmação.',
   },
   'en-us': {
-    subscribe: 'Subscribe', monthly: 'monthly', yearly: 'yearly (15% off)', pro: 'Pro', elite: 'Elite',
-    error: 'Could not start checkout.', soon: 'Payments coming soon.',
-    perMonth: '/month', perYear: '/year', yearlyDetail: '12 × {price} with 15% off',
-    renewal: 'Recurring subscription: renews automatically at the end of each period; cancel anytime from the dashboard. First charge upon confirmation.',
+    subscribe: 'Subscribe',
+    monthly: 'monthly',
+    yearly: 'yearly (15% off)',
+    pro: 'Pro',
+    elite: 'Elite',
+    error: 'Could not start checkout.',
+    soon: 'Payments coming soon.',
+    perMonth: '/month',
+    perYear: '/year',
+    yearlyDetail: '12 × {price} with 15% off',
+    renewal:
+      'Recurring subscription: renews automatically at the end of each period; cancel anytime from the dashboard. First charge upon confirmation.',
   },
   'es-es': {
-    subscribe: 'Suscribir', monthly: 'mensual', yearly: 'anual (15% dto.)', pro: 'Pro', elite: 'Elite',
-    error: 'No se pudo iniciar el pago.', soon: 'Pagos muy pronto.',
-    perMonth: '/mes', perYear: '/año', yearlyDetail: '12 × {price} con 15% de descuento',
-    renewal: 'Suscripción recurrente: se renueva automáticamente al final del período; cancela cuando quieras desde el panel. Primer cargo al confirmar.',
+    subscribe: 'Suscribir',
+    monthly: 'mensual',
+    yearly: 'anual (15% dto.)',
+    pro: 'Pro',
+    elite: 'Elite',
+    error: 'No se pudo iniciar el pago.',
+    soon: 'Pagos muy pronto.',
+    perMonth: '/mes',
+    perYear: '/año',
+    yearlyDetail: '12 × {price} con 15% de descuento',
+    renewal:
+      'Suscripción recurrente: se renueva automáticamente al final del período; cancela cuando quieras desde el panel. Primer cargo al confirmar.',
   },
 };
 
 export default function CheckoutButton({
   paymentsEnabled = true,
   currency = 'BRL',
+  showPriceTable = true,
 }: {
   paymentsEnabled?: boolean;
   currency?: BillingCurrency;
+  /**
+   * T555 — em `/checkout` o resumo (`CheckoutSummary`) já exibe preço/periodicidade/
+   * desconto/renovação; repetir aqui duplicaria o mesmo bloco na MESMA tela. Em
+   * `/planos`, onde não há resumo, a tabela continua (default `true`).
+   */
+  showPriceTable?: boolean;
 } = {}) {
   const { locale } = useI18n();
   const l = LABELS[locale] ?? LABELS['pt-br'];
@@ -62,7 +93,10 @@ export default function CheckoutButton({
     setError('');
     try {
       // A moeda é resolvida no servidor pela localização real; não a enviamos.
-      const res = await api.post<{ data: { url: string } }>('/billing/checkout', { plan, interval });
+      const res = await api.post<{ data: { url: string } }>('/billing/checkout', {
+        plan,
+        interval,
+      });
       window.location.href = res.data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : l.error);
@@ -79,55 +113,80 @@ export default function CheckoutButton({
       <div className="flex flex-wrap gap-3 mb-4">
         <button
           onClick={() => setInterval('month')}
-          className={(interval === 'month' ? 'bg-primary text-on-primary' : 'border border-border text-foreground') + ' px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer'}
+          className={
+            (interval === 'month'
+              ? 'bg-primary text-on-primary'
+              : 'border border-border text-foreground') +
+            ' px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer'
+          }
         >
           {l.monthly}
         </button>
         <button
           onClick={() => setInterval('year')}
-          className={(interval === 'year' ? 'bg-primary text-on-primary' : 'border border-border text-foreground') + ' px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer'}
+          className={
+            (interval === 'year'
+              ? 'bg-primary text-on-primary'
+              : 'border border-border text-foreground') +
+            ' px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer'
+          }
         >
           {l.yearly}
         </button>
       </div>
-      {/* §3.4 — preço total, periodicidade e renovação visíveis ANTES da confirmação */}
-      <div className="rounded-xl border border-border p-4 mb-4 text-sm">
-        {(['PRO', 'ELITE'] as const).map((plan) => {
-          const monthly = PLAN_CENTS[plan];
-          // T545 — mesmo cálculo do texto da página (fonte única em lib/pricing).
-          const yearly = yearlyCents(monthly);
-          return (
-            <div key={plan} className="flex flex-wrap items-baseline gap-x-2">
-              <span className="font-semibold text-foreground">{plan === 'PRO' ? l.pro : l.elite}:</span>
-              {interval === 'month' ? (
-                <span className="text-foreground">
-                  {formatPrice(currency, monthly, locale)}
-                  {l.perMonth}
+      {/* §3.4 — preço total, periodicidade e renovação visíveis ANTES da confirmação.
+          T555 — omitido quando o resumo da página já os exibe (`showPriceTable=false`). */}
+      {showPriceTable && (
+        <div className="rounded-xl border border-border p-4 mb-4 text-sm">
+          {(['PRO', 'ELITE'] as const).map((plan) => {
+            const monthly = PLAN_CENTS[plan];
+            // T545 — mesmo cálculo do texto da página (fonte única em lib/pricing).
+            const yearly = yearlyCents(monthly);
+            return (
+              <div key={plan} className="flex flex-wrap items-baseline gap-x-2">
+                <span className="font-semibold text-foreground">
+                  {plan === 'PRO' ? l.pro : l.elite}:
                 </span>
-              ) : (
-                <span className="text-foreground">
-                  {formatPrice(currency, yearly, locale)}
-                  {l.perYear}{' '}
-                  <span className="text-foreground/70">
-                    ({l.yearlyDetail.replace('{price}', formatPrice(currency, monthly, locale))})
+                {interval === 'month' ? (
+                  <span className="text-foreground">
+                    {formatPrice(currency, monthly, locale)}
+                    {l.perMonth}
                   </span>
-                </span>
-              )}
-            </div>
-          );
-        })}
-        <p className="mt-2 text-xs text-foreground/60">{l.renewal}</p>
-      </div>
+                ) : (
+                  <span className="text-foreground">
+                    {formatPrice(currency, yearly, locale)}
+                    {l.perYear}{' '}
+                    <span className="text-foreground/70">
+                      ({l.yearlyDetail.replace('{price}', formatPrice(currency, monthly, locale))})
+                    </span>
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          <p className="mt-2 text-xs text-foreground/60">{l.renewal}</p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-3">
-        <button onClick={() => start('PRO')} disabled={!!loading || !paymentsEnabled} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer">
+        <button
+          onClick={() => start('PRO')}
+          disabled={!!loading || !paymentsEnabled}
+          className="bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
+        >
           {loading === 'PRO' ? '...' : l.subscribe + ' ' + l.pro}
         </button>
-        <button onClick={() => start('ELITE')} disabled={!!loading || !paymentsEnabled} className="border-2 border-primary text-primary-ink px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer">
+        <button
+          onClick={() => start('ELITE')}
+          disabled={!!loading || !paymentsEnabled}
+          className="border-2 border-primary text-primary-ink px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 disabled:opacity-50 cursor-pointer"
+        >
           {loading === 'ELITE' ? '...' : l.subscribe + ' ' + l.elite}
         </button>
         {!paymentsEnabled && <p className="w-full text-sm text-foreground/70">{l.soon}</p>}
       </div>
-      <p className="mt-4 text-xs text-foreground/70">Stripe · {l.monthly} / {l.yearly}</p>
+      <p className="mt-4 text-xs text-foreground/70">
+        Stripe · {l.monthly} / {l.yearly}
+      </p>
       {error && <p className="mt-2 text-sm text-danger-ink">{error}</p>}
     </div>
   );
