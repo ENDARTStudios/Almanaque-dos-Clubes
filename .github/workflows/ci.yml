@@ -93,6 +93,24 @@ jobs:
         working-directory: apps/web
         run: pnpm exec eslint .
 
+      # T560 — `next build` do apps/web. Faltava, e a ausência tem consequência medida.
+      #
+      # O QUE ESTE PASSO PEGA E OS OUTROS NÃO
+      #   Typecheck, lint e testes passam por ARQUIVO. Nenhum deles pergunta se os módulos que as
+      #   rotas importam EXISTEM e resolvem. Um import para arquivo inexistente, um erro de
+      #   fronteira server/client, um `use client` faltando: nada disso aparece antes do build.
+      #
+      #   Foi exatamente o buraco que me fez abrir um PR de "correção urgente" para um defeito que
+      #   não existia (o arquivo estava lá; minha checagem é que deu falso negativo). Se o
+      #   pipeline compilasse o app, eu teria a resposta em segundos em vez de investigar por
+      #   minutos — e, mais importante, um import quebrado de verdade não entraria verde.
+      #
+      # Sem segredos: o build do Next não precisa de banco. As variáveis públicas caem no
+      # fallback de `lib/api-base.ts`, que é o mesmo caminho de um build sem configuração.
+      - name: Build (apps/web)
+        working-directory: apps/web
+        run: pnpm build
+
       - name: Build @almanaque/domain
         run: pnpm --filter @almanaque/domain build
 

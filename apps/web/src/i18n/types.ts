@@ -66,6 +66,8 @@ export interface Dictionary {
     };
   };
   footer: {
+    /** T560 — titulo do landmark do rodape (sr-only); os H3 das colunas precisam dele. */
+    landmark: string;
     tagline: string;
     platformTitle: string;
     platformClubs: string;

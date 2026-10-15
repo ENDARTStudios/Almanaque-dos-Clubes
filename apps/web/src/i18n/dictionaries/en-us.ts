@@ -50,6 +50,7 @@ const en: Dictionary = {
     },
   },
   footer: {
+    landmark: 'Footer',
     tagline:
       'World football history in the making, with verified sources. Clubs, players, competitions and auditable rankings (methodology at /metodologia).',
     platformTitle: 'Platform',
