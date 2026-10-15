@@ -281,7 +281,12 @@ export default function CommandPalette({
         data-testid="command-palette"
       >
         {/* ── Campo ─────────────────────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+        {/* O `py-4` no container e o `min-h-11` (44px) no input e no botão NÃO são estética:
+            medido em 390px com toque, o campo e o botão de fechar tinham 24px de altura, abaixo
+            do piso de 44px do WCAG 2.2 (2.5.8, Target Size). Em telefone o alvo pequeno é o
+            defeito que mais custa — não é o texto que falha, é o dedo que erra.
+            `min-h-11` no INPUT, e não só no container, porque é o input que recebe o toque. */}
+        <div className="flex min-h-16 items-center gap-3 border-b border-border px-5 py-3">
           <SearchIcon className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
           <input
             ref={inputRef}
@@ -296,14 +301,14 @@ export default function CommandPalette({
             onKeyDown={onKeyDown}
             placeholder={s.placeholder}
             aria-label={s.placeholder}
-            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-ink-3"
+            className="min-h-11 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-ink-3"
             data-testid="palette-input"
           />
           <button
             type="button"
             onClick={onClose}
             aria-label={p.hintClose}
-            className="shrink-0 rounded-lg p-1 text-ink-3 transition-colors duration-200 hover:text-foreground"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-3 transition-colors duration-200 hover:text-foreground"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
