@@ -127,18 +127,28 @@ export interface MediaBatchResult {
   unknownColors: string[];
   /** T552 — quantos escudos vieram do infobox da Wikipédia PT (não do P154). */
   logosFromInfobox?: number;
+  /** T552 — leituras de artigo que falharam (429/rede): NÃO carimbadas, voltam na próxima. */
+  infoboxFetchFailures?: number;
 }
 
 const PT_WIKI_API = 'https://pt.wikipedia.org/w/api.php';
 const PT_WIKI_UA = 'AlmanaqueDosClubes-ETL/3.0 (github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 /** Teto de leituras de artigo por execução — o job tem timeout de 20 min. */
 const INFOBOX_MAX_POR_RUN = 200;
+/** Cadência entre leituras no mesmo IP (o do Railway é compartilhado): mediu 429 sem ela. */
+const PT_MIN_INTERVAL_MS = 900;
+let ultimoFetchPt = 0;
+
+export type PtWikitextResult =
+  { status: 'ok'; wikitext: string } | { status: 'missing' } | { status: 'error' };
 
 /**
- * Wikitext do artigo da Wikipédia PT (1 request). `null` quando não existe ou dá erro —
- * o chamador trata como "sem fonte", nunca como falha do lote.
+ * Wikitext do artigo da Wikipédia PT. Distingue TRÊS desfechos de propósito: `missing`
+ * (o artigo não existe → gap real, pode carimbar) de `error` (429/5xx/rede → NÃO é prova
+ * de ausência). Carimbar `no_source` numa falha de transporte grava gap FALSO e o clube
+ * nunca é re-tentado — foi o defeito que a verificação do T551 pegou.
  */
-async function fetchPtWikitext(titulo: string): Promise<string | null> {
+async function fetchPtWikitext(titulo: string): Promise<PtWikitextResult> {
   const url = `${PT_WIKI_API}?${new URLSearchParams({
     action: 'query',
     prop: 'revisions',
@@ -149,23 +159,34 @@ async function fetchPtWikitext(titulo: string): Promise<string | null> {
     formatversion: '2',
     redirects: '1',
   })}`;
-  try {
-    const res = await fetch(url, { headers: { 'user-agent': PT_WIKI_UA } });
-    if (!res.ok) return null;
-    const j = (await res.json()) as {
-      query?: {
-        pages?: Array<{
-          missing?: boolean;
-          revisions?: Array<{ slots?: { main?: { content?: string } } }>;
-        }>;
+  for (let tentativa = 0; tentativa < 4; tentativa++) {
+    const espera = ultimoFetchPt + PT_MIN_INTERVAL_MS - Date.now();
+    if (espera > 0) await sleep(espera);
+    ultimoFetchPt = Date.now();
+    try {
+      const res = await fetch(url, { headers: { 'user-agent': PT_WIKI_UA } });
+      if (res.status === 429 || res.status >= 500) {
+        await sleep(2 ** tentativa * 2000);
+        continue;
+      }
+      if (!res.ok) return { status: 'error' };
+      const j = (await res.json()) as {
+        query?: {
+          pages?: Array<{
+            missing?: boolean;
+            revisions?: Array<{ slots?: { main?: { content?: string } } }>;
+          }>;
+        };
       };
-    };
-    const page = j.query?.pages?.[0];
-    if (!page || page.missing) return null;
-    return page.revisions?.[0]?.slots?.main?.content ?? null;
-  } catch {
-    return null;
+      const page = j.query?.pages?.[0];
+      if (!page || page.missing) return { status: 'missing' };
+      const wikitext = page.revisions?.[0]?.slots?.main?.content;
+      return wikitext ? { status: 'ok', wikitext } : { status: 'missing' };
+    } catch {
+      await sleep(2 ** tentativa * 1500);
+    }
   }
+  return { status: 'error' };
 }
 
 /** W1 — enriquece até `limit` clubes com logo/estádio/cores (só NULL). */
@@ -250,6 +271,7 @@ export async function enrichClubsMediaBatch(
     let skipped = 0;
     let logosFromInfobox = 0;
     let infoboxLookups = 0;
+    let leiturasFalhas = 0;
     const unknownColors: string[] = [];
     for (const club of clubs) {
       const e = clubEntities.get(club.qid!);
@@ -279,6 +301,7 @@ export async function enrichClubsMediaBatch(
         const f = claimScalar(e, 'P154');
         if (f) {
           data.logoUrl = commonsFilePath(f, 300);
+          patch.logo = 'enriched';
         } else {
           // Fallback: escudo do infobox da Wikipédia PT (fonte aprovada no T450-w8). O
           // arquivo vem do Commons, logo tem licença verificável; a procedência fica
@@ -286,21 +309,30 @@ export async function enrichClubsMediaBatch(
           const titulo = e.sitelinks?.ptwiki?.title;
           if (titulo && infoboxLookups < INFOBOX_MAX_POR_RUN) {
             infoboxLookups += 1;
-            const wikitext = await fetchPtWikitext(titulo);
-            const arquivo = wikitext ? escudoDoInfobox(wikitext) : null;
-            if (arquivo) {
-              data.logoUrl = commonsFilePath(arquivo, 300);
-              data.metadata = {
-                ...((club.metadata as Record<string, unknown> | null) ?? {}),
-                logoSource: 'wikipedia-pt-infobox',
-                logoSourceUrl: `https://pt.wikipedia.org/wiki/${encodeURIComponent(titulo)}`,
-                logoResolvedAt: new Date().toISOString(),
-              };
-              logosFromInfobox += 1;
+            const leitura = await fetchPtWikitext(titulo);
+            if (leitura.status === 'error') {
+              // Falha de transporte (429/5xx/rede) NÃO é prova de ausência: deixa a chave
+              // sem carimbo (o clube volta na próxima execução) em vez de gravar gap falso.
+              leiturasFalhas += 1;
+            } else {
+              const arquivo = leitura.status === 'ok' ? escudoDoInfobox(leitura.wikitext) : null;
+              if (arquivo) {
+                data.logoUrl = commonsFilePath(arquivo, 300);
+                data.metadata = {
+                  ...((club.metadata as Record<string, unknown> | null) ?? {}),
+                  logoSource: 'wikipedia-pt-infobox',
+                  logoSourceUrl: `https://pt.wikipedia.org/wiki/${encodeURIComponent(titulo)}`,
+                  logoResolvedAt: new Date().toISOString(),
+                };
+                logosFromInfobox += 1;
+              }
+              patch.logo = data.logoUrl ? 'enriched' : 'no_source';
             }
+          } else {
+            // Sem artigo na wiki PT (ou teto do run): a fonte não cobre este clube.
+            patch.logo = data.logoUrl ? 'enriched' : 'no_source';
           }
         }
-        patch.logo = data.logoUrl ? 'enriched' : 'no_source';
       }
 
       // Cores: P465 (hex) tem precedência; P462 (entidade) via label EN.
@@ -365,7 +397,14 @@ export async function enrichClubsMediaBatch(
         updated += 1;
       }
     }
-    return { processed: clubs.length, updated, skipped, unknownColors, logosFromInfobox };
+    return {
+      processed: clubs.length,
+      updated,
+      skipped,
+      unknownColors,
+      logosFromInfobox,
+      infoboxFetchFailures: leiturasFalhas,
+    };
   } finally {
     if (own) await prisma.$disconnect();
   }
