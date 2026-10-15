@@ -31,6 +31,18 @@ function tokenDe(email: string, roles: string[]): string {
   });
 }
 
+/**
+ * Cabeçalhos de autenticação. O COOKIE é o que autentica.
+ *
+ * O `authenticate` lê `access_token` do COOKIE httpOnly (e `__Host-access_token` em produção), e
+ * não do header `Authorization`. A primeira versão deste teste mandava só o Bearer e recebia 401
+ * em tudo — o `requireOperator` nem chegava a rodar, e as falhas pareciam defeito do gate. Manter
+ * o header também é inofensivo e espelha o que os outros testes de integração do repo fazem.
+ */
+function auth(token: string): Record<string, string> {
+  return { authorization: `Bearer ${token}`, cookie: `access_token=${token}` };
+}
+
 beforeAll(async () => {
   app = await buildApp();
   await app.ready();
@@ -77,7 +89,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
       const res = await app.inject({
         method: 'GET',
         url,
-        headers: { authorization: `Bearer ${token}` },
+        headers: auth(token),
       });
       expect(res.statusCode, `${url} como usuário comum`).toBe(403);
     }
@@ -92,7 +104,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
       const res = await app.inject({
         method: 'GET',
         url,
-        headers: { authorization: `Bearer ${token}` },
+        headers: auth(token),
       });
       expect(res.statusCode, `${url} como admin intruso`).toBe(403);
     }
@@ -104,7 +116,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/admin/users',
-      headers: { authorization: `Bearer ${token}` },
+      headers: auth(token),
     });
     const corpo = res.body;
     // Entregar o e-mail do Operador a um atacante é dar o alvo exato a comprometer.
@@ -118,7 +130,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/admin/users',
-      headers: { authorization: `Bearer ${token}` },
+      headers: auth(token),
     });
     /* O gate de IDENTIDADE não pode ser o que barra o Operador. Se a rota responder 403, o
        problema é outro (falta de permissão na RLS, por exemplo) — mas nunca "não é o operador",
@@ -136,11 +148,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/admin/users',
-      headers: {
-        authorization: `Bearer ${token}`,
-        'x-operator-email': OPERADOR,
-        'x-user-email': OPERADOR,
-      },
+      headers: { ...auth(token), 'x-operator-email': OPERADOR, 'x-user-email': OPERADOR },
     });
     expect(res.statusCode).toBe(403);
   });
