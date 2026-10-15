@@ -99,6 +99,24 @@ describe('T547 — cursor de mídia', () => {
     const soLogo = await selectPendingClubs(prisma, { limit: 5000, media: ['logo'] });
     expect(soLogo.map((p) => p.id)).not.toContain(bId); // 'logo' já tentado
   });
+
+  it('T552 — carimbar `stadium` NÃO tira o clube das filas de logo/colors', async () => {
+    if (!dbOk) return;
+    // Era o defeito real: com a chave única `logo`, um clube que achou o estádio saía da
+    // fila e nunca tentava as cores (teamColors em 2 de 12.003 clubes).
+    const c = await prisma.club.create({
+      data: { name: `T552 C ${suf}`, qid: `Q97${suf}`, importedFrom: 't547-test' },
+    });
+    await stampMediaAttempts(prisma, c.id, { stadium: 'enriched' });
+
+    const tresChaves = await selectPendingClubs(prisma, {
+      limit: 5000,
+      media: ['logo', 'stadium', 'colors'],
+    });
+    expect(tresChaves.map((p) => p.id)).toContain(c.id); // ainda deve logo e colors
+    const soStadium = await selectPendingClubs(prisma, { limit: 5000, media: ['stadium'] });
+    expect(soStadium.map((p) => p.id)).not.toContain(c.id); // estádio já tentado
+  });
 });
 
 /**

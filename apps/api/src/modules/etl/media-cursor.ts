@@ -20,8 +20,14 @@
  */
 import { Prisma, PrismaClient } from '@prisma/client';
 
-/** Chaves de mídia do acervo. `logo` cobre escudo+estádio+cores; `editorial`, o texto. */
-export type MediaKey = 'logo' | 'editorial' | 'kits' | 'anthem' | 'pennants';
+/**
+ * Chaves de mídia do acervo. T552 — `logo`/`stadium`/`colors` são SEPARADAS: com a chave
+ * única `logo` para os três campos, um clube que achou o estádio saía da fila e nunca
+ * tentava as cores (medido: `teamColors` em 2 de 12.003 clubes). A coluna continua a
+ * mesma — o que muda é a granularidade da chave, e por consequência o cursor de cada
+ * campo anda sozinho.
+ */
+export type MediaKey = 'logo' | 'stadium' | 'colors' | 'editorial' | 'kits' | 'anthem' | 'pennants';
 
 export type MediaAttemptStatus = 'enriched' | 'no_source' | 'already_present' | 'error';
 
