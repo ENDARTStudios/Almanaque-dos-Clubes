@@ -49,6 +49,35 @@ export interface GeoStatsState {
   name: string;
   clubs: number;
 }
+
+/**
+ * Contagem de clubes por PAÍS para o índice de agrupamento da página `/clubs`.
+ *
+ * Por que existe separado do `geoStats`: os dois parecem a mesma coisa e NÃO são.
+ *
+ *   `geoStats` agrupa por `countryId` — a chave estrangeira para a tabela `Country`.
+ *   O FILTRO público (`GET /clubs?country=BR`) filtra pela coluna `country` (string ISO2).
+ *
+ * Medido em produção: `countryId` está preenchido em **3.829** clubes dos 12.003 (32%),
+ * enquanto `country` (ISO2) está preenchido em **96%**. Usar o `geoStats` para montar o índice
+ * daria números que não batem com o que o clique do usuário devolve — o índice diria "Brasil:
+ * 605" e a lista mostraria 817. Índice que mente sobre o próprio acervo é pior que índice
+ * nenhum, então a contagem aqui é feita pela MESMA coluna que o filtro usa.
+ */
+export interface CountryIndexEntry {
+  /** Código ISO2, exatamente como vem em `clubs.country`. É o valor do filtro. */
+  code: string;
+  /** Nome legível, quando a tabela `Country` tem a linha. Sem ela, o código é o rótulo. */
+  name: string | null;
+  clubs: number;
+}
+export interface CountryIndex {
+  generatedAt: string;
+  source: 'derived';
+  baseQuery: string;
+  totals: { countries: number; clubsWithCountry: number };
+  countries: CountryIndexEntry[];
+}
 export interface GeoStatsCountry {
   id: string;
   iso2: string;
@@ -321,6 +350,52 @@ export const clubsRepository = {
         states: states.length,
       },
       continents,
+    };
+  },
+
+  /**
+   * Índice de países pela coluna `country` (ISO2) — a MESMA que o filtro público usa.
+   *
+   * Ver o comentário de `CountryIndex` sobre por que isto não é o `geoStats`: agrupar por
+   * `countryId` (FK, 32% preenchido) daria um índice cujos números não batem com o que o
+   * clique devolve (a coluna string está em 96%). O usuário veria "Brasil: 605" e a lista
+   * mostraria 817 clubes.
+   *
+   * O nome legível vem da tabela `Country` por `iso2`. Quando não há linha lá, o próprio
+   * código é o rótulo — melhor mostrar "BR" do que esconder 9% do acervo.
+   */
+  async countryIndex(): Promise<CountryIndex> {
+    const porPais = await prisma.club.groupBy({
+      by: ['country'],
+      where: { country: { not: null }, deletedAt: null },
+      _count: { _all: true },
+    });
+
+    const codigos = porPais.map((c) => c.country).filter((c): c is string => Boolean(c));
+    const nomes = await prisma.country.findMany({
+      where: { iso2: { in: codigos } },
+      select: { iso2: true, name: true },
+    });
+    const nomePorIso = new Map(nomes.map((n) => [n.iso2.toUpperCase(), n.name]));
+
+    const countries: CountryIndexEntry[] = porPais
+      .filter((c): c is typeof c & { country: string } => Boolean(c.country))
+      .map((c) => ({
+        code: c.country.toUpperCase(),
+        name: nomePorIso.get(c.country.toUpperCase()) ?? null,
+        clubs: c._count._all,
+      }))
+      .sort((a, b) => b.clubs - a.clubs || a.code.localeCompare(b.code));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      source: 'derived',
+      baseQuery: 'COUNT(clubs) GROUP BY country (coluna ISO2 do filtro público)',
+      totals: {
+        countries: countries.length,
+        clubsWithCountry: countries.reduce((s, c) => s + c.clubs, 0),
+      },
+      countries,
     };
   },
 };

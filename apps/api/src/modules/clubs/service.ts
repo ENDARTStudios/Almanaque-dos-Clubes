@@ -9,6 +9,7 @@ import {
   type CreateClubInput,
 } from '@almanaque/domain';
 import {
+  CountryIndex,
   clubsRepository,
   type ClubGeoView,
   type ClubTitleView,
@@ -110,6 +111,21 @@ export const clubsService = {
   async geo(id: string): Promise<ClubGeoView | null> {
     return cache.remember(`clubs:geo:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findGeoById(id),
+    );
+  },
+
+  /**
+   * Índice de países para o AGRUPAMENTO da página `/clubs`.
+   *
+   * NÃO reaproveita `geoStats` de propósito: aquele agrupa por `countryId` (FK, 32% dos clubes)
+   * e este agrupa por `country` (ISO2, 96%) — a MESMA coluna do filtro público. Usar o
+   * `geoStats` daria um índice cujos números não batem com o resultado do clique.
+   *
+   * Mesmo TTL da lista: o índice muda quando um clube entra ou muda de país, não a cada request.
+   */
+  async countryIndex(): Promise<CountryIndex> {
+    return cache.remember('clubs:country-index', CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.countryIndex(),
     );
   },
 
