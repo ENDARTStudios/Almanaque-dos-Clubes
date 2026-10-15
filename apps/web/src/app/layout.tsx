@@ -6,6 +6,7 @@ import { AuthProvider } from '@/components/AuthProvider';
 import Footer from '@/components/Footer';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import SpeedInsightsGate from '@/components/SpeedInsightsGate';
+import { CommandPaletteProvider } from '@/components/CommandPaletteProvider';
 import { cookieBannerEnabled } from '@/lib/flags';
 import { safeJsonLd } from '@/lib/json-ld';
 import { I18nProvider } from '@/i18n/Provider';
@@ -91,12 +92,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <I18nProvider initialLocale={locale}>
           <AuthProvider>
+          {/* A paleta é montada UMA vez, aqui, e não em cada página: o atalho ⌘K/Ctrl+K tem de
+              funcionar em qualquer rota, e a navbar precisa do mesmo gatilho que o atalho.
+              Duas instâncias dariam duas buscas concorrentes e dois `aria-modal` na árvore. */}
+          <CommandPaletteProvider>
           <Navbar />
           <main className="flex-1 pt-20">{children}</main>
           <Footer />
           {cookieBannerEnabled() && <CookieConsentBanner />}
           {/* Core Web Vitals — gateado na categoria analytics do consentimento */}
           <SpeedInsightsGate />
+          </CommandPaletteProvider>
           </AuthProvider>
         </I18nProvider>
       </body>
