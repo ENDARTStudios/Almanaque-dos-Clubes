@@ -208,6 +208,15 @@ const pt: Dictionary = {
       clubs: 'clubes',
       players: 'jogadores',
       error: 'Não foi possível carregar o índice de países — a lista completa continua abaixo.',
+      citiesTitle: 'Cidades',
+      citiesLabel: 'Cidades do país',
+      citiesShowAll: 'Ver as {n} cidades',
+      citiesGapPartial:
+        'Cidade conhecida para {com} de {total} clubes deste país — agrupar por cidade esconderia os demais. Os clubes estão listados abaixo.',
+      citiesGapNone:
+        'Ainda não há cidade registrada para os clubes deste país — os {n} estão listados abaixo.',
+      citiesPartial: '{n} sem cidade registrada',
+      citiesLoadError: 'Não foi possível carregar as cidades deste país.',
     },
     clubs: {
       title: 'Clubes',

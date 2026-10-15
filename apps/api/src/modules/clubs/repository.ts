@@ -64,6 +64,43 @@ export interface GeoStatsState {
  * 605" e a lista mostraria 817. Índice que mente sobre o próprio acervo é pior que índice
  * nenhum, então a contagem aqui é feita pela MESMA coluna que o filtro usa.
  */
+/**
+ * Cidades de UM país, para o segundo nível do agrupamento de `/clubs` (país → cidade).
+ *
+ * POR QUE ESTE ENDPOINT DEVOLVE `semCidade` E NÃO SÓ A LISTA
+ *
+ * O campo `city` tem cobertura DESIGUAL, e isso foi medido antes de escrever isto — não estimado:
+ *
+ *   por país (125 países medidos):  apenas 16 têm cidade em >=60% dos clubes
+ *   por acervo:                     apenas 2.410 de 10.660 clubes (23%) estão em país com >=60%
+ *   os 4 maiores países:            SE 26% · BR 33% · PT 35% · AU 24%
+ *
+ * Ou seja: agrupar por cidade entrega um segundo nível BOM para uma minoria dos países e RUIM
+ * para a maioria. Se o endpoint devolvesse só a lista de cidades, a tela mostraria "Salvador (4)"
+ * num país de 817 clubes e o usuário concluiria que só existem clubes em Salvador — quando o que
+ * falta é o DADO, não o clube. `semCidade` existe para a tela poder DECLARAR a lacuna em vez de
+ * escondê-la, que é a mesma regra do `total: null` no subtítulo de `/clubs` (T548).
+ */
+export interface CityIndexEntry {
+  /** Nome da cidade exatamente como está em `clubs.city` — é o valor do filtro `?city=`. */
+  name: string;
+  clubs: number;
+}
+export interface CityIndex {
+  generatedAt: string;
+  source: 'derived';
+  baseQuery: string;
+  country: string;
+  totals: {
+    /** Clubes do país que TÊM cidade preenchida. */
+    withCity: number;
+    /** Clubes do país SEM cidade: a lacuna, declarada para o consumidor decidir o que fazer. */
+    withoutCity: number;
+    cities: number;
+  };
+  cities: CityIndexEntry[];
+}
+
 export interface CountryIndexEntry {
   /** Código ISO2, exatamente como vem em `clubs.country`. É o valor do filtro. */
   code: string;
@@ -350,6 +387,49 @@ export const clubsRepository = {
         states: states.length,
       },
       continents,
+    };
+  },
+
+  /**
+   * Cidades de um país — o segundo nível do agrupamento (país → cidade).
+   *
+   * Agrupa por `city` (a coluna que `?city=` filtra) DENTRO de um país, e conta também os clubes
+   * sem cidade. A contagem de `withoutCity` não é enfeite: é o que permite a tela declarar a
+   * lacuna em vez de mostrar uma lista curta como se fosse o acervo inteiro. Ver `CityIndex`.
+   *
+   * `mode: 'insensitive'` não se aplica a groupBy, então a chave é o texto como está. Duas
+   * grafias da mesma cidade ("São Paulo" e "Sao Paulo") viram duas entradas — preferi isso a
+   * normalizar por conta própria e juntar cidades que talvez não sejam a mesma.
+   */
+  async cityIndex(country: string): Promise<CityIndex> {
+    const iso = country.toUpperCase();
+    const [porCidade, semCidade] = await Promise.all([
+      prisma.club.groupBy({
+        by: ['city'],
+        where: { country: iso, city: { not: null }, deletedAt: null },
+        _count: { _all: true },
+      }),
+      prisma.club.count({
+        where: { country: iso, city: null, deletedAt: null },
+      }),
+    ]);
+
+    const cities: CityIndexEntry[] = porCidade
+      .filter((c): c is typeof c & { city: string } => Boolean(c.city))
+      .map((c) => ({ name: c.city, clubs: c._count._all }))
+      .sort((a, b) => b.clubs - a.clubs || a.name.localeCompare(b.name));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      source: 'derived',
+      baseQuery: 'COUNT(clubs) GROUP BY city WHERE country = $1 (coluna do filtro público)',
+      country: iso,
+      totals: {
+        withCity: cities.reduce((s, c) => s + c.clubs, 0),
+        withoutCity: semCidade,
+        cities: cities.length,
+      },
+      cities,
     };
   },
 

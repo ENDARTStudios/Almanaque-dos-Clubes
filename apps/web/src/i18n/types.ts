@@ -255,6 +255,18 @@ export interface Dictionary {
       clubs: string;
       players: string;
       error: string;
+      /** Segundo nível do agrupamento: cidades dentro do país escolhido. */
+      citiesTitle: string;
+      citiesLabel: string;
+      /** `{n}` é o total de cidades. */
+      citiesShowAll: string;
+      /** `{com}` e `{total}` — lacuna declarada quando a cobertura de cidade é baixa. */
+      citiesGapPartial: string;
+      /** `{n}` — nenhum clube do país tem cidade registrada. */
+      citiesGapNone: string;
+      /** `{n}` — clubes do país sem cidade, mesmo com cobertura boa. */
+      citiesPartial: string;
+      citiesLoadError: string;
     };
     // T548 — mensagem honesta quando a API falha (antes imprimia "0 clubes").
     clubs: { title: string; subtitle: string; placeholder: string; loadError: string };

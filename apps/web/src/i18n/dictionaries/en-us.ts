@@ -207,6 +207,15 @@ const en: Dictionary = {
       clubs: 'clubs',
       players: 'players',
       error: 'Could not load the country index — the full list is still below.',
+      citiesTitle: 'Cities',
+      citiesLabel: 'Cities in the country',
+      citiesShowAll: 'Show all {n} cities',
+      citiesGapPartial:
+        'City known for {com} of {total} clubs in this country — grouping by city would hide the rest. The clubs are listed below.',
+      citiesGapNone:
+        'No city recorded for the clubs in this country yet — all {n} are listed below.',
+      citiesPartial: '{n} without a recorded city',
+      citiesLoadError: 'Could not load the cities for this country.',
     },
     clubs: {
       title: 'Clubs',
