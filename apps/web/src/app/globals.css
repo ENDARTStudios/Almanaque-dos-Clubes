@@ -281,59 +281,94 @@
 @import 'tailwindcss';
 
 @theme {
-  /* TEMA PADRÃO = ESCURO EDITORIAL (antes era claro).
-     Por que o padrão foi invertido em vez de espalhar `.theme-dark` por 38 rotas: o claro era o
-     padrão em `@theme` e a camada escura era a exceção, então cada página nova precisava lembrar
-     de pedir o escuro. Invertendo, o site inteiro herda a linguagem editorial por construção e a
-     exceção passa a ser explícita (`.theme-light`, hoje só o mapa — ver abaixo).
-     Valores medidos sobre `--color-background` `#12100f`:
-     foreground 17,13:1 · foreground/70 6,60:1 · foreground/60 4,72:1 · primary 4,72:1 ·
-     secondary 7,84:1 · border 3,18:1 (não-texto) · on-primary sobre primary 4,70:1. */
+  /* TEMA PADRÃO = CLARO "VINHO" (era escuro editorial — invertido nesta rodada).
+     Esta é a paleta ESCOLHIDA pelo Operador em `docs/conceito-claro/comparador-de-paletas.png`
+     (seis esquemas na mesma tela; venceu o vinho). O caminho até aqui está registrado no
+     `concept-board-light.mjs`: vermelho vivo foi rejeitado por "se destacar demais", terracota
+     dessaturado por "ainda pior" — o acerto veio de COMPARAR, não de adivinhar.
+
+     As três cores quentes têm PAPÉIS distintos, e trocar de papel é o que quebra a paleta:
+       `primary`     preenchimento vivo — botão, chip, barra. Carrega texto BRANCO.
+       `primary-ink` a mesma família, escura o bastante para SER TEXTO (link e número).
+       `secondary`   "verificado" e pódio, em ouro complementar.
+     Medido no PIOR CASO (a faixa `#f2efea`, mais escura que o papel — é onde o contraste cai,
+     e é justamente onde o pódio fica): primary-ink 6,99:1 · secondary 4,65:1 · branco dentro do
+     primary 6,29:1. O acento quase foi `#a16207`, que dá 4,29 na faixa e REPROVARIA.
+
+     O escuro virou a EXCEÇÃO declarada (`.theme-dark`, abaixo), usada só onde um terceiro impõe
+     superfície própria. */
+  --color-primary: #be123c;
+  --color-primary-ink: #9f1239;
+  --color-on-primary: #ffffff;
+  --color-secondary: #94600a;
+  --color-accent: #be123c;
+  --color-background: #faf8f5;
+  --color-foreground: #111111;
+  /* Estruturais NEUTRAS e quentes. A paleta clara anterior era ROSA (`#f0edf1`, `#fecaca`) e
+     brigava com o vinho dos acentos: dois matizes quentes disputando a mesma tela. Com o
+     vinho reservado ao acento, o neutro precisa ser neutro. */
+  --color-muted: #efece7;
+  /* ── CAMADA DE SUPERFÍCIE E ESCALA DE TINTA ──────────────────────────────────────────────
+     No claro a elevação é por FUNDO mais branco + sombra, não por borda: `surface` é branco de
+     verdade sobre o papel. `surface-2` é o degrau seguinte (cabeçalho de tabela, selo).
+     `ink-2`/`ink-3` são a escala de TINTA por PAPEL, e existem porque `text-foreground/70`
+     resolve por opacidade — a mesma classe rende contraste diferente conforme a superfície
+     embaixo. Medidos no pior caso (papel, branco e faixa): ink-2 6,65:1 · ink-3 5,01:1. */
+  --color-surface: #ffffff;
+  --color-surface-2: #f2efea;
+  --color-ink-2: #57534e;
+  --color-ink-3: #6b6560;
+  --color-border: #e0dad3;
+  --color-destructive: #be123c;
+  /* Cor de TEXTO de perigo. Medida no pior caso: `#b91c1c` = 5,64:1 (o valor claro era
+     `#dc2626`, que dá 4,41 sobre este papel e reprovaria em AA). */
+  --color-danger-ink: #b91c1c;
+  --color-on-danger: #ffffff;
+  --color-danger-surface: #fee2e2;
+  /* Cores SEMÂNTICAS de estado, cada uma com superfície e tinta próprias. Medidas no pior caso:
+     success `#127035` 5,39:1 (o `#15803d` dava 4,37 e REPROVAVA) · warn `#a34a08` 5,17:1 ·
+     info `#1d4ed8` 5,84:1. */
+  --color-success-ink: #127035;
+  --color-success-surface: #dcfce7;
+  --color-warn-ink: #a34a08;
+  --color-warn-surface: #fef3c7;
+  --color-info-ink: #1d4ed8;
+  --color-neutral-surface: #efece7;
+  --color-ring: #94600a;
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+}
+
+/* `color-scheme` NÃO pode morar dentro do `@theme`: o Tailwind v4 aceita apenas custom
+   properties e `@keyframes` ali, e qualquer outra declaração derruba o build inteiro com
+   `@theme blocks must only contain custom properties or @keyframes`. Aqui ele fica em `:root`,
+   que é onde de fato pertence — é dica para o user agent pintar barra de rolagem e controles
+   nativos, não um token de design. */
+:root {
+  color-scheme: light;
+}
+
+/* EXCEÇÃO ESCURA, explícita e escopada — só onde um terceiro impõe superfície escura, ou onde
+   o conteúdo é cartográfico e pede base própria. Aqui ficam os valores do tema editorial
+   anterior, preservados para quem precisar do par escuro. */
+.theme-dark {
   --color-primary: #e8412f;
-  /* `--color-primary-ink` é o PAR DE TEXTO de `--color-primary`. No escuro o vermelho vivo já
-     passa como texto (4,72:1), então o ink serve de reforço para links em corpo pequeno —
-     `#ff6a55` sobre `#12100f` dá 7,94:1. Ver `.theme-light` para o par claro. */
   --color-primary-ink: #ff6a55;
   --color-on-primary: #1a0e0b;
   --color-secondary: #c9a227;
   --color-accent: #e8412f;
   --color-background: #12100f;
   --color-foreground: #f7f3ea;
-  /* `muted` é ELEVação no escuro: precisa ser mais CLARO que o fundo (`#1c1917` citado antes
-     ficava mais escuro e lia como rebaixo em vez de cartão). #241f1d dá 15,86:1 com o texto. */
   --color-muted: #241f1d;
-  /* ── CAMADA DE SUPERFÍCIE E ESCALA DE TINTA (conceito visual) ────────────────────────────
-     `surface` é a superfície elevada do conceito: cartão, paleta de comando, linha de tabela.
-     No escuro ela separa do fundo por BORDA, não por contraste de fundo (1,06:1 entre as duas)
-     — é assim que a prancha funciona, e é o que evita o "cartão flutuante" genérico.
-     `surface-2` é o degrau seguinte: cabeçalho de tabela, selo, avatar.
-     `ink-2`/`ink-3` são a escala de TINTA por PAPEL, e existem porque `text-foreground/70`
-     resolve por opacidade: a mesma classe rende contraste diferente conforme a superfície
-     embaixo. Medidos sobre fundo E sobre surface: ink-2 8,58/8,07 · ink-3 5,39/5,07 — os dois
-     passam em AA nas DUAS superfícies, então a tinta não depende de onde ela cai. */
   --color-surface: #1a1715;
   --color-surface-2: #211d1a;
   --color-ink-2: #b3aea3;
   --color-ink-3: #8d8880;
   --color-border: #6b625a;
   --color-destructive: #e8412f;
-  /* Cor de TEXTO de perigo/erro. O repo usava `text-red-500/600/700` (26 arquivos) como cor de
-     erro, e nenhuma delas passa em AA sobre o fundo escuro — medido: `#dc2626` (red-600) sobre
-     `#12100f` dá 3,98:1. Este token é o par de texto, como `primary-ink` faz para a marca:
-     `#f87171` sobre `#12100f` = 7,11:1. */
   --color-danger-ink: #f87171;
-  /* Par COMPLETO de perigo, pelo mesmo motivo que `on-primary` existe: preenchimento vermelho
-     pede texto escuro no tema escuro. `bg-danger-ink` + `text-white` daria 2,77:1 (branco sobre
-     `#f87171`), então botão destrutivo usa `bg-danger-ink text-on-danger` = 6,83:1.
-     `danger-surface` é o fundo TÊNU do badge de erro: `#f87171` sobre `#4a1512` = 5,40:1. */
   --color-on-danger: #1a0e0b;
   --color-danger-surface: #4a1512;
-  /* Cores SEMÂNTICAS de estado (sucesso / aviso / neutro), com o par superfície+texto.
-     Antes o repo usava utilitários crus do Tailwind (`bg-green-100 text-green-700`,
-     `bg-amber-400`, `bg-slate-100`…) em 10 arquivos. Todos aqueles pares assumem fundo CLARO:
-     sobre `#12100f` o `text-green-700` dá ~1,9:1. Aqui cada estado tem superfície e tinta
-     próprias, medidas sobre `#12100f`: success-ink 9,36:1 · warn-ink 10,19:1 · info-ink 6,88:1.
-     Em `.theme-light` os tokens voltam aos valores claros. */
   --color-success-ink: #6ee7a8;
   --color-success-surface: #123123;
   --color-warn-ink: #fbbf24;
@@ -341,44 +376,7 @@
   --color-info-ink: #7dd3fc;
   --color-neutral-surface: #241f1d;
   --color-ring: #c9a227;
-  --font-heading: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
-}
-
-/* EXCEÇÃO CLARA, explícita e escopada — só onde um terceiro impõe superfície clara.
-   Hoje: os tiles do OpenStreetMap (`/map`, `WorldMap`, `GeoMapCanvas`) são cartografia clara;
-   texto claro sobre eles seria ilegível e "escurecer" o mapa exigiria trocar de provedor de
-   tiles (decisão de produto, não de CSS). Então o MAPA fica claro e o resto do site, escuro. */
-.theme-light {
-  --color-primary: #dc2626;
-  --color-primary-ink: #b91c1c;
-  --color-on-primary: #ffffff;
-  --color-secondary: #ef4444;
-  --color-accent: #dc2626;
-  --color-background: #fef2f2;
-  --color-foreground: #340808;
-  --color-muted: #f0edf1;
-  /* Par claro da camada de superfície. `surface` aqui é BRANCO de verdade: no tema claro a
-     elevação se lê por fundo mais claro que o `#fef2f2` do fundo, não por borda.
-     Tintas medidas sobre `#fef2f2` e sobre branco: ink-2 6,70/7,33 · ink-3 5,01/5,48 —
-     acima do piso 4,5 nas duas superfícies. */
-  --color-surface: #ffffff;
-  --color-surface-2: #f7f2f2;
-  --color-ink-2: #5c554e;
-  --color-ink-3: #6f6862;
-  --color-border: #fecaca;
-  --color-destructive: #dc2626;
-  --color-danger-ink: #dc2626;
-  --color-on-danger: #ffffff;
-  --color-danger-surface: #fee2e2;
-  --color-success-ink: #15803d;
-  --color-success-surface: #dcfce7;
-  --color-warn-ink: #b45309;
-  --color-warn-surface: #fef3c7;
-  --color-info-ink: #0369a1;
-  --color-neutral-surface: #f1f5f9;
-  --color-ring: #dc2626;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 @layer base {
@@ -397,12 +395,11 @@
     font-weight: 700;
     letter-spacing: 0.02em;
   }
-  /* A11y (medido) — o anel de foco padrão é dourado (`--color-ring` `#c9a227`) e o CTA primário
-     é vermelho (`#e8412f`): o par dá 1,66:1, abaixo do 3:1 que a WCAG 2.2 (1.4.11 / 2.4.13) pede
-     para indicador de foco. O `outline-offset` maior não resolve sobre o próprio botão; a solução
-     é um anel duplo: uma folga de 1 px na cor do fundo separa o anel dourado do vermelho
-     (dourado × fundo = 7,84:1). Como o escuro passou a ser o PADRÃO, a regra vale globalmente e
-     não precisa mais de `.theme-dark`. */
+  /* A11y (medido) — o anel de foco é ouro (`--color-ring` `#94600a`) e o CTA primário é vinho
+     (`#be123c`): o par dá perto de 1:1, MUITO abaixo do 3:1 que a WCAG 2.2 (1.4.11 / 2.4.13)
+     pede para indicador de foco. Aumentar o `outline-offset` não resolve sobre o próprio botão;
+     a solução é o anel duplo: uma folga de 1 px na cor do FUNDO separa o anel de ouro do vinho
+     do botão. Vale globalmente porque o claro é o padrão. */
   *:focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 3px;
@@ -410,10 +407,10 @@
   }
 }
 
-/* A superfície CLARA (`.theme-light`) redefine o anel para vermelho escuro e mantém a folga —
-   lá o par vermelho × fundo claro dá 4,41:1, que já passa o 3:1 de não-texto. */
-.theme-light *:focus-visible {
-  outline-offset: 2px;
+/* A superfície ESCURA redefine o anel para o dourado do tema escuro, e dispensa a folga: lá o
+   par dourado × fundo quase-preto dá 7,84:1, que passa o 3:1 de não-texto sozinho. */
+.theme-dark *:focus-visible {
+  outline-offset: 3px;
   box-shadow: none;
 }
 
@@ -550,7 +547,9 @@
   .auth-card__pane--hero {
     z-index: 4;
     border-radius: 18px;
-    color: #f9f9f9;
+    /* Texto em VINHO, não em `#f9f9f9` fixo: era a tinta do fundo escuro, e sobre o painel
+       claro daria 1,1:1 — ilegível. Com o token, o painel acompanha o tema. */
+    color: var(--color-primary-ink);
     /* A referência usava uma FOTO de montanha nesta metade. Em vez de reproduzir a foto (de
        terceiro: exigiria licença e uma requisição), a superfície é feita de material do próprio
        design system. A primeira versão trazia DOIS halos radiais coloridos (`--color-primary` a
@@ -558,20 +557,38 @@
        "radial-gradient spotlight glow … reflex AI decoration … a floating colored haze".
        O borrão colorido saiu. No lugar entrou o MESMO motivo da hero do site (a linha de campo
        desenhada como elemento, em `.auth-card__mark`), sobre um gradiente neutro — material
-       deliberado em vez de névoa. */
-    background: linear-gradient(160deg, #2a2320 0%, #16130f 58%, #1e1814 100%);
+       deliberado em vez de névoa. (O gradiente neutro era escuro; a inversão para claro está
+       documentada logo abaixo.) */
+    /* Painel de marca em CLARO tingido de vinho — antes era um gradiente escuro em hex FIXO
+       (`#2a2320 → #16130f`), escrito para o tema escuro e portanto imune à troca de tokens: no
+       site claro ele continuava a ser um retângulo quase-preto dominando a tela de login
+       (medido: fundo `#1c1917`). Dois problemas concretos, não estéticos:
+         1. destoava do site inteiro, e o detector de anti-padrões não pega isso porque o
+            CONTRASTE estava certo (16,61:1) — o defeito era de coerência, não de leitura;
+         2. era o único lugar do app com cor que não vinha de token, então qualquer mudança de
+            tema o deixava para trás.
+       Agora o painel é derivado dos tokens e acompanha o tema. Medido sobre `#fdf2f4`: título
+       em vinho 7,32:1 · corpo em `ink-2` 6,97:1 · borda do botão 7,32:1. */
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--color-primary) 6%, var(--color-background)) 0%,
+      color-mix(in oklab, var(--color-primary) 12%, var(--color-background)) 58%,
+      color-mix(in oklab, var(--color-primary) 8%, var(--color-background)) 100%
+    );
     overflow: hidden;
   }
-  /* Linha de campo: 1 linha horizontal + círculo central, em vermelho da marca a 7% — a mesma
-     linguagem e a mesma proporção dos utilitários `theme-dark-grid` da hero do site. */
+  /* Linha de campo: 1 linha horizontal + círculo central, na cor da marca. O traço do SVG é a
+     única cor literal que sobrou aqui, e é deliberado — `background-image` com data-URI não lê
+     custom property. Em compensação a OPACIDADE subiu de 0,07 para 0,14: a 7% o traço sumia
+     sobre o papel claro, que era o mesmo motivo de ele ter sido calibrado no escuro. */
   .auth-card__mark {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='600' viewBox='0 0 960 600'%3E%3Cg fill='none' stroke='%23e8412f' stroke-width='1.5'%3E%3Cpath d='M0 300h960M480 0v600'/%3E%3Ccircle cx='480' cy='300' r='120'/%3E%3Cpath d='M0 60h60v480H0M960 60h-60v480h60'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='600' viewBox='0 0 960 600'%3E%3Cg fill='none' stroke='%239f1239' stroke-width='1.5'%3E%3Cpath d='M0 300h960M480 0v600'/%3E%3Ccircle cx='480' cy='300' r='120'/%3E%3Cpath d='M0 60h60v480H0M960 60h-60v480h60'/%3E%3C/g%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-size: 100% 100%;
-    opacity: 0.07;
+    opacity: 0.14;
   }
   /* ── GEOMETRIA (posição + animação) ──────────────────────────────────────────────────────
      Derivada do MODIFICADOR DO CARD (`auth-card--login` / `auth-card--register`), que já
@@ -742,7 +759,9 @@
     text-align: center;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    /* `ink-2` no lugar do `color-mix` de 70%: medido, `foreground/70` sobre este papel dá
+       4,13:1 e REPROVA em AA. `ink-2` dá 6,97:1 e não depende da superfície embaixo. */
+    color: var(--color-ink-2);
   }
   .auth-card__form {
     display: block;
@@ -764,7 +783,7 @@
     margin-bottom: 6px;
     font-size: 0.75rem;
     letter-spacing: 0.3px;
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    color: var(--color-ink-2);
   }
   .auth-card__input {
     width: 100%;
@@ -779,7 +798,7 @@
   /* Placeholder sem a `opacity` do navegador — foi ela que deixou o texto da busca do topo
      quase ilegível (armadilha já medida neste projeto). */
   .auth-card__input::placeholder {
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    color: var(--color-ink-2);
     opacity: 1;
   }
   .auth-card__input:hover {
@@ -798,7 +817,7 @@
     /* 12px é o PISO do portão (	iny-text reprova abaixo disso). Estava 0.6875rem = 11px. */
     font-size: 0.75rem;
     line-height: 1.45;
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    color: var(--color-ink-2);
   }
   .auth-card__consents {
     display: flex;
@@ -811,7 +830,7 @@
     gap: 8px;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    color: var(--color-ink-2);
     cursor: pointer;
   }
   .auth-card__checkbox {
@@ -874,7 +893,7 @@
   }
   .auth-card__divider-text {
     font-size: 0.75rem;
-    color: color-mix(in oklab, var(--color-foreground) 70%, transparent);
+    color: var(--color-ink-2);
   }
   .auth-card__social {
     display: flex;
@@ -912,7 +931,8 @@
   .auth-card__hero-title {
     margin: 0;
     font-size: 1.5rem;
-    color: #f9f9f9;
+    /* Tinta do painel claro. Era `#f9f9f9`, que existe só para o fundo escuro. */
+    color: var(--color-primary-ink);
     text-wrap: balance;
   }
   .auth-card__hero-text {
@@ -920,16 +940,21 @@
     max-width: 30ch;
     font-size: 0.875rem;
     line-height: 1.45;
-    color: rgb(249 249 249 / 85%);
+    /* `ink-2` em vez de `rgb(249 249 249 / 85%)`: sobre o painel claro o branco a 85% daria
+       ~1,1:1. Medido: `#57534e` sobre `#fdf2f4` = 6,97:1. */
+    color: var(--color-ink-2);
   }
   .auth-card__switch {
     display: inline-block;
     padding: 12px 40px;
-    border: 1px solid #f9f9f9;
+    /* Botão outline em VINHO. Era `#f9f9f9` em borda, fundo e texto — desenhado para o painel
+       escuro, e no painel claro ficava praticamente invisível (o detector de contraste NÃO pega
+       isso: o texto não é ilegível contra o fundo medido, ele simplesmente não se destaca como
+       controle). Medido sobre `#fdf2f4`: borda e texto `#9f1239` = 7,32:1. */
+    border: 1px solid var(--color-primary-ink);
     border-radius: 32px;
-    background: rgb(255 255 255 / 4%);
-    backdrop-filter: blur(4px);
-    color: #f9f9f9;
+    background: transparent;
+    color: var(--color-primary-ink);
     font-size: 13px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -939,8 +964,9 @@
       color 0.3s ease-out;
   }
   .auth-card__switch:hover {
-    background: #f9f9f9;
-    color: #212625;
+    /* Inverte para preenchido. Branco sobre o vinho = 7,18:1. */
+    background: var(--color-primary-ink);
+    color: var(--color-on-primary);
   }
   /* Telas de auth sem par de troca (recuperar/redefinir senha): um card de metade única, com
      a mesma linguagem do card de duas metades. */
@@ -962,9 +988,9 @@
     margin-top: 20px;
     text-align: center;
   }
-  /* Confirmação (recuperar/redefinir senha): o repositório tem `--color-success-surface` mas
-     nenhum token de TINTA de sucesso no tema escuro — usar `--color-foreground` aqui é o que
-     passa em AA sobre essa superfície e não inventa token novo para um caso só. */
+  /* Confirmação (recuperar/redefinir senha). Sobre a superfície de sucesso, `foreground` dá
+     17,19:1 e `success-ink` daria 5,63:1 — os dois passam, e `foreground` é o que mantém o
+     texto de confirmação legível como texto normal, não como texto colorido de estado. */
   .auth-card__success {
     margin-bottom: 16px;
     padding: 10px 12px;
@@ -974,25 +1000,14 @@
     color: var(--color-foreground);
     font-size: 0.8125rem;
   }
-  /* Grade de campo: 1 linha de fundo + círculo central + meia-lua, como SVG inline
-     (custo zero de rede, escala com o container). Opacidade baixa de propósito. */
-  .theme-dark-grid {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='600' viewBox='0 0 960 600'%3E%3Cg fill='none' stroke='%23e8412f' stroke-width='1.5'%3E%3Cpath d='M0 300h960M480 0v600'/%3E%3Ccircle cx='480' cy='300' r='120'/%3E%3Cpath d='M0 60h60v480H0M960 60h-60v480h60'/%3E%3C/g%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    opacity: 0.07;
-  }
-  /* Textura de grão: mantém a superfície escura de parecer "chapada" sem imagem. */
-  .theme-dark-grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-    opacity: 0.05;
-  }
-  /* Halo quente atrás da dobra — dá profundidade sem imagem e sem custo de rede. */
-  .theme-dark-glow {
-    background:
-      radial-gradient(60rem 40rem at 78% 8%, rgba(232, 65, 47, 0.22), transparent 62%),
-      radial-gradient(42rem 32rem at 8% 92%, rgba(201, 162, 39, 0.12), transparent 60%);
-  }
+  /* As três camadas decorativas do tema escuro (`theme-dark-grid`, `-grain`, `-glow`) foram
+     REMOVIDAS com a inversão para claro. Elas existiam para somar luz e textura sobre fundo
+     quase-preto: um halo radial quente, uma grade de campo a 7% e um grão a 5%. Sobre papel
+     claro o halo vira MANCHA (foi o defeito que o próprio repo registrou quando uma seção
+     escura seguia outra clara), a grade vira sujeira e o grão some. Em fundo claro a
+     profundidade vem de SOMBRA e de espaço — é o que a prancha do conceito mostra.
+     Se o tema escuro voltar a ser padrão, estas três classes precisam ser reescritas, não
+     apenas relinkadas. */
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out forwards;
   }

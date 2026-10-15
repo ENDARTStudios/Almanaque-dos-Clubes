@@ -185,7 +185,11 @@ export default function RankingsTable() {
   // o `max-width: 100%` resolvia contra os próprios 428px (overflow de +54px a 390px e
   // +124px a 320px). A correção é `min-w-0` no label (deixa encolher) + `w-full` no select.
   const selectClass =
-    'w-full max-w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground';
+    // `placeholder:` explícito porque o navegador aplica COR e OPACIDADE próprias ao
+    // `::placeholder` — medido pelo detector: sem isto o "Buscar clube" renderiza em 3,5:1 e
+    // reprova em AA. `opacity-100` é necessário: sem ele a cor declarada é multiplicada pela
+    // opacidade do user agent e o valor final não é o que se escreveu.
+    'w-full max-w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-ink-2 placeholder:opacity-100';
 
   return (
     <div className="mt-8">
