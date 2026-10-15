@@ -66,11 +66,7 @@ export async function requireOperator(request: FastifyRequest, reply: FastifyRep
   const user = (request as { user?: { id?: string; email?: string } }).user;
 
   if (!user?.email) {
-    registrarRecusa(request, {
-      motivo: 'sem_identidade',
-      userId: null,
-      email: null,
-    });
+    registrarRecusa(request, { motivo: 'sem_identidade', email: null });
     await reply.status(401).send({
       error: { code: 'UNAUTHORIZED', message: 'Acesso não autorizado' },
     });
@@ -78,11 +74,7 @@ export async function requireOperator(request: FastifyRequest, reply: FastifyRep
   }
 
   if (!ehOperador(user.email)) {
-    registrarRecusa(request, {
-      motivo: 'nao_e_operador',
-      userId: user.id ?? null,
-      email: user.email,
-    });
+    registrarRecusa(request, { motivo: 'nao_e_operador', email: user.email });
     // Genérica de propósito: não revela QUEM pode entrar.
     await reply.status(403).send({
       error: { code: 'FORBIDDEN', message: 'Acesso restrito ao operador.' },
@@ -106,7 +98,7 @@ export async function requireOperator(request: FastifyRequest, reply: FastifyRep
  */
 function registrarRecusa(
   request: FastifyRequest,
-  dados: { motivo: string; userId: string | null; email: string | null },
+  dados: { motivo: string; email: string | null },
 ): void {
   const rota = String((request as { url?: string }).url ?? '').split('?')[0];
   const ip = String((request as { ip?: string }).ip ?? '');
@@ -117,7 +109,18 @@ function registrarRecusa(
       // O ALVO é a rota que se tentou acessar — é o que responde "o que ele queria?".
       entityId: rota || 'rota-desconhecida',
       action: AuditAction.PERMISSION_DENIED,
-      userId: dados.userId,
+      /* `userId: null` DELIBERADAMENTE, e não o `sub` do token.
+       *
+       * `audit_logs.userId` é chave estrangeira para `User`. O `sub` vem do JWT e pode apontar para
+       * um usuário que NÃO EXISTE (token de teste, conta apagada) — e nesse caso a FK REJEITA a
+       * escrita, a trilha fica sem o registro, e a auditoria some justamente na tentativa suspeita.
+       *
+       * Descoberto no CI: os dois testes de auditoria falhavam porque a gravação estourava e o
+       * `catch` engolia em silêncio.
+       *
+       * Um registro de segurança não pode depender de o atacante ter conta válida. Quem identifica
+       * é o `metadata.email`, que vem do token e não tem FK nenhuma. */
+      userId: null,
       metadata: {
         motivo: dados.motivo,
         rota,
@@ -127,7 +130,7 @@ function registrarRecusa(
     })
     .catch(() => {
       /* Falha de auditoria não pode virar erro visível: a recusa já foi enviada. O log estruturado
-       do processo registra a falha para investigação. */
+         do processo registra a falha para investigação. */
       logger.error({ rota, motivo: dados.motivo }, 'falha ao auditar recusa de acesso ao operador');
     });
 }
