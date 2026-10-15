@@ -63,7 +63,7 @@ describe('T551 — clube atual a partir do P54', () => {
   });
 
   it('statement encerrado não "vence" só por ser o último da lista', () => {
-    const lista = [st('Q1007', '2020-01-01', '2021-01-01'), st('Q1008', '2021-06-01')];
+    const lista = [st('Q1007', '2022-01-01', '2023-01-01'), st('Q1008', '2024-06-01')];
     expect(currentTeamQid(lista, OPTS)).toBe('Q1008');
   });
 
