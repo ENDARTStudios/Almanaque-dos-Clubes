@@ -14,8 +14,12 @@ import {
   selectPendingClubs,
   selectPendingPlayers,
   stampMediaAttempt,
+  stampMediaAttempts,
   stampPlayerAttempt,
+  type MediaAttemptStatus,
+  type MediaKey,
 } from './media-cursor.js';
+import { escudoDoInfobox } from './wikipedia-club-logo.js';
 import {
   fetchEntities,
   commonsFilePath,
@@ -121,6 +125,47 @@ export interface MediaBatchResult {
   updated: number;
   skipped: number;
   unknownColors: string[];
+  /** T552 — quantos escudos vieram do infobox da Wikipédia PT (não do P154). */
+  logosFromInfobox?: number;
+}
+
+const PT_WIKI_API = 'https://pt.wikipedia.org/w/api.php';
+const PT_WIKI_UA = 'AlmanaqueDosClubes-ETL/3.0 (github.com/ENDARTStudios/Almanaque-dos-Clubes)';
+/** Teto de leituras de artigo por execução — o job tem timeout de 20 min. */
+const INFOBOX_MAX_POR_RUN = 200;
+
+/**
+ * Wikitext do artigo da Wikipédia PT (1 request). `null` quando não existe ou dá erro —
+ * o chamador trata como "sem fonte", nunca como falha do lote.
+ */
+async function fetchPtWikitext(titulo: string): Promise<string | null> {
+  const url = `${PT_WIKI_API}?${new URLSearchParams({
+    action: 'query',
+    prop: 'revisions',
+    rvprop: 'content',
+    rvslots: 'main',
+    titles: titulo,
+    format: 'json',
+    formatversion: '2',
+    redirects: '1',
+  })}`;
+  try {
+    const res = await fetch(url, { headers: { 'user-agent': PT_WIKI_UA } });
+    if (!res.ok) return null;
+    const j = (await res.json()) as {
+      query?: {
+        pages?: Array<{
+          missing?: boolean;
+          revisions?: Array<{ slots?: { main?: { content?: string } } }>;
+        }>;
+      };
+    };
+    const page = j.query?.pages?.[0];
+    if (!page || page.missing) return null;
+    return page.revisions?.[0]?.slots?.main?.content ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** W1 — enriquece até `limit` clubes com logo/estádio/cores (só NULL). */
@@ -134,9 +179,11 @@ export async function enrichClubsMediaBatch(
     // T547 — seleção pelo CURSOR de tentativa (não por `campo IS NULL`): era o
     // `OR: [campo null]` + `orderBy name` que fazia o job reprocessar os MESMOS 500
     // primeiros toda noite (nenhum clube sai do filtro) e congelar a cobertura.
+    // T552 — as TRÊS chaves: quem tem estádio mas não tem cores continua na fila
+    // (antes, a chave única `logo` o tirava e as cores nunca eram tentadas).
     const pendentes = await selectPendingClubs(prisma, {
       limit,
-      media: ['logo'],
+      media: ['logo', 'stadium', 'colors'],
       country: opts.country,
     });
     const clubs = pendentes.length
@@ -150,19 +197,21 @@ export async function enrichClubsMediaBatch(
             stadiumImage: true,
             stadiumCapacity: true,
             teamColors: true,
+            metadata: true,
           },
           orderBy: { name: 'asc' },
         })
       : [];
     if (clubs.length === 0) return { processed: 0, updated: 0, skipped: 0, unknownColors: [] };
 
-    // Fase A — clubes
+    // Fase A — clubes (com sitelinks: o fallback do escudo lê o artigo da Wikipédia PT)
     const clubEntities = new Map<string, EntityShape>();
     const qids = clubs.map((c) => c.qid!);
     for (let i = 0; i < qids.length; i += 50) {
       const res = await fetchEntities(qids.slice(i, i + 50), {
         userAgent: MEDIA_USER_AGENT,
         sleep,
+        withSitelinks: true,
       });
       for (const [qid, e] of res) clubEntities.set(qid, e);
     }
@@ -199,6 +248,8 @@ export async function enrichClubsMediaBatch(
 
     let updated = 0;
     let skipped = 0;
+    let logosFromInfobox = 0;
+    let infoboxLookups = 0;
     const unknownColors: string[] = [];
     for (const club of clubs) {
       const e = clubEntities.get(club.qid!);
@@ -208,14 +259,50 @@ export async function enrichClubsMediaBatch(
         // inclusive este (sem entidade na fonte). Sem o carimbo, o clube fica preso na
         // cabeça da fila e o lote não avança (medido em produção: a fila andou só 22
         // dos 50 processados).
-        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
+        if (opts.apply) {
+          await stampMediaAttempts(prisma, club.id, {
+            logo: 'no_source',
+            stadium: 'no_source',
+            colors: 'no_source',
+          });
+        }
         continue;
       }
       const data: Record<string, unknown> = {};
-      if (!club.logoUrl) {
+      // T552 — cada campo carimba a SUA chave. Com a chave única `logo`, um clube que
+      // achou o estádio saía da fila e NUNCA tentava as cores (teamColors em 2 de 12.003).
+      const patch: Partial<Record<MediaKey, MediaAttemptStatus>> = {};
+
+      if (club.logoUrl) {
+        patch.logo = 'already_present';
+      } else {
         const f = claimScalar(e, 'P154');
-        if (f) data.logoUrl = commonsFilePath(f, 300);
+        if (f) {
+          data.logoUrl = commonsFilePath(f, 300);
+        } else {
+          // Fallback: escudo do infobox da Wikipédia PT (fonte aprovada no T450-w8). O
+          // arquivo vem do Commons, logo tem licença verificável; a procedência fica
+          // registrada em `metadata` (sem coluna nova).
+          const titulo = e.sitelinks?.ptwiki?.title;
+          if (titulo && infoboxLookups < INFOBOX_MAX_POR_RUN) {
+            infoboxLookups += 1;
+            const wikitext = await fetchPtWikitext(titulo);
+            const arquivo = wikitext ? escudoDoInfobox(wikitext) : null;
+            if (arquivo) {
+              data.logoUrl = commonsFilePath(arquivo, 300);
+              data.metadata = {
+                ...((club.metadata as Record<string, unknown> | null) ?? {}),
+                logoSource: 'wikipedia-pt-infobox',
+                logoSourceUrl: `https://pt.wikipedia.org/wiki/${encodeURIComponent(titulo)}`,
+                logoResolvedAt: new Date().toISOString(),
+              };
+              logosFromInfobox += 1;
+            }
+          }
+        }
+        patch.logo = data.logoUrl ? 'enriched' : 'no_source';
       }
+
       // Cores: P465 (hex) tem precedência; P462 (entidade) via label EN.
       if (club.teamColors == null) {
         const names = claimAll(e, 'P462')
@@ -224,6 +311,9 @@ export async function enrichClubsMediaBatch(
         const { colors, unknown } = resolveColors(claimAll(e, 'P465'), names);
         unknownColors.push(...unknown);
         if (colors.length > 0) data.teamColors = colors as Prisma.InputJsonValue;
+        patch.colors = colors.length > 0 ? 'enriched' : 'no_source';
+      } else {
+        patch.colors = 'already_present';
       }
       const stQid = qidOf(e, 'P115');
       const st = stQid ? stadiumEntities.get(stQid) : undefined;
@@ -251,20 +341,31 @@ export async function enrichClubsMediaBatch(
           data.stadiumLng = coord.longitude ?? null;
         }
       }
+      const stadiumEntrou =
+        !club.stadiumName &&
+        (data.stadiumName !== undefined ||
+          data.stadiumImage !== undefined ||
+          data.stadiumCapacity !== undefined);
+      patch.stadium = club.stadiumName
+        ? 'already_present'
+        : stadiumEntrou
+          ? 'enriched'
+          : 'no_source';
+
       if (Object.keys(data).length === 0) {
         skipped += 1;
-        if (opts.apply) await stampMediaAttempt(prisma, club.id, 'logo', 'no_source');
+        if (opts.apply) await stampMediaAttempts(prisma, club.id, patch);
         continue;
       }
       if (opts.apply) {
         await prisma.club.update({ where: { id: club.id }, data: data as Prisma.ClubUpdateInput });
-        // T547 — carimba a TENTATIVA (mesclando no registro): sem isso o clube volta à
-        // fila para sempre, com ou sem dado na fonte.
-        await stampMediaAttempt(prisma, club.id, 'logo', 'enriched');
+        // T552 — carimba CADA campo com a SUA chave (mesclando no registro), para o
+        // cursor de cada campo andar sozinho. Sem isso o clube volta à fila para sempre.
+        await stampMediaAttempts(prisma, club.id, patch);
         updated += 1;
       }
     }
-    return { processed: clubs.length, updated, skipped, unknownColors };
+    return { processed: clubs.length, updated, skipped, unknownColors, logosFromInfobox };
   } finally {
     if (own) await prisma.$disconnect();
   }

@@ -34,6 +34,10 @@ const entityShape = z
           .record(z.string(), z.object({ language: z.string(), value: z.string() }))
           .optional(),
         claims: z.record(z.string(), z.array(z.custom<ClaimSnak>()).optional()).optional(),
+        // T552 — sitelinks (título do artigo por wiki) para o fallback do infobox.
+        // Sem declarar aqui, o zod DESCARTA o campo e o extrator do escudo nunca teria
+        // o artigo para ler.
+        sitelinks: z.record(z.string(), z.object({ title: z.string() }).passthrough()).optional(),
       }),
     ),
   })
@@ -133,6 +137,8 @@ export async function fetchEntities(
     sleep?: (ms: number) => Promise<void>;
     minIntervalMs?: number;
     batchSize?: number;
+    /** T552 — pedir também os sitelinks (título do artigo por wiki). */
+    withSitelinks?: boolean;
   } = {},
 ): Promise<Map<string, EntityShape>> {
   const {
@@ -141,11 +147,13 @@ export async function fetchEntities(
     sleep = (ms) => new Promise<void>((r) => setTimeout(r, ms)),
     minIntervalMs = 1000,
     batchSize = 50,
+    withSitelinks = false,
   } = opts;
   const out = new Map<string, EntityShape>();
   for (let i = 0; i < qids.length; i += batchSize) {
     const chunk = qids.slice(i, i + batchSize);
-    const url = `${WIKIDATA_API}?action=wbgetentities&ids=${chunk.join('|')}&format=json&props=labels|claims`;
+    const props = withSitelinks ? 'labels|claims|sitelinks' : 'labels|claims';
+    const url = `${WIKIDATA_API}?action=wbgetentities&ids=${chunk.join('|')}&format=json&props=${props}`;
     const res = await fetchImpl(url, { headers: { 'user-agent': userAgent } });
     if (!res.ok) throw new Error(`wbgetentities HTTP ${res.status}`);
     const parsed = entityShape.safeParse(await res.json());
