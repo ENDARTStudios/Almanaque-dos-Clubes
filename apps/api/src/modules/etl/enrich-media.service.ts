@@ -321,7 +321,7 @@ export async function enrichPlayersMediaBatch(
       if (!e) {
         skipped += 1;
         // T550 — gap DECLARADO na fonte: carimba a tentativa para o jogador sair da fila.
-        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'no_source');
+        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'profile', 'no_source');
         continue;
       }
       const data: Record<string, unknown> = {};
@@ -349,12 +349,12 @@ export async function enrichPlayersMediaBatch(
       if (Object.keys(data).length === 0) {
         skipped += 1;
         // T550 — entidade veio, mas sem foto/país/posição: mesmo carimbo de "sem fonte".
-        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'no_source');
+        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'profile', 'no_source');
         continue;
       }
       if (opts.apply) {
         await prisma.player.update({ where: { id: p.id }, data: data as Prisma.PlayerUpdateInput });
-        await stampPlayerAttempt(prisma, p.id, 'enriched');
+        await stampPlayerAttempt(prisma, p.id, 'profile', 'enriched');
         updated += 1;
       }
     }
