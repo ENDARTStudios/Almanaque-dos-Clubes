@@ -16,6 +16,13 @@ export const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 
 export interface ClaimSnak {
   mainsnak?: { datavalue?: { value?: unknown } };
+  /**
+   * T551 — qualifiers do statement (P580 início / P582 fim, nas P54 de jogador). O
+   * `wbgetentities&props=claims` já os devolve junto do mainsnak; sem declarar aqui o
+   * zod os descartava e o "clube atual" não podia ser inferido.
+   */
+  qualifiers?: Record<string, Array<{ datavalue?: { value?: unknown } }>>;
+  rank?: string;
 }
 
 const entityShape = z

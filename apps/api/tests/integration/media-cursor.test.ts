@@ -53,8 +53,8 @@ beforeAll(async () => {
   pEstagnadoId = estagnado.id;
   pRecenteId = recente.id;
   // Carimbos com data controlada (o `at` é parâmetro justamente para poder testar isso).
-  await stampPlayerAttempt(prisma, estagnado.id, 'no_source', diasAtras(10));
-  await stampPlayerAttempt(prisma, recente.id, 'enriched', diasAtras(1));
+  await stampPlayerAttempt(prisma, estagnado.id, 'profile', 'no_source', diasAtras(10));
+  await stampPlayerAttempt(prisma, recente.id, 'profile', 'enriched', diasAtras(1));
 });
 
 afterAll(async () => {

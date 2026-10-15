@@ -145,16 +145,29 @@ export async function stampMediaAttempts(
 // mesmo cursor divergem — foi o que congelou a mídia no T536 (CLI e service com lógicas
 // separadas) e o que travou o editorial no T549.
 
-/** Chave de mídia do jogador. */
-export type PlayerMediaKey = 'profile';
+/**
+ * Chave de mídia do jogador. `profile` = foto/país/posição (job de mídia);
+ * `club` = vínculo com o clube atual (T551, P54 do Wikidata).
+ */
+export type PlayerMediaKey = 'profile' | 'club';
 
 export interface PendingPlayerQueryOptions {
   limit: number;
+  /**
+   * Chaves do cursor a exigir AINDA NÃO tentadas (default: `['profile']`).
+   * `['club']` é a fila do vínculo jogador→clube.
+   */
+  media?: PlayerMediaKey[];
+  /**
+   * Condição adicional do PRÓPRIO job ("ainda falta algo"). Default: perfil —
+   * `photoUrl`/`country`/`position` nulo. A fila de clube passa `"clubId" IS NULL`.
+   */
+  needs?: Prisma.Sql;
   /** Reprocessar quem foi tentado há mais de N dias (foto/posição podem aparecer depois). */
   refreshDays?: number;
 }
 
-/** Linha da fila de perfil (a coluna vem do SQL, daí não usar o tipo do Prisma). */
+/** Linha da fila (a coluna vem do SQL, daí não usar o tipo do Prisma). */
 export interface PendingPlayerRow {
   id: string;
   qid: string;
@@ -164,11 +177,13 @@ export interface PendingPlayerRow {
   name: string;
 }
 
+const NEEDS_PERFIL = Prisma.sql`("photoUrl" IS NULL OR country IS NULL OR position IS NULL)`;
+
 /**
- * Jogadores pendentes de perfil. Além do cursor, a entidade precisa ainda ter algo a
- * preencher (`photoUrl`/`country`/`position` nulo) — condição do PRÓPRIO job, mantida como
- * estava: restringir a `photoUrl IS NULL` pararia de preencher país/posição de quem já
- * tem foto.
+ * Jogadores pendentes de uma mídia. Além do cursor, a entidade precisa ainda ter algo a
+ * preencher (`needs`) — condição do PRÓPRIO job. O perfil, por exemplo, mantém
+ * `photoUrl`/`country`/`position` nulo como estava: restringir a `photoUrl IS NULL`
+ * pararia de preencher país/posição de quem já tem foto.
  *
  * Ordem: NUNCA tentado primeiro, depois o mais antigo. Ordenar só por nome faria a
  * atualização semanal (`refreshDays`) reprocessar a cabeça do alfabeto e nunca chegar ao
@@ -178,26 +193,29 @@ export async function selectPendingPlayers(
   prisma: PrismaClient,
   opts: PendingPlayerQueryOptions,
 ): Promise<PendingPlayerRow[]> {
+  const media = opts.media ?? ['profile'];
+  const needs = opts.needs ?? NEEDS_PERFIL;
   return prisma.$queryRaw<PendingPlayerRow[]>`
     SELECT id, qid, "photoUrl", country, position, "fullName" AS name
     FROM players
     WHERE qid IS NOT NULL
-      AND ("photoUrl" IS NULL OR country IS NULL OR position IS NULL)
-      AND ${clausulaNaoTentada(['profile'], opts.refreshDays)}
-    ORDER BY coalesce("mediaEnrichment"->'profile'->>'at', '1970-01-01T00:00:00Z') ASC,
+      AND ${needs}
+      AND ${clausulaNaoTentada(media, opts.refreshDays)}
+    ORDER BY coalesce("mediaEnrichment"->${media[0]}::text->>'at', '1970-01-01T00:00:00Z') ASC,
              "fullName" ASC
     LIMIT ${opts.limit}
   `;
 }
 
-/** Marca a TENTATIVA de perfil do jogador (mescla no registro existente). */
+/** Marca a TENTATIVA de uma mídia do jogador (mescla no registro existente). */
 export async function stampPlayerAttempt(
   prisma: PrismaClient,
   playerId: string,
+  media: PlayerMediaKey,
   status: MediaAttemptStatus,
   at = new Date().toISOString(),
 ): Promise<void> {
   await carimbarTentativa(prisma, Prisma.raw('players'), playerId, {
-    profile: { at, status },
+    [media]: { at, status },
   });
 }
