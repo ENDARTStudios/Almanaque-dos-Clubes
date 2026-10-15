@@ -166,6 +166,30 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true' || v === '1'),
+
+  /**
+   * T565 — ALLOWLIST DO OPERADOR (dono do site), para as superfícies internas.
+   *
+   * Lista separada por vírgula, normalizada para minúsculas. Existe porque o
+   * `requireRole('admin')` responde "tem o PAPEL admin?" e isso não basta para o que o Operador
+   * pediu: qualquer conta que receba o papel — por engano, por escalada de privilégio ou por um
+   * seed mal configurado — entra. Aqui a pergunta é "esta pessoa É o operador?", pelo e-mail, que
+   * é a identidade que ele controla diretamente.
+   *
+   * O default é o e-mail do próprio Operador, e NÃO uma string vazia: um gate que depende de
+   * variável de ambiente não configurada abre por omissão exatamente no ambiente que importa. Com
+   * o default a allowlist nunca nasce vazia, e `OPERATOR_EMAILS` permite trocar ou somar um
+   * segundo operador sem deploy de código.
+   */
+  operatorEmails: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? 'endart.studios@gmail.com')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    ),
 });
 
 const parsed = envSchema.parse({
@@ -218,6 +242,8 @@ export const env = {
   prismaSchemaProvider: parsed.prismaSchemaProvider,
   rateLimitDisabled: parsed.rateLimitDisabled,
   userTrackingEnabled: parsed.userTrackingEnabled,
+  // T565 — allowlist do operador (superfícies internas).
+  operatorEmails: parsed.operatorEmails,
 
   // Login social Google
   googleClientId: parsed.googleClientId,

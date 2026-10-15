@@ -1,12 +1,13 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
+import { requireOperator } from '../auth/operator.middleware.js';
 import { triggerFullIngest, triggerSourceIngest, ETL_SOURCES } from './service.js';
 
 export const etlRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.post(
     '/admin/etl/ingest',
     {
-      preHandler: [authenticate, requireRole('admin')],
+      preHandler: [authenticate, requireRole('admin'), requireOperator],
       schema: {
         description: 'Trigger full ETL ingestion from all configured sources',
         tags: ['admin', 'etl'],
@@ -32,7 +33,7 @@ export const etlRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.post(
     '/admin/etl/ingest/:source',
     {
-      preHandler: [authenticate, requireRole('admin')],
+      preHandler: [authenticate, requireRole('admin'), requireOperator],
       schema: {
         description: 'Trigger ETL ingestion from a specific source',
         tags: ['admin', 'etl'],
@@ -73,7 +74,7 @@ export const etlRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.get(
     '/admin/etl/status',
     {
-      preHandler: [authenticate, requireRole('admin')],
+      preHandler: [authenticate, requireRole('admin'), requireOperator],
       schema: {
         description: 'List available ETL sources',
         tags: ['admin', 'etl'],

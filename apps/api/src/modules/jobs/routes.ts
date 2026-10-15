@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
+import { requireOperator } from '../auth/operator.middleware.js';
 import { queues } from '../../services/queue.js';
 import {
   getJobHealthMerged,
@@ -34,7 +35,7 @@ function withRedisTimeout<T>(p: Promise<T>, ms = 3000): Promise<T> {
 export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.get(
     '/jobs/health',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (_request, reply) => {
       let queueCounts: Record<string, number> | null = null;
       let queueError: string | null = null;
@@ -90,7 +91,7 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.get(
     '/jobs/logs',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       const q = (request.query as Record<string, string | undefined>) ?? {};
       const limit = Math.min(Math.max(parseInt(q.limit ?? '100', 10) || 100, 1), 200);
@@ -131,7 +132,7 @@ export const jobsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.get(
     '/observability/slo',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (_request, reply) => {
       const now = Date.now();
       // Dívida #303 — lastRun persiste em Redis (sobrevive a redeploy); os
