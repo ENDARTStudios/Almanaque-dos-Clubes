@@ -333,6 +333,12 @@
   --color-warn-ink: #a34a08;
   --color-warn-surface: #fef3c7;
   --color-info-ink: #1d4ed8;
+  /* `info-surface` faltava: o tema tinha a TINTA de informação sem a superfície correspondente,
+     então `bg-info-surface` simplesmente não existia. A falta era silenciosa porque nenhum
+     componente usa o par de informação ainda — mas é um par INCOMPLETO numa escala que declara
+     ter quatro estados, e o primeiro componente que precisasse dele escreveria um hex solto.
+     `#1d4ed8` sobre `#dbeafe` = 5,49:1. */
+  --color-info-surface: #dbeafe;
   --color-neutral-surface: #efece7;
   --color-ring: #94600a;
   --font-heading: 'Barlow Condensed', sans-serif;
