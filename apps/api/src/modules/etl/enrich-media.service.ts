@@ -10,7 +10,12 @@
  * mapa de NOMES de cor validados; cor desconhecida é logada (nunca inventada).
  */
 import { PrismaClient, Prisma } from '@prisma/client';
-import { selectPendingClubs, stampMediaAttempt } from './media-cursor.js';
+import {
+  selectPendingClubs,
+  selectPendingPlayers,
+  stampMediaAttempt,
+  stampPlayerAttempt,
+} from './media-cursor.js';
 import {
   fetchEntities,
   commonsFilePath,
@@ -268,19 +273,16 @@ export async function enrichClubsMediaBatch(
 /** W2 — enriquece até `limit` jogadores com foto/país/posição (só NULL). */
 export async function enrichPlayersMediaBatch(
   limit: number,
-  opts: { apply: boolean; prisma?: PrismaClient } = { apply: false },
+  opts: { apply: boolean; prisma?: PrismaClient; refreshDays?: number } = { apply: false },
 ): Promise<MediaBatchResult> {
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
   try {
-    const players = await prisma.player.findMany({
-      where: {
-        qid: { not: null },
-        OR: [{ photoUrl: null }, { country: null }, { position: null }],
-      },
-      select: { id: true, qid: true, photoUrl: true, country: true, position: true },
-      take: limit,
-      orderBy: { fullName: 'asc' },
+    // T550 — cursor por tentativa (chave `profile`). Antes: `OR photoUrl/country/position
+    // IS NULL` ordenado por nome — o lote relia o mesmo começo do alfabeto toda noite.
+    const players = await selectPendingPlayers(prisma, {
+      limit,
+      refreshDays: opts.refreshDays,
     });
     if (players.length === 0) return { processed: 0, updated: 0, skipped: 0, unknownColors: [] };
 
@@ -315,13 +317,11 @@ export async function enrichPlayersMediaBatch(
     let updated = 0;
     let skipped = 0;
     for (const p of players) {
-      const e = entities.get(p.qid!);
+      const e = entities.get(p.qid);
       if (!e) {
         skipped += 1;
-        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
-        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
-        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
-        // registrado para não parecer que a fila de jogadores anda.
+        // T550 — gap DECLARADO na fonte: carimba a tentativa para o jogador sair da fila.
+        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'no_source');
         continue;
       }
       const data: Record<string, unknown> = {};
@@ -348,14 +348,13 @@ export async function enrichPlayersMediaBatch(
       }
       if (Object.keys(data).length === 0) {
         skipped += 1;
-        // T547/PENDÊNCIA: este job (fotos de jogador) tem o MESMO defeito de cursor do
-        // antigo job de clubes — seleciona por `campo IS NULL` e reprocessa o mesmo
-        // começo. O cursor de jogador é escopo próprio (o T547 tratou clubes); fica aqui
-        // registrado para não parecer que a fila de jogadores anda.
+        // T550 — entidade veio, mas sem foto/país/posição: mesmo carimbo de "sem fonte".
+        if (opts.apply) await stampPlayerAttempt(prisma, p.id, 'no_source');
         continue;
       }
       if (opts.apply) {
         await prisma.player.update({ where: { id: p.id }, data: data as Prisma.PlayerUpdateInput });
+        await stampPlayerAttempt(prisma, p.id, 'enriched');
         updated += 1;
       }
     }

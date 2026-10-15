@@ -281,7 +281,13 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         },
       });
     } else if (job.name === JOB_ENRICH_PLAYERS_MEDIA) {
-      const out = await enrichPlayersMediaBatch(ENRICH_PLAYERS_BATCH, { apply: true });
+      // T550 — `refreshDays: 7`: foto/posição podem aparecer na fonte depois, e a revisita
+      // semanal repesca quem ficou sem dado. A ordem do cursor (nunca-tentado primeiro,
+      // depois o mais antigo) impede que a revisita inane o fim da fila.
+      const out = await enrichPlayersMediaBatch(ENRICH_PLAYERS_BATCH, {
+        apply: true,
+        refreshDays: 7,
+      });
       logger.info(
         { processed: out.processed, updated: out.updated, skipped: out.skipped },
         'data-refresh: enrich-players-media ok',
