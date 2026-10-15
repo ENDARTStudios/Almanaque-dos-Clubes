@@ -299,8 +299,7 @@ const pt: Dictionary = {
         femininoNota:
           'Conquistas femininas ainda não catalogadas no grafo (rankings femininos adiados — D-2026-10-06).',
         selecoes: 'Seleções & Internacionais',
-        selecoesVazio:
-          'Nenhuma competição de seleções catalogada no acervo ainda (Copa do Mundo, Copa América, Eurocopa: em breve).',
+        selecoesVazio: 'Não foi possível carregar as competições internacionais agora.',
         verTodasFeminino: 'ver todas',
         todas: 'Todas as competições',
       },

@@ -18,12 +18,48 @@ export type Locale = 'pt-br' | 'en-us' | 'es-es';
 
 // --- Continentais (confederações) ---
 export const CONTINENTAL_ANCHORS: AnchorCompetition[] = [
-  { id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52', qid: 'Q184795', name: 'Copa Libertadores', country: null, gender: 'men' },
-  { id: '110b0da4-3426-46b2-8abe-41772ae2e200', qid: 'Q60585', name: 'Copa Sudamericana', country: null, gender: 'men' },
-  { id: '8fae6a29-79c5-43d8-81ee-4b569361926b', qid: 'Q18756', name: 'UEFA Champions League', country: null, gender: 'men' },
-  { id: '91cf395b-9788-4494-a382-497297cc97d0', qid: 'Q59365764', name: 'UEFA Conference League', country: null, gender: 'men' },
-  { id: 'c58c32d7-df63-4ed4-b868-543894c82864', qid: 'Q484028', name: 'UEFA Super Cup', country: null, gender: 'men' },
-  { id: '0eb70d7d-b029-4f29-ab64-f20dfd3fa9d1', qid: 'Q193041', name: 'AFC Champions League Elite', country: null, gender: 'men' },
+  {
+    id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52',
+    qid: 'Q184795',
+    name: 'Copa Libertadores',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '110b0da4-3426-46b2-8abe-41772ae2e200',
+    qid: 'Q60585',
+    name: 'Copa Sudamericana',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '8fae6a29-79c5-43d8-81ee-4b569361926b',
+    qid: 'Q18756',
+    name: 'UEFA Champions League',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '91cf395b-9788-4494-a382-497297cc97d0',
+    qid: 'Q59365764',
+    name: 'UEFA Conference League',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: 'c58c32d7-df63-4ed4-b868-543894c82864',
+    qid: 'Q484028',
+    name: 'UEFA Super Cup',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '0eb70d7d-b029-4f29-ab64-f20dfd3fa9d1',
+    qid: 'Q193041',
+    name: 'AFC Champions League Elite',
+    country: null,
+    gender: 'men',
+  },
 ];
 
 // --- Nacionais: agrupadas por país ( ordenadas por arestas WON do acervo ) ---
@@ -36,76 +72,318 @@ export const NATIONAL_ANCHOR_GROUPS: NationalAnchorGroup[] = [
   {
     country: 'GB',
     items: [
-      { id: 'ee6d8f0e-6ddc-4073-8f2a-48f9ca70b5e0', qid: 'Q308822', name: 'Scottish Cup', country: 'GB', gender: 'men' },
-      { id: '14c7282d-dad1-4750-a27c-e917dde4f4ac', qid: 'Q11151', name: 'FA Cup', country: 'GB', gender: 'men' },
-      { id: 'c8d8a855-4f34-4223-befa-afbee4272e6b', qid: 'Q864672', name: 'Scottish League Cup', country: 'GB', gender: 'men' },
-      { id: 'b8c3596a-fb09-4e4c-b110-8507f074496c', qid: 'Q2261276', name: 'Scottish Football League', country: 'GB', gender: 'men' },
+      {
+        id: 'ee6d8f0e-6ddc-4073-8f2a-48f9ca70b5e0',
+        qid: 'Q308822',
+        name: 'Scottish Cup',
+        country: 'GB',
+        gender: 'men',
+      },
+      {
+        id: '14c7282d-dad1-4750-a27c-e917dde4f4ac',
+        qid: 'Q11151',
+        name: 'FA Cup',
+        country: 'GB',
+        gender: 'men',
+      },
+      {
+        id: 'c8d8a855-4f34-4223-befa-afbee4272e6b',
+        qid: 'Q864672',
+        name: 'Scottish League Cup',
+        country: 'GB',
+        gender: 'men',
+      },
+      {
+        id: 'b8c3596a-fb09-4e4c-b110-8507f074496c',
+        qid: 'Q2261276',
+        name: 'Scottish Football League',
+        country: 'GB',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'BR',
     items: [
-      { id: 'a37cdeef-55de-4e7f-95ed-07efdbf334f8', qid: 'Q1348155', name: 'Campeonato Paulista de Futebol', country: 'BR', gender: 'men' },
-      { id: 'a1f21c8b-a77b-4658-9dcc-288a227dc463', qid: 'Q2469206', name: 'Campeonato Cearense', country: 'BR', gender: 'men' },
-      { id: 'd4b2c896-a33e-4178-98fb-ac8abe2223e1', qid: 'Q843989', name: 'Copa do Brasil', country: 'BR', gender: 'men' },
+      {
+        id: 'a37cdeef-55de-4e7f-95ed-07efdbf334f8',
+        qid: 'Q1348155',
+        name: 'Campeonato Paulista de Futebol',
+        country: 'BR',
+        gender: 'men',
+      },
+      {
+        id: 'a1f21c8b-a77b-4658-9dcc-288a227dc463',
+        qid: 'Q2469206',
+        name: 'Campeonato Cearense',
+        country: 'BR',
+        gender: 'men',
+      },
+      {
+        id: 'd4b2c896-a33e-4178-98fb-ac8abe2223e1',
+        qid: 'Q843989',
+        name: 'Copa do Brasil',
+        country: 'BR',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'IT',
     items: [
-      { id: 'e15c6a2b-c7a0-452c-b9f9-aed880fbc438', qid: 'Q194052', name: 'Serie B', country: 'IT', gender: 'men' },
-      { id: '99ae01fd-d78f-487a-b806-5e17311e5092', qid: 'Q169918', name: 'Coppa Italia', country: 'IT', gender: 'men' },
+      {
+        id: 'e15c6a2b-c7a0-452c-b9f9-aed880fbc438',
+        qid: 'Q194052',
+        name: 'Serie B',
+        country: 'IT',
+        gender: 'men',
+      },
+      {
+        id: '99ae01fd-d78f-487a-b806-5e17311e5092',
+        qid: 'Q169918',
+        name: 'Coppa Italia',
+        country: 'IT',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'FR',
     items: [
-      { id: '96945f96-d137-4ac1-84f1-84b1dc5a6f0d', qid: 'Q13394', name: 'Ligue 1', country: 'FR', gender: 'men' },
+      {
+        id: '96945f96-d137-4ac1-84f1-84b1dc5a6f0d',
+        qid: 'Q13394',
+        name: 'Ligue 1',
+        country: 'FR',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'ES',
     items: [
-      { id: '9b36dd0b-9b82-41f9-afe0-19b782d83e51', qid: 'Q483794', name: 'Copa del Rey', country: 'ES', gender: 'men' },
+      {
+        id: '9b36dd0b-9b82-41f9-afe0-19b782d83e51',
+        qid: 'Q483794',
+        name: 'Copa del Rey',
+        country: 'ES',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'BE',
     items: [
-      { id: '86e3c44b-a676-46ca-8edd-9189efa80406', qid: 'Q216022', name: 'Belgian Pro League', country: 'BE', gender: 'men' },
+      {
+        id: '86e3c44b-a676-46ca-8edd-9189efa80406',
+        qid: 'Q216022',
+        name: 'Belgian Pro League',
+        country: 'BE',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'SE',
     items: [
-      { id: 'de23c233-1659-4ac0-89b6-6c2028a9c2f8', qid: 'Q202243', name: 'Allsvenskan', country: 'SE', gender: 'men' },
+      {
+        id: 'de23c233-1659-4ac0-89b6-6c2028a9c2f8',
+        qid: 'Q202243',
+        name: 'Allsvenskan',
+        country: 'SE',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'NO',
     items: [
-      { id: '5ddc04db-75b0-424a-a2c4-75fe3a7380d2', qid: 'Q617335', name: 'Norwegian Football Cup', country: 'NO', gender: 'men' },
+      {
+        id: '5ddc04db-75b0-424a-a2c4-75fe3a7380d2',
+        qid: 'Q617335',
+        name: 'Norwegian Football Cup',
+        country: 'NO',
+        gender: 'men',
+      },
     ],
   },
   {
     country: 'RO',
     items: [
-      { id: '3bd33aaf-063b-4698-8f7e-8442a0e0f7bd', qid: 'Q237753', name: 'Liga I', country: 'RO', gender: 'men' },
+      {
+        id: '3bd33aaf-063b-4698-8f7e-8442a0e0f7bd',
+        qid: 'Q237753',
+        name: 'Liga I',
+        country: 'RO',
+        gender: 'men',
+      },
     ],
   },
 ];
 
 // --- Feminino (acervo T450; 0 arestas WON hoje — rankings adiados por decisão) ---
 export const WOMEN_ANCHORS: AnchorCompetition[] = [
-  { id: '28b9b4a6-6ae8-4062-aec6-5f3ca127d421', qid: null, name: 'Campeonato Brasileiro de Futebol Feminino - Série A1', country: 'BR', gender: 'women' },
-  { id: '1ddd7fbf-90b6-4aca-aea1-50f1548ada33', qid: null, name: 'Campeonato Brasileiro de Futebol Feminino - Série A2', country: 'BR', gender: 'women' },
-  { id: '88071e41-4a66-4f0f-9afb-ec01853b8215', qid: null, name: 'Campeonato Carioca de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: 'ed599b52-7fe7-4f99-82c2-ff1b6c9bddd9', qid: null, name: 'Campeonato Paulista de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: '7d74e829-6222-4955-873e-9fdee9523421', qid: null, name: 'Campeonato Baiano de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: '43fb460d-80a2-48c8-944c-98b2937b1643', qid: null, name: 'Campeonato Catarinense de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: 'ba8699c7-f9a6-4e09-a36c-223f55e388a3', qid: null, name: 'Campeonato Gaúcho de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: 'ce2599a8-88a4-4820-95fe-bcc995f986fa', qid: null, name: 'Campeonato Mineiro de Futebol Feminino', country: 'BR', gender: 'women' },
-  { id: '9b64436e-cfd5-47dc-bf6d-3ba87d2c3486', qid: 'Q609757', name: 'Frauen-Bundesliga', country: null, gender: 'women' },
+  {
+    id: '28b9b4a6-6ae8-4062-aec6-5f3ca127d421',
+    qid: null,
+    name: 'Campeonato Brasileiro de Futebol Feminino - Série A1',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: '1ddd7fbf-90b6-4aca-aea1-50f1548ada33',
+    qid: null,
+    name: 'Campeonato Brasileiro de Futebol Feminino - Série A2',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: '88071e41-4a66-4f0f-9afb-ec01853b8215',
+    qid: null,
+    name: 'Campeonato Carioca de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: 'ed599b52-7fe7-4f99-82c2-ff1b6c9bddd9',
+    qid: null,
+    name: 'Campeonato Paulista de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: '7d74e829-6222-4955-873e-9fdee9523421',
+    qid: null,
+    name: 'Campeonato Baiano de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: '43fb460d-80a2-48c8-944c-98b2937b1643',
+    qid: null,
+    name: 'Campeonato Catarinense de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: 'ba8699c7-f9a6-4e09-a36c-223f55e388a3',
+    qid: null,
+    name: 'Campeonato Gaúcho de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: 'ce2599a8-88a4-4820-95fe-bcc995f986fa',
+    qid: null,
+    name: 'Campeonato Mineiro de Futebol Feminino',
+    country: 'BR',
+    gender: 'women',
+  },
+  {
+    id: '9b64436e-cfd5-47dc-bf6d-3ba87d2c3486',
+    qid: 'Q609757',
+    name: 'Frauen-Bundesliga',
+    country: null,
+    gender: 'women',
+  },
+];
+
+/**
+ * T556 — SELEÇÕES & INTERNACIONAIS.
+ *
+ * A seção existia no portal mas ficava "vazio-honesta" por uma premissa que EXPIROU: o
+ * comentário original dizia que não havia competição de seleções no acervo. Hoje há **165
+ * competições internacionais**, incluindo a Copa do Mundo e a Eurocopa — a mensagem de
+ * vazio passou a afirmar o contrário do que a base tem.
+ *
+ * IDs confirmados em PRODUÇÃO (15-10-2026, consulta ao banco — regra R4: âncora só entra
+ * com id verificado na fonte viva, nunca qid de memória).
+ */
+export const INTERNATIONAL_ANCHORS: AnchorCompetition[] = [
+  {
+    id: 'c94c3d26-c3a8-45e0-8f4b-c2bd19707688',
+    qid: null,
+    name: 'FIFA World Cup',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: 'f9c4e068-01e1-4b3b-af0b-23695ffd03cd',
+    qid: null,
+    name: 'Copa América',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '17306764-eb92-4cff-bce7-543bb7b6ebd1',
+    qid: null,
+    name: 'Campeonato Europeu de Futebol',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '8fae6a29-79c5-43d8-81ee-4b569361926b',
+    qid: null,
+    name: 'UEFA Champions League',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52',
+    qid: null,
+    name: 'Copa Libertadores',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '20fd756a-e71c-495f-9f81-704ad59d3cf3',
+    qid: null,
+    name: 'FIFA Club World Cup',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '6b58023b-cf08-4989-9990-87522b8d3cd0',
+    qid: null,
+    name: 'CAF Champions League',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '0eb70d7d-b029-4f29-ab64-f20dfd3fa9d1',
+    qid: null,
+    name: 'AFC Champions League Elite',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '8765bfc0-da33-4b71-a7d7-8820f5edae52',
+    qid: null,
+    name: 'FIFA U-20 World Cup',
+    country: null,
+    gender: 'men',
+  },
+  {
+    id: '4aeb65d0-e44a-4cd1-ae55-e201cdea9c0b',
+    qid: null,
+    name: "FIFA Women's World Cup",
+    country: null,
+    gender: 'women',
+  },
+  {
+    id: '8dd93794-5aa6-4540-bc26-e0cfd9ec9059',
+    qid: null,
+    name: 'Copa América Femenina',
+    country: null,
+    gender: 'women',
+  },
+  {
+    id: 'a0a344a7-ec42-401d-86b9-6007a899f5e8',
+    qid: null,
+    name: "UEFA Women's Nations League",
+    country: null,
+    gender: 'women',
+  },
 ];
 
 // --- Contadores do acervo (produção, 08/10/2026) ---

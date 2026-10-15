@@ -293,8 +293,7 @@ const en: Dictionary = {
         femininoNota:
           "Women's titles not yet catalogued in the graph (women's rankings postponed — D-2026-10-06).",
         selecoes: 'National Teams & International',
-        selecoesVazio:
-          'No national-team competition catalogued in the archive yet (World Cup, Copa América, Euro: coming soon).',
+        selecoesVazio: 'No international competitions could be loaded right now.',
         verTodasFeminino: 'see all',
         todas: 'All competitions',
       },
