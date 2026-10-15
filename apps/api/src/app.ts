@@ -116,6 +116,11 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
+    // T554 — com o cors PRIMEIRO, um `OPTIONS` sem Origin/ACRM deixaria de ser 405 do
+    // method gate e viraria 400 "invalid preflight" do plugin. Preservamos a regra do
+    // T385 (405 padronizado com `Allow`): o plugin não trata preflight inválido como
+    // erro e a requisição segue para o gate.
+    strictPreflight: false,
   });
 
   // Hardening de superfície (T385, item 7.6): 405 padronizado para métodos fora
