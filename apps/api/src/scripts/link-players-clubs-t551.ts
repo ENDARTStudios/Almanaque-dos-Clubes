@@ -30,10 +30,12 @@ const { values } = parseArgs({
     apply: { type: 'boolean', default: false },
     limit: { type: 'string', default: '500' },
     'refresh-days': { type: 'string', default: '30' },
+    'max-age-years': { type: 'string', default: '5' },
   },
 });
 const LIMIT = parseInt(values.limit ?? '500', 10) || 500;
 const REFRESH_DAYS = parseInt(values['refresh-days'] ?? '30', 10);
+const MAX_AGE_YEARS = parseInt(values['max-age-years'] ?? '5', 10) || 5;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 async function main(): Promise<number> {
@@ -49,7 +51,7 @@ async function main(): Promise<number> {
       refreshDays: REFRESH_DAYS > 0 ? REFRESH_DAYS : undefined,
     });
     console.log(
-      `[t551] escopo: ${pendentes.length} jogadores sem clube · refresh=${REFRESH_DAYS}d · modo=${values.apply ? 'APPLY' : 'DRY-RUN'}`,
+      `[t551] escopo: ${pendentes.length} jogadores sem clube · refresh=${REFRESH_DAYS}d · janela=${MAX_AGE_YEARS}a · modo=${values.apply ? 'APPLY' : 'DRY-RUN'}`,
     );
     if (pendentes.length === 0) {
       console.log('[t551] nada pendente.');
@@ -69,7 +71,9 @@ async function main(): Promise<number> {
     const alvo = new Map<string, string>();
     let semContratoAberto = 0;
     for (const p of pendentes) {
-      const t = currentTeamQid(entities.get(p.qid)?.claims?.P54 as P54StatementLike[] | undefined);
+      const t = currentTeamQid(entities.get(p.qid)?.claims?.P54 as P54StatementLike[] | undefined, {
+        maxAgeYears: MAX_AGE_YEARS,
+      });
       if (t) alvo.set(p.id, t);
       else semContratoAberto += 1;
     }
