@@ -8,7 +8,9 @@ import { describe, it, expect } from 'vitest';
 import {
   arquivoDoValor,
   blocoInfoboxClube,
+  escudoDeWikitext,
   escudoDoInfobox,
+  PERFIS_WIKI,
 } from '../../../src/modules/etl/wikipedia-club-logo.js';
 
 describe('T552 — arquivoDoValor', () => {
@@ -88,5 +90,48 @@ describe('T552 — escudoDoInfobox', () => {
 
   it('sem infobox devolve null', () => {
     expect(escudoDoInfobox('#REDIRECT [[Outro]]')).toBeNull();
+  });
+});
+
+describe('T552 — perfis EN/DE (o acervo é internacional)', () => {
+  it('EN: {{Infobox football club}} com |logo= explícito entra', () => {
+    const wikitext =
+      '{{Infobox football club\n| clubname = Example FC\n| logo = Example_FC_logo.png\n| fullname = Example\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.enwiki!)).toBe('Example FC logo.png');
+  });
+
+  it('EN: |image= só vale com pista de escudo no nome', () => {
+    const estadio = '{{Infobox football club\n|image = Stadium_view_2020.jpg\n}}';
+    const escudo = '{{Infobox football club\n|image = Club_crest.svg\n}}';
+    expect(escudoDeWikitext(estadio, PERFIS_WIKI.enwiki!)).toBeNull();
+    expect(escudoDeWikitext(escudo, PERFIS_WIKI.enwiki!)).toBe('Club crest.svg');
+  });
+
+  it('DE: {{Infobox Fußballklub}} com |wappen= entra', () => {
+    const wikitext = '{{Infobox Fußballklub\n|name = Beispiel\n|wappen = Wappen_Beispiel.svg\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.dewiki!)).toBe('Wappen Beispiel.svg');
+  });
+
+  it('ES: {{Ficha de equipo de fútbol}} com `Imagen principal` e namespace Archivo:', () => {
+    // Template e campo MEDIDOS no artigo do Real Madrid; o link usa o namespace local
+    // `Archivo:` — sem ele, o escudo passava batido.
+    const wikitext =
+      '{{Ficha de equipo de fútbol con datos de temporada\n| Nombre = Real Madrid C. F.\n| Imagen principal =[[Archivo:Logo Real Madrid (España).jpg|200px]]\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.eswiki!)).toBe('Logo Real Madrid (España).jpg');
+  });
+
+  it('IT: {{Squadra di calcio}} com |stemma= entra', () => {
+    const wikitext =
+      '{{Squadra di calcio\n|nome squadra = Juventus FC\n|stemma = Juventus_FC_logo.svg\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.itwiki!)).toBe('Juventus FC logo.svg');
+  });
+
+  it('DE: namespace Datei: também é aceito no valor', () => {
+    expect(arquivoDoValor('[[Datei:Wappen_Beispiel.svg|120px]]')).toBe('Wappen Beispiel.svg');
+  });
+
+  it('o perfil separa as wikis: PT não casa infobox em inglês', () => {
+    const wikitext = '{{Infobox football club\n|logo = X_logo.png\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.ptwiki!)).toBeNull();
   });
 });

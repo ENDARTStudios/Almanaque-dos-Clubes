@@ -19,7 +19,13 @@ import {
   type MediaAttemptStatus,
   type MediaKey,
 } from './media-cursor.js';
-import { escudoDoInfobox } from './wikipedia-club-logo.js';
+import {
+  escudoDeWikitext,
+  PERFIS_WIKI,
+  WIKIS_ESCUDO,
+  type WikiEscudo,
+} from './wikipedia-club-logo.js';
+import { coresDoWikitext } from './wikipedia-club-colors.js';
 import {
   fetchEntities,
   commonsFilePath,
@@ -127,19 +133,43 @@ export interface MediaBatchResult {
   unknownColors: string[];
   /** T552 — quantos escudos vieram do infobox da Wikipédia PT (não do P154). */
   logosFromInfobox?: number;
+  /** T553 — quantas cores vieram do infobox (não do Wikidata). */
+  colorsFromInfobox?: number;
+  /** T552 — leituras de artigo que falharam (429/rede): NÃO carimbadas, voltam na próxima. */
+  infoboxFetchFailures?: number;
 }
 
-const PT_WIKI_API = 'https://pt.wikipedia.org/w/api.php';
 const PT_WIKI_UA = 'AlmanaqueDosClubes-ETL/3.0 (github.com/ENDARTStudios/Almanaque-dos-Clubes)';
-/** Teto de leituras de artigo por execução — o job tem timeout de 20 min. */
-const INFOBOX_MAX_POR_RUN = 200;
+/**
+ * Teto de leituras de artigo por execução. T553 — baixado de 200 para 60 por decisão
+ * D-2026-10-15-previsibilidade-antes-da-beta: sob 429 o backoff fazia o lote passar de
+ * 30 min e estourar o timeout de 20 min do job. Previsibilidade > throughput pré-Beta;
+ * reavaliar depois de 20-10.
+ */
+const INFOBOX_MAX_POR_RUN = 60;
+/** Cadência entre leituras no mesmo IP (o do Railway é compartilhado): mediu 429 sem ela. */
+const PT_MIN_INTERVAL_MS = 900;
+let ultimoFetchPt = 0;
+
+const WIKI_HOST: Record<WikiEscudo, string> = {
+  ptwiki: 'pt.wikipedia.org',
+  enwiki: 'en.wikipedia.org',
+  dewiki: 'de.wikipedia.org',
+  eswiki: 'es.wikipedia.org',
+  itwiki: 'it.wikipedia.org',
+};
+
+export type PtWikitextResult =
+  { status: 'ok'; wikitext: string } | { status: 'missing' } | { status: 'error' };
 
 /**
- * Wikitext do artigo da Wikipédia PT (1 request). `null` quando não existe ou dá erro —
- * o chamador trata como "sem fonte", nunca como falha do lote.
+ * Wikitext do artigo numa wiki. Distingue TRÊS desfechos de propósito: `missing` (o artigo
+ * não existe → gap real, pode carimbar) de `error` (429/5xx/rede → NÃO é prova de
+ * ausência). Carimbar `no_source` numa falha de transporte grava gap FALSO e o clube nunca
+ * é re-tentado — foi o defeito que a verificação do T551 pegou.
  */
-async function fetchPtWikitext(titulo: string): Promise<string | null> {
-  const url = `${PT_WIKI_API}?${new URLSearchParams({
+async function fetchWikitext(wiki: WikiEscudo, titulo: string): Promise<PtWikitextResult> {
+  const url = `https://${WIKI_HOST[wiki]}/w/api.php?${new URLSearchParams({
     action: 'query',
     prop: 'revisions',
     rvprop: 'content',
@@ -149,23 +179,34 @@ async function fetchPtWikitext(titulo: string): Promise<string | null> {
     formatversion: '2',
     redirects: '1',
   })}`;
-  try {
-    const res = await fetch(url, { headers: { 'user-agent': PT_WIKI_UA } });
-    if (!res.ok) return null;
-    const j = (await res.json()) as {
-      query?: {
-        pages?: Array<{
-          missing?: boolean;
-          revisions?: Array<{ slots?: { main?: { content?: string } } }>;
-        }>;
+  for (let tentativa = 0; tentativa < 4; tentativa++) {
+    const espera = ultimoFetchPt + PT_MIN_INTERVAL_MS - Date.now();
+    if (espera > 0) await sleep(espera);
+    ultimoFetchPt = Date.now();
+    try {
+      const res = await fetch(url, { headers: { 'user-agent': PT_WIKI_UA } });
+      if (res.status === 429 || res.status >= 500) {
+        await sleep(2 ** tentativa * 2000);
+        continue;
+      }
+      if (!res.ok) return { status: 'error' };
+      const j = (await res.json()) as {
+        query?: {
+          pages?: Array<{
+            missing?: boolean;
+            revisions?: Array<{ slots?: { main?: { content?: string } } }>;
+          }>;
+        };
       };
-    };
-    const page = j.query?.pages?.[0];
-    if (!page || page.missing) return null;
-    return page.revisions?.[0]?.slots?.main?.content ?? null;
-  } catch {
-    return null;
+      const page = j.query?.pages?.[0];
+      if (!page || page.missing) return { status: 'missing' };
+      const wikitext = page.revisions?.[0]?.slots?.main?.content;
+      return wikitext ? { status: 'ok', wikitext } : { status: 'missing' };
+    } catch {
+      await sleep(2 ** tentativa * 1500);
+    }
   }
+  return { status: 'error' };
 }
 
 /** W1 — enriquece até `limit` clubes com logo/estádio/cores (só NULL). */
@@ -249,7 +290,9 @@ export async function enrichClubsMediaBatch(
     let updated = 0;
     let skipped = 0;
     let logosFromInfobox = 0;
+    let coresFromInfobox = 0;
     let infoboxLookups = 0;
+    let leiturasFalhas = 0;
     const unknownColors: string[] = [];
     for (const club of clubs) {
       const e = clubEntities.get(club.qid!);
@@ -272,6 +315,30 @@ export async function enrichClubsMediaBatch(
       // T552 — cada campo carimba a SUA chave. Com a chave única `logo`, um clube que
       // achou o estádio saía da fila e NUNCA tentava as cores (teamColors em 2 de 12.003).
       const patch: Partial<Record<MediaKey, MediaAttemptStatus>> = {};
+      // T553 — a leitura do artigo (para o escudo) serve TAMBÉM para as cores: uma
+      // requisição só. `metadataPatch` acumula a procedência dos dois.
+      let wikitextClube: string | null = null;
+      let leituraFalhou = false;
+      const metadataPatch: Record<string, unknown> = {};
+
+      /** Lê o primeiro artigo disponível (usado pelas cores quando o escudo não leu nada). */
+      const lerPrimeiroArtigo = async (): Promise<string | null> => {
+        for (const wiki of WIKIS_ESCUDO) {
+          if (infoboxLookups >= INFOBOX_MAX_POR_RUN) break;
+          const titulo = e.sitelinks?.[wiki]?.title;
+          if (!titulo) continue;
+          infoboxLookups += 1;
+          const leitura = await fetchWikitext(wiki, titulo);
+          if (leitura.status === 'error') {
+            leiturasFalhas += 1;
+            leituraFalhou = true;
+            continue;
+          }
+          if (leitura.status === 'missing') continue;
+          return leitura.wikitext;
+        }
+        return null;
+      };
 
       if (club.logoUrl) {
         patch.logo = 'already_present';
@@ -279,39 +346,75 @@ export async function enrichClubsMediaBatch(
         const f = claimScalar(e, 'P154');
         if (f) {
           data.logoUrl = commonsFilePath(f, 300);
+          patch.logo = 'enriched';
         } else {
-          // Fallback: escudo do infobox da Wikipédia PT (fonte aprovada no T450-w8). O
-          // arquivo vem do Commons, logo tem licença verificável; a procedência fica
-          // registrada em `metadata` (sem coluna nova).
-          const titulo = e.sitelinks?.ptwiki?.title;
-          if (titulo && infoboxLookups < INFOBOX_MAX_POR_RUN) {
+          // Fallback: escudo do infobox da Wikipédia (PT → EN → DE → ES → IT). O acervo é
+          // internacional — medido: 6 de 12 clubes da fila não têm artigo em PT. O arquivo
+          // vem do Commons, logo tem licença verificável; a procedência fica em `metadata`.
+          for (const wiki of WIKIS_ESCUDO) {
+            if (data.logoUrl || infoboxLookups >= INFOBOX_MAX_POR_RUN) break;
+            const titulo = e.sitelinks?.[wiki]?.title;
+            if (!titulo) continue;
             infoboxLookups += 1;
-            const wikitext = await fetchPtWikitext(titulo);
-            const arquivo = wikitext ? escudoDoInfobox(wikitext) : null;
+            const leitura = await fetchWikitext(wiki, titulo);
+            if (leitura.status === 'error') {
+              // Falha de transporte (429/5xx/rede) NÃO é prova de ausência.
+              leiturasFalhas += 1;
+              leituraFalhou = true;
+              continue;
+            }
+            if (leitura.status === 'missing') continue;
+            if (wikitextClube === null) wikitextClube = leitura.wikitext;
+            const arquivo = escudoDeWikitext(leitura.wikitext, PERFIS_WIKI[wiki]!);
             if (arquivo) {
               data.logoUrl = commonsFilePath(arquivo, 300);
-              data.metadata = {
-                ...((club.metadata as Record<string, unknown> | null) ?? {}),
-                logoSource: 'wikipedia-pt-infobox',
-                logoSourceUrl: `https://pt.wikipedia.org/wiki/${encodeURIComponent(titulo)}`,
-                logoResolvedAt: new Date().toISOString(),
-              };
+              metadataPatch.logoSource = `wikipedia-${wiki}-infobox`;
+              metadataPatch.logoSourceUrl = `https://${WIKI_HOST[wiki]}/wiki/${encodeURIComponent(titulo)}`;
+              metadataPatch.logoResolvedAt = new Date().toISOString();
               logosFromInfobox += 1;
             }
           }
+          if (data.logoUrl) {
+            patch.logo = 'enriched';
+          } else if (!leituraFalhou) {
+            // Nenhuma wiki cobriu o clube: a fonte não tem → gap real, pode carimbar.
+            patch.logo = 'no_source';
+          }
+          // Com erro de leitura e sem escudo: a chave fica SEM carimbo (volta na próxima).
         }
-        patch.logo = data.logoUrl ? 'enriched' : 'no_source';
       }
 
-      // Cores: P465 (hex) tem precedência; P462 (entidade) via label EN.
+      // Cores: P465 (hex) tem precedência; P462 (entidade) via label EN. T553 — sem cor no
+      // Wikidata, cai no infobox (mesma leitura do escudo; sem requisição nova quando o
+      // escudo já leu o artigo).
       if (club.teamColors == null) {
         const names = claimAll(e, 'P462')
           .map((q: string) => colorLabels.get(q))
           .filter((n: string | undefined): n is string => !!n);
         const { colors, unknown } = resolveColors(claimAll(e, 'P465'), names);
         unknownColors.push(...unknown);
-        if (colors.length > 0) data.teamColors = colors as Prisma.InputJsonValue;
-        patch.colors = colors.length > 0 ? 'enriched' : 'no_source';
+        let cores = colors;
+        if (cores.length === 0) {
+          if (wikitextClube === null && !leituraFalhou) {
+            wikitextClube = await lerPrimeiroArtigo();
+          }
+          if (wikitextClube !== null) {
+            const doInfobox = coresDoWikitext(wikitextClube);
+            if (doInfobox.length > 0) {
+              cores = doInfobox;
+              metadataPatch.colorsSource = 'wikipedia-infobox';
+              metadataPatch.colorsResolvedAt = new Date().toISOString();
+              coresFromInfobox += 1;
+            }
+          }
+        }
+        if (cores.length > 0) {
+          data.teamColors = cores as Prisma.InputJsonValue;
+          patch.colors = 'enriched';
+        } else if (!(leituraFalhou && wikitextClube === null)) {
+          // Só quando houve leitura (ou ausência de artigo) é que "não tem" é conclusão.
+          patch.colors = 'no_source';
+        }
       } else {
         patch.colors = 'already_present';
       }
@@ -352,6 +455,13 @@ export async function enrichClubsMediaBatch(
           ? 'enriched'
           : 'no_source';
 
+      if (Object.keys(metadataPatch).length > 0) {
+        data.metadata = {
+          ...((club.metadata as Record<string, unknown> | null) ?? {}),
+          ...metadataPatch,
+        };
+      }
+
       if (Object.keys(data).length === 0) {
         skipped += 1;
         if (opts.apply) await stampMediaAttempts(prisma, club.id, patch);
@@ -365,7 +475,15 @@ export async function enrichClubsMediaBatch(
         updated += 1;
       }
     }
-    return { processed: clubs.length, updated, skipped, unknownColors, logosFromInfobox };
+    return {
+      processed: clubs.length,
+      updated,
+      skipped,
+      unknownColors,
+      logosFromInfobox,
+      colorsFromInfobox: coresFromInfobox,
+      infoboxFetchFailures: leiturasFalhas,
+    };
   } finally {
     if (own) await prisma.$disconnect();
   }

@@ -1,30 +1,73 @@
 /**
- * T552 — escudo do clube a partir do INFOBOX da Wikipédia PT (fonte aprovada desde o
- * T450-w8: substituta do Wikidata limitado, com proveniência por registro).
+ * T552 — escudo do clube a partir do INFOBOX da Wikipédia (fonte aprovada desde o T450-w8:
+ * substituta do Wikidata limitado, com proveniência por registro).
  *
- * Por que existe: o `logoUrl` está em 2,4% porque o P154 do Wikidata simplesmente não
- * cobre os clubes do acervo. O infobox do artigo PT costuma trazer o escudo — e o arquivo
- * está no Commons, logo com licença verificável.
+ * Por que existe: o `logoUrl` do acervo está em 2,4% porque o P154 do Wikidata não cobre
+ * os clubes. O infobox do artigo costuma trazer o escudo — e o arquivo está no Commons,
+ * logo com licença verificável.
+ *
+ * O acervo é INTERNACIONAL: medido em produção, 6 de 12 clubes da fila não têm artigo na
+ * wiki PT (são alemães, turcos, peruanos). Por isso o extrator é parametrizado por wiki
+ * (`PERFIS_WIKI`), cada uma com o seu template e os seus nomes de campo.
  *
  * O extrator é PURO (wikitext → nome de arquivo) para poder ser testado sem rede. O que
  * ele NÃO faz: decidir licença (isso é do Commons, por arquivo) nem escrever no acervo.
- *
- * Ordem de preferência dos campos: `escudo`/`brasao`/`logotipo`/`logo` antes de `imagem`,
- * porque em alguns infoboxes `imagem` é foto do estádio, e escudo explícito é mais seguro.
  */
 
-/**
- * Campos que carregam o escudo. Dois níveis, porque o risco é diferente:
- * - EXPLÍCITO: o nome do campo já diz que é escudo — aceita qualquer arquivo de imagem;
- * - INFERIDO (`imagem`/`img`): em vários infoboxes esse campo é a FOTO DO ESTÁDIO, então
- *   só aceita se o NOME DO ARQUIVO indicar escudo (logo/escudo/brasão/crest/badge/shield).
- */
-const CAMPOS_ESCUDO_EXPLICITO = ['escudo', 'brasao', 'brasão', 'logotipo', 'logo'];
-const CAMPOS_ESCUDO_INFERIDO = ['imagem', 'img'];
-const HINT_ESCUDO = /escudo|bras[aã]o|logo|logotipo|crest|badge|shield|emblem/i;
+/** Pista de que o arquivo é escudo — usada só nos campos AMBÍGUOS. */
+const HINT_ESCUDO = /escudo|bras[aã]o|logo|logotipo|wappen|crest|badge|shield|emblem/i;
 
 /** Um campo do infobox: `|chave = valor` até o próximo `|` de primeiro nível ou `}}`. */
 const RE_CAMPO = /^\s*\|\s*([a-zà-ú _0-9]+)\s*=\s*([\s\S]*?)(?=\n\s*\||\n\}\}|$)/gim;
+
+/**
+ * Perfil de infobox por wiki: o template que abre o infobox de clube e os campos que
+ * podem carregar o escudo, em dois níveis de confiança:
+ * - EXPLÍCITO: o nome do campo já diz que é escudo — aceita qualquer arquivo de imagem;
+ * - AMBÍGUO (`imagem`/`image`/`bild`): em vários infoboxes é a FOTO DO ESTÁDIO, então só
+ *   vale se o NOME DO ARQUIVO indicar escudo.
+ */
+export interface InfoboxPerfil {
+  template: RegExp;
+  explicitos: string[];
+  ambiguos: string[];
+}
+
+export const PERFIS_WIKI: Record<string, InfoboxPerfil> = {
+  ptwiki: {
+    template: /\{\{\s*(?:Info|Infobox)\s*\/?\s*[Cc]lube\b/,
+    explicitos: ['escudo', 'brasao', 'brasão', 'logotipo', 'logo'],
+    ambiguos: ['imagem', 'img'],
+  },
+  enwiki: {
+    template: /\{\{\s*Infobox\s+football\s+club\b/i,
+    explicitos: ['logo', 'crest', 'badge'],
+    ambiguos: ['image', 'img'],
+  },
+  dewiki: {
+    template: /\{\{\s*Infobox\s+Fußballklub\b|\{\{\s*Infobox\s+Fußballverein\b/i,
+    explicitos: ['logo', 'wappen'],
+    ambiguos: ['bild', 'image'],
+  },
+  // T553 — ES: template real medido em artigo (Real Madrid): o escudo vem no campo
+  // `Imagen principal`, que é explícito (`imagen` sozinho fica ambíguo).
+  eswiki: {
+    template: /\{\{\s*Ficha de equipo de f[úu]tbol\b/i,
+    explicitos: ['escudo', 'logo', 'imagen principal'],
+    ambiguos: ['imagen', 'imagen2'],
+  },
+  // T553 — IT: template medido (Juventus): `{{Squadra di calcio}}`. Nem todo artigo traz
+  // o escudo no infobox, daí os três nomes possíveis em explícito.
+  itwiki: {
+    template: /\{\{\s*Squadra di calcio\b/i,
+    explicitos: ['stemma', 'logo', 'stemma societario'],
+    ambiguos: ['immagine', 'image'],
+  },
+};
+
+/** Wikis tentadas, na ordem — a PT primeiro porque é a fonte já aprovada no acervo. */
+export const WIKIS_ESCUDO = ['ptwiki', 'enwiki', 'dewiki', 'eswiki', 'itwiki'] as const;
+export type WikiEscudo = (typeof WIKIS_ESCUDO)[number];
 
 function normalizar(nome: string): string {
   return nome.trim().replace(/_/g, ' ').replace(/\s+/g, ' ');
@@ -32,14 +75,17 @@ function normalizar(nome: string): string {
 
 /**
  * Nome do arquivo a partir do valor CRU de um campo.
- * Aceita `[[Ficheiro:X.png|120px]]`, `[[Imagem:X.svg]]`, `X.jpg`, e recusa URL externa
+ * Aceita `[[Ficheiro:X.png|120px]]`, `[[File:X.svg]]`, `X.jpg`, e recusa URL externa
  * (imagem fora do Commons não tem licença verificável) e extensão que não é imagem.
  */
 export function arquivoDoValor(valor: string): string | null {
   const semComentario = valor.replace(/<!--[\s\S]*?-->/g, '');
-  const link = /\[\[\s*(?:ficheiro|imagem|file|image)\s*:\s*([^\]|]+?)\s*(?:\|[^\]]*)?\]\]/i.exec(
-    semComentario,
-  );
+  // T553 — o namespace do link é LOCAL: `Archivo:` (es), `Datei:` (de), `Fichier:` (fr).
+  // Sem eles, o escudo do Real Madrid (`[[Archivo:Logo…]]`) passava batido.
+  const link =
+    /\[\[\s*(?:ficheiro|imagem|archivo|datei|fichier|file|image)\s*:\s*([^\]|]+?)\s*(?:\|[^\]]*)?\]\]/i.exec(
+      semComentario,
+    );
   const primeiro = link ? link[1]! : (semComentario.split(/[|\n]/)[0] ?? '');
   const nome = normalizar(primeiro.replace(/^\[\[|\]\]$/g, ''));
   if (!nome) return null;
@@ -49,13 +95,15 @@ export function arquivoDoValor(valor: string): string | null {
 }
 
 /**
- * Recorta o bloco do infobox de clube contando chaves a partir do `{{` de abertura.
+ * Recorta o bloco do infobox contando chaves a partir do `{{` de abertura.
  * Regex simples de `\{\{.*?\}\}` quebra com template aninhado (`{{#if:}}`, `{{flagicon}}`)
  * — o balanceamento é o que o T450-w7 aprendeu a fazer.
  */
-export function blocoInfoboxClube(wikitext: string): string | null {
-  const inicio = wikitext.search(/\{\{\s*(?:Info|Infobox)\s*\/?\s*[Cc]lube\b/);
-  if (inicio < 0) return null;
+export function blocoInfoboxClube(wikitext: string, template?: RegExp): string | null {
+  const re = template ?? PERFIS_WIKI.ptwiki!.template;
+  const achado = re.exec(wikitext);
+  if (!achado) return null;
+  const inicio = achado.index;
   let nivel = 0;
   for (let i = inicio; i < wikitext.length - 1; i++) {
     if (wikitext.startsWith('{{', i)) {
@@ -72,22 +120,22 @@ export function blocoInfoboxClube(wikitext: string): string | null {
   return wikitext.slice(inicio); // sem fechamento balanceado: usa o resto (conservador)
 }
 
-/** Nome do arquivo do escudo no infobox do clube, ou `null` se não houver. */
-export function escudoDoInfobox(wikitext: string): string | null {
-  const bloco = blocoInfoboxClube(wikitext);
+/** Nome do arquivo do escudo no infobox, segundo o perfil da wiki. */
+export function escudoDeWikitext(wikitext: string, perfil: InfoboxPerfil): string | null {
+  const bloco = blocoInfoboxClube(wikitext, perfil.template);
   if (!bloco) return null;
   const valores = new Map<string, string>();
   for (const m of bloco.matchAll(RE_CAMPO)) {
     const chave = (m[1] ?? '').trim().toLowerCase();
     if (!valores.has(chave)) valores.set(chave, m[2] ?? '');
   }
-  for (const campo of CAMPOS_ESCUDO_EXPLICITO) {
+  for (const campo of perfil.explicitos) {
     const valor = valores.get(campo);
     if (valor === undefined) continue;
     const arquivo = arquivoDoValor(valor);
     if (arquivo) return arquivo;
   }
-  for (const campo of CAMPOS_ESCUDO_INFERIDO) {
+  for (const campo of perfil.ambiguos) {
     const valor = valores.get(campo);
     if (valor === undefined) continue;
     const arquivo = arquivoDoValor(valor);
@@ -95,4 +143,9 @@ export function escudoDoInfobox(wikitext: string): string | null {
     if (arquivo && HINT_ESCUDO.test(arquivo)) return arquivo;
   }
   return null;
+}
+
+/** Atalho para a wiki PT (compatível com o uso original). */
+export function escudoDoInfobox(wikitext: string): string | null {
+  return escudoDeWikitext(wikitext, PERFIS_WIKI.ptwiki!);
 }
