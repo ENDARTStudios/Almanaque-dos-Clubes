@@ -57,7 +57,7 @@ const es: Dictionary = {
     platformPlayers: 'Jugadores',
     platformCompetitions: 'Competiciones',
     platformRankings: 'Rankings',
-      platformMatches: 'Partidos',
+    platformMatches: 'Partidos',
     platformSearch: 'Búsqueda Avanzada',
     aboutTitle: 'Acerca de',
     aboutUs: 'Sobre nosotros',
@@ -130,7 +130,8 @@ const es: Dictionary = {
       worldwide: 'El mundo entero',
       sideBySide: 'Lado a lado',
       compare: 'Comparar',
-    },    featuresTitle: 'Todo sobre el Fútbol Mundial',
+    },
+    featuresTitle: 'Todo sobre el Fútbol Mundial',
     featuresSubtitle:
       'Datos históricos en construcción con herramientas modernas de búsqueda y análisis.',
     features: [
@@ -202,8 +203,7 @@ const es: Dictionary = {
       title: 'Clubes',
       subtitle: 'Explora {n} clubes de fútbol registrados.',
       placeholder: 'Buscar clubes por nombre, país o ciudad...',
-      loadError:
-        'No se pudo cargar la lista ahora — recarga la página para intentarlo de nuevo.',
+      loadError: 'No se pudo cargar la lista ahora — recarga la página para intentarlo de nuevo.',
     },
     players: {
       title: 'Jugadores',
@@ -231,9 +231,11 @@ const es: Dictionary = {
         continental: 'Continentales',
         nacionais: 'Nacionales por país',
         feminino: 'Femenino',
-        femininoNota: 'Conquistas femeninas aún no catalogadas en el grafo (rankings femeninos pospuestos — D-2026-10-06).',
+        femininoNota:
+          'Conquistas femeninas aún no catalogadas en el grafo (rankings femeninos pospuestos — D-2026-10-06).',
         selecoes: 'Selecciones e Internacionales',
-        selecoesVazio: 'Ninguna competición de selecciones catalogada en el acervo todavía (Mundial, Copa América, Euro: próximamente).',
+        selecoesVazio:
+          'Ninguna competición de selecciones catalogada en el acervo todavía (Mundial, Copa América, Euro: próximamente).',
         verTodasFeminino: 'ver todas',
         todas: 'Todas las competiciones',
       },
@@ -243,7 +245,8 @@ const es: Dictionary = {
       subtitle: 'Traspasos, rumores y valores de mercado.',
       emBreve: 'Próximamente',
       body: 'El Almanaque es un acervo estadístico con provenencia auditable — no publica rumores. El área de mercado llegará con fuentes verificadas de traspasos y valores.',
-      bodyCta: 'Mientras tanto, el acervo ya muestra hinchas y redes sociales en cada perfil de club.',
+      bodyCta:
+        'Mientras tanto, el acervo ya muestra hinchas y redes sociales en cada perfil de club.',
       cta: 'Ver perfiles de clubes',
     },
     competitionProfile: {
@@ -257,7 +260,13 @@ const es: Dictionary = {
       totalEditions: 'Ediciones catalogadas',
       yearShort: 'Temp.',
       tabsLabel: 'Secciones de la competición',
-      tabs: { overview: 'Visión General', editions: 'Ediciones', clubs: 'Clubes', topWinners: 'Más Campeones', seasons: 'Temporadas' },
+      tabs: {
+        overview: 'Visión General',
+        editions: 'Ediciones',
+        clubs: 'Clubes',
+        topWinners: 'Más Campeones',
+        seasons: 'Temporadas',
+      },
       season: 'Temporada',
       pos: 'Pos',
       club: 'Club',
@@ -279,7 +288,8 @@ const es: Dictionary = {
       champion: 'Campeón',
       titles: 'títulos',
       editionsEmpty: 'Ediciones en catalogación.',
-      participantsNote: 'Participantes = clubes con títulos catalogados en esta competición (la arista PARTICIPATED_IN aún no existe en el grafo).',
+      participantsNote:
+        'Participantes = clubes con títulos catalogados en esta competición (la arista PARTICIPATED_IN aún no existe en el grafo).',
       participantsEmpty: 'Participantes en catalogación.',
       overviewHint: 'Los datos vienen del grafo con provenencia auditable (aristas WON).',
     },
@@ -979,7 +989,8 @@ const es: Dictionary = {
     trackInputLabel: 'Protocolo',
     trackButton: 'Consultar',
     notFound: 'Protocolo no encontrado. Verifica los caracteres e inténtalo de nuevo.',
-    errorGeneric: 'No se pudo completar. Inténtalo de nuevo o escribe a endart.studios+privacidade@gmail.com.',
+    errorGeneric:
+      'No se pudo completar. Inténtalo de nuevo o escribe a endart.studios+privacidade@gmail.com.',
     statusLabel: 'Estado',
     slaLabel: 'Plazo de respuesta',
     createdAtLabel: 'Recibida el',
@@ -1016,7 +1027,8 @@ const es: Dictionary = {
     successBody:
       'Guarda el protocolo de abajo. El triaje ocurre en hasta 5 días hábiles y las decisiones son siempre motivadas.',
     protocolLabel: 'Protocolo',
-    errorGeneric: 'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios+contato@gmail.com.',
+    errorGeneric:
+      'No se pudo enviar. Inténtalo de nuevo o escribe a endart.studios+contato@gmail.com.',
   },
   mapExplorer: {
     world: 'Mundo',
@@ -1043,6 +1055,22 @@ const es: Dictionary = {
     withdrawInfo: 'Arrepentimiento en 7 días:',
     includedTitle: 'Recursos incluidos (por plan)',
     paymentsSoon: 'Pagos muy pronto.',
+    // T555 — resumen previo a la confirmación prometido por los Términos (sección 5).
+    summaryTitle: 'Resumen antes de confirmar',
+    priceLabel: 'Precio total del período',
+    monthlyWord: 'Mensual',
+    yearlyWord: 'Anual',
+    discountLabel: 'Descuento',
+    discountValue: '15% en el plan anual (equivale a 12 × el mensual con descuento)',
+    taxesLabel: 'Tributos',
+    taxesValue: 'No se añade ningún tributo al importe mostrado en el checkout.',
+    methodLabel: 'Forma de pago',
+    methodValue: 'Tarjeta de crédito, procesada por Stripe',
+    providerLabel: 'Proveedor',
+    providerValue: 'END ART Studios — CNPJ 45.370.930/0001-75 (Brasil)',
+    nextChargeLabel: 'Fecha del próximo cargo',
+    renewalLabel: 'Renovación',
+    renewalValue: 'Automática, al final de cada período. Cancela cuando quieras desde el panel.',
   },
 };
 

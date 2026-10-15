@@ -11,20 +11,101 @@ export type BillingCurrency = 'BRL' | 'USD' | 'EUR';
 export const DEFAULT_BILLING_CURRENCY: BillingCurrency = 'BRL';
 
 const DOLLAR_COUNTRIES = new Set<string>([
-  'US', 'CA', 'EC', 'SV', 'PA', 'TL', 'PR', 'VI', 'GU', 'AS', 'MP', 'UM',
-  'TC', 'KY', 'VG', 'AI', 'BM', 'CW', 'SX', 'MF', 'BL', 'BQ',
+  'US',
+  'CA',
+  'EC',
+  'SV',
+  'PA',
+  'TL',
+  'PR',
+  'VI',
+  'GU',
+  'AS',
+  'MP',
+  'UM',
+  'TC',
+  'KY',
+  'VG',
+  'AI',
+  'BM',
+  'CW',
+  'SX',
+  'MF',
+  'BL',
+  'BQ',
 ]);
 
 const EUROPE_COUNTRIES = new Set<string>([
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
-  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
-  'GB', 'UK', 'CH', 'NO', 'IS', 'LI', 'MC', 'AD', 'SM', 'VA', 'AL', 'BA', 'MK',
-  'ME', 'RS', 'XK', 'MD', 'BY', 'UA', 'AM', 'GE', 'AZ', 'TR', 'RU',
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'CZ',
+  'DK',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'HU',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SK',
+  'SI',
+  'ES',
+  'SE',
+  'GB',
+  'UK',
+  'CH',
+  'NO',
+  'IS',
+  'LI',
+  'MC',
+  'AD',
+  'SM',
+  'VA',
+  'AL',
+  'BA',
+  'MK',
+  'ME',
+  'RS',
+  'XK',
+  'MD',
+  'BY',
+  'UA',
+  'AM',
+  'GE',
+  'AZ',
+  'TR',
+  'RU',
 ]);
 
 const LATAM_COUNTRIES = new Set<string>([
-  'AR', 'BO', 'BR', 'CL', 'CO', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE',
-  'BZ', 'CR', 'GT', 'HN', 'NI',
+  'AR',
+  'BO',
+  'BR',
+  'CL',
+  'CO',
+  'GY',
+  'PY',
+  'PE',
+  'SR',
+  'UY',
+  'VE',
+  'BZ',
+  'CR',
+  'GT',
+  'HN',
+  'NI',
 ]);
 
 export function mapCountryToCurrency(countryCode?: string | null): BillingCurrency {
@@ -75,4 +156,20 @@ export const YEARLY_DISCOUNT = 0.85;
 /** Valor anual em centavos: 12 × mensal com o desconto do plano anual. */
 export function yearlyCents(monthlyCents: number): number {
   return Math.round(monthlyCents * 12 * YEARLY_DISCOUNT);
+}
+
+export type BillingInterval = 'month' | 'year';
+
+/**
+ * T555 — data da cobrança SEGUINTE (a primeira ocorre na confirmação), que os Termos
+ * prometem exibir antes do redirect: mensal = +30 dias, anual = +365.
+ *
+ * É a regra DECLARADA do ciclo. O handler local grava +30 dias para qualquer plano
+ * (follow-up registrado em D-2026-09-20-checkout-app-url-e-guard-live) e a fonte da
+ * verdade do período real é a Stripe — o resumo tem de ser coerente com o ciclo
+ * COBRADO, não com esse atalho.
+ */
+export function nextChargeDate(from: Date, interval: BillingInterval): Date {
+  const dias = interval === 'year' ? 365 : 30;
+  return new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() + dias));
 }

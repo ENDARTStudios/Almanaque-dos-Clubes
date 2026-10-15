@@ -251,7 +251,15 @@ export interface Dictionary {
       subtitle: string;
       empty: string;
       filtersLabel: string;
-      filters: { gender: string; type: string; country: string; all: string; league: string; cup: string; apply: string };
+      filters: {
+        gender: string;
+        type: string;
+        country: string;
+        all: string;
+        league: string;
+        cup: string;
+        apply: string;
+      };
       paginationLabel: string;
       prev: string;
       next: string;
@@ -285,24 +293,30 @@ export interface Dictionary {
       totalEditions: string;
       yearShort: string;
       tabsLabel: string;
-      tabs: { overview: string; editions: string; clubs: string; topWinners: string; seasons: string };
-  season: string;
-  pos: string;
-  club: string;
-  played: string;
-  won: string;
-  drawn: string;
-  lost: string;
-  goalsFor: string;
-  goalsAgainst: string;
-  points: string;
-  topScorer: string;
-  seasonsEmpty: string;
-  source: string;
-  wikipedia: string;
-  runnerUp: string;
-  matches: string;
-  goals: string;
+      tabs: {
+        overview: string;
+        editions: string;
+        clubs: string;
+        topWinners: string;
+        seasons: string;
+      };
+      season: string;
+      pos: string;
+      club: string;
+      played: string;
+      won: string;
+      drawn: string;
+      lost: string;
+      goalsFor: string;
+      goalsAgainst: string;
+      points: string;
+      topScorer: string;
+      seasonsEmpty: string;
+      source: string;
+      wikipedia: string;
+      runnerUp: string;
+      matches: string;
+      goals: string;
       year: string;
       champion: string;
       titles: string;
@@ -473,6 +487,22 @@ export interface Dictionary {
     withdrawInfo: string;
     includedTitle: string;
     paymentsSoon: string;
+    /** T555 — resumo pré-confirmação que os Termos (seção 5) prometem exibir. */
+    summaryTitle: string;
+    priceLabel: string;
+    monthlyWord: string;
+    yearlyWord: string;
+    discountLabel: string;
+    discountValue: string;
+    taxesLabel: string;
+    taxesValue: string;
+    methodLabel: string;
+    methodValue: string;
+    providerLabel: string;
+    providerValue: string;
+    nextChargeLabel: string;
+    renewalLabel: string;
+    renewalValue: string;
   };
 }
 

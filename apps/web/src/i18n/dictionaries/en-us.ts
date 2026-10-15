@@ -32,7 +32,7 @@ const en: Dictionary = {
       countryES: 'Spain',
       countryNO: 'Norway',
       continental: 'Continental',
-      women: 'Women\'s football',
+      women: "Women's football",
       allCompetitions: 'See all competitions',
       clubCountry_BR: 'Brazil',
       clubCountry_AR: 'Argentina',
@@ -45,7 +45,7 @@ const en: Dictionary = {
       clubCountry_MX: 'Mexico',
       clubCountry_US: 'United States',
       byContinent: 'By continent (map)',
-      womenClubs: 'Women\'s clubs',
+      womenClubs: "Women's clubs",
       allClubs: 'See all clubs',
     },
   },
@@ -57,7 +57,7 @@ const en: Dictionary = {
     platformPlayers: 'Players',
     platformCompetitions: 'Competitions',
     platformRankings: 'Rankings',
-      platformMatches: 'Matches',
+    platformMatches: 'Matches',
     platformSearch: 'Advanced Search',
     aboutTitle: 'About',
     aboutUs: 'About us',
@@ -130,7 +130,8 @@ const en: Dictionary = {
       worldwide: 'The whole world',
       sideBySide: 'Side by side',
       compare: 'Compare',
-    },    featuresTitle: 'All About World Football',
+    },
+    featuresTitle: 'All About World Football',
     featuresSubtitle: 'Historical data under construction with modern search and analysis tools.',
     features: [
       {
@@ -200,8 +201,7 @@ const en: Dictionary = {
       title: 'Clubs',
       subtitle: 'Explore {n} football clubs registered.',
       placeholder: 'Search clubs by name, country or city...',
-      loadError:
-        'The list could not be loaded right now — reload the page to try again.',
+      loadError: 'The list could not be loaded right now — reload the page to try again.',
     },
     players: {
       title: 'Players',
@@ -228,10 +228,12 @@ const en: Dictionary = {
       sections: {
         continental: 'Continental',
         nacionais: 'National (by country)',
-        feminino: 'Women\'s',
-        femininoNota: 'Women\'s titles not yet catalogued in the graph (women\'s rankings postponed — D-2026-10-06).',
+        feminino: "Women's",
+        femininoNota:
+          "Women's titles not yet catalogued in the graph (women's rankings postponed — D-2026-10-06).",
         selecoes: 'National Teams & International',
-        selecoesVazio: 'No national-team competition catalogued in the archive yet (World Cup, Copa América, Euro: coming soon).',
+        selecoesVazio:
+          'No national-team competition catalogued in the archive yet (World Cup, Copa América, Euro: coming soon).',
         verTodasFeminino: 'see all',
         todas: 'All competitions',
       },
@@ -241,7 +243,8 @@ const en: Dictionary = {
       subtitle: 'Transfers, rumours and market values.',
       emBreve: 'Coming soon',
       body: 'The Almanaque is a statistical archive with auditable provenance — it does not publish rumours. The market area will launch with verified transfer and valuation sources.',
-      bodyCta: 'Meanwhile, the archive already shows fan counts and social links on every club profile.',
+      bodyCta:
+        'Meanwhile, the archive already shows fan counts and social links on every club profile.',
       cta: 'Browse club profiles',
     },
     competitionProfile: {
@@ -255,7 +258,13 @@ const en: Dictionary = {
       totalEditions: 'Catalogued editions',
       yearShort: 'Season',
       tabsLabel: 'Competition sections',
-      tabs: { overview: 'Overview', editions: 'Editions', clubs: 'Clubs', topWinners: 'Most Successful', seasons: 'Seasons' },
+      tabs: {
+        overview: 'Overview',
+        editions: 'Editions',
+        clubs: 'Clubs',
+        topWinners: 'Most Successful',
+        seasons: 'Seasons',
+      },
       season: 'Season',
       pos: 'Pos',
       club: 'Club',
@@ -277,7 +286,8 @@ const en: Dictionary = {
       champion: 'Champion',
       titles: 'titles',
       editionsEmpty: 'Editions being catalogued.',
-      participantsNote: 'Participants = clubs with catalogued titles in this competition (the PARTICIPATED_IN edge does not exist in the graph yet).',
+      participantsNote:
+        'Participants = clubs with catalogued titles in this competition (the PARTICIPATED_IN edge does not exist in the graph yet).',
       participantsEmpty: 'Participants being catalogued.',
       overviewHint: 'Data comes from the graph with auditable provenance (WON edges).',
     },
@@ -1040,6 +1050,22 @@ const en: Dictionary = {
     withdrawInfo: 'Withdrawal within 7 days:',
     includedTitle: 'Included features (per plan)',
     paymentsSoon: 'Payments coming soon.',
+    // T555 — pre-confirmation summary promised by the Terms (section 5).
+    summaryTitle: 'Summary before you confirm',
+    priceLabel: 'Total price for the period',
+    monthlyWord: 'Monthly',
+    yearlyWord: 'Yearly',
+    discountLabel: 'Discount',
+    discountValue: '15% on the yearly plan (equals 12 × monthly with the discount)',
+    taxesLabel: 'Taxes',
+    taxesValue: 'No tax is added to the amount shown at checkout.',
+    methodLabel: 'Payment method',
+    methodValue: 'Credit card, processed by Stripe',
+    providerLabel: 'Provider',
+    providerValue: 'END ART Studios — CNPJ 45.370.930/0001-75 (Brazil)',
+    nextChargeLabel: 'Next charge date',
+    renewalLabel: 'Renewal',
+    renewalValue: 'Automatic, at the end of each period. Cancel anytime from the dashboard.',
   },
 };
 
