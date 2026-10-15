@@ -51,22 +51,25 @@ function colunasDe(target: 'club' | 'player' | 'competition'): string {
 }
 
 /**
- * ORDEM de seleção: `socialLinks IS NULL` primeiro, `createdAt` depois.
+ * ORDEM de seleção: quem ainda NÃO foi tentado primeiro, `createdAt` como desempate.
  *
- * Exportada e testada porque é a diferença entre o script funcionar e não funcionar em escala,
- * e o defeito era invisível. Com `ORDER BY "createdAt" ASC` puro, toda execução rebuscava OS
- * MESMOS registros mais antigos — já enriquecidos nas execuções anteriores.
+ * A chave é `socialLinksUpdatedAt IS NULL`, e não `socialLinks IS NULL`. A diferença foi medida,
+ * e a primeira tentativa estava errada:
  *
- * Medido em produção: das 12 primeiras linhas elegíveis, apenas **1** tinha `socialLinks` nulo;
- * as outras 11 já estavam preenchidas. Como **105.084 dos 105.187** elegíveis estão nulos, o lote
- * gastava a cota inteira do Wikidata reprocessando quem já tinha dado — e o `updated=0` era
- * CORRETO, porque naqueles alvos realmente não havia o que escrever.
+ * - `ORDER BY "createdAt"` puro (original): rebuscava sempre os registros mais antigos, já
+ *   enriquecidos nas execuções anteriores. Das 12 primeiras linhas elegíveis, só 1 tinha
+ *   `socialLinks` nulo — o lote gastava a cota do Wikidata em quem já tinha dado.
+ * - `ORDER BY ("socialLinks" IS NOT NULL), "createdAt"` (minha 2ª tentativa): pegava sempre os
+ *   mesmos registros mais antigos COM `socialLinks` nulo. Como neles o patch sai vazio, nada era
+ *   gravado, e eles ficavam no topo da fila PARA SEMPRE. Quatro lotes de 500 processaram as
+ *   mesmas pessoas e o banco não mudou um byte.
+ * - `socialLinksUpdatedAt IS NULL` (esta): o registro sai da fila assim que é TENTADO, tenha
+ *   dado ou não. A varredura avança monotonicamente e cada QID é consultado uma vez por rodada.
  *
- * Nulo-primeiro faz o trabalho RENDER: cada execução alcança registros virgens. O `IS NOT NULL`
- * ordena `false` (0) antes de `true` (1) no Postgres, que é o que dá o efeito desejado.
+ * `createdAt` fica como desempate determinístico dentro de cada grupo.
  */
 export function ordemDeSelecao(): string {
-  return `ORDER BY ("socialLinks" IS NOT NULL), "createdAt" ASC`;
+  return `ORDER BY "socialLinksUpdatedAt", "createdAt" ASC`;
 }
 
 /**
@@ -228,6 +231,26 @@ async function main(): Promise<void> {
 
     for (const t of targets) {
       const ent = entities.get(t.qid);
+      /* MARCA A TENTATIVA mesmo quando não há nada a escrever.
+       *
+       * Sem isto a fila não anda. Medido em produção: com `ORDER BY ("socialLinks" IS NOT NULL),
+       * "createdAt"` o script pegava SEMPRE os mesmos 500 registros mais antigos — que não têm
+       * propriedade social no Wikidata. Como nesses alvos o patch sai vazio, nada é gravado e
+       * eles continuam no topo da fila para sempre. Quatro lotes de 500 processaram as mesmas
+       * pessoas e o banco não mudou um byte.
+       *
+       * `socialLinksUpdatedAt` já existe no modelo e é exatamente o que se quer registrar: "este
+       * registro já foi consultado no Wikidata". Com ele como chave de ordenação, cada registro é
+       * tentado UMA vez por varredura e a fila avança monotonicamente.
+       *
+       * `updateMany` (e não `update`) para não estourar se o registro sumir no meio, e NÃO toca
+       * em `socialLinks` — zero overwrite continua valendo. */
+      if (APPLY && ent) {
+        await prisma.player.updateMany({
+          where: { id: t.id },
+          data: { socialLinksUpdatedAt: new Date() },
+        });
+      }
       if (!ent?.claims) continue;
       const ex = extractSocial(ent.claims as never);
       if (!ex.hasAnything) continue;
