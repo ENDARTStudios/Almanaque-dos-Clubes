@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useGsapStagger } from '@/hooks/useGsap';
+import { NumeroHero } from '@/components/ui/Dado';
 import { useI18n } from '@/i18n/Provider';
 import { formatCount } from '@/lib/format';
 import type { Locale } from '@/i18n/types';
@@ -137,13 +138,17 @@ export default function HomeExplore({ totals }: { totals: HeroTotals }) {
                   />
                 </span>
                 {shelf.count != null ? (
-                  <span className="mt-4 flex flex-col">
-                    <span className="num text-3xl text-foreground">{shelf.unit}</span>
-                    {/* O rótulo do número diz o que ele CONTA, não repete o título do cartão.
-                        A primeira versão repetia ("Clubes & seleções / 12.003 / Clubes &
-                        seleções"), o que gasta uma linha para não dizer nada. */}
-                    <span className="mt-0.5 text-[0.8125rem] text-ink-2">{t('home.explore.inArchive')}</span>
-                  </span>
+                  /* `NumeroHero` em vez de marcar `.num` à mão: o primitivo garante que o
+                     rótulo venha sempre (número sem rótulo é adivinhação) e centraliza a
+                     decisão de tinta — aqui, `tone="muted"` não se aplica porque este é o
+                     número-âncora do cartão. O rótulo diz o que o número CONTA
+                     ("no acervo"), em vez de repetir o título do cartão. */
+                  <NumeroHero
+                    value={shelf.unit ?? ''}
+                    label={t('home.explore.inArchive')}
+                    size="md"
+                    className="mt-4"
+                  />
                 ) : (
                   <span className="mt-4 text-[0.8125rem] text-ink-2">{shelf.unit}</span>
                 )}

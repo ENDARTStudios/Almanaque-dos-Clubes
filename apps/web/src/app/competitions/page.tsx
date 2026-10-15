@@ -89,7 +89,7 @@ export default async function CompetitionsPage({
           <select
             name="gender"
             defaultValue={sp.gender ?? ''}
-            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="field block mt-1"
           >
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="men">{dict.pages.rankings.genderMen}</option>
@@ -101,7 +101,7 @@ export default async function CompetitionsPage({
           <select
             name="type"
             defaultValue={sp.type ?? ''}
-            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="field block mt-1"
           >
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
@@ -115,7 +115,7 @@ export default async function CompetitionsPage({
             defaultValue={sp.country ?? ''}
             placeholder="BR"
             maxLength={2}
-            className="block mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm w-20"
+            className="field block mt-1 w-20"
           />
         </label>
         <button type="submit" className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold">

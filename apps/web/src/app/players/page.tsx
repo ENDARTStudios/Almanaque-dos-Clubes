@@ -46,8 +46,15 @@ export default async function PlayersPage({
         Jogadores diferentes no acervo: {total}
       </p>
       {players.length ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {players.map((p: PlayerRow) => (
+        <section aria-labelledby="players-list-title">
+          {/* Mesmo motivo do grid de clubes: os cards titulam com `<h3>` e a página só tem
+              `<h1>`, então falta o nível 2 do CONJUNTO. `sr-only` porque a contagem logo acima
+              já anuncia a lista — o título serve à árvore de acessibilidade, não à tela. */}
+          <h2 id="players-list-title" className="sr-only">
+            Jogadores no acervo
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {players.map((p: PlayerRow) => (
             <Link
               key={p.id}
               href={`/players/${p.id}`}
@@ -63,7 +70,8 @@ export default async function PlayersPage({
               </div>
             </Link>
           ))}
-        </div>
+          </div>
+        </section>
       ) : (
         <p className="text-center text-foreground/60 py-12">Nenhum jogador encontrado.</p>
       )}

@@ -22,6 +22,7 @@ export function NumeroHero({
   size = 'md',
   tone = 'default',
   hint,
+  className = '',
 }: {
   /** O número já formatado (use `formatCount` para locale correto). */
   value: string | number;
@@ -31,6 +32,7 @@ export function NumeroHero({
   tone?: 'default' | 'verified' | 'muted';
   /** Linha de contexto abaixo do rótulo (procedência, unidade, período). */
   hint?: ReactNode;
+  className?: string;
 }) {
   const sizes = {
     sm: 'text-xl',
@@ -45,7 +47,7 @@ export function NumeroHero({
   } as const;
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <span className={`num ${sizes[size]} leading-none ${tones[tone]}`}>{value}</span>
       <span className="text-[0.8125rem] leading-tight text-ink-2">{label}</span>
       {hint ? <span className="eyebrow">{hint}</span> : null}

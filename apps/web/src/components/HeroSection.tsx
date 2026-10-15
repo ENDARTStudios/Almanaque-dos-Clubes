@@ -9,12 +9,12 @@ import {
   Globe,
   Trophy,
   Search as SearchIcon,
-  ExternalLink,
 } from 'lucide-react';
 import { useGsapFadeIn, useGsapStagger } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
 import { wsC12Strings } from '@/i18n/wsC12';
 import { formatCount } from '@/lib/format';
+import { SourceLine } from '@/components/ui/Dado';
 
 const featureIcons = [BookOpen, Trophy, SearchIcon, Brain, BarChart3, Globe];
 
@@ -169,24 +169,21 @@ export default function HeroSection({
                     </p>
                   )}
 
-                  <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border/60 pt-3 text-xs text-foreground/60">
-                    <span className="uppercase tracking-wide">{c12.proofSource}:</span>
-                    {champion.sourceType && <span>{champion.sourceType}</span>}
-                    {champion.sourceUrl && (
-                      <a
-                        href={champion.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary-ink underline decoration-dotted underline-offset-2"
-                      >
-                        {dict.pages.champions.source}
-                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                      </a>
-                    )}
-                  </div>
+                  {/* Procedência pelo primitivo `SourceLine`, e não por marcação solta: ele é
+                      o dono do par `FONTE · valor · link` e garante o que a marca promete —
+                      nenhum número sem origem visível ao lado. O link usa o DOURADO reservado a
+                      fonte verificada, não o vermelho de CTA: a cor precisa ter um papel só. */}
+                  <SourceLine
+                    className="mt-4 border-t border-border/60 pt-3"
+                    label={c12.proofSource}
+                    value={champion.sourceType ?? '—'}
+                    {...(champion.sourceUrl
+                      ? { href: champion.sourceUrl, linkLabel: dict.pages.champions.source }
+                      : {})}
+                  />
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-foreground/60">{c12.proofEmpty}</p>
+                <p className="mt-4 text-sm text-ink-2">{c12.proofEmpty}</p>
               )}
 
               <p data-testid="hero-proof-disclaimer" className="mt-4 text-xs text-foreground/70">
