@@ -49,6 +49,7 @@ import { championsRoutes } from './modules/champions/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
 import { geoRoutes } from './modules/geo/routes.js';
 import { backupRoutes } from './modules/admin/backup.routes.js';
+import { adminMetricsRoutes } from './modules/admin/metrics.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { isAllowedOrigin } from './config/cors.js';
@@ -271,6 +272,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(searchRoutes);
       await api.register(geoRoutes);
       await api.register(backupRoutes);
+      await api.register(adminMetricsRoutes);
     },
     { prefix: '/api/v1' },
   );
