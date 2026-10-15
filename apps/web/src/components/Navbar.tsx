@@ -2,6 +2,9 @@
 import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
+import { useCommandPalette } from './CommandPaletteProvider';
+import { wsC2Strings } from '@/i18n/wsC2';
+import { Search as SearchIcon } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useGsapFadeIn } from '@/hooks/useGsap';
 import LanguageSelector from './LanguageSelector';
@@ -49,8 +52,10 @@ type NavEntry =
 
 export default function Navbar() {
   const ref = useRef<HTMLElement>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user, status, logout } = useAuth();
+  const { open: openPalette } = useCommandPalette();
+  const palette = wsC2Strings[locale].search.palette;
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
@@ -208,15 +213,26 @@ export default function Navbar() {
           {/* Direita: busca (desktop) + idioma + conta. `ml-auto` garante que a direita fique
               sempre colada à borda, sem o vão irregular que existia no tablet. */}
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-            <form action="/search" method="get" className="hidden xl:block" role="search">
-              <input
-                type="search"
-                name="q"
-                placeholder={t('nav.searchPlaceholder')}
-                aria-label={t('nav.search')}
-                className="w-48 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-1.5 text-sm text-foreground transition-colors placeholder:text-foreground/80 placeholder:opacity-100 focus:border-primary-ink focus:outline-none focus:ring-2 focus:ring-primary/40 2xl:w-60"
-              />
-            </form>
+            {/* A busca da navbar virou GATILHO da paleta de comando (conceito, quadro 03): a
+                busca é o produto numa enciclopédia, então ela abre uma superfície própria em vez
+                de navegar para uma página. É um `<button>` e não um `<input>` porque abrir um
+                overlay é uma AÇÃO, não um campo — um input que na verdade é botão confunde
+                leitor de tela e o autocomplete do navegador. O atalho aparece no rótulo para o
+                caminho de teclado ficar descobrível. */}
+            <button
+              type="button"
+              onClick={() => openPalette()}
+              aria-label={palette.open}
+              aria-keyshortcuts="Meta+K Control+K"
+              data-testid="nav-search-trigger"
+              className="hidden items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-1.5 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink xl:flex"
+            >
+              <SearchIcon className="h-4 w-4" aria-hidden="true" />
+              <span className="w-40 text-left 2xl:w-52">{t('nav.searchPlaceholder')}</span>
+              <kbd className="rounded border border-border px-1.5 py-0.5 font-sans text-[10px] text-ink-3">
+                ⌘K
+              </kbd>
+            </button>
             <LanguageSelector />
             {status === 'loading' ? (
               <div
@@ -299,15 +315,21 @@ export default function Navbar() {
             data-testid="nav-mobile-panel"
             className="border-t border-border pb-4 pt-3 lg:hidden"
           >
-            <form action="/search" method="get" role="search" className="px-1 pb-3">
-              <input
-                type="search"
-                name="q"
-                placeholder={t('nav.searchPlaceholder')}
-                aria-label={t('nav.search')}
-                className="w-full rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-2 text-sm text-foreground placeholder:text-foreground/80 placeholder:opacity-100 focus:border-primary-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-            </form>
+            {/* No painel mobile a busca também abre a paleta, que é onde o teclado virtual e a
+                lista agrupada funcionam melhor que uma página intermediária. */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                openPalette();
+              }}
+              aria-label={palette.open}
+              data-testid="nav-search-trigger-mobile"
+              className="mb-3 flex w-full items-center gap-2 rounded-full border border-border bg-[color-mix(in_oklab,var(--color-foreground)_8%,transparent)] px-4 py-2 text-sm text-ink-2 transition-colors duration-200 hover:border-primary-ink"
+            >
+              <SearchIcon className="h-4 w-4" aria-hidden="true" />
+              <span className="text-left">{t('nav.searchPlaceholder')}</span>
+            </button>
 
             <ul className="space-y-1">
               {dropdowns.map((d) => (

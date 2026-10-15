@@ -90,6 +90,24 @@ export interface WsC2Strings {
     total: string;
     limitations: string;
     attributionNote: string;
+    /**
+     * PALETA DE COMANDO — a busca como superfície principal (conceito visual, quadro 03).
+     *
+     * Os `hint*` existem como STRING e não como texto fixo no componente porque a convenção de
+     * tecla muda entre idiomas, e um rodapé de atalhos que não bate com o teclado do usuário é
+     * pior do que não ter rodapé.
+     */
+    palette: {
+      open: string;
+      hintNavigate: string;
+      hintOpen: string;
+      hintClose: string;
+      groupClubs: string;
+      groupCompetitions: string;
+      groupPlayers: string;
+      noResults: string;
+      tooShort: string;
+    };
   };
   carousel: {
     title: string;
@@ -199,6 +217,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       limitations:
         'Limitações: jogadores ainda não indexados; busca usa os índices atuais do Postgres.',
       attributionNote: 'Coordenadas de: ',
+      palette: {
+        open: 'Abrir a busca',
+        hintNavigate: 'navegar',
+        hintOpen: 'abrir',
+        hintClose: 'fechar',
+        groupClubs: 'Clubes & seleções',
+        groupCompetitions: 'Competições',
+        groupPlayers: 'Jogadores',
+        noResults: 'Nada encontrado para esta busca.',
+        tooShort: 'Digite ao menos 2 letras.',
+      },
     },
     carousel: {
       title: 'Campeões',
@@ -306,6 +335,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       limitations:
         'Limitations: players not indexed yet; search uses the current Postgres indexes.',
       attributionNote: 'Coordinates from: ',
+      palette: {
+        open: 'Open search',
+        hintNavigate: 'navigate',
+        hintOpen: 'open',
+        hintClose: 'close',
+        groupClubs: 'Clubs & national teams',
+        groupCompetitions: 'Competitions',
+        groupPlayers: 'Players',
+        noResults: 'Nothing found for this search.',
+        tooShort: 'Type at least 2 letters.',
+      },
     },
     carousel: {
       title: 'Champions',
@@ -413,6 +453,17 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       limitations:
         'Limitaciones: jugadores aún no indexados; la búsqueda usa los índices actuales de Postgres.',
       attributionNote: 'Coordenadas de: ',
+      palette: {
+        open: 'Abrir la búsqueda',
+        hintNavigate: 'navegar',
+        hintOpen: 'abrir',
+        hintClose: 'cerrar',
+        groupClubs: 'Clubes y selecciones',
+        groupCompetitions: 'Competiciones',
+        groupPlayers: 'Jugadores',
+        noResults: 'No se encontró nada para esta búsqueda.',
+        tooShort: 'Escribe al menos 2 letras.',
+      },
     },
     carousel: {
       title: 'Campeones',

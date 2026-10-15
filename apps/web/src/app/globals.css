@@ -1023,6 +1023,19 @@
   .animate-scale-in {
     animation: scaleIn 0.4s ease-out forwards;
   }
+  /* ── PALETA DE COMANDO (conceito visual, quadro 03) ────────────────────────────────────────
+     Entrada em 180ms com `ease-out` — dentro da faixa de UI do repo (150–250ms) e coerente com
+     o `0,2s ease-out` que o quadro de sistema declara para estado. Mais rápido que isso o
+     overlay "pisca"; mais lento, o usuário de teclado espera por uma animação que ele já
+     dispensou ao digitar.
+     Só `opacity` e `transform`: nenhuma das duas anima layout, então não há reflow por frame —
+     que é a mesma regra que o `.auth-card__pane` segue e o que o portão de movimento cobra. */
+  .palette-in {
+    animation: fadeIn 0.18s ease-out forwards;
+  }
+  .palette-card-in {
+    animation: paletteCardIn 0.18s ease-out forwards;
+  }
 }
 
 @keyframes fadeIn {
@@ -1051,6 +1064,19 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+/* A paleta sobe 8px enquanto aparece. Deliberadamente MENOS que os 30px do `slideUp`: o card
+   fica no centro da tela e um deslocamento grande faz o olho perseguir o conteúdo em vez de ler
+   o primeiro resultado. */
+@keyframes paletteCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
