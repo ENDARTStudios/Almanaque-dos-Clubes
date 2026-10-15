@@ -128,9 +128,15 @@ function registrarRecusa(
         email: dados.email,
       },
     })
-    .catch(() => {
+    .catch((err: unknown) => {
       /* Falha de auditoria não pode virar erro visível: a recusa já foi enviada. O log estruturado
          do processo registra a falha para investigação. */
-      logger.error({ rota, motivo: dados.motivo }, 'falha ao auditar recusa de acesso ao operador');
+      /* O `err.message` entrou depois de um episodio em que a auditoria falhava em silencio e o
+         log so dizia "falhou" — sem a causa, a investigacao comecava do zero. Um log de falha
+         que nao diz POR QUE falhou e meio log. */
+      logger.error(
+        { rota, motivo: dados.motivo, err: (err as Error)?.message },
+        'falha ao auditar recusa de acesso ao operador',
+      );
     });
 }

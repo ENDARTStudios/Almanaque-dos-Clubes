@@ -168,10 +168,7 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     });
     expect(res.statusCode).toBe(403);
 
-    // A gravação é fire-and-forget (não bloqueia a resposta), então espera o microtask.
-    await new Promise((r) => setTimeout(r, 200));
-
-    const depois = await prisma.auditLog.count({ where: { action: 'permission.denied' } });
+    const depois = await esperarAuditoria(antes);
     expect(depois, 'a recusa não foi auditada').toBeGreaterThan(antes);
 
     const ultimo = await prisma.auditLog.findFirst({
@@ -189,11 +186,10 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     const antes = await prisma.auditLog.count({ where: { action: 'permission.denied' } });
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/users' });
     expect(res.statusCode).toBe(401);
-    await new Promise((r) => setTimeout(r, 200));
-    const depois = await prisma.auditLog.count({ where: { action: 'permission.denied' } });
+    const depois = await esperarAuditoria(antes);
     /* 401 sem cookie é o caso mais comum de todos (robô varrendo rotas), e é justamente o que
        interessa ver na trilha: um pico aqui é sinal de varredura. */
-    expect(depois).toBeGreaterThan(antes);
+    expect(depois, 'a recusa por falta de identidade não foi auditada').toBeGreaterThan(antes);
   });
 
   it('(i) T569 — a resposta de recusa continua sendo 403 limpo', async () => {
