@@ -8,7 +8,9 @@ import { describe, it, expect } from 'vitest';
 import {
   arquivoDoValor,
   blocoInfoboxClube,
+  escudoDeWikitext,
   escudoDoInfobox,
+  PERFIS_WIKI,
 } from '../../../src/modules/etl/wikipedia-club-logo.js';
 
 describe('T552 — arquivoDoValor', () => {
@@ -88,5 +90,30 @@ describe('T552 — escudoDoInfobox', () => {
 
   it('sem infobox devolve null', () => {
     expect(escudoDoInfobox('#REDIRECT [[Outro]]')).toBeNull();
+  });
+});
+
+describe('T552 — perfis EN/DE (o acervo é internacional)', () => {
+  it('EN: {{Infobox football club}} com |logo= explícito entra', () => {
+    const wikitext =
+      '{{Infobox football club\n| clubname = Example FC\n| logo = Example_FC_logo.png\n| fullname = Example\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.enwiki!)).toBe('Example FC logo.png');
+  });
+
+  it('EN: |image= só vale com pista de escudo no nome', () => {
+    const estadio = '{{Infobox football club\n|image = Stadium_view_2020.jpg\n}}';
+    const escudo = '{{Infobox football club\n|image = Club_crest.svg\n}}';
+    expect(escudoDeWikitext(estadio, PERFIS_WIKI.enwiki!)).toBeNull();
+    expect(escudoDeWikitext(escudo, PERFIS_WIKI.enwiki!)).toBe('Club crest.svg');
+  });
+
+  it('DE: {{Infobox Fußballklub}} com |wappen= entra', () => {
+    const wikitext = '{{Infobox Fußballklub\n|name = Beispiel\n|wappen = Wappen_Beispiel.svg\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.dewiki!)).toBe('Wappen Beispiel.svg');
+  });
+
+  it('o perfil separa as wikis: PT não casa infobox em inglês', () => {
+    const wikitext = '{{Infobox football club\n|logo = X_logo.png\n}}';
+    expect(escudoDeWikitext(wikitext, PERFIS_WIKI.ptwiki!)).toBeNull();
   });
 });

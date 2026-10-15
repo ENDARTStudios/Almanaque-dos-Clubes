@@ -19,7 +19,12 @@ import {
   type MediaAttemptStatus,
   type MediaKey,
 } from './media-cursor.js';
-import { escudoDoInfobox } from './wikipedia-club-logo.js';
+import {
+  escudoDeWikitext,
+  PERFIS_WIKI,
+  WIKIS_ESCUDO,
+  type WikiEscudo,
+} from './wikipedia-club-logo.js';
 import {
   fetchEntities,
   commonsFilePath,
@@ -131,7 +136,6 @@ export interface MediaBatchResult {
   infoboxFetchFailures?: number;
 }
 
-const PT_WIKI_API = 'https://pt.wikipedia.org/w/api.php';
 const PT_WIKI_UA = 'AlmanaqueDosClubes-ETL/3.0 (github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 /** Teto de leituras de artigo por execução — o job tem timeout de 20 min. */
 const INFOBOX_MAX_POR_RUN = 200;
@@ -139,17 +143,23 @@ const INFOBOX_MAX_POR_RUN = 200;
 const PT_MIN_INTERVAL_MS = 900;
 let ultimoFetchPt = 0;
 
+const WIKI_HOST: Record<WikiEscudo, string> = {
+  ptwiki: 'pt.wikipedia.org',
+  enwiki: 'en.wikipedia.org',
+  dewiki: 'de.wikipedia.org',
+};
+
 export type PtWikitextResult =
   { status: 'ok'; wikitext: string } | { status: 'missing' } | { status: 'error' };
 
 /**
- * Wikitext do artigo da Wikipédia PT. Distingue TRÊS desfechos de propósito: `missing`
- * (o artigo não existe → gap real, pode carimbar) de `error` (429/5xx/rede → NÃO é prova
- * de ausência). Carimbar `no_source` numa falha de transporte grava gap FALSO e o clube
- * nunca é re-tentado — foi o defeito que a verificação do T551 pegou.
+ * Wikitext do artigo numa wiki. Distingue TRÊS desfechos de propósito: `missing` (o artigo
+ * não existe → gap real, pode carimbar) de `error` (429/5xx/rede → NÃO é prova de
+ * ausência). Carimbar `no_source` numa falha de transporte grava gap FALSO e o clube nunca
+ * é re-tentado — foi o defeito que a verificação do T551 pegou.
  */
-async function fetchPtWikitext(titulo: string): Promise<PtWikitextResult> {
-  const url = `${PT_WIKI_API}?${new URLSearchParams({
+async function fetchWikitext(wiki: WikiEscudo, titulo: string): Promise<PtWikitextResult> {
+  const url = `https://${WIKI_HOST[wiki]}/w/api.php?${new URLSearchParams({
     action: 'query',
     prop: 'revisions',
     rvprop: 'content',
@@ -303,35 +313,44 @@ export async function enrichClubsMediaBatch(
           data.logoUrl = commonsFilePath(f, 300);
           patch.logo = 'enriched';
         } else {
-          // Fallback: escudo do infobox da Wikipédia PT (fonte aprovada no T450-w8). O
-          // arquivo vem do Commons, logo tem licença verificável; a procedência fica
-          // registrada em `metadata` (sem coluna nova).
-          const titulo = e.sitelinks?.ptwiki?.title;
-          if (titulo && infoboxLookups < INFOBOX_MAX_POR_RUN) {
+          // Fallback: escudo do infobox da Wikipédia (PT → EN → DE). O acervo é
+          // internacional — medido: 6 de 12 clubes da fila não têm artigo em PT. O arquivo
+          // vem do Commons, logo tem licença verificável; a procedência fica em `metadata`.
+          let houveErroDeLeitura = false;
+          for (const wiki of WIKIS_ESCUDO) {
+            if (data.logoUrl || infoboxLookups >= INFOBOX_MAX_POR_RUN) break;
+            const titulo = e.sitelinks?.[wiki]?.title;
+            if (!titulo) continue;
             infoboxLookups += 1;
-            const leitura = await fetchPtWikitext(titulo);
+            const leitura = await fetchWikitext(wiki, titulo);
             if (leitura.status === 'error') {
-              // Falha de transporte (429/5xx/rede) NÃO é prova de ausência: deixa a chave
-              // sem carimbo (o clube volta na próxima execução) em vez de gravar gap falso.
+              // Falha de transporte (429/5xx/rede) NÃO é prova de ausência.
               leiturasFalhas += 1;
-            } else {
-              const arquivo = leitura.status === 'ok' ? escudoDoInfobox(leitura.wikitext) : null;
-              if (arquivo) {
-                data.logoUrl = commonsFilePath(arquivo, 300);
-                data.metadata = {
-                  ...((club.metadata as Record<string, unknown> | null) ?? {}),
-                  logoSource: 'wikipedia-pt-infobox',
-                  logoSourceUrl: `https://pt.wikipedia.org/wiki/${encodeURIComponent(titulo)}`,
-                  logoResolvedAt: new Date().toISOString(),
-                };
-                logosFromInfobox += 1;
-              }
-              patch.logo = data.logoUrl ? 'enriched' : 'no_source';
+              houveErroDeLeitura = true;
+              continue;
             }
-          } else {
-            // Sem artigo na wiki PT (ou teto do run): a fonte não cobre este clube.
-            patch.logo = data.logoUrl ? 'enriched' : 'no_source';
+            const arquivo =
+              leitura.status === 'ok'
+                ? escudoDeWikitext(leitura.wikitext, PERFIS_WIKI[wiki]!)
+                : null;
+            if (arquivo) {
+              data.logoUrl = commonsFilePath(arquivo, 300);
+              data.metadata = {
+                ...((club.metadata as Record<string, unknown> | null) ?? {}),
+                logoSource: `wikipedia-${wiki}-infobox`,
+                logoSourceUrl: `https://${WIKI_HOST[wiki]}/wiki/${encodeURIComponent(titulo)}`,
+                logoResolvedAt: new Date().toISOString(),
+              };
+              logosFromInfobox += 1;
+            }
           }
+          if (data.logoUrl) {
+            patch.logo = 'enriched';
+          } else if (!houveErroDeLeitura) {
+            // Nenhuma wiki cobriu o clube: a fonte não tem → gap real, pode carimbar.
+            patch.logo = 'no_source';
+          }
+          // Com erro de leitura e sem escudo: a chave fica SEM carimbo (volta na próxima).
         }
       }
 
