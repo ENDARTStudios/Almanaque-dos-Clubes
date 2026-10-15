@@ -50,6 +50,7 @@ const pt: Dictionary = {
     },
   },
   footer: {
+    landmark: 'Rodapé',
     tagline:
       'A história do futebol, em construção e com fontes verificadas. Clubes, jogadores, competições e rankings auditáveis (metodologia em /metodologia).',
     platformTitle: 'Plataforma',

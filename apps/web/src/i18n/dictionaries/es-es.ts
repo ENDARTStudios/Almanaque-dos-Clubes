@@ -50,6 +50,7 @@ const es: Dictionary = {
     },
   },
   footer: {
+    landmark: 'Pie de página',
     tagline:
       'La historia del fútbol, en construcción y con fuentes verificadas. Clubes, jugadores, competiciones y rankings auditables (metodología en /metodologia).',
     platformTitle: 'Plataforma',

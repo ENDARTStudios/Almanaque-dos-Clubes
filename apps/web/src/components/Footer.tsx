@@ -36,6 +36,15 @@ export default function Footer() {
 
   return (
     <footer className="bg-muted text-foreground mt-auto border-t border-border">
+      {/* T560 — o rodapé pulava o nível 2 do título.
+          As três colunas titulam com `<h3>` ("Plataforma", "Sobre", "Legal"), e o rodapé não
+          tinha nível 2 nenhum: numa página cujo conteúdo termina em `<h1>`, a árvore ia de H1
+          para H3 direto. Isso aparecia em TODA página do site, porque o rodapé é global — e o
+          detector de hierarquia acusa "skipped-heading" por isso.
+          O `<h2>` do rodapé é o que faltava para os `<h3>` das colunas serem legítimos. É
+          `sr-only` porque o rodapé não precisa de um título visível: a correção é semântica, não
+          visual. */}
+      <h2 className="sr-only">{t('footer.landmark')}</h2>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
