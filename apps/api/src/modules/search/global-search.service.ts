@@ -63,6 +63,11 @@ export interface GlobalSearchResponse {
   type: 'all' | 'club' | 'competition' | 'player';
   results: GlobalSearchResult[];
   pagination: { limit: number; offset: number; total: number };
+  /**
+   * T561 — distribuição COMPLETA do termo por tipo, independente do filtro `type` ativo.
+   * `all` é o total; os outros três são por tipo. Sempre presente (aditivo ao contrato).
+   */
+  counts: { all: number; club: number; competition: number; player: number };
   limitations: string[];
 }
 
@@ -231,6 +236,7 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
       type,
       results: [],
       pagination: { limit, offset, total: 0 },
+      counts: { all: 0, club: 0, competition: 0, player: 0 },
       limitations: [...limitations, 'empty_query'],
     };
   }
@@ -266,6 +272,34 @@ export async function globalSearch(input: SearchInput): Promise<GlobalSearchResp
     type,
     results: page,
     pagination: { limit, offset, total: all.length },
+    // Contagem por tipo (T561) — ver `contarPorTipo`.
+    counts: contarPorTipo(all),
     limitations,
   };
+}
+
+/**
+ * T561 — quantos resultados de CADA tipo a busca encontrou.
+ *
+ * Sai de graça: `all` já contém os resultados dos três tipos antes da paginação, então agrupar
+ * aqui não custa nenhuma consulta a mais. A alternativa seria o cliente disparar quatro buscas
+ * (uma por `type`) a cada tecla digitada — quatro requisições contra o acervo para mostrar um
+ * número ao lado de um botão.
+ *
+ * A `type=all` da resposta continua sendo o filtro pedido; `counts` é sempre a distribuição
+ * COMPLETA do termo, independente do filtro ativo. Isso é o que permite ao usuário ver
+ * "Clubes 50 · Jogadores 33" enquanto está filtrando por clubes: sem isso, o número da aba que
+ * ele NÃO está vendo seria desconhecido, e ele teria de clicar em cada uma para descobrir.
+ *
+ * `competition` fica em 0 quando não há competição — zero é resposta, não ausência.
+ */
+export function contarPorTipo(results: GlobalSearchResult[]): {
+  all: number;
+  club: number;
+  competition: number;
+  player: number;
+} {
+  const counts = { all: results.length, club: 0, competition: 0, player: 0 };
+  for (const r of results) counts[r.type]++;
+  return counts;
 }
