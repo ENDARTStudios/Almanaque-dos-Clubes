@@ -291,6 +291,10 @@ export interface Dictionary {
       /** `{n}` — clubes do país sem cidade, mesmo com cobertura boa. */
       citiesPartial: string;
       citiesLoadError: string;
+      /** T563 — `{com}`, `{total}` e `{pct}`: a cobertura, declarada ao lado do titulo. */
+      citiesCoverage: string;
+      citiesFilter: string;
+      citiesEmpty: string;
     };
     // T548 — mensagem honesta quando a API falha (antes imprimia "0 clubes").
     clubs: { title: string; subtitle: string; placeholder: string; loadError: string };

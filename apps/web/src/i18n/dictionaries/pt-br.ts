@@ -244,6 +244,9 @@ const pt: Dictionary = {
         'Ainda não há cidade registrada para os clubes deste país — os {n} estão listados abaixo.',
       citiesPartial: '{n} sem cidade registrada',
       citiesLoadError: 'Não foi possível carregar as cidades deste país.',
+        citiesCoverage: 'Cidade registrada para {com} de {total} clubes ({pct}%)',
+        citiesFilter: 'Filtrar cidade…',
+        citiesEmpty: 'Nenhuma cidade com esse nome.',
     },
     clubs: {
       title: 'Clubes',

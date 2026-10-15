@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from './CommandPaletteProvider';
 import { wsC2Strings } from '@/i18n/wsC2';
@@ -112,15 +113,45 @@ export default function Navbar() {
     { href: '/map', label: t('nav.map'), full: t('nav.map') },
   ];
 
+  /**
+   * T564 — EM QUE PÁGINA ESTOU. Pedido do Operador: "quando clico em Clubes > sou encaminhado
+   * para a página de Clubes, mas isso não fica identificado na barra superior".
+   *
+   * O item ativo fica em NEGRITO (o pedido literal) e recebe `aria-current`. O peso sozinho não
+   * basta como sinal: quem usa leitor de tela não percebe negrito, e `aria-current` é o que a
+   * tecnologia assistiva anuncia — o negrito é para quem enxerga, o atributo é para quem não.
+   *
+   * A comparação é por PREFIXO DE SEGMENTO, e não por igualdade, porque os destinos têm
+   * subpáginas: `/players/abc` é a página de um jogador e o item "Jogadores" continua sendo o
+   * lugar onde o usuário está. Igualdade simples apagaria o negrito ao abrir qualquer detalhe.
+   *
+   * `barra` corta em `/` para não casar prefixo por acidente: `/map` não pode ativar em
+   * `/mapa-legado`, e `/players` não pode ativar em `/players-x`. Sem a barra, `startsWith`
+   * compara texto em vez de caminho.
+   */
+  const pathname = usePathname();
+  const ativo = (href: string): boolean => {
+    const alvo = href.split('?')[0] ?? href;
+    if (alvo === '/') return pathname === '/';
+    return pathname === alvo || pathname.startsWith(alvo + '/');
+  };
+
   const renderEntry = (entry: NavEntry, idx: number) =>
     entry.kind === 'link' ? (
       <Link
         key={entry.href}
         href={entry.href}
         title={entry.full}
+        // `aria-current="page"` só para o link exato: é o que a especificação define para
+        // "a página atual". Um submenu aberto marca os filhos, não o pai.
+        {...(ativo(entry.href) ? { 'aria-current': 'page' as const } : {})}
         // T554 — `py-1`: o alvo media 20px (WCAG 2.5.8 pede ≥24). O header não cresce
         // porque o logo e os botões de ação já são mais altos que 28px.
-        className="text-sm font-medium whitespace-nowrap py-1 text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
+        className={`text-sm whitespace-nowrap py-1 transition-colors duration-200 hover:text-primary-ink ${
+          ativo(entry.href) ? 'font-bold text-primary-ink' : 'font-medium text-foreground/80'
+        }`}
+        data-testid={`nav-link-${entry.href.replace(/^\//, '')}`}
+        data-ativo={ativo(entry.href) ? 'true' : undefined}
       >
         {entry.label}
       </Link>
@@ -131,7 +162,17 @@ export default function Navbar() {
           aria-expanded={openDesktop === entry.key}
           onClick={() => setOpenDesktop((o) => (o === entry.key ? null : entry.key))}
           onBlur={() => setTimeout(() => setOpenDesktop((o) => (o === entry.key ? null : o)), 150)}
-          className="flex items-center gap-1 text-sm font-medium whitespace-nowrap py-1 text-foreground/80 transition-colors duration-200 hover:text-primary-ink"
+          /* O PAI de um submenu fica ativo quando QUALQUER filho corresponde à rota — é assim que
+             o usuário sabe que está dentro de "Clubes" mesmo tendo escolhido "Brasil" no painel.
+             `aria-current="true"` (e não `"page"`) porque o pai não É a página: ele a contém. */
+          {...(entry.items.some((i) => ativo(i.href)) ? { 'aria-current': 'true' as const } : {})}
+          className={`flex items-center gap-1 text-sm whitespace-nowrap py-1 transition-colors duration-200 hover:text-primary-ink ${
+            entry.items.some((i) => ativo(i.href))
+              ? 'font-bold text-primary-ink'
+              : 'font-medium text-foreground/80'
+          }`}
+          data-testid={`nav-group-${entry.key}`}
+          data-ativo={entry.items.some((i) => ativo(i.href)) ? 'true' : undefined}
         >
           {entry.label}
           <span aria-hidden="true" className="text-[10px]">
@@ -376,7 +417,12 @@ export default function Navbar() {
                     <Link
                       href={l.href}
                       onClick={closeMobile}
-                      className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/5"
+                      {...(ativo(l.href) ? { 'aria-current': 'page' as const } : {})}
+                      className={`block rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-foreground/5 ${
+                        ativo(l.href)
+                          ? 'bg-foreground/5 font-bold text-primary-ink'
+                          : 'font-semibold text-foreground'
+                      }`}
                     >
                       {l.full}
                     </Link>

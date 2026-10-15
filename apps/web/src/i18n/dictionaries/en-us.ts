@@ -239,6 +239,9 @@ const en: Dictionary = {
         'No city recorded for the clubs in this country yet — all {n} are listed below.',
       citiesPartial: '{n} without a recorded city',
       citiesLoadError: 'Could not load the cities for this country.',
+        citiesCoverage: 'City recorded for {com} of {total} clubs ({pct}%)',
+        citiesFilter: 'Filter city…',
+        citiesEmpty: 'No city with that name.',
     },
     clubs: {
       title: 'Clubs',
