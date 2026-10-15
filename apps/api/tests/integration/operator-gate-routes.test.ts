@@ -50,8 +50,16 @@ afterAll(async () => {
   await app?.close();
 });
 
-/** As rotas internas que o gate protege. Uma de cada módulo, para pegar import esquecido. */
-const ROTAS = ['/api/v1/admin/users', '/api/v1/jobs/health', '/api/v1/etl/status'];
+/**
+ * As rotas internas que o gate protege. Uma de cada módulo, para pegar import esquecido.
+ *
+ * Os caminhos foram conferidos contra as rotas REAIS de cada módulo, e não escritos de memória: o
+ * ETL vive sob `/admin/etl/*`, e não sob `/etl/*`. A primeira versão deste teste usava
+ * `/api/v1/etl/status`, que NÃO EXISTE — o 404 resultante reprovava as asserções de status, e o
+ * defeito era do teste. Vale registrar porque o sintoma (teste vermelho) apontava para o gate, e a
+ * causa era um caminho inventado.
+ */
+const ROTAS = ['/api/v1/admin/users', '/api/v1/jobs/health', '/api/v1/admin/etl/status'];
 
 describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', () => {
   it('(a) sem token é 401 — não há identidade para avaliar', async () => {
