@@ -30,7 +30,7 @@ async function main(): Promise<number> {
     ...(values.country ? { country: values.country } : {}),
   });
   console.log(
-    `[w1] fim: processados=${out.processed} · atualizados=${values.apply ? out.updated : 0}${values.apply ? '' : ' (dry)'} · sem-alteracao=${out.skipped} · escudos-do-infobox=${out.logosFromInfobox ?? 0}`,
+    `[w1] fim: processados=${out.processed} · atualizados=${values.apply ? out.updated : 0}${values.apply ? '' : ' (dry)'} · sem-alteracao=${out.skipped} · escudos-do-infobox=${out.logosFromInfobox ?? 0} · cores-do-infobox=${out.colorsFromInfobox ?? 0} · leituras-falhadas=${out.infoboxFetchFailures ?? 0}`,
   );
   if (out.unknownColors.length > 0) {
     const uniq = [...new Set(out.unknownColors)];
