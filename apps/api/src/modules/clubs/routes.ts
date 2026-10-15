@@ -109,6 +109,21 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   /**
+   * GET /clubs/countries — índice de países para o AGRUPAMENTO da página `/clubs`.
+   *
+   * Devolve `{ code, name, clubs }` por país, contado pela coluna `country` (ISO2) — a MESMA
+   * que `GET /clubs?country=XX` filtra. Declarada ANTES de `/clubs/:id` (rota estática), pela
+   * mesma razão do `geo-stats` acima.
+   *
+   * NÃO substitui `/clubs/geo-stats`: aquele serve ao choropleth e agrupa por `countryId`
+   * (FK, 32% dos clubes). Este serve à navegação e usa a coluna do filtro (96%). Os números
+   * DIFEREM de propósito — e é justamente por isso que os dois existem.
+   */
+  app.get('/clubs/countries', async (_request, reply) => {
+    return reply.send({ data: await clubsService.countryIndex() });
+  });
+
+  /**
    * GET /clubs/compare?a=<uuid>&b=<uuid> — WS-C-7, comparação lado a lado
    * (read-only). a == b → 400; clube inexistente/inativo → 404. Declarada
    * ANTES de /clubs/:id (rota estática).
