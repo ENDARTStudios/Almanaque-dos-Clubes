@@ -42,35 +42,49 @@ async function getTotals(): Promise<HeroTotals> {
  * obrigatória) e descarta o que não tem fonte — a hero nunca exibe prova sem origem.
  * O carrossel continua sendo o dono da lista completa; aqui só o primeiro item serve.
  */
-async function getHeroChampion(): Promise<HeroChampion | null> {
+async function getHeroChampions(): Promise<HeroChampion[]> {
   try {
     const res = await fetch(`${getApiBase()}/champions/carousel`, {
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data: { scopes?: CarouselScope[] } = await res.json();
     const scopes = Array.isArray(data.scopes) ? data.scopes : [];
-    const pick = scopes.find((s) => s.source?.sourceUrl) ?? scopes[0];
-    if (!pick?.champion?.name) return null;
-    return {
-      name: pick.champion.name,
-      clubId: pick.champion.id ?? null,
-      competitionName: pick.competition?.name ?? null,
-      competitionId: pick.competition?.id ?? null,
-      season: pick.season ?? null,
-      sourceType: pick.source?.type ?? null,
-      sourceUrl: pick.source?.sourceUrl ?? null,
-    };
+
+    /* T568 — o MUNDIAL primeiro, e depois os CONTINENTAIS.
+     *
+     * O pedido do Operador foi "destacar os campeões mundiais vigentes e os campeões
+     * continentais". A ordem importa porque é a hierarquia: abrir com o continental e chegar no
+     * mundial depois inverteria a leitura de patamar.
+     *
+     * Só entra quem tem FONTE (`sourceUrl`): a hero nunca exibe prova sem origem, e essa regra
+     * valia para o campeão único — continua valendo para cada slide. O limite de 1 mundial + 3
+     * continentais é para o carrossel não virar uma lista longa dentro da dobra; a lista completa
+     * segue no `ChampionsCarousel`, mais abaixo na página. */
+    const paraSlide = (s: CarouselScope): HeroChampion => ({
+      name: s.champion?.name ?? '',
+      clubId: s.champion?.id ?? null,
+      competitionName: s.competition?.name ?? null,
+      competitionId: s.competition?.id ?? null,
+      season: s.season ?? null,
+      hierarchy: s.hierarchy,
+      sourceUrl: s.source?.sourceUrl ?? null,
+    });
+
+    const comFonte = scopes.filter((s) => s.source?.sourceUrl && s.champion?.name);
+    const mundial = comFonte.filter((s) => s.hierarchy === 'mundial').slice(0, 1);
+    const continental = comFonte.filter((s) => s.hierarchy === 'continental').slice(0, 3);
+    return [...mundial, ...continental].map(paraSlide);
   } catch {
-    return null;
+    return [];
   }
 }
 
 export default async function HomePage() {
-  const [totals, champion] = await Promise.all([getTotals(), getHeroChampion()]);
+  const [totals, champions] = await Promise.all([getTotals(), getHeroChampions()]);
   return (
     <>
-      <HeroSection initialTotals={totals} champion={champion} />
+      <HeroSection initialTotals={totals} champions={champions} />
       {/* Conceito visual — a camada de exploração: o acervo é a interface. Vem logo depois
           da dobra porque responde à pergunta que a dobra levanta ("12.003 clubes… e daí?").
           Recebe o MESMO `totals` do servidor: nenhuma prancha carrega dado próprio. */}

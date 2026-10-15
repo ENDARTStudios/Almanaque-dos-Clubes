@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useId } from 'react';
+import { Suspense, useCallback, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { LoginForm } from './LoginForm';
@@ -109,7 +109,18 @@ export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
         'Entrar',
       )}
 
-      {form('login', 'Entrar', 'Acesse sua conta no Almanaque dos Clubes', <LoginForm />)}
+      {/* T567 — `LoginForm` usa `useSearchParams` (para honrar `?next=`), e o Next exige fronteira
+          de `Suspense` em quem lê search params: sem ela, a página que PRERENDERIZA este card
+          falha o build. O `RegisterForm` não lê, então fica fora — a fronteira é do que precisa,
+          não do bloco inteiro. */}
+      {form(
+        'login',
+        'Entrar',
+        'Acesse sua conta no Almanaque dos Clubes',
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>,
+      )}
       {form(
         'register',
         'Criar conta',

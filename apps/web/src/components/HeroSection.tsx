@@ -14,7 +14,7 @@ import { useGsapFadeIn, useGsapStagger } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
 import { wsC12Strings } from '@/i18n/wsC12';
 import { formatCount } from '@/lib/format';
-import { SourceLine } from '@/components/ui/Dado';
+import HeroChampionCarousel, { type HeroChampion } from './HeroChampionCarousel';
 
 const featureIcons = [BookOpen, Trophy, SearchIcon, Brain, BarChart3, Globe];
 
@@ -27,27 +27,19 @@ export interface HeroTotals {
 }
 
 // Campeão vigente com proveniência (GET /champions/carousel) — a "Prova" da hero.
-export interface HeroChampion {
-  name: string;
-  clubId: string | null;
-  competitionName: string | null;
-  competitionId: string | null;
-  season: number | null;
-  sourceType: string | null;
-  sourceUrl: string | null;
-}
+export type { HeroChampion } from './HeroChampionCarousel';
 
 export default function HeroSection({
   initialTotals,
-  champion,
+  champions = [],
 }: {
   initialTotals?: HeroTotals;
-  champion?: HeroChampion | null;
+  champions?: HeroChampion[];
 }) {
   const heroRef = useRef<HTMLElement>(null);
   const proofRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDListElement>(null);
-  const { t, dict, locale } = useI18n();
+  const { t, locale } = useI18n();
   const c12 = wsC12Strings[locale];
 
   useGsapFadeIn(heroRef);
@@ -142,50 +134,12 @@ export default function HeroSection({
                 <Trophy className="h-6 w-6 text-primary-ink" aria-hidden="true" />
               </div>
 
-              {champion ? (
+              {champions.length > 0 ? (
                 <div className="mt-4">
-                  {champion.clubId ? (
-                    <Link
-                      href={`/clubs/${champion.clubId}`}
-                      className="font-heading text-2xl font-bold text-foreground transition-colors hover:text-primary-ink sm:text-3xl"
-                    >
-                      {champion.name}
-                    </Link>
-                  ) : (
-                    <p className="font-heading text-2xl font-bold sm:text-3xl">{champion.name}</p>
-                  )}
-
-                  <p className="mt-1 text-sm text-ink-2">
-                    {champion.competitionId ? (
-                      <Link
-                        href={`/competitions/${champion.competitionId}`}
-                        className="underline decoration-dotted underline-offset-2 transition-colors hover:text-primary-ink"
-                      >
-                        {champion.competitionName ?? '—'}
-                      </Link>
-                    ) : (
-                      (champion.competitionName ?? '—')
-                    )}
-                  </p>
-
-                  {champion.season != null && (
-                    <p className="mt-1 text-xs text-ink-2">
-                      {c12.proofSeason}: {champion.season}
-                    </p>
-                  )}
-
-                  {/* Procedência pelo primitivo `SourceLine`, e não por marcação solta: ele é
-                      o dono do par `FONTE · valor · link` e garante o que a marca promete —
-                      nenhum número sem origem visível ao lado. O link usa o DOURADO reservado a
-                      fonte verificada, não o vermelho de CTA: a cor precisa ter um papel só. */}
-                  <SourceLine
-                    className="mt-4 border-t border-border/60 pt-3"
-                    label={c12.proofSource}
-                    value={champion.sourceType ?? '—'}
-                    {...(champion.sourceUrl
-                      ? { href: champion.sourceUrl, linkLabel: dict.pages.champions.source }
-                      : {})}
-                  />
+                  {/* T568 — carrossel de campeões: mundial E continentais.
+                      Antes esta área mostrava UM campeão só, e nada dizia se era mundial ou
+                      continental — a dimensão mais interessante do dado ficava invisível. */}
+                  <HeroChampionCarousel champions={champions} />
                 </div>
               ) : (
                 <p className="mt-4 text-sm text-ink-2">{c12.proofEmpty}</p>
