@@ -243,6 +243,28 @@ export interface Dictionary {
     passwordMismatch: string;
   };
   pages: {
+    // T559 — "Meu Almanaque": a área do usuário.
+    dashboard: {
+      title: string;
+      subtitle: string;
+      accountTitle: string;
+      myAlmanaqueTitle: string;
+      subscription: string;
+      subscriptionDesc: string;
+      favorites: string;
+      favoritesDesc: string;
+      history: string;
+      historyDesc: string;
+      notifications: string;
+      notificationsDesc: string;
+      profile: string;
+      profilePending: string;
+      comingSoon: string;
+      historyTitle: string;
+      historyEmpty: string;
+      historyPending: string;
+      historyBack: string;
+    };
     // T556 — índice de países: o agrupamento de `/clubs` e `/players`.
     byCountry: {
       title: string;

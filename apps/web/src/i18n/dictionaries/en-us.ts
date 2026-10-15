@@ -197,6 +197,28 @@ const en: Dictionary = {
     passwordMismatch: 'Passwords do not match.',
   },
   pages: {
+    dashboard: {
+      title: 'My Almanac',
+      subtitle: 'Your account, your archive and your subscription.',
+      accountTitle: 'Account and subscription',
+      myAlmanaqueTitle: 'My archive',
+      subscription: 'Subscription',
+      subscriptionDesc: 'Check your plan and billing history.',
+      favorites: 'Favourites',
+      favoritesDesc: 'The clubs, competitions and players you saved.',
+      history: 'History',
+      historyDesc: 'Your searches and recent activity.',
+      notifications: 'Notifications',
+      notificationsDesc: 'What changed in the archive since your last visit.',
+      profile: 'Profile',
+      profilePending: 'Profile editing is not available yet.',
+      comingSoon: 'Coming soon',
+      historyTitle: 'Activity history',
+      historyEmpty: 'No activity recorded on this account yet.',
+      historyPending:
+        'Activity logging is disabled until the cookie policies are published. Until then there is no history to show — and this page will not pretend your account is empty.',
+      historyBack: 'Back to My Almanac',
+    },
     byCountry: {
       title: 'By country',
       filterPlaceholder: 'Filter country…',

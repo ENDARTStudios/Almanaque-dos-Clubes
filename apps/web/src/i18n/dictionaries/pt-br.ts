@@ -198,6 +198,32 @@ const pt: Dictionary = {
     passwordMismatch: 'As senhas não coincidem.',
   },
   pages: {
+    // T559 — "Meu Almanaque": a área do usuário. Antes as strings estavam LITERAIS no
+    // `dashboard/page.tsx`, em português, sem passar por dicionário — e os cartões de ADMIN
+    // (Observabilidade, Moderação) ficavam misturados na área do usuário.
+    dashboard: {
+      title: 'Meu Almanaque',
+      subtitle: 'Sua conta, seu acervo e sua assinatura.',
+      accountTitle: 'Conta e assinatura',
+      myAlmanaqueTitle: 'Meu acervo',
+      subscription: 'Assinatura',
+      subscriptionDesc: 'Verifique seu plano e o histórico de cobranças.',
+      favorites: 'Favoritos',
+      favoritesDesc: 'Seus clubes, competições e jogadores salvos.',
+      history: 'Histórico',
+      historyDesc: 'Suas pesquisas e a atividade recente.',
+      notifications: 'Notificações',
+      notificationsDesc: 'O que mudou no acervo desde a sua última visita.',
+      profile: 'Perfil',
+      /** Lacuna declarada: o cartão NÃO é link, porque a página não existe. */
+      profilePending: 'Edição de perfil ainda não está disponível.',
+      comingSoon: 'Em breve',
+      historyTitle: 'Histórico de atividade',
+      historyEmpty: 'Ainda não há atividade registrada nesta conta.',
+      historyPending:
+        'O registro de atividade está desativado até a publicação das políticas de cookies. Enquanto isso, não há histórico para mostrar — e esta página não vai fingir que a sua conta está vazia.',
+      historyBack: 'Voltar ao Meu Almanaque',
+    },
     byCountry: {
       title: 'Por país',
       filterPlaceholder: 'Filtrar país…',

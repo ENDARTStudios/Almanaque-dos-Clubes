@@ -199,6 +199,28 @@ const es: Dictionary = {
     passwordMismatch: 'Las contraseñas no coinciden.',
   },
   pages: {
+    dashboard: {
+      title: 'Mi Almanaque',
+      subtitle: 'Tu cuenta, tu acervo y tu suscripción.',
+      accountTitle: 'Cuenta y suscripción',
+      myAlmanaqueTitle: 'Mi acervo',
+      subscription: 'Suscripción',
+      subscriptionDesc: 'Consulta tu plan y el historial de cobros.',
+      favorites: 'Favoritos',
+      favoritesDesc: 'Los clubes, competiciones y jugadores que guardaste.',
+      history: 'Historial',
+      historyDesc: 'Tus búsquedas y la actividad reciente.',
+      notifications: 'Notificaciones',
+      notificationsDesc: 'Lo que cambió en el acervo desde tu última visita.',
+      profile: 'Perfil',
+      profilePending: 'La edición de perfil aún no está disponible.',
+      comingSoon: 'Próximamente',
+      historyTitle: 'Historial de actividad',
+      historyEmpty: 'Aún no hay actividad registrada en esta cuenta.',
+      historyPending:
+        'El registro de actividad está desactivado hasta la publicación de las políticas de cookies. Mientras tanto no hay historial que mostrar — y esta página no va a fingir que tu cuenta está vacía.',
+      historyBack: 'Volver a Mi Almanaque',
+    },
     byCountry: {
       title: 'Por país',
       filterPlaceholder: 'Filtrar país…',
