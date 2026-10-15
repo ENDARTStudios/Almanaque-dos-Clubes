@@ -73,15 +73,51 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * GET /clubs
    * Lista clubes com filtros opcionais e paginação.
    */
+  /**
+   * T562 — valores VÁLIDOS de `status`, espelhando `enum ClubStatus` do schema Prisma.
+   *
+   * Existe porque `?status=` era repassado cru para o Prisma (`status as never`), e um valor fora
+   * do enum fazia o POSTGRES estourar: `?status=active` (minúsculo) e `?status=qualquer`
+   * devolviam **500 INTERNAL_ERROR**. Medido em produção.
+   *
+   * Isso é um defeito de duas faces:
+   *   1. **Erro de servidor para entrada de usuário.** Valor inválido em query string é 400, não
+   *      500 — 500 mente dizendo que o problema é nosso, e polui o alarme de erro do servidor com
+   *      o que é digitação de URL.
+   *   2. **Alcançável sem querer.** A página `/clubs` repassa `status` da URL direto para a API,
+   *      e o valor natural que uma pessoa escreve é `active`, minúsculo — justamente o que
+   *      quebrava. Também é alcançável por link compartilhado.
+   *
+   * A comparação é CASE-INSENSITIVE e normaliza para maiúsculo: `active` e `ACTIVE` são a mesma
+   * intenção, e o enum é detalhe de implementação, não algo que o usuário deva conhecer. Valor
+   * que não existe como status, esse sim, é 400 com a lista do que é aceito.
+   */
+  const CLUB_STATUS = ['ACTIVE', 'INACTIVE', 'DISSOLVED'] as const;
+
   app.get('/clubs', async (request, reply) => {
     const query = (request.query as Record<string, string | undefined>) ?? {};
     const limit = Math.min(Math.max(parseInt(query.limit ?? '50', 10) || 50, 1), 100);
     const offset = Math.max(parseInt(query.offset ?? '0', 10) || 0, 0);
 
+    const statusRaw = query.status?.trim();
+    let status: string | undefined;
+    if (statusRaw) {
+      const normalizado = statusRaw.toUpperCase();
+      if (!(CLUB_STATUS as readonly string[]).includes(normalizado)) {
+        return reply.status(400).send({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `Parâmetro "status" inválido (use ${CLUB_STATUS.join('|')}).`,
+          },
+        });
+      }
+      status = normalizado;
+    }
+
     const result = await clubsService.list({
       country: query.country,
       city: query.city,
-      status: query.status,
+      status,
       search: query.search,
       hasCoordinates: query.hasCoordinates === 'true',
       continent: query.continent,
