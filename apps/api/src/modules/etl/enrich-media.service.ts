@@ -155,6 +155,8 @@ const WIKI_HOST: Record<WikiEscudo, string> = {
   ptwiki: 'pt.wikipedia.org',
   enwiki: 'en.wikipedia.org',
   dewiki: 'de.wikipedia.org',
+  eswiki: 'es.wikipedia.org',
+  itwiki: 'it.wikipedia.org',
 };
 
 export type PtWikitextResult =
