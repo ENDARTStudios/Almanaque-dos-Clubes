@@ -1,16 +1,15 @@
 import type { Locale } from '@/i18n/config';
 
 /**
- * T-ADMIN — strings da área administrativa (índice, navegação, usuários e auditoria).
+ * T-ADMIN — strings da área administrativa.
  *
- * Módulo ADITIVO: não toca o dicionário global nem os módulos `wsC*`/`wsO1` (fonte de
- * outros agentes). É o mesmo padrão do `wsO1Strings` — um objeto por locale consumido
- * por Client Components —, só que vivendo sob `components/admin/` porque estas telas
- * são de propriedade exclusiva desta rodada.
+ * Módulo ADITIVO: não toca o dicionário global nem os módulos `wsC*`/`wsO1`. É o
+ * mesmo padrão do `wsO1Strings` — um objeto por locale consumido por Client
+ * Components —, só que vivendo sob `components/admin/`.
  *
  * Regra do design system: nenhum texto visível literal na tela. Toda string da UI
- * passa por aqui (os nomes de status/ação do domínio, que são identificadores de
- * máquina, ficam em constantes próprias no componente).
+ * passa por aqui (nomes de status/ação do domínio, que são identificadores de
+ * máquina, ficam em constantes próprias nos componentes).
  */
 
 export interface AdminAreaStrings {
@@ -35,6 +34,8 @@ export interface AdminStrings {
     subtitle: string;
     searchLabel: string;
     searchPlaceholder: string;
+    apply: string;
+    clear: string;
     planLabel: string;
     planAll: string;
     colUser: string;
@@ -52,13 +53,16 @@ export interface AdminStrings {
     confirmReactivateBody: string;
     confirmYes: string;
     confirmNo: string;
+    planAction: string;
+    planNewLabel: string;
+    planConfirmTitle: string;
+    planConfirmBody: string;
     count: string;
     empty: string;
     emptyFiltered: string;
     loading: string;
     forbidden: string;
     error: string;
-    planGap: string;
     page: string;
     prev: string;
     next: string;
@@ -86,10 +90,93 @@ export interface AdminStrings {
     loading: string;
     forbidden: string;
     error: string;
-    missingEndpoint: string;
     page: string;
     prev: string;
     next: string;
+  };
+  catalog: {
+    title: string;
+    subtitle: string;
+    searchLabel: string;
+    searchPlaceholder: string;
+    colClub: string;
+    colMedia: string;
+    colUpdated: string;
+    hasMedia: string;
+    noMedia: string;
+    edit: string;
+    add: string;
+    remove: string;
+    removeTitle: string;
+    removeBody: string;
+    removeConfirm: string;
+    removeCancel: string;
+    editTitle: string;
+    clubIdLabel: string;
+    save: string;
+    cancel: string;
+    fieldLogo: string;
+    fieldStadium: string;
+    fieldColors: string;
+    fieldKits: string;
+    fieldAnthem: string;
+    fieldPennants: string;
+    fieldEditorial: string;
+    colorsHint: string;
+    jsonHint: string;
+    invalidJson: string;
+    needOneField: string;
+    empty: string;
+    emptyFiltered: string;
+    loading: string;
+    forbidden: string;
+    error: string;
+    done: string;
+    count: string;
+    page: string;
+    prev: string;
+    next: string;
+  };
+  lgpd: {
+    title: string;
+    subtitle: string;
+    consentsTitle: string;
+    consentsSubtitle: string;
+    consentsColVisitor: string;
+    consentsColVersion: string;
+    consentsColWhen: string;
+    consentsColCategories: string;
+    consentsColRevoked: string;
+    consentsActive: string;
+    deletionsTitle: string;
+    deletionsSubtitle: string;
+    deletionsGrace: string;
+    deletionsColProtocol: string;
+    deletionsColUser: string;
+    deletionsColStatus: string;
+    deletionsColDeletedAt: string;
+    deletionsColEligible: string;
+    purgeTitle: string;
+    purgeSubtitle: string;
+    purgeDryRun: string;
+    purgeRun: string;
+    purgeConfirmTitle: string;
+    purgeConfirmBody: string;
+    purgeConfirmRealBody: string;
+    purgeConfirmYes: string;
+    purgeConfirmNo: string;
+    purgeEligible: string;
+    purgeSessions: string;
+    purgeNotifications: string;
+    purgeFavorites: string;
+    purgeActivities: string;
+    purgeDryRunBadge: string;
+    purgeRealBadge: string;
+    purgeNote: string;
+    empty: string;
+    loading: string;
+    forbidden: string;
+    error: string;
   };
 }
 
@@ -158,6 +245,8 @@ const PT: AdminStrings = {
     subtitle: 'Busca, filtro por plano e moderação de contas.',
     searchLabel: 'Buscar por nome ou e-mail',
     searchPlaceholder: 'ex.: maria@ ou Maria Silva',
+    apply: 'Buscar',
+    clear: 'Limpar',
     planLabel: 'Plano',
     planAll: 'Todos os planos',
     colUser: 'Usuário',
@@ -179,17 +268,18 @@ const PT: AdminStrings = {
       'Nenhuma sessão antiga é revogada por esta ação.',
     confirmYes: 'Confirmar',
     confirmNo: 'Voltar',
+    planAction: 'Definir plano',
+    planNewLabel: 'Novo plano',
+    planConfirmTitle: 'Trocar o plano desta conta?',
+    planConfirmBody:
+      'A conta {email} passa para o plano {plan}. A troca usa o serviço de assinatura ' +
+      '(não altera cobrança no provedor) e fica registrada na trilha de auditoria.',
     count: '{n} conta(s)',
     empty: 'Nenhuma conta cadastrada.',
     emptyFiltered: 'Nenhuma conta corresponde aos filtros aplicados.',
     loading: 'Carregando contas…',
     forbidden: 'Acesso restrito a administradores.',
     error: 'Não foi possível carregar as contas.',
-    planGap:
-      'Lacuna declarada: a API não expõe o plano em GET /admin/users (e não há rota de ' +
-      'administração para alterar o plano de outra conta — PUT /billing/plan muda apenas o ' +
-      'plano de quem chama). Por isso o filtro por plano está desativado e a coluna Plano ' +
-      'mostra “—” até o endpoint incluir o campo.',
     page: 'Página {page} de {total}',
     prev: 'Anterior',
     next: 'Próxima',
@@ -217,14 +307,108 @@ const PT: AdminStrings = {
     loading: 'Carregando a trilha…',
     forbidden: 'Acesso restrito a administradores.',
     error: 'Não foi possível carregar a trilha de auditoria.',
-    missingEndpoint:
-      'Lacuna declarada: a API ainda NÃO expõe a trilha de auditoria. Este painel consome ' +
-      'GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=, com resposta ' +
-      '{ data: { items, total } }. Enquanto a rota não existir (ver apps/api/src/modules/audit — ' +
-      'há apenas o serviço de escrita), a lista abaixo fica vazia e a página pronta para consumo.',
     page: 'Página {page} de {total}',
     prev: 'Anterior',
     next: 'Próxima',
+  },
+  catalog: {
+    title: 'Catálogo de mídia',
+    subtitle: 'Curadoria da mídia dos clubes do acervo (escudo, estádio, cores, uniformes, hino).',
+    searchLabel: 'Buscar clube',
+    searchPlaceholder: 'ex.: Flamengo ou Q179885',
+    colClub: 'Clube',
+    colMedia: 'Mídia presente',
+    colUpdated: 'Atualizado',
+    hasMedia: 'Com mídia',
+    noMedia: 'Sem mídia',
+    edit: 'Editar',
+    add: 'Adicionar mídia',
+    remove: 'Remover mídia',
+    removeTitle: 'Remover a mídia deste clube?',
+    removeBody:
+      'A mídia de {club} (escudo, estádio, cores, uniformes, hino, flâmulas, editorial) é ' +
+      'limpa do perfil público. O CLUBE permanece no acervo e um snapshot reversível é ' +
+      'guardado nos metadados. A ação é auditada.',
+    removeConfirm: 'Remover',
+    removeCancel: 'Voltar',
+    editTitle: 'Editar mídia',
+    clubIdLabel: 'ID do clube',
+    save: 'Salvar',
+    cancel: 'Cancelar',
+    fieldLogo: 'Escudo (logoUrl)',
+    fieldStadium: 'Imagem do estádio (stadiumImage)',
+    fieldColors: 'Cores do time (teamColors)',
+    fieldKits: 'Histórico de uniformes (kitHistory)',
+    fieldAnthem: 'Hino (anthem)',
+    fieldPennants: 'Flâmulas (pennants)',
+    fieldEditorial: 'Texto editorial (editorialText)',
+    colorsHint: 'Cores separadas por vírgula (hex).',
+    jsonHint: 'JSON válido; vazio limpa o campo.',
+    invalidJson: 'JSON inválido no campo {field}.',
+    needOneField: 'Informe ao menos um campo de mídia para adicionar.',
+    empty: 'Nenhum clube no acervo.',
+    emptyFiltered: 'Nenhum clube corresponde à busca.',
+    loading: 'Carregando o catálogo…',
+    forbidden: 'Acesso restrito a administradores.',
+    error: 'Não foi possível carregar o catálogo.',
+    done: 'Feito.',
+    count: '{n} clube(s)',
+    page: 'Página {page} de {total}',
+    prev: 'Anterior',
+    next: 'Próxima',
+  },
+  lgpd: {
+    title: 'LGPD',
+    subtitle: 'Prova de consentimento, exclusões agendadas e purga de dados de contas removidas.',
+    consentsTitle: 'Consentimentos (últimos 1.000)',
+    consentsSubtitle:
+      'Logs de consentimento de cookies (CookieConsent), do mais recente ao mais antigo.',
+    consentsColVisitor: 'Visitante',
+    consentsColVersion: 'Versão',
+    consentsColWhen: 'Quando',
+    consentsColCategories: 'Categorias aceitas',
+    consentsColRevoked: 'Revogado',
+    consentsActive: 'Vigente',
+    deletionsTitle: 'Exclusões agendadas',
+    deletionsSubtitle: 'Solicitações de exclusão de conta (soft-delete) e a data-limite de purga.',
+    deletionsGrace:
+      'Política deste painel: a purga fica elegível 30 dias após a exclusão da conta. ' +
+      'A exclusão original já anonimiza a PII; a purga remove apenas dados efêmeros restantes.',
+    deletionsColProtocol: 'Protocolo',
+    deletionsColUser: 'Conta',
+    deletionsColStatus: 'Status',
+    deletionsColDeletedAt: 'Excluída em',
+    deletionsColEligible: 'Purga elegível em',
+    purgeTitle: 'Purga de dados',
+    purgeSubtitle:
+      'Remove sessions, notifications, favorites e userActivity de contas excluídas há mais de ' +
+      '30 dias. NÃO apaga contas, cobranças nem auditoria.',
+    purgeDryRun: 'Simular (dry-run)',
+    purgeRun: 'Executar purga',
+    purgeConfirmTitle: 'Simular a purga?',
+    purgeConfirmBody:
+      'O modo simulado apenas CONTA o que seria removido (contas excluídas há mais de 30 dias). ' +
+      'Nada é apagado e nenhuma auditoria é gravada.',
+    purgeConfirmRealBody:
+      'A purga REAL remove permanentemente sessions, notifications, favorites e userActivity das ' +
+      'contas excluídas há mais de 30 dias. Contas, cobranças e auditoria são preservadas. Esta ' +
+      'ação é auditada e não pode ser desfeita.',
+    purgeConfirmYes: 'Confirmar',
+    purgeConfirmNo: 'Voltar',
+    purgeEligible: 'Contas elegíveis',
+    purgeSessions: 'Sessões',
+    purgeNotifications: 'Notificações',
+    purgeFavorites: 'Favoritos',
+    purgeActivities: 'Atividades',
+    purgeDryRunBadge: 'Simulação (nada foi apagado)',
+    purgeRealBadge: 'Purga executada',
+    purgeNote:
+      'dryRun=true (padrão) só conta. Só dryRun=false executa e registra auditoria. ' +
+      'Nenhuma verificação em produção executa o modo real.',
+    empty: 'Nada a exibir.',
+    loading: 'Carregando…',
+    forbidden: 'Acesso restrito a administradores.',
+    error: 'Não foi possível carregar os dados de LGPD.',
   },
 };
 
@@ -283,6 +467,8 @@ const EN: AdminStrings = {
     subtitle: 'Search, plan filter and account moderation.',
     searchLabel: 'Search by name or e-mail',
     searchPlaceholder: 'e.g.: maria@ or Maria Silva',
+    apply: 'Search',
+    clear: 'Clear',
     planLabel: 'Plan',
     planAll: 'All plans',
     colUser: 'User',
@@ -304,17 +490,18 @@ const EN: AdminStrings = {
       'No existing session is revoked by this action.',
     confirmYes: 'Confirm',
     confirmNo: 'Back',
+    planAction: 'Set plan',
+    planNewLabel: 'New plan',
+    planConfirmTitle: 'Change this account’s plan?',
+    planConfirmBody:
+      'The account {email} moves to the {plan} plan. The change uses the subscription service ' +
+      '(it does not alter provider billing) and is recorded in the audit trail.',
     count: '{n} account(s)',
     empty: 'No accounts found.',
     emptyFiltered: 'No account matches the applied filters.',
     loading: 'Loading accounts…',
     forbidden: 'Restricted to administrators.',
     error: 'Could not load the accounts.',
-    planGap:
-      'Declared gap: the API does not expose the plan in GET /admin/users (and there is no ' +
-      'admin route to change another account’s plan — PUT /billing/plan only changes the ' +
-      'caller’s own plan). The plan filter is therefore disabled and the Plan column shows “—” ' +
-      'until the endpoint includes the field.',
     page: 'Page {page} of {total}',
     prev: 'Previous',
     next: 'Next',
@@ -343,14 +530,109 @@ const EN: AdminStrings = {
     loading: 'Loading the trail…',
     forbidden: 'Restricted to administrators.',
     error: 'Could not load the audit trail.',
-    missingEndpoint:
-      'Declared gap: the API does NOT expose the audit trail yet. This panel consumes ' +
-      'GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=, answering ' +
-      '{ data: { items, total } }. While the route does not exist (see apps/api/src/modules/audit — ' +
-      'only the write service is there), the list stays empty and the page is ready to consume it.',
     page: 'Page {page} of {total}',
     prev: 'Previous',
     next: 'Next',
+  },
+  catalog: {
+    ...PT.catalog,
+    title: 'Media catalog',
+    subtitle: 'Curation of club media in the archive (crest, stadium, colors, kits, anthem).',
+    searchLabel: 'Search club',
+    searchPlaceholder: 'e.g.: Flamengo or Q179885',
+    colClub: 'Club',
+    colMedia: 'Media present',
+    colUpdated: 'Updated',
+    hasMedia: 'Has media',
+    noMedia: 'No media',
+    edit: 'Edit',
+    add: 'Add media',
+    remove: 'Remove media',
+    removeTitle: 'Remove this club’s media?',
+    removeBody:
+      'The media of {club} (crest, stadium, colors, kits, anthem, pennants, editorial) is cleared ' +
+      'from the public profile. The CLUB stays in the archive and a reversible snapshot is kept ' +
+      'in the metadata. The action is audited.',
+    removeConfirm: 'Remove',
+    removeCancel: 'Back',
+    editTitle: 'Edit media',
+    clubIdLabel: 'Club ID',
+    save: 'Save',
+    cancel: 'Cancel',
+    fieldLogo: 'Crest (logoUrl)',
+    fieldStadium: 'Stadium image (stadiumImage)',
+    fieldColors: 'Team colors (teamColors)',
+    fieldKits: 'Kit history (kitHistory)',
+    fieldAnthem: 'Anthem (anthem)',
+    fieldPennants: 'Pennants (pennants)',
+    fieldEditorial: 'Editorial text (editorialText)',
+    colorsHint: 'Colors separated by commas (hex).',
+    jsonHint: 'Valid JSON; empty clears the field.',
+    invalidJson: 'Invalid JSON in field {field}.',
+    needOneField: 'Provide at least one media field to add.',
+    empty: 'No club in the archive.',
+    emptyFiltered: 'No club matches the search.',
+    loading: 'Loading the catalog…',
+    forbidden: 'Restricted to administrators.',
+    error: 'Could not load the catalog.',
+    done: 'Done.',
+    count: '{n} club(s)',
+    page: 'Page {page} of {total}',
+    prev: 'Previous',
+    next: 'Next',
+  },
+  lgpd: {
+    ...PT.lgpd,
+    title: 'LGPD',
+    subtitle: 'Consent proof, scheduled deletions and purge of removed accounts’ data.',
+    consentsTitle: 'Consents (last 1,000)',
+    consentsSubtitle: 'Cookie consent logs (CookieConsent), newest first.',
+    consentsColVisitor: 'Visitor',
+    consentsColVersion: 'Version',
+    consentsColWhen: 'When',
+    consentsColCategories: 'Accepted categories',
+    consentsColRevoked: 'Revoked',
+    consentsActive: 'Current',
+    deletionsTitle: 'Scheduled deletions',
+    deletionsSubtitle: 'Account deletion requests (soft-delete) and the purge deadline.',
+    deletionsGrace:
+      'Policy of this panel: purge becomes eligible 30 days after the account deletion. ' +
+      'The original deletion already anonymizes PII; purge removes only leftover ephemeral data.',
+    deletionsColProtocol: 'Protocol',
+    deletionsColUser: 'Account',
+    deletionsColStatus: 'Status',
+    deletionsColDeletedAt: 'Deleted at',
+    deletionsColEligible: 'Purge eligible at',
+    purgeTitle: 'Data purge',
+    purgeSubtitle:
+      'Removes sessions, notifications, favorites and userActivity from accounts deleted more than ' +
+      '30 days ago. It does NOT delete accounts, billing or audit records.',
+    purgeDryRun: 'Simulate (dry-run)',
+    purgeRun: 'Run purge',
+    purgeConfirmTitle: 'Simulate the purge?',
+    purgeConfirmBody:
+      'Simulation only COUNTS what would be removed (accounts deleted more than 30 days ago). ' +
+      'Nothing is deleted and no audit is written.',
+    purgeConfirmRealBody:
+      'The REAL purge permanently removes sessions, notifications, favorites and userActivity from ' +
+      'accounts deleted more than 30 days ago. Accounts, billing and audit are preserved. This ' +
+      'action is audited and cannot be undone.',
+    purgeConfirmYes: 'Confirm',
+    purgeConfirmNo: 'Back',
+    purgeEligible: 'Eligible accounts',
+    purgeSessions: 'Sessions',
+    purgeNotifications: 'Notifications',
+    purgeFavorites: 'Favorites',
+    purgeActivities: 'Activities',
+    purgeDryRunBadge: 'Simulation (nothing deleted)',
+    purgeRealBadge: 'Purge executed',
+    purgeNote:
+      'dryRun=true (default) only counts. Only dryRun=false executes and writes audit. ' +
+      'No verification in production runs the real mode.',
+    empty: 'Nothing to show.',
+    loading: 'Loading…',
+    forbidden: 'Restricted to administrators.',
+    error: 'Could not load the LGPD data.',
   },
 };
 
@@ -391,7 +673,7 @@ const ES: AdminStrings = {
       {
         href: '/admin/observability',
         label: 'Observabilidad',
-        desc: 'Crons activos, cola y alertas internas.',
+        desc: 'Crons activos, cola y alertas internos.',
       },
       {
         href: '/admin/reports',
@@ -413,6 +695,8 @@ const ES: AdminStrings = {
     subtitle: 'Búsqueda, filtro por plan y moderación de cuentas.',
     searchLabel: 'Buscar por nombre o correo',
     searchPlaceholder: 'ej.: maria@ o María Silva',
+    apply: 'Buscar',
+    clear: 'Limpiar',
     planLabel: 'Plan',
     planAll: 'Todos los planes',
     colUser: 'Usuario',
@@ -434,17 +718,18 @@ const ES: AdminStrings = {
       'Esta acción no revoca sesiones antiguas.',
     confirmYes: 'Confirmar',
     confirmNo: 'Volver',
+    planAction: 'Definir plan',
+    planNewLabel: 'Nuevo plan',
+    planConfirmTitle: '¿Cambiar el plan de esta cuenta?',
+    planConfirmBody:
+      'La cuenta {email} pasa al plan {plan}. El cambio usa el servicio de suscripción ' +
+      '(no altera el cobro del proveedor) y queda registrado en la auditoría.',
     count: '{n} cuenta(s)',
     empty: 'No hay cuentas registradas.',
     emptyFiltered: 'Ninguna cuenta coincide con los filtros aplicados.',
     loading: 'Cargando cuentas…',
     forbidden: 'Acceso restringido a administradores.',
     error: 'No se pudieron cargar las cuentas.',
-    planGap:
-      'Brecha declarada: la API no expone el plan en GET /admin/users (y no hay ruta de ' +
-      'administración para cambiar el plan de otra cuenta — PUT /billing/plan cambia solo el ' +
-      'plan de quien llama). Por eso el filtro por plan está desactivado y la columna Plan ' +
-      'muestra «—» hasta que el endpoint incluya el campo.',
     page: 'Página {page} de {total}',
     prev: 'Anterior',
     next: 'Siguiente',
@@ -473,14 +758,110 @@ const ES: AdminStrings = {
     loading: 'Cargando el rastro…',
     forbidden: 'Acceso restringido a administradores.',
     error: 'No se pudo cargar el rastro de auditoría.',
-    missingEndpoint:
-      'Brecha declarada: la API todavía NO expone el rastro de auditoría. Este panel consume ' +
-      'GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=, con respuesta ' +
-      '{ data: { items, total } }. Mientras la ruta no exista (ver apps/api/src/modules/audit — ' +
-      'solo está el servicio de escritura), la lista queda vacía y la página lista para consumirla.',
     page: 'Página {page} de {total}',
     prev: 'Anterior',
     next: 'Siguiente',
+  },
+  catalog: {
+    ...PT.catalog,
+    title: 'Catálogo de medios',
+    subtitle: 'Curaduría de los medios de los clubes (escudo, estadio, colores, uniformes, himno).',
+    searchLabel: 'Buscar club',
+    searchPlaceholder: 'ej.: Flamengo o Q179885',
+    colClub: 'Club',
+    colMedia: 'Medios presentes',
+    colUpdated: 'Actualizado',
+    hasMedia: 'Con medios',
+    noMedia: 'Sin medios',
+    edit: 'Editar',
+    add: 'Añadir medios',
+    remove: 'Quitar medios',
+    removeTitle: '¿Quitar los medios de este club?',
+    removeBody:
+      'Los medios de {club} (escudo, estadio, colores, uniformes, himno, banderines, editorial) se ' +
+      'limpian del perfil público. El CLUB permanece en el acervo y se guarda un snapshot ' +
+      'reversible en los metadatos. La acción es auditada.',
+    removeConfirm: 'Quitar',
+    removeCancel: 'Volver',
+    editTitle: 'Editar medios',
+    clubIdLabel: 'ID del club',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    fieldLogo: 'Escudo (logoUrl)',
+    fieldStadium: 'Imagen del estadio (stadiumImage)',
+    fieldColors: 'Colores del equipo (teamColors)',
+    fieldKits: 'Historial de uniformes (kitHistory)',
+    fieldAnthem: 'Himno (anthem)',
+    fieldPennants: 'Banderines (pennants)',
+    fieldEditorial: 'Texto editorial (editorialText)',
+    colorsHint: 'Colores separados por comas (hex).',
+    jsonHint: 'JSON válido; vacío limpia el campo.',
+    invalidJson: 'JSON inválido en el campo {field}.',
+    needOneField: 'Indique al menos un campo de medios para añadir.',
+    empty: 'Ningún club en el acervo.',
+    emptyFiltered: 'Ningún club coincide con la búsqueda.',
+    loading: 'Cargando el catálogo…',
+    forbidden: 'Acceso restringido a administradores.',
+    error: 'No se pudo cargar el catálogo.',
+    done: 'Hecho.',
+    count: '{n} club(es)',
+    page: 'Página {page} de {total}',
+    prev: 'Anterior',
+    next: 'Siguiente',
+  },
+  lgpd: {
+    ...PT.lgpd,
+    title: 'LGPD',
+    subtitle: 'Prueba de consentimiento, eliminaciones agendadas y purga de cuentas eliminadas.',
+    consentsTitle: 'Consentimientos (últimos 1.000)',
+    consentsSubtitle: 'Registros de consentimiento de cookies (CookieConsent), del más reciente.',
+    consentsColVisitor: 'Visitante',
+    consentsColVersion: 'Versión',
+    consentsColWhen: 'Cuándo',
+    consentsColCategories: 'Categorías aceptadas',
+    consentsColRevoked: 'Revocado',
+    consentsActive: 'Vigente',
+    deletionsTitle: 'Eliminaciones agendadas',
+    deletionsSubtitle:
+      'Solicitudes de eliminación de cuenta (soft-delete) y la fecha límite de purga.',
+    deletionsGrace:
+      'Política de este panel: la purga es elegible 30 días después de la eliminación. ' +
+      'La eliminación original ya anonimiza la PII; la purga quita solo datos efímeros restantes.',
+    deletionsColProtocol: 'Protocolo',
+    deletionsColUser: 'Cuenta',
+    deletionsColStatus: 'Estado',
+    deletionsColDeletedAt: 'Eliminada en',
+    deletionsColEligible: 'Purga elegible en',
+    purgeTitle: 'Purga de datos',
+    purgeSubtitle:
+      'Quita sessions, notifications, favorites y userActivity de cuentas eliminadas hace más de ' +
+      '30 días. NO borra cuentas, cobros ni auditoría.',
+    purgeDryRun: 'Simular (dry-run)',
+    purgeRun: 'Ejecutar purga',
+    purgeConfirmTitle: '¿Simular la purga?',
+    purgeConfirmBody:
+      'La simulación solo CUENTA lo que se quitaría (cuentas eliminadas hace más de 30 días). ' +
+      'No se borra nada y no se escribe auditoría.',
+    purgeConfirmRealBody:
+      'La purga REAL quita permanentemente sessions, notifications, favorites y userActivity de ' +
+      'cuentas eliminadas hace más de 30 días. Cuentas, cobros y auditoría se preservan. Esta ' +
+      'acción se audita y no se puede deshacer.',
+    purgeConfirmYes: 'Confirmar',
+    purgeConfirmNo: 'Volver',
+    purgeEligible: 'Cuentas elegibles',
+    purgeSessions: 'Sesiones',
+    purgeNotifications: 'Notificaciones',
+    purgeFavorites: 'Favoritos',
+    purgeActivities: 'Actividades',
+    purgeDryRunBadge: 'Simulación (nada borrado)',
+    purgeRealBadge: 'Purga ejecutada',
+    purgeNote:
+      'dryRun=true (por defecto) solo cuenta. Solo dryRun=false ejecuta y registra auditoría. ' +
+      'Ninguna verificación en producción ejecuta el modo real.',
+    empty: 'Nada que mostrar.',
+    loading: 'Cargando…',
+    forbidden: 'Acceso restringido a administradores.',
+    error: 'No se pudieron cargar los datos de LGPD.',
   },
 };
 

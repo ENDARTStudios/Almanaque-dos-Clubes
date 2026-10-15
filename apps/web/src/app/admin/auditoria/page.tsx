@@ -8,10 +8,9 @@ import { adminStrings } from '@/components/admin/strings';
 /**
  * T-ADMIN — /admin/auditoria.
  *
- * Casca fina sobre `components/admin/AuditTrail`, que documenta no topo a lacuna: a API
- * ainda não expõe a trilha. Esta página fica PRONTA para consumir
- * `GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=` — quando a rota
- * existir em `apps/api` (de outro agente), nada aqui precisa mudar.
+ * Casca fina sobre `components/admin/AuditTrail`. Wave 2: a API passou a expor a
+ * trilha em `GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=`, com
+ * filtros e paginação de servidor; o componente já consome o contrato.
  */
 export default function AdminAuditPage() {
   const { locale } = useI18n();
