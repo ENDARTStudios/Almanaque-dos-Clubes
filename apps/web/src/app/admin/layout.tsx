@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AdminNav from '@/components/admin/AdminNav';
 
 /**
  * T565 — o segmento `/admin` inteiro é `noindex`.
@@ -9,6 +10,11 @@ import type { Metadata } from 'next';
  * lembrar de repetir a diretiva em cada página nova.
  *
  * `nocache` também: página interna não deve ficar em cache intermediário.
+ *
+ * T-ADMIN — este layout permanece SERVER COMPONENT porque precisa exportar o `metadata`
+ * acima (um Client Component não pode exportá-lo). A faixa de navegação, que depende do
+ * caminho atual (`usePathname`), vive no Client Component `AdminNav` e é montada aqui:
+ * toda tela sob `/admin` ganha navegação e `noindex` por construção, sem repetição.
  */
 export const metadata: Metadata = {
   title: 'Administração',
@@ -17,5 +23,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <AdminNav />
+      {children}
+    </>
+  );
 }
