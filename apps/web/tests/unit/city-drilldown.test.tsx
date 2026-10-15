@@ -25,12 +25,14 @@ vi.mock('@/i18n/Provider', () => ({
         'pages.byCountry.clubs': 'clubes',
         'pages.byCountry.citiesTitle': 'Cidades',
         'pages.byCountry.citiesLabel': 'Cidades do país',
-        'pages.byCountry.citiesShowAll': 'Ver as {n} cidades',
         'pages.byCountry.citiesGapPartial':
           'Cidade conhecida para {com} de {total} clubes deste país — os clubes estão listados abaixo.',
         'pages.byCountry.citiesGapNone':
           'Ainda não há cidade registrada para os clubes deste país — os {n} estão listados abaixo.',
         'pages.byCountry.citiesPartial': '{n} sem cidade registrada',
+        'pages.byCountry.citiesCoverage': 'Cidade registrada para {com} de {total} clubes ({pct}%)',
+        'pages.byCountry.citiesFilter': 'Filtrar cidade…',
+        'pages.byCountry.citiesEmpty': 'Nenhuma cidade com esse nome.',
         'pages.byCountry.citiesLoadError': 'Não foi possível carregar as cidades deste país.',
       })[k] ?? k,
   }),
@@ -81,27 +83,31 @@ describe('CityDrilldown — cidades dentro do país', () => {
   it('(b) mesmo com cobertura alta, o que falta é DITO', async () => {
     get.mockImplementation(async () => resposta(93, 7, [['München', 12]]));
     await montar();
-    // Nunca esconder os 7 sem cidade: se não há aviso, o usuário soma as cidades e conclui errado.
+    /* T563 — o aviso passou a declarar a COBERTURA ("93 de 100"), que e mais informativo que
+       "7 sem cidade": o usuario ve de quanto e o total, e nao so quanto falta. O que importa e
+       que a lacuna continue DITA — se sumisse, ele somaria as cidades e concluiria errado. */
     const parcial = screen.getByTestId('city-drilldown-partial');
-    expect(parcial.textContent).toContain('7');
+    expect(parcial.textContent).toContain('93');
+    expect(parcial.textContent).toContain('100');
   });
 
-  it('(c) cobertura BAIXA não lista cidades — declara a lacuna', async () => {
-    // 26 com cidade, 74 sem = 26%: o caso da Suécia, medido em produção. Listar aqui mostraria
-    // uma lista curta como se fosse o acervo do país.
+  it('(c) T563 — cobertura BAIXA ainda LISTA as cidades (o limiar de 60% saiu)', async () => {
+    /* O teste anterior afirmava o CONTRARIO: que cobertura < 60% nao lista. Aquela regra foi
+       removida porque SUPRIMIA DADO EXISTENTE — o Operador relatou "apenas algumas cidades
+       aparecem ao clicar no pais", e a causa era este limiar escondendo 268 cidades brasileiras,
+       148 portuguesas e 154 suecas, que existem na base.
+       O certo e MOSTRAR e DECLARAR: a cobertura vai numa linha ao lado do titulo. */
     get.mockImplementation(async () => resposta(26, 74, [['Stockholm', 9]]));
     await montar('SE');
-    expect(screen.getByTestId('city-drilldown-gap')).toBeTruthy();
-    // O ponto do teste: a lista de cidades NÃO existe.
-    expect(screen.queryByTestId('city-drilldown-list')).toBeNull();
-    expect(screen.queryByTestId('city-Stockholm')).toBeNull();
-    // E o número da lacuna aparece, para o usuário entender por que não há agrupamento.
-    const texto = screen.getByTestId('city-drilldown-gap').textContent ?? '';
-    expect(texto).toContain('26');
-    expect(texto).toContain('100');
+    expect(screen.getByTestId('city-drilldown-list')).toBeTruthy();
+    expect(screen.getByTestId('city-Stockholm')).toBeTruthy();
+    // E a lacuna continua declarada, agora sem esconder nada.
+    const cob = screen.getByTestId('city-drilldown-partial').textContent ?? '';
+    expect(cob).toContain('26');
+    expect(cob).toContain('100');
   });
 
-  it('(c2) sem NENHUMA cidade, a mensagem é a outra (e não uma lista vazia)', async () => {
+  it('(c2) sem NENHUMA cidade, declara a lacuna e nao mostra lista vazia', async () => {
     get.mockImplementation(async () => resposta(0, 40, []));
     await montar('XX');
     const texto = screen.getByTestId('city-drilldown-gap').textContent ?? '';
@@ -109,24 +115,15 @@ describe('CityDrilldown — cidades dentro do país', () => {
     expect(screen.queryByTestId('city-drilldown-list')).toBeNull();
   });
 
-  it('(d) o limiar é 60%: 59% declara lacuna, 61% lista', async () => {
-    // Fixa o contrato do limiar nos dois lados da fronteira. 59/100 e 61/100.
-    get.mockImplementation(async () => resposta(59, 41, [['A', 1]]));
-    await montar();
-    expect(screen.queryByTestId('city-drilldown-list')).toBeNull();
-
-    cleanup();
-    get.mockImplementation(async () => resposta(61, 39, [['A', 1]]));
-    await montar();
-    expect(screen.getByTestId('city-drilldown-list')).toBeTruthy();
-  });
-
-  it('corta em 12 cidades e oferece "ver todas" só quando há mais', async () => {
-    const muitas: Array<[string, number]> = Array.from({ length: 20 }, (_, i) => [`C${i}`, 20 - i]);
+  it('T563 — lista TODAS as cidades, sem cortar em 12', async () => {
+    // Com 268 cidades no Brasil e 268 na Alemanha (medido), cortar em 12 escondia 256 atras de um
+    // botao. A lista longa e razao para organiza-la com busca local, nao para oculta-la.
+    const muitas: Array<[string, number]> = Array.from({ length: 40 }, (_, i) => [`C${i}`, 40 - i]);
     get.mockImplementation(async () => resposta(95, 5, muitas));
     await montar();
-    expect(screen.getByTestId('city-drilldown-show-all')).toBeTruthy();
-    expect(screen.getAllByTestId(/^city-C/).length).toBe(12);
+    expect(screen.getAllByTestId(/^city-C\d+$/).length).toBe(40);
+    // E oferece busca local, porque 40+ cidades nao se navega rolando.
+    expect(screen.getByTestId('city-drilldown-filter')).toBeTruthy();
   });
 
   it('falha é declarada, e não derruba a lista de clubes abaixo', async () => {

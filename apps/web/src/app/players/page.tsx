@@ -17,10 +17,26 @@ interface PlayerRow {
   position?: string | null;
 }
 
-async function getPlayers(search?: string) {
+/**
+ * T563 — `country` e `position` passaram a ser enviados à API.
+ *
+ * O DEFEITO: o `CountryIndex` marcava o país selecionado com `aria-current` e o link levava a
+ * `?country=GB` — mas esta função só recebia `search`. O país era usado apenas para DECORAR o
+ * cartão como ativo, e NUNCA chegava à consulta. Resultado: clicar em "United Kingdom" levava a
+ * uma URL correta, com o cartão destacado, e a lista abaixo mostrava os mesmos 60 jogadores de
+ * antes, sem relação com o país escolhido. O usuário via a interface confirmar uma seleção que
+ * não tinha efeito nenhum.
+ *
+ * É a pior forma de defeito de filtro: a URL fica certa, o estado visual fica certo, e o dado
+ * fica errado. Nada denuncia.
+ */
+async function getPlayers(filtros: { search?: string; country?: string; position?: string }) {
   try {
     const params = new URLSearchParams({ limit: '60' });
-    if (search) params.set('search', search);
+    if (filtros.search) params.set('search', filtros.search);
+    // A API já aceitava os dois: `/players?country=GB` devolve 26.020 (medido em produção).
+    if (filtros.country) params.set('country', filtros.country);
+    if (filtros.position) params.set('position', filtros.position);
     const res = await fetch(getApiBase() + '/players?' + params.toString(), { cache: 'no-store' });
     if (!res.ok) return { data: [], total: 0 };
     return await res.json();
@@ -35,7 +51,11 @@ export default async function PlayersPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const sp = await searchParams;
-  const { data: players, total } = await getPlayers(sp.search);
+  const { data: players, total } = await getPlayers({
+    ...(sp.search ? { search: sp.search } : {}),
+    ...(sp.country ? { country: sp.country } : {}),
+    ...(sp.position ? { position: sp.position } : {}),
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

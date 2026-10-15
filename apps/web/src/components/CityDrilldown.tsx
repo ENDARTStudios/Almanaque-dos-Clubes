@@ -33,9 +33,6 @@ import { useI18n } from '@/i18n/Provider';
  * passa a enganar mais do que informa. É uma escolha declarada, não um número medido.
  */
 
-/** Abaixo disto, a lista de cidades engana mais do que informa. Escolha declarada. */
-const COBERTURA_MINIMA = 0.6;
-
 interface Cidade {
   name: string;
   clubs: number;
@@ -51,7 +48,6 @@ export default function CityDrilldown({ country }: { country: string }) {
   const { t } = useI18n();
   const [indice, setIndice] = useState<IndiceCidades | null>(null);
   const [estado, setEstado] = useState<'loading' | 'done' | 'error'>('loading');
-  const [todas, setTodas] = useState(false);
   useGsapStagger(listRef, 'li');
 
   useEffect(() => {
@@ -78,13 +74,21 @@ export default function CityDrilldown({ country }: { country: string }) {
   }, [country]);
 
   const cidades = useMemo(() => indice?.cities ?? [], [indice]);
-  const visiveis = todas ? cidades : cidades.slice(0, 12);
+  /* T563 — o corte de 12 saiu. Com 268 cidades na Alemanha e 268 no Brasil (medido), mostrar 12
+     e esconder 256 atrás de um botão é esconder o dado que o Operador pediu para ver. A lista é
+     longa, o que é uma RAZÃO para organizá-la (busca local), não para ocultá-la. */
+  const [busca, setBusca] = useState('');
+  const filtradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return cidades;
+    return cidades.filter((c) => c.name.toLowerCase().includes(termo));
+  }, [cidades, busca]);
 
   const totais = indice?.totals;
   const comCidade = totais?.withCity ?? 0;
   const semCidade = totais?.withoutCity ?? 0;
-  const cobertura = comCidade + semCidade > 0 ? comCidade / (comCidade + semCidade) : 0;
-  const sustenta = cobertura >= COBERTURA_MINIMA;
+  const totalClubes = comCidade + semCidade;
+  const cobertura = totalClubes > 0 ? Math.round((comCidade / totalClubes) * 100) : 0;
 
   // Enquanto carrega, nada de esqueleto: o segundo nível é complemento, não a página.
   if (estado === 'loading') return null;
@@ -97,19 +101,25 @@ export default function CityDrilldown({ country }: { country: string }) {
     );
   }
 
-  /* COBERTURA INSUFICIENTE: declara a lacuna e NÃO lista cidades.
-     Listar aqui seria pior que não listar — o usuário leria uma lista curta como se fosse o
-     acervo do país. A lista completa de clubes fica logo abaixo, sem agrupamento alegado. */
-  if (!sustenta) {
-    const texto =
-      comCidade > 0
-        ? t('pages.byCountry.citiesGapPartial')
-            .replace('{com}', comCidade.toLocaleString('pt-BR'))
-            .replace('{total}', (comCidade + semCidade).toLocaleString('pt-BR'))
-        : t('pages.byCountry.citiesGapNone').replace('{n}', semCidade.toLocaleString('pt-BR'));
+  /* T563 — o LIMIAR DE 60% SAIU, e a história dele importa.
+   *
+   * Eu o havia posto para evitar que uma lista curta de cidades passasse por acervo inteiro: num
+   * país com 26% de cobertura, "Estocolmo (12)" ao lado de 903 clubes sugere que só existem clubes
+   * ali. A intenção era honesta; o efeito foi SUPRIMIR DADO EXISTENTE. O Operador relatou
+   * exatamente isso: "apenas algumas cidades aparecem ao clicar no país".
+   *
+   * E ele está certo. Esconder 268 cidades brasileiras porque a cobertura é 48% é pior que o
+   * problema que eu tentava evitar: o usuário perde a navegação por cidade inteira, e a lacuna
+   * continua lá, apenas invisível. O certo é MOSTRAR e DECLARAR — a cobertura vai numa linha ao
+   * lado do título, então o usuário sabe que a lista não é o acervo completo e não precisa
+   * concluir nada sozinho.
+   *
+   * A diferença entre "declarar a lacuna escondendo" e "declarar a lacuna mostrando" é a
+   * diferença entre uma página honesta e uma página inútil. */
+  if (cidades.length === 0) {
     return (
       <p className="mb-6 text-sm text-ink-2" data-testid="city-drilldown-gap">
-        {texto}
+        {t('pages.byCountry.citiesGapNone').replace('{n}', semCidade.toLocaleString('pt-BR'))}
       </p>
     );
   }
@@ -120,42 +130,51 @@ export default function CityDrilldown({ country }: { country: string }) {
         <h3 className="font-heading text-base font-bold" data-testid="city-drilldown-title">
           {t('pages.byCountry.citiesTitle')} · {cidades.length.toLocaleString('pt-BR')}
         </h3>
+        {/* A LACUNA, declarada e visível — o que substitui o limiar. */}
         {semCidade > 0 ? (
-          // Mesmo com cobertura boa, o que falta é dito. Nunca "0 sem cidade" escondido.
           <span className="text-xs text-ink-3" data-testid="city-drilldown-partial">
-            {t('pages.byCountry.citiesPartial').replace('{n}', semCidade.toLocaleString('pt-BR'))}
+            {t('pages.byCountry.citiesCoverage')
+              .replace('{com}', comCidade.toLocaleString('pt-BR'))
+              .replace('{total}', totalClubes.toLocaleString('pt-BR'))
+              .replace('{pct}', String(cobertura))}
           </span>
+        ) : null}
+        {cidades.length > 12 ? (
+          <input
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder={t('pages.byCountry.citiesFilter')}
+            aria-label={t('pages.byCountry.citiesFilter')}
+            data-testid="city-drilldown-filter"
+            className="min-h-9 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-ink-2 placeholder:opacity-100"
+          />
         ) : null}
       </div>
 
-      <ul ref={listRef} className="flex flex-wrap gap-2" data-testid="city-drilldown-list">
-        {visiveis.map((c) => (
-          <li key={c.name}>
-            <Link
-              href={`/clubs?country=${encodeURIComponent(country)}&city=${encodeURIComponent(c.name)}`}
-              data-testid={`city-${c.name}`}
-              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm transition-colors duration-200 hover:border-primary"
-            >
-              <span className="text-foreground">{c.name}</span>
-              {/* Contagem rotulada: "12 clubes", não "12". */}
-              <span className="num text-ink-3">
-                {c.clubs.toLocaleString('pt-BR')} {t('pages.byCountry.clubs')}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {!todas && cidades.length > 12 ? (
-        <button
-          type="button"
-          onClick={() => setTodas(true)}
-          className="mt-2 min-h-9 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary"
-          data-testid="city-drilldown-show-all"
-        >
-          {t('pages.byCountry.citiesShowAll').replace('{n}', String(cidades.length))}
-        </button>
-      ) : null}
+      {filtradas.length === 0 ? (
+        <p className="text-sm text-ink-2" data-testid="city-drilldown-empty">
+          {t('pages.byCountry.citiesEmpty')}
+        </p>
+      ) : (
+        <ul ref={listRef} className="flex flex-wrap gap-2" data-testid="city-drilldown-list">
+          {filtradas.map((c) => (
+            <li key={c.name}>
+              <Link
+                href={`/clubs?country=${encodeURIComponent(country)}&city=${encodeURIComponent(c.name)}`}
+                data-testid={`city-${c.name}`}
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm transition-colors duration-200 hover:border-primary"
+              >
+                <span className="text-foreground">{c.name}</span>
+                {/* Contagem rotulada: "12 clubes", não "12". */}
+                <span className="num text-ink-3">
+                  {c.clubs.toLocaleString('pt-BR')} {t('pages.byCountry.clubs')}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
