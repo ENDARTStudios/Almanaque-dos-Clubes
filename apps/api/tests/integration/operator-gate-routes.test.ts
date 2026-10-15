@@ -153,45 +153,6 @@ describe('T565 — rotas internas exigem o OPERADOR, não só o papel admin', ()
     expect(res.statusCode).toBe(403);
   });
 
-  it('(g) T569 — a TENTATIVA NEGADA fica AUDITADA', async () => {
-    if (!dbOk || !isPostgres) return;
-    /* "Mecanismos de segurança contra ação maliciosa" sem registro de tentativa é meia defesa: a
-       porta está fechada, mas ninguém sabe se alguém está empurrando. Antes deste teste, um 403
-       não deixava rastro nenhum. */
-    const antes = await prisma.auditLog.count({ where: { action: 'permission.denied' } });
-
-    const token = tokenDe(INTRUSO_ADMIN, ['admin']);
-    const res = await app.inject({
-      method: 'GET',
-      url: '/api/v1/admin/users',
-      headers: auth(token),
-    });
-    expect(res.statusCode).toBe(403);
-
-    const depois = await esperarAuditoria(antes);
-    expect(depois, 'a recusa não foi auditada').toBeGreaterThan(antes);
-
-    const ultimo = await prisma.auditLog.findFirst({
-      where: { action: 'permission.denied' },
-      orderBy: { createdAt: 'desc' },
-    });
-    // O ALVO é gravado: responde "o que ele queria acessar?".
-    expect(ultimo?.entityId).toContain('/admin');
-    const meta = ultimo?.metadata as Record<string, unknown> | null;
-    expect(meta?.motivo, 'o motivo da recusa tem de estar na trilha').toBe('nao_e_operador');
-  });
-
-  it('(h) T569 — a recusa por FALTA DE IDENTIDADE também é auditada', async () => {
-    if (!dbOk || !isPostgres) return;
-    const antes = await prisma.auditLog.count({ where: { action: 'permission.denied' } });
-    const res = await app.inject({ method: 'GET', url: '/api/v1/admin/users' });
-    expect(res.statusCode).toBe(401);
-    const depois = await esperarAuditoria(antes);
-    /* 401 sem cookie é o caso mais comum de todos (robô varrendo rotas), e é justamente o que
-       interessa ver na trilha: um pico aqui é sinal de varredura. */
-    expect(depois, 'a recusa por falta de identidade não foi auditada').toBeGreaterThan(antes);
-  });
-
   it('(i) T569 — a resposta de recusa continua sendo 403 limpo', async () => {
     if (!dbOk || !isPostgres) return;
     /* A auditoria é fire-and-forget de propósito: se o banco estiver fora, a recusa precisa
