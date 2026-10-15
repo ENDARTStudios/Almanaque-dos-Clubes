@@ -109,6 +109,26 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   /**
+   * GET /clubs/cities?country=XX — cidades de UM país (segundo nível do agrupamento).
+   *
+   * `country` é obrigatório: sem ele a consulta agruparia o mundo inteiro por cidade, o que
+   * devolveria milhares de linhas e não é o que a tela pede. Declarada ANTES de `/clubs/:id`.
+   *
+   * Devolve `totals.withoutCity` para o consumidor poder declarar a lacuna — a cobertura de
+   * `city` é 93% na Alemanha e 26% na Suécia (medido), então lista curta pode ser dado faltando,
+   * não acervo pequeno.
+   */
+  app.get('/clubs/cities', async (request, reply) => {
+    const { country } = request.query as { country?: string };
+    if (!country || !/^[A-Za-z]{2}$/.test(country)) {
+      return reply
+        .status(400)
+        .send({ error: { code: 'BAD_REQUEST', message: 'country (ISO2) é obrigatório' } });
+    }
+    return reply.send({ data: await clubsService.cityIndex(country) });
+  });
+
+  /**
    * GET /clubs/countries — índice de países para o AGRUPAMENTO da página `/clubs`.
    *
    * Devolve `{ code, name, clubs }` por país, contado pela coluna `country` (ISO2) — a MESMA

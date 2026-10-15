@@ -9,6 +9,7 @@ import {
   type CreateClubInput,
 } from '@almanaque/domain';
 import {
+  CityIndex,
   CountryIndex,
   clubsRepository,
   type ClubGeoView,
@@ -111,6 +112,20 @@ export const clubsService = {
   async geo(id: string): Promise<ClubGeoView | null> {
     return cache.remember(`clubs:geo:${id}`, CLUBS_BY_ID_TTL_SECONDS, () =>
       clubsRepository.findGeoById(id),
+    );
+  },
+
+  /**
+   * Cidades de um país — segundo nível do agrupamento de `/clubs`.
+   *
+   * Devolve também `totals.withoutCity`. A tela usa isso para DECLARAR a lacuna: o campo `city`
+   * cobre 93% na Alemanha e 26% na Suécia (medido), então uma lista curta de cidades não
+   * significa acervo pequeno — significa dado faltando.
+   */
+  async cityIndex(country: string): Promise<CityIndex> {
+    const iso = country.toUpperCase();
+    return cache.remember(`clubs:city-index:${iso}`, CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.cityIndex(iso),
     );
   },
 

@@ -4,6 +4,7 @@ import ClubGrid from '@/components/ClubCard';
 import SearchBar from '@/components/SearchBar';
 import PageHeading from '@/components/PageHeading';
 import CountryIndex from '@/components/CountryIndex';
+import CityDrilldown from '@/components/CityDrilldown';
 import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
@@ -65,6 +66,11 @@ export default async function ClubsPage({
         rotulo="clubes"
         {...(sp.country ? { selecionado: sp.country } : {})}
       />
+      {/* SEGUNDO NÍVEL — cidades DENTRO do país escolhido, e só quando o dado sustenta.
+          O componente decide pelo número: com cobertura de cidade >= 60% lista as cidades; abaixo
+          disso DECLARA quantos clubes não têm cidade em vez de mostrar uma lista curta como se
+          fosse o acervo. Medido: 93% na Alemanha contra 26% na Suécia. */}
+      {sp.country ? <CityDrilldown key={sp.country} country={sp.country} /> : null}
       <Suspense
         fallback={
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
