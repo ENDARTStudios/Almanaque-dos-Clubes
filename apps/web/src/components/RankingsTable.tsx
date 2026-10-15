@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { DataTable } from '@/components/ui/DataTable';
 import { useI18n } from '@/i18n/Provider';
 
 // T438 — Tabela de Rankings 0-100 (cursor-based, filtros ano/gênero/país).
@@ -339,89 +340,101 @@ export default function RankingsTable() {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-danger-ink py-6">
+        <p role="alert" className="py-6 text-sm text-danger-ink">
           Erro ao carregar rankings.
         </p>
       ) : rows.length === 0 && !loading ? (
-        <p className="text-sm text-foreground/70 py-6">{t.empty}</p>
+        <p className="py-6 text-sm text-ink-2">{t.empty}</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-foreground/5 text-left">
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  {t.colPosition}
-                </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  {t.colClub}
-                </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  {t.colPoints}
-                </th>
-                {view === 'pyramid' ? (
-                  <>
-                    <th scope="col" className="px-4 py-3 font-semibold">
-                      {t.colDivision}
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-semibold">
-                      {t.colLevel}
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-semibold">
-                      {t.colMultiplier}
-                    </th>
-                  </>
+        /* As colunas são DECLARADAS (ver `ui/DataTable`), e não montadas à mão como antes.
+           O ganho concreto: `numeric` aplica `.num` (Barlow Condensed + numeral tabular) e
+           alinha à direita. Antes, os números usavam `font-mono` alinhado à ESQUERDA, então
+           `100` e `9` começavam no mesmo x e a coluna não se lia de cima a baixo — que é a
+           única razão de existir uma coluna de número. */
+        <DataTable
+          caption={t.title}
+          dense
+          rows={rows}
+          rowKey={(r) => `${r.playerId ?? r.clubId}-${r.position}`}
+          columns={[
+            {
+              key: 'position',
+              label: t.colPosition,
+              numeric: true,
+              cellClass: 'text-ink-2',
+              cell: (r) => r.position ?? '—',
+            },
+            {
+              key: 'club',
+              label: t.colClub,
+              cell: (r) =>
+                r.playerId ? (
+                  <Link
+                    href={`/players/${r.playerId}`}
+                    className="text-primary-ink hover:underline"
+                  >
+                    {r.playerName}
+                  </Link>
+                ) : r.clubId ? (
+                  <Link href={`/clubs/${r.clubId}`} className="text-primary-ink hover:underline">
+                    {r.clubName}
+                  </Link>
                 ) : (
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    {t.colBase}
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={`${r.playerId ?? r.clubId}-${r.position}`}
-                  className="border-t border-border"
-                >
-                  <td className="px-4 py-3 font-mono">{r.position}</td>
-                  <td className="px-4 py-3">
-                    {r.playerId ? (
-                      <Link
-                        href={`/players/${r.playerId}`}
-                        className="text-primary-ink hover:underline"
-                      >
-                        {r.playerName}
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/clubs/${r.clubId}`}
-                        className="text-primary-ink hover:underline"
-                      >
-                        {r.clubName}
-                      </Link>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-semibold">{r.points}</td>
-                  {view === 'pyramid' ? (
-                    <>
-                      <td className="px-4 py-3">{r.divisionLabel ?? '—'}</td>
-                      <td className="px-4 py-3 font-mono">{r.divisionLevel ?? '—'}</td>
-                      <td className="px-4 py-3 font-mono">{r.multiplier ?? '—'}</td>
-                    </>
-                  ) : (
-                    <td className="px-4 py-3 text-foreground/60">
-                      {t.baseOf
-                        // T548 — base ausente é LACUNA, não zero: "0 partidas" é um
-                        // número com cara de real afirmando algo que o acervo não sabe.
-                        .replace('{m}', r.baseMatches == null ? '—' : String(r.baseMatches))
-                        .replace('{t}', String(r.baseTitles ?? 0))}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  (r.clubName ?? r.playerName ?? '—')
+                ),
+            },
+            {
+              key: 'points',
+              label: t.colPoints,
+              numeric: true,
+              cellClass: 'font-semibold text-foreground',
+              cell: (r) => r.points ?? '—',
+            },
+            ...(view === 'pyramid'
+              ? [
+                  {
+                    key: 'division',
+                    label: t.colDivision,
+                    cell: (r: RankingEntryRow) => r.divisionLabel ?? '—',
+                  },
+                  {
+                    key: 'level',
+                    label: t.colLevel,
+                    numeric: true,
+                    cellClass: 'text-ink-2',
+                    cell: (r: RankingEntryRow) => r.divisionLevel ?? '—',
+                  },
+                  {
+                    key: 'multiplier',
+                    label: t.colMultiplier,
+                    numeric: true,
+                    cellClass: 'text-ink-2',
+                    cell: (r: RankingEntryRow) => r.multiplier ?? '—',
+                  },
+                ]
+              : [
+                  {
+                    key: 'base',
+                    label: t.colBase,
+                    // Esta célula é uma FRASE, não uma coluna de número: "com base em 58
+                    // partidas / 0 títulos". Quebrá-la em duas colunas deixaria os números
+                    // alinhados mas perderia o sentido — "58" sozinho não diz se são partidas
+                    // ou títulos. Então ela fica como está e apenas ganha numeral tabular, para
+                    // os dígitos não mudarem de largura de uma linha para outra.
+                    cellClass: 'text-ink-2',
+                    cell: (r: RankingEntryRow) => (
+                      <span className="[font-variant-numeric:tabular-nums]">
+                        {t.baseOf
+                          // T548 — base ausente é LACUNA, não zero: "0 partidas" é um número
+                          // com cara de real afirmando algo que o acervo não sabe.
+                          .replace('{m}', r.baseMatches == null ? '—' : String(r.baseMatches))
+                          .replace('{t}', String(r.baseTitles ?? 0))}
+                      </span>
+                    ),
+                  },
+                ]),
+          ]}
+        />
       )}
 
       <div className="mt-4 flex justify-center">

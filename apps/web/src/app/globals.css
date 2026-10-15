@@ -302,6 +302,19 @@
   /* `muted` é ELEVação no escuro: precisa ser mais CLARO que o fundo (`#1c1917` citado antes
      ficava mais escuro e lia como rebaixo em vez de cartão). #241f1d dá 15,86:1 com o texto. */
   --color-muted: #241f1d;
+  /* ── CAMADA DE SUPERFÍCIE E ESCALA DE TINTA (conceito visual) ────────────────────────────
+     `surface` é a superfície elevada do conceito: cartão, paleta de comando, linha de tabela.
+     No escuro ela separa do fundo por BORDA, não por contraste de fundo (1,06:1 entre as duas)
+     — é assim que a prancha funciona, e é o que evita o "cartão flutuante" genérico.
+     `surface-2` é o degrau seguinte: cabeçalho de tabela, selo, avatar.
+     `ink-2`/`ink-3` são a escala de TINTA por PAPEL, e existem porque `text-foreground/70`
+     resolve por opacidade: a mesma classe rende contraste diferente conforme a superfície
+     embaixo. Medidos sobre fundo E sobre surface: ink-2 8,58/8,07 · ink-3 5,39/5,07 — os dois
+     passam em AA nas DUAS superfícies, então a tinta não depende de onde ela cai. */
+  --color-surface: #1a1715;
+  --color-surface-2: #211d1a;
+  --color-ink-2: #b3aea3;
+  --color-ink-3: #8d8880;
   --color-border: #6b625a;
   --color-destructive: #e8412f;
   /* Cor de TEXTO de perigo/erro. O repo usava `text-red-500/600/700` (26 arquivos) como cor de
@@ -345,6 +358,14 @@
   --color-background: #fef2f2;
   --color-foreground: #340808;
   --color-muted: #f0edf1;
+  /* Par claro da camada de superfície. `surface` aqui é BRANCO de verdade: no tema claro a
+     elevação se lê por fundo mais claro que o `#fef2f2` do fundo, não por borda.
+     Tintas medidas sobre `#fef2f2` e sobre branco: ink-2 6,70/7,33 · ink-3 5,01/5,48 —
+     acima do piso 4,5 nas duas superfícies. */
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f2f2;
+  --color-ink-2: #5c554e;
+  --color-ink-3: #6f6862;
   --color-border: #fecaca;
   --color-destructive: #dc2626;
   --color-danger-ink: #dc2626;
@@ -400,6 +421,40 @@
   .text-balance {
     text-wrap: balance;
   }
+  /* NÚMERO — a tipografia do dado. Existe como utilitário, e não como classe solta em cada
+     lugar, porque três decisões precisam andar SEMPRE juntas:
+       1. `--font-heading` (Barlow Condensed): número em display é editorial, não é corpo;
+       2. `font-variant-numeric: tabular-nums`: sem isto as colunas de tabela "dançam" entre
+          linhas, porque `1` é mais estreito que `8` na fonte proporcional. Era o defeito mais
+          visível na tabela de rankings antes do conceito;
+       3. `font-feature-settings: "tnum"`: o mesmo pedido em forma explícita, para os motores
+          que ignoram a propriedade de alto nível.
+     Aplicar em QUALQUER número que fique em coluna ou que mude de valor na tela. */
+  .num {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.01em;
+  }
+  /* Rótulo-selo: caixa alta, tracking largo, miúdo. É o denominador comum das seções.
+     Cuidado com o TELL: usado como kicker minúsculo logo acima de um título grande, ele é o
+     molde `kicker-above-heading`, que o detector reprova. O uso legítimo é rotular um VALOR
+     (`FONTE`, `TÍTULOS`, `WIKIDATA`), não anunciar a seção seguinte. */
+  .eyebrow {
+    /* A tinta é `ink-2`, e não `ink-3`, por MEDIÇÃO: no cartão de prova o fundo real é
+       `surface` + o glow decorativo sobreposto, então é mais CLARO que o `#1a1715` puro. Sobre
+       ele, `ink-3` (#8d8880) rende 4,3:1 e REPROVA em AA — foi o detector que pegou
+       (`low-contrast: pixel contrast 4.3:1 on unread layer "Fonte"`). `ink-2` (#b3aea3) sobra
+       margem: 8,07:1 no fundo puro e ~6,4:1 sobre o composto. Rótulo de 11px é texto NORMAL,
+       não texto grande: precisa dos 4,5:1 cheios.
+       E 11px é o piso: `undersized-ui-text` reprova abaixo (estava 10,5px). */
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-2);
+  }
   /* Largura de LEITURA (medida em `ch`, não em `rem`): a regra `line-length` do detector
      mede os caracteres REAIS da linha renderizada e acusa acima de ~80. `max-w-3xl` (48rem
      = 768px) parecia contido, mas em Barlow 16px rende ~99 caracteres por linha — o olho
@@ -407,6 +462,26 @@
      confortável de leitura. Usar nas páginas de texto corrido (legais, metodologia, sobre). */
   .measure-readable {
     max-width: 68ch;
+  }
+  /* CAMPO de formulário — o par controle + placeholder em UM lugar.
+     A parte que importa é o `::placeholder`: o navegador aplica a COR do user agent e ainda
+     uma `opacity` própria por cima. Sem declarar as duas, um placeholder como "BR" renderiza
+     em ~2,5:1 sobre o fundo escuro — medido em `/competitions` pelo detector
+     (`low-contrast: placeholder "BR" 2.5:1, text #575451 on #12100f`). Este utilitário existe
+     para que o próximo campo não reintroduza o defeito: quem usar `.field` já vem com cor de
+     texto, borda pelo token e placeholder legível. */
+  .field {
+    border-radius: var(--radius-lg, 0.5rem);
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .field::placeholder {
+    color: var(--color-ink-2);
+    opacity: 1;
   }
   /* ── Card de autenticação com FLIP (login ⇄ cadastro) ────────────────────────────────
      Estrutura vinda de uma referência de design que o Operador pediu para aplicar nas telas

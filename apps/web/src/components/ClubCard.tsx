@@ -2,6 +2,7 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import { useGsapStagger, useGsapHover } from '@/hooks/useGsap';
+import { useI18n } from '@/i18n/Provider';
 import type { JSX } from 'react';
 
 interface Club {
@@ -31,6 +32,7 @@ function ClubCard({ club }: { club: Club }) {
 
 export default function ClubGrid({ clubs }: { clubs: Club[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
   useGsapStagger(ref, '.club-card');
 
   if (!clubs.length) {
@@ -38,12 +40,22 @@ export default function ClubGrid({ clubs }: { clubs: Club[] }) {
   }
 
   return (
-    <div ref={ref} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {clubs.map((club) => (
-        <div key={club.id} className="club-card">
-          <ClubCard club={club} />
-        </div>
-      ))}
-    </div>
+    /* O `<h2>` é obrigatório aqui, e não decorativo: os cards titulam com `<h3>` (correto — são
+       itens, não seções), e a página só tem `<h1>`. Sem um nível 2 entre eles, o leitor de tela
+       vê `h1 → h3` e o detector acusa `skipped-heading`. Promover o card a `h2` estaria errado —
+       o nível 2 é do CONJUNTO, não de cada item. `sr-only` porque a página já anuncia a lista no
+       subtítulo; o título existe para a árvore de acessibilidade, não para a tela. */
+    <section aria-labelledby="clubs-list-title">
+      <h2 id="clubs-list-title" className="sr-only">
+        {t('nav.clubs')}
+      </h2>
+      <div ref={ref} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {clubs.map((club) => (
+          <div key={club.id} className="club-card">
+            <ClubCard club={club} />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

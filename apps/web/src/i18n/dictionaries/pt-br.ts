@@ -119,7 +119,18 @@ const pt: Dictionary = {
       matches: 'Partidas catalogadas',
       rankings: 'Rankings publicados',
     },
-    featuresTitle: 'Tudo sobre o Futebol Mundial',
+    explore: {
+      label: 'Comece por onde quiser',
+      title: 'O acervo é a interface',
+      clubs: 'Clubes & seleções',
+      competitions: 'Competições',
+      rankings: 'Rankings',
+      map: 'Mapa-múndi',
+      inArchive: 'no acervo',
+      worldwide: 'O mundo inteiro',
+      sideBySide: 'Lado a lado',
+      compare: 'Comparar',
+    },    featuresTitle: 'Tudo sobre o Futebol Mundial',
     featuresSubtitle: 'Dados históricos em construção com ferramentas modernas de busca e análise.',
     features: [
       {
