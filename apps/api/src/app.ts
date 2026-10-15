@@ -93,6 +93,31 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Escopo root (swagger /docs): erro padronizado também fora do prefixo /api/v1.
   app.setErrorHandler(errorHandler);
 
+  // CORS PRIMEIRO (T554) — precisa vir antes de qualquer hook que possa ENCERRAR a
+  // resposta (method gate, rate-limit global, janela deslizante de /auth/*, csrf,
+  // idempotência). Registrado depois, o `@fastify/cors` não chegava a pôr os cabeçalhos
+  // na resposta curta: medido em produção, 8 de 18 requisições numa rajada no login
+  // voltaram `429` com `retry-after` e **sem** `access-control-allow-origin` — o browser
+  // reporta "blocked by CORS policy" e o usuário vê erro de rede em vez de "tente de
+  // novo". Na abertura da Beta a rajada de cadastros é justamente esse cenário.
+  await app.register(cors, {
+    origin: async (origin: string | undefined) => {
+      if (!origin) return true; // server-to-server (ex.: webhook Stripe)
+      const prod = ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com'];
+      const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
+      if (
+        prod.includes(origin) ||
+        isVercelPreview ||
+        origin === 'http://localhost:3000' ||
+        origin === 'http://localhost:3001'
+      )
+        return true;
+      throw new Error('Not allowed by CORS');
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+  });
+
   // Hardening de superfície (T385, item 7.6): 405 padronizado para métodos fora
   // do conjunto usado. Primeiro onRequest — rejeita antes de qualquer plugin.
   await app.addHook('onRequest', httpMethodGate);
@@ -191,24 +216,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(helmet, helmetOptions(env.isProd));
-
-  await app.register(cors, {
-    origin: async (origin: string | undefined) => {
-      if (!origin) return true; // server-to-server (ex.: webhook Stripe)
-      const prod = ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com'];
-      const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
-      if (
-        prod.includes(origin) ||
-        isVercelPreview ||
-        origin === 'http://localhost:3000' ||
-        origin === 'http://localhost:3001'
-      )
-        return true;
-      throw new Error('Not allowed by CORS');
-    },
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-  });
 
   await app.register(multipart, { limits: { fileSize: env.uploadMaxBytes, files: 1 } });
 
