@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 
 async function getClubs(searchParams: { [key: string]: string | undefined }) {
   const params = new URLSearchParams();
-  [['country'], ['city'], ['search'], ['status']].forEach(([key]) => {
+  /* T562 — `hasCoordinates` entrou aqui: a API JÁ aceitava o parâmetro e a página o descartava,
+     então a URL `?hasCoordinates=true` era silenciosamente ignorada. O filtro devolve os clubes
+     com latitude registrada (6.477 de 12.003, medido) — é a metade do acervo que o mapa
+     consegue posicionar, e não havia como pedir por ela na interface. */
+  [['country'], ['city'], ['search'], ['status'], ['hasCoordinates']].forEach(([key]) => {
     const v = searchParams[key];
     if (v) params.set(key, v);
   });
