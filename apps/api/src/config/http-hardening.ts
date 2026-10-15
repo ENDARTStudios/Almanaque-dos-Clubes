@@ -18,6 +18,7 @@
  * (assertRateLimitGuard é chamada na carga da config de ambiente).
  */
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { isAllowedOrigin } from './cors.js';
 
 /** Conjunto de métodos HTTP usados pela API (superfície mínima — 7.6). */
 export const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
@@ -64,12 +65,23 @@ export function methodNotAllowed(reply: FastifyReply, method: string): FastifyRe
 }
 
 /**
- * Gate de métodos (7.6) — registrado como primeiro onRequest em buildApp,
+ * Gate de métodos (7.6) — registrado como primeiro onRequest em buildApp;
  * rejeita antes de qualquer plugin/middleware.
+ *
+ * T554 — como ele responde ANTES do plugin de CORS, precisa pôr o cabeçalho de origem
+ * quando a requisição traz um `Origin` permitido; senão o browser lê a resposta curta
+ * como erro de rede ("blocked by CORS policy") em vez do 405. A allowlist é a MESMA do
+ * plugin (`isAllowedOrigin`), sem lista duplicada.
  */
 export async function httpMethodGate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   if (isMethodAllowed(request.method)) return;
   if (isCorsPreflight(request)) return; // preflight é decidido pelo CORS (204)
+  const origin = request.headers.origin;
+  if (origin && isAllowedOrigin(origin)) {
+    reply
+      .header('access-control-allow-origin', origin)
+      .header('access-control-allow-credentials', 'true');
+  }
   methodNotAllowed(reply, request.method);
 }
 

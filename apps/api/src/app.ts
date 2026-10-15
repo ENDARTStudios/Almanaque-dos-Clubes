@@ -51,6 +51,7 @@ import { geoRoutes } from './modules/geo/routes.js';
 import { backupRoutes } from './modules/admin/backup.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
+import { isAllowedOrigin } from './config/cors.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   // Handler de erro único, registrado ANTES das rotas em cada escopo: o Fastify
@@ -93,39 +94,26 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Escopo root (swagger /docs): erro padronizado também fora do prefixo /api/v1.
   app.setErrorHandler(errorHandler);
 
-  // CORS PRIMEIRO (T554) — precisa vir antes de qualquer hook que possa ENCERRAR a
-  // resposta (method gate, rate-limit global, janela deslizante de /auth/*, csrf,
-  // idempotência). Registrado depois, o `@fastify/cors` não chegava a pôr os cabeçalhos
-  // na resposta curta: medido em produção, 8 de 18 requisições numa rajada no login
-  // voltaram `429` com `retry-after` e **sem** `access-control-allow-origin` — o browser
-  // reporta "blocked by CORS policy" e o usuário vê erro de rede em vez de "tente de
-  // novo". Na abertura da Beta a rajada de cadastros é justamente esse cenário.
+  // Hardening de superfície (T385, item 7.6): 405 padronizado para métodos fora do
+  // conjunto usado. PRIMEIRO hook (T554) — preserva o 405 inclusive para `OPTIONS`
+  // solto, que o plugin de CORS transformaria em 204. O próprio gate põe os cabeçalhos
+  // CORS quando a requisição traz `Origin` (usa a MESMA allowlist do plugin).
+  await app.addHook('onRequest', httpMethodGate);
+
+  // CORS em seguida (T554) — depois do gate e ANTES de todo hook que também pode encerrar
+  // a resposta (rate-limit global, janela deslizante de /auth/*, csrf, idempotência).
+  // Medido antes do conserto: numa rajada no login, 8 de 18 respostas 429 saíam com
+  // `retry-after` e SEM `access-control-allow-origin` — o browser reporta "blocked by
+  // CORS policy" e o usuário vê erro de rede em vez de "tente de novo". Na abertura da
+  // Beta a rajada de cadastros é exatamente esse cenário.
   await app.register(cors, {
     origin: async (origin: string | undefined) => {
-      if (!origin) return true; // server-to-server (ex.: webhook Stripe)
-      const prod = ['https://almanaquedosclubes.com', 'https://www.almanaquedosclubes.com'];
-      const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
-      if (
-        prod.includes(origin) ||
-        isVercelPreview ||
-        origin === 'http://localhost:3000' ||
-        origin === 'http://localhost:3001'
-      )
-        return true;
+      if (isAllowedOrigin(origin)) return true;
       throw new Error('Not allowed by CORS');
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
-    // T554 — com o cors PRIMEIRO, um `OPTIONS` sem Origin/ACRM deixaria de ser 405 do
-    // method gate e viraria 400 "invalid preflight" do plugin. Preservamos a regra do
-    // T385 (405 padronizado com `Allow`): o plugin não trata preflight inválido como
-    // erro e a requisição segue para o gate.
-    strictPreflight: false,
   });
-
-  // Hardening de superfície (T385, item 7.6): 405 padronizado para métodos fora
-  // do conjunto usado. Primeiro onRequest — rejeita antes de qualquer plugin.
-  await app.addHook('onRequest', httpMethodGate);
 
   // Rate-limit global por IP (item 1.3/7.3). Desabilitável via RATE_LIMIT_DISABLED
   // para testes de carga k6 de máquina única. NÃO afeta o brute-force de /auth/login.
