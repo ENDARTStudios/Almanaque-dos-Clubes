@@ -197,6 +197,17 @@ const en: Dictionary = {
     passwordMismatch: 'Passwords do not match.',
   },
   pages: {
+    byCountry: {
+      title: 'By country',
+      filterPlaceholder: 'Filter country…',
+      filterLabel: 'Filter country',
+      clear: 'clear country filter',
+      empty: 'No country with that name.',
+      showAll: 'Show all {n} countries',
+      clubs: 'clubs',
+      players: 'players',
+      error: 'Could not load the country index — the full list is still below.',
+    },
     clubs: {
       title: 'Clubs',
       subtitle: 'Explore {n} football clubs registered.',

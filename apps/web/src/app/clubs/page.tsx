@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import ClubGrid from '@/components/ClubCard';
 import SearchBar from '@/components/SearchBar';
 import PageHeading from '@/components/PageHeading';
+import CountryIndex from '@/components/CountryIndex';
 import { getApiBase } from '@/lib/api-base';
 
 export const metadata: Metadata = {
@@ -53,6 +54,17 @@ export default async function ClubsPage({
           <SearchBar placeholderKey="pages.clubs.placeholder" />
         </Suspense>
       </div>
+      {/* AGRUPAMENTO POR PAÍS — pedido do Operador para esta sessão.
+          É um ÍNDICE, não listas por país na mesma página: são 12.003 clubes, e renderizar tudo
+          agrupado não abre. O índice mostra a contagem REAL por país (contada pela mesma coluna
+          que o filtro `?country=` usa) e o clique filtra pela API, que já aceita o parâmetro. */}
+      <CountryIndex
+        basePath="/clubs"
+        endpoint="/clubs/countries"
+        campo="clubs"
+        rotulo="clubes"
+        {...(sp.country ? { selecionado: sp.country } : {})}
+      />
       <Suspense
         fallback={
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

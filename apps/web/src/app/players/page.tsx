@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageHeading from '@/components/PageHeading';
+import CountryIndex from '@/components/CountryIndex';
 import SearchBar from '@/components/SearchBar';
 import { getApiBase } from '@/lib/api-base';
 
@@ -42,9 +43,17 @@ export default async function PlayersPage({
       <div className="mb-6">
         <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
       </div>
-      <p className="text-sm text-foreground/70 mt-2 mb-6">
-        Jogadores diferentes no acervo: {total}
-      </p>
+      <p className="text-sm text-ink-2 mt-2 mb-6">Jogadores diferentes no acervo: {total}</p>
+      {/* AGRUPAMENTO POR PAÍS — mesmo desenho da sessão Clubes. Aqui o dado é bom: 98% dos
+          jogadores têm `country` (ISO2). São 105.211 no acervo, então vale a mesma razão de ser
+          índice em vez de listas na mesma página — a página não comporta tudo agrupado. */}
+      <CountryIndex
+        basePath="/players"
+        endpoint="/players/countries"
+        campo="players"
+        rotulo="jogadores"
+        {...(sp.country ? { selecionado: sp.country } : {})}
+      />
       {players.length ? (
         <section aria-labelledby="players-list-title">
           {/* Mesmo motivo do grid de clubes: os cards titulam com `<h3>` e a página só tem
@@ -55,21 +64,21 @@ export default async function PlayersPage({
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {players.map((p: PlayerRow) => (
-            <Link
-              key={p.id}
-              href={`/players/${p.id}`}
-              className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
-            >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
-                {p.fullName.slice(0, 2).toUpperCase()}
-              </div>
-              <h3 className="text-lg font-heading font-semibold text-foreground">{p.fullName}</h3>
-              <div className="text-sm text-foreground/60 mt-1">
-                {p.position ?? '—'}
-                {p.country ? ' · ' + p.country : ''}
-              </div>
-            </Link>
-          ))}
+              <Link
+                key={p.id}
+                href={`/players/${p.id}`}
+                className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
+                  {p.fullName.slice(0, 2).toUpperCase()}
+                </div>
+                <h3 className="text-lg font-heading font-semibold text-foreground">{p.fullName}</h3>
+                <div className="text-sm text-foreground/60 mt-1">
+                  {p.position ?? '—'}
+                  {p.country ? ' · ' + p.country : ''}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       ) : (
