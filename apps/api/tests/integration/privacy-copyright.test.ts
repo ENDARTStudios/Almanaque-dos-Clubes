@@ -69,10 +69,22 @@ async function seedRoles(): Promise<void> {
   }
 }
 
+/**
+ * T565 — o e-mail do token é o do OPERADOR, e não o do usuário criado no teste.
+ *
+ * As rotas internas passaram a exigir `requireOperator` além do papel `admin`, e a identidade é o
+ * e-mail: um token com `roles: ['admin']` e e-mail de teste recebe **403** — que é o comportamento
+ * NOVO e correto. O `sub` continua sendo o id real (as rotas o usam para RLS e consultas).
+ *
+ * O parâmetro `email` segue existindo para quem quiser testar o CAMINHO DE RECUSA (passando um
+ * e-mail que não é o do operador), e é assim que o gate fica testável a partir daqui.
+ */
 function adminJwt(userId: string, email: string): string {
+  const operador = process.env.OPERATOR_EMAILS?.split(',')[0]?.trim() ?? 'endart.studios@gmail.com';
   return app.jwt.sign({
+    // Um e-mail de teste NÃO passa no gate de operador; o default é o do operador.
     sub: userId,
-    email,
+    email: email.endsWith('@test.local') ? operador : email,
     roles: ['admin'],
     permissions: ['users:manage'],
     type: 'access',

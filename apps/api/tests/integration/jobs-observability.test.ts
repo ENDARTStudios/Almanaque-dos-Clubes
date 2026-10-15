@@ -36,9 +36,19 @@ beforeAll(async () => {
     data: { email: `wso1-plain-${suffix}@test.local`, passwordHash: 'x' },
   });
   userIds = [admin.id, plain.id];
+  /* T565 — o TOKEN precisa do e-mail do OPERADOR, e não do e-mail do usuário criado acima.
+   *
+   * As rotas internas passaram a exigir `requireOperator` além de `requireRole('admin')`, e a
+   * identidade é o e-mail. Um token com `roles: ['admin']` e e-mail de teste é recusado com 403 —
+   * que é exatamente o comportamento que o T565 introduz, e não uma regressão.
+   *
+   * O `sub` continua sendo o id do usuário do banco (as rotas usam esse id para consultas e RLS);
+   * só o e-mail do TOKEN é o do operador. Esta suíte testa a OBSERVABILIDADE, não o controle de
+   * acesso — quem cobre o gate é `operator-gate-routes.test.ts`. */
+  const OPERADOR = process.env.OPERATOR_EMAILS?.split(',')[0]?.trim() ?? 'endart.studios@gmail.com';
   adminToken = app.jwt.sign({
     sub: admin.id,
-    email: admin.email,
+    email: OPERADOR,
     roles: ['admin'],
     permissions: [],
     type: 'access',
