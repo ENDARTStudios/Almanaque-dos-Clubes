@@ -2,13 +2,14 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { ZodError } from 'zod';
 import { DomainError } from '@almanaque/domain';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
+import { requireOperator } from '../auth/operator.middleware.js';
 import { assignRole, revokeRole, getUserRoles, listAllRoles } from '../auth/rbac.service.js';
 import { withRlsContext } from '../../config/rls-context.js';
 
 export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.get(
     '/admin/users',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (_request, reply) => {
       const users = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
         tx.user.findMany({
@@ -29,7 +30,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.get<{ Params: { id: string } }>(
     '/admin/users/:id',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
         tx.user.findUnique({
@@ -55,7 +56,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post<{ Params: { id: string } }>(
     '/admin/users/:id/suspend',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
         tx.user.update({ where: { id: request.params.id }, data: { status: 'SUSPENDED' } }),
@@ -66,7 +67,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post<{ Params: { id: string } }>(
     '/admin/users/:id/reactivate',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       const user = await withRlsContext({ role: 'SERVICE' }, async (tx) =>
         tx.user.update({ where: { id: request.params.id }, data: { status: 'ACTIVE' } }),
@@ -77,7 +78,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post<{ Params: { id: string } }>(
     '/admin/users/:id/roles',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       try {
         const { role } = request.body as { role: string };
@@ -91,7 +92,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.delete<{ Params: { id: string; role: string } }>(
     '/admin/users/:id/roles/:role',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (request, reply) => {
       try {
         await revokeRole(request.params.id, request.params.role);
@@ -104,7 +105,7 @@ export const adminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.get(
     '/admin/roles',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { preHandler: [authenticate, requireRole('admin'), requireOperator] },
     async (_request, reply) => {
       const roles = await listAllRoles();
       return reply.send({ data: roles });
