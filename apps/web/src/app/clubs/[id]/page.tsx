@@ -672,7 +672,12 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           {anthem.note ? <p className="text-sm text-foreground/70 mt-1">{anthem.note}</p> : null}
           {anthem.audioUrl ? (
             <div className="mt-3" data-testid="anthem-audio">
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              {/* O `eslint-disable-next-line jsx-a11y/media-has-caption` que vivia aqui foi
+                  REMOVIDO: a regra não está ativa neste projeto (o `eslint-config-next` não a
+                  liga), então a diretiva era morta — e diretiva morta engana quem lê, porque
+                  sugere que existe uma exceção consciente onde não há regra nenhuma.
+                  O `<track>` vazio continua: ele é o que o `kind="captions"` exige quando o
+                  hino não tem legenda disponível, e é o motivo de a regra não precisar existir. */}
               <audio controls preload="none" src={anthem.audioUrl} className="w-full max-w-md">
                 <track kind="captions" />
               </audio>

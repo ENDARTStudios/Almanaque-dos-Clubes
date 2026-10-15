@@ -3,7 +3,6 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { useGsapStagger, useGsapHover } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
-import type { JSX } from 'react';
 
 interface Club {
   id: string; name: string; country?: string; city?: string; status?: string;

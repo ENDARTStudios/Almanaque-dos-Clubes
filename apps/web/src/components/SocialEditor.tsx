@@ -66,8 +66,6 @@ export default function SocialEditor({
     setBusy(true);
     setMsg(null);
     try {
-      const num = (v: string): number | null =>
-        v.trim() === '' ? null : Number(v.replace(/\D/g, ''));
       await api.patch(`/clubs/${clubId}/social`, {
         ...(officialSite.trim() ? { officialSite: officialSite.trim() } : { officialSite: null }),
         socialLinks: Object.fromEntries(

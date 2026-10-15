@@ -60,10 +60,19 @@ export default function GeoMapCanvas({
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   const countryLayersRef = useRef<Map<string, L.GeoJSON>>(new Map());
+  /* Os "latest refs" de callback e seleção. A escrita saiu do CORPO do componente para um
+     efeito: `ref.current = prop` durante o render é mutação em render, que o React Compiler
+     proíbe (`react-hooks/refs`) — e o lint do `apps/web` só passou a rodar no CI agora, então
+     isso nunca tinha sido apontado.
+     Mover é seguro porque os DOIS pontos de leitura acontecem depois do commit: um dentro de
+     outro efeito (`applySelection`) e outro no handler de clique do Leaflet, que só dispara
+     por interação. Nenhum dos dois lê durante o render. */
   const onCountrySelectRef = useRef(onCountrySelect);
-  onCountrySelectRef.current = onCountrySelect;
   const selectedCountryRef = useRef(selectedCountry);
-  selectedCountryRef.current = selectedCountry;
+  useEffect(() => {
+    onCountrySelectRef.current = onCountrySelect;
+    selectedCountryRef.current = selectedCountry;
+  }, [onCountrySelect, selectedCountry]);
   const [mapReady, setMapReady] = useState(false);
 
   // Destaca o polígono do país selecionado e fecha o zoom nele. Aplicado por
@@ -100,6 +109,11 @@ export default function GeoMapCanvas({
     if (!el) return;
     let cancelled = false;
     let ro: ResizeObserver | null = null;
+    // Capturado no corpo do efeito, e não lido no cleanup. A regra `react-hooks/exhaustive-deps`
+    // avisa que `ref.current` pode ter mudado quando a limpeza roda — aqui o objeto é ESTÁVEL
+    // (o `useRef` é criado uma vez e o Map nunca é trocado), então a leitura seria segura; mas
+    // capturar é a forma que não depende de raciocínio sobre estabilidade, e o custo é zero.
+    const countryLayers = countryLayersRef.current;
     // BUG "mapa invisível": L.map() lê o tamanho do container UMA única vez; se
     // o layout ainda não assentou (chunk/CSS dinâmico no mesmo tick), o renderer
     // nasce com bounds degenerados e TODOS os paths são projetados para "M0 0".
@@ -152,7 +166,7 @@ export default function GeoMapCanvas({
       cancelled = true;
       ro?.disconnect();
       markersRef.current = null;
-      countryLayersRef.current.clear();
+      countryLayers.clear();
       mapRef.current?.remove();
       mapRef.current = null;
       setMapReady(false);
@@ -165,6 +179,7 @@ export default function GeoMapCanvas({
     const map = mapRef.current;
     if (!map) return;
     let cancelled = false;
+    const countryLayers = countryLayersRef.current;
     fetch('/geo/ne_110m_admin_0_countries.geojson')
       .then((r) => r.json())
       .then((geo: unknown) => {
@@ -178,7 +193,11 @@ export default function GeoMapCanvas({
           pane.style.zIndex = '350';
           pane.style.pointerEvents = 'auto';
         }
-        const layer = L.geoJSON(geo as never, {
+        // Sem vincular a uma variável: `countryLayersRef` já guarda CADA camada de país, e a
+        // limpeza acontece por `countryLayersRef.current.clear()` mais o `map.remove()` do
+        // efeito de montagem. O binding não era lido em lugar nenhum — quem apontou foi o lint
+        // do `apps/web`, que até então não rodava no CI.
+        L.geoJSON(geo as never, {
           pane: 'countries',
           style: BASE_STYLE,
           onEachFeature: (feature, fLayer) => {
@@ -191,7 +210,7 @@ export default function GeoMapCanvas({
         }).addTo(map);
         // Se um país já estava selecionado quando a base (re)carregou — remount,
         // troca de país rápida — o highlight é aplicado aqui (self-healing).
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- idem
+         
         applySelection();
       })
       .catch(() => {
@@ -199,7 +218,7 @@ export default function GeoMapCanvas({
       });
     return () => {
       cancelled = true;
-      countryLayersRef.current.clear();
+      countryLayers.clear();
     };
   }, [mapReady]);
 
@@ -242,7 +261,7 @@ export default function GeoMapCanvas({
   }, [points, mapReady]);
 
   // País selecionado (via select ou clique no mapa).
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- applySelection só lê refs
+   
   useEffect(() => {
     applySelection();
   }, [selectedCountry, mapReady]);

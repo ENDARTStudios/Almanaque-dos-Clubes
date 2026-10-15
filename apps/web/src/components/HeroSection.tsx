@@ -254,7 +254,7 @@ export default function HeroSection({
 export function HomeFeatures() {
   const featuresRef = useRef<HTMLDivElement>(null);
   const howRef = useRef<HTMLOListElement>(null);
-  const { t, dict, locale } = useI18n();
+  const { dict, locale } = useI18n();
   const c12 = wsC12Strings[locale];
 
   useGsapStagger(featuresRef, '.feature-card');

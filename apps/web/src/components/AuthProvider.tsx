@@ -84,14 +84,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const refreshThrottled = useCallback(async (): Promise<void> => {
-    const since = Date.now() - lastCheckRef.current;
-    if (since < 30_000) return; // orçamento: máx. 1 check a cada 30s
-    await refresh();
-  }, [refresh]);
-
-  // Re-verifica no mount (força) e nas navegações (throttled 30s) — o indicador
-  // nunca fica preso num estado resolvido antes de um login/logout.
+  /* `refreshThrottled` VIVIA AQUI e era código morto: um `useCallback` que ninguém chamava.
+     Saiu ao ligar o lint do `apps/web`, que até então NÃO rodava no CI — o erro só apareceu
+     quando o linter passou a executar de verdade. O comentário logo abaixo dizia "nas
+     navegações (throttled 30s)", mas o efeito chama `refresh()` DIRETO: a descrição já não
+     correspondia ao código. O throttling que existe é o do evento de foco (60s, adiante) e o
+     do BroadcastChannel entre abas. */
+  // Re-verifica no mount (força) e a cada navegação, para o indicador nunca ficar preso num
+  // estado resolvido antes de um login/logout.
   useEffect(() => {
     void refresh();
   }, [refresh, pathname]);

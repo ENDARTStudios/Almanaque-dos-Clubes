@@ -7,7 +7,7 @@
  * (c) sucesso ⇒ re-fetch do histórico (linha REFUNDED sem remount)
  * (d) a11y: role=dialog, aria-modal, foco inicial no botão seguro (Voltar)
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import SubscriptionManager from '@/components/SubscriptionManager';
 
@@ -54,7 +54,9 @@ it('(a) fechar (Voltar), Esc e clique-fora não disparam POST', async () => {
 
   // Voltar
   fireEvent.click(open);
-  const dialog = await screen.findByRole('dialog');
+    // Sem vincular o resultado: este teste espera o fechamento com `queryByRole`, então a
+    // referência nunca era lida. O `await` continua — é ele que espera o diálogo abrir.
+    await screen.findByRole('dialog');
   fireEvent.click(screen.getByRole('button', { name: /Voltar/i }));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
