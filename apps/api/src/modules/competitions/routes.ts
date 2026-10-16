@@ -24,6 +24,20 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
     },
   );
 
+  /**
+   * T577 — `GET /competitions/countries`: índice de países para a reorganização de `/competitions`.
+   *
+   * Declarada ANTES de `/competitions/:id` (rota estática): sem isso, "countries" seria capturado
+   * como um `:id` e a rota devolveria 404 de competição inexistente — erro que já aconteceu neste
+   * projeto com o `/clubs/countries`.
+   *
+   * Conta pela coluna `country` (ISO2), a MESMA que `?country=` filtra. A página organizava por
+   * grupos curados; o eixo que o dado sustenta é país (92% de cobertura, 84 países).
+   */
+  app.get('/competitions/countries', async (_request, reply) => {
+    return reply.send({ data: await competitionsService.countryIndex() });
+  });
+
   app.get('/competitions', async (request, reply) => {
     const query = (request.query as Record<string, string | undefined>) ?? {};
     const limit = Math.min(Math.max(parseInt(query.limit ?? '50', 10) || 50, 1), 100);

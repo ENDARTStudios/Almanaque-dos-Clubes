@@ -211,21 +211,32 @@ export default function Navbar() {
 
   return (
     <nav ref={ref} className="fixed inset-x-0 top-0 z-50 text-foreground">
-      {/* SUPERFÍCIE da barra: um container com fundo REAL que envolve a linha e o painel.
+      {/* SUPERFÍCIE da barra: um container com fundo REAL que envolve o conteúdo e o painel.
           Por que assim (dois defeitos medidos, não estética):
           1. `z-index: auto` numa faixa posicionada não cria contexto de empilhamento, então o
              `main` (bloco em fluxo normal, posterior no DOM) pintava POR CIMA do fundo do
              navbar — `elementFromPoint` no topo devolvia `MAIN` e a barra ficava sem cor
              efetiva, aparecendo cinza-sujo sobre as páginas claras.
-          2. O fundo precisa cobrir a LINHA e o PAINEL, não uma altura fixa: por isso o
+          2. O fundo precisa cobrir o CONTEÚDO e o PAINEL, não uma altura fixa: por isso o
              container cresce com o conteúdo (`min-h-20` + `pb-2`) em vez de `h-*` fixo, que
              cortaria o painel mobile.
           O `pb-2` é a "faixa de sobreposição": nas páginas claras (`/clubs`, `/rankings`,
-          `/metodologia`) os 8 px extras do fundo escuro fecham o vão entre a barra e o conteúdo
-          (o `main` reserva `pt-20`); na home, fundem com a hero escura. */}
-      <div className="min-h-20 bg-background pb-2">
+          `/metodologia`) os 8 px extras do fundo fecham o vão entre a barra e o conteúdo
+          (o `main` reserva `pt-20`); na home, fundem com a hero escura.
+
+          T576 — A RÉGUA. Ela era `<div className="absolute inset-x-0 top-[3.125rem] h-px">`
+          dentro do container que tem `pt-[1.18rem]`. Medido em produção: a linha caía em y=50
+          enquanto o conteúdo da barra terminava em y=48 — ou seja, ela CORTAVA o texto da
+          navbar ao meio ("Clubes", "Rankings" e o campo de busca tinham um risco atravessando),
+          e começava em x=20, sem alcançar as bordas da tela.
+
+          Os dois defeitos vinham de posicionar a borda por COORDENADA dentro de um container
+          com padding: qualquer mudança de `pt`, de altura do logo ou do tamanho da fonte
+          desalinha de novo, e nada avisa. Agora a régua é `border-b` na PRÓPRIA superfície da
+          barra (`w-full`), que fecha a barra onde ela de fato termina e cobre a largura toda
+          por construção — sem número mágico para sair de sincronia. */}
+      <div className="min-h-20 w-full border-b border-border bg-background pb-2">
         <div className="relative mx-auto max-w-[1400px] px-4 pt-[1.125rem] sm:px-6 lg:px-8">
-          <div className="absolute inset-x-0 top-[3.125rem] h-px bg-border" aria-hidden="true" />
           {/* `justify-between` foi REMOVIDO: com dois blocos visíveis no tablet ele empurrava a
               marca para a esquerda e o cluster para a direita, abrindo 533 px de vazio irregular
               no meio da barra (medido a 900 px). Com os blocos agrupados (`ml-auto` no cluster) o

@@ -18,6 +18,22 @@ export interface ListCompetitionsParams {
   offset?: number;
 }
 
+/** Entrada do índice de países das competições. */
+export interface CompetitionCountryEntry {
+  /** Código ISO2, o mesmo valor que `?country=` aceita. */
+  code: string;
+  /** Nome legível da tabela `Country`. Sem linha lá, o código é o rótulo. */
+  name: string | null;
+  competitions: number;
+}
+export interface CompetitionCountryIndex {
+  generatedAt: string;
+  source: 'derived';
+  baseQuery: string;
+  totals: { countries: number; withCountry: number };
+  countries: CompetitionCountryEntry[];
+}
+
 export const competitionsRepository = {
   async create(data: Omit<Competition, 'id' | 'createdAt' | 'updatedAt'>): Promise<Competition> {
     return prisma.competition.create({ data: data as any }) as Promise<Competition>;
@@ -52,6 +68,57 @@ export const competitionsRepository = {
         ],
       },
     });
+  },
+
+  /**
+   * T577 — ÍNDICE DE PAÍSES das competições, para reorganizar `/competitions`.
+   *
+   * Por que existe: a página organizava 1.932 competições em seis grupos de "âncoras" curadas
+   * (continental, três blocos nacionais, feminino, seleções) mais um grid com TODAS. Isso não é
+   * organização — é uma lista de atalhos em cima de outra lista, sem hierarquia.
+   *
+   * O eixo que o DADO sustenta foi medido antes de projetar (amostra de 500):
+   *   country .... 92%  (84 países distintos)   <- o eixo principal
+   *   gender ..... 100%
+   *   type ....... 54%  (LEAGUE 213 · CUP 59 · nulo 228)
+   *   level ...... 2%                            <- inútil, não vira filtro
+   *
+   * Conta pela MESMA coluna que o filtro `?country=` usa, pela mesma razão do `/clubs/countries`:
+   * índice que conta por coluna diferente da que o clique filtra mente sobre o próprio acervo.
+   */
+  async countryIndex(): Promise<CompetitionCountryIndex> {
+    const porPais = await prisma.competition.groupBy({
+      by: ['country'],
+      where: { country: { not: null }, deletedAt: null },
+      _count: { _all: true },
+    });
+
+    const codigos = porPais.map((c) => c.country).filter((c): c is string => Boolean(c));
+    const nomes = await prisma.country.findMany({
+      where: { iso2: { in: codigos } },
+      select: { iso2: true, name: true },
+    });
+    const nomePorIso = new Map(nomes.map((n) => [n.iso2.toUpperCase(), n.name]));
+
+    const countries: CompetitionCountryEntry[] = porPais
+      .filter((c): c is typeof c & { country: string } => Boolean(c.country))
+      .map((c) => ({
+        code: c.country.toUpperCase(),
+        name: nomePorIso.get(c.country.toUpperCase()) ?? null,
+        competitions: c._count._all,
+      }))
+      .sort((a, b) => b.competitions - a.competitions || a.code.localeCompare(b.code));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      source: 'derived',
+      baseQuery: 'COUNT(competitions) GROUP BY country (coluna ISO2 do filtro público)',
+      totals: {
+        countries: countries.length,
+        withCountry: countries.reduce((s, c) => s + c.competitions, 0),
+      },
+      countries,
+    };
   },
 
   async findById(id: string): Promise<Competition | null> {

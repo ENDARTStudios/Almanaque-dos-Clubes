@@ -4,15 +4,14 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import PageHeading from '@/components/PageHeading';
 import SearchBar from '@/components/SearchBar';
+import CountryIndex from '@/components/CountryIndex';
 import { getApiBase } from '@/lib/api-base';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import {
   CONTINENTAL_ANCHORS,
   INTERNATIONAL_ANCHORS,
-  NATIONAL_ANCHOR_GROUPS,
   WOMEN_ANCHORS,
-  countryLabel,
   type AnchorCompetition,
 } from '@/lib/competition-anchors';
 
@@ -86,7 +85,23 @@ export default async function CompetitionsPage({
         subtitleParams={{ n: total }}
       />
 
-      {/* Filtros (Entrega 4) — form GET: gender/type/country */}
+      {/* T577 — REORGANIZAÇÃO. O que havia antes: seis grupos de "âncoras" curadas (continental,
+          três blocos nacionais, feminino, seleções) seguidos de um grid com TODAS as 1.932
+          competições. Isso não é organização — é uma lista de atalhos em cima de outra lista, sem
+          hierarquia, e o Operador descreveu exatamente isso: "mal planejada e confusa".
+
+          A hierarquia nova segue a ORDEM EM QUE SE DECIDE:
+            1. filtros       — estreitar por gênero/tipo/país
+            2. destaques     — as competições que as pessoas procuram por nome
+            3. países        — o eixo que o DADO sustenta (92% de cobertura, 84 países)
+            4. resultado     — a lista, com a contagem do recorte atual
+
+          O índice de países substitui os blocos nacionais curados: em vez de TRÊS países escolhidos
+          a dedo, os 84 que existem, com contagem real e busca. Os destaques continuam porque
+          "Copa do Mundo" e "Libertadores" são procuradas por nome, não por país — mas agora são uma
+          faixa rotulada, não seis seções competindo com a lista. */}
+
+      {/* 1. FILTROS — estreitam o recorte */}
       <form
         method="get"
         className="mt-8 flex flex-wrap gap-3 items-end"
@@ -102,6 +117,8 @@ export default async function CompetitionsPage({
         </label>
         <label className="text-xs text-foreground/60">
           {dict.pages.competitions.filters.type}
+          {/* A opção "todas" é o que a maioria quer por padrão: `type` só existe em 54% do acervo,
+              e começar filtrado por um campo incompleto esconderia metade sem dizer. */}
           <select name="type" defaultValue={sp.type ?? ''} className="field block mt-1">
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
@@ -124,82 +141,68 @@ export default async function CompetitionsPage({
         >
           {dict.pages.competitions.filters.apply}
         </button>
+        {/* Sair do recorte é uma ação explícita. Sem isto, quem filtrou por engano fica preso
+            tendo de apagar campo por campo. */}
+        {sp.country || sp.type || sp.gender || sp.search ? (
+          <Link
+            href="/competitions"
+            className="h-[38px] inline-flex items-center px-4 rounded-lg border border-border text-sm text-foreground/70 hover:border-primary/50 hover:text-primary-ink transition-colors"
+            data-testid="competitions-clear"
+          >
+            {dict.pages.competitions.filters.clear}
+          </Link>
+        ) : null}
       </form>
 
-      {/* Hierarquia curada (mapeamento do portal) */}
-      <div className="mt-8 space-y-8">
-        {/* Continentais */}
-        <section aria-labelledby="comp-continental">
-          <h2 id="comp-continental" className="text-lg font-heading font-semibold mb-3">
-            {`🏆 ${s.continental}`}
-          </h2>
-          <div className="flex flex-wrap gap-2">
+      {/* 2. DESTAQUES — competições procuradas por NOME, não por país. */}
+      <section className="mt-8" aria-labelledby="comp-destaques">
+        <h2
+          id="comp-destaques"
+          className="text-sm font-heading font-semibold uppercase tracking-wider text-ink-2 mb-3"
+        >
+          {s.destaques}
+        </h2>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-3 min-w-24">{s.continental}</span>
             {CONTINENTAL_ANCHORS.map((c) => (
               <AnchorChip key={c.id} c={c} />
             ))}
           </div>
-        </section>
-
-        {/* Nacionais por país */}
-        <section aria-labelledby="comp-nacionais">
-          <h2 id="comp-nacionais" className="text-lg font-heading font-semibold mb-3">
-            {`⚽ ${s.nacionais}`}
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {NATIONAL_ANCHOR_GROUPS.map((g) => (
-              <div key={g.country} className="rounded-xl border border-border p-4">
-                <h3 className="text-sm font-semibold text-foreground/80 mb-2">
-                  {countryLabel(g.country, locale)}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {g.items.map((c) => (
-                    <AnchorChip key={c.id} c={c} />
-                  ))}
-                </div>
-              </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-3 min-w-24">{s.selecoes}</span>
+            {INTERNATIONAL_ANCHORS.map((c) => (
+              <AnchorChip key={c.id} c={c} />
             ))}
           </div>
-        </section>
-
-        {/* Feminino */}
-        <section aria-labelledby="comp-feminino">
-          <h2 id="comp-feminino" className="text-lg font-heading font-semibold mb-3">
-            {`♀ ${s.feminino}`}
-          </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-3 min-w-24">{s.feminino}</span>
             {WOMEN_ANCHORS.map((c) => (
               <AnchorChip key={c.id} c={c} />
             ))}
             <Link
-              href="/competitions?search=feminino"
-              className="inline-block px-3 py-1.5 rounded-full text-sm text-primary-ink hover:underline"
+              href="/competitions?gender=women"
+              className="text-sm text-primary-ink underline decoration-dotted underline-offset-2"
             >
-              {`${s.verTodasFeminino} →`}
+              {s.verTodasFeminino}
             </Link>
           </div>
-          <p className="mt-2 text-xs text-foreground/70">{s.femininoNota}</p>
-        </section>
+        </div>
+        <p className="mt-3 text-xs text-ink-3">{s.destaquesNota}</p>
+      </section>
 
-        {/* Seleções / Internacionais — T556: âncoras REAIS do acervo. Antes esta seção
-            renderizava uma mensagem fixa de "nada catalogado", premissa que expirou (a base
-            tem 165 competições internacionais). A mensagem de vazio agora é só fallback. */}
-        <section aria-labelledby="comp-selecoes">
-          <h2 id="comp-selecoes" className="text-lg font-heading font-semibold mb-3">
-            {`🌍 ${s.selecoes}`}
-          </h2>
-          {INTERNATIONAL_ANCHORS.length > 0 ? (
-            <div className="flex flex-wrap gap-2" data-testid="selecoes-anchors">
-              {INTERNATIONAL_ANCHORS.map((c) => (
-                <AnchorChip key={c.id} c={c} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-foreground/70" data-testid="selecoes-empty">
-              {s.selecoesVazio}
-            </p>
-          )}
-        </section>
-      </div>
+      {/* 3. PAÍSES — o eixo principal. Só aparece quando o usuário NÃO recortou ainda: filtrando
+          por um país, um índice de países ao lado da lista é ruído, não navegação. */}
+      {!sp.country && !sp.search && !sp.gender && !sp.type ? (
+        <div className="mt-10">
+          <CountryIndex
+            basePath="/competitions"
+            endpoint="/competitions/countries"
+            campo="competitions"
+            rotulo={dict.pages.competitions.filters.competitionsLabel}
+          />
+        </div>
+      ) : null}
 
       {/* Busca + lista completa (funcionalidade existente) */}
       <div className="mt-12 mb-6">
