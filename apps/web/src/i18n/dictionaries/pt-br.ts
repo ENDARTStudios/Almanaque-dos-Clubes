@@ -234,6 +234,7 @@ const pt: Dictionary = {
       showAll: 'Ver todos os {n} países',
       clubs: 'clubes',
       players: 'jogadores',
+      competitions: 'competições',
       error: 'Não foi possível carregar o índice de países — a lista completa continua abaixo.',
       citiesTitle: 'Cidades',
       citiesLabel: 'Cidades do país',
@@ -273,6 +274,8 @@ const pt: Dictionary = {
         league: 'Liga',
         cup: 'Copa',
         apply: 'Filtrar',
+        clear: 'Limpar filtros',
+        competitionsLabel: 'competições',
       },
       paginationLabel: 'Paginação de competições',
       prev: '← Anterior',
@@ -287,6 +290,9 @@ const pt: Dictionary = {
         selecoesVazio: 'Não foi possível carregar as competições internacionais agora.',
         verTodasFeminino: 'ver todas',
         todas: 'Todas as competições',
+        destaques: 'Destaques',
+        destaquesNota:
+          'Competições que as pessoas procuram pelo nome. Para navegar por país, use o índice abaixo.',
       },
     },
     market: {

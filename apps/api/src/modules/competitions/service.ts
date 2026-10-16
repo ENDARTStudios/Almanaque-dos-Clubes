@@ -1,5 +1,9 @@
 import { CreateCompetitionSchema, NotFoundError, type Competition } from '@almanaque/domain';
-import { competitionsRepository, type ListCompetitionsParams } from './repository.js';
+import {
+  competitionsRepository,
+  type ListCompetitionsParams,
+  type CompetitionCountryIndex,
+} from './repository.js';
 import { cache } from '../../services/cache.js';
 import { prisma } from '../../config/prisma.js';
 import { buildCompetitionOverview, type CompetitionOverview } from './overview.js';
@@ -15,6 +19,18 @@ function listCacheKey(params: ListCompetitionsParams): string {
 }
 
 export const competitionsService = {
+  /**
+   * T577 — índice de países para a reorganização de `/competitions`.
+   *
+   * Cache read-through com o mesmo TTL da lista: o índice muda quando uma competição entra ou muda
+   * de país, não a cada request.
+   */
+  async countryIndex(): Promise<CompetitionCountryIndex> {
+    return cache.remember('competitions:country-index', COMPETITIONS_TTL_SECONDS, () =>
+      competitionsRepository.countryIndex(),
+    );
+  },
+
   async create(input: unknown): Promise<Competition> {
     const parsed = CreateCompetitionSchema.parse(input);
     const competition = await competitionsRepository.create({
