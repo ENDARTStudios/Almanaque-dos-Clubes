@@ -276,9 +276,14 @@ export default function AdminObservabilityPage() {
   const t = wsO1Strings[locale].observability;
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
-      <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
+      {/* T574 — o GATE ENVOLVE A PÁGINA, e não só o painel.
+          Antes ele ficava DENTRO, depois do `<h1>`: quem não tinha permissão via "Observabilidade"
+          no topo e o pedido de login abaixo — o título anunciava uma ferramenta que a pessoa não
+          podia abrir. Verificado em navegador: o h1 era "Observabilidade" em vez de "Entrar".
+          O gate tem de estar ANTES de qualquer coisa que prometa acesso. */}
       <OperatorGate>
+        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
+        <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
         <ObservabilityPanel />
       </OperatorGate>
     </div>

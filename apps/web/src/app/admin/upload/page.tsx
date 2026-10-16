@@ -518,14 +518,16 @@ export default function AdminUploadPage() {
   const L = uploadStrings[locale] ?? uploadStrings['pt-br'];
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">{L.title}</h1>
-      <p className="mt-1 text-ink-2">{L.subtitle}</p>
-      <p className="mt-2 text-xs text-ink-3">{L.internalNote}</p>
-      <div className="mt-8">
-        <OperatorGate>
+      {/* T574 — o gate envolve a página inteira. Antes ficava depois do `<h1>`, e o título
+          anunciava uma ferramenta que a pessoa não podia abrir. */}
+      <OperatorGate>
+        <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">{L.title}</h1>
+        <p className="mt-1 text-ink-2">{L.subtitle}</p>
+        <p className="mt-2 text-xs text-ink-3">{L.internalNote}</p>
+        <div className="mt-8">
           <UploadPanel />
-        </OperatorGate>
-      </div>
+        </div>
+      </OperatorGate>
     </div>
   );
 }
