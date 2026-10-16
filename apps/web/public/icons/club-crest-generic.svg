@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  club-crest-generic — icone AUTORAL do Almanaque dos Clubes.
+  Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
+  escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
+  Gerado por apps/web/scripts/export-icons.mjs a partir de
+  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+  fill="none" stroke="currentColor" stroke-width="1.75"
+  stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 2.6l7.4 2.5v6.1c0 4.4-2.8 7.6-7.4 9.7-4.6-2.1-7.4-5.3-7.4-9.7V5.1z" />
+  <path d="M7.6 11.4 12 13.8 16.4 11.4" />
+  <circle cx="12" cy="8.4" r="1.7" />
+</svg>

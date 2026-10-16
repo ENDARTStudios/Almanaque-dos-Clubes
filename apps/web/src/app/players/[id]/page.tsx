@@ -10,6 +10,7 @@ import { safeJsonLd } from '@/lib/json-ld';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { PlayerPhoto } from '@/components/MediaAssets';
+import { wIconsStrings, positionLabel } from '@/i18n/wsIcons';
 
 interface Player {
   id: string;
@@ -79,6 +80,15 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 
   const birthYear = p.birthDate ? String(p.birthDate).slice(0, 4) : null;
 
+  // T576 — sem foto oficial no acervo, o cabeçalho usa a figura autoral da posição e
+  // DECLARA que é ilustração genérica (nunca um retrato de pessoa real).
+  const photoUrl = (p as { photoUrl?: string | null }).photoUrl ?? null;
+  const ic = wIconsStrings[locale];
+  const positionName = positionLabel(locale, p.position);
+  const photoIllustration = positionName
+    ? ic.playerPhotoWithPosition.replace('{position}', positionName)
+    : ic.playerPhoto;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
@@ -90,7 +100,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
       </Link>
       <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
         <div className="flex items-start gap-6">
-          <PlayerPhoto photoUrl={(p as { photoUrl?: string | null }).photoUrl} name={p.fullName} size={80} />
+          <PlayerPhoto photoUrl={photoUrl} name={p.fullName} position={p.position} size={80} />
           <div className="flex-1">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {p.fullName}
@@ -104,6 +114,14 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               />
             </div>
             {p.shortName && <p className="text-sm text-foreground/70">({p.shortName})</p>}
+            {!photoUrl && (
+              <p
+                className="text-xs text-foreground/70 mt-2"
+                data-testid="player-photo-illustration"
+              >
+                {photoIllustration}
+              </p>
+            )}
             {profile?.currentClub ? (
               <p className="text-sm text-foreground/70 mt-2">
                 {t.currentClub}:{' '}

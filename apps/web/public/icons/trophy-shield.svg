@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  trophy-shield — icone AUTORAL do Almanaque dos Clubes.
+  Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
+  escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
+  Gerado por apps/web/scripts/export-icons.mjs a partir de
+  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+  fill="none" stroke="currentColor" stroke-width="1.75"
+  stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 2.8l7 2.5v6.2c0 4.5-2.9 7.8-7 9.9-4.1-2.1-7-5.4-7-9.9V5.3z" />
+  <path d="M12 7.5 L12.86 9.61 L15.14 9.78 L13.4 11.25 L13.94 13.47 L12 12.27 L10.06 13.47 L10.6 11.25 L8.86 9.78 L11.14 9.61 Z" />
+</svg>
