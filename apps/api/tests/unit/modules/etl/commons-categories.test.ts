@@ -9,7 +9,7 @@ import {
   pickBestFile,
   rankFiles,
   resetCommonsCadence,
-} from '../../../../src/modules/etl/connectors/commons-categories.js';
+} from '../../../../src/modules/etl/connectors/commons-categories.connector.js';
 
 // T578 — o COLETOR DE IMAGENS do Commons. Os testes cobrem o que é PURO (política de
 // licença, ranking de arquivo, categorias candidatas) e o que é determinístico com
