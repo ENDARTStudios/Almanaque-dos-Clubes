@@ -244,22 +244,6 @@ export interface Dictionary {
     backToLogin: string;
     passwordMismatch: string;
   };
-  /** T565 — area do operador (login exigido, acesso restrito). */
-  admin: {
-    title: string;
-    subtitle: string;
-    loginRequired: string;
-    login: string;
-    forbidden: string;
-    unavailable: string;
-    checking: string;
-    backHome: string;
-    observability: string;
-    observabilityDesc: string;
-    reports: string;
-    reportsDesc: string;
-    accessNote: string;
-  };
   pages: {
     // T559 — "Meu Almanaque": a área do usuário.
     dashboard: {

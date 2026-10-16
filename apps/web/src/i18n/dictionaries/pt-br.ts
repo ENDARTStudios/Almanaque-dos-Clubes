@@ -198,21 +198,6 @@ const pt: Dictionary = {
     backToLogin: 'Voltar ao login',
     passwordMismatch: 'As senhas não coincidem.',
   },
-  admin: {
-    title: 'Administração',
-    subtitle: 'Ferramentas internas do Almanaque dos Clubes.',
-    loginRequired: 'Esta área é restrita. Entre com a conta do operador para continuar.',
-    login: 'Entrar',
-    forbidden: 'Esta conta não tem acesso a esta área.',
-    unavailable: 'Não foi possível confirmar o seu acesso agora — tente de novo em instantes.',
-    checking: 'Verificando acesso…',
-    backHome: 'Voltar ao início',
-    observability: 'Observabilidade',
-    observabilityDesc: 'Crons, fila de ingestão e alertas.',
-    reports: 'Moderação',
-    reportsDesc: 'Denúncias e contribuições pendentes de revisão.',
-    accessNote: 'O acesso a cada ferramenta é verificado na própria página, pelo servidor.',
-  },
   pages: {
     // T559 — "Meu Almanaque": a área do usuário. Antes as strings estavam LITERAIS no
     // `dashboard/page.tsx`, em português, sem passar por dicionário — e os cartões de ADMIN

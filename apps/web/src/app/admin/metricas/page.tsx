@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import MetricsCharts from './MetricsCharts';
@@ -224,11 +224,15 @@ export default function AdminMetricsPage() {
   const s = adminMetricsStrings[locale];
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h1 className="text-3xl font-heading font-bold text-foreground sm:text-4xl">{s.title}</h1>
-      <p className="mt-1 mb-8 text-foreground/60">{s.subtitle}</p>
-      <ProtectedRoute>
+      {/* T574 — o gate envolve a página inteira. Antes ficava depois do `<h1>`, e quem não tinha
+          permissão via "Métricas" no topo e o pedido de login abaixo: o título anunciava uma
+          ferramenta que a pessoa não podia abrir. O gate tem de vir ANTES de qualquer coisa que
+          prometa acesso. */}
+      <OperatorGate>
+        <h1 className="text-3xl font-heading font-bold text-foreground sm:text-4xl">{s.title}</h1>
+        <p className="mt-1 mb-8 text-foreground/60">{s.subtitle}</p>
         <MetricsPanel />
-      </ProtectedRoute>
+      </OperatorGate>
     </div>
   );
 }
