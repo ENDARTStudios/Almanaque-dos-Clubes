@@ -16,6 +16,11 @@ import raw from './icons.json';
  * nada de pessoa, retrato ou caricatura (Código Civil, art. 20), nada de marca de
  * fabricante. Ver `docs/ICONES-AUTORAIS.md`.
  *
+ * EXCEÇÃO DECLARADA: `player-ball` não reivindica forma. Bola de futebol em ícone é
+ * geometria canônica (círculo + pentágono central + costuras), comum a FA, Material
+ * Symbols e Tabler (MIT); o que é do projeto é o desenho — pentágono maior e rotacionado
+ * (vértice para baixo) e costuras mais curtas. O cabeçalho do SVG publicado diz isso.
+ *
  * GEOMETRIA: uma única fonte — `icons.json` (viewBox 24×24, traço `currentColor`,
  * `fill="none"`, 1,75 de espessura, pontas e junções arredondadas, mesma linguagem do
  * `lucide-react` já usado no app). Os SVGs avulsos de `public/icons/` são GERADOS da

@@ -1,5 +1,5 @@
 {
-  "notice": "Icones AUTORAIS do Almanaque dos Clubes - ARTE ORIGINAL do projeto (autoria END ART Studios). Nenhuma forma aqui foi rastreada, vetorizada, copiada ou 'reinterpretada' de fotografia, escudo, trofeu ou qualquer obra de terceiro. Sao formas genericas que evocam a CATEGORIA (copo, taca, medalha, placa, escudo, objeto do oficio) - nao a silhueta de um trofeu ou escudo real, que seria obra derivada (Lei 9.610/98, art. 29) e marca registrada. Os placeholders de POSICAO nao sao figuras humanas, retratos nem caricaturas de pessoa real (Codigo Civil, art. 20): cada posicao e representada por um OBJETO generico do oficio (luva de goleiro, caneleira, bola, chuteira), sem semelhanca com pessoa, atleta, clube ou marca de fabricante.",
+  "notice": "Icones AUTORAIS do Almanaque dos Clubes - ARTE ORIGINAL do projeto (autoria END ART Studios). Nenhuma forma aqui foi rastreada, vetorizada, copiada ou 'reinterpretada' de fotografia, escudo, trofeu ou qualquer obra de terceiro. Sao formas genericas que evocam a CATEGORIA (copo, taca, medalha, placa, escudo, objeto do oficio) - nao a silhueta de um trofeu ou escudo real, que seria obra derivada (Lei 9.610/98, art. 29) e marca registrada. Os placeholders de POSICAO nao sao figuras humanas, retratos nem caricaturas de pessoa real (Codigo Civil, art. 20): cada posicao e representada por um OBJETO generico do oficio (luva de goleiro, caneleira, bola, chuteira), sem semelhanca com pessoa, atleta, clube ou marca de fabricante. UMA EXCECAO DECLARADA: a geometria da BOLA (circulo + pentagono central + costuras) e a FORMA CANONICA de bola de futebol, comum a qualquer conjunto de icones (FA, Material Symbols, Tabler MIT) - nao e criacao de forma deste projeto e nao e reivindicada como original; o que existe aqui e o desenho do projeto (pentagono maior, rotacionado com o vertice para baixo, e costuras mais curtas), sem rastro nem vetorizacao de imagem alguma.",
   "defaults": {
     "viewBox": "0 0 24 24",
     "strokeWidth": 1.75,
@@ -81,55 +81,72 @@
     },
     "player-glove": {
       "label": "Luva de goleiro (objeto da posicao)",
-      "purpose": "Placeholder de atleta GOALKEEPER sem foto no acervo: OBJETO da posicao (luva + punho), nao figura humana.",
+      "purpose": "Placeholder de atleta GOALKEEPER sem foto no acervo: OBJETO da posicao (luva de quatro dedos, polegar protuberante e punho separado abaixo), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
-        { "tag": "rect", "x": 7.1, "y": 14.6, "width": 11.6, "height": 4.3, "rx": 1.5 },
-        { "tag": "path", "d": "M8.5 14.6V9.9a4.6 4.6 0 0 1 9.2 0v4.7" },
-        { "tag": "path", "d": "M8.5 9.9H6.7a2.35 2.35 0 0 0 0 4.7h1.8" }
+        {
+          "tag": "path",
+          "d": "M8.3 14.2 V12.7 C6.7 12.5 5.5 11.3 5.45 9.85 C5.4 8.5 6.4 8.55 8.3 8.6 A1.2125 3.5 0 0 1 10.725 8.6 A1.2125 4.1 0 0 1 13.15 8.6 A1.2125 3.6 0 0 1 15.575 8.6 A1.2125 2.4 0 0 1 18 8.6 V14.2 Z"
+        },
+        {
+          "tag": "path",
+          "d": "M9.4 16.6 L8.5 19.35 Q8.3 20.15 9.15 20.15 H16.45 Q17.3 20.15 17.1 19.35 L16.2 16.6 Z"
+        }
       ]
     },
     "player-shin-guard": {
       "label": "Caneleira (objeto da posicao)",
-      "purpose": "Placeholder de atleta DEFENDER sem foto no acervo: OBJETO da posicao (caneleira com alcas), nao figura humana.",
+      "purpose": "Placeholder de atleta DEFENDER sem foto no acervo: OBJETO da posicao (caneleira: placa trapezoidal de fundo reto, uma faixa com fivela dentro do contorno e vinco vertical), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
         {
           "tag": "path",
-          "d": "M12 3.4c2.4 0 4.3 1.9 4.3 4.3v6.5c0 3-1.9 5.6-4.3 6.4-2.4-.8-4.3-3.4-4.3-6.4V7.7c0-2.4 1.9-4.3 4.3-4.3z"
+          "d": "M8.8 4.3 L15.2 4.3 Q16.55 4.3 16.5 5.8 L15.4 18.4 Q15.3 19.7 14.05 19.7 H9.95 Q8.7 19.7 8.6 18.4 L7.5 5.8 Q7.45 4.3 8.8 4.3 Z"
         },
-        { "tag": "path", "d": "M5.6 8.6h12.8" },
-        { "tag": "path", "d": "M5.6 13.9h12.8" }
+        { "tag": "path", "d": "M7.73 8.4 L16.27 8.4 L16.06 10.8 L7.94 10.8 Z" },
+        { "tag": "rect", "x": 7.73, "y": 7.8, "width": 3, "height": 3.6, "rx": 0.6 },
+        { "tag": "path", "d": "M12 13.4 V18.5" }
       ]
     },
     "player-ball": {
       "label": "Bola (objeto da posicao)",
-      "purpose": "Placeholder de atleta MIDFIELDER sem foto no acervo: OBJETO da posicao (bola de gomos), nao figura humana.",
+      "purpose": "Placeholder de atleta MIDFIELDER sem foto no acervo: OBJETO da posicao (bola de futebol de pentagono central e cinco costuras), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
+      "header": [
+        "player-ball — icone do Almanaque dos Clubes (placeholder de MIDFIELDER).",
+        "BOLA DE FUTEBOL em FORMA CANONICA: circulo + pentagono central + costuras ate a",
+        "circunferencia. Essa forma e comum a qualquer conjunto de icones (FA, Material",
+        "Symbols, Tabler MIT) — nao e uma criacao de forma deste projeto e NAO e",
+        "reivindicada como original. O desenho e do Almanaque (pentagono maior e",
+        "ROTACIONADO, com o vertice para baixo, e costuras mais curtas; nenhum 'd' coincide",
+        "com biblioteca alguma). Sem rastro, sem vetorizacao e sem imagem de origem: so",
+        "primitivas escritas a mao para o projeto.",
+        "Gerado por apps/web/scripts/export-icons.mjs a partir de",
+        "apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao."
+      ],
       "shapes": [
-        { "tag": "circle", "cx": 12, "cy": 12, "r": 8.6 },
-        {
-          "tag": "path",
-          "d": "M12 8.6 15.23 10.95 13.99 14.75 10.01 14.75 8.77 10.95 Z"
-        },
-        { "tag": "path", "d": "M12 8.6V3.4" },
-        { "tag": "path", "d": "M15.23 10.95 20.18 9.34" },
-        { "tag": "path", "d": "M13.99 14.75 17.05 18.96" },
-        { "tag": "path", "d": "M10.01 14.75 6.95 18.96" },
-        { "tag": "path", "d": "M8.77 10.95 3.82 9.34" }
+        { "tag": "circle", "cx": 12, "cy": 12, "r": 7.5 },
+        { "tag": "path", "d": "M12.00 16.20 L15.99 13.30 L14.47 8.60 L9.53 8.60 L8.01 13.30 Z" },
+        { "tag": "path", "d": "M12.00 16.20 L12.00 19.50" },
+        { "tag": "path", "d": "M15.99 13.30 L19.13 14.32" },
+        { "tag": "path", "d": "M14.47 8.60 L16.41 5.93" },
+        { "tag": "path", "d": "M9.53 8.60 L7.59 5.93" },
+        { "tag": "path", "d": "M8.01 13.30 L4.87 14.32" }
       ]
     },
     "player-boot": {
       "label": "Chuteira (objeto da posicao)",
-      "purpose": "Placeholder de atleta FORWARD sem foto no acervo: OBJETO da posicao (chuteira de perfil com travas), nao figura humana.",
+      "purpose": "Placeholder de atleta FORWARD sem foto no acervo: OBJETO da posicao (chuteira de perfil, com travas, costura do solado e contraforte do calcanhar), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
         { "tag": "path", "d": "M4.2 15.4v-3.6l1.4-1.4h7.4l2.8-2.4h3.4l1 7.4z" },
-        { "tag": "path", "d": "M7.2 15.4v2.2M13 15.4v2.2M18.4 15.4v2.2" }
+        { "tag": "path", "d": "M7.2 15.4v2.6M13 15.4v2.6M18.4 15.4v2.6" },
+        { "tag": "path", "d": "M4.6 14.1 H14.6" },
+        { "tag": "path", "d": "M17.2 10.6 L18.6 15.2" }
       ]
     },
     "club-crest-generic": {

@@ -30,8 +30,39 @@ ofício** — a luva do goleiro, a caneleira do zagueiro, a bola do meio-campo, 
 atacante. Objeto genérico, desenhado pela equipe: sem pessoa, sem escudo real e **sem marca de
 fabricante** (nenhuma logo de tênis, luva ou bola).
 
+### Exceção declarada: a bola é FORMA CANÔNICA
+
+`player-ball` **não** é "arte autoral de forma". Bola de futebol em ícone é **geometria canônica**:
+círculo + pentágono central + costuras até a circunferência — a mesma construção existe em FA,
+Material Symbols e Tabler (MIT). Chamar essa forma de criação deste projeto seria indefensável.
+O que é **do projeto** é o desenho: pentágono maior e **rotacionado** (vértice para baixo, e não
+para cima como no cânone), costuras mais curtas e nenhum `d` coincidente com biblioteca alguma.
+É o que o cabeçalho do SVG publicado diz — ele não reivindica a forma.
+
 O objeto é desenhado para ser lido a **16px** (a grade em que ele aparece): silhueta simples, o
 mesmo traço 1,75 de todo o conjunto e formas que não se confundem entre si nem com os troféus.
+
+### Rodada de auditoria visual (PR #679)
+
+Uma auditoria independente **bloqueou** a primeira versão de `player-glove` e
+`player-shin-guard` com medição em pixels (16/24/48/96px, claro e escuro): a luva lia como
+**cadeado** (cúpula fechada + barra de punho colada = arco + corpo) e a caneleira como **ovo**
+(barras de largura total transbordando o contorno e fundo em ponta). O que mudou:
+
+- `player-glove` — a cúpula lisa virou **quatro dedos** (arcos com alturas diferentes), o
+  polegar saiu do meio da lateral para **o alto-esquerda** e o **punho** passou a ser uma faixa
+  separada **abaixo**, sem sobrepor o corpo;
+- `player-shin-guard` — placa **trapezoidal com fundo reto**, uma faixa com **fivela dentro do
+  contorno** (nada sai do contorno) e **vinco vertical**; o objeto **continua caneleira**
+  (escudo colidiria com `trophy-shield`/`club-crest-generic`, e chuteira já é o atacante);
+- `player-ball` — a forma canonica passou a ser declarada (acima) e o desenho foi **aliviado**
+  (raio 7,5, pentágono rotacionado), que era o ícone mais pesado do conjunto;
+- `player-boot` — desenho aprovado, **silhueta intacta**; ganhou massa (costura do solado e
+  contraforte do calcanhar) para entrar na faixa de peso do conjunto.
+
+Peso de tinta medido no render 16×16 (cobertura média do alfa, claro): os quatro novos ficam em
+**18,9–24,3%**, contra **18,2–26,0%** dos ícones já aprovados — a dispersão entre os novos caiu
+de 14,8 pt (laudo) para **5,4 pt**.
 
 Como isso se sustenta na prática: toda a geometria vive em um `icons.json` versionado, e o teste
 recusa raster escondido (`<image>`, `data:`, base64, `foreignObject`), recusa cor crua (o conjunto
@@ -48,10 +79,10 @@ arquivo: a geometria nasceu neste commit, escrita à mão, sem imagem de origem 
 | `trophy-medal`            | mérito    | Medalha (vice, campanha, honraria)                                                      |
 | `trophy-shield`           | troféu    | Conquista cujo símbolo é um escudo/emblema (supercopa, recopa)                          |
 | `trophy-belt`             | troféu    | Título de cinturão (campeão vigente em disputa contínua)                                |
-| `player-glove`            | posição   | `GOALKEEPER` — **luva de goleiro** (palma, polegar e punho)                             |
-| `player-shin-guard`       | posição   | `DEFENDER` — **caneleira** (placa afunilada com duas alças)                             |
-| `player-ball`             | posição   | `MIDFIELDER` — **bola** de gomos (pentágono e costuras)                                 |
-| `player-boot`             | posição   | `FORWARD` — **chuteira** de perfil (bico, cano e travas no solado)                      |
+| `player-glove`            | posição   | `GOALKEEPER` — **luva de goleiro** (quatro dedos, polegar à esquerda, punho separado)   |
+| `player-shin-guard`       | posição   | `DEFENDER` — **caneleira** (placa trapezoidal, faixa com fivela e vinco)                |
+| `player-ball`             | posição   | `MIDFIELDER` — **bola** em forma canônica (pentágono rotacionado e costuras)            |
+| `player-boot`             | posição   | `FORWARD` — **chuteira** de perfil (bico, cano, travas e costura do solado)             |
 | `club-crest-generic`      | clube     | Clube/seleção sem escudo no acervo — traço puro (superfície clara, uso pequeno)         |
 | `club-crest-generic-dark` | clube     | O mesmo, em **fundo escuro**: placa preenchida a 16% para ganhar peso sem sair do token |
 
