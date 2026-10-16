@@ -9,29 +9,22 @@ import { adminStrings } from './strings';
 /**
  * T-ADMIN — trilha de auditoria (`/admin/auditoria`).
  *
- * LACUNA DECLARADA — leia antes de mexer: a API **não expõe** a trilha de auditoria.
- * `apps/api/src/modules/audit/` tem só o serviço de ESCRITA (`auditLog.record`, insert
- * append-only) e dois leitores (`listByEntity`, `listByUser`) que **nenhuma rota chama**;
- * não existe `app.get('/audit…')` em lugar nenhum de `apps/api/src`. Como o `apps/api`
- * pertence a outro agente desta rodada, NÃO criei rota lá.
- *
- * O que esta página faz então: fica PRONTA para consumir um contrato explícito —
+ * Wave 2 — a API PASSOU a expor a trilha: `GET /admin/audit-logs` existe em
+ * `apps/api/src/modules/admin/routes.ts`, com os filtros abaixo e paginação de
+ * servidor. O contrato consumido é:
  *
  *   GET /admin/audit-logs?userId=&action=&from=&to=&limit=&offset=
  *   → { data: { items: AuditEntry[], total: number } }
  *
- * — e, enquanto a rota não existir, a resposta 404 vira um estado honesto
- * ("endpoint indisponível"), nunca uma lista vazia fingindo "não houve evento".
- * Quando a API implementar a rota, esta tela funciona sem alteração.
+ * Filtros: usuário (userId), ação (texto livre, casa por substring) e período
+ * (from/to). O filtro de ação é TEXTO LIVRE em vez de `select` enumerado de
+ * propósito: a lista de ações canônicas vive em `AuditAction` (apps/api) e
+ * duplicá-la aqui garantiria divergência silenciosa quando o enum crescer.
  *
- * Filtros: usuário (userId), ação e período (from/to). O filtro de ação é TEXTO LIVRE
- * em vez de `select` enumerado de propósito: a lista de ações canônicas vive em
- * `AuditAction` (apps/api) e duplicá-la aqui garantiria divergência silenciosa quando
- * o enum crescer.
+ * Paginação de SERVIDOR (25/página): uma trilha append-only cresce sem teto e
+ * trazer tudo para o cliente não escala.
  *
- * Paginação: 25 por página, com `limit`/`offset` enviados — é paginação de SERVIDOR no
- * contrato (mesmo que hoje a rota não responda), porque uma trilha append-only cresce
- * sem teto e trazer tudo para o cliente não escala.
+ * 403 → mensagem de restrição (o gate real é a API).
  */
 
 const PAGE_SIZE = 25;
@@ -47,7 +40,7 @@ interface AuditEntry {
   metadata?: Record<string, unknown> | string | null;
 }
 
-type LoadState = 'loading' | 'ok' | 'forbidden' | 'unavailable' | 'error';
+type LoadState = 'loading' | 'ok' | 'forbidden' | 'error';
 
 function ipOf(metadata: AuditEntry['metadata']): string | null {
   if (!metadata) return null;
@@ -101,11 +94,7 @@ export default function AuditTrail() {
       }
       setState('ok');
     } catch (err) {
-      const status = (err as { status?: number }).status;
-      if (status === 403) setState('forbidden');
-      // 404 (e 501) = a rota do contrato ainda não existe na API.
-      else if (status === 404 || status === 501) setState('unavailable');
-      else setState('error');
+      setState((err as { status?: number }).status === 403 ? 'forbidden' : 'error');
     }
   }, [applied, page]);
 
@@ -114,8 +103,8 @@ export default function AuditTrail() {
     void Promise.resolve().then(load);
   }, [load]);
 
-  // totalPages pelo total do servidor quando ele existe; senão, inferência
-  // conservadora pelo que veio na página (nunca pinta "próxima" sem base).
+  // totalPages pelo total do servidor; fallback conservador (nunca pinta
+  // "próxima" sem base) quando ele não vem.
   const totalPages =
     total !== null
       ? Math.max(1, Math.ceil(total / PAGE_SIZE))
@@ -141,14 +130,6 @@ export default function AuditTrail() {
 
   return (
     <div className="space-y-5">
-      {/* Lacuna declarada — sempre visível enquanto a rota não existir. */}
-      <p
-        className="rounded-lg border border-border bg-neutral-surface px-3 py-2 text-xs text-ink-2"
-        data-testid="audit-gap"
-      >
-        {s.audit.missingEndpoint}
-      </p>
-
       {/* Filtros */}
       <form onSubmit={apply} className="grid gap-3 sm:grid-cols-2" aria-label={s.audit.title}>
         <div>
@@ -226,15 +207,6 @@ export default function AuditTrail() {
       {state === 'forbidden' && (
         <p role="alert" className="text-sm text-danger-ink py-8" data-testid="audit-forbidden">
           {s.audit.forbidden}
-        </p>
-      )}
-      {state === 'unavailable' && (
-        <p
-          role="status"
-          className="rounded-lg border border-border bg-neutral-surface px-3 py-4 text-sm text-ink-2"
-          data-testid="audit-unavailable"
-        >
-          {s.audit.missingEndpoint}
         </p>
       )}
       {state === 'error' && (

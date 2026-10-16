@@ -3,11 +3,11 @@
 import { fill } from './strings';
 
 /**
- * T-ADMIN — paginação client-side compartilhada por Usuários e Auditoria.
+ * T-ADMIN — controle de paginação compartilhado por Usuários, Auditoria e Catálogo.
  *
- * A API admin NÃO pagina (`GET /admin/users` devolve a lista inteira, sem `limit`/
- * `offset`), então a paginação é feita no cliente sobre o que chegou — e isso está
- * declarado na tela para quem opera não achar que o servidor já fatia a lista.
+ * Desde a wave 2 a paginação é do SERVIDOR: as rotas `/admin/*` aceitam
+ * `limit`/`offset` e devolvem `total`, então `totalPages`/`totalItems` vêm do
+ * backend (a tela não fatia mais a lista inteira no cliente).
  *
  * A página corrente é CLAMPADA em vez de corrigida por efeito: se o filtro encolher a
  * lista, `Math.min(page, totalPages)` já devolve a página válida no mesmo render. Isso

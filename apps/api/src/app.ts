@@ -50,6 +50,8 @@ import { searchRoutes } from './modules/search/routes.js';
 import { geoRoutes } from './modules/geo/routes.js';
 import { backupRoutes } from './modules/admin/backup.routes.js';
 import { adminMetricsRoutes } from './modules/admin/metrics.routes.js';
+import { catalogRoutes } from './modules/admin/catalog.routes.js';
+import { lgpdRoutes } from './modules/admin/lgpd.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { isAllowedOrigin } from './config/cors.js';
@@ -253,6 +255,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(matchesRoutes);
       await api.register(billingRoutes);
       await api.register(adminRoutes);
+      await api.register(catalogRoutes);
+      await api.register(lgpdRoutes);
       await api.register(uploadRoutes);
       await api.register(graphRoutes);
       await api.register(ragRoutes);
