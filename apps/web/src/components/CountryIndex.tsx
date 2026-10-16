@@ -38,6 +38,7 @@ interface PaisEntry {
   name: string | null;
   clubs?: number;
   players?: number;
+  competitions?: number;
 }
 
 interface Indice {
@@ -51,11 +52,16 @@ interface Indice {
 const INICIAL = 24;
 
 export default function CountryIndex({
-  /** Rota base: `/clubs` ou `/players`. */
+  /** Rota base: `/clubs`, `/players` ou `/competitions`. */
   basePath,
   /** Endpoint do índice. */
   endpoint,
-  /** Qual contagem rotular: `clubs` ou `players`. */
+  /**
+   * Qual contagem rotular. Tem de casar com a chave que o endpoint devolve: `/clubs/countries`
+   * usa `clubs`, `/players/countries` usa `players` e `/competitions/countries` usa
+   * `competitions`. O tipo é fechado de propósito — um nome errado aqui daria `0` em todo cartão,
+   * e o usuário leria como acervo vazio.
+   */
   campo,
   /** Rótulo do número, já no idioma. Ex.: "clubes". */
   rotulo,
@@ -64,7 +70,7 @@ export default function CountryIndex({
 }: {
   basePath: string;
   endpoint: string;
-  campo: 'clubs' | 'players';
+  campo: 'clubs' | 'players' | 'competitions';
   rotulo: string;
   selecionado?: string;
 }) {

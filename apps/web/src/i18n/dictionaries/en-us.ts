@@ -229,6 +229,7 @@ const en: Dictionary = {
       showAll: 'Show all {n} countries',
       clubs: 'clubs',
       players: 'players',
+      competitions: 'competitions',
       error: 'Could not load the country index — the full list is still below.',
       citiesTitle: 'Cities',
       citiesLabel: 'Cities in the country',
@@ -267,6 +268,8 @@ const en: Dictionary = {
         league: 'League',
         cup: 'Cup',
         apply: 'Filter',
+        clear: 'Clear filters',
+        competitionsLabel: 'competitions',
       },
       paginationLabel: 'Competition pagination',
       prev: '← Previous',
@@ -281,6 +284,9 @@ const en: Dictionary = {
         selecoesVazio: 'No international competitions could be loaded right now.',
         verTodasFeminino: 'see all',
         todas: 'All competitions',
+        destaques: 'Highlights',
+        destaquesNota:
+          'Competitions people look up by name. To browse by country, use the index below.',
       },
     },
     market: {

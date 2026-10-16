@@ -278,6 +278,8 @@ export interface Dictionary {
       showAll: string;
       clubs: string;
       players: string;
+      /** T577 — rotulo da contagem de competicoes no indice. */
+      competitions: string;
       error: string;
       /** Segundo nível do agrupamento: cidades dentro do país escolhido. */
       citiesTitle: string;
@@ -312,6 +314,10 @@ export interface Dictionary {
         league: string;
         cup: string;
         apply: string;
+        /** T577 — sair do recorte atual (limpar filtros). */
+        clear: string;
+        /** T577 — rótulo da contagem no índice de países. */
+        competitionsLabel: string;
       };
       paginationLabel: string;
       prev: string;
@@ -325,6 +331,9 @@ export interface Dictionary {
         selecoesVazio: string;
         verTodasFeminino: string;
         todas: string;
+        /** T577 — faixa dos destaques curados, no topo da página. */
+        destaques: string;
+        destaquesNota: string;
       };
     };
     market: {
