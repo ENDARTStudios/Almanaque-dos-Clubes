@@ -3,6 +3,7 @@
  */
 import { buildApp } from './app.js';
 import { env } from './config/env.js';
+import { envFlag } from './config/flags.js';
 import { logger } from './config/logger.js';
 import { prisma } from './config/prisma.js';
 import { setupWebSocket } from './services/websocket.js';
@@ -35,7 +36,7 @@ async function main() {
     // BIRTHDAY_GIFT_ENABLED ('1' ou 'true' — produção usa 'true'; o mismatch
     // com o === '1' antigo deixava o cron diário SEM agendar, T493 despacho
     // item 5). Job idempotente por ano (guard na coluna).
-    if (process.env.BIRTHDAY_GIFT_ENABLED === '1' || process.env.BIRTHDAY_GIFT_ENABLED === 'true') {
+    if (envFlag('BIRTHDAY_GIFT_ENABLED')) {
       const { registerBirthdayGiftCron } = await import('./jobs/birthday-gift.scheduler.js');
       await registerBirthdayGiftCron();
     }

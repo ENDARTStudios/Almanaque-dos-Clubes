@@ -10,6 +10,7 @@
  */
 import { createWorker, queues } from '../services/queue.js';
 import { grantBirthdayGifts } from '../modules/billing/birthday-gift.service.js';
+import { envFlag } from '../config/flags.js';
 import { logger } from '../config/logger.js';
 
 export const GAMIFICATION_QUEUE = 'gamification';
@@ -20,7 +21,9 @@ let registered = false;
 
 // O gift é público e independente do tracking (que segue desativado até WS-L).
 export function isBirthdayGiftEnabled(): boolean {
-  return process.env.BIRTHDAY_GIFT_ENABLED === 'true';
+  // T568 — mesmo parser do boot (server.ts). Antes: o boot aceitava '1' e este gate
+  // exigia 'true' -> com '1' o job rodava e nao concedia nada (falha silenciosa).
+  return envFlag('BIRTHDAY_GIFT_ENABLED');
 }
 
 export async function birthdayGiftJobHandler(): Promise<void> {

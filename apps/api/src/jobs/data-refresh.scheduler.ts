@@ -11,6 +11,7 @@
  */
 import type { Job } from 'bullmq';
 import { queues, createWorker } from '../services/queue.js';
+import { envFlag } from '../config/flags.js';
 import { logger } from '../config/logger.js';
 import { runWikidataIncremental } from './wikidata-incremental.js';
 import { runIntegrityCheck } from './integrity-check.js';
@@ -53,7 +54,8 @@ export const ENRICH_ALL_MEDIA_BATCH = 500;
 const JOB_TIMEOUT_MS = 10 * 60 * 1000;
 
 export function isSchedulerEnabled(): boolean {
-  return process.env.ETL_SCHEDULER_ENABLED === '1';
+  // T568 — parser unico (`'1'` e `'true'` valem; antes este consumidor so aceitava '1').
+  return envFlag('ETL_SCHEDULER_ENABLED');
 }
 
 /** Contadores em memória para /jobs/health (gauge zera a cada redeploy — padrão metrics). */
@@ -381,7 +383,9 @@ export async function registerDataRefreshCron(): Promise<void> {
   // para que a migração seja sem janela: o Operador sobe o serviço `media-worker` e só
   // então põe MEDIA_WORKER_LOCAL=0 na API. Enquanto a flag não for '0', o
   // comportamento é EXATAMENTE o de antes.
-  if (process.env.MEDIA_WORKER_LOCAL !== '0') {
+  // T568 — default SEGURO: sem a flag, a API NAO consome a fila dedicada ao media-worker
+  // (antes o default era ligado e um redeploy sem a variavel desfazia o isolamento do T543).
+  if (envFlag('MEDIA_WORKER_LOCAL', false)) {
     createWorker('mediaEnrich', (job) => withTimeout(job.name, () => dataRefreshJobHandler(job)));
     logger.info({ local: true }, 'fila media-enrich consumida pela API (MEDIA_WORKER_LOCAL!=0)');
   } else {
