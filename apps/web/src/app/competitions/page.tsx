@@ -9,6 +9,7 @@ import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import {
   CONTINENTAL_ANCHORS,
+  INTERNATIONAL_ANCHORS,
   NATIONAL_ANCHOR_GROUPS,
   WOMEN_ANCHORS,
   countryLabel,
@@ -17,7 +18,8 @@ import {
 
 export const metadata: Metadata = {
   title: 'Competições',
-  description: 'Explore competições de futebol de todo o mundo. Pesquise por nome, país e tipo de competição.',
+  description:
+    'Explore competições de futebol de todo o mundo. Pesquise por nome, país e tipo de competição.',
   openGraph: { title: 'Competições de Futebol | Almanaque dos Clubes' },
 };
 
@@ -49,7 +51,9 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
 
 // Mapeamento do portal (Operador, 08/10) — hierarquia geográfica com âncoras
 // CURADAS do acervo (ids/QIDs confirmados no banco de produção; regra R4).
-// Seções sem dado no acervo (Seleções/Internacionais) ficam vazio-honestas.
+// T556 — a seção de Seleções/Internacionais deixou de ser vazio-honesto: o acervo TEM
+// 165 competições internacionais (Copa do Mundo, Eurocopa, Copa América...) e a âncora
+// curada passa a ser a fonte da lista.
 
 function AnchorChip({ c }: { c: AnchorCompetition }) {
   return (
@@ -83,14 +87,14 @@ export default async function CompetitionsPage({
       />
 
       {/* Filtros (Entrega 4) — form GET: gender/type/country */}
-      <form method="get" className="mt-8 flex flex-wrap gap-3 items-end" aria-label={dict.pages.competitions.filtersLabel}>
+      <form
+        method="get"
+        className="mt-8 flex flex-wrap gap-3 items-end"
+        aria-label={dict.pages.competitions.filtersLabel}
+      >
         <label className="text-xs text-foreground/60">
           {dict.pages.competitions.filters.gender}
-          <select
-            name="gender"
-            defaultValue={sp.gender ?? ''}
-            className="field block mt-1"
-          >
+          <select name="gender" defaultValue={sp.gender ?? ''} className="field block mt-1">
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="men">{dict.pages.rankings.genderMen}</option>
             <option value="women">{dict.pages.rankings.genderWomen}</option>
@@ -98,11 +102,7 @@ export default async function CompetitionsPage({
         </label>
         <label className="text-xs text-foreground/60">
           {dict.pages.competitions.filters.type}
-          <select
-            name="type"
-            defaultValue={sp.type ?? ''}
-            className="field block mt-1"
-          >
+          <select name="type" defaultValue={sp.type ?? ''} className="field block mt-1">
             <option value="">{dict.pages.competitions.filters.all}</option>
             <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
             <option value="CUP">{dict.pages.competitions.filters.cup}</option>
@@ -118,7 +118,10 @@ export default async function CompetitionsPage({
             className="field block mt-1 w-20"
           />
         </label>
-        <button type="submit" className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold">
+        <button
+          type="submit"
+          className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold"
+        >
           {dict.pages.competitions.filters.apply}
         </button>
       </form>
@@ -177,21 +180,35 @@ export default async function CompetitionsPage({
           <p className="mt-2 text-xs text-foreground/70">{s.femininoNota}</p>
         </section>
 
-        {/* Seleções / Internacionais — vazio honesto */}
+        {/* Seleções / Internacionais — T556: âncoras REAIS do acervo. Antes esta seção
+            renderizava uma mensagem fixa de "nada catalogado", premissa que expirou (a base
+            tem 165 competições internacionais). A mensagem de vazio agora é só fallback. */}
         <section aria-labelledby="comp-selecoes">
           <h2 id="comp-selecoes" className="text-lg font-heading font-semibold mb-3">
             {`🌍 ${s.selecoes}`}
           </h2>
-          <p className="text-sm text-foreground/70" data-testid="selecoes-empty">
-            {s.selecoesVazio}
-          </p>
+          {INTERNATIONAL_ANCHORS.length > 0 ? (
+            <div className="flex flex-wrap gap-2" data-testid="selecoes-anchors">
+              {INTERNATIONAL_ANCHORS.map((c) => (
+                <AnchorChip key={c.id} c={c} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-foreground/70" data-testid="selecoes-empty">
+              {s.selecoesVazio}
+            </p>
+          )}
         </section>
       </div>
 
       {/* Busca + lista completa (funcionalidade existente) */}
       <div className="mt-12 mb-6">
         <h2 className="text-lg font-heading font-semibold mb-3">{s.todas}</h2>
-        <SearchBar targetPath="/competitions" searchKey="search" placeholderKey="pages.competitions.title" />
+        <SearchBar
+          targetPath="/competitions"
+          searchKey="search"
+          placeholderKey="pages.competitions.title"
+        />
       </div>
       <Suspense
         fallback={
@@ -237,7 +254,10 @@ export default async function CompetitionsPage({
           <p className="text-center text-foreground/60 py-12">Nenhuma competição encontrada.</p>
         )}
         {total > 50 ? (
-          <nav className="flex justify-between mt-6" aria-label={dict.pages.competitions.paginationLabel}>
+          <nav
+            className="flex justify-between mt-6"
+            aria-label={dict.pages.competitions.paginationLabel}
+          >
             {offset > 0 ? (
               <Link
                 href={pageHref(sp, Math.max(0, offset - 50))}
@@ -265,12 +285,8 @@ export default async function CompetitionsPage({
   );
 }
 
-
 // Paginação (Entrega 4): preserva os filtros ativos na troca de página.
-function pageHref(
-  sp: { [key: string]: string | undefined },
-  offset: number,
-): string {
+function pageHref(sp: { [key: string]: string | undefined }, offset: number): string {
   const params = new URLSearchParams();
   for (const key of ['gender', 'type', 'country', 'search'] as const) {
     if (sp[key]) params.set(key, sp[key] as string);

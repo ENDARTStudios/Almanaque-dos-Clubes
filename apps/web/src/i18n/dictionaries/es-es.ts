@@ -199,21 +199,6 @@ const es: Dictionary = {
     backToLogin: 'Volver al inicio de sesión',
     passwordMismatch: 'Las contraseñas no coinciden.',
   },
-  admin: {
-    title: 'Administración',
-    subtitle: 'Herramientas internas de Almanaque dos Clubes.',
-    loginRequired: 'Esta área es restringida. Entra con la cuenta del operador para continuar.',
-    login: 'Entrar',
-    forbidden: 'Esta cuenta no tiene acceso a esta área.',
-    unavailable: 'No se pudo confirmar tu acceso ahora — inténtalo de nuevo en un momento.',
-    checking: 'Verificando acceso…',
-    backHome: 'Volver al inicio',
-    observability: 'Observabilidad',
-    observabilityDesc: 'Cron, cola de ingesta y alertas.',
-    reports: 'Moderación',
-    reportsDesc: 'Denuncias y contribuciones pendientes de revisión.',
-    accessNote: 'El acceso a cada herramienta lo verifica el servidor en la propia página.',
-  },
   pages: {
     dashboard: {
       title: 'Mi Almanaque',
@@ -295,8 +280,7 @@ const es: Dictionary = {
         femininoNota:
           'Conquistas femeninas aún no catalogadas en el grafo (rankings femeninos pospuestos — D-2026-10-06).',
         selecoes: 'Selecciones e Internacionales',
-        selecoesVazio:
-          'Ninguna competición de selecciones catalogada en el acervo todavía (Mundial, Copa América, Euro: próximamente).',
+        selecoesVazio: 'No se pudieron cargar las competiciones internacionales ahora.',
         verTodasFeminino: 'ver todas',
         todas: 'Todas las competiciones',
       },

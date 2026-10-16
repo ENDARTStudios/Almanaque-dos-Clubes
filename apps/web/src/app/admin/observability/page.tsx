@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import ObservabilityCard, { type JobHealthView } from '@/components/ObservabilityCard';
 import QueueStatus, { type QueueCountsView } from '@/components/QueueStatus';
 import LogViewer, { type LogEntryView, type QueueJobView } from '@/components/LogViewer';
@@ -191,14 +191,23 @@ function ObservabilityPanel() {
           {health?.alerts.backlog && (
             <p className="text-xs text-danger-ink mb-1">[ALERT] {t.backlog}</p>
           )}
-          {health?.alerts.integrityDrift?.drift && (
-            <p className="text-xs text-danger-ink mb-1">
-              [ALERT] {t.integrityDrift}:{' '}
-              {health.alerts.integrityDrift.findings
-                .map((f) => `${f.check}=${f.count}`)
-                .join(' · ')}
-            </p>
-          )}
+          {/* T572 — `Array.isArray`, e não `?.`.
+              O guard anterior era `health?.alerts.integrityDrift?.drift`, mas o corpo acessava
+              `integrityDrift.findings.map(...)`. Com `drift: true` e `findings` ausente, isso é
+              `TypeError: Cannot read properties of undefined (reading 'map')` — erro de RENDER, que
+              derruba a fronteira de erro e deixa a TELA PRETA. Foi exatamente o que o Operador viu
+              em `/admin/observability`.
+              `?.` protege a leitura do CAMINHO, não o uso do valor: aqui o que precisa de guarda é
+              "é uma lista antes de eu iterar". */}
+          {health?.alerts.integrityDrift?.drift &&
+            Array.isArray(health.alerts.integrityDrift.findings) && (
+              <p className="text-xs text-danger-ink mb-1">
+                [ALERT] {t.integrityDrift}:{' '}
+                {health.alerts.integrityDrift.findings
+                  .map((f) => `${f.check}=${f.count}`)
+                  .join(' · ')}
+              </p>
+            )}
           {(health?.alerts.active ?? []).length === 0 ? (
             <p className="text-sm text-foreground/70">{t.alertsNone}</p>
           ) : (
@@ -224,7 +233,10 @@ function ObservabilityPanel() {
         >
           <h2 className="text-sm font-heading font-semibold text-foreground mb-3">{t.slo}</h2>
           <ul className="space-y-2 text-xs">
-            {slo.slo.map((s) => (
+            {/* T572 — mesma classe de defeito do bloco de alertas: iterar sem confirmar que é
+                lista. `slo` pode vir sem `slo` (payload de erro, versão antiga da API), e
+                `.map` em `undefined` derruba a página inteira para a tela preta. */}
+            {(Array.isArray(slo.slo) ? slo.slo : []).map((s) => (
               <li key={s.job} className="flex flex-wrap items-center gap-2 justify-between">
                 <span className="font-mono text-foreground">{s.job}</span>
                 <span className="text-foreground/70 font-mono">{s.schedule}</span>
@@ -264,11 +276,16 @@ export default function AdminObservabilityPage() {
   const t = wsO1Strings[locale].observability;
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
-      <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
-      <ProtectedRoute>
+      {/* T574 — o GATE ENVOLVE A PÁGINA, e não só o painel.
+          Antes ele ficava DENTRO, depois do `<h1>`: quem não tinha permissão via "Observabilidade"
+          no topo e o pedido de login abaixo — o título anunciava uma ferramenta que a pessoa não
+          podia abrir. Verificado em navegador: o h1 era "Observabilidade" em vez de "Entrar".
+          O gate tem de estar ANTES de qualquer coisa que prometa acesso. */}
+      <OperatorGate>
+        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
+        <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
         <ObservabilityPanel />
-      </ProtectedRoute>
+      </OperatorGate>
     </div>
   );
 }

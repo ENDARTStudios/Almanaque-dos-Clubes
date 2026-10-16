@@ -197,21 +197,6 @@ const en: Dictionary = {
     backToLogin: 'Back to login',
     passwordMismatch: 'Passwords do not match.',
   },
-  admin: {
-    title: 'Administration',
-    subtitle: 'Internal tools for Almanaque dos Clubes.',
-    loginRequired: 'This area is restricted. Sign in with the operator account to continue.',
-    login: 'Sign in',
-    forbidden: 'This account does not have access to this area.',
-    unavailable: 'Could not confirm your access right now — try again in a moment.',
-    checking: 'Checking access…',
-    backHome: 'Back to home',
-    observability: 'Observability',
-    observabilityDesc: 'Cron jobs, ingestion queue and alerts.',
-    reports: 'Moderation',
-    reportsDesc: 'Reports and contributions awaiting review.',
-    accessNote: 'Access to each tool is verified on the page itself, by the server.',
-  },
   pages: {
     dashboard: {
       title: 'My Almanac',
@@ -293,8 +278,7 @@ const en: Dictionary = {
         femininoNota:
           "Women's titles not yet catalogued in the graph (women's rankings postponed — D-2026-10-06).",
         selecoes: 'National Teams & International',
-        selecoesVazio:
-          'No national-team competition catalogued in the archive yet (World Cup, Copa América, Euro: coming soon).',
+        selecoesVazio: 'No international competitions could be loaded right now.',
         verTodasFeminino: 'see all',
         todas: 'All competitions',
       },
