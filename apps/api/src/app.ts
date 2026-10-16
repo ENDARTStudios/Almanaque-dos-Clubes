@@ -53,6 +53,9 @@ import { adminMetricsRoutes } from './modules/admin/metrics.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { isAllowedOrigin } from './config/cors.js';
+// T-ADMIN-W3 — rota de diagnostico. Import ao FINAL do bloco de propósito: e o trecho
+// que outra rodada da area admin nao toca, e assim os dois PRs nao disputam a mesma linha.
+import { adminDiagnosticsRoutes } from './modules/admin/diagnostics.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   // Handler de erro único, registrado ANTES das rotas em cada escopo: o Fastify
@@ -273,6 +276,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(geoRoutes);
       await api.register(backupRoutes);
       await api.register(adminMetricsRoutes);
+      await api.register(adminDiagnosticsRoutes);
     },
     { prefix: '/api/v1' },
   );
