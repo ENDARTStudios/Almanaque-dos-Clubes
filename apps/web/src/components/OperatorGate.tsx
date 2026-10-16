@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
+import { adminStrings } from '@/components/admin/strings';
 
 /**
  * T565 — PORTÃO DE OPERADOR (cliente).
@@ -31,7 +32,15 @@ type Estado = 'checando' | 'ok' | 'precisa-login' | 'sem-permissao' | 'indisponi
 
 export default function OperatorGate({ children }: { children: React.ReactNode }) {
   const { status } = useAuth();
-  const { t } = useI18n();
+  const { locale } = useI18n();
+  /* T571 — as strings vem do modulo do ADMIN, nao do dicionario geral.
+     O defeito que isto corrige: eu havia posto as chaves em `admin.*` no dicionario e chamado
+     `t('pages.admin.*')` aqui — caminho que NAO EXISTE. O `t()` devolve a PROPRIA CHAVE quando
+     nao encontra, entao a tela de login mostrava literalmente "pages.admin.title" no lugar de
+     "Administracao". Visto pelo Operador na tela, e nao por teste.
+
+     A fonte certa e a mesma das outras paginas de admin (`adminStrings`), que ja existia quando
+     eu escrevi isto — eu nao a encontrei porque procurei no dicionario.
   /**
    * O estado da CHAMADA, sem os casos que já se sabe pela sessão.
    *
@@ -41,6 +50,7 @@ export default function OperatorGate({ children }: { children: React.ReactNode }
    * requisição — que chega de forma assíncrona e é informação nova — vira estado.
    */
   const [resultado, setResultado] = useState<Exclude<Estado, 'checando'> | null>(null);
+  const s = adminStrings[locale] ?? adminStrings['pt-br'];
 
   useEffect(() => {
     // Sem sessão autenticada não há o que perguntar: a resposta seria 401 de qualquer forma.
@@ -54,9 +64,9 @@ export default function OperatorGate({ children }: { children: React.ReactNode }
       })
       .catch((e: unknown) => {
         if (!vivo) return;
-        const s = (e as { status?: number }).status;
-        if (s === 401) setResultado('precisa-login');
-        else if (s === 403) setResultado('sem-permissao');
+        const codigo = (e as { status?: number }).status;
+        if (codigo === 401) setResultado('precisa-login');
+        else if (codigo === 403) setResultado('sem-permissao');
         // 500 ou rede: NÃO é permissão. Dizer "sem permissão" aqui seria uma afirmação falsa
         // sobre o usuário, e ele iria procurar um problema de acesso que não existe.
         else setResultado('indisponivel');
@@ -81,7 +91,7 @@ export default function OperatorGate({ children }: { children: React.ReactNode }
   if (estado === 'checando') {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <p className="text-sm text-ink-2">{t('pages.admin.checking')}</p>
+        <p className="text-sm text-ink-2">{s.index.checking}</p>
       </div>
     );
   }
@@ -93,15 +103,15 @@ export default function OperatorGate({ children }: { children: React.ReactNode }
     return (
       <div className="max-w-md mx-auto px-4 py-16">
         <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
-          {t('pages.admin.title')}
+          {s.index.loginTitle}
         </h1>
-        <p className="text-sm text-ink-2 mb-6">{t('pages.admin.loginRequired')}</p>
+        <p className="text-sm text-ink-2 mb-6">{s.index.loginRequired}</p>
         <Link
           href={`/auth/login?next=${encodeURIComponent(destino)}`}
           className="inline-flex min-h-11 items-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200"
           data-testid="operator-login-link"
         >
-          {t('pages.admin.login')}
+          {s.index.login}
         </Link>
       </div>
     );
@@ -109,20 +119,17 @@ export default function OperatorGate({ children }: { children: React.ReactNode }
 
   /* SEM PERMISSÃO: a recusa é declarada sem dizer quem pode entrar. Entregar o e-mail do
      Operador aqui daria a um atacante o alvo exato. */
-  const mensagem =
-    estado === 'sem-permissao' ? t('pages.admin.forbidden') : t('pages.admin.unavailable');
+  const mensagem = estado === 'sem-permissao' ? s.index.forbidden : s.index.unavailable;
 
   return (
     <div className="max-w-md mx-auto px-4 py-16" data-testid={`operator-gate-${estado}`}>
-      <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
-        {t('pages.admin.title')}
-      </h1>
+      <h1 className="font-heading text-2xl font-bold text-foreground mb-2">{s.index.loginTitle}</h1>
       <p className="text-sm text-ink-2">{mensagem}</p>
       <Link
         href="/"
         className="mt-6 inline-block text-sm text-primary-ink underline decoration-dotted underline-offset-2"
       >
-        {t('pages.admin.backHome')}
+        {s.nav.back}
       </Link>
     </div>
   );
