@@ -28,6 +28,19 @@ export interface AdminStrings {
     title: string;
     subtitle: string;
     accessNote: string;
+    /* T571 — a TELA DE LOGIN da area restrita. Estas quatro chaves faltavam, e a ausencia delas
+       era VISIVEL: o `OperatorGate` pedia `pages.admin.*` (caminho que nao existe) e o `t()`
+       devolvia a propria chave, entao o Operador via "pages.admin.title" no lugar de
+       "Administracao". Ver a nota no fim deste arquivo sobre por que isso passou. */
+    loginTitle: string;
+    loginRequired: string;
+    login: string;
+    checking: string;
+    forbidden: string;
+    /* T571 — separada de `forbidden` de proposito: dizer "sua conta nao tem acesso" quando o
+       servidor esta fora e uma AFIRMACAO FALSA sobre o usuario, e ele vai procurar um problema de
+       permissao que nao existe. */
+    unavailable: string;
   };
   users: {
     title: string;
@@ -236,6 +249,12 @@ const PT: AdminStrings = {
   index: {
     title: 'Administração',
     subtitle: 'Ferramentas internas do Almanaque dos Clubes.',
+    loginTitle: 'Entrar na administração',
+    loginRequired: 'Esta área é restrita ao operador. Entre com a sua conta para continuar.',
+    login: 'Entrar',
+    checking: 'Verificando acesso…',
+    forbidden: 'Esta conta não tem acesso a esta área.',
+    unavailable: 'Não foi possível confirmar o seu acesso agora — tente de novo em instantes.',
     accessNote:
       'O acesso é decidido pela API (authenticate + requireRole + allowlist de operador). ' +
       'Esta tela não é o portão: sem permissão no servidor, cada ferramenta responde 403.',
@@ -457,6 +476,13 @@ const EN: AdminStrings = {
   index: {
     title: 'Administration',
     subtitle: 'Internal tools of Almanaque dos Clubes.',
+    loginTitle: 'Sign in to administration',
+    loginRequired:
+      'This area is restricted to the operator. Sign in with your account to continue.',
+    login: 'Sign in',
+    checking: 'Checking access…',
+    forbidden: 'This account does not have access to this area.',
+    unavailable: 'Could not confirm your access right now — try again in a moment.',
     accessNote:
       'Access is decided by the API (authenticate + requireRole + operator allowlist). ' +
       'This screen is not the gate: without server permission each tool answers 403.',
@@ -685,6 +711,12 @@ const ES: AdminStrings = {
   index: {
     title: 'Administración',
     subtitle: 'Herramientas internas de Almanaque dos Clubes.',
+    loginTitle: 'Entrar en la administración',
+    loginRequired: 'Esta área está restringida al operador. Entra con tu cuenta para continuar.',
+    login: 'Entrar',
+    checking: 'Verificando acceso…',
+    forbidden: 'Esta cuenta no tiene acceso a esta área.',
+    unavailable: 'No se pudo confirmar tu acceso ahora — inténtalo de nuevo en un momento.',
     accessNote:
       'El acceso lo decide la API (authenticate + requireRole + allowlist de operador). ' +
       'Esta pantalla no es el portón: sin permiso en el servidor cada herramienta responde 403.',
