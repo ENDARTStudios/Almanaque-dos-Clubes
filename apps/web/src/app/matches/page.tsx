@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wt541Strings } from '@/i18n/wsT541';
+import { wt579Strings } from '@/i18n/wsT579';
+import { ClubCrest } from '@/components/MediaAssets';
 
 /**
  * T541 — página pública de PARTIDAS.
@@ -18,6 +20,12 @@ import { wt541Strings } from '@/i18n/wsT541';
  *   e temporada que TÊM partidas — nada de lista hardcoded nem filtro que devolve vazio.
  * - **i18n em módulo aditivo** (`i18n/wsT541.ts`), sem tocar dicionários globais.
  * - Empty-honesto: sem resultado, diz que não há — não preenche com nada.
+ *
+ * T579 (ITEM 20) — a linha da partida passou a ser um CONFRONTO legível:
+ * `escudo · casa · placar casa · × · placar visitante · visitante · escudo`. Os escudos vêm
+ * do `logoUrl` do próprio clube, incluído no select do repositório de partidas
+ * (`modules/matches/repository.ts`) — sem ele, cada linha exigiria uma segunda chamada só
+ * para buscar um campo que já existe na tabela.
  */
 
 interface Facet {
@@ -32,8 +40,10 @@ interface MatchRow {
   round: string | null;
   homeScore: number | null;
   awayScore: number | null;
-  homeClub: { id: string; name: string } | null;
-  awayClub: { id: string; name: string } | null;
+  // T579 (ITEM 20) — `logoUrl` é devolvido pela API de partidas (aditivo no select do
+  // repositório): o escudo é o mesmo asset já auditado do acervo (`Club.logoUrl`).
+  homeClub: { id: string; name: string; logoUrl?: string | null } | null;
+  awayClub: { id: string; name: string; logoUrl?: string | null } | null;
   competition: { id: string; name: string } | null;
   season: { id: string; name: string } | null;
 }
@@ -78,6 +88,7 @@ export default async function MatchesPage({
   const sp = await searchParams;
   const locale = await getLocale();
   const t = wt541Strings[locale];
+  const t579 = wt579Strings[locale];
   const base = getApiBase();
 
   const offset = Math.max(parseInt(sp.offset ?? '0', 10) || 0, 0);
@@ -215,9 +226,12 @@ export default async function MatchesPage({
                 <th scope="col" className="px-4 py-3 font-medium text-foreground">
                   {t.table.match}
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-foreground">
-                  {t.table.score}
-                </th>
+                {/* T579 (ITEM 20) — a coluna "Placar" foi ABSORVIDA pela coluna "Partida".
+                    O dono pediu a frase na ordem do confronto — "SS Lazio 0 x 1 Unione
+                    Sportiva Lecce" — e essa ordem é impossível de montar com os dois placares
+                    numa célula à parte: o leitor teria de saltar para a direita no meio da
+                    frase. Placar separado do nome também é o que faz o leitor de tela dizer
+                    os nomes primeiro e os números depois, sem dizer de quem é cada número. */}
                 <th scope="col" className="px-4 py-3 font-medium text-foreground">
                   {t.table.competition}
                 </th>
@@ -233,24 +247,11 @@ export default async function MatchesPage({
                     {fmtDate(m.date)}
                   </td>
                   <td className="px-4 py-3 text-foreground">
-                    {m.homeClub ? (
-                      <Link href={`/clubs/${m.homeClub.id}`} className="text-primary-ink underline">
-                        {m.homeClub.name}
-                      </Link>
-                    ) : (
-                      <span className="text-foreground/70">—</span>
-                    )}
-                    <span className="mx-2 text-foreground/70">×</span>
-                    {m.awayClub ? (
-                      <Link href={`/clubs/${m.awayClub.id}`} className="text-primary-ink underline">
-                        {m.awayClub.name}
-                      </Link>
-                    ) : (
-                      <span className="text-foreground/70">—</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-foreground">
-                    {m.homeScore ?? '—'}–{m.awayScore ?? '—'}
+                    <Confronto
+                      match={m}
+                      joiner={t579.matches.scoreJoiner}
+                      noScore={t579.matches.noScore}
+                    />
                   </td>
                   <td className="px-4 py-3 text-foreground/60">{m.competition?.name ?? '—'}</td>
                   <td className="px-4 py-3 text-foreground/60">
@@ -287,5 +288,68 @@ export default async function MatchesPage({
 
       <p className="mt-8 text-xs text-foreground/60">{t.source}</p>
     </div>
+  );
+}
+
+/**
+ * T579 (ITEM 20) — o CONFRONTO na ordem em que se lê um resultado:
+ * `escudo · time da casa · placar da casa · × · placar do visitante · time visitante · escudo`.
+ *
+ * A ordem visual é a ordem do DOM, e é isso que faz a leitura funcionar: um leitor de tela
+ * anuncia a sequência como ela aparece. O "×" é DECORATIVO (`aria-hidden`) e quem carrega a
+ * fala é a conjunção invisível (`a`/`to`) — o resultado soa "SS Lazio 0 a 1 Unione Sportiva
+ * Lecce", com cada número colado no time a que pertence. Sem isso, o "×" seria lido como
+ * "vezes" no meio da frase, ou — pior, no desenho antigo com placar em outra coluna — os dois
+ * números chegariam longe dos nomes, sem dizer de quem são.
+ *
+ * Placar ausente na fonte: os dois números são uma UNIDADE. Se um dos lados falta, não existe
+ * "1 × —" a inventar; a célula DECLARA a lacuna (`sem placar na fonte`) em vez de mostrar
+ * zero, que é um número com cara de fato.
+ *
+ * Sem logo no acervo, entra o escudo genérico AUTORAL do projeto via `ClubCrest` — nunca um
+ * brasão inventado (mesma regra do `PlayerPhoto`).
+ */
+function Confronto({
+  match,
+  joiner,
+  noScore,
+}: {
+  match: MatchRow;
+  joiner: string;
+  noScore: string;
+}) {
+  const { homeClub, awayClub, homeScore, awayScore } = match;
+  const temPlacar = homeScore != null && awayScore != null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      {homeClub ? <ClubCrest logoUrl={homeClub.logoUrl} name={homeClub.name} size={26} /> : null}
+      {homeClub ? (
+        <Link href={`/clubs/${homeClub.id}`} className="text-primary-ink underline">
+          {homeClub.name}
+        </Link>
+      ) : (
+        <span className="text-foreground/70">—</span>
+      )}
+      {temPlacar ? (
+        <>
+          <span className="font-heading font-bold tabular-nums">{homeScore}</span>
+          <span aria-hidden="true" className="text-foreground/60">
+            ×
+          </span>
+          <span className="sr-only">{joiner}</span>
+          <span className="font-heading font-bold tabular-nums">{awayScore}</span>
+        </>
+      ) : (
+        <span className="text-foreground/60">{noScore}</span>
+      )}
+      {awayClub ? (
+        <Link href={`/clubs/${awayClub.id}`} className="text-primary-ink underline">
+          {awayClub.name}
+        </Link>
+      ) : (
+        <span className="text-foreground/70">—</span>
+      )}
+      {awayClub ? <ClubCrest logoUrl={awayClub.logoUrl} name={awayClub.name} size={26} /> : null}
+    </span>
   );
 }

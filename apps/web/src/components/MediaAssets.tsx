@@ -56,9 +56,14 @@ export function ClubCrest({
       aria-hidden="true"
     >
       <ClubCrestGenericDark size={Math.round(size * 0.42)} />
-      <span className="font-heading font-bold leading-none" style={{ fontSize: size / 4.8 }}>
-        {name.slice(0, 2).toUpperCase()}
-      </span>
+      {/* T579 — a sigla só entra quando cabe. A `fontSize` é `size / 4.8` (24 px ⇒ 5 px), e
+          numa lista de partidas o cartão tem 24-28 px: dois caracteres de 5 px não são
+          rótulo, são mancha. Abaixo de 40 px vale só o ícone, que é o que se lê de fato. */}
+      {size >= 40 ? (
+        <span className="font-heading font-bold leading-none" style={{ fontSize: size / 4.8 }}>
+          {name.slice(0, 2).toUpperCase()}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -118,25 +123,9 @@ export function PlayerPhoto({
   );
 }
 
-/** Bandeira do país (flagcdn, domínio público) com sigla honesta de fallback. */
-export function CountryFlag({ iso2, name }: { iso2?: string | null; name?: string | null }) {
-  if (!iso2 || !/^[A-Za-z]{2}$/.test(iso2)) {
-    return <span className="text-xs text-foreground/70">{name ?? '—'}</span>;
-  }
-  const cc = iso2.toLowerCase();
-  return (
-    <span className="inline-flex items-center gap-1.5" data-testid="country-flag">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`https://flagcdn.com/20x15/${cc}.png`}
-        srcSet={`https://flagcdn.com/40x30/${cc}.png 2x`}
-        width={20}
-        height={15}
-        alt=""
-        className="rounded-sm border border-border/40"
-        loading="lazy"
-      />
-      <span className="text-xs text-foreground/70">{name ?? iso2.toUpperCase()}</span>
-    </span>
-  );
-}
+/* T579 (ITEM 19) — a `CountryFlag` que vivia aqui (PNG de `flagcdn.com`) foi REMOVIDA e
+   substituída por `@/components/CountryFlag`, que deriva a bandeira do próprio código ISO2
+   do acervo. Motivo declarado: o asset era buscado de um CDN de terceiro, com a largura e a
+   licença fora do nosso controle — e nenhuma tela a usava (componente morto, `tsc` não
+   acusava porque era exportado). A nova é clicável, tem nome acessível com o país em texto
+   e alvo de 24 px. */

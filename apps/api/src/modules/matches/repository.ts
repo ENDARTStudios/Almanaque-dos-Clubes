@@ -25,9 +25,13 @@ export const matchesRepository = {
       skip: params.offset ?? 0,
       // T541 — a LISTA precisa dos nomes para ser renderizável (a página /matches
       // mostra mandante x visitante). Aditivo: quem já consumia só ids continua igual.
+      // T579 — `logoUrl` entra no MESMO select: a lista pública passou a mostrar o
+      // escudo de cada time ao lado do nome, e o logo é coluna do próprio `Club`
+      // (`Club.logoUrl`, 592 clubes com mídia). Sem isso a página teria de fazer uma
+      // segunda chamada por linha só para buscar um campo que já está na tabela.
       include: {
-        homeClub: { select: { id: true, name: true } },
-        awayClub: { select: { id: true, name: true } },
+        homeClub: { select: { id: true, name: true, logoUrl: true } },
+        awayClub: { select: { id: true, name: true, logoUrl: true } },
         competition: { select: { id: true, name: true } },
         season: { select: { id: true, name: true } },
       },

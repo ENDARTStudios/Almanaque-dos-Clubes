@@ -10,7 +10,9 @@ import { safeJsonLd } from '@/lib/json-ld';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { PlayerPhoto } from '@/components/MediaAssets';
+import { CountryFlag } from '@/components/CountryFlag';
 import { wIconsStrings, positionLabel } from '@/i18n/wsIcons';
+import { wt579Strings } from '@/i18n/wsT579';
 
 interface Player {
   id: string;
@@ -144,7 +146,22 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
           followersSnapshot={p.followersSnapshot ?? null}
         />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
-          {p.country && <InfoItem label="País" value={p.country} />}
+          {/* T579 (ITEM 19) — o país do jogador vira bandeira CLICÁVEL para os clubes
+              daquele país (`/clubs?country=BR`, filtro existente) com o país por extenso no
+              nome acessível; antes era a sigla ISO2 crua, sem nome e sem destino. */}
+          {p.country && (
+            <InfoItem
+              label={wt579Strings[locale].labels.country}
+              value={
+                <CountryFlag
+                  code={p.country}
+                  locale={locale}
+                  basePath="/clubs"
+                  destination="clubs"
+                />
+              }
+            />
+          )}
           {p.position && <InfoItem label="Posição" value={p.position} />}
           {birthYear && <InfoItem label="Nascimento" value={birthYear} />}
           {p.qid && <InfoItem label="Wikidata" value={p.qid} />}
@@ -252,7 +269,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                 >
                   <p className="font-heading font-semibold text-foreground">{c.name}</p>
                   {c.country ? (
-                    <p className="text-xs text-foreground/70 mt-1">{c.country}</p>
+                    <CountryFlag code={c.country} locale={locale} className="mt-1" />
                   ) : null}
                 </Link>
               ))}

@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import PageHeading from '@/components/PageHeading';
 import SearchBar from '@/components/SearchBar';
 import CountryIndex from '@/components/CountryIndex';
+import { CountryFlag } from '@/components/CountryFlag';
 import { getApiBase } from '@/lib/api-base';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
@@ -234,8 +235,14 @@ export default async function CompetitionsPage({
                   {c.name.slice(0, 2).toUpperCase()}
                 </div>
                 <h3 className="text-lg font-heading font-semibold text-foreground">{c.name}</h3>
+                {/* T579 (ITEM 19) — o país da competição com bandeira derivada do ISO2 e o
+                    nome por extenso no idioma do usuário. Não é clique aqui: o cartão todo
+                    já leva à competição (âncora dentro de âncora é HTML inválido). O caminho
+                    clicável para o país é o índice de países e/ou o `?country=` do filtro. */}
                 {c.country ? (
-                  <p className="text-sm text-foreground/60 mt-1">{c.country}</p>
+                  <p className="mt-1 text-sm text-foreground/60">
+                    <CountryFlag code={c.country} locale={locale} />
+                  </p>
                 ) : (
                   <p className="text-sm text-foreground/60 mt-1">Internacional</p>
                 )}

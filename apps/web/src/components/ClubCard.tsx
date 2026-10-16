@@ -1,6 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import Link from 'next/link';
+import { CountryFlag } from '@/components/CountryFlag';
 import { useGsapStagger, useGsapHover } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
 
@@ -10,6 +11,7 @@ interface Club {
 
 function ClubCard({ club }: { club: Club }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { locale } = useI18n();
   useGsapHover(ref);
   return (
     <Link href={`/clubs/${club.id}`}>
@@ -18,7 +20,17 @@ function ClubCard({ club }: { club: Club }) {
           {club.name.slice(0, 2).toUpperCase()}
         </div>
         <h3 className="text-lg font-heading font-semibold text-foreground">{club.name}</h3>
-        {club.country && <p className="text-sm text-foreground/60 mt-1">{club.city ? `${club.city}, ` : ''}{club.country}</p>}
+        {/* T579 (ITEM 19) — bandeira do país derivada da sigla ISO2 do dado, com o nome do país
+            em texto ao lado (nome via ICU, no idioma do usuário; a sigla aparece quando o código
+            não é região conhecida). Aqui ela NÃO é clique: o cartão inteiro já é um link para o
+            clube, e âncora dentro de âncora é HTML inválido. O caminho clicável para o país é o
+            cartão do índice acima, que leva a `?country=XX`. */}
+        {club.country && (
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-foreground/60">
+            {club.city ? <span>{club.city},</span> : null}
+            <CountryFlag code={club.country} locale={locale} />
+          </p>
+        )}
         {club.status && (
           <span className={`inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full ${club.status === 'ACTIVE' ? 'bg-success-surface text-success-ink' : 'bg-warn-surface text-warn-ink'}`}>
             {club.status === 'ACTIVE' ? 'Ativo' : club.status}
