@@ -42,14 +42,24 @@ const names = Object.keys(icons);
 for (const name of names) {
   const icon = icons[name];
   const body = icon.shapes.map((s) => `  ${shapeToSvg(s)}`).join('\n');
+  /**
+   * Cabeçalho padrão do conjunto. Um ícone pode trazer o dele (`header`) quando a
+   * autoria precisa ser dita com precisão — é o caso do `player-ball`, cuja geometria é
+   * a FORMA CANÔNICA de bola (comum a FA/Material/Tabler) e não uma criação de forma
+   * deste projeto. O cabeçalho alternativo continua citando este gerador, que é o que o
+   * teste de não-drifting procura em todos os arquivos.
+   */
+  const header = icon.header ?? [
+    `${name} — icone AUTORAL do Almanaque dos Clubes.`,
+    `Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,`,
+    `escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.`,
+    `Gerado por apps/web/scripts/export-icons.mjs a partir de`,
+    `apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.`,
+  ];
   const svg = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     `<!--`,
-    `  ${name} — icone AUTORAL do Almanaque dos Clubes.`,
-    `  Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,`,
-    `  escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.`,
-    `  Gerado por apps/web/scripts/export-icons.mjs a partir de`,
-    `  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.`,
+    ...header.map((line) => (line.length > 0 ? `  ${line}` : '')),
     `-->`,
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" width="24" height="24"`,
     `  fill="none" stroke="currentColor" stroke-width="${icon.strokeWidth}"`,

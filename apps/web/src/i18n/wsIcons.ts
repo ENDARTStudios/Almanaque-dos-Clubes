@@ -10,6 +10,10 @@ import type { Locale } from './config';
  * Honestidade (skill `conversion-copy`): quando não há imagem oficial no acervo, a
  * tela DIZ que o desenho é uma ilustração. O ícone nunca se apresenta como o escudo,
  * a foto ou o troféu oficial — só como forma genérica da categoria.
+ *
+ * POSIÇÃO: o rótulo continua sendo o NOME DA POSIÇÃO ("goleiro", "atacante"…), correto
+ * como está — o que mudou foi o DESENHO, que hoje é um OBJETO do ofício (luva,
+ * caneleira, bola, chuteira) e não mais uma figura humana.
  */
 export interface WIconsStrings {
   /** Rótulo do escudo genérico (clube/seleção sem logo no acervo). */

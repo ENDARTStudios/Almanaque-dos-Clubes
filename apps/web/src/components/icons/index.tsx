@@ -7,10 +7,19 @@ import raw from './icons.json';
  * AUTORIA: END ART Studios. Nenhum desenho deste arquivo foi rastreado, vetorizado,
  * copiado ou "reinterpretado" de fotografia, escudo, troféu ou qualquer obra de
  * terceiro. São formas genéricas que evocam a CATEGORIA (copo, taça, medalha, placa,
- * escudo, atleta) — não a silhueta de um troféu/escudo real, que seria obra derivada
- * (Lei 9.610/98, art. 29) e marca registrada. Nenhum placeholder de atleta é retrato
- * ou caricatura de pessoa real (Código Civil, art. 20): é uma figura genérica, sem
- * semelhança com ninguém. Ver `docs/ICONES-AUTORAIS.md`.
+ * escudo, objeto do ofício) — não a silhueta de um troféu/escudo real, que seria obra
+ * derivada (Lei 9.610/98, art. 29) e marca registrada.
+ *
+ * POSIÇÃO = OBJETO, nunca figura humana. A rodada anterior usou uma figura genérica por
+ * posição; o resultado foi um boneco palito, reprovado e removido. Agora cada posição é
+ * representada por um OBJETO do ofício (luva de goleiro, caneleira, bola, chuteira) —
+ * nada de pessoa, retrato ou caricatura (Código Civil, art. 20), nada de marca de
+ * fabricante. Ver `docs/ICONES-AUTORAIS.md`.
+ *
+ * EXCEÇÃO DECLARADA: `player-ball` não reivindica forma. Bola de futebol em ícone é
+ * geometria canônica (círculo + pentágono central + costuras), comum a FA, Material
+ * Symbols e Tabler (MIT); o que é do projeto é o desenho — pentágono maior e rotacionado
+ * (vértice para baixo) e costuras mais curtas. O cabeçalho do SVG publicado diz isso.
  *
  * GEOMETRIA: uma única fonte — `icons.json` (viewBox 24×24, traço `currentColor`,
  * `fill="none"`, 1,75 de espessura, pontas e junções arredondadas, mesma linguagem do
@@ -60,10 +69,10 @@ export const ICON_NAMES = [
   'trophy-medal',
   'trophy-shield',
   'trophy-belt',
-  'player-goalkeeper',
-  'player-defender',
-  'player-midfielder',
-  'player-forward',
+  'player-glove',
+  'player-shin-guard',
+  'player-ball',
+  'player-boot',
   'club-crest-generic',
   'club-crest-generic-dark',
 ] as const;
@@ -145,11 +154,11 @@ export const TrophyMedal = (props: IconProps) => <Svg name="trophy-medal" {...pr
 export const TrophyShield = (props: IconProps) => <Svg name="trophy-shield" {...props} />;
 export const TrophyBelt = (props: IconProps) => <Svg name="trophy-belt" {...props} />;
 
-// --- placeholder de atleta, por posição -------------------------------------
-export const PlayerGoalkeeper = (props: IconProps) => <Svg name="player-goalkeeper" {...props} />;
-export const PlayerDefender = (props: IconProps) => <Svg name="player-defender" {...props} />;
-export const PlayerMidfielder = (props: IconProps) => <Svg name="player-midfielder" {...props} />;
-export const PlayerForward = (props: IconProps) => <Svg name="player-forward" {...props} />;
+// --- placeholder de atleta, por posição: OBJETO do ofício --------------------
+export const PlayerGlove = (props: IconProps) => <Svg name="player-glove" {...props} />;
+export const PlayerShinGuard = (props: IconProps) => <Svg name="player-shin-guard" {...props} />;
+export const PlayerBall = (props: IconProps) => <Svg name="player-ball" {...props} />;
+export const PlayerBoot = (props: IconProps) => <Svg name="player-boot" {...props} />;
 
 // --- placeholder de clube / escudo -----------------------------------------
 export const ClubCrestGeneric = (props: IconProps) => <Svg name="club-crest-generic" {...props} />;
@@ -160,11 +169,16 @@ export const ClubCrestGenericDark = (props: IconProps) => (
 /** Posições do domínio (`packages/domain/src/player.ts`, enum `PlayerPosition`). */
 export type PlayerPositionKey = 'GOALKEEPER' | 'DEFENDER' | 'MIDFIELDER' | 'FORWARD';
 
+/**
+ * Posição → OBJETO do ofício. Nada de figura humana: a posição é lida pelo objeto
+ * que a define (a luva do goleiro, a caneleira do zagueiro, a bola do meio-campo,
+ * a chuteira do atacante).
+ */
 export const PLAYER_POSITION_ICON = {
-  GOALKEEPER: 'player-goalkeeper',
-  DEFENDER: 'player-defender',
-  MIDFIELDER: 'player-midfielder',
-  FORWARD: 'player-forward',
+  GOALKEEPER: 'player-glove',
+  DEFENDER: 'player-shin-guard',
+  MIDFIELDER: 'player-ball',
+  FORWARD: 'player-boot',
 } as const satisfies Record<PlayerPositionKey, IconName>;
 
 /**

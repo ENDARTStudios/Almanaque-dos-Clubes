@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  player-ball — icone do Almanaque dos Clubes (placeholder de MIDFIELDER).
+  BOLA DE FUTEBOL em FORMA CANONICA: circulo + pentagono central + costuras ate a
+  circunferencia. Essa forma e comum a qualquer conjunto de icones (FA, Material
+  Symbols, Tabler MIT) — nao e uma criacao de forma deste projeto e NAO e
+  reivindicada como original. O desenho e do Almanaque (pentagono maior e
+  ROTACIONADO, com o vertice para baixo, e costuras mais curtas; nenhum 'd' coincide
+  com biblioteca alguma). Sem rastro, sem vetorizacao e sem imagem de origem: so
+  primitivas escritas a mao para o projeto.
+  Gerado por apps/web/scripts/export-icons.mjs a partir de
+  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+  fill="none" stroke="currentColor" stroke-width="1.75"
+  stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="7.5" />
+  <path d="M12.00 16.20 L15.99 13.30 L14.47 8.60 L9.53 8.60 L8.01 13.30 Z" />
+  <path d="M12.00 16.20 L12.00 19.50" />
+  <path d="M15.99 13.30 L19.13 14.32" />
+  <path d="M14.47 8.60 L16.41 5.93" />
+  <path d="M9.53 8.60 L7.59 5.93" />
+  <path d="M8.01 13.30 L4.87 14.32" />
+</svg>
