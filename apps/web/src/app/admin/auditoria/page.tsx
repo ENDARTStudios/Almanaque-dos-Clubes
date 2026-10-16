@@ -1,6 +1,6 @@
 'use client';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import AuditTrail from '@/components/admin/AuditTrail';
 import { useI18n } from '@/i18n/Provider';
 import { adminStrings } from '@/components/admin/strings';
@@ -17,7 +17,7 @@ export default function AdminAuditPage() {
   const s = adminStrings[locale] ?? adminStrings['pt-br'];
 
   return (
-    <ProtectedRoute>
+    <OperatorGate>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
           {s.audit.title}
@@ -25,6 +25,6 @@ export default function AdminAuditPage() {
         <p className="text-ink-2 mb-8">{s.audit.subtitle}</p>
         <AuditTrail />
       </div>
-    </ProtectedRoute>
+    </OperatorGate>
   );
 }
