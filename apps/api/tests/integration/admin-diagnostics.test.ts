@@ -223,11 +223,11 @@ describe('GET /admin/diagnostics — inventário de flags', () => {
       const divergente = await operatorGet();
       const porChave2 = new Map(divergente.flags.map((f) => [f.key, f]));
       expect(porChave2.get('PAYMENTS_ENABLED')?.value).toBe(false);
-      expect(porChave2.get('ETL_SCHEDULER_ENABLED')?.value).toBe(false);
-      expect(porChave2.get('BIRTHDAY_GIFT_ENABLED')?.value).toBe(false);
-      expect(porChave2.get('ETL_SCHEDULER_ENABLED')?.drift).toBeTruthy();
-      expect(porChave2.get('BIRTHDAY_GIFT_ENABLED')?.drift).toBeTruthy();
-      expect(porChave2.get('MEDIA_WORKER_LOCAL')?.drift).toBeTruthy(); // default invertido
+      expect(porChave2.get('ETL_SCHEDULER_ENABLED')?.value).toBe(true); // T568
+      expect(porChave2.get('BIRTHDAY_GIFT_ENABLED')?.value).toBe(true); // T568
+      expect(porChave2.get('ETL_SCHEDULER_ENABLED')?.drift).toBeFalsy(); // T568 — parser unico
+      expect(porChave2.get('BIRTHDAY_GIFT_ENABLED')?.drift).toBeFalsy(); // T568
+      expect(porChave2.get('MEDIA_WORKER_LOCAL')?.drift).toBeFalsy(); // T568 — default agora seguro
     } finally {
       restauraPayments();
       restauraEtl();

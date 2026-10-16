@@ -111,7 +111,9 @@ describe('isSchedulerEnabled (T451)', () => {
     process.env.ETL_SCHEDULER_ENABLED = '0';
     expect(isSchedulerEnabled()).toBe(false);
     process.env.ETL_SCHEDULER_ENABLED = 'true';
-    expect(isSchedulerEnabled()).toBe(false); // só '1' liga (padrão RANKING_CRON_AUTO)
+    // T568 — 'true' e '1' ligam: o parser e unico (`envFlag`). Antes so '1' ligava aqui e
+    // 'true' ligava em outro consumidor — a divergencia que o painel de diagnostico expos.
+    expect(isSchedulerEnabled()).toBe(true);
     process.env.ETL_SCHEDULER_ENABLED = prev;
   });
 });

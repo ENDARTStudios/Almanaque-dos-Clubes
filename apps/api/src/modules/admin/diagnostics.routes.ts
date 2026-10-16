@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
 import { requireOperator } from '../auth/operator.middleware.js';
+import { envFlag } from '../../config/flags.js';
 import { env } from '../../config/env.js';
 import { queues } from '../../services/queue.js';
 import { isSchedulerEnabled } from '../../jobs/data-refresh.scheduler.js';
@@ -134,10 +135,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: false,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/modules/billing/routes.ts:147',
-    drift:
-      'A MESMA variável também é lida no processo WEB (apps/web/src/app/checkout/page.tsx:22): ' +
-      'com valores diferentes entre os dois serviços, a página /checkout dá 404 enquanto a API ' +
-      'aceita cobrança — ou o contrário.',
     read: () => process.env.PAYMENTS_ENABLED === 'true',
     raw: () => process.env.PAYMENTS_ENABLED ?? null,
   },
@@ -149,10 +146,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: false,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/jobs/birthday-gift.scheduler.ts:23',
-    drift:
-      'Leituras divergentes: server.ts:38 trata "1" OU "true" como ligado, mas o handler ' +
-      '(birthday-gift.scheduler.ts:23) só aceita "true". Com BIRTHDAY_GIFT_ENABLED=1 o ' +
-      'agendador é registrado no boot e o job NÃO concede nada — falha silenciosa.',
     read: () => isBirthdayGiftEnabled(),
     raw: () => process.env.BIRTHDAY_GIFT_ENABLED ?? null,
   },
@@ -164,10 +157,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: false,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/jobs/data-refresh.scheduler.ts:56',
-    drift:
-      'Leituras divergentes: data-refresh.scheduler.ts:56 e server.ts:29 exigem "1", enquanto ' +
-      'lib/orchestration/flags.ts:10 exige "true". Com o valor "true" a camada de orquestração ' +
-      'se considera ligada e o scheduler de ETL não sobe (e vice-versa).',
     read: () => isSchedulerEnabled(),
     raw: () => process.env.ETL_SCHEDULER_ENABLED ?? null,
   },
@@ -179,9 +168,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: true,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/jobs/wikidata-incremental.ts:211',
-    drift:
-      'Dupla guarda declarada: além da variável, o script de apply exige a flag de linha de ' +
-      'comando (run-wikidata-incremental.ts:20). Só desligar a variável não aplica o lote.',
     read: () => (process.env.WIKIDATA_DRY_RUN ?? 'true') !== 'false',
     raw: () => process.env.WIKIDATA_DRY_RUN ?? null,
   },
@@ -196,11 +182,7 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: true,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/jobs/data-refresh.scheduler.ts:384',
-    drift:
-      'Semântica INVERTIDA (default LIGADO, ao contrário das demais): o ausente vale "local". ' +
-      'Além disso só produz efeito com ETL_SCHEDULER_ENABLED ligado — sem scheduler ninguém ' +
-      'consome a fila em lugar nenhum.',
-    read: () => process.env.MEDIA_WORKER_LOCAL !== '0',
+    read: () => envFlag('MEDIA_WORKER_LOCAL', false),
     raw: () => process.env.MEDIA_WORKER_LOCAL ?? null,
   },
   {
@@ -235,9 +217,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: false,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/lib/orchestration/flags.ts:6',
-    drift:
-      'A leitura usa "true" — e o mesmo módulo lê ETL_SCHEDULER_ENABLED com "true" enquanto o ' +
-      'scheduler de ETL usa "1" (ver ETL_SCHEDULER_ENABLED).',
     read: () => orchestrationEnabled(),
     raw: () => process.env.ORCHESTRATION_ENABLED ?? null,
   },
@@ -264,9 +243,6 @@ const API_FLAGS: ApiFlagDef[] = [
     defaultOn: false,
     change: CHANGE_RAILWAY,
     source: 'apps/api/src/config/env.ts:154 (schema) e :203 (leitura)',
-    drift:
-      'Trava de boot: com NODE_ENV=production a API RECUSA subir com esta flag ligada ' +
-      '(config/http-hardening.ts), então em produção o valor legível aqui é sempre desligado.',
     read: () => Boolean(env.rateLimitDisabled),
     raw: () => process.env.RATE_LIMIT_DISABLED ?? null,
   },
@@ -281,9 +257,6 @@ const API_FLAGS: ApiFlagDef[] = [
       'Definir GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET (e GOOGLE_REDIRECT_URI se o domínio ' +
       'público não derivar de RAILWAY_PUBLIC_DOMAIN) no Railway e redeployar.',
     source: 'apps/api/src/config/env.ts:159-163 (derivada de GOOGLE_CLIENT_ID/SECRET)',
-    drift:
-      'Valor DERIVADO de duas variáveis: a flag só fica ligada com as duas presentes na mesma ' +
-      'instância (uma chave sem a outra não habilita nada).',
     read: () => Boolean(env.googleClientId && env.googleClientSecret),
     raw: () =>
       env.googleClientId && env.googleClientSecret
