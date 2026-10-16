@@ -254,9 +254,11 @@ interface FakeUpdate {
 function fakePrisma(rows: ClubRow[]) {
   const updates: FakeUpdate[] = [];
   const rawExecs: string[] = [];
+  const rawArgs: unknown[][] = [];
   return {
     updates,
     rawExecs,
+    rawArgs,
     client: {
       club: {
         findMany: async () => rows,
@@ -281,8 +283,9 @@ function fakePrisma(rows: ClubRow[]) {
       $queryRaw: async (...args: unknown[]) => {
         // A seleção do cursor roda em SQL cru; o predicado `IS NULL` / `IS NOT NULL`
         // é exercitado em PRODUÇÃO (foi ali que a versão com `not: Prisma.DbNull`
-        // falhou). Aqui basta devolver os ids do cenário do teste.
-        void args;
+        // falhou). Aqui basta devolver os ids do cenário do teste — mas os argumentos
+        // são GUARDADOS para o teste do T575 conferir QUAL predicado foi usado.
+        rawArgs.push(args);
         return rows.map((r) => ({ id: r.id }));
       },
       $disconnect: async () => undefined,
@@ -291,6 +294,13 @@ function fakePrisma(rows: ClubRow[]) {
 }
 
 describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
+  /** Todo argumento cru de `$queryRaw`, serializado e com as aspas desescapadas. */
+  const textoSql = (rawArgs: unknown[][]): string =>
+    rawArgs
+      .map((args) => args.map((v) => JSON.stringify(v) ?? '').join(' '))
+      .join('\n')
+      .replace(/\\"/g, '"');
+
   it('dry-run: mede o lote e NÃO escreve', async () => {
     vi.stubGlobal('fetch', stubFetch({ wikitext: '[[Ficheiro:Hino do Clube de Teste.ogg]]' }));
     const { client, updates } = fakePrisma([club({ id: 'a' }), club({ id: 'b', qid: 'Q2' })]);
@@ -372,5 +382,32 @@ describe('T528 — enrichAllMediaBatch (lote, fetch stubado)', () => {
       prisma: client as unknown as PrismaClient,
     });
     expect(out).toMatchObject({ processed: 0, enriched: 0, gaps: 0 });
+  });
+
+  it('T575 — o modo normal pergunta ao CURSOR POR CHAVE, não ao registro inteiro', async () => {
+    // Antes: `"mediaEnrichment" IS NULL`. Como o job de mídia (04:00) carimba TODO clube
+    // que passa, e o unificado roda às 07:00, a fila de uniforme/hino/flâmula parava de
+    // ter candidatos conforme o acervo era carimbado — cursor existia, seleção não o
+    // consultava. O guarda é o texto que vai ao banco.
+    vi.stubGlobal('fetch', stubFetch({}));
+    const { client, rawArgs } = fakePrisma([]);
+    await enrichAllMediaBatch(500, { apply: false, prisma: client as unknown as PrismaClient });
+    const sql = textoSql(rawArgs);
+    expect(sql).toContain('"mediaEnrichment" IS NULL');
+    expect(sql).not.toContain('"mediaEnrichment" IS NOT NULL');
+    expect(sql).toContain('kits');
+    expect(sql).toContain('anthem');
+    expect(sql).toContain('pennants');
+  });
+
+  it('T575 — `recheck` continua reprocessando os JÁ tentados (prova de noop preservada)', async () => {
+    vi.stubGlobal('fetch', stubFetch({}));
+    const { client, rawArgs } = fakePrisma([]);
+    await enrichAllMediaBatch(500, {
+      apply: false,
+      recheck: true,
+      prisma: client as unknown as PrismaClient,
+    });
+    expect(textoSql(rawArgs)).toContain('"mediaEnrichment" IS NOT NULL');
   });
 });

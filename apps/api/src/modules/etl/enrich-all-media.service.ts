@@ -38,7 +38,7 @@ import {
   type KitPart,
 } from '../../lib/wikipedia/kit-composition.js';
 import { sitelinksFromEntity } from './connectors/wikipedia-editorial.connector.js';
-import { stampMediaAttempts } from './media-cursor.js';
+import { stampMediaAttempts, clausulaNaoTentada } from './media-cursor.js';
 
 export const ALL_MEDIA_USER_AGENT =
   'AlmanaqueDosClubes/1.0 (https://almanaquedosclubes.com; contato@almanaquedosclubes.com)';
@@ -459,6 +459,8 @@ export async function enrichAllMediaBatch(
     concurrency?: number;
     /** T535 — callback de progresso (o `--full` usa para reportar a cada N clubes). */
     onProgress?: (feitos: number, total: number) => void;
+    /** T575 — revisitar kit/hino/flâmula de quem foi tentado há mais de N dias (opcional). */
+    refreshDays?: number;
   } = { apply: false },
 ): Promise<AllMediaBatchResult> {
   const concurrency = Math.max(1, Math.min(8, opts.concurrency ?? 4));
@@ -476,10 +478,23 @@ export async function enrichAllMediaBatch(
     // JSON não é confiável (em 12-10-2026 o modo `recheck` acabou pegando os PRÓXIMOS
     // 500 em vez dos já tentados e avançou o cursor de novo). Aqui o predicado é
     // literal — `IS NULL` / `IS NOT NULL` — sem depender da tradução do ORM.
+    //
+    // T575 — no modo normal (não-recheck) o filtro era `"mediaEnrichment" IS NULL`, o
+    // REGISTRO inteiro ausente. Isso exclui todo clube já carimbado por OUTRO job
+    // (escudo/estádio/cores, texto editorial): como o job de mídia roda antes (04:00) e
+    // o unificado às 07:00, a fila de uniforme/hino/flâmula parava de ter candidatos
+    // conforme o acervo era carimbado — o cursor existia, mas a SELEÇÃO não perguntava a
+    // ele. Agora a pergunta é a mesma que o `pendingMedia` responde por clube: "alguma
+    // das três chaves ainda não foi tentada?". Mesma cláusula da seleção de clube de
+    // mídia (`clausulaNaoTentada`), para não haver duas versões do predicado.
     const cursorRows = await prisma.$queryRaw<Array<{ id: string }>>`
       SELECT id FROM clubs
       WHERE "deletedAt" IS NULL AND qid IS NOT NULL
-        AND "mediaEnrichment" IS ${opts.recheck ? Prisma.sql`NOT NULL` : Prisma.sql`NULL`}
+        AND ${
+          opts.recheck
+            ? Prisma.sql`"mediaEnrichment" IS NOT NULL`
+            : clausulaNaoTentada([...ALL_MEDIA_KINDS], opts.refreshDays)
+        }
       ORDER BY name ASC
       LIMIT ${limit}
     `;
