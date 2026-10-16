@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import type { JobHealthView } from '@/components/ObservabilityCard';
 import type { QueueCountsView } from '@/components/QueueStatus';
 import { api } from '@/lib/api';
@@ -507,9 +507,9 @@ export default function DiagnosticsClient({ web }: { web: WebProcessView }) {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">{L.title}</h1>
       <p className="mt-1 mb-8 text-ink-2">{L.subtitle}</p>
-      <ProtectedRoute>
+      <OperatorGate>
         <DiagnosticsPanel web={web} />
-      </ProtectedRoute>
+      </OperatorGate>
     </div>
   );
 }

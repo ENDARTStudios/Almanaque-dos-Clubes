@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import ObservabilityCard, { type JobHealthView } from '@/components/ObservabilityCard';
 import QueueStatus, { type QueueCountsView } from '@/components/QueueStatus';
 import LogViewer, { type LogEntryView, type QueueJobView } from '@/components/LogViewer';
@@ -278,9 +278,9 @@ export default function AdminObservabilityPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
       <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
-      <ProtectedRoute>
+      <OperatorGate>
         <ObservabilityPanel />
-      </ProtectedRoute>
+      </OperatorGate>
     </div>
   );
 }

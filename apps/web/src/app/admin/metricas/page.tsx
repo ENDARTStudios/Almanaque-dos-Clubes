@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import MetricsCharts from './MetricsCharts';
@@ -226,9 +226,9 @@ export default function AdminMetricsPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <h1 className="text-3xl font-heading font-bold text-foreground sm:text-4xl">{s.title}</h1>
       <p className="mt-1 mb-8 text-foreground/60">{s.subtitle}</p>
-      <ProtectedRoute>
+      <OperatorGate>
         <MetricsPanel />
-      </ProtectedRoute>
+      </OperatorGate>
     </div>
   );
 }

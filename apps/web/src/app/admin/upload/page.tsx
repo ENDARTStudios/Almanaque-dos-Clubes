@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import OperatorGate from '@/components/OperatorGate';
 import { api } from '@/lib/api';
 import { getApiBase } from '@/lib/api-base';
 import { useI18n } from '@/i18n/Provider';
@@ -522,9 +522,9 @@ export default function AdminUploadPage() {
       <p className="mt-1 text-ink-2">{L.subtitle}</p>
       <p className="mt-2 text-xs text-ink-3">{L.internalNote}</p>
       <div className="mt-8">
-        <ProtectedRoute>
+        <OperatorGate>
           <UploadPanel />
-        </ProtectedRoute>
+        </OperatorGate>
       </div>
     </div>
   );
