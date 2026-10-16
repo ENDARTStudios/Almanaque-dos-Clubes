@@ -53,6 +53,13 @@ export interface BuildAdaptersOptions {
   refreshDays?: number;
   /** Janela de recência do P54, em anos (fila `player-club`). */
   maxAgeYears?: number;
+  /**
+   * IO injetável da fila de coordenadas. Em produção é o connector real
+   * (`extractClubCoordinatesBulk`); nos testes, um double — mesmo princípio do `ClubDeps`
+   * do lote unificado: o caminho de DECISÃO (o que carimba e o que NÃO carimba) tem de ser
+   * provável sem rede.
+   */
+  resolverCoordenadas?: typeof extractClubCoordinatesBulk;
 }
 
 /** As seis filas, na ordem canônica do roteador. */
@@ -164,7 +171,7 @@ export function buildEnrichQueueAdapters(
         needs: NEEDS_COORDINATES,
         refreshDays,
       }),
-    run: (limit, { apply }) => coordenadasBatch(prisma, limit, apply),
+    run: (limit, { apply }) => coordenadasBatch(prisma, limit, apply, opts.resolverCoordenadas),
   };
 
   return [clubMedia, clubEditorial, clubExtraMedia, playerProfile, playerClub, clubCoordinates];
@@ -185,10 +192,11 @@ export function buildEnrichQueueAdapters(
  * m1a3). NÃO toca `importedFrom` — isso é procedência da INGESTÃO, e o m1a3 registra a
  * mesma decisão. Nunca sobrescreve: o `updateMany` só casa com campo nulo.
  */
-async function coordenadasBatch(
+export async function coordenadasBatch(
   prisma: PrismaClient,
   limit: number,
   apply: boolean,
+  resolver: typeof extractClubCoordinatesBulk = extractClubCoordinatesBulk,
 ): Promise<QueueRunResult> {
   const pendentes = await selectPendingClubs(prisma, { limit, media: ['coordinates'] });
   if (pendentes.length === 0) return { ...ZERO_RESULT };
@@ -215,7 +223,7 @@ async function coordenadasBatch(
 
   let resolvidas: Map<string, ClubCoordinateResult | null>;
   try {
-    resolvidas = await extractClubCoordinatesBulk(
+    resolvidas = await resolver(
       semCoordenada.map((c) => c.qid!).filter((q): q is string => Boolean(q)),
     );
   } catch {

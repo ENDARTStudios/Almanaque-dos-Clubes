@@ -27,6 +27,13 @@ export interface LinkPlayersClubsOptions {
   refreshDays?: number;
   /** Janela de recência do P580, em anos (default 5). */
   maxAgeYears?: number;
+  /**
+   * IO injetável: em produção é `fetchEntities` (Wikidata em lotes de 50); nos testes, um
+   * double. O caminho de DECISÃO (o que vincula, o que vira gap declarado e o que NÃO
+   * carimba em falha de leitura) precisa ser provável sem rede — mesmo princípio do
+   * `ClubDeps` do lote unificado.
+   */
+  fetchFn?: typeof fetchEntities;
 }
 
 export interface LinkPlayersClubsResult {
@@ -80,9 +87,10 @@ export async function linkPlayersClubsBatch(
 
   const entities = new Map<string, { claims?: Record<string, unknown> }>();
   const qids = pendentes.map((p) => p.qid);
+  const buscar = opts.fetchFn ?? fetchEntities;
   try {
     for (let i = 0; i < qids.length; i += 50) {
-      const res = await fetchEntities(qids.slice(i, i + 50), {
+      const res = await buscar(qids.slice(i, i + 50), {
         userAgent: MEDIA_USER_AGENT,
         sleep,
       });
