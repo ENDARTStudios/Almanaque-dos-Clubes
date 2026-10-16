@@ -23,7 +23,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 import {
   ClubCrestGeneric,
@@ -46,8 +46,17 @@ import {
   type IconProps,
 } from '@/components/icons';
 
-const SOURCE = fileURLToPath(new URL('../../src/components/icons/icons.json', import.meta.url));
-const PUBLIC_DIR = fileURLToPath(new URL('../../public/icons/', import.meta.url));
+/**
+ * O `vitest` roda com o cwd na raiz do pacote (`apps/web`) — o mesmo cwd de
+ * `pnpm --filter web icons:export` e do script de `test`. `import.meta.url` NÃO serve
+ * aqui: sob o transform do vitest ela deixa de ser uma URL `file:` (medido no CI:
+ * `TypeError: The URL must be of scheme file`). O `existsSync` abaixo transforma um cwd
+ * errado em falha com mensagem clara, e não em caminho inexplicável.
+ */
+const WEB_ROOT = process.cwd();
+const SOURCE = resolve(WEB_ROOT, 'src/components/icons/icons.json');
+const PUBLIC_DIR = resolve(WEB_ROOT, 'public/icons');
+const publicSvg = (name: string) => resolve(PUBLIC_DIR, `${name}.svg`);
 
 const GEOMETRY = JSON.parse(readFileSync(SOURCE, 'utf8')) as {
   notice: string;
@@ -104,6 +113,11 @@ const FILE_RASTER_MARKERS = ['<image', 'base64', 'data:', '<foreignObject', 'hre
 afterEach(cleanup);
 
 describe('geometria (icons.json)', () => {
+  it('encontra a geometria a partir do cwd do pacote', () => {
+    expect(existsSync(SOURCE), `geometria ausente em ${SOURCE}`).toBe(true);
+    expect(existsSync(PUBLIC_DIR), `pasta de SVGs ausente em ${PUBLIC_DIR}`).toBe(true);
+  });
+
   it('tem exatamente os ícones pedidos, sem sobra', () => {
     expect(Object.keys(GEOMETRY.icons).sort()).toEqual([...EXPECTED_NAMES].sort());
     expect([...ICON_NAMES].sort()).toEqual([...EXPECTED_NAMES].sort());
@@ -242,13 +256,13 @@ describe('placeholder de atleta por posição', () => {
 describe('SVGs publicados em public/icons/', () => {
   it('existem para todos os nomes', () => {
     for (const name of ICON_NAMES) {
-      expect(existsSync(`${PUBLIC_DIR}${name}.svg`), name).toBe(true);
+      expect(existsSync(publicSvg(name)), name).toBe(true);
     }
   });
 
   it('são gerados da mesma geometria (sem cópia divergente) e sem raster', () => {
     for (const name of ICON_NAMES) {
-      const file = readFileSync(`${PUBLIC_DIR}${name}.svg`, 'utf8');
+      const file = readFileSync(publicSvg(name), 'utf8');
       const shapes = file.match(/<(path|circle|rect|ellipse)\b/g) ?? [];
       expect(shapes.length, name).toBe(GEOMETRY.icons[name].shapes.length);
       expect(file, name).toContain(`viewBox="${GEOMETRY.icons[name].viewBox}"`);
