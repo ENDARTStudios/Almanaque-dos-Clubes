@@ -155,6 +155,48 @@ describe('GET /api/v1/rankings/entries (T438)', () => {
   });
 });
 
+describe('GET /api/v1/rankings/entries — facet de países (T579 · item 21)', () => {
+  it('a lista de países vem do RECORTE, não da página: página de 1 linha, facet com o país', async () => {
+    if (!dbOk) return;
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/rankings/entries?year=2038&limit=1',
+    });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    // Uma linha na página...
+    expect(body.data.length).toBe(1);
+    // ...e mesmo assim o facet conhece o país de todas as entradas ranqueadas do recorte.
+    // Era exatamente isto que o cliente fazia errado: montava o `<select>` com
+    // `res.data.map(r => r.country)`, ou seja, só com os países da primeira página.
+    expect(body.countries).toContain('BR');
+  });
+
+  it('country escolhe o ranking que TEM o país (não devolve vazio)', async () => {
+    if (!dbOk) return;
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/rankings/entries?year=2038&country=BR',
+    });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.ranking).toMatchObject({ season: '2038' });
+    expect(body.data.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('search filtra por nome de clube (o parâmetro era enviado pela UI e ignorado na rota)', async () => {
+    if (!dbOk) return;
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/rankings/entries?year=2038&search=Ranking Read FC 2',
+    });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].clubName).toBe('Ranking Read FC 2');
+  });
+});
+
 describe('GET /api/v1/rankings/clube/:clubId (T438)', () => {
   it('retorna 200 com o histórico do clube', async () => {
     if (!dbOk) return;

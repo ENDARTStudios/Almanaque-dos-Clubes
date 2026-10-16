@@ -169,7 +169,35 @@ export const rankingsRepository = {
         // Default: ranking por competição/divisão (scope NULL). Só troca com `scope` explícito.
         ...(filter.scope ? { scope: filter.scope } : { scope: null }),
         type: filter.type ?? 'club',
-        ...(filter.country ? { country: filter.country } : {}),
+        /**
+         * T579 (ITEM 21) — `country` escolhe o RANKING, não só as linhas.
+         *
+         * A página mostra UM ranking por vez e o padrão é o mais recente publicado — medido:
+         * o "Ranking 0-100 Serie A 2024-2025 — Masculino", 23 entradas, todas de clubes
+         * italianos. Filtrar só as linhas faria o filtro "País" oferecer ES/GB/BR (países que
+         * TÊM ranking no acervo) e devolver tabela vazia: filtro que não filtra. Com esta
+         * condição, pedir `country=ES` carrega a publicação mais recente que TEM clube
+         * espanhol ranqueado (medido: "Ranking 0-100 La Liga 2017-18", 23 entradas).
+         *
+         * Só vale quando o recorte NÃO foi fixado em uma competição: com competição
+         * escolhida, o ranking é o dela e o país é uma INTERSEÇÃO explícita dos dois filtros
+         * (a lista de países do select, nesse caso, já vem só com os daquela competição).
+         *
+         * O `country` do PRÓPRIO ranking (agregado de país, ex.: 'GB' na Pirâmide Inglesa)
+         * continua valendo: o casamento é por país declarado OU por entrada de clube do país.
+         */
+        ...(filter.country && !filter.competitionId && !filter.globalOnly
+          ? {
+              OR: [
+                { country: filter.country },
+                {
+                  entries: {
+                    some: { position: { not: null }, club: { country: filter.country } },
+                  },
+                },
+              ],
+            }
+          : {}),
       },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
     }) as Promise<Ranking | null>;
@@ -184,7 +212,19 @@ export const rankingsRepository = {
     state?: string;
     city?: string;
     gender?: string;
+    /**
+     * T579 — busca por nome do clube. O `<input>` "Buscar clube" de `/rankings` já mandava
+     * `search` e a rota pública IGNORAVA o parâmetro: o campo parecia filtrar e só recarregava
+     * a mesma tabela (a rota não lia `search`, o repositório não tinha o filtro). Agora vale.
+     */
+    search?: string;
   }) {
+    const clubFilter = {
+      ...(params.country ? { country: params.country } : {}),
+      ...(params.state ? { state: params.state } : {}),
+      ...(params.city ? { city: params.city } : {}),
+      ...(params.search ? { name: { contains: params.search, mode: 'insensitive' as const } } : {}),
+    };
     return prisma.rankingEntry.findMany({
       where: {
         rankingId: params.rankingId,
@@ -193,15 +233,7 @@ export const rankingsRepository = {
           ...(params.cursorPosition ? { gt: params.cursorPosition } : {}),
         },
         ...(params.gender ? { gender: params.gender } : {}),
-        ...(params.country || params.state || params.city
-          ? {
-              club: {
-                ...(params.country ? { country: params.country } : {}),
-                ...(params.state ? { state: params.state } : {}),
-                ...(params.city ? { city: params.city } : {}),
-              },
-            }
-          : {}),
+        ...(Object.keys(clubFilter).length > 0 ? { club: clubFilter } : {}),
       },
       orderBy: { position: 'asc' },
       take: params.limit,
@@ -211,6 +243,66 @@ export const rankingsRepository = {
         player: { select: { id: true, fullName: true } },
       },
     });
+  },
+
+  /**
+   * T579 (ITEM 21) — PAÍSES com RANKING no recorte (facets do filtro "País" de `/rankings`).
+   *
+   * O defeito medido em produção: o `<select>` de país era montado no CLIENTE, com
+   * `res.data.map(r => r.country)` — os países da PRIMEIRA PÁGINA da tabela (25 linhas). No
+   * ranking que a página carrega por padrão ("Ranking 0-100 Serie A 2024-2025 — Masculino"),
+   * 23 das 25 linhas são `IT` e 2 são nulas ⇒ a lista saía com UM país. E não era só a
+   * página: medido no banco, aquele ranking tem 23 entradas e TODAS italianas — a lista
+   * "só IT" tinha duas causas somadas, a paginação e o recorte ser nacional.
+   *
+   * A lista de países do recorte é FACET: sai do conjunto filtrado inteiro, não da página.
+   * Aqui ela agrega por `Club.country` (a MESMA coluna que a consulta de entradas filtra —
+   * contar por outra daria números que não batem com o clique) sobre TODAS as publicações
+   * que casam com o recorte (ano, tipo, escopo e, se houver, competição). Com isso o filtro
+   * passa a oferecer os países que de fato têm ranking: medido, sem o filtro de ano o recorte
+   * de clubes dá 58 países (AD…ZA) — contra o `IT` único que a versão anterior oferecia.
+   */
+  async findCountriesInScope(params: {
+    season?: string;
+    competitionId?: string;
+    globalOnly?: boolean;
+    type?: string;
+    scope?: string;
+    gender?: string;
+    state?: string;
+    city?: string;
+  }): Promise<string[]> {
+    const rows = await prisma.rankingEntry.findMany({
+      where: {
+        position: { not: null },
+        ...(params.gender ? { gender: params.gender } : {}),
+        club: {
+          country: { not: null },
+          ...(params.state ? { state: params.state } : {}),
+          ...(params.city ? { city: params.city } : {}),
+        },
+        ranking: {
+          publishedAt: { not: null },
+          type: params.type ?? 'club',
+          ...(params.season ? { season: params.season } : {}),
+          // `globalOnly` = o agregado GERAL (competitionId NULL) — mesmo sentinela do T521.
+          ...(params.globalOnly
+            ? { competitionId: null }
+            : params.competitionId
+              ? { competitionId: params.competitionId }
+              : {}),
+          // Default: rankings por competição/divisão (scope NULL), como em `findLatestPublished`.
+          ...(params.scope ? { scope: params.scope } : { scope: null }),
+        },
+      },
+      select: { club: { select: { country: true } } },
+    });
+    const codes = new Set<string>();
+    for (const row of rows) {
+      const country = row.club?.country;
+      if (country) codes.add(country.toUpperCase());
+    }
+    return [...codes].sort((a, b) => a.localeCompare(b));
   },
 
   async clubExists(clubId: string): Promise<boolean> {

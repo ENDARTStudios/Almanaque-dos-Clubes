@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useGsapStagger } from '@/hooks/useGsap';
 import { api } from '@/lib/api';
+import { CountryFlag } from '@/components/CountryFlag';
 import { useI18n } from '@/i18n/Provider';
 
 /**
@@ -75,7 +76,7 @@ export default function CountryIndex({
   selecionado?: string;
 }) {
   const listRef = useRef<HTMLUListElement>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [indice, setIndice] = useState<Indice | null>(null);
   const [estado, setEstado] = useState<'loading' | 'done' | 'error'>('loading');
   const [todos, setTodos] = useState(false);
@@ -183,14 +184,23 @@ export default function CountryIndex({
                       : 'border-border bg-surface hover:border-primary'
                   }`}
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-foreground">
-                      {/* Nome legível quando existe; o código é o rótulo quando não. Esconder
-                          o país porque a tabela `Country` não tem a linha seria perder acervo. */}
-                      {p.name ?? p.code}
-                    </span>
-                    <span className="num block text-[0.6875rem] uppercase tracking-wider text-ink-3">
-                      {p.code}
+                  <span className="flex min-w-0 items-center gap-2">
+                    {/* T579 (ITEM 19) — a BANDEIRA do país, derivada da sigla ISO2 do
+                        acervo (sem CDN de terceiro). Aqui ela é DECORATIVA: o clique já é o
+                        do próprio cartão (`?country=XX`) e o país está em texto logo ao
+                        lado — por isso `showName={false}` e `aria-hidden` no emoji. Código
+                        sem bandeira mapeada não vira bandeira nenhuma: não desenha nada e o
+                        texto continua sendo o rótulo. */}
+                    <CountryFlag code={p.code} locale={locale} showName={false} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-foreground">
+                        {/* Nome legível quando existe; o código é o rótulo quando não. Esconder
+                            o país porque a tabela `Country` não tem a linha seria perder acervo. */}
+                        {p.name ?? p.code}
+                      </span>
+                      <span className="num block text-[0.6875rem] uppercase tracking-wider text-ink-3">
+                        {p.code}
+                      </span>
                     </span>
                   </span>
                   <span className="num shrink-0 text-right text-lg text-foreground">

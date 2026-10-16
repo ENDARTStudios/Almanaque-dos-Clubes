@@ -11,6 +11,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
+import { CountryFlag } from '@/components/CountryFlag';
 import ClubTimeline from '@/components/ClubTimeline';
 import RelatedClubs from '@/components/RelatedClubs';
 import ClubCommunity from '@/components/ClubCommunity';
@@ -375,7 +376,15 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <dl className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
-          {club.country && <InfoItem label={s.country} value={club.country} />}
+          {/* T579 (ITEM 19) — o país do clube leva à lista de clubes DAQUELE país
+              (`/clubs?country=IT`, filtro que a listagem já aceita), com bandeira e o nome por
+              extenso no idioma do usuário no nome acessível do link. */}
+          {club.country && (
+            <InfoItem
+              label={s.country}
+              value={<CountryFlag code={club.country} locale={locale} basePath="/clubs" destination="clubs" />}
+            />
+          )}
           {club.city && <InfoItem label={s.city} value={club.city} />}
           {club.state && <InfoItem label={s.state} value={club.state} />}
           {club.foundedYear && <InfoItem label={s.founded} value={String(club.foundedYear)} />}
@@ -927,7 +936,9 @@ function Section({
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+// T579 — `value` aceita `React.ReactNode`: o país passou a ser o `CountryFlag` (link com
+// bandeira), não uma string. O tipo estreito antigo tornaria o valor do país impossível.
+function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-foreground/70 uppercase tracking-wider">{label}</dt>

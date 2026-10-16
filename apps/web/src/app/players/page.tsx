@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import PageHeading from '@/components/PageHeading';
 import CountryIndex from '@/components/CountryIndex';
 import SearchBar from '@/components/SearchBar';
+import { CountryFlag } from '@/components/CountryFlag';
 import { getApiBase } from '@/lib/api-base';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
 export const metadata: Metadata = {
   title: 'Jogadores',
@@ -56,6 +59,8 @@ export default async function PlayersPage({
     ...(sp.country ? { country: sp.country } : {}),
     ...(sp.position ? { position: sp.position } : {}),
   });
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -93,9 +98,11 @@ export default async function PlayersPage({
                   {p.fullName.slice(0, 2).toUpperCase()}
                 </div>
                 <h3 className="text-lg font-heading font-semibold text-foreground">{p.fullName}</h3>
-                <div className="text-sm text-foreground/60 mt-1">
-                  {p.position ?? '—'}
-                  {p.country ? ' · ' + p.country : ''}
+                {/* T579 (ITEM 19) — país do jogador com bandeira + nome no idioma do usuário.
+                    Não é clique: o cartão todo já é o link do jogador. */}
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-foreground/60">
+                  <span>{p.position ?? '—'}</span>
+                  {p.country ? <CountryFlag code={p.country} locale={locale} /> : null}
                 </div>
               </Link>
             ))}

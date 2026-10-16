@@ -232,6 +232,8 @@ export const rankingsService = {
     country?: string;
     state?: string;
     city?: string;
+    /** T579 — busca por nome do clube (o `<input>` da página já a enviava e era ignorada). */
+    search?: string;
     limit: number;
     cursor?: number | null;
   }): Promise<{
@@ -270,15 +272,47 @@ export const rankingsService = {
       adjustedScore?: number | null;
     }>;
     cursor: number | null;
+    /**
+     * T579 (ITEM 21) — FACET: todos os países que TÊM ranking no recorte (ano/tipo/escopo/
+     * gênero e, se houver, competição). É esta lista que alimenta o `<select>` de país.
+     * Antes, ela era montada no cliente com os países da PRIMEIRA PÁGINA da tabela: no
+     * ranking padrão (Serie A, nacional) isso dava um país só — `IT`. O facet não considera
+     * o próprio filtro de país (senão não haveria como trocar de país) nem a busca por nome
+     * de clube (o select não pode virar alvo móvel enquanto se digita).
+     */
+    countries: string[];
   }> {
-    const ranking = await rankingsRepository.findLatestPublished({
-      season: params.year,
-      competitionId: params.competitionId,
-      globalOnly: params.globalOnly,
-      type: params.type,
-      scope: params.scope,
-    });
-    if (!ranking) return { ranking: null, data: [], cursor: null };
+    /**
+     * T579 (ITEM 21) — duas buscas em paralelo:
+     *
+     * - `findLatestPublished` com `country`: escolher um país escolhe TAMBÉM o ranking
+     *   exibido (a publicação mais recente do recorte que tem clube daquele país). Sem isso a
+     *   lista ofereceria países que existem no acervo e a tabela vinha vazia, porque a página
+     *   carrega um ranking por vez e o padrão é nacional.
+     * - `findCountriesInScope`: o FACET dos países que têm ranking no recorte — é isso que o
+     *   `<select>` mostra. Calculado sobre o conjunto filtrado inteiro, nunca sobre a página.
+     */
+    const [ranking, countries] = await Promise.all([
+      rankingsRepository.findLatestPublished({
+        season: params.year,
+        competitionId: params.competitionId,
+        globalOnly: params.globalOnly,
+        type: params.type,
+        scope: params.scope,
+        country: params.country,
+      }),
+      rankingsRepository.findCountriesInScope({
+        season: params.year,
+        competitionId: params.competitionId,
+        globalOnly: params.globalOnly,
+        type: params.type,
+        scope: params.scope,
+        gender: params.gender,
+        state: params.state,
+        city: params.city,
+      }),
+    ]);
+    if (!ranking) return { ranking: null, data: [], cursor: null, countries };
     const entries = await rankingsRepository.findRankedEntries({
       rankingId: ranking.id,
       cursorPosition: params.cursor ?? null,
@@ -287,6 +321,7 @@ export const rankingsService = {
       state: params.state,
       city: params.city,
       gender: params.gender,
+      search: params.search,
     });
     const comp = ranking.competitionId
       ? ((await rankingsRepository.findCompetitionsByIds([ranking.competitionId]))[0] ?? null)
@@ -347,6 +382,7 @@ export const rankingsService = {
           : {}),
       })),
       cursor: entries.length > 0 ? entries[entries.length - 1].position : null,
+      countries,
     };
   },
 

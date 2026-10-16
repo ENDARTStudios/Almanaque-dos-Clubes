@@ -61,6 +61,9 @@ export const rankingsRoutes: FastifyPluginAsync = async (app: FastifyInstance) =
       country: query.country,
       state: query.state,
       city: query.city,
+      // T579 — `search` chegava na URL e era descartado aqui: o campo "Buscar clube" da
+      // página parecia filtrar e recarregava a mesma tabela.
+      search: query.search,
       limit,
       cursor: Number.isFinite(cursorRaw) ? cursorRaw : null,
     });

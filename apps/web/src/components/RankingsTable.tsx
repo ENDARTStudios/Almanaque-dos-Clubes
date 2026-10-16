@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/ui/DataTable';
+import { CountryFlag } from '@/components/CountryFlag';
+import { countryName } from '@/lib/country-flag';
 import { useI18n } from '@/i18n/Provider';
 
 // T438 — Tabela de Rankings 0-100 (cursor-based, filtros ano/gênero/país).
@@ -52,6 +54,13 @@ interface EntriesResponse {
   ranking: RankingMeta | null;
   data: RankingEntryRow[];
   cursor: number | null;
+  /**
+   * T579 (ITEM 21) — FACET de países do recorte carregado, calculado na API sobre o conjunto
+   * filtrado inteiro (não sobre a página). Opcional no tipo de propósito: uma API antiga (ou
+   * um deploy em atraso) simplesmente não manda o campo, e o componente cai no comportamento
+   * anterior em vez de estourar.
+   */
+  countries?: string[];
 }
 
 interface PublishedRanking {
@@ -72,7 +81,7 @@ interface ScopeOption {
 const LIMIT = 25;
 
 export default function RankingsTable() {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const t = dict.pages.rankings;
 
   const [view, setView] = useState<'division' | 'pyramid'>('division');
@@ -157,8 +166,19 @@ export default function RankingsTable() {
         setRows((prev) => (append ? [...prev, ...res.data] : res.data));
         setCursor(res.cursor);
         if (!append) {
-          const cs = [...new Set(res.data.map((r) => r.country).filter((c): c is string => !!c))];
-          setCountries(cs.sort());
+          /* T579 (ITEM 21) — A CORREÇÃO. Antes, a lista de países do filtro saía daqui:
+             `res.data.map(r => r.country)` — as 25 linhas da PRIMEIRA página. No ranking
+             que a página carrega por padrão (o piloto da Serie A, nacional) isso dá uma
+             lista de UM país, `IT`: o filtro oferecia exatamente o país do próprio recorte e
+             nenhum outro. Medido em produção: 23 das 25 linhas da página 1 são IT e 2 são
+             nulas. Agora a lista é o FACET calculado pela API sobre o recorte inteiro
+             (`countries`) — medido: 58 países nos rankings de clube do acervo. O fallback
+             para as linhas existe só para API antiga. */
+          const doFacet = res.countries ?? [];
+          const cs = doFacet.length
+            ? doFacet
+            : [...new Set(res.data.map((r) => r.country).filter((c): c is string => !!c))];
+          setCountries(cs);
         }
       } catch {
         setError(true);
@@ -169,17 +189,36 @@ export default function RankingsTable() {
     [query, cursor],
   );
 
-  // Recarrega na troca de filtros (sempre do início).
+  /* Recarrega na troca de filtros (sempre do início).
+     T579 — `competition` e `type` entraram nas dependências: eles mudam o RANKING consultado
+     e NÃO estavam na lista, então trocar de competição (ou de clube para jogador) deixava a
+     tabela com as linhas — e o facet de países — do recorte anterior. Era um filtro que não
+     filtrava, do mesmo tipo do defeito do item 21. */
   useEffect(() => {
     setCursor(null);
     void load(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, gender, country, view, search]);
+  }, [year, gender, country, view, search, competition, type]);
 
   const hasFilters = useMemo(
     () => year !== '' || gender !== '' || country !== '',
     [year, gender, country],
   );
+
+  /**
+   * O `<select>` mostra o NOME do país no idioma do usuário (ICU) além da sigla — "Itália (IT)"
+   * e não "IT". A sigla continua ali porque é ela que a API filtra: o rótulo visível e o valor
+   * enviado têm de ser distinguíveis. Código que o ICU não conhece fica só com a sigla (nunca
+   * um nome chutado).
+   */
+  const countryOptions = useMemo(
+    () =>
+      countries
+        .map((code) => ({ code, label: countryName(code, locale) ?? code }))
+        .sort((a, b) => a.label.localeCompare(b.label, locale)),
+    [countries, locale],
+  );
+
   // T549 — `max-w-full` sozinho era inócuo: o `<label>` é item de `flex flex-wrap` com
   // `min-width: auto`, então o select de competição (rótulo longo = 428px) esticava o pai e
   // o `max-width: 100%` resolvia contra os próprios 428px (overflow de +54px a 390px e
@@ -306,9 +345,9 @@ export default function RankingsTable() {
             onChange={(e) => setCountry(e.target.value)}
           >
             <option value="">{t.all}</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {countryOptions.map((o) => (
+              <option key={o.code} value={o.code}>
+                {o.label === o.code ? o.code : `${o.label} (${o.code})`}
               </option>
             ))}
           </select>
@@ -371,21 +410,38 @@ export default function RankingsTable() {
             {
               key: 'club',
               label: t.colClub,
-              cell: (r) =>
-                r.playerId ? (
-                  <Link
-                    href={`/players/${r.playerId}`}
-                    className="text-primary-ink hover:underline"
-                  >
-                    {r.playerName}
-                  </Link>
-                ) : r.clubId ? (
-                  <Link href={`/clubs/${r.clubId}`} className="text-primary-ink hover:underline">
-                    {r.clubName}
-                  </Link>
-                ) : (
-                  (r.clubName ?? r.playerName ?? '—')
-                ),
+              /* T579 (ITEM 19) — a linha passa a declarar o PAÍS do clube com bandeira
+                 clicável, e o clique leva ao filtro que a página de clubes já aceita
+                 (`/clubs?country=IT`). O destino é real — não é rota nova. A bandeira sozinha
+                 não é rótulo: o `aria-label` do link diz o país por extenso no idioma do
+                 usuário ("Ver clubes: Itália"), porque a sigla de 2 letras não basta para
+                 leitor de tela. */
+              cell: (r) => (
+                <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+                  {r.country ? (
+                    <CountryFlag
+                      code={r.country}
+                      locale={locale}
+                      basePath="/clubs"
+                      destination="clubs"
+                    />
+                  ) : null}
+                  {r.playerId ? (
+                    <Link
+                      href={`/players/${r.playerId}`}
+                      className="text-primary-ink hover:underline"
+                    >
+                      {r.playerName}
+                    </Link>
+                  ) : r.clubId ? (
+                    <Link href={`/clubs/${r.clubId}`} className="text-primary-ink hover:underline">
+                      {r.clubName}
+                    </Link>
+                  ) : (
+                    (r.clubName ?? r.playerName ?? '—')
+                  )}
+                </span>
+              ),
             },
             {
               key: 'points',

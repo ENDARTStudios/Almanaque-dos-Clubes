@@ -11,6 +11,8 @@ import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/api';
 import { buildMapViewModel, type GeoPointsResponseDto } from '@/lib/map-viewmodel';
+import { CountryFlag } from '@/components/CountryFlag';
+import { useI18n } from '@/i18n/Provider';
 
 const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   ssr: false,
@@ -39,6 +41,7 @@ interface GeoStatsResponse {
 }
 
 export default function GeoMapInternal() {
+  const { locale } = useI18n();
   const [country, setCountry] = useState('BR');
   // T450 — toggle de clubes femininos (gender=women no /geo/points).
   const [onlyWomen, setOnlyWomen] = useState(false);
@@ -186,6 +189,18 @@ export default function GeoMapInternal() {
           <section aria-label="Clubes com coordenada" data-testid="geo-list">
             <h2 className="text-lg font-heading font-semibold mb-2">
               Clubes com coordenada (lista)
+              {/* T579 (ITEM 19) — BANDEIRA do país selecionado, clicável para a lista de
+                  clubes daquele país (`/clubs?country=BR`, filtro existente). O nome do país
+                  vem do ICU no idioma do usuário — e não do `name` do `/clubs/geo-stats`,
+                  que vem em inglês. Código sem região conhecida cai para a sigla em texto. */}
+              <CountryFlag
+                code={country}
+                locale={locale}
+                basePath="/clubs"
+                destination="clubs"
+                showName
+                className="ml-2 align-middle font-normal"
+              />
             </h2>
             {vm.points.length === 0 ? (
               <p className="text-sm text-foreground/70">

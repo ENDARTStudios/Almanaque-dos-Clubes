@@ -8,6 +8,7 @@ import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
+import { CountryFlag } from '@/components/CountryFlag';
 import { TrophyCup } from '@/components/icons';
 import { wIconsStrings } from '@/i18n/wsIcons';
 
@@ -178,9 +179,17 @@ export default async function CompetitionDetailPage({
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               {comp.country ? (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-foreground/5 text-foreground/70">
-                  {comp.country}
-                </span>
+                /* T579 (ITEM 19) — o país do cabeçalho vira bandeira CLICÁVEL para a listagem
+                   daquele país, que é a navegação relacionada que já existe
+                   (`/competitions?country=IT`). Destino real, com nome acessível por extenso no
+                   idioma do usuário — não a sigla de 2 letras. */
+                <CountryFlag
+                  code={comp.country}
+                  locale={locale}
+                  basePath="/competitions"
+                  destination="competitions"
+                  className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs"
+                />
               ) : (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-foreground/5 text-foreground/70">
                   {t.international}
@@ -219,7 +228,19 @@ export default async function CompetitionDetailPage({
         />
         {tab === 'visao' ? (
           <dl className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
-            {comp.country && <Info label={t.country} value={comp.country} />}
+            {comp.country && (
+              <Info
+                label={t.country}
+                value={
+                  <CountryFlag
+                    code={comp.country}
+                    locale={locale}
+                    basePath="/competitions"
+                    destination="competitions"
+                  />
+                }
+              />
+            )}
             {comp.type && <Info label={t.type} value={comp.type} />}
             {currentChampion ? (
               <Info
