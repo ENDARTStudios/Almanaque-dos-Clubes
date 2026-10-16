@@ -212,7 +212,9 @@ async function fetchWikitext(wiki: WikiEscudo, titulo: string): Promise<PtWikite
 /** W1 — enriquece até `limit` clubes com logo/estádio/cores (só NULL). */
 export async function enrichClubsMediaBatch(
   limit: number,
-  opts: { country?: string; apply: boolean; prisma?: PrismaClient } = { apply: false },
+  opts: { country?: string; apply: boolean; prisma?: PrismaClient; refreshDays?: number } = {
+    apply: false,
+  },
 ): Promise<MediaBatchResult> {
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
@@ -226,6 +228,9 @@ export async function enrichClubsMediaBatch(
       limit,
       media: ['logo', 'stadium', 'colors'],
       country: opts.country,
+      // T575 — opcional (default ausente = só nunca tentado, re-run noop). O bot contínuo
+      // passa `ENRICH_BOT_REFRESH_DAYS` por aqui para revisitar o que ficou sem dado.
+      refreshDays: opts.refreshDays,
     });
     const clubs = pendentes.length
       ? await prisma.club.findMany({
@@ -589,7 +594,9 @@ export async function enrichPlayersMediaBatch(
  */
 export async function enrichClubsEditorialBatch(
   limit: number,
-  opts: { country?: string; apply: boolean; prisma?: PrismaClient } = { apply: false },
+  opts: { country?: string; apply: boolean; prisma?: PrismaClient; refreshDays?: number } = {
+    apply: false,
+  },
 ): Promise<MediaBatchResult> {
   const prisma = opts.prisma ?? new PrismaClient();
   const own = !opts.prisma;
@@ -599,6 +606,7 @@ export async function enrichClubsEditorialBatch(
       limit,
       media: ['editorial'],
       country: opts.country,
+      refreshDays: opts.refreshDays,
     });
     const clubs = pendentes.length
       ? await prisma.club.findMany({

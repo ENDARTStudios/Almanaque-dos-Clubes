@@ -27,7 +27,19 @@ import { Prisma, PrismaClient } from '@prisma/client';
  * mesma — o que muda é a granularidade da chave, e por consequência o cursor de cada
  * campo anda sozinho.
  */
-export type MediaKey = 'logo' | 'stadium' | 'colors' | 'editorial' | 'kits' | 'anthem' | 'pennants';
+export type MediaKey =
+  | 'logo'
+  | 'stadium'
+  | 'colors'
+  | 'editorial'
+  | 'kits'
+  | 'anthem'
+  | 'pennants'
+  // T575 — coordenadas do clube (`latitude`/`longitude`). A chave existe pelo MESMO motivo
+  // das outras: sem carimbo, um clube cujo QID não tem P625/P159/P115/P131 resolvível
+  // reencabeça a fila para sempre. O escritor é o bot de enriquecimento contínuo
+  // (`enrich-bot-queues.ts`), que reusa o connector `extractClubCoordinatesBulk`.
+  | 'coordinates';
 
 export type MediaAttemptStatus = 'enriched' | 'no_source' | 'already_present' | 'error';
 
@@ -54,7 +66,15 @@ export interface PendingClubQueryOptions {
  * sem o guarda `IS NULL` a linha NÃO é selecionada, ou seja, o cursor excluía exatamente
  * quem nunca foi tentado (medido no CI: a seleção voltava vazia).
  */
-function clausulaNaoTentada(media: string[], refreshDays?: number): Prisma.Sql {
+/**
+ * Exportada (T575) porque o lote unificado de kit/hino/flâmula precisou do MESMO
+ * predicado na seleção: lá o filtro era `mediaEnrichment IS NULL` (registro inteiro
+ * ausente), que exclui qualquer clube já carimbado por OUTRO job (logo/estádio/cores) —
+ * ou seja, a fila de uniforme congelava assim que o job de mídia passasse pelos clubes.
+ * Selecionar por "alguma das três chaves não tentada" é o que casa com o `pendingMedia`
+ * que o próprio lote já usava por dentro. Uma implementação por predicado, de novo.
+ */
+export function clausulaNaoTentada(media: string[], refreshDays?: number): Prisma.Sql {
   const precisa = Prisma.join(
     media.map((m) => Prisma.sql`("mediaEnrichment" IS NULL OR NOT ("mediaEnrichment" ? ${m}))`),
     ' OR ',
@@ -211,6 +231,79 @@ export async function selectPendingPlayers(
              "fullName" ASC
     LIMIT ${opts.limit}
   `;
+}
+
+// ---------------------------------------------------------------------------
+// T575 — PROGRESSO de uma fila (denominador e pendentes), para o roteador do bot
+// ---------------------------------------------------------------------------
+//
+// O roteador do bot escolhe a próxima fila por "menor progresso relativo", e para isso
+// precisa de DOIS números por fila:
+//
+//  - `total`   = quantas entidades AINDA PRECISAM do dado (o universo real do gap), e
+//  - `pending` = quantas dessas ainda NÃO foram tentadas (o que o lote vai pegar agora).
+//
+// Os dois saem do MESMO `needs` (condição do próprio job) somado, no caso de `pending`,
+// à cláusula do cursor — `clausulaNaoTentada`, a MESMA função que a seleção usa. Duas
+// implementações do mesmo predicado divergem; foi assim que a fila congelou no T536, e
+// não vale repetir o defeito só para contar em vez de selecionar.
+
+export interface QueueProgressCount {
+  /** Entidades que ainda precisam do dado (denominador do progresso relativo). */
+  total: number;
+  /** Entidades que precisam E ainda não foram tentadas (o que o lote pega agora). */
+  pending: number;
+}
+
+export interface CountPendingClubsOptions {
+  media: MediaKey[];
+  /** Condição do próprio job (ex.: `("logoUrl" IS NULL OR ...)`) — delimita o `total`. */
+  needs: Prisma.Sql;
+  country?: string;
+  refreshDays?: number;
+}
+
+/** `total`/`pending` de uma fila de CLUBES (mesmos predicados da seleção real). */
+export async function countPendingClubs(
+  prisma: PrismaClient,
+  opts: CountPendingClubsOptions,
+): Promise<QueueProgressCount> {
+  const pais = opts.country ? Prisma.sql` AND country = ${opts.country}` : Prisma.empty;
+  const base = Prisma.sql`
+    FROM clubs
+    WHERE "deletedAt" IS NULL AND qid IS NOT NULL${pais} AND ${opts.needs}
+  `;
+  const [total] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base}
+  `;
+  const [pending] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base} AND ${clausulaNaoTentada(opts.media, opts.refreshDays)}
+  `;
+  return { total: total?.n ?? 0, pending: pending?.n ?? 0 };
+}
+
+export interface CountPendingPlayersOptions {
+  media?: PlayerMediaKey[];
+  /** Condição do próprio job (default: perfil incompleto). Delimita o `total`. */
+  needs?: Prisma.Sql;
+  refreshDays?: number;
+}
+
+/** `total`/`pending` de uma fila de JOGADORES (mesmos predicados da seleção real). */
+export async function countPendingPlayers(
+  prisma: PrismaClient,
+  opts: CountPendingPlayersOptions = {},
+): Promise<QueueProgressCount> {
+  const media = opts.media ?? ['profile'];
+  const needs = opts.needs ?? NEEDS_PERFIL;
+  const base = Prisma.sql`FROM players WHERE qid IS NOT NULL AND ${needs}`;
+  const [total] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base}
+  `;
+  const [pending] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base} AND ${clausulaNaoTentada(media, opts.refreshDays)}
+  `;
+  return { total: total?.n ?? 0, pending: pending?.n ?? 0 };
 }
 
 /** Marca a TENTATIVA de uma mídia do jogador (mescla no registro existente). */
