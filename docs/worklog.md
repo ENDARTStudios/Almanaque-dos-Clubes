@@ -2923,3 +2923,76 @@ carrossel, mapa, charts, `/auth/me`) — e a CSP transforma a falha em "erro sil
 requisição aparece). Não mudei nada disso: (a) afrouxar CORS de produção para aceitar `localhost` é
 decisão de segurança do dono; (b) o proxy same-origin exige o `getApiBase` separar cliente e
 servidor. Fica registrado como melhoria conhecida com a armadilha documentada.
+
+---
+
+Task ID: T575
+Agent: Doer — bot de enriquecimento contínuo (`enrich-bot`)
+Task: fechar, em VOLTAS contínuas, todos os gaps de fonte aberta do acervo (mídia de clube por
+chave, perfil/vínculo de jogador, coordenadas), sem inventar dado e sem tocar produção.
+
+Work Log:
+
+- **Leitura antes de escrever.** Li os cursores (`media-cursor.ts`), os lotes
+  (`enrich-media.service.ts`, `enrich-all-media.service.ts`), o worker dedicado
+  (`media-worker.ts` + `entrypoint.worker.sh` + `Dockerfile.worker`), os schedulers e os
+  scripts de coordenadas. Três regras ficaram explícitas no desenho: todo caminho de saída
+  carimba a tentativa; falha de LEITURA não carimba `no_source`; nunca sobrescrever campo
+  preenchido.
+- **Roteador (novo, puro).** `chooseNextQueue` escolhe por **menor progresso relativo**
+  (`pending/total` do próprio universo), desempata por rodízio circular e exclui fila vazia,
+  sem universo, com contagem falhada ou em castigo. Módulo sem Prisma/rede/logger de
+  propósito: é a parte de decisão, e é ela que precisa ser testável sem banco.
+- **Laço (novo).** Cap por volta (default 40), pausa entre voltas (30 s, `n−1` pausas),
+  contadores de sessão em memória, e shutdown gracioso que termina a VOLTA CORRENTE (SIGTERM
+  de deploy não pode abortar escrita no meio). Erro de uma volta não derruba a sessão.
+- **Anti-congelamento.** Fila que roda e não anda (`processed=0` com pendência) ou que erra
+  entra em castigo por N voltas com o evento `queue-stalled` — o defeito do T536 um nível
+  acima, fechado com nome no log.
+- **Seis filas, zero caminho de escrita novo.** Todas reusam os lotes existentes. O vínculo
+  jogador→clube saiu do `main()` do script T551 para `link-players-clubs.service.ts` (o script
+  virou wrapper com a MESMA saída de console) — reescrever a inferência de P54 seria a segunda
+  implementação do mesmo predicado, que é exatamente o que divergiu no T536.
+- **Coordenadas: fila NOVA com cursor.** Os scripts de coordenadas selecionam `IS NULL` +
+  `orderBy: id ASC` e não têm carimbo: clube sem coordenada na fonte nunca sai do filtro. A
+  chave `coordinates` entrou no mesmo cursor e o connector `extractClubCoordinatesBulk` foi
+  reusado (P625 > P159 > P115 > P131, Wikidata CC0). Procedência em `metadata.coord*`, sem
+  tocar `importedFrom` (decisão já registrada no m1a3).
+- **ACHADO CORRIGIDO (fora do pedido, dentro do escopo).** O modo normal do
+  `enrichAllMediaBatch` filtrava `"mediaEnrichment" IS NULL` — registro INTEIRO ausente. Como
+  o job de mídia (04:00) carimba todo clube que passa e o unificado roda às 07:00, a fila de
+  uniforme/hino/flâmula perdia candidatos conforme o acervo era carimbado: **o cursor existia,
+  a seleção não perguntava a ele** (terceira ocorrência da mesma classe de defeito:
+  T536 → T547/T554 → aqui). Passou a usar a MESMA `clausulaNaoTentada` da fila de mídia.
+  `recheck` intacto, com teste que trava o texto SQL nos dois modos.
+- **Flags.** `ENRICH_BOT_ENABLED` (default false, via `envFlag` do PR #671) gate só o modo que
+  grava; `--apply`/`ENRICH_BOT_APPLY` é obrigatório para escrever; `--dry-run` vence tudo e
+  roda até com a flag desligada (não escreve). Sem `--apply` o bot percorre e loga.
+- **Infra sem tocar infra.** Nenhum recurso criado no Railway. O bot roda no MESMO image do
+  `media-worker`, escolhido por `MEDIA_WORKER_MODE=enrich-bot` no entrypoint (o ENTRYPOINT em
+  exec form impede `startCommand` no Railway). Runbook de provisionamento (envs, verificação
+  de log, as duas opções de serviço) em `docs/T575-ENRICH-BOT.md`.
+- **Verificação sem banco local.** O worktree não tem `node_modules` (o CI valida
+  typecheck/lint/suíte), então validei a lógica nova fora do repo, com bundles esbuild:
+  roteador+laço **66/66 asserções**; SQL gerado contra um stub fiel do `Prisma.Sql` medido no
+  Prisma real **18/18** (o stub, na primeira versão, não fundia a última string do filho com a
+  próxima do pai e o SQL saiu deslocado — o próprio teste pegou); seleção do lote unificado
+  executada de verdade com `$queryRaw` falso **8/8**. A primeira versão do stub está
+  registrada no comentário dele porque foi um erro instrutivo, não um detalhe.
+- **IDs e nomes:** o log do bot carrega fila e contagem, nunca QID/nome de entidade (teste
+  dedicado).
+
+GAPS DECLARADOS: (1) escudo/cores/foto e vínculo de jogador são limitados pela fonte — o bot
+avança a fila e carimba `no_source`, sem inventar; (2) `players` sem QID não entram em nenhuma
+fila de jogador; (3) a revisita de mídia existe (`ENRICH_BOT_REFRESH_DAYS`) mas fica DESLIGADA
+por padrão, porque ligá-la quebra o noop de re-run (decisão do T547); (4) coordenadas de clube
+cujo QID não tem P625/P159/P115/P131 resolvível ficam sem coordenada — declarado, não
+preenchido com centroide de país; (5) a fila de mídia extra só avança porque a seleção do lote
+unificado foi corrigida nesta tarefa — sem isso ela giraria em falso para sempre.
+
+Stage Summary:
+- Bot entregue: roteador + laço + 6 filas + entrypoint + runbook + testes, tudo desligado por
+  padrão e com dry-run como modo de nascença
+- Terceira ocorrência da classe "cursor existe, seleção não pergunta a ele" encontrada e
+  fechada no lote unificado, com teste que trava o SQL dos dois modos
+- Nada foi tocado em produção: sem deploy, sem requisição à fonte, sem acesso ao banco

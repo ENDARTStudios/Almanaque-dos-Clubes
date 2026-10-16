@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  trophy-cup — icone AUTORAL do Almanaque dos Clubes.
+  Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
+  escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
+  Gerado por apps/web/scripts/export-icons.mjs a partir de
+  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+  fill="none" stroke="currentColor" stroke-width="1.75"
+  stroke-linecap="round" stroke-linejoin="round">
+  <path d="M7 4h10v4.5a5 5 0 0 1-10 0z" />
+  <path d="M7 5.2H5A2.2 2.2 0 0 0 5 9.6h2" />
+  <path d="M17 5.2h2A2.2 2.2 0 0 1 19 9.6h-2" />
+  <path d="M12 13.5v4.5" />
+  <rect x="8.5" y="18" width="7" height="3" rx="0.8" />
+</svg>

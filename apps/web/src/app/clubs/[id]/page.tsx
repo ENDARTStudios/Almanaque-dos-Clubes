@@ -6,6 +6,7 @@ import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wsC2Strings } from '@/i18n/wsC2';
+import { wIconsStrings } from '@/i18n/wsIcons';
 import FavoriteButton from '@/components/FavoriteButton';
 import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
@@ -299,6 +300,11 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   ]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
+  // T576 — sem escudo oficial no acervo, o cabeçalho usa o ícone autoral e DECLARA
+  // que é ilustração (o desenho nunca se apresenta como escudo oficial).
+  const media = (club as { media?: { logoUrl?: string | null } }).media;
+  const logoUrl = media?.logoUrl ?? null;
+  const ic = wIconsStrings[locale];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -326,17 +332,18 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
             encolher a ZERO (medido: h1 com largura 0px a 390px) e o botão de ações
             ficava SOBRE o nome do clube. */}
         <div className="flex flex-wrap items-start gap-4 sm:gap-6">
-          <ClubCrest
-            logoUrl={(club as { media?: { logoUrl?: string | null } }).media?.logoUrl}
-            name={club.name}
-            size={80}
-          />
+          <ClubCrest logoUrl={logoUrl} name={club.name} size={80} />
           <div className="min-w-[12rem] flex-1 break-words">
             <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
               {club.name}
             </h1>
             {club.fullName && <p className="text-foreground/60 mt-1">{club.fullName}</p>}
             {club.shortName && <p className="text-sm text-foreground/70">({club.shortName})</p>}
+            {!logoUrl && (
+              <p className="text-xs text-foreground/70 mt-2" data-testid="club-crest-illustration">
+                {ic.clubCrest}
+              </p>
+            )}
             {club.gender === 'women' && (
               <span
                 className="inline-block mt-1 text-xs bg-primary/10 text-primary-ink border border-primary/30 rounded-full px-2 py-0.5"

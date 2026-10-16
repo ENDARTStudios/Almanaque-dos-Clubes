@@ -2756,3 +2756,53 @@ Alternativas consideradas: (a) verificar só em produção após deploy — desc
 verificação, faria torcida; (b) rodar a API localmente — descartado: o Postgres de produção não é
 alcançável localmente (skill `prod-railway`) e subir banco vazio não é dado real; (c) servir
 fixtures fixas escritas à mão — descartado: é justamente o que "dado real" exclui.
+
+### [2026-10-15] Decisão: D-2026-10-15-t575-enrich-bot — o enriquecimento passa a rodar em VOLTAS contínuas, desligado por padrão
+
+Motivo: os lotes de enriquecimento rodam UMA vez por dia e cada lote novo exigiu um cron novo
+(04:00 mídia de clube, 05:00 jogadores, 06:00 editorial, 07:00 unificado). Com 12 k clubes e
+105 k jogadores, uma volta por noite leva meses — e cada fila só avança o próprio pedaço. O bot
+encadeia as filas por **menor progresso relativo**, com teto por volta e pausa entre voltas.
+Guardas escolhidos (todos por escrito no código, não em prosa):
+
+1. **Desligado por padrão.** `ENRICH_BOT_ENABLED=false`; o modo que GRAVA exige a flag E
+   `--apply`/`ENRICH_BOT_APPLY`. Sem eles o processo só percorre e loga (dry-run). `--dry-run`
+   roda até com a flag desligada — porque não escreve nada. Alternativa recusada: ligar por
+   omissão "porque é idempotente". Idempotente não é o mesmo que inócuo: escrever no acervo de
+   produção é decisão do dono, e o default de um processo novo não pode ser escrever.
+2. **Nada de dado inventado.** Toda fila reusa o lote que já existe (mesma aceitação, mesma
+   proveniência, mesma regra "só se estiver NULL"). Onde a fonte não tem, o cursor carimba
+   `no_source` e o gap fica DECLARADO. Nenhuma fonte nova (os sites de história têm
+   ToS/copyright restritivos — análise jurídica desta sessão).
+3. **A fila de coordenadas ganha CURSOR.** Os scripts `enrich-clubs-coordinates-m1a2` e
+   `resolve-club-coordinates-m1a3` selecionam `latitude/longitude IS NULL` + `orderBy: id ASC`:
+   clube sem coordenada na fonte nunca sai do filtro, então o script reprocessa o mesmo começo
+   para sempre — o mesmo defeito do T536/T547/T554, que já custou duas coberturas congeladas.
+   A fila nova usa a chave `coordinates` no mesmo cursor (`extractClubCoordinatesBulk` reusado).
+   Não consertei os scripts: eles continuam sendo o caminho manual, com o mesmo comportamento.
+4. **Achado que a tarefa obrigou a corrigir:** o modo normal do `enrichAllMediaBatch` filtrava
+   `"mediaEnrichment" IS NULL` — o REGISTRO inteiro ausente. Como o job de mídia (04:00) carimba
+   todo clube que passa e o unificado roda às 07:00, a fila de uniforme/hino/flâmula perdia
+   candidatos conforme o acervo era carimbado: **o cursor existia, a seleção não perguntava a
+   ele**. Passou a usar a mesma `clausulaNaoTentada([kits, anthem, pennants])` — coerente com o
+   `pendingMedia` que o lote já aplicava por clube. `recheck` (prova de noop) intacto.
+5. **Anti-congelamento explícito.** Fila que roda e não anda (`processed=0` com pendência) ou que
+   erra a volta entra em castigo por N voltas e o bot ataca as outras; o evento `queue-stalled`
+   é o sinal no log. Sem isso, uma fila travada consumiria a sessão inteira girando em falso.
+6. **`refreshDays` desligado por padrão.** Só nunca-tentado. Ligar a revisita quebra o noop de
+   re-run de propósito (decisão já registrada no T547) e é opção explícita do operador.
+7. **O bot não escreve o próprio caminho de escrita.** O vínculo jogador→clube saiu do `main()`
+   do script T551 para `link-players-clubs.service.ts` (o script virou wrapper, com a MESMA saída
+   de console). Duas implementações do mesmo predicado divergem — foi o que congelou a mídia no
+   T536.
+
+Provisionamento: o bot roda no MESMO image do `media-worker`, escolhido por
+`MEDIA_WORKER_MODE=enrich-bot` no entrypoint (o ENTRYPOINT em exec form impede `startCommand`
+no Railway). NENHUM recurso foi criado no Railway nesta tarefa: o código e o runbook
+(`docs/T575-ENRICH-BOT.md`) vão no PR e o dono provisiona.
+
+Verificação: o worktree não tinha `node_modules` (o CI valida typecheck/lint/suíte), então a
+lógica nova foi validada fora do repo em três bundles esbuild — roteador+laço (66/66), SQL
+gerado contra um stub fiel do `Prisma.Sql` medido no Prisma real (18/18) e a seleção do lote
+unificado executada com `$queryRaw` falso (8/8). Nenhuma requisição à fonte, nenhum deploy,
+nenhum acesso ao banco de produção.

@@ -8,6 +8,8 @@ import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
+import { TrophyCup } from '@/components/icons';
+import { wIconsStrings } from '@/i18n/wsIcons';
 
 // Mapeamento do portal (Operador, 08/10 — Entrega 2): sub-abas Visão Geral |
 // Edições | Clubes | Maiores Campeões sobre o overview WON da API. Honestidade:
@@ -113,6 +115,9 @@ export default async function CompetitionDetailPage({
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
   const t = dict.pages.competitionProfile;
+  // T576 — sem imagem oficial do troféu, o cabeçalho usa a taça autoral e DECLARA
+  // que é ilustração (o desenho nunca se apresenta como o troféu oficial).
+  const ic = wIconsStrings[locale];
 
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '') ? (tabParam as Tab) : 'visao';
 
@@ -156,8 +161,15 @@ export default async function CompetitionDetailPage({
               <img src={comp.trophyImageUrl} alt="" className="object-contain w-16 h-16" loading="lazy" />
             </span>
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-2xl shrink-0">
-              {comp.name.slice(0, 2).toUpperCase()}
+            <div
+              data-testid="competition-trophy-illustration"
+              className="w-20 h-20 rounded-2xl bg-primary/10 text-primary-ink flex flex-col items-center justify-center gap-0.5 shrink-0"
+              aria-hidden="true"
+            >
+              <TrophyCup size={30} />
+              <span className="font-heading font-bold text-sm leading-none">
+                {comp.name.slice(0, 2).toUpperCase()}
+              </span>
             </div>
           )}
           <div className="flex-1">
@@ -185,6 +197,11 @@ export default async function CompetitionDetailPage({
                 </span>
               ) : null}
             </div>
+            {!comp.trophyImageUrl && (
+              <p className="text-xs text-foreground/70 mt-3" data-testid="competition-trophy-note">
+                {ic.competitionTrophy}
+              </p>
+            )}
             <div className="mt-3">
               <FavoriteButton
                 targetType="competition"
