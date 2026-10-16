@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  player-forward — icone AUTORAL do Almanaque dos Clubes.
+  player-ball — icone AUTORAL do Almanaque dos Clubes.
   Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
   escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
   Gerado por apps/web/scripts/export-icons.mjs a partir de
@@ -9,11 +9,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
   fill="none" stroke="currentColor" stroke-width="1.75"
   stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="4.6" r="2.2" />
-  <path d="M12 6.8v6.4" />
-  <path d="M12 8.6 7.8 10.2" />
-  <path d="M12 8.6l4.2 1.6" />
-  <path d="M12 13.2 10.4 21" />
-  <path d="M12 13.2 15.8 14 16.6 11.8" />
-  <circle cx="19.4" cy="11.4" r="1.7" />
+  <circle cx="12" cy="12" r="8.6" />
+  <path d="M12 8.6 15.23 10.95 13.99 14.75 10.01 14.75 8.77 10.95 Z" />
+  <path d="M12 8.6V3.4" />
+  <path d="M15.23 10.95 20.18 9.34" />
+  <path d="M13.99 14.75 17.05 18.96" />
+  <path d="M10.01 14.75 6.95 18.96" />
+  <path d="M8.77 10.95 3.82 9.34" />
 </svg>

@@ -12,9 +12,9 @@ import {
  * (nunca uma imagem inventada).
  *
  * T576 — sem mídia, o placeholder passa a mostrar também o ícone AUTORAL da
- * categoria (escudo genérico / figura genérica da posição), arte original do
- * projeto (ver `components/icons` e `docs/ICONES-AUTORAIS.md`). O ícone é
- * decorativo (`aria-hidden`); quem declara a lacuna em texto é o RÓTULO DE
+ * categoria (escudo genérico / objeto da posição: luva, caneleira, bola, chuteira),
+ * arte original do projeto (ver `components/icons` e `docs/ICONES-AUTORAIS.md`). O
+ * ícone é decorativo (`aria-hidden`); quem declara a lacuna em texto é o RÓTULO DE
  * ILUSTRAÇÃO da página (`i18n/wsIcons.ts`), ao lado do nome — o ícone nunca se
  * apresenta como escudo, foto ou troféu oficial.
  */
@@ -82,7 +82,14 @@ export function PlayerPhoto({
         className="shrink-0 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden"
         style={{ width: size, height: size }}
       >
-        <Image src={photoUrl} alt="" width={size} height={size} className="object-cover" unoptimized />
+        <Image
+          src={photoUrl}
+          alt=""
+          width={size}
+          height={size}
+          className="object-cover"
+          unoptimized
+        />
       </span>
     );
   }

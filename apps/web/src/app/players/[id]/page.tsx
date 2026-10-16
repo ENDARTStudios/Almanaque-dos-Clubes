@@ -17,7 +17,7 @@ interface Player {
   fansCount?: number | null;
   officialSite?: string | null;
   socialLinks?: Record<string, { handle: string; url: string } | null> | null;
-  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
+  followersSnapshot?: (Record<string, number | null> & { updatedAt?: string }) | null;
   fullName: string;
   shortName?: string | null;
   birthDate?: string | null;
@@ -35,7 +35,9 @@ interface ProfileExtras {
   clubs: Array<{ id: string; name: string; country: string | null }>;
 }
 
-async function getPlayer(id: string): Promise<{ data: Player; profile: ProfileExtras | null } | null> {
+async function getPlayer(
+  id: string,
+): Promise<{ data: Player; profile: ProfileExtras | null } | null> {
   try {
     const res = await fetch(`${getApiBase()}/players/${id}`, { cache: 'no-store' });
     if (!res.ok) return null;
@@ -80,8 +82,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 
   const birthYear = p.birthDate ? String(p.birthDate).slice(0, 4) : null;
 
-  // T576 — sem foto oficial no acervo, o cabeçalho usa a figura autoral da posição e
-  // DECLARA que é ilustração genérica (nunca um retrato de pessoa real).
+  // T576 — sem foto oficial no acervo, o cabeçalho usa o OBJETO autoral da posição (a luva
+  // do goleiro, a caneleira do zagueiro, a bola, a chuteira) e DECLARA que é ilustração
+  // genérica — nunca uma figura humana nem um retrato de pessoa real.
   const photoUrl = (p as { photoUrl?: string | null }).photoUrl ?? null;
   const ic = wIconsStrings[locale];
   const positionName = positionLabel(locale, p.position);
@@ -125,7 +128,10 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             {profile?.currentClub ? (
               <p className="text-sm text-foreground/70 mt-2">
                 {t.currentClub}:{' '}
-                <Link href={`/clubs/${profile.currentClub.id}`} className="text-primary-ink hover:underline">
+                <Link
+                  href={`/clubs/${profile.currentClub.id}`}
+                  className="text-primary-ink hover:underline"
+                >
                   {profile.currentClub.name}
                 </Link>
               </p>
@@ -162,14 +168,20 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
 
         {/* Carreira */}
         <section aria-labelledby="player-career" className="mt-8 pt-8 border-t border-border/50">
-          <h2 id="player-career" className="text-lg font-heading font-semibold mb-3">{t.careerTitle}</h2>
+          <h2 id="player-career" className="text-lg font-heading font-semibold mb-3">
+            {t.careerTitle}
+          </h2>
           {profile && profile.career.length > 0 ? (
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-foreground/5 text-left">
-                    <th scope="col" className="px-4 py-3 font-semibold">{t.year}</th>
-                    <th scope="col" className="px-4 py-3 font-semibold">{t.club}</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.year}
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.club}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,7 +189,10 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                     <tr key={`${row.clubId}-${row.year}-${i}`} className="border-t border-border">
                       <td className="px-4 py-3 font-semibold">{row.year}</td>
                       <td className="px-4 py-3">
-                        <Link href={`/clubs/${row.clubId}`} className="text-primary-ink hover:underline">
+                        <Link
+                          href={`/clubs/${row.clubId}`}
+                          className="text-primary-ink hover:underline"
+                        >
                           {row.clubName}
                         </Link>
                       </td>
@@ -187,18 +202,28 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               </table>
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="career-empty">{t.careerEmpty}</p>
+            <p className="text-sm text-foreground/60" data-testid="career-empty">
+              {t.careerEmpty}
+            </p>
           )}
         </section>
 
         {/* Conquistas */}
         <section aria-labelledby="player-achievements" className="mt-8">
-          <h2 id="player-achievements" className="text-lg font-heading font-semibold mb-3">{t.achievementsTitle}</h2>
+          <h2 id="player-achievements" className="text-lg font-heading font-semibold mb-3">
+            {t.achievementsTitle}
+          </h2>
           {profile && profile.achievements.length > 0 ? (
             <ul className="space-y-2">
               {profile.achievements.map((a, i) => (
-                <li key={`${a.competitionId}-${a.year}-${i}`} className="rounded-xl border border-border p-4 text-sm">
-                  <Link href={`/competitions/${a.competitionId}`} className="text-primary-ink hover:underline font-semibold">
+                <li
+                  key={`${a.competitionId}-${a.year}-${i}`}
+                  className="rounded-xl border border-border p-4 text-sm"
+                >
+                  <Link
+                    href={`/competitions/${a.competitionId}`}
+                    className="text-primary-ink hover:underline font-semibold"
+                  >
                     {a.competitionName}
                   </Link>
                   {a.year != null ? <span className="text-foreground/70"> · {a.year}</span> : null}
@@ -206,13 +231,17 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="achievements-empty">{t.achievementsEmpty}</p>
+            <p className="text-sm text-foreground/60" data-testid="achievements-empty">
+              {t.achievementsEmpty}
+            </p>
           )}
         </section>
 
         {/* Clubes */}
         <section aria-labelledby="player-clubs" className="mt-8">
-          <h2 id="player-clubs" className="text-lg font-heading font-semibold mb-3">{t.clubsTitle}</h2>
+          <h2 id="player-clubs" className="text-lg font-heading font-semibold mb-3">
+            {t.clubsTitle}
+          </h2>
           {profile && profile.clubs.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {profile.clubs.map((c) => (
@@ -222,12 +251,16 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
                   className="block bg-background rounded-xl p-4 shadow-sm border border-border/50 hover:border-primary/40 transition-colors"
                 >
                   <p className="font-heading font-semibold text-foreground">{c.name}</p>
-                  {c.country ? <p className="text-xs text-foreground/70 mt-1">{c.country}</p> : null}
+                  {c.country ? (
+                    <p className="text-xs text-foreground/70 mt-1">{c.country}</p>
+                  ) : null}
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="clubs-empty">{t.clubsEmpty}</p>
+            <p className="text-sm text-foreground/60" data-testid="clubs-empty">
+              {t.clubsEmpty}
+            </p>
           )}
         </section>
       </div>

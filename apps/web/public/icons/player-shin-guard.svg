@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  player-midfielder — icone AUTORAL do Almanaque dos Clubes.
+  player-shin-guard — icone AUTORAL do Almanaque dos Clubes.
   Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
   escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
   Gerado por apps/web/scripts/export-icons.mjs a partir de
@@ -9,11 +9,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
   fill="none" stroke="currentColor" stroke-width="1.75"
   stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="4.6" r="2.2" />
-  <path d="M12 6.8v6.4" />
-  <path d="M12 9l-3.4 2.4" />
-  <path d="M12 9l3.4 2.4" />
-  <path d="M12 13.2 10 21" />
-  <path d="M12 13.2 14.2 21" />
-  <circle cx="17.6" cy="19.6" r="1.9" />
+  <path d="M12 3.4c2.4 0 4.3 1.9 4.3 4.3v6.5c0 3-1.9 5.6-4.3 6.4-2.4-.8-4.3-3.4-4.3-6.4V7.7c0-2.4 1.9-4.3 4.3-4.3z" />
+  <path d="M5.6 8.6h12.8" />
+  <path d="M5.6 13.9h12.8" />
 </svg>

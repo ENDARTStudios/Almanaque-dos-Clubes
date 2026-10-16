@@ -32,11 +32,11 @@ import {
   ICON_META,
   ICON_NAMES,
   PLAYER_POSITION_ICON,
-  PlayerDefender,
-  PlayerForward,
-  PlayerGoalkeeper,
-  PlayerMidfielder,
+  PlayerBall,
+  PlayerBoot,
+  PlayerGlove,
   PlayerPositionIcon,
+  PlayerShinGuard,
   TrophyBelt,
   TrophyCup,
   TrophyMedal,
@@ -63,17 +63,17 @@ const GEOMETRY = JSON.parse(readFileSync(SOURCE, 'utf8')) as {
   icons: Record<string, { viewBox: string; strokeWidth: number; shapes: unknown[] }>;
 };
 
-/** Nomes esperados pelo pedido — troféus/mérito, atleta por posição, escudo genérico. */
+/** Nomes esperados pelo pedido — troféus/mérito, posição (por Objeto), escudo genérico. */
 const EXPECTED_NAMES = [
   'trophy-cup',
   'trophy-plate',
   'trophy-medal',
   'trophy-shield',
   'trophy-belt',
-  'player-goalkeeper',
-  'player-defender',
-  'player-midfielder',
-  'player-forward',
+  'player-glove',
+  'player-shin-guard',
+  'player-ball',
+  'player-boot',
   'club-crest-generic',
   'club-crest-generic-dark',
 ];
@@ -85,10 +85,10 @@ const NAMED: Array<[string, ComponentType<IconProps>, IconName]> = [
   ['TrophyMedal', TrophyMedal, 'trophy-medal'],
   ['TrophyShield', TrophyShield, 'trophy-shield'],
   ['TrophyBelt', TrophyBelt, 'trophy-belt'],
-  ['PlayerGoalkeeper', PlayerGoalkeeper, 'player-goalkeeper'],
-  ['PlayerDefender', PlayerDefender, 'player-defender'],
-  ['PlayerMidfielder', PlayerMidfielder, 'player-midfielder'],
-  ['PlayerForward', PlayerForward, 'player-forward'],
+  ['PlayerGlove', PlayerGlove, 'player-glove'],
+  ['PlayerShinGuard', PlayerShinGuard, 'player-shin-guard'],
+  ['PlayerBall', PlayerBall, 'player-ball'],
+  ['PlayerBoot', PlayerBoot, 'player-boot'],
   ['ClubCrestGeneric', ClubCrestGeneric, 'club-crest-generic'],
   ['ClubCrestGenericDark', ClubCrestGenericDark, 'club-crest-generic-dark'],
 ];
@@ -123,9 +123,13 @@ describe('geometria (icons.json)', () => {
     expect([...ICON_NAMES].sort()).toEqual([...EXPECTED_NAMES].sort());
   });
 
-  it('declara a autoria original no próprio arquivo de geometria', () => {
+  it('declara a autoria original e que posição é OBJETO (não figura humana)', () => {
     expect(GEOMETRY.notice).toMatch(/ARTE ORIGINAL/);
     expect(GEOMETRY.notice).toMatch(/END ART Studios/);
+    // A rodada anterior foi reprovada por usar figura humana (boneco palito): a nota
+    // tem de registrar a regra nova no próprio arquivo de geometria.
+    expect(GEOMETRY.notice).toMatch(/OBJETO/);
+    expect(GEOMETRY.notice).toMatch(/nao sao figuras humanas|não são figuras humanas/);
   });
 
   it('usa a grade 24×24, o mesmo traço e ao menos uma forma por ícone', () => {
@@ -224,14 +228,21 @@ describe('componente', () => {
   });
 });
 
-describe('placeholder de atleta por posição', () => {
-  it('mapeia as quatro posições do domínio', () => {
+describe('placeholder de posição (o OBJETO, não a figura humana)', () => {
+  it('mapeia as quatro posições do domínio para o objeto do ofício', () => {
     expect(PLAYER_POSITION_ICON).toEqual({
-      GOALKEEPER: 'player-goalkeeper',
-      DEFENDER: 'player-defender',
-      MIDFIELDER: 'player-midfielder',
-      FORWARD: 'player-forward',
+      GOALKEEPER: 'player-glove',
+      DEFENDER: 'player-shin-guard',
+      MIDFIELDER: 'player-ball',
+      FORWARD: 'player-boot',
     });
+  });
+
+  it('não sobrou nenhum ícone de posição por FIGURA humana (nomes antigos)', () => {
+    const antigos = ICON_NAMES.filter((name) =>
+      /^player-(goalkeeper|defender|midfielder|forward)$/.test(name),
+    );
+    expect(antigos).toEqual([]);
   });
 
   it('escolhe o ícone da posição, tolerando caixa e espaço', () => {

@@ -1,5 +1,5 @@
 {
-  "notice": "Icones AUTORAIS do Almanaque dos Clubes - ARTE ORIGINAL do projeto (autoria END ART Studios). Nenhuma forma aqui foi rastreada, vetorizada, copiada ou 'reinterpretada' de fotografia, escudo, trofeu ou qualquer obra de terceiro. Sao formas genericas que evocam a CATEGORIA (copo, taca, medalha, placa, escudo, atleta) - nao a silhueta de um trofeu ou escudo real, que seria obra derivada (Lei 9.610/98, art. 29) e marca registrada. Nenhum placeholder de atleta e retrato ou caricatura de pessoa real (Codigo Civil, art. 20): e uma figura generica, sem semelhanca com ninguem.",
+  "notice": "Icones AUTORAIS do Almanaque dos Clubes - ARTE ORIGINAL do projeto (autoria END ART Studios). Nenhuma forma aqui foi rastreada, vetorizada, copiada ou 'reinterpretada' de fotografia, escudo, trofeu ou qualquer obra de terceiro. Sao formas genericas que evocam a CATEGORIA (copo, taca, medalha, placa, escudo, objeto do oficio) - nao a silhueta de um trofeu ou escudo real, que seria obra derivada (Lei 9.610/98, art. 29) e marca registrada. Os placeholders de POSICAO nao sao figuras humanas, retratos nem caricaturas de pessoa real (Codigo Civil, art. 20): cada posicao e representada por um OBJETO generico do oficio (luva de goleiro, caneleira, bola, chuteira), sem semelhanca com pessoa, atleta, clube ou marca de fabricante.",
   "defaults": {
     "viewBox": "0 0 24 24",
     "strokeWidth": 1.75,
@@ -79,62 +79,57 @@
         { "tag": "circle", "cx": 12, "cy": 11.2, "r": 2 }
       ]
     },
-    "player-goalkeeper": {
-      "label": "Goleiro (figura generica)",
-      "purpose": "Placeholder de atleta GOALKEEPER. Figura generica: nao e retrato nem caricatura de ninguem.",
+    "player-glove": {
+      "label": "Luva de goleiro (objeto da posicao)",
+      "purpose": "Placeholder de atleta GOALKEEPER sem foto no acervo: OBJETO da posicao (luva + punho), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
-        { "tag": "circle", "cx": 12, "cy": 4.6, "r": 2.2 },
-        { "tag": "path", "d": "M12 6.8v6.4" },
-        { "tag": "path", "d": "M12 8.6 8.4 5.4" },
-        { "tag": "path", "d": "M12 8.6 15.6 5.4" },
-        { "tag": "path", "d": "M12 13.2 9.2 21" },
-        { "tag": "path", "d": "M12 13.2 14.8 21" }
+        { "tag": "rect", "x": 7.1, "y": 14.6, "width": 11.6, "height": 4.3, "rx": 1.5 },
+        { "tag": "path", "d": "M8.5 14.6V9.9a4.6 4.6 0 0 1 9.2 0v4.7" },
+        { "tag": "path", "d": "M8.5 9.9H6.7a2.35 2.35 0 0 0 0 4.7h1.8" }
       ]
     },
-    "player-defender": {
-      "label": "Defensor (figura generica)",
-      "purpose": "Placeholder de atleta DEFENDER. Figura generica: nao e retrato nem caricatura de ninguem.",
+    "player-shin-guard": {
+      "label": "Caneleira (objeto da posicao)",
+      "purpose": "Placeholder de atleta DEFENDER sem foto no acervo: OBJETO da posicao (caneleira com alcas), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
-        { "tag": "circle", "cx": 12, "cy": 4.6, "r": 2.2 },
-        { "tag": "path", "d": "M12 6.8v6.4" },
-        { "tag": "path", "d": "M12 9.4H6.4" },
-        { "tag": "path", "d": "M12 9.4h5.6" },
-        { "tag": "path", "d": "M12 13.2 9.6 21" },
-        { "tag": "path", "d": "M12 13.2 14.4 21" }
+        {
+          "tag": "path",
+          "d": "M12 3.4c2.4 0 4.3 1.9 4.3 4.3v6.5c0 3-1.9 5.6-4.3 6.4-2.4-.8-4.3-3.4-4.3-6.4V7.7c0-2.4 1.9-4.3 4.3-4.3z"
+        },
+        { "tag": "path", "d": "M5.6 8.6h12.8" },
+        { "tag": "path", "d": "M5.6 13.9h12.8" }
       ]
     },
-    "player-midfielder": {
-      "label": "Meio-campista (figura generica)",
-      "purpose": "Placeholder de atleta MIDFIELDER. Figura generica: nao e retrato nem caricatura de ninguem.",
+    "player-ball": {
+      "label": "Bola (objeto da posicao)",
+      "purpose": "Placeholder de atleta MIDFIELDER sem foto no acervo: OBJETO da posicao (bola de gomos), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
-        { "tag": "circle", "cx": 12, "cy": 4.6, "r": 2.2 },
-        { "tag": "path", "d": "M12 6.8v6.4" },
-        { "tag": "path", "d": "M12 9l-3.4 2.4" },
-        { "tag": "path", "d": "M12 9l3.4 2.4" },
-        { "tag": "path", "d": "M12 13.2 10 21" },
-        { "tag": "path", "d": "M12 13.2 14.2 21" },
-        { "tag": "circle", "cx": 17.6, "cy": 19.6, "r": 1.9 }
+        { "tag": "circle", "cx": 12, "cy": 12, "r": 8.6 },
+        {
+          "tag": "path",
+          "d": "M12 8.6 15.23 10.95 13.99 14.75 10.01 14.75 8.77 10.95 Z"
+        },
+        { "tag": "path", "d": "M12 8.6V3.4" },
+        { "tag": "path", "d": "M15.23 10.95 20.18 9.34" },
+        { "tag": "path", "d": "M13.99 14.75 17.05 18.96" },
+        { "tag": "path", "d": "M10.01 14.75 6.95 18.96" },
+        { "tag": "path", "d": "M8.77 10.95 3.82 9.34" }
       ]
     },
-    "player-forward": {
-      "label": "Atacante (figura generica)",
-      "purpose": "Placeholder de atleta FORWARD. Figura generica: nao e retrato nem caricatura de ninguem.",
+    "player-boot": {
+      "label": "Chuteira (objeto da posicao)",
+      "purpose": "Placeholder de atleta FORWARD sem foto no acervo: OBJETO da posicao (chuteira de perfil com travas), nao figura humana.",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.75,
       "shapes": [
-        { "tag": "circle", "cx": 12, "cy": 4.6, "r": 2.2 },
-        { "tag": "path", "d": "M12 6.8v6.4" },
-        { "tag": "path", "d": "M12 8.6 7.8 10.2" },
-        { "tag": "path", "d": "M12 8.6l4.2 1.6" },
-        { "tag": "path", "d": "M12 13.2 10.4 21" },
-        { "tag": "path", "d": "M12 13.2 15.8 14 16.6 11.8" },
-        { "tag": "circle", "cx": 19.4, "cy": 11.4, "r": 1.7 }
+        { "tag": "path", "d": "M4.2 15.4v-3.6l1.4-1.4h7.4l2.8-2.4h3.4l1 7.4z" },
+        { "tag": "path", "d": "M7.2 15.4v2.2M13 15.4v2.2M18.4 15.4v2.2" }
       ]
     },
     "club-crest-generic": {
