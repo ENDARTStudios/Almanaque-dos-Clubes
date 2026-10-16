@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  trophy-plate — icone AUTORAL do Almanaque dos Clubes.
+  Arte original do projeto (autoria END ART Studios). NAO derivado de fotografia,
+  escudo, trofeu ou qualquer obra de terceiro: forma generica que evoca a categoria.
+  Gerado por apps/web/scripts/export-icons.mjs a partir de
+  apps/web/src/components/icons/icons.json — NAO edite este arquivo a mao.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+  fill="none" stroke="currentColor" stroke-width="1.75"
+  stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="3.4" width="16" height="10.4" rx="2" />
+  <path d="M12 5.4 L12.86 7.51 L15.14 7.68 L13.4 9.15 L13.94 11.37 L12 10.17 L10.06 11.37 L10.6 9.15 L8.86 7.68 L11.14 7.51 Z" />
+  <path d="M12 13.8v3.2" />
+  <path d="M8.4 17h7.2" />
+  <path d="M8.4 17l-1.5 4" />
+  <path d="M15.6 17l1.5 4" />
+</svg>
