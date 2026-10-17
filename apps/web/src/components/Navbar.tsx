@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from './CommandPaletteProvider';
 import { wsC2Strings } from '@/i18n/wsC2';
+import { wsLegendsStrings } from '@/i18n/wsLegends';
 import { Search as SearchIcon } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useGsapFadeIn } from '@/hooks/useGsap';
@@ -115,6 +116,11 @@ export default function Navbar() {
   const plainLinks = [
     { href: '/players', label: t('nav.shortPlayers'), full: t('nav.players') },
     { href: '/rankings', label: t('nav.shortRankings'), full: t('nav.rankings') },
+    {
+      href: '/legends',
+      label: wsLegendsStrings[locale].nav.short,
+      full: wsLegendsStrings[locale].nav.full,
+    },
     { href: '/map', label: t('nav.map'), full: t('nav.map') },
   ];
 

@@ -15,3 +15,17 @@ const INTL_TAG: Record<Locale, string> = {
 export function formatCount(value: number, locale: Locale): string {
   return new Intl.NumberFormat(INTL_TAG[locale] ?? 'pt-BR').format(value);
 }
+
+/**
+ * Formata data ISO (yyyy-mm-dd) no formato do idioma. Datas do acervo vêm como
+ * string ISO (ou Date serializado); inválida → o próprio ISO de volta (honesto).
+ */
+export function formatDate(value: string | Date, locale: Locale): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(INTL_TAG[locale] ?? 'pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+}

@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-        {
+    {
       // T545 — a página existia e respondia 200 desde o T541, mas ficou fora do
       // sitemap (e sem link no site): invisível para busca e para o usuário.
       url: `${baseUrl}/matches`,
@@ -19,11 +19,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.7,
     },
-{
+    {
       url: `${baseUrl}/rankings`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    // Legends — hall da fama (resumo agregado, atualiza com ingestão).
+    {
+      url: `${baseUrl}/legends`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
     },
     // WS-C-3 — `/map` público (aprovado). Só entra no sitemap após observação 24–72h verdes
     // + aprovação explícita do Operador (patch local em `feat/ws-c-3-sitemap-map`).

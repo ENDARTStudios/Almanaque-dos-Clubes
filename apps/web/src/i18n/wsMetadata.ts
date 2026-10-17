@@ -21,6 +21,8 @@ export interface MetadataStrings {
   competitions: { title: string; description: string };
   rankings: { title: string; description: string };
   map: { title: string; description: string };
+  /** Legends — hall da fama (títulos auditáveis + recordes de partidas). */
+  legends: { title: string; description: string };
 }
 
 export const metadataStrings: Record<Locale, MetadataStrings> = {
@@ -55,6 +57,11 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
         'Clubes de futebol por país, com coordenada auditável e atribuição por fonte (OpenStreetMap/ODbL, Wikidata CC0, Natural Earth). Clubes sem coordenada aparecem em lista (vazio-honesto).',
     },
   },
+  legends: {
+    title: 'Lendas — Hall da Fama',
+    description:
+      'O hall da fama do acervo: clubes com mais títulos auditáveis, líderes por competição e recordes de partidas com placar — todo número com fonte.',
+  },
   'en-us': {
     home: {
       title: 'Almanaque dos Clubes — World Football History',
@@ -86,6 +93,11 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
         'Football clubs by country, with auditable coordinates and source attribution (OpenStreetMap/ODbL, Wikidata CC0, Natural Earth). Clubs without coordinates are listed (honest gap).',
     },
   },
+  legends: {
+    title: 'Legends — Hall of Fame',
+    description:
+      'The archive hall of fame: clubs with the most auditable titles, leaders by competition and scored-match records — every number sourced.',
+  },
   'es-es': {
     home: {
       title: 'Almanaque dos Clubes — Historia del Fútbol Mundial',
@@ -116,5 +128,10 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
       description:
         'Clubes de fútbol por país, con coordenadas auditables y atribución por fuente (OpenStreetMap/ODbL, Wikidata CC0, Natural Earth). Los clubes sin coordenadas aparecen en una lista (vacío honesto).',
     },
+  },
+  legends: {
+    title: 'Leyendas — Salón de la Fama',
+    description:
+      'El salón de la fama del acervo: clubes con más títulos auditables, líderes por competición y récords de partidos con marcador — cada número con fuente.',
   },
 };
