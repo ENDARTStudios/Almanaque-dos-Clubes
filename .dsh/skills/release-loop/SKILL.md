@@ -15,9 +15,9 @@ git fetch origin --quiet && git checkout -B feat/<tarefa> origin/main
 cd apps/api && npx eslint src tests --fix && npx tsc -p tsconfig.json --noEmit && npx vitest run tests/unit
 npx eslint src tests   # confirme 0 ERRORS (warnings do repo são esperados)
 
-# 2) commit (o hook pre-commit está quebrado por incompatibilidade — ver abaixo)
+# 2) commit — o hook pre-commit FUNCIONA, deixe ele rodar
 git add -A && git status --short   # <-- CONFIRA: nenhum arquivo temporário de descoberta entrando
-git commit --no-verify -m "<tipo>(<escopo>): <resumo>"
+git commit -m "<tipo>(<escopo>): <resumo>"
 
 # 3) PR e checks
 git push -u origin feat/<tarefa>
@@ -35,9 +35,15 @@ railway deployment list | sed -n '2p'                # aguarde SUCCESS (ver skil
 
 - **`GITHUB_TOKEN` do ambiente pode estar expirado** e sobrescrever o login do keyring → `HTTP 401 Bad credentials`.
   Use **`env -u GITHUB_TOKEN -u GH_TOKEN gh …`**. (`gh auth status` mostra as duas entradas.)
-- **Hook `pre-commit` quebrado**: o `lint-staged` roda `eslint --fix` e o `eslint-plugin-react` quebra com o ESLint 10
-  (`getFilename is not a function`) em QUALQUER `.tsx` → o commit falha e ele **reverte suas mudanças**. Use
-  `git commit --no-verify` (o CI arbitra o lint) e **confirme que o `git status` continua com o que você quer**.
+- **Hook `pre-commit`: NÃO está mais quebrado (corrigido).** Ele quebrava com o ESLint 10
+  (`getFilename is not a function` do `eslint-plugin-react`) em QUALQUER `.tsx`, e a instrução antiga
+  era usar `git commit --no-verify`. **O bug foi corrigido fixando `eslint@^9`**, e o hook foi
+  verificado funcionando: roda `prettier --write` e `eslint --fix` nos arquivos staged e o commit
+  passa. **Não use `--no-verify`**: ele pula exatamente a verificação que este skill existe para
+  garantir.
+  _Se o hook voltar a falhar_, o sintoma é o commit abortar e as mudanças continuarem staged
+  (`git status` mostra tudo em `M`, nada commitado). Nesse caso: conserte o hook e registre aqui —
+  não contorne com `--no-verify`, porque a próxima pessoa vai herdar a mesma armadilha.
 - **PR CONFLITANTE não roda CI**: depois de um merge squash, o commit antigo do branch vira duplicata do commit do
   `main` → `mergeable: CONFLICTING`, `statusCheckRollup` só com Vercel (parece "CI não disparou").
   Corrija com `git checkout -B <branch> origin/main && git cherry-pick <seu-commit>` e `git push --force-with-lease`.
