@@ -14,14 +14,16 @@ para fechar o acervo — e cada fila avança só o próprio pedaço. O bot roda 
 
 ## 2. Filas cobertas (e o que cada uma reusa)
 
-| Fila (`id`) | Chaves do cursor | Lote/componente reusado (nada reimplementado) |
-|---|---|---|
-| `club-media` | `logo`, `stadium`, `colors` | `enrichClubsMediaBatch` (`enrich-media.service.ts`) |
-| `club-editorial` | `editorial` | `enrichClubsEditorialBatch` |
-| `club-extra-media` | `kits`, `anthem`, `pennants` | `enrichAllMediaBatch` (`enrich-all-media.service.ts`) |
-| `player-profile` | `profile` (foto/país/posição) | `enrichPlayersMediaBatch` |
-| `player-club` | `club` | `linkPlayersClubsBatch` (`link-players-clubs.service.ts`) |
-| `club-coordinates` | `coordinates` (latitude/longitude) | connector `extractClubCoordinatesBulk` |
+| Fila (`id`)            | Chaves do cursor                   | Lote/componente reusado (nada reimplementado)             |
+| ---------------------- | ---------------------------------- | --------------------------------------------------------- |
+| `club-media`           | `logo`, `stadium`, `colors`        | `enrichClubsMediaBatch` (`enrich-media.service.ts`)       |
+| `club-editorial`       | `editorial`                        | `enrichClubsEditorialBatch`                               |
+| `club-extra-media`     | `kits`, `anthem`, `pennants`       | `enrichAllMediaBatch` (`enrich-all-media.service.ts`)     |
+| `player-profile`       | `profile` (foto/país/posição)      | `enrichPlayersMediaBatch`                                 |
+| `player-club`          | `club`                             | `linkPlayersClubsBatch` (`link-players-clubs.service.ts`) |
+| `commons-club-logo`    | `commonsLogo`                      | `harvestClubsBatch` (`commons-images.service.ts`)         |
+| `commons-player-photo` | `commonsPhoto`                     | `harvestPlayersBatch` (`commons-images.service.ts`)       |
+| `club-coordinates`     | `coordinates` (latitude/longitude) | connector `extractClubCoordinatesBulk`                    |
 
 O escritor de cada fila é o MESMO caminho que o cron usa — mesma aceitação, mesma
 proveniência, mesmo "só se estiver NULL". O bot não tem escrita própria.
@@ -45,6 +47,12 @@ proveniência, mesmo "só se estiver NULL". O bot não tem escrita própria.
    perguntava a ele**. Agora usa a mesma `clausulaNaoTentada([kits, anthem, pennants])` da
    seleção de mídia — coerente com o `pendingMedia` que o próprio lote já aplicava por clube.
    O modo `recheck` (usado como prova de noop) ficou **intacto**.
+4. **Coletor do Commons no bot (T578)** — `harvest-commons-images.ts` virou wrapper fino do
+   service `commons-images.service.ts`, e o bot ganhou DUAS filas com as chaves de cursor
+   próprias do coletor (`commonsLogo`/`commonsPhoto`). A licença continua verificada POR
+   ARQUIVO no connector; a entrada do cursor carrega `file/license/author/sourceUrl`.
+   Falha de leitura não carimba (a fila fica intacta), e a separação em duas filas evita
+   que o universo de 105 k jogadores esconda o déficit dos 12 k clubes (ou vice-versa).
 
 ## 3. Roteador: como a fila da volta é escolhida
 
@@ -66,17 +74,17 @@ bug de fila congelada.
 
 ## 4. Caps, pausa e defaults
 
-| Variável / flag | Default | Efeito |
-|---|---|---|
-| `ENRICH_BOT_ENABLED` | **false** | Gate do modo que GRAVA (via `envFlag`, PR #671) |
-| `ENRICH_BOT_APPLY` / `--apply` | false | Liga a escrita (exige a flag acima) |
-| `ENRICH_BOT_DRY_RUN` / `--dry-run` | — | Força dry-run (vence `--apply`) |
-| `ENRICH_BOT_CAP` / `--cap=N` | **40** | Entidades por volta (1–500) |
-| `ENRICH_BOT_PAUSE_MS` / `--pause-ms=N` | **30000** | Pausa entre voltas (1 s–1 h), **fatiada em 1 s** |
-| `ENRICH_BOT_MAX_TURNS` / `--max-turns=N` | **0** (infinito) | Voltas máximas (útil para inspeção) |
-| `ENRICH_BOT_STALL_COOLDOWN_TURNS` | **3** | Voltas de castigo da fila que não anda |
-| `ENRICH_BOT_TURN_TIMEOUT_MS` | **900000** | Orçamento da volta — só LOGA (não aborta escrita) |
-| `ENRICH_BOT_REFRESH_DAYS` | **0** (desligado) | Revisita de mídia já tentada |
+| Variável / flag                          | Default           | Efeito                                            |
+| ---------------------------------------- | ----------------- | ------------------------------------------------- |
+| `ENRICH_BOT_ENABLED`                     | **false**         | Gate do modo que GRAVA (via `envFlag`, PR #671)   |
+| `ENRICH_BOT_APPLY` / `--apply`           | false             | Liga a escrita (exige a flag acima)               |
+| `ENRICH_BOT_DRY_RUN` / `--dry-run`       | —                 | Força dry-run (vence `--apply`)                   |
+| `ENRICH_BOT_CAP` / `--cap=N`             | **40**            | Entidades por volta (1–500)                       |
+| `ENRICH_BOT_PAUSE_MS` / `--pause-ms=N`   | **30000**         | Pausa entre voltas (1 s–1 h), **fatiada em 1 s**  |
+| `ENRICH_BOT_MAX_TURNS` / `--max-turns=N` | **0** (infinito)  | Voltas máximas (útil para inspeção)               |
+| `ENRICH_BOT_STALL_COOLDOWN_TURNS`        | **3**             | Voltas de castigo da fila que não anda            |
+| `ENRICH_BOT_TURN_TIMEOUT_MS`             | **900000**        | Orçamento da volta — só LOGA (não aborta escrita) |
+| `ENRICH_BOT_REFRESH_DAYS`                | **0** (desligado) | Revisita de mídia já tentada                      |
 
 O cap de 40 mantém a volta longe do teto de leitura de artigo (`INFOBOX_MAX_POR_RUN = 60`) e
 do timeout do job, e a pausa de 30 s respeita a taxa da fonte (IP de datacenter do Railway;
@@ -93,10 +101,10 @@ na hora (código 130), para quem não quer esperar nada.
 Se uma fila não ANDA, ela entra em **castigo por N voltas** (`queue-stalled` no log, com o
 motivo) e o bot ataca as outras. As três formas de "não andou", todas contadas:
 
-| Motivo no log | O que aconteceu | Por que castiga |
-|---|---|---|
-| `erro-na-volta` | o lote lançou (banco/rede) | nada foi carimbado, a fila está idêntica |
-| `processed=0` | percorreu e não escreveu | a seleção e a aceitação divergiram |
+| Motivo no log         | O que aconteceu                              | Por que castiga                                                       |
+| --------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| `erro-na-volta`       | o lote lançou (banco/rede)                   | nada foi carimbado, a fila está idêntica                              |
+| `processed=0`         | percorreu e não escreveu                     | a seleção e a aceitação divergiram                                    |
 | `so-falha-de-leitura` | só FALHA de leitura (429/5xx) e nada gravado | a fila está idêntica e o bot voltaria a bater na fonte que já recusou |
 
 Falha **junto** com escrita é progresso parcial: não castiga. Sem o castigo, uma fila travada
@@ -188,11 +196,15 @@ comportamento esperado quando não há pendência. Shutdown em `SIGTERM`: aparec
 
 - `apps/api/src/modules/etl/enrich-bot-router.ts` (novo) — roteador + config (puro)
 - `apps/api/src/modules/etl/enrich-bot.service.ts` (novo) — laço, cap/pausa, shutdown, contadores
-- `apps/api/src/modules/etl/enrich-bot-queues.ts` (novo) — as 6 filas reais (adaptadores)
+- `apps/api/src/modules/etl/enrich-bot-queues.ts` (novo) — as 8 filas reais (adaptadores)
 - `apps/api/src/modules/etl/link-players-clubs.service.ts` (novo) — lote extraído do script T551
+- `apps/api/src/modules/etl/commons-images.service.ts` (novo, T578) — coletor do Commons
+  compartilhado pelo CLI e pelo bot (chaves `commonsLogo`/`commonsPhoto`, licença por arquivo)
+- `apps/api/src/scripts/harvest-commons-images.ts` — passa a ser wrapper do service T578
 - `apps/api/src/scripts/enrich-bot.ts` (novo) — entrypoint do processo
-- `apps/api/src/modules/etl/media-cursor.ts` — chave `coordinates`, `clausulaNaoTentada`
-  exportada, `countPendingClubs`/`countPendingPlayers`
+- `apps/api/src/modules/etl/media-cursor.ts` — chaves `coordinates`, `commonsLogo`,
+  `commonsPhoto`, `clausulaNaoTentada` exportada, `countPendingClubs`/`countPendingPlayers`
+  e `needs` opcional na seleção de clubes
 - `apps/api/src/modules/etl/enrich-media.service.ts` — `refreshDays` opcional nos lotes de clube
 - `apps/api/src/modules/etl/enrich-all-media.service.ts` — seleção pelo cursor por chave
 - `apps/api/src/scripts/link-players-clubs-t551.ts` — passa a ser wrapper do service

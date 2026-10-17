@@ -21,6 +21,16 @@ vi.mock('../../../src/modules/etl/enrich-all-media.service.js', () => ({
 vi.mock('../../../src/modules/etl/link-players-clubs.service.js', () => ({
   linkPlayersClubsBatch: vi.fn(),
 }));
+vi.mock('../../../src/modules/etl/commons-images.service.js', () => ({
+  harvestClubsBatch: vi.fn(),
+  harvestPlayersBatch: vi.fn(),
+  defaultHarvestOptions: (apply: boolean) => ({
+    apply,
+    depth: 1,
+    maxFiles: 100,
+    tryFiles: 5,
+  }),
+}));
 
 import {
   enrichClubsEditorialBatch,
@@ -29,6 +39,10 @@ import {
 } from '../../../src/modules/etl/enrich-media.service.js';
 import { enrichAllMediaBatch } from '../../../src/modules/etl/enrich-all-media.service.js';
 import { linkPlayersClubsBatch } from '../../../src/modules/etl/link-players-clubs.service.js';
+import {
+  harvestClubsBatch,
+  harvestPlayersBatch,
+} from '../../../src/modules/etl/commons-images.service.js';
 import {
   buildEnrichQueueAdapters,
   coordenadasBatch,
@@ -93,7 +107,7 @@ const textoSql1 = (args: unknown[]): string =>
 const textoSql = (rawArgs: unknown[][]): string => rawArgs.map(textoSql1).join('\n');
 
 describe('T575 — adaptadores das filas', () => {
-  it('entrega as SEIS filas na ordem canônica do roteador, com as chaves que cobrem', () => {
+  it('entrega as OITO filas na ordem canônica do roteador, com as chaves que cobrem', () => {
     const { client } = fakePrisma({ count: 1 });
     const adapters = buildEnrichQueueAdapters(client);
     expect(adapters.map((a) => a.id)).toEqual([...ENRICH_QUEUE_ORDER]);
@@ -103,6 +117,8 @@ describe('T575 — adaptadores das filas', () => {
       'kits,anthem,pennants',
       'profile',
       'club',
+      'commonsLogo',
+      'commonsPhoto',
       'coordinates',
     ]);
   });
@@ -128,7 +144,7 @@ describe('T575 — adaptadores das filas', () => {
     for (const a of adapters) {
       expect(await a.progress()).toEqual({ total: 4, pending: 4 });
     }
-    expect(adapters).toHaveLength(6);
+    expect(adapters).toHaveLength(8);
   });
 
   it('club-media: `skipped` vira gaps e falha de leitura de artigo vira failures', async () => {
@@ -215,6 +231,44 @@ describe('T575 — adaptadores das filas', () => {
     const adapters = buildEnrichQueueAdapters(client);
     const out = await adapters[4]!.run(40, { apply: true });
     expect(out).toEqual({ processed: 12, updated: 7, gaps: 5, failures: 0 });
+  });
+
+  it('commons (T578): escudo/foto usam o lote do coletor e o cap chega inteiro', async () => {
+    const relatorio = (kind: 'club' | 'player') => ({
+      kind,
+      processed: 4,
+      enriched: 2,
+      noSource: 1,
+      readErrors: 1,
+      rejections: {},
+      examples: [],
+    });
+    vi.mocked(harvestClubsBatch).mockResolvedValue(relatorio('club'));
+    vi.mocked(harvestPlayersBatch).mockResolvedValue(relatorio('player'));
+    const { client } = fakePrisma({ count: 1 });
+    const adapters = buildEnrichQueueAdapters(client);
+    expect(await adapters[5]!.run(37, { apply: true })).toEqual({
+      processed: 4,
+      updated: 2,
+      gaps: 1,
+      failures: 1,
+    });
+    expect(harvestClubsBatch).toHaveBeenCalledWith(
+      client,
+      37,
+      expect.objectContaining({ apply: true, tryFiles: 5 }),
+    );
+    expect(await adapters[6]!.run(23, { apply: false })).toEqual({
+      processed: 4,
+      updated: 2,
+      gaps: 1,
+      failures: 1,
+    });
+    expect(harvestPlayersBatch).toHaveBeenCalledWith(
+      client,
+      23,
+      expect.objectContaining({ apply: false }),
+    );
   });
 
   it('refreshDays configurado é repassado aos lotes (revisita é decisão explícita)', async () => {

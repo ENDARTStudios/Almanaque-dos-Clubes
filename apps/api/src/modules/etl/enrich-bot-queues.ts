@@ -29,6 +29,11 @@ import {
 import { enrichAllMediaBatch } from './enrich-all-media.service.js';
 import { linkPlayersClubsBatch } from './link-players-clubs.service.js';
 import {
+  defaultHarvestOptions,
+  harvestClubsBatch,
+  harvestPlayersBatch,
+} from './commons-images.service.js';
+import {
   extractClubCoordinatesBulk,
   type ClubCoordinateResult,
 } from '../../lib/wikidata/extract-club-coordinates.js';
@@ -40,6 +45,10 @@ const NEEDS_EDITORIAL = Prisma.sql`"editorialText" IS NULL`;
 const NEEDS_EXTRA_MEDIA = Prisma.sql`("kitHistory" IS NULL OR anthem IS NULL OR pennants IS NULL)`;
 const NEEDS_COORDINATES = Prisma.sql`(latitude IS NULL OR longitude IS NULL)`;
 const NEEDS_PLAYER_CLUB = Prisma.sql`"clubId" IS NULL`;
+// T578 — mesmos predicados da seleção do coletor do Commons (`logoUrl`/`photoUrl`
+// nulos). Sem eles o denominador incluiria alvo já preenchido por outra fonte.
+const NEEDS_CLUB_LOGO = Prisma.sql`"logoUrl" IS NULL`;
+const NEEDS_PLAYER_PHOTO = Prisma.sql`"photoUrl" IS NULL`;
 
 const somar = (base: QueueRunResult, extra: QueueRunResult): QueueRunResult => ({
   processed: base.processed + extra.processed,
@@ -62,7 +71,7 @@ export interface BuildAdaptersOptions {
   resolverCoordenadas?: typeof extractClubCoordinatesBulk;
 }
 
-/** As seis filas, na ordem canônica do roteador. */
+/** As oito filas, na ordem canônica do roteador. */
 export function buildEnrichQueueAdapters(
   prisma: PrismaClient,
   opts: BuildAdaptersOptions = {},
@@ -161,6 +170,54 @@ export function buildEnrichQueueAdapters(
     },
   };
 
+  /**
+   * T578 — coletor de imagens do Commons por CATEGORIA. Reusa o lote do service
+   * (`harvestClubsBatch`/`harvestPlayersBatch`) e as chaves de cursor PRÓPRIAS
+   * (`commonsLogo`/`commonsPhoto`). `readErrors` são falhas de leitura: não carimbam
+   * "sem fonte" e a fila fica intacta para a próxima volta.
+   */
+  const commonsClubLogo: EnrichQueueAdapter = {
+    id: 'commons-club-logo',
+    label: 'escudo de clube pela categoria do Commons',
+    keys: ['commonsLogo'],
+    progress: () =>
+      countPendingClubs(prisma, {
+        media: ['commonsLogo'],
+        needs: NEEDS_CLUB_LOGO,
+        refreshDays,
+      }),
+    run: async (limit, { apply }) => {
+      const out = await harvestClubsBatch(prisma, limit, defaultHarvestOptions(apply));
+      return {
+        processed: out.processed,
+        updated: out.enriched,
+        gaps: out.noSource,
+        failures: out.readErrors,
+      };
+    },
+  };
+
+  const commonsPlayerPhoto: EnrichQueueAdapter = {
+    id: 'commons-player-photo',
+    label: 'foto de jogador pela categoria do Commons',
+    keys: ['commonsPhoto'],
+    progress: () =>
+      countPendingPlayers(prisma, {
+        media: ['commonsPhoto'],
+        needs: NEEDS_PLAYER_PHOTO,
+        refreshDays,
+      }),
+    run: async (limit, { apply }) => {
+      const out = await harvestPlayersBatch(prisma, limit, defaultHarvestOptions(apply));
+      return {
+        processed: out.processed,
+        updated: out.enriched,
+        gaps: out.noSource,
+        failures: out.readErrors,
+      };
+    },
+  };
+
   const clubCoordinates: EnrichQueueAdapter = {
     id: 'club-coordinates',
     label: 'coordenadas do clube (latitude/longitude)',
@@ -174,7 +231,16 @@ export function buildEnrichQueueAdapters(
     run: (limit, { apply }) => coordenadasBatch(prisma, limit, apply, opts.resolverCoordenadas),
   };
 
-  return [clubMedia, clubEditorial, clubExtraMedia, playerProfile, playerClub, clubCoordinates];
+  return [
+    clubMedia,
+    clubEditorial,
+    clubExtraMedia,
+    playerProfile,
+    playerClub,
+    commonsClubLogo,
+    commonsPlayerPhoto,
+    clubCoordinates,
+  ];
 }
 
 /**
