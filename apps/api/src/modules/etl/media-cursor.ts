@@ -212,11 +212,6 @@ export interface PendingPlayerQueryOptions {
   needs?: Prisma.Sql;
   /** Reprocessar quem foi tentado há mais de N dias (foto/posição podem aparecer depois). */
   refreshDays?: number;
-  /**
-   * Restringe a seleção a estes IDs (uso operacional: reprocessar um conjunto e
-   * testes de integração com fixtures, sem depender da ordem global da fila).
-   */
-  ids?: string[];
 }
 
 /** Linha da fila (a coluna vem do SQL, daí não usar o tipo do Prisma). */
@@ -247,16 +242,11 @@ export async function selectPendingPlayers(
 ): Promise<PendingPlayerRow[]> {
   const media = opts.media ?? ['profile'];
   const needs = opts.needs ?? NEEDS_PERFIL;
-  const ids =
-    opts.ids && opts.ids.length > 0
-      ? Prisma.sql` AND id IN (${Prisma.join(opts.ids)})`
-      : Prisma.empty;
   return prisma.$queryRaw<PendingPlayerRow[]>`
     SELECT id, qid, "photoUrl", country, position, "fullName" AS name
     FROM players
     WHERE qid IS NOT NULL
       AND ${needs}
-      ${ids}
       AND ${clausulaNaoTentada(media, opts.refreshDays)}
     ORDER BY coalesce("mediaEnrichment"->${media[0]}::text->>'at', '1970-01-01T00:00:00Z') ASC,
              "fullName" ASC
