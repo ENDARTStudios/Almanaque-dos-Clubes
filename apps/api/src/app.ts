@@ -46,6 +46,7 @@ import { favoritesRoutes } from './modules/favorites/routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.js';
 import { compareRoutes } from './modules/compare/routes.js';
 import { championsRoutes } from './modules/champions/routes.js';
+import { legendsRoutes } from './modules/legends/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
 import { geoRoutes } from './modules/geo/routes.js';
 import { backupRoutes } from './modules/admin/backup.routes.js';
@@ -276,6 +277,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(wsTicketRoutes);
       await api.register(compareRoutes);
       await api.register(championsRoutes);
+      await api.register(legendsRoutes);
       await api.register(searchRoutes);
       await api.register(geoRoutes);
       await api.register(backupRoutes);
