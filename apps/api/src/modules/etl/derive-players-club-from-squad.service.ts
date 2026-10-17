@@ -4,8 +4,13 @@
  * em `player-club-from-squad.ts`; aqui é só a fila, a resolução em lote e o carimbo.
  *
  * Cursor PRÓPRIO (`clubFromSquad`), separado da chave `club` do P54 (T551): os dois
- * jobs podem rodar na mesma base sem apagar a tentativa um do outro. `selectPendingPlayers`
- * faz o merge atômico do JSONB.
+ * jobs podem rodar na mesma base sem apagar a tentativa um do outro. O carimbo mescla
+ * o JSONB (`stampPlayerAttempt`).
+ *
+ * PRIORIDADE DA FILA: a seleção ordena pela MAIOR temporada do jogador (desc), depois
+ * pelo nome. Ordem só alfabética rendia ~1 vínculo a cada 300 jogadores (medido em
+ * produção: a letra A concentra elencos antigos); com a prioridade, uma rodada bounded
+ * de 300 gasta o orçamento em quem tem chance real de entrar na janela.
  *
  * Toda saída carimba — inclusive "sem aresta", "sem ano", "elenco antigo", "clube fora
  * do acervo" e "empate". Sem isso o jogador reencabeça a fila para sempre (o defeito
@@ -13,7 +18,7 @@
  */
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { prisma as prismaSingleton } from '../../config/prisma.js';
-import { selectPendingPlayers, stampPlayerAttempt } from './media-cursor.js';
+import { clausulaNaoTentada, stampPlayerAttempt, type PendingPlayerRow } from './media-cursor.js';
 import {
   deriveClubFromSquadEdges,
   SQUAD_CLUB_SOURCE,
@@ -77,6 +82,45 @@ function contarNoSource(
 }
 
 /**
+ * Fila priorizada: maior temporada primeiro. Reusa `clausulaNaoTentada` (cursor) para
+ * não haver duas implementações do predicado de "ainda não tentado".
+ */
+async function selecionarPendentes(
+  prisma: PrismaClient,
+  limit: number,
+  opts: DerivePlayersClubFromSquadOptions,
+): Promise<PendingPlayerRow[]> {
+  const ids =
+    opts.playerIds && opts.playerIds.length > 0
+      ? Prisma.sql` AND p.id IN (${Prisma.join(opts.playerIds)})`
+      : Prisma.empty;
+  return prisma.$queryRaw<PendingPlayerRow[]>`
+    WITH latest AS (
+      SELECT kg."sourceId" AS pid,
+             max(
+               CASE
+                 WHEN COALESCE(kg.metadata->>'year', '') ~ '^[0-9]{4}$'
+                 THEN (kg.metadata->>'year')::int
+                 ELSE 0
+               END
+             ) AS y
+      FROM knowledge_graph kg
+      WHERE kg."sourceType" = 'Player' AND kg."relation" = 'PLAYED_FOR'
+      GROUP BY kg."sourceId"
+    )
+    SELECT p.id, p.qid, p."photoUrl", p.country, p.position, p."fullName" AS name
+    FROM players p
+    LEFT JOIN latest l ON l.pid = p.id
+    WHERE p.qid IS NOT NULL
+      AND p."clubId" IS NULL
+      ${ids}
+      AND ${clausulaNaoTentada(['clubFromSquad'], opts.refreshDays)}
+    ORDER BY COALESCE(l.y, 0) DESC, p."fullName" ASC
+    LIMIT ${limit}
+  `;
+}
+
+/**
  * Processa até `limit` jogadores da fila. Nunca lê a rede: o dado já está no grafo.
  * Nunca sobrescreve `clubId` e nunca escreve clube que não esteja no acervo.
  */
@@ -88,13 +132,7 @@ export async function derivePlayersClubFromSquadBatch(
   const out = vazio();
 
   // `clubId IS NULL` no cursor e na escrita: o P54 é dono do que ele já preencheu.
-  const pendentes = await selectPendingPlayers(prisma, {
-    limit,
-    media: ['clubFromSquad'],
-    needs: Prisma.sql`"clubId" IS NULL`,
-    refreshDays: opts.refreshDays,
-    ids: opts.playerIds,
-  });
+  const pendentes = await selecionarPendentes(prisma, limit, opts);
   if (pendentes.length === 0) return out;
 
   const ids = pendentes.map((p) => p.id);
