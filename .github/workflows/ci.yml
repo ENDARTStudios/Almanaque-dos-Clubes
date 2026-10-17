@@ -93,6 +93,24 @@ jobs:
         working-directory: apps/web
         run: pnpm exec eslint .
 
+      # T581 — audita os arquivos que um agente LÊ e OBEDECE (skills, agentes, AGENTS.md) e detecta
+      # divergência entre a fonte canônica (`plugins/`) e as cópias (`.dsh/`, `.zcode/`).
+      #
+      # POR QUE ESTE PASSO EXISTE, com o achado que o motivou: a skill `release-loop` mandava
+      # `git commit --no-verify` porque o hook pre-commit estava quebrado. O bug foi corrigido
+      # (eslint fixado em 9), mas a instrução ficou — e continuou sendo obedecida, pulando a
+      # verificação que funciona. Numa sessão, 8 commits saíram com --no-verify por causa dela.
+      # Nenhum gate olhava para isso, porque instrução de agente não é código nem doc.
+      #
+      # O segundo achado: duas skills apontavam para `docs/ACCESSIBILITY.md` e
+      # `docs/HERO-NUMEROS.md`, movidos para `docs/07-operations-marketing/` na reorganização de
+      # docs (7cb0a52). A instrução mandava ler caminho que não existe mais.
+      #
+      # As cópias em `.dsh/` e `.zcode/` são o que o agente realmente lê. Se a fonte é corrigida e
+      # as cópias não, a correção não chega a ninguém — é por isso que o --check entra no CI.
+      - name: Agentes (drift de skills e instruções)
+        run: pnpm agents:check
+
       # T560 — `next build` do apps/web. Faltava, e a ausência tem consequência medida.
       #
       # O QUE ESTE PASSO PEGA E OS OUTROS NÃO

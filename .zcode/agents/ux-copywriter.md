@@ -53,5 +53,5 @@ NÃO VERIFICADO: <número que você não conseguiu confirmar na fonte>
 ```
 
 Toda contagem citada tem que vir acompanhada da origem (`GET /clubs.total`,
-`docs/HERO-NUMEROS.md`…). Se não conseguiu confirmar, escreva a copy com lacuna explícita em
-vez de inventar.
+`docs/07-operations-marketing/HERO-NUMEROS.md`…). Se não conseguiu confirmar, escreva a copy com
+lacuna explícita em vez de inventar.
