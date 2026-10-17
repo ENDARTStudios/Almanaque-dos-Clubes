@@ -66,8 +66,15 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
        ESTREITO ("todo clube tem uma história") — reprovada também, e a objeção foi cirúrgica:
        "a história de um clube é só uma fração dela". O torcedor quer o jogo inteiro: todos os
        clubes, todos os ídolos, todas as eras, todas as competições. O gancho agora pega o que o
-       Operador nomeou — o futebol é ETERNO — e a promessa entrega a totalidade, não a fração. */
-    hook: 'O futebol é eterno.\u00a0A memória dele, também.',
+       Operador nomeou — o futebol é ETERNO — e a promessa entrega a totalidade, não a fração.
+
+       3ª correção do Operador (2026-10): a segunda metade era "A memória dele, também" e virou
+       "A paixão por ele, também". A troca não é sinônimo — muda o que o site promete. "Memória"
+       coloca o acervo como um arquivo do que passou, e o próprio comentário abaixo já rejeitava
+       isso ("o futebol não é um acervo do que passou — é uma coisa viva e presente"). "Paixão"
+       devolve o sentimento ao presente e casa com a razão que o Operador já havia dado para
+       rejeitar a 1ª versão: "futebol é paixão, não auditoria". */
+    hook: 'O futebol é eterno.\u00a0A paixão por ele, também.',
     /* "é", não "já foi": o futebol não é um acervo do que passou — é uma coisa viva e presente
        (correção do Operador). O presente também é coerente com o H1 "é eterno". */
     eyebrow: 'Tudo o que o futebol é, num só lugar.',
@@ -121,7 +128,7 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
       'Leve o debate para o dado: pesquise, confira a fonte e compare. A conta é gratuita e leva menos de um minuto.',
   },
   'en-us': {
-    hook: 'Football is eternal.\u00a0So is its memory.',
+    hook: 'Football is eternal.\u00a0So is the passion for it.',
     eyebrow: 'Everything football is, in one place.',
     promise:
       'Clubs, idols, champions and the eras that never end — from every country and competition.',
@@ -174,7 +181,7 @@ export const wsC12Strings: Record<Locale, HeroLandingStrings> = {
       'Take the debate to the data: search, check the source and compare. The account is free and takes under a minute.',
   },
   'es-es': {
-    hook: 'El fútbol es eterno.\u00a0Su memoria, también.',
+    hook: 'El fútbol es eterno.\u00a0La pasión por él, también.',
     eyebrow: 'Todo lo que el fútbol es, en un solo lugar.',
     promise:
       'Clubes, ídolos, campeones y las eras que no terminan — de todos los países y competiciones.',
