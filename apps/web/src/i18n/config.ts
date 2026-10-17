@@ -8,10 +8,16 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   'en-us': 'English (US)',
   'es-es': 'Español (ES)',
 };
-export const LOCALE_FLAGS: Record<Locale, string> = {
-  'pt-br': '🇧🇷',
-  'en-us': '🇺🇸',
-  'es-es': '🇪🇸',
+/**
+ * T579b — país que representa cada idioma oferecido. SUBSTITUI o mapa de bandeira emoji
+ * (`🇧🇷/🇺🇸/🇪🇸`), que no Windows degrada para as duas letras regionais: as bandeiras agora
+ * vêm do mesmo asset próprio do acervo (`/flags/<iso2>.svg`, via `components/LocaleFlag.tsx`)
+ * e a sigla ISO2 é a ponte entre idioma e arquivo.
+ */
+export const LOCALE_COUNTRY: Record<Locale, string> = {
+  'pt-br': 'BR',
+  'en-us': 'US',
+  'es-es': 'ES',
 };
 
 export function isLocale(value: unknown): value is Locale {

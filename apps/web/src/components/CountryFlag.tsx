@@ -1,33 +1,81 @@
 import Link from 'next/link';
 import type { Locale } from '@/i18n/config';
 import { flagLabel, type WT579Strings } from '@/i18n/wsT579';
-import { countryHref, countryName, flagEmoji, isRegionCode, toIso2 } from '@/lib/country-flag';
+import { FLAG_ASSETS } from '@/lib/flag-assets.generated';
+import { countryHref, countryName, toIso2 } from '@/lib/country-flag';
+
+/** Altura da bandeira em px — o mesmo número que a classe `h-4` aplica. */
+export const ALTURA_BANDEIRA = 16;
+
+/** Classe de altura correspondente (Tailwind não lê constante em tempo de build). */
+const ALTURA_CLASSE = 'h-4';
 
 /**
- * T579 (ITEM 19) — BANDEIRA DO PAÍS do acervo.
+ * A IMAGEM da bandeira — o único lugar do app que desenha um `<img>` de bandeira (o
+ * `LocaleFlag` do seletor de idioma reusa esta função, para não existirem duas réguas de
+ * tamanho/decoração).
+ *
+ * Regras fixas: asset do manifesto pelo ISO2 (`null` quando não há — quem chama decide o
+ * texto), proporção real via `width`/`height` calculados (nada de caixa 3:2 deformando a
+ * Suíça) e decoração pura (`alt=""` + `aria-hidden`), porque o país vem do texto vizinho.
+ */
+export function FlagImage({
+  code,
+  className = '',
+  testId = 'country-flag-img',
+}: {
+  code?: string | null;
+  className?: string;
+  testId?: string;
+}) {
+  const iso = toIso2(code);
+  const asset = iso ? FLAG_ASSETS[iso] : undefined;
+  if (!asset) return null;
+  return (
+    <img
+      src={asset.src}
+      alt=""
+      aria-hidden="true"
+      width={Math.round(ALTURA_BANDEIRA * asset.ratio)}
+      height={ALTURA_BANDEIRA}
+      loading="lazy"
+      decoding="async"
+      data-testid={testId}
+      className={`${ALTURA_CLASSE} w-auto shrink-0 rounded-[2px] object-contain ring-1 ring-border/40 ${className}`}
+    />
+  );
+}
+
+/**
+ * T579b (ITEM 19) — BANDEIRA DO PAÍS do acervo, servida do nosso domínio.
  *
  * O que este componente resolve, e o que ele RECUSA a resolver:
  *
- * - A bandeira vem da SIGLA ISO2 do dado (`lib/country-flag`), sem CDN de terceiro. Código
- *   que não é ISO2 (ou país sem glifo no sistema) não vira bandeira nenhuma: vira TEXTO.
- *   Bandeira errada é pior que bandeira ausente.
+ * - A bandeira é um arquivo nosso (`/flags/<iso2>.svg|.png`), adquirido do Wikimedia
+ *   Commons pelo P41 do Wikidata. O que existe está no manifesto gerado
+ *   (`flag-assets.generated.ts`) — nada de emoji (que no Windows degrada para as duas letras
+ *   regionais) e nada de CDN de terceiro.
+ * - Código sem arquivo — dado sujo (`BR1`), país que a aquisição rejeitou por licença ou
+ *   QID sem P41 — cai para a SIGLA EM TEXTO. Bandeira errada é pior que bandeira ausente.
  * - Bandeira sozinha não é rótulo. Sem destino, o nome do país no idioma do usuário aparece
  *   em TEXTO ao lado dela; com destino, o `aria-label` do link carrega o nome do país
  *   ("Ver clubes: Itália"), porque a sigla de duas letras não basta para leitor de tela.
+ * - `<img alt="">` + `aria-hidden`: a imagem é DECORAÇÃO em todos os modos. Quem informa o
+ *   país é o texto ao lado (ou o `aria-label` do link) — o mesmo contrato que o emoji tinha,
+ *   agora sem depender de glifo do sistema.
  * - O clique só existe quando há destino REAL: `basePath` + `destination` apontam para uma
  *   listagem que já aceita `?country=` (`/clubs`, `/players`, `/competitions`). Sem os dois,
  *   o componente renderiza texto — não um link que não leva a lugar nenhum.
  * - Alvo de toque ≥ 24 px (WCAG 2.2 · 2.5.8) no modo link: `min-h-6 min-w-6`.
  *
- * TAMANHO do texto: o componente NÃO fixa `text-*` no wrapper — ele herda do contexto (a
- * célula da tabela, o chip de `text-xs`, o cartão de `text-sm`). Fixar aqui criaria conflito
- * de mesmo peso: `text-xs` e `text-sm` são duas classes de uma classe só, e quem vence é a
- * ordem do CSS, não a ordem do atributo — o resultado seria tamanho imprevisível conforme o
- * chamador.
+ * TAMANHO: a bandeira tem 16 px de altura (`h-4`) e a LARGURA vem da proporção real do
+ * arquivo (3:2, 5:3, 2:1, 1:1 — cada país tem a sua). Esticar tudo para uma caixa 3:2
+ * distorceria a Suíça e o Nepal; por isso `width`/`height` são atributos calculados do
+ * manifesto e o `h-4 w-auto` deixa o CSS mandar. O anel sutil de borda (`ring-border/40`)
+ * é o que separa do fundo escuro as bandeiras claras (Japão, Chipre).
  *
- * Uso decorativo (a bandeira ao lado de um texto que JÁ diz o país — o cartão do índice de
- * países, por exemplo) passa `showName={false}` e é lido como decoração: o emoji sai
- * `aria-hidden` e quem informa o país é o texto vizinho.
+ * O componente NÃO fixa `text-*` no wrapper — ele herda do contexto (a célula da tabela, o
+ * chip de `text-xs`, o cartão de `text-sm`). Fixar aqui criaria conflito de mesmo peso.
  */
 export function CountryFlag({
   code,
@@ -55,23 +103,13 @@ export function CountryFlag({
   if (typeof code !== 'string' || code.trim().length === 0) return null;
 
   const iso = toIso2(code);
-  /**
-   * A bandeira só é desenhada quando o código é uma REGIÃO de verdade (`isRegionCode`):
-   * código sem país real — `ZZ`/`XX` de dado sujo, ou retirado da ISO (`DD`, `YU`, `AN`, que
-   * ainda existem no acervo) — cai para TEXTO. Medido nos 223 códigos do acervo: 220 têm
-   * bandeira, 3 caem para a sigla.
-   */
-  const emoji = isRegionCode(code) ? flagEmoji(code) : null;
+  const asset = iso ? FLAG_ASSETS[iso] : undefined;
   const named = name?.trim() || countryName(code, locale);
   const text = named ?? iso ?? code.trim();
   const href = iso && basePath && destination ? countryHref(basePath, iso) : null;
   const withName = showName ?? !href;
 
-  const flag = emoji ? (
-    <span aria-hidden="true" className="text-base leading-none">
-      {emoji}
-    </span>
-  ) : null;
+  const flag = asset ? <FlagImage code={iso} /> : null;
 
   if (href && destination) {
     return (

@@ -71,13 +71,17 @@ describe('LanguageSelector — a lista é do site, não do sistema', () => {
     expect(screen.getByTestId('language-option-en-us').getAttribute('aria-selected')).toBe('false');
   });
 
-  it('(e) mostra os três idiomas com nome e bandeira', async () => {
+  it('(e) mostra os três idiomas com nome e bandeira (asset próprio, não emoji)', async () => {
     montar();
     await abrir();
     expect(screen.getByTestId('language-option-pt-br').textContent).toContain('Português (BR)');
     expect(screen.getByTestId('language-option-en-us').textContent).toContain('English (US)');
     expect(screen.getByTestId('language-option-es-es').textContent).toContain('Español (ES)');
-    expect(screen.getByTestId('language-option-pt-br').textContent).toContain('🇧🇷');
+    // T579b — a bandeira do idioma é `/flags/br.svg`, servida do nosso domínio. O emoji
+    // (`🇧🇷`) saiu porque no Windows ele degrada para as duas letras regionais.
+    const bandeira = screen.getByTestId('locale-flag-pt-br');
+    expect(bandeira.getAttribute('src')).toBe('/flags/br.svg');
+    expect(screen.getByTestId('language-option-pt-br').textContent).not.toContain('🇧🇷');
   });
 });
 
