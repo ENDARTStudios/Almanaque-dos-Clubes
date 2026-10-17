@@ -128,7 +128,97 @@ export function commonsFilePath(filename: string, width?: number): string {
   return base + a + '/' + ab + '/' + enc;
 }
 
-/** Lote de wbgetentities: Map<qid, EntityShape normalizado>. */
+/**
+ * Falha de LEITURA do lote: o `wbgetentities` respondeu 200 + `success: 1` mas não
+ * devolveu ids que foram pedidos, e repartir o lote até o limite não resolveu.
+ *
+ * Existe porque a alternativa era MENTIR: quem chama `entities.get(qid)` e recebe
+ * `undefined` conclui "a fonte não tem o dado", carimba `no_source` no cursor e o clube/
+ * jogador NUNCA volta para a fila. Ausência de resposta é falha de leitura, NÃO ausência
+ * de dado (mesma lição do 429 e do `IS NULL` do registro inteiro).
+ */
+export class WikidataBatchError extends Error {
+  constructor(
+    message: string,
+    readonly qidsAusentes: string[],
+  ) {
+    super(message);
+    this.name = 'WikidataBatchError';
+  }
+}
+
+/** Aviso de truncamento do MediaWiki (o teto é `12.582.912` bytes por resposta). */
+const AVISO_TRUNCAMENTO = /truncat/i;
+
+export interface LoteInspecionado {
+  /** O que a resposta realmente trouxe, como veio (inclusive alvos de redirect). */
+  entidades: Record<string, EntityShape>;
+  /** qid PEDIDO → chave existente em `entidades` (redirect/normalização). */
+  alias: Map<string, string>;
+  /** qids pedidos que a resposta simplesmente NÃO menciona — sem motivo legítimo. */
+  ausentes: string[];
+  /** Texto do aviso de truncamento do MediaWiki, quando o payload veio cortado. */
+  avisoTruncamento: string | null;
+}
+
+/**
+ * PARTE PURA do contrato do lote — provável sem rede (é aqui que o teste de regressão
+ * mira). Três motivos LEGÍTIMOS para um qid pedido não estar em `entities`:
+ *
+ * 1. `missing` — a entidade não existe (e aí a chave VEM, com o marcador);
+ * 2. redirect — o item foi mesclado; o alvo está em `entities` e o mapa `redirects`
+ *    (ou `normalized`) liga o pedido ao alvo;
+ * 3. normalização de caixa do id (`q30` → `Q30`).
+ *
+ * Qualquer outra ausência é GAP MUDO da resposta e não pode ser lida como "não tem".
+ */
+export function inspecionarLote(json: unknown, pedidos: string[]): LoteInspecionado {
+  const j = json as {
+    entities?: Record<string, EntityShape>;
+    redirects?: Array<{ from?: string; to?: string }>;
+    normalized?: Array<{ from?: string; to?: string }>;
+    warnings?: { result?: Record<string, unknown> };
+  };
+  const entidades = j.entities ?? {};
+  const alias = new Map<string, string>();
+  for (const par of [...(j.normalized ?? []), ...(j.redirects ?? [])]) {
+    const de = par?.from;
+    const para = par?.to;
+    if (de && para && entidades[para] && !entidades[de]) alias.set(de, para);
+  }
+  const ausentes = pedidos.filter((q) => !entidades[q] && !alias.has(q));
+  // O MediaWiki aninha o aviso por MÓDULO (`warnings.result['*']` hoje, mas o nome do
+  // módulo não é contrato) — varre os valores string do objeto, um nível dentro.
+  let avisoTruncamento: string | null = null;
+  const varrer = (no: unknown, nivel: number): void => {
+    if (avisoTruncamento != null || no == null || typeof no !== 'object') return;
+    for (const v of Object.values(no as Record<string, unknown>)) {
+      if (typeof v === 'string') {
+        if (AVISO_TRUNCAMENTO.test(v)) avisoTruncamento = v;
+      } else if (nivel < 2) {
+        varrer(v, nivel + 1);
+      }
+    }
+  };
+  varrer(j.warnings, 0);
+  return { entidades, alias, ausentes, avisoTruncamento };
+}
+
+/**
+ * Lote de wbgetentities: Map<qid, EntityShape normalizado>.
+ *
+ * CONTRATO (reforçado depois do defeito do lote cortado em 12 MB):
+ *  - todo qid PEDIDO ou vem no Map, ou o motivo da ausência é legítimo (`missing` /
+ *    redirect), ou esta função LANÇA `WikidataBatchError` — nunca devolve silêncio;
+ *  - resposta com aviso de truncamento (`success: 1` + `entities` faltando gente) é
+ *    repartida ao meio e refeita, com backoff e `minIntervalMs` entre requisições;
+ *  - o limite de repartição (`maxSplitDepth`) impede laço infinito: no fundo, o lote de
+ *    1 id que não volta vira erro de leitura (jamais `no_source`).
+ *
+ * Assinatura e tipo de retorno continuam os mesmos: os chamadores que iteram o Map e
+ * fazem `entities.get(qid)` não precisaram mudar. O que muda é que agora podem receber
+ * exceção em vez de um Map incompleto — e é isso que os impede de carimbar gap falso.
+ */
 export async function fetchEntities(
   qids: string[],
   opts: {
@@ -139,6 +229,15 @@ export async function fetchEntities(
     batchSize?: number;
     /** T552 — pedir também os sitelinks (título do artigo por wiki). */
     withSitelinks?: boolean;
+    /** Quantas vezes o lote pode ser repartido antes de virar erro de leitura. */
+    maxSplitDepth?: number;
+    /** Observabilidade: truncamento detectado (o erro segue sendo lançado no fundo). */
+    onTruncation?: (info: {
+      qidsAusentes: string[];
+      aviso: string | null;
+      profundidade: number;
+      tamanhoLote: number;
+    }) => void;
   } = {},
 ): Promise<Map<string, EntityShape>> {
   const {
@@ -148,20 +247,67 @@ export async function fetchEntities(
     minIntervalMs = 1000,
     batchSize = 50,
     withSitelinks = false,
+    maxSplitDepth = 5,
+    onTruncation,
   } = opts;
   const out = new Map<string, EntityShape>();
-  for (let i = 0; i < qids.length; i += batchSize) {
-    const chunk = qids.slice(i, i + batchSize);
-    const props = withSitelinks ? 'labels|claims|sitelinks' : 'labels|claims';
+  const props = withSitelinks ? 'labels|claims|sitelinks' : 'labels|claims';
+  // Ids repetidos no pedido não podem virar "ausente" na conferência: a API deduplica.
+  const unicos = [...new Set(qids)];
+
+  /** Uma requisição + conferência do que voltou. NÃO engole erro nenhum. */
+  async function buscarLote(chunk: string[], profundidade: number): Promise<void> {
     const url = `${WIKIDATA_API}?action=wbgetentities&ids=${chunk.join('|')}&format=json&props=${props}`;
     const res = await fetchImpl(url, { headers: { 'user-agent': userAgent } });
     if (!res.ok) throw new Error(`wbgetentities HTTP ${res.status}`);
-    const parsed = entityShape.safeParse(await res.json());
+    const json: unknown = await res.json();
+    const erro = (json as { error?: { code?: string; info?: string } }).error;
+    if (erro)
+      throw new Error(`wbgetentities ${erro.code ?? 'erro'}: ${erro.info ?? 'sem detalhe'}`);
+    const parsed = entityShape.safeParse(json);
     if (!parsed.success) throw new Error('wbgetentities payload inválido');
-    for (const [qid, e] of Object.entries(parsed.data.entities ?? {})) {
-      out.set(qid, e);
+    const lote = inspecionarLote(json, chunk);
+    for (const [qid, e] of Object.entries(lote.entidades)) out.set(qid, e);
+    // Redirect/normalização: o chamador pediu `qid` e é por `qid` que ele consulta o Map.
+    for (const [qid, destino] of lote.alias) {
+      const e = lote.entidades[destino];
+      if (e) out.set(qid, e);
     }
-    if (i + batchSize < qids.length) await sleep(minIntervalMs);
+    if (lote.avisoTruncamento == null && lote.ausentes.length === 0) return;
+
+    const suspeitos = lote.ausentes.length > 0 ? lote.ausentes : chunk;
+    onTruncation?.({
+      qidsAusentes: suspeitos,
+      aviso: lote.avisoTruncamento,
+      profundidade,
+      tamanhoLote: chunk.length,
+    });
+    // Fundo do poço: nem o lote mínimo veio confiável → FALHA DE LEITURA, e o erro sobe.
+    if (chunk.length <= 1 || profundidade >= maxSplitDepth) {
+      const detalhe =
+        lote.ausentes.length > 0
+          ? `não devolveu ${suspeitos.length} de ${chunk.length} ids pedidos ` +
+            `(${suspeitos.slice(0, 5).join(',')}${suspeitos.length > 5 ? ',…' : ''})`
+          : `marcou o payload como truncado mesmo com os ${chunk.length} ids pedidos presentes ` +
+            '(dados da própria entidade podem estar cortados)';
+      throw new WikidataBatchError(
+        `wbgetentities ${detalhe}` +
+          (lote.avisoTruncamento ? ` — ${lote.avisoTruncamento}` : '') +
+          ' — tratado como falha de LEITURA, não como ausência de dado',
+        suspeitos,
+      );
+    }
+    // Backoff antes de repartir (a resposta anterior é descartada, não mesclada como completa).
+    await sleep(minIntervalMs * 2 ** profundidade);
+    const meio = Math.ceil(chunk.length / 2);
+    await buscarLote(chunk.slice(0, meio), profundidade + 1);
+    await sleep(minIntervalMs);
+    await buscarLote(chunk.slice(meio), profundidade + 1);
+  }
+
+  for (let i = 0; i < unicos.length; i += batchSize) {
+    await buscarLote(unicos.slice(i, i + batchSize), 0);
+    if (i + batchSize < unicos.length) await sleep(minIntervalMs);
   }
   return out;
 }
