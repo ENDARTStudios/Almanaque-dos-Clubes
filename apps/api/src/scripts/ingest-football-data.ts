@@ -207,7 +207,7 @@ async function main(): Promise<void> {
       }
       let entries = 0;
       for (const row of table) {
-        const tm = row.team as { name: string };
+        const tm = row.team as { name: string; shortName?: string };
         const norm = normalizeName(tm.name);
         const firstTok = (tm.shortName ?? tm.name.split(' ')[0] ?? '').slice(0, 12);
         const candidates = await prisma.club.findMany({
