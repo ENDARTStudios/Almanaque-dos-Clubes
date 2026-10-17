@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { cookies } from 'next/headers';
 import ClubGrid from '@/components/ClubCard';
 import SearchBar from '@/components/SearchBar';
 import PageHeading from '@/components/PageHeading';
 import CountryIndex from '@/components/CountryIndex';
 import CityDrilldown from '@/components/CityDrilldown';
 import { getApiBase } from '@/lib/api-base';
+import { getDictionary } from '@/i18n/getDictionary';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
 export const metadata: Metadata = {
   title: 'Clubes',
@@ -44,6 +47,12 @@ export default async function ClubsPage({
 }) {
   const sp = await searchParams;
   const { data: clubs, total } = await getClubs(sp);
+  /* O RÓTULO do índice de países vem do dicionário: era o literal "clubes", que em en-us
+     aparecia como "903 clubes" ao lado de "Sweden". O número é localizado pelo componente;
+     o substantivo que o rotula é copy e pertence ao i18n. */
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -67,7 +76,7 @@ export default async function ClubsPage({
         basePath="/clubs"
         endpoint="/clubs/countries"
         campo="clubs"
-        rotulo="clubes"
+        rotulo={dict.pages.byCountry.clubs}
         {...(sp.country ? { selecionado: sp.country } : {})}
       />
       {/* SEGUNDO NÍVEL — cidades DENTRO do país escolhido, e só quando o dado sustenta.

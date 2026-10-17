@@ -6,6 +6,7 @@ import CountryIndex from '@/components/CountryIndex';
 import SearchBar from '@/components/SearchBar';
 import { CountryFlag } from '@/components/CountryFlag';
 import { getApiBase } from '@/lib/api-base';
+import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
 export const metadata: Metadata = {
@@ -61,6 +62,7 @@ export default async function PlayersPage({
   });
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -76,7 +78,7 @@ export default async function PlayersPage({
         basePath="/players"
         endpoint="/players/countries"
         campo="players"
-        rotulo="jogadores"
+        rotulo={dict.pages.byCountry.players}
         {...(sp.country ? { selecionado: sp.country } : {})}
       />
       {players.length ? (

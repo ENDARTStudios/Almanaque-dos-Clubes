@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Locale } from '@/i18n/config';
 import { flagLabel, type WT579Strings } from '@/i18n/wsT579';
 import { FLAG_ASSETS } from '@/lib/flag-assets.generated';
-import { countryHref, countryName, toIso2 } from '@/lib/country-flag';
+import { countryHref, countryLabel, toIso2 } from '@/lib/country-flag';
 
 /** Altura da bandeira em px — o mesmo número que a classe `h-4` aplica. */
 export const ALTURA_BANDEIRA = 16;
@@ -18,6 +18,18 @@ const ALTURA_CLASSE = 'h-4';
  * Regras fixas: asset do manifesto pelo ISO2 (`null` quando não há — quem chama decide o
  * texto), proporção real via `width`/`height` calculados (nada de caixa 3:2 deformando a
  * Suíça) e decoração pura (`alt=""` + `aria-hidden`), porque o país vem do texto vizinho.
+ *
+ * DUAS MEDIDAS, as duas de produção (auditoria de 16/10), e as duas viraram classe aqui:
+ *
+ * 1. **`max-w-none` — a bandeira encolhia para 12,63 px.** O preflight do Tailwind aplica
+ *    `img { max-width: 100% }`; dentro de um controle de 24 px (a bandeira do seletor de
+ *    idioma do rodapé), o `max-width` vencia a largura do arquivo e o `object-contain`
+ *    letterboxava: 24 ÷ 1,9 = **12,63 px** de altura para uma bandeira de razão 1,9 como a dos
+ *    EUA, abaixo do piso de 16 px. Com `max-width: none`, a largura passa a ser a do manifesto.
+ * 2. **`width` arredondado PARA CIMA.** Com `Math.round`, uma razão como 1,9 dava 30 px para
+ *    16 px de altura (30 ÷ 1,9 = 15,79 px de conteúdo) — de novo abaixo do piso, e por menos
+ *    de um pixel, que é o tipo de reprovação que ninguém vê. `Math.ceil` garante conteúdo
+ *    ≥ 16 px em qualquer razão.
  */
 export function FlagImage({
   code,
@@ -36,12 +48,12 @@ export function FlagImage({
       src={asset.src}
       alt=""
       aria-hidden="true"
-      width={Math.round(ALTURA_BANDEIRA * asset.ratio)}
+      width={Math.ceil(ALTURA_BANDEIRA * asset.ratio)}
       height={ALTURA_BANDEIRA}
       loading="lazy"
       decoding="async"
       data-testid={testId}
-      className={`${ALTURA_CLASSE} w-auto shrink-0 rounded-[2px] object-contain ring-1 ring-border/40 ${className}`}
+      className={`${ALTURA_CLASSE} w-auto max-w-none shrink-0 rounded-[2px] object-contain ring-1 ring-border/40 ${className}`}
     />
   );
 }
@@ -60,6 +72,9 @@ export function FlagImage({
  * - Bandeira sozinha não é rótulo. Sem destino, o nome do país no idioma do usuário aparece
  *   em TEXTO ao lado dela; com destino, o `aria-label` do link carrega o nome do país
  *   ("Ver clubes: Itália"), porque a sigla de duas letras não basta para leitor de tela.
+ *   O texto vem SEMPRE de `countryLabel` (ICU pelo ISO2) — nunca do `name` da tabela
+ *   `countries`, que é referência em inglês. Era esse o defeito medido: o cartão do índice de
+ *   países mostrava "Spain" e a linha logo abaixo, "Espanha".
  * - `<img alt="">` + `aria-hidden`: a imagem é DECORAÇÃO em todos os modos. Quem informa o
  *   país é o texto ao lado (ou o `aria-label` do link) — o mesmo contrato que o emoji tinha,
  *   agora sem depender de glifo do sistema.
@@ -80,7 +95,6 @@ export function FlagImage({
 export function CountryFlag({
   code,
   locale,
-  name,
   basePath,
   destination,
   showName,
@@ -90,8 +104,6 @@ export function CountryFlag({
   code?: string | null;
   /** Idioma do usuário — resolve o nome do país via ICU e o rótulo do link. */
   locale: Locale;
-  /** Nome já resolvido pelo chamador (ex.: índice de países), quando existir. */
-  name?: string | null;
   /** Base da listagem relacionada que aceita `?country=` — sem ela não há clique. */
   basePath?: string | null;
   /** Qual listagem o clique abre; compõe o nome acessível do link. */
@@ -104,8 +116,8 @@ export function CountryFlag({
 
   const iso = toIso2(code);
   const asset = iso ? FLAG_ASSETS[iso] : undefined;
-  const named = name?.trim() || countryName(code, locale);
-  const text = named ?? iso ?? code.trim();
+  // Um caminho só para o texto visível e para o nome acessível (ver `countryLabel`).
+  const text = countryLabel(code, locale) ?? code.trim();
   const href = iso && basePath && destination ? countryHref(basePath, iso) : null;
   const withName = showName ?? !href;
 

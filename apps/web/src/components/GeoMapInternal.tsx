@@ -12,6 +12,8 @@ import dynamic from 'next/dynamic';
 import { api } from '@/lib/api';
 import { buildMapViewModel, type GeoPointsResponseDto } from '@/lib/map-viewmodel';
 import { CountryFlag } from '@/components/CountryFlag';
+import { countryLabel } from '@/lib/country-flag';
+import { mapPageStrings, mapText } from '@/i18n/wsMapPage';
 import { useI18n } from '@/i18n/Provider';
 
 const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
@@ -19,13 +21,20 @@ const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   loading: () => <div className="h-[55vh] w-full animate-pulse rounded-2xl bg-muted" />,
 });
 
-/** Fallback do select enquanto /clubs/geo-stats não carrega (ou falha). */
-const FALLBACK_COUNTRIES: Array<{ code: string; name: string; clubs: number }> = [
-  { code: 'BR', name: 'Brasil', clubs: 200 },
-  { code: 'PT', name: 'Portugal', clubs: 0 },
-  { code: 'GB', name: 'United Kingdom', clubs: 0 },
-  { code: 'SE', name: 'Sweden', clubs: 0 },
-  { code: 'US', name: 'Estados Unidos', clubs: 0 },
+/**
+ * Fallback do select enquanto `/clubs/geo-stats` não carrega (ou falha).
+ *
+ * Só código e contagem: o NOME que aparece no seletor vem do ICU pelo ISO2
+ * (`countryLabel`), no idioma do usuário. Antes esta lista carregava nome em português
+ * ("Brasil") e a lista da API trazia o nome em INGLÊS ("Brazil"), na mesma tela — o nome
+ * do país é dado, e a tradução não pertence à tabela `countries` nem a uma lista local.
+ */
+const FALLBACK_COUNTRIES: Array<{ code: string; clubs: number }> = [
+  { code: 'BR', clubs: 200 },
+  { code: 'PT', clubs: 0 },
+  { code: 'GB', clubs: 0 },
+  { code: 'SE', clubs: 0 },
+  { code: 'US', clubs: 0 },
 ];
 
 interface GeoStatsCountry {
@@ -42,13 +51,20 @@ interface GeoStatsResponse {
 
 export default function GeoMapInternal() {
   const { locale } = useI18n();
+  const s = mapPageStrings[locale];
   const [country, setCountry] = useState('BR');
   // T450 — toggle de clubes femininos (gender=women no /geo/points).
   const [onlyWomen, setOnlyWomen] = useState(false);
   const [data, setData] = useState<GeoPointsResponseDto | null>(null);
   const [state, setState] = useState<'loading' | 'done' | 'error'>('loading');
   const [countries, setCountries] =
-    useState<Array<{ code: string; name: string; clubs: number }>>(FALLBACK_COUNTRIES);
+    useState<Array<{ code: string; clubs: number }>>(FALLBACK_COUNTRIES);
+
+  /**
+   * Nome do país para EXIBIR: ICU pelo ISO2, no idioma do usuário (`countryLabel`), com a
+   * sigla como piso. O `name` que a API manda é referência em inglês e não entra na tela.
+   */
+  const nomeDoPais = (code: string) => countryLabel(code, locale) ?? code;
 
   // Catálogo de países com acervo (uma vez por mount). Ordena por clubes desc.
   useEffect(() => {
@@ -59,8 +75,10 @@ export default function GeoMapInternal() {
         if (!active) return;
         const list = res.data.continents
           .flatMap((c) => c.countries)
-          .map((c) => ({ code: c.iso2.toUpperCase(), name: c.name, clubs: c.clubs }))
-          .sort((a, b) => b.clubs - a.clubs || a.name.localeCompare(b.name));
+          .map((c) => ({ code: c.iso2.toUpperCase(), clubs: c.clubs }))
+          // Desempate pela SIGLA, e não pelo nome: o rótulo visível muda com o idioma, e a
+          // ordem da lista não deve depender do locale no meio de um efeito de mount.
+          .sort((a, b) => b.clubs - a.clubs || a.code.localeCompare(b.code));
         if (list.length > 0) setCountries(list);
       })
       .catch(() => {
@@ -99,27 +117,35 @@ export default function GeoMapInternal() {
   const options = useMemo(() => {
     const up = country.toUpperCase();
     if (countries.some((c) => c.code === up)) return countries;
-    return [{ code: up, name: up, clubs: 0 }, ...countries];
+    return [{ code: up, clubs: 0 }, ...countries];
   }, [countries, country]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <label htmlFor="geo-country" className="text-sm font-medium text-foreground">
-          País
+          {s.countryLabel}
         </label>
-        <select
-          id="geo-country"
-          value={country.toUpperCase()}
-          onChange={(e) => setCountry(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm max-w-xs"
-        >
-          {options.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name} ({c.code}) · {c.clubs}
-            </option>
-          ))}
-        </select>
+        {/* T579c — a BANDEIRA do país selecionado, colada no seletor (é a única tela em que o
+            país aparecia sem bandeira). Fica FORA do `<option>` de propósito: `<option>` não
+            aceita `<img>`, e emoji de bandeira degrada para as duas letras regionais no
+            Windows. Ela é decorativa (`alt=""` + `aria-hidden` no próprio `<img>`) porque quem
+            nomeia o país é o texto da opção ("Brasil (BR) · 605"), que muda com o `<select>`. */}
+        <span className="inline-flex items-center gap-2">
+          <CountryFlag code={country} locale={locale} showName={false} />
+          <select
+            id="geo-country"
+            value={country.toUpperCase()}
+            onChange={(e) => setCountry(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm max-w-xs"
+          >
+            {options.map((c) => (
+              <option key={c.code} value={c.code}>
+                {nomeDoPais(c.code)} ({c.code}) · {c.clubs.toLocaleString(locale)}
+              </option>
+            ))}
+          </select>
+        </span>
         <label className="flex items-center gap-2 text-sm text-foreground/70" htmlFor="geo-women">
           <input
             id="geo-women"
@@ -128,19 +154,19 @@ export default function GeoMapInternal() {
             onChange={(e) => setOnlyWomen(e.target.checked)}
             data-testid="geo-women-toggle"
           />
-          Mostrar clubes femininos
+          {s.womenToggle}
         </label>
         {vm && (
           <span className="text-xs text-foreground/70" aria-live="polite">
-            {vm.points.length} com coordenada · {vm.withoutLocationCount} sem localização
+            {mapText(s.withCoordinates, {
+              n: vm.points.length,
+              m: vm.withoutLocationCount,
+            })}
           </span>
         )}
       </div>
 
-      <p className="text-xs text-foreground/70">
-        Clique em um país no mapa para selecioná-lo e aproximar · clique em um ponto para ver o
-        clube · botões +/− ou duplo clique para zoom.
-      </p>
+      <p className="text-xs text-foreground/70">{s.hint}</p>
 
       {/* O canvas NÃO desmonta durante o loading de outro país: desmontá-lo
           matava o mapa com a animação de zoom do fitBounds em voo
@@ -151,7 +177,7 @@ export default function GeoMapInternal() {
       )}
       {state === 'error' && (
         <p role="alert" className="text-sm text-danger-ink">
-          Não foi possível carregar os pontos agora.
+          {s.loadError}
         </p>
       )}
 
@@ -170,25 +196,25 @@ export default function GeoMapInternal() {
           />
 
           <section
-            aria-label="Atribuição das fontes"
+            aria-label={s.sourcesAria}
             className="rounded-xl border border-border/60 p-4 text-xs text-foreground/70"
           >
-            <h2 className="text-sm font-semibold text-foreground mb-2">Fontes deste mapa</h2>
+            <h2 className="text-sm font-semibold text-foreground mb-2">{s.sourcesTitle}</h2>
             <ul className="space-y-1">
-              <li>© OpenStreetMap contributors — ODbL (tiles da base cartográfica)</li>
-              <li>Base vetorial: Natural Earth (domínio público)</li>
+              <li>{s.tiles}</li>
+              <li>{s.vector}</li>
               {vm.attributionsBySource.map((a) => (
                 <li key={a.source}>
                   {a.label} — {a.license}
                 </li>
               ))}
-              <li>Wikidata — CC0 (identidade/atributos)</li>
+              <li>{s.wikidata}</li>
             </ul>
           </section>
 
-          <section aria-label="Clubes com coordenada" data-testid="geo-list">
+          <section aria-label={s.listAria} data-testid="geo-list">
             <h2 className="text-lg font-heading font-semibold mb-2">
-              Clubes com coordenada (lista)
+              {s.listTitle}
               {/* T579 (ITEM 19) — BANDEIRA do país selecionado, clicável para a lista de
                   clubes daquele país (`/clubs?country=BR`, filtro existente). O nome do país
                   vem do ICU no idioma do usuário — e não do `name` do `/clubs/geo-stats`,
@@ -203,9 +229,7 @@ export default function GeoMapInternal() {
               />
             </h2>
             {vm.points.length === 0 ? (
-              <p className="text-sm text-foreground/70">
-                Nenhum clube com coordenada para este país.
-              </p>
+              <p className="text-sm text-foreground/70">{s.noPoints}</p>
             ) : (
               <ul className="divide-y divide-border/50">
                 {vm.points.map((p) => (
@@ -229,12 +253,12 @@ export default function GeoMapInternal() {
             )}
           </section>
 
-          <section aria-label="Clubes sem localização" data-testid="geo-without-location">
-            <h2 className="text-lg font-heading font-semibold mb-2">Sem localização</h2>
+          <section aria-label={s.noLocationAria} data-testid="geo-without-location">
+            <h2 className="text-lg font-heading font-semibold mb-2">{s.noLocationTitle}</h2>
             <p className="text-sm text-foreground/60">
               {vm.withoutLocationCount > 0
-                ? `${vm.withoutLocationCount} clube(s) sem coordenada no acervo para este país — não são plotados (vazio-honesto).`
-                : 'Nenhum clube sem coordenada para este país.'}
+                ? mapText(s.noLocationGap, { n: vm.withoutLocationCount })
+                : s.noLocationNone}
             </p>
           </section>
 

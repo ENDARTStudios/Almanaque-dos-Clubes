@@ -131,7 +131,14 @@ export default function Footer() {
                   key={l}
                   onClick={() => setLocale(l)}
                   aria-label={l}
-                  className={`inline-flex h-6 w-6 items-center justify-center leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
+                  /* T579c — a CAIXA acompanha o formato real da bandeira. Antes era `w-6`
+                     (24 px) e a bandeira de razão 1,9 (EUA) não cabia: o preflight
+                     (`img { max-width: 100% }`) espremia a largura e o `object-contain`
+                     letterboxava para **12,63 px** de altura, abaixo do piso de 16 px.
+                     `min-w-6` mantém o alvo de toque (WCAG 2.2 · 2.5.8) e `px-1` deixa a
+                     largura crescer até a bandeira — medido no navegador: caixa de
+                     30,84–38,39 × 24 px (por bandeira), bandeira com 16 px de altura. */
+                  className={`inline-flex h-6 min-w-6 items-center justify-center px-1 leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
                   title={l}
                 >
                   <LocaleFlag locale={l} />

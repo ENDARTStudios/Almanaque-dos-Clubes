@@ -97,8 +97,35 @@ describe('CountryFlag — componente', () => {
     expect(img.getAttribute('src')).not.toMatch(/^https?:/);
     expect(Number(img.getAttribute('height'))).toBe(ALTURA_BANDEIRA);
     expect(Number(img.getAttribute('width'))).toBe(
-      Math.round(ALTURA_BANDEIRA * FLAG_ASSETS.IT.ratio),
+      Math.ceil(ALTURA_BANDEIRA * FLAG_ASSETS.IT.ratio),
     );
+  });
+
+  it('(a2) NENHUMA bandeira do manifesto renderiza abaixo de 16 px de altura', () => {
+    /* T579c — o defeito medido em produção: o `width` era `Math.round(16 × razão)` e a altura
+       de CONTEÚDO é `width ÷ razão`. Numa razão como a dos EUA (1,9), `round(30,4) = 30` e
+       30 ÷ 1,9 = **15,79 px** — abaixo do piso de 16 px, por menos de um pixel. Com `Math.ceil`
+       a garantia vale para o manifesto INTEIRO, e é isso que este teste trava: o que importa não
+       é a bandeira dos EUA, é a regra. */
+    const abaixo = Object.entries(FLAG_ASSETS)
+      .map(([iso2, asset]) => ({
+        iso2,
+        alturaDeConteudo: Math.ceil(ALTURA_BANDEIRA * asset.ratio) / asset.ratio,
+      }))
+      .filter((x) => x.alturaDeConteudo < ALTURA_BANDEIRA);
+    expect(abaixo).toEqual([]);
+  });
+
+  it('(a3) a imagem fica imune ao `max-width: 100%` do preflight do Tailwind', () => {
+    /* Segunda metade do defeito: dentro de um controle de 24 px (a bandeira do seletor de
+       idioma do rodapé) o preflight (`img { max-width: 100% }`) vencia a largura do manifesto e
+       o `object-contain` letterboxava a bandeira dos EUA para 24 ÷ 1,9 = **12,63 px** de altura.
+       A classe `max-w-none` é o que desliga esse teto — sem ela o `<img>` tem os dois atributos
+       certos e ainda assim encolhe. */
+    render(<CountryFlag code="US" locale="pt-br" />);
+    const img = screen.getByTestId('country-flag-img');
+    expect(img.className).toContain('max-w-none');
+    expect(img.className).toContain('h-4');
   });
 
   it('a imagem é DECORAÇÃO: `alt` vazio e `aria-hidden` (quem informa o país é o texto)', () => {
