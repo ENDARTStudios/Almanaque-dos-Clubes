@@ -327,6 +327,39 @@ export async function countPendingPlayers(
   return { total: total?.n ?? 0, pending: pending?.n ?? 0 };
 }
 
+/**
+ * T583 — `total`/`pending` da fila `clubFromSquad` (vínculo derivado das arestas
+ * `PLAYED_FOR`). O universo é o jogador **com aresta** e sem clube: sem aresta não há
+ * o que derivar, e contá-lo como gap faria a fila parecer atrasada para sempre (o
+ * acervo tem ~105 k jogadores e só os de elenco têm aresta).
+ *
+ * A cláusula de "ainda não tentado" é a MESMA da seleção real (`clausulaNaoTentada`),
+ * incluindo `mediaEnrichment IS NULL` (registro inteiro) + `NOT (... ? 'clubFromSquad')`.
+ */
+export async function countPendingPlayersClubFromSquad(
+  prisma: PrismaClient,
+  opts: { refreshDays?: number } = {},
+): Promise<QueueProgressCount> {
+  const base = Prisma.sql`
+    FROM players p
+    WHERE p.qid IS NOT NULL
+      AND p."clubId" IS NULL
+      AND EXISTS (
+        SELECT 1 FROM knowledge_graph kg
+        WHERE kg."sourceId" = p.id
+          AND kg."sourceType" = 'Player'
+          AND kg."relation" = 'PLAYED_FOR'
+      )
+  `;
+  const [total] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base}
+  `;
+  const [pending] = await prisma.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n ${base} AND ${clausulaNaoTentada(['clubFromSquad'], opts.refreshDays)}
+  `;
+  return { total: total?.n ?? 0, pending: pending?.n ?? 0 };
+}
+
 /** Marca a TENTATIVA de uma mídia do jogador (mescla no registro existente). */
 export async function stampPlayerAttempt(
   prisma: PrismaClient,

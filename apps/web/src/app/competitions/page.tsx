@@ -9,6 +9,7 @@ import { CountryFlag } from '@/components/CountryFlag';
 import { getApiBase } from '@/lib/api-base';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import { metadataStrings } from '@/i18n/wsMetadata';
 import {
   CONTINENTAL_ANCHORS,
   INTERNATIONAL_ANCHORS,
@@ -16,12 +17,17 @@ import {
   type AnchorCompetition,
 } from '@/lib/competition-anchors';
 
-export const metadata: Metadata = {
-  title: 'Competições',
-  description:
-    'Explore competições de futebol de todo o mundo. Pesquise por nome, país e tipo de competição.',
-  openGraph: { title: 'Competições de Futebol | Almanaque dos Clubes' },
-};
+// T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const t = metadataStrings[locale].competitions;
+  return {
+    title: t.title,
+    description: t.description,
+    openGraph: { title: `${t.title} | Almanaque dos Clubes`, description: t.description },
+  };
+}
 
 interface Competition {
   id: string;

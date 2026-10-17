@@ -103,6 +103,29 @@ describe('T575 — escolha da fila', () => {
     expect(d).toBeNull();
   });
 
+  it('T583 — fila player-club-squad é escolhida quando tem o MAIOR déficit', () => {
+    const d = chooseNextQueue(
+      [
+        prog('club-media', 10, 1_000),
+        prog('player-club-squad', 90, 100),
+        prog('player-club', 50, 1_000),
+      ],
+      newRouterState(),
+      { turn: 1 },
+    );
+    expect(d?.id).toBe('player-club-squad');
+    expect(d?.reason).toContain('pending=90/100');
+  });
+
+  it('T583 — fila player-club-squad VAZIA (sem jogador com aresta) fica fora', () => {
+    const d = chooseNextQueue(
+      [prog('player-club-squad', 0, 0), prog('club-media', 10, 100)],
+      newRouterState(),
+      { turn: 1 },
+    );
+    expect(d?.id).toBe('club-media');
+  });
+
   it('fila em castigo não é escolhida enquanto o castigo vale', () => {
     const progress = [prog('club-media', 90, 100), prog('club-editorial', 10, 100)];
     const state = newRouterState();

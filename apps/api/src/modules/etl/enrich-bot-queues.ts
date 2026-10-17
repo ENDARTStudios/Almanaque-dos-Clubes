@@ -18,6 +18,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import {
   countPendingClubs,
   countPendingPlayers,
+  countPendingPlayersClubFromSquad,
   selectPendingClubs,
   stampMediaAttempt,
 } from './media-cursor.js';
@@ -28,6 +29,7 @@ import {
 } from './enrich-media.service.js';
 import { enrichAllMediaBatch } from './enrich-all-media.service.js';
 import { linkPlayersClubsBatch } from './link-players-clubs.service.js';
+import { derivePlayersClubFromSquadBatch } from './derive-players-club-from-squad.service.js';
 import {
   defaultHarvestOptions,
   harvestClubsBatch,
@@ -60,7 +62,7 @@ const somar = (base: QueueRunResult, extra: QueueRunResult): QueueRunResult => (
 export interface BuildAdaptersOptions {
   /** Revisita de mídia já tentada (dias). 0/undefined = só nunca tentado (noop no re-run). */
   refreshDays?: number;
-  /** Janela de recência do P54, em anos (fila `player-club`). */
+  /** Janela de recência do P54/elenco, em anos (filas `player-club`/`player-club-squad`). */
   maxAgeYears?: number;
   /**
    * IO injetável da fila de coordenadas. Em produção é o connector real
@@ -71,7 +73,7 @@ export interface BuildAdaptersOptions {
   resolverCoordenadas?: typeof extractClubCoordinatesBulk;
 }
 
-/** As oito filas, na ordem canônica do roteador. */
+/** As nove filas, na ordem canônica do roteador. */
 export function buildEnrichQueueAdapters(
   prisma: PrismaClient,
   opts: BuildAdaptersOptions = {},
@@ -171,6 +173,40 @@ export function buildEnrichQueueAdapters(
   };
 
   /**
+   * T583 — vínculo jogador → clube derivado do ELENCO (`PLAYED_FOR` já no grafo). Reusa o
+   * lote do T582 e o cursor PRÓPRIO `clubFromSquad`; não lê a rede, então `failures` é
+   * sempre 0. O universo é o jogador COM aresta e sem clube (ver `countPendingPlayersClubFromSquad`).
+   */
+  const playerClubSquad: EnrichQueueAdapter = {
+    id: 'player-club-squad',
+    label: 'vínculo jogador → clube pelo elenco (PLAYED_FOR)',
+    keys: ['clubFromSquad'],
+    progress: () => countPendingPlayersClubFromSquad(prisma, { refreshDays }),
+    run: async (limit, { apply }) => {
+      const out = await derivePlayersClubFromSquadBatch(limit, {
+        apply,
+        prisma,
+        refreshDays,
+        maxAgeYears: opts.maxAgeYears,
+      });
+      return {
+        processed: out.processed,
+        updated: out.linked,
+        // Toda saída sem vínculo é gap DECLARADO e carimbado no cursor: sem aresta, sem
+        // ano válido, elenco antigo, clube fora do acervo, empate e corrida (`alreadyLinked`).
+        gaps:
+          out.noEdge +
+          out.noTemporalSignal +
+          out.stale +
+          out.outsideArchive +
+          out.ambiguousLatest +
+          out.alreadyLinked,
+        failures: 0,
+      };
+    },
+  };
+
+  /**
    * T578 — coletor de imagens do Commons por CATEGORIA. Reusa o lote do service
    * (`harvestClubsBatch`/`harvestPlayersBatch`) e as chaves de cursor PRÓPRIAS
    * (`commonsLogo`/`commonsPhoto`). `readErrors` são falhas de leitura: não carimbam
@@ -237,6 +273,7 @@ export function buildEnrichQueueAdapters(
     clubExtraMedia,
     playerProfile,
     playerClub,
+    playerClubSquad,
     commonsClubLogo,
     commonsPlayerPhoto,
     clubCoordinates,

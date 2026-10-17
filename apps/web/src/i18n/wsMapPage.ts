@@ -21,8 +21,8 @@ import type { Locale } from './config';
  *  - `limitations`: a lista de limitações é GERADA pela API e viaja como dado auditável
  *    (`buildMapViewModel`) — traduzir no cliente seria dizer algo diferente do que a fonte
  *    declara. Fica declarado como dívida de DADO;
- *  - o `<title>`/`<meta description>`: seguem literais em pt, como em TODAS as outras telas do
- *    site (`/players` → "Jogadores", `/competitions` → "Competições").
+ *  - o `<title>`/`<meta description>`: já NÃO são dívida — desde T583 vêm de
+ *    `i18n/wsMetadata.ts` por locale (como nas demais rotas principais).
  */
 export interface MapPageStrings {
   /**
