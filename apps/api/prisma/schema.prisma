@@ -168,6 +168,13 @@ model Player {
   // T550 — cursor de TENTATIVA do job de perfil (foto/país/posição), mesma ideia de
   // `clubs.mediaEnrichment` (T528): `{ "profile": { at, status } }`.
   mediaEnrichment Json?
+  // T-22.3 (tarefa 23) — perfil enriquecido via Wikidata (bot enrich-player-profiles).
+  // Zero overwrite: o bot só preenche colunas NULL (re-run = noop).
+  nickname        String?
+  heightCm        Int?
+  preferredFoot   String?   // 'left' | 'right' | 'both'
+  individualAwards Json?    // [{qid,label,year,sourceUrl}] — proveniência por item
+  profileEnrichment Json?   // cursor {at,status,processed,updated,skipped,errors} (padrão mediaEnrichment T550)
   position     String?
   clubId       String?
   club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)
