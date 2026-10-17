@@ -8,6 +8,7 @@ import { CountryFlag } from '@/components/CountryFlag';
 import { getApiBase } from '@/lib/api-base';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import { listingStrings } from '@/i18n/wsListings';
 
 export const metadata: Metadata = {
   title: 'Jogadores',
@@ -63,6 +64,7 @@ export default async function PlayersPage({
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
+  const s = listingStrings[locale];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -70,7 +72,9 @@ export default async function PlayersPage({
       <div className="mb-6">
         <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
       </div>
-      <p className="text-sm text-ink-2 mt-2 mb-6">Jogadores diferentes no acervo: {total}</p>
+      <p className="text-sm text-ink-2 mt-2 mb-6">
+        {s.players.total.replace('{n}', String(total))}
+      </p>
       {/* AGRUPAMENTO POR PAÍS — mesmo desenho da sessão Clubes. Aqui o dado é bom: 98% dos
           jogadores têm `country` (ISO2). São 105.211 no acervo, então vale a mesma razão de ser
           índice em vez de listas na mesma página — a página não comporta tudo agrupado. */}
@@ -87,7 +91,7 @@ export default async function PlayersPage({
               `<h1>`, então falta o nível 2 do CONJUNTO. `sr-only` porque a contagem logo acima
               já anuncia a lista — o título serve à árvore de acessibilidade, não à tela. */}
           <h2 id="players-list-title" className="sr-only">
-            Jogadores no acervo
+            {s.players.listTitle}
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {players.map((p: PlayerRow) => (
@@ -111,7 +115,7 @@ export default async function PlayersPage({
           </div>
         </section>
       ) : (
-        <p className="text-center text-foreground/60 py-12">Nenhum jogador encontrado.</p>
+        <p className="text-center text-foreground/60 py-12">{s.players.empty}</p>
       )}
     </div>
   );

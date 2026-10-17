@@ -183,7 +183,7 @@ export default async function CompetitionsPage({
             ))}
             <Link
               href="/competitions?gender=women"
-              className="text-sm text-primary-ink underline decoration-dotted underline-offset-2"
+              className="inline-flex min-h-6 items-center text-sm text-primary-ink underline decoration-dotted underline-offset-2"
             >
               {s.verTodasFeminino}
             </Link>
