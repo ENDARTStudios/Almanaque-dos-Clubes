@@ -36,4 +36,13 @@ export interface Player {
   importedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  // T-22.3 — perfil enriquecido via Wikidata (bot enrich-player-profiles).
+  // Opcionais: registros gravados antes da migration 20261018 não os têm.
+  // Os dois Json ficam `unknown` no domínio (JsonValue do Prisma diverge de
+  // qualquer forma precisa; quem lê faz o parse na borda — ver players service).
+  nickname?: string | null;
+  heightCm?: number | null;
+  preferredFoot?: string | null; // 'left' | 'right' | 'both'
+  individualAwards?: unknown; // [{qid,label,year,sourceUrl}] — proveniência por item
+  profileEnrichment?: unknown; // cursor {at,status,processed,updated,skipped,errors}
 }

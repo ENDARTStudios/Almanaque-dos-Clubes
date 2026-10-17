@@ -6,6 +6,29 @@ import {
 } from './repository.js';
 import { prisma } from '../../config/prisma.js';
 
+/**
+ * Idade em anos completos a partir de `birthDate` — DERIVADA, nunca armazenada
+ * (armazenada ela envelhece mal: a cada dia seria dado errado no banco). Sem
+ * data de nascimento (ou data implausível) = null — a UI declara o gap.
+ */
+export function ageFromBirthDate(
+  birthDate: Date | string | null | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!birthDate) return null;
+  const birth = birthDate instanceof Date ? birthDate : new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+  let age = now.getUTCFullYear() - birth.getUTCFullYear();
+  const antesDoAniversario =
+    now.getUTCMonth() < birth.getUTCMonth() ||
+    (now.getUTCMonth() === birth.getUTCMonth() && now.getUTCDate() < birth.getUTCDate());
+  if (antesDoAniversario) age -= 1;
+  // Guarda de plausibilidade: futuro devolve null (idade negativa); 130+ é
+  // sinal de data errada na fonte, não de longevidade.
+  if (age < 0 || age >= 130) return null;
+  return age;
+}
+
 export const playersService = {
   async create(input: unknown): Promise<Player> {
     const parsed = CreatePlayerSchema.parse(input);
@@ -32,10 +55,16 @@ export const playersService = {
     return { data, total, limit: params.limit ?? 50, offset: params.offset ?? 0 };
   },
 
-  async getById(id: string): Promise<Player> {
+  /**
+   * T-22.3 — a resposta inclui `age` DERIVADO de birthDate (nunca armazenado).
+   * As colunas novas do perfil (nickname/heightCm/preferredFoot/individualAwards)
+   * fluem no spread: o `findUnique` do repositório não tem `select`, logo pega
+   * todas as colunas — aditivo, nenhum contrato existente muda.
+   */
+  async getById(id: string): Promise<Player & { age: number | null }> {
     const player = await playersRepository.findById(id);
     if (!player) throw new NotFoundError('Jogador', id);
-    return player;
+    return { ...player, age: ageFromBirthDate(player.birthDate) };
   },
 
   /**
@@ -75,14 +104,33 @@ export const playersService = {
    * das arestas do grafo (PLAYED_FOR → clubes/carreira; WON com source=player
    * → conquistas). Aditivo ao getById — nenhum contrato existente muda.
    * Honestidade: sem arestas ⇒ arrays vazios ("Em catalogação" na UI).
+   *
+   * v2 (T-22.3): linhas de carreira ganham endYear/apps/goals quando o metadata
+   * traz (gravação do bot enrich-player-profiles); `metrics` soma os totais;
+   * `individualAwards` vem da coluna do jogador (proveniência por item),
+   * ordenado por ano desc. Sem dado ⇒ null/vazio — nunca inventa.
    */
   async getProfileExtras(id: string): Promise<{
     currentClub: { id: string; name: string } | null;
-    career: Array<{ year: number | null; clubId: string; clubName: string }>;
+    career: Array<{
+      year: number;
+      endYear: number | null;
+      apps: number | null;
+      goals: number | null;
+      clubId: string;
+      clubName: string;
+    }>;
     achievements: Array<{ competitionId: string; competitionName: string; year: number | null }>;
     clubs: Array<{ id: string; name: string; country: string | null }>;
+    metrics: { totalApps: number; totalGoals: number; titlesCount: number; awardsCount: number };
+    individualAwards: Array<{
+      qid: string;
+      label: string;
+      year: number | null;
+      sourceUrl: string | null;
+    }>;
   }> {
-    await this.getById(id); // 404 honesto se o jogador não existe
+    const player = await this.getById(id); // 404 honesto se o jogador não existe
     const edges = await prisma.knowledgeGraph.findMany({
       where: { sourceId: id, sourceType: 'Player', relation: { in: ['PLAYED_FOR', 'WON'] } },
       select: { relation: true, targetId: true, targetType: true, metadata: true },
@@ -98,17 +146,37 @@ export const playersService = {
       : [];
     const clubById = new Map(clubs.map((c) => [c.id, c]));
 
+    // Número só entra se for número plausível (coluna errada na fonte vira null,
+    // não vira estatística) — mesma guarda do bot que grava o metadata.
+    const numero = (v: unknown, max: number): number | null =>
+      typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? v : null;
+
     // Carreira: só arestas com ano no metadata; sem ano não há ordem real —
     // o clube entra na lista de clubes, não na tabela de carreira.
-    type CareerRow = { year: number; clubId: string; clubName: string };
+    type CareerRow = {
+      year: number;
+      endYear: number | null;
+      apps: number | null;
+      goals: number | null;
+      clubId: string;
+      clubName: string;
+    };
     const career: CareerRow[] = [];
     const latestByClub = new Map<string, number>();
+    let totalApps = 0;
+    let totalGoals = 0;
     for (const e of playedFor) {
       const club = clubById.get(e.targetId);
       if (!club) continue;
       const meta = (e.metadata as Record<string, unknown> | null) ?? {};
-      const year = typeof meta.year === 'number' ? meta.year : null;
-      if (year != null) career.push({ year, clubId: e.targetId, clubName: club.name });
+      const year = numero(meta.year, new Date().getUTCFullYear() + 1);
+      const endYear = numero(meta.endYear, new Date().getUTCFullYear() + 1);
+      const apps = numero(meta.apps, 2000);
+      const goals = numero(meta.goals, 1000);
+      if (year != null)
+        career.push({ year, endYear, apps, goals, clubId: e.targetId, clubName: club.name });
+      if (apps != null) totalApps += apps;
+      if (goals != null) totalGoals += goals;
       const prev = latestByClub.get(e.targetId);
       if (year != null && (prev == null || year > prev)) latestByClub.set(e.targetId, year);
     }
@@ -145,11 +213,33 @@ export const playersService = {
       .filter((a): a is NonNullable<typeof a> => !!a)
       .sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 
+    // Prêmios individuais: coluna do jogador ([{qid,label,year,sourceUrl}]); itens
+    // malformados são descartados (proveniência incompleta não vira prêmio).
+    const rawAwards = Array.isArray(player.individualAwards)
+      ? (player.individualAwards as Array<Record<string, unknown>>)
+      : [];
+    const individualAwards = rawAwards
+      .filter((a) => typeof a?.qid === 'string' && typeof a?.label === 'string')
+      .map((a) => ({
+        qid: a.qid as string,
+        label: a.label as string,
+        year: typeof a.year === 'number' ? a.year : null,
+        sourceUrl: typeof a.sourceUrl === 'string' ? a.sourceUrl : null,
+      }))
+      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+
     return {
       currentClub,
       career,
       achievements,
       clubs: clubs.map((c) => ({ id: c.id, name: c.name, country: c.country })),
+      metrics: {
+        totalApps,
+        totalGoals,
+        titlesCount: achievements.length,
+        awardsCount: individualAwards.length,
+      },
+      individualAwards,
     };
   },
 };

@@ -397,6 +397,26 @@ export interface Dictionary {
       achievementsEmpty: string;
       clubsTitle: string;
       clubsEmpty: string;
+      position: string;
+      birth: string;
+      ageYears: string;
+      height: string;
+      heightCmValue: string;
+      preferredFoot: string;
+      footLeft: string;
+      footRight: string;
+      footBoth: string;
+      nickname: string;
+      season: string;
+      apps: string;
+      goals: string;
+      individualAwardsTitle: string;
+      individualAwardsEmpty: string;
+      metricsTitle: string;
+      metricTitles: string;
+      metricAwards: string;
+      goalsByStintTitle: string;
+      goalsByStintAria: string;
     };
     favoritos: {
       title: string;

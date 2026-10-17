@@ -93,6 +93,13 @@ model Player {
   birthDate    DateTime?
   country      String?
   position     String?
+  // T-22.3 (tarefa 23) — perfil enriquecido via Wikidata (bot enrich-player-profiles).
+  // Espelho do schema Postgres (zero overwrite; re-run = noop).
+  nickname        String?
+  heightCm        Int?
+  preferredFoot   String?   // 'left' | 'right' | 'both'
+  individualAwards Json?    // [{qid,label,year,sourceUrl}] — proveniência por item
+  profileEnrichment Json?   // cursor {at,status,processed,updated,skipped,errors}
   clubId       String?
   club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
   qid          String?  @unique // Wikidata Q-identifier
