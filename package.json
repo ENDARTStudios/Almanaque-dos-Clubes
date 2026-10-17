@@ -23,6 +23,8 @@
     "db:generate": "pnpm --filter @almanaque/api prisma:generate",
     "db:studio": "pnpm --filter @almanaque/api prisma:studio",
     "db:seed": "pnpm --filter @almanaque/api prisma:seed",
+    "preflight": "node scripts/preflight.mjs",
+    "test:preflight": "node --test scripts/preflight.test.mjs",
     "ui:audit": "node plugins/almanaque-design/tools/audit-motion.mjs",
     "ui:audit:ci": "node plugins/almanaque-design/tools/audit-motion.mjs --ci",
     "ui:shot": "node plugins/almanaque-design/tools/run.mjs shot",
