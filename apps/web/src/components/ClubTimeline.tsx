@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getApiBase } from '@/lib/api-base';
 import { wsC5Strings } from '@/i18n/wsC5';
+import SourceNote from '@/components/SourceNote';
 import type { Locale } from '@/i18n/config';
 
 /**
@@ -42,13 +43,7 @@ async function getTimeline(id: string): Promise<ClubTimelineData | null> {
   }
 }
 
-export default async function ClubTimeline({
-  clubId,
-  locale,
-}: {
-  clubId: string;
-  locale: Locale;
-}) {
+export default async function ClubTimeline({ clubId, locale }: { clubId: string; locale: Locale }) {
   const s = wsC5Strings[locale].timeline;
   const data = await getTimeline(clubId);
   if (!data) return null;
@@ -98,22 +93,15 @@ export default async function ClubTimeline({
                 <p className="text-xs text-foreground/70 mt-0.5">
                   {s.hierarchies[t.hierarchy as keyof typeof s.hierarchies] ?? t.hierarchy}
                 </p>
+                {/* FONTE — abaixo do conteúdo, não ao lado do ano. Antes ela dividia a linha
+                    com o ANO, que é o dado: dois elementos no mesmo eixo horizontal competem
+                    por atenção. Agora o ano fica sozinho à direita e a fonte desce para
+                    debaixo da competição, que é o dado que ela documenta. */}
+                <SourceNote href={t.sourceUrl} label={s.source} />
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="text-sm font-heading font-semibold text-primary-ink tabular-nums">
-                  {t.year ?? '—'}
-                </span>
-                {t.sourceUrl && (
-                  <a
-                    href={t.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
-                  >
-                    {s.source}
-                  </a>
-                )}
-              </div>
+              <span className="shrink-0 text-sm font-heading font-semibold text-primary-ink tabular-nums">
+                {t.year ?? '—'}
+              </span>
             </li>
           ))}
         </ol>

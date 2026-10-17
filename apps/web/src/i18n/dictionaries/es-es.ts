@@ -5,7 +5,7 @@ const es: Dictionary = {
     name: 'Almanaque dos Clubes',
     tagline: 'La historia del fútbol mundial en un solo lugar',
     description:
-      'Archivo histórico del fútbol en construcción, con procedencia documentada. Busca clubes, jugadores, competiciones y rankings con fuentes verificadas (metodología en /metodologia). Funciones de IA: próximamente.',
+      'La historia del fútbol mundial en números: clubes, jugadores, competiciones, rankings, títulos y récords. Cada dato con su origen documentado (metodología en /metodologia).',
   },
   nav: {
     clubs: 'Clubes y Selecciones',
@@ -52,7 +52,7 @@ const es: Dictionary = {
   footer: {
     landmark: 'Pie de página',
     tagline:
-      'La historia del fútbol, en construcción y con fuentes verificadas. Clubes, jugadores, competiciones y rankings auditables (metodología en /metodologia).',
+      'La historia del fútbol en números: clubes, jugadores, competiciones, rankings y récords, con el origen de cada dato documentado (metodología en /metodologia).',
     platformTitle: 'Plataforma',
     platformClubs: 'Clubes',
     platformPlayers: 'Jugadores',
@@ -110,7 +110,7 @@ const es: Dictionary = {
     heroTitle: 'La Historia del Fútbol',
     heroTitleAccent: 'en un Solo Lugar',
     heroSubtitle:
-      'Archivo histórico del fútbol en construcción, con procedencia documentada. Busca clubes, jugadores, competiciones y rankings con fuentes verificadas (metodología en /metodologia). Funciones de IA: próximamente.',
+      'El fútbol mundial en números: clubes, jugadores, competiciones y rankings, con títulos, récords e historia, y el origen de cada dato documentado (metodología en /metodologia).',
     ctaSearch: 'Comenzar Búsqueda',
     ctaRegister: 'Crear Cuenta Gratuita',
     stats: {
@@ -142,7 +142,7 @@ const es: Dictionary = {
       },
       {
         title: 'Rankings Auditables',
-        desc: 'Rankings históricos con fuentes verificadas y fecha de publicación.',
+        desc: 'Posición, puntuación y división de los clubes a lo largo de la historia, año a año.',
       },
       {
         title: 'Búsqueda Inteligente',
@@ -440,7 +440,8 @@ const es: Dictionary = {
     },
     rankings: {
       title: 'Rankings',
-      subtitle: 'Rankings históricos con fuentes verificadas y fecha de publicación.',
+      subtitle:
+        'Posición, puntuación y división de los clubes a lo largo de la historia, año a año.',
       pilotBadge: 'Piloto Inglaterra · Fuente RSSSF',
       pilotSubtitle:
         'Basado en las tablas finales de clasificación de las ligas inglesas (RSSSF). Sin títulos en esta fase.',

@@ -20,31 +20,38 @@ graft ask "estilo do hero" ; graft grep heroTitle ; graft skeleton
 
 ## Tokens (fonte canônica: `globals.css` > `@theme`)
 
-**O tema padrão do site é ESCURO editorial.** A inversão aconteceu depois da home: enquanto o
-claro era o padrão, cada página nova precisava *lembrar* de pedir o escuro; invertendo, o site
-inteiro herda a linguagem por construção e a exceção fica explícita (`.theme-light`).
+**O tema padrão do site é CLARO, "papel quente".** O `@theme` é a fonte da verdade e traz os
+valores claros; o escuro é a **exceção declarada** em `.theme-dark`, usada só onde há motivo
+(a hero). Esta seção estava documentando o INVERSO — escuro como padrão e `.theme-light` como
+exceção — e `.theme-light` **não existe mais** no CSS. Um agente que seguisse a tabela antiga
+escolheria cores de um sistema que o site não usa.
 
-| Token | Escuro (padrão) | Claro (`.theme-light`) | Papel |
-|---|---|---|---|
-| `--color-primary` | `#e8412f` | `#dc2626` | **preenchimento**: botão, mapa, gráfico, borda |
-| `--color-primary-ink` | `#ff6a55` | `#b91c1c` | **texto e link** |
-| `--color-on-primary` | `#1a0e0b` | `#ffffff` | texto **sobre** `primary` |
-| `--color-secondary` | `#c9a227` | `#ef4444` | acento secundário (dourado no escuro) |
-| `--color-background` | `#12100f` | `#fef2f2` | fundo de página |
-| `--color-foreground` | `#f7f3ea` | `#340808` | texto — **piso de alfa `/60`** |
-| `--color-muted` | `#241f1d` | `#f0edf1` | superfície elevada (cartão, rodapé) |
-| `--color-border` | `#6b625a` | `#fecaca` | bordas |
-| `--color-danger-ink` | `#f87171` | `#dc2626` | texto de erro/perigo |
-| `--color-success-ink` | `#6ee7a8` | `#15803d` | texto de sucesso |
-| `--color-warn-ink` | `#fbbf24` | `#b45309` | texto de aviso |
-| `--color-info-ink` | `#7dd3fc` | `#0369a1` | texto informativo |
-| `--color-*-surface` | varia | varia | fundo dos estados (badge/chip) |
-| `--color-ring` | `#c9a227` | `#dc2626` | foco (`:focus-visible`) |
-| `--font-heading` | Barlow Condensed | — | títulos (h1–h5, peso 700, letter-spacing .02em) |
-| `--font-body` | Barlow | — | corpo |
+| Token                 | Claro (padrão, `@theme`) | Escuro (`.theme-dark`) | Papel                                           |
+| --------------------- | ------------------------ | ---------------------- | ----------------------------------------------- |
+| `--color-primary`     | `#be123c`                | `#e8412f`              | **preenchimento**: botão, mapa, gráfico, borda  |
+| `--color-primary-ink` | `#9f1239`                | `#ff6a55`              | **texto e link**                                |
+| `--color-on-primary`  | `#ffffff`                | `#1a0e0b`              | texto **sobre** `primary`                       |
+| `--color-secondary`   | `#94600a`                | `#c9a227`              | acento secundário                               |
+| `--color-background`  | `#faf8f5`                | `#12100f`              | fundo de página                                 |
+| `--color-foreground`  | `#111111`                | `#f7f3ea`              | texto — **piso de alfa `/60`**                  |
+| `--color-surface`     | `#ffffff`                | `#1a1715`              | superfície de cartão                            |
+| `--color-surface-2`   | `#f2efea`                | `#211d1a`              | superfície elevada (2º nível)                   |
+| `--color-muted`       | `#efece7`                | `#241f1d`              | bloco neutro (rodapé, faixa)                    |
+| `--color-ink-2`       | `#57534e`                | `#b3aea3`              | texto secundário                                |
+| `--color-ink-3`       | `#6b6560`                | `#8d8880`              | texto terciário (metadado, fonte)               |
+| `--color-border`      | `#e0dad3`                | `#6b625a`              | bordas                                          |
+| `--color-danger-ink`  | `#b91c1c`                | `#f87171`              | texto de erro/perigo                            |
+| `--color-success-ink` | `#127035`                | `#6ee7a8`              | texto de sucesso                                |
+| `--color-warn-ink`    | `#a34a08`                | `#fbbf24`              | texto de aviso                                  |
+| `--color-info-ink`    | `#1d4ed8`                | `#7dd3fc`              | texto informativo                               |
+| `--color-*-surface`   | varia                    | varia                  | fundo dos estados (badge/chip)                  |
+| `--color-ring`        | `#94600a`                | `#c9a227`              | foco (`:focus-visible`)                         |
+| `--font-heading`      | Barlow Condensed         | —                      | títulos (h1–h5, peso 700, letter-spacing .02em) |
+| `--font-body`         | Barlow                   | —                      | corpo                                           |
 
-**Em `muted` no escuro, mais CLARO = elevado.** `#1c1917` (que existia antes) é *mais escuro* que o
-fundo e lê como rebaixo, não como cartão. É por isso que `--color-muted` é `#241f1d`.
+**No claro, mais ESCURO = elevado; no escuro, mais CLARO = elevado.** É a mesma regra física lida
+em dois sentidos, e ela explica por que `--color-muted` muda de `#efece7` para `#241f1d` em vez de
+apenas inverter.
 
 ### NÃO use cor crua do Tailwind
 
@@ -60,14 +67,14 @@ O `--color-foreground` é `#340808` **porque** o app usa `text-foreground/N` em 
 valor antigo (`#7f1d1d`) o sólido até passava, mas a escala reprovava em AA. Números medidos sobre
 `#fef2f2` (pior caso entre `#fef2f2` e `#ffffff`):
 
-| alfa | com `#340808` (atual) | com `#7f1d1d` (antigo) |
-|---|---|---|
-| sólido | 16,21:1 | 9,16:1 |
-| `/70` | 6,61:1 | 4,44:1 |
-| **`/60`** | **4,72:1 ✅ piso** | 3,46:1 ❌ |
-| `/55` | 4,19:1 ❌ | 3,12:1 ❌ |
-| `/50` | 3,32:1 ❌ | 2,72:1 ❌ |
-| `/40` | 2,50:1 ❌ | 2,17:1 ❌ |
+| alfa      | com `#340808` (atual) | com `#7f1d1d` (antigo) |
+| --------- | --------------------- | ---------------------- |
+| sólido    | 16,21:1               | 9,16:1                 |
+| `/70`     | 6,61:1                | 4,44:1                 |
+| **`/60`** | **4,72:1 ✅ piso**    | 3,46:1 ❌              |
+| `/55`     | 4,19:1 ❌             | 3,12:1 ❌              |
+| `/50`     | 3,32:1 ❌             | 2,72:1 ❌              |
+| `/40`     | 2,50:1 ❌             | 2,17:1 ❌              |
 
 **Regra:** `/60` é o piso para texto. Abaixo disso, só elemento decorativo. O portão
 `pnpm run ui:audit:ci` acusa `text-foreground/1x`–`/5x`.
@@ -77,11 +84,11 @@ valor antigo (`#7f1d1d`) o sólido até passava, mas a escala reprovava em AA. N
 O vermelho de marca `#dc2626` **passa** em branco (4,83:1) mas **reprova nas nossas superfícies**,
 porque nenhuma delas é branca puro:
 
-| superfície | `#dc2626` | `#b91c1c` (ink) |
-|---|---|---|
-| branco (`bg-white`) | 4,83:1 ✅ | 6,47:1 ✅ |
-| `background` `#fef2f2` | **4,41:1 ❌** | 5,91:1 ✅ |
-| `primary/10` `#fbdede` (chips) | **3,80:1 ❌** | 5,10:1 ✅ |
+| superfície                     | `#dc2626`     | `#b91c1c` (ink) |
+| ------------------------------ | ------------- | --------------- |
+| branco (`bg-white`)            | 4,83:1 ✅     | 6,47:1 ✅       |
+| `background` `#fef2f2`         | **4,41:1 ❌** | 5,91:1 ✅       |
+| `primary/10` `#fbdede` (chips) | **3,80:1 ❌** | 5,10:1 ✅       |
 
 Por isso existe o token de papel: **`text-primary-ink`** para link, número, protocolo e rótulo;
 `bg-primary` / `border-primary` / `text-primary/70` (ícone decorativo, ≥3:1) seguem na marca viva.
@@ -97,20 +104,21 @@ da fonte, `rem` não.
 Utilitários: `bg-background`, `text-foreground`, `text-foreground/60`, `bg-primary/10`,
 `border-border/50`, `font-heading`… e `text-balance` (`@layer utilities`).
 
-### A EXCEÇÃO CLARA (`.theme-light`) — e por que ela existe
+### A EXCEÇÃO ESCURA (`.theme-dark`) — e por que ela existe
 
-O escuro é o padrão do site. **Uma** exceção é declarada e escopada: os **mapas**. Os tiles do
-OpenStreetMap e o GeoJSON do Natural Earth são base cartográfica **clara**; texto claro sobre eles
-seria ilegível, e "escurecer o mapa" exigiria trocar de provedor de tiles — decisão de produto, não
-de CSS. Então o mapa fica claro em um site escuro:
+O claro é o padrão do site. **Uma** exceção é declarada e escopada: a **hero da home**, onde a
+primeira dobra é escura por decisão de composição (o contraste com o restante claro é o que faz a
+dobra abrir a página). Não há mais exceção para mapas: a base cartográfica (GeoJSON Natural Earth +
+tiles OSM) é clara, e como o claro passou a ser o padrão, o override virou redundante — a antiga
+`.theme-light` foi removida do CSS e do `WorldChoropleth` (ver o comentário no componente).
 
 ```html
-<div class="theme-light h-[55vh] ...">   <!-- WorldMap, GeoChoropleth, GeoMapCanvas -->
+<div class="theme-dark ..."><!-- hero da home --></div>
 ```
 
-Em `.theme-light` os tokens voltam aos valores claros (inclusive `--color-ring: #dc2626`). **Use
-essa classe só para superfície de terceiro que impõe fundo claro** — nunca para "deixar uma seção
-clara porque ficou bonito", que quebra a coerência do site.
+Em `.theme-dark` os tokens voltam aos valores escuros da tabela acima. **Use essa classe só onde o
+escuro é a decisão de design daquela dobra** — nunca para "deixar uma seção escura porque ficou
+bonito", que quebra a coerência do site.
 
 Os utilitários decorativos da marca (`theme-dark-grid`, `theme-dark-glow`, `theme-dark-grain`)
 mantêm o nome por compatibilidade, mas **funcionam em qualquer superfície**: são SVG/gradiente com
@@ -123,7 +131,9 @@ Utilitário com modificador de opacidade emite **duas** declarações: um litera
 `@supports (color: color-mix(in lab, red, red))`. O literal **não** segue o escopo:
 
 ```css
-.bg-muted\/30 { background-color: #f0edf14d; }   /* literal claro — ignora o escopo ✗ */
+.bg-muted\/30 {
+  background-color: #f0edf14d;
+} /* literal claro — ignora o escopo ✗ */
 ```
 
 Isso já produziu uma **barra de navegação cinza-clara** sobre o corpo claro enquanto o resto da
@@ -136,7 +146,6 @@ class="bg-[color-mix(in_oklab,var(--color-foreground)_6%,transparent)]"
 Ou, melhor: **evite translucidez** e use `bg-muted` (superfície elevada) — foi o que resolveu a
 barra. Sem modificador de opacidade, `bg-background`, `bg-primary` e `text-foreground` funcionam
 normalmente porque referenciam a variável.
-
 
 também usa o literal) a variável funciona normalmente.
 
@@ -160,7 +169,8 @@ também usa o literal) a variável funciona normalmente.
 
 `Navbar`, `Footer`, `HeroSection`, `ChampionsCarousel`, `ClubCard`, `RankingsTable`,
 `TitleBars`, `CompareRadar`, `GeoMapCanvas`/`WorldChoropleth`, `DashboardStats`,
-`PageHeading`, `ComingSoon`, `CookieConsentBanner`, `SearchBar`/`GlobalSearch`.
+`PageHeading`, `ComingSoon`, `CookieConsentBanner`, `SearchBar`/`GlobalSearch`,
+**`SourceNote`** (proveniência — ver regra 7).
 
 Padrão de card do acervo: `rounded-xl border border-border bg-muted p-5` +
 `hover:border-primary/60 transition-colors duration-200` (elevação por borda, não por sombra).
@@ -181,7 +191,19 @@ fora do design system.
 4. **i18n** — nenhum texto literal na tela: toda string visível passa por dicionário ou
    módulo aditivo `apps/web/src/i18n/wsC*.ts` (ver skill `web-accessibility-wcag`, seção i18n).
 5. **`prefers-reduced-motion`** — animação é enfeite: o conteúdo precisa existir sem ela.
-6. **Sem `mix-blend-mode`, `filter: blur()` grande ou gradiente animado** em texto: degrada
+6. **DADO primeiro, FONTE depois** — a proveniência é importante e SECUNDÁRIA. O usuário
+   abre o site para ver métricas, rankings, prêmios, números, história e recordes — não para
+   ver de onde vieram (regra do Operador, 2026-10). Use **`SourceNote`** e nunca improvise:
+   - a fonte fica **abaixo** do dado, nunca acima e nunca ao lado de um número;
+   - **sem** caixa alta, `tracking-wide`, `font-semibold`, borda ou fundo próprio — qualquer
+     um desses dá ao metadado o volume que pertence ao dado;
+   - 11px, `text-ink-3`, sublinhado pontilhado. Esse é o teto, não o piso.
+   - **Nunca esconda a fonte** (tooltip, `aria` apenas, "ver mais"): proveniência que só aparece
+     ao passar o mouse não é verificável — vira decoração. Secundária ≠ ausente.
+     Contexto de escopo (ex.: "piloto só Inglaterra") também é rodapé: responde uma pergunta que
+     o usuário faz DEPOIS de ver o número, não antes.
+
+7. **Sem `mix-blend-mode`, `filter: blur()` grande ou gradiente animado** em texto: degrada
    contraste e custa GPU em mobile.
 
 ## Como validar

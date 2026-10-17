@@ -85,15 +85,7 @@ export default function HeroSection({
             </h1>
 
             <p data-testid="hero-promise" className="mt-6 max-w-xl text-lg text-ink-2 text-balance">
-              <span className="font-semibold text-foreground">{c12.eyebrow}</span>{' '}
-              {c12.promise}
-            </p>
-
-            <p
-              data-testid="hero-promise-note"
-              className="mt-3 max-w-xl border-l-2 border-primary/60 pl-3 text-sm text-ink-2"
-            >
-              {c12.promiseNote}
+              <span className="font-semibold text-foreground">{c12.eyebrow}</span> {c12.promise}
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -114,6 +106,19 @@ export default function HeroSection({
 
             <p data-testid="hero-cta-note" className="mt-3 text-sm text-ink-2">
               {c12.ctaPrimaryNote}
+            </p>
+
+            {/* FONTE — secundária, e DEPOIS do CTA.
+                Antes esta frase vinha entre a promessa e os botões, com `border-l-2` na cor da
+                marca: um tratamento de citação, com destaque de acento, para uma frase sobre
+                proveniência. No lugar mais valioso da página, ela interrompia hook -> promessa ->
+                CTA para falar de fonte. A mensagem continua (a conferência é o que separa este
+                acervo de um site de futebol qualquer), mas no lugar de detalhe, não de manchete. */}
+            <p
+              data-testid="hero-promise-note"
+              className="mt-4 max-w-xl text-[0.6875rem] leading-snug text-ink-3 [text-wrap:pretty]"
+            >
+              {c12.promiseNote}
             </p>
           </div>
 
@@ -173,7 +178,9 @@ export default function HeroSection({
                       <dd className="num text-3xl leading-none text-primary-ink">
                         {stat.value != null ? formatCount(stat.value, locale) : '—'}
                       </dd>
-                      <dt className="mt-2 text-[0.8125rem] leading-tight text-ink-2">{stat.label}</dt>
+                      <dt className="mt-2 text-[0.8125rem] leading-tight text-ink-2">
+                        {stat.label}
+                      </dt>
                     </div>
                   ))}
                 </dl>
@@ -196,7 +203,10 @@ export default function HeroSection({
       {/* Fecho da dobra: régua de acento em vez de gradiente para o corpo claro —
           o gradiente criava uma faixa cinza suja quando as seções seguintes também
           são escuras. Fronteira nítida, sem costura. */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/60 to-transparent" aria-hidden="true" />
+      <div
+        className="h-px w-full bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+        aria-hidden="true"
+      />
     </section>
   );
 }
@@ -234,7 +244,10 @@ export function HomeFeatures() {
                       feature-card que o detector da skill `impeccable` marca como
                       tell de UI gerada por IA (regra `icon-tile-stack`). */}
                   <div className="flex items-center gap-2.5">
-                    <Icon className="h-[18px] w-[18px] shrink-0 text-primary-ink" aria-hidden="true" />
+                    <Icon
+                      className="h-[18px] w-[18px] shrink-0 text-primary-ink"
+                      aria-hidden="true"
+                    />
                     <h3 className="text-lg font-semibold">{feat.title}</h3>
                   </div>
                   <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{feat.desc}</p>
