@@ -24,6 +24,9 @@ export type EnrichQueueId =
   | 'club-extra-media'
   | 'player-profile'
   | 'player-club'
+  // T583 — vínculo derivado do ELENCO (`PLAYED_FOR`), cursor próprio `clubFromSquad`.
+  // Fila separada do P54 porque a fonte e o cursor são outros (ver T582).
+  | 'player-club-squad'
   // T578 — coletor das CATEGORIAS do Commons (chaves próprias `commonsLogo`/
   // `commonsPhoto`). São duas filas porque os universos e as chaves de cursor são
   // distintos: juntá-las esconderia o déficit relativo de uma delas.
@@ -37,6 +40,7 @@ export const ENRICH_QUEUE_ORDER: readonly EnrichQueueId[] = [
   'club-extra-media',
   'player-profile',
   'player-club',
+  'player-club-squad',
   'commons-club-logo',
   'commons-player-photo',
   'club-coordinates',

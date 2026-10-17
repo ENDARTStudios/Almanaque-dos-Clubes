@@ -382,12 +382,13 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
       stats.countries.created++;
     } else {
       countryIdByIso2.set(c.iso2, existing.id);
-      if (
-        existing.name !== c.name ||
-        existing.continent !== c.continent ||
-        existing.qid !== c.qid
-      ) {
-        await repo.updateCountry(c.iso2, input);
+      // T581 — o `name` da linha EXISTENTE nunca é sobrescrito pelo label do Wikidata.
+      // A linha NL foi corrigida para "Netherlands" por migration; o label da fonte é
+      // "Kingdom of the Netherlands". Regra do projeto: só inserir; nome de linha
+      // existente é decisão do acervo. Por isso o nome TAMBÉM não entra na comparação:
+      // compará-lo faria a fonte divergente gerar `updated` a cada re-run.
+      if (existing.continent !== c.continent || existing.qid !== c.qid) {
+        await repo.updateCountry(c.iso2, { ...input, name: existing.name });
         stats.countries.updated++;
       } else {
         stats.countries.skipped++;
@@ -419,8 +420,9 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
       stats.states.created++;
     } else {
       stateIdByCode.set(s.code, existing.id);
-      if (existing.name !== s.name || existing.countryId !== countryId || existing.qid !== s.qid) {
-        await repo.updateState(s.code, input);
+      // Mesmo guarda do país: nome de linha existente não é sobrescrito nem comparado.
+      if (existing.countryId !== countryId || existing.qid !== s.qid) {
+        await repo.updateState(s.code, { ...input, name: existing.name });
         stats.states.updated++;
       } else {
         stats.states.skipped++;
@@ -458,12 +460,9 @@ export async function syncGeo(repo: GeoRepository, plan: GeoPlan, now: Date): Pr
       stats.cities.created++;
     } else {
       cityIdByQid.set(ct.qid, existing.id);
-      if (
-        existing.name !== ct.name ||
-        existing.countryId !== countryId ||
-        existing.stateId !== stateId
-      ) {
-        await repo.updateCity(ct.qid, input);
+      // Mesmo guarda das entidades acima: o label da fonte não regrava o nome existente.
+      if (existing.countryId !== countryId || existing.stateId !== stateId) {
+        await repo.updateCity(ct.qid, { ...input, name: existing.name });
         stats.cities.updated++;
       } else {
         stats.cities.skipped++;

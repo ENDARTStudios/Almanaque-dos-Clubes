@@ -9,11 +9,15 @@ import { getApiBase } from '@/lib/api-base';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { listingStrings } from '@/i18n/wsListings';
+import { metadataStrings } from '@/i18n/wsMetadata';
 
-export const metadata: Metadata = {
-  title: 'Jogadores',
-  description: 'Jogadores de futebol de todos os tempos, com posição, país e proveniência.',
-};
+// T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const t = metadataStrings[locale].players;
+  return { title: t.title, description: t.description };
+}
 
 interface PlayerRow {
   id: string;

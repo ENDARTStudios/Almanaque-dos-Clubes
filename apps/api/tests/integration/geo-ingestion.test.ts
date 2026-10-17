@@ -230,7 +230,7 @@ describe('syncGeo — idempotência (re-run ⇒ zero escrita)', () => {
     expect(second.links).toEqual({ linked: 0, unchanged: 1, missing: 0 });
   });
 
-  it('detecta e conta mudança de nome como update', async () => {
+  it('T581 — label divergente NÃO sobrescreve o `name` de linha existente', async () => {
     const repo = makeRepo([
       {
         id: 'c1',
@@ -244,10 +244,18 @@ describe('syncGeo — idempotência (re-run ⇒ zero escrita)', () => {
     ]);
     const now = new Date('2026-09-22T00:00:00Z');
     await syncGeo(repo, planOf([{ ...base, clubQid: 'Q100' }]), now);
-    const renamed = planOf([{ ...base, clubQid: 'Q100', countryName: 'Brasil' }]);
+
+    // Fonte muda o label (como "Kingdom of the Netherlands") e o continente. O nome
+    // corrigido pelo acervo é preservado; os demais campos continuam atualizando.
+    const renamed = planOf([{ ...base, clubQid: 'Q100', countryName: 'Brasil', continent: 'NA' }]);
     const stats = await syncGeo(repo, renamed, now);
     expect(stats.countries.updated).toBe(1);
-    expect(repo.countries[0].name).toBe('Brasil');
+    expect(repo.countries[0].name).toBe('Brazil');
+    expect(repo.countries[0].continent).toBe('NA');
+
+    // Re-run idêntico volta a ser noop: o label divergente não gera escrita perpétua.
+    const again = await syncGeo(repo, renamed, now);
+    expect(again.countries).toEqual({ created: 0, updated: 0, skipped: 1 });
   });
 });
 

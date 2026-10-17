@@ -21,6 +21,7 @@ para fechar o acervo — e cada fila avança só o próprio pedaço. O bot roda 
 | `club-extra-media`     | `kits`, `anthem`, `pennants`       | `enrichAllMediaBatch` (`enrich-all-media.service.ts`)     |
 | `player-profile`       | `profile` (foto/país/posição)      | `enrichPlayersMediaBatch`                                 |
 | `player-club`          | `club`                             | `linkPlayersClubsBatch` (`link-players-clubs.service.ts`) |
+| `player-club-squad`    | `clubFromSquad`                    | `derivePlayersClubFromSquadBatch` (T582)                  |
 | `commons-club-logo`    | `commonsLogo`                      | `harvestClubsBatch` (`commons-images.service.ts`)         |
 | `commons-player-photo` | `commonsPhoto`                     | `harvestPlayersBatch` (`commons-images.service.ts`)       |
 | `club-coordinates`     | `coordinates` (latitude/longitude) | connector `extractClubCoordinatesBulk`                    |
@@ -196,7 +197,7 @@ comportamento esperado quando não há pendência. Shutdown em `SIGTERM`: aparec
 
 - `apps/api/src/modules/etl/enrich-bot-router.ts` (novo) — roteador + config (puro)
 - `apps/api/src/modules/etl/enrich-bot.service.ts` (novo) — laço, cap/pausa, shutdown, contadores
-- `apps/api/src/modules/etl/enrich-bot-queues.ts` (novo) — as 8 filas reais (adaptadores)
+- `apps/api/src/modules/etl/enrich-bot-queues.ts` (novo) — as 9 filas reais (adaptadores)
 - `apps/api/src/modules/etl/link-players-clubs.service.ts` (novo) — lote extraído do script T551
 - `apps/api/src/modules/etl/commons-images.service.ts` (novo, T578) — coletor do Commons
   compartilhado pelo CLI e pelo bot (chaves `commonsLogo`/`commonsPhoto`, licença por arquivo)

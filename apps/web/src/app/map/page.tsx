@@ -5,6 +5,7 @@ import GeoMapInternal from '@/components/GeoMapInternal';
 import { getDictionary } from '@/i18n/getDictionary';
 import { mapPageStrings } from '@/i18n/wsMapPage';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import { metadataStrings } from '@/i18n/wsMetadata';
 
 // WS-C-3 FASE 3+4 — /map como rota PÚBLICA do mapa (configuração aplicada na release).
 // Honestidade geográfica: só clubes com coordenada são plotados; a lista é o caminho principal;
@@ -16,12 +17,17 @@ import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 // (`normalizeLocale` sobre o cookie, como `/players` e `/competitions`), e o `h1` reusa a
 // chave que o site já tem para "mapa-múndi" (`home.explore.map`) — nenhum texto novo para a
 // mesma frase. As strings próprias desta tela vivem no módulo aditivo `i18n/wsMapPage.ts`.
-export const metadata: Metadata = {
-  title: 'Mapa-múndi',
-  description:
-    'Clubes de futebol por país, com coordenada auditável e atribuição por fonte (OpenStreetMap/ODbL, Wikidata CC0, Natural Earth). Clubes sem coordenada aparecem em lista (vazio-honesto).',
-  alternates: { canonical: '/map' },
-};
+// T583 — título/descrição por idioma; o locale é o MESMO cookie lido pela página.
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const t = metadataStrings[locale].map;
+  return {
+    title: t.title,
+    description: t.description,
+    alternates: { canonical: '/map' },
+  };
+}
 
 export default async function MapPage() {
   const store = await cookies();
