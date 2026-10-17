@@ -107,11 +107,18 @@ export function clausulaNaoTentada(media: string[], refreshDays?: number): Prism
  * O nome da tabela vem de chamador fechado (whitelist) — identificador SQL não é
  * parametrizável em `Prisma.sql`, então NUNCA recebe valor externo.
  */
+interface MediaAttemptRecord {
+  at: string;
+  status: MediaAttemptStatus;
+  /** Campos próprios do job (ex.: `source`, `reason`), mesclados junto do carimbo. */
+  [extra: string]: unknown;
+}
+
 async function carimbarTentativa(
   prisma: PrismaClient,
   tabela: Prisma.Sql,
   id: string,
-  patch: Record<string, { at: string; status: MediaAttemptStatus }>,
+  patch: Record<string, MediaAttemptRecord>,
 ): Promise<void> {
   if (Object.keys(patch).length === 0) return;
   await prisma.$executeRaw`
@@ -185,9 +192,11 @@ export async function stampMediaAttempts(
 /**
  * Chave de mídia do jogador. `profile` = foto/país/posição (job de mídia);
  * `club` = vínculo com o clube atual (T551, P54 do Wikidata);
+ * `clubFromSquad` = vínculo derivado das arestas `PLAYED_FOR` já gravadas no grafo
+ * (T034/T582 — chave PRÓPRIA para não colidir com o cursor do P54);
  * `commonsPhoto` = foto pela categoria homônima do Commons (T578).
  */
-export type PlayerMediaKey = 'profile' | 'club' | 'commonsPhoto';
+export type PlayerMediaKey = 'profile' | 'club' | 'clubFromSquad' | 'commonsPhoto';
 
 export interface PendingPlayerQueryOptions {
   limit: number;
@@ -203,6 +212,11 @@ export interface PendingPlayerQueryOptions {
   needs?: Prisma.Sql;
   /** Reprocessar quem foi tentado há mais de N dias (foto/posição podem aparecer depois). */
   refreshDays?: number;
+  /**
+   * Restringe a seleção a estes IDs (uso operacional: reprocessar um conjunto e
+   * testes de integração com fixtures, sem depender da ordem global da fila).
+   */
+  ids?: string[];
 }
 
 /** Linha da fila (a coluna vem do SQL, daí não usar o tipo do Prisma). */
@@ -233,11 +247,16 @@ export async function selectPendingPlayers(
 ): Promise<PendingPlayerRow[]> {
   const media = opts.media ?? ['profile'];
   const needs = opts.needs ?? NEEDS_PERFIL;
+  const ids =
+    opts.ids && opts.ids.length > 0
+      ? Prisma.sql` AND id IN (${Prisma.join(opts.ids)})`
+      : Prisma.empty;
   return prisma.$queryRaw<PendingPlayerRow[]>`
     SELECT id, qid, "photoUrl", country, position, "fullName" AS name
     FROM players
     WHERE qid IS NOT NULL
       AND ${needs}
+      ${ids}
       AND ${clausulaNaoTentada(media, opts.refreshDays)}
     ORDER BY coalesce("mediaEnrichment"->${media[0]}::text->>'at', '1970-01-01T00:00:00Z') ASC,
              "fullName" ASC
@@ -325,8 +344,10 @@ export async function stampPlayerAttempt(
   media: PlayerMediaKey,
   status: MediaAttemptStatus,
   at = new Date().toISOString(),
+  /** Campos adicionais do job (ex.: `{ source, reason }`) — não sobrescrevem `at`/`status`. */
+  details?: Record<string, unknown>,
 ): Promise<void> {
   await carimbarTentativa(prisma, Prisma.raw('players'), playerId, {
-    [media]: { at, status },
+    [media]: { ...details, at, status },
   });
 }
