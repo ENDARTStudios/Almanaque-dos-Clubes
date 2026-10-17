@@ -52,7 +52,7 @@ function normalizeName(s: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/\b(cf|fc|sc|ec|ac|sp|ca)\b/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^a-z0-9]+/g, '')
     .trim();
 }
 
@@ -85,13 +85,17 @@ async function main(): Promise<void> {
     const unmatched: string[] = [];
     for (const t of teams) {
       const norm = normalizeName(t.name);
+      // BSA = competição masculina: candidatos só gender='men' (evita escrever
+      // dados do time masculino em rows femininas homônimas — bug da 1a leva).
+      const firstTok = (t.shortName ?? t.name.split(' ')[0] ?? '').slice(0, 12);
       const candidates = await prisma.club.findMany({
         where: {
           deletedAt: null,
           country: 'BR',
+          gender: 'men',
           OR: [
-            { name: { contains: t.name.split(' ')[0] ?? '', mode: 'insensitive' } },
-            { fullName: { contains: t.name.split(' ')[0] ?? '', mode: 'insensitive' } },
+            { name: { contains: firstTok, mode: 'insensitive' } },
+            { fullName: { contains: firstTok, mode: 'insensitive' } },
           ],
         },
         select: { id: true, name: true, fullName: true, shortName: true },
@@ -205,13 +209,15 @@ async function main(): Promise<void> {
       for (const row of table) {
         const tm = row.team as { name: string };
         const norm = normalizeName(tm.name);
+        const firstTok = (tm.shortName ?? tm.name.split(' ')[0] ?? '').slice(0, 12);
         const candidates = await prisma.club.findMany({
           where: {
             deletedAt: null,
             country: 'BR',
+            gender: 'men',
             OR: [
-              { name: { contains: tm.name.split(' ')[0] ?? '', mode: 'insensitive' } },
-              { fullName: { contains: tm.name.split(' ')[0] ?? '', mode: 'insensitive' } },
+              { name: { contains: firstTok, mode: 'insensitive' } },
+              { fullName: { contains: firstTok, mode: 'insensitive' } },
             ],
           },
           select: { id: true, name: true, fullName: true, shortName: true },
