@@ -20,7 +20,7 @@ import {
   extractAwards,
   mergeStintMetadata,
   mergeAwards,
-} from '../../../scripts/etl/enrich-player-profiles.js';
+} from '../../../src/scripts/enrich-player-profiles.js';
 
 describe('T-22.3 — positionFromLabel (P413 → PlayerPosition)', () => {
   it('mapeia os rótulos canônicos (en/pt) para as 4 posições', () => {
