@@ -24,6 +24,11 @@ export type EnrichQueueId =
   | 'club-extra-media'
   | 'player-profile'
   | 'player-club'
+  // T578 — coletor das CATEGORIAS do Commons (chaves próprias `commonsLogo`/
+  // `commonsPhoto`). São duas filas porque os universos e as chaves de cursor são
+  // distintos: juntá-las esconderia o déficit relativo de uma delas.
+  | 'commons-club-logo'
+  | 'commons-player-photo'
   | 'club-coordinates';
 
 export const ENRICH_QUEUE_ORDER: readonly EnrichQueueId[] = [
@@ -32,6 +37,8 @@ export const ENRICH_QUEUE_ORDER: readonly EnrichQueueId[] = [
   'club-extra-media',
   'player-profile',
   'player-club',
+  'commons-club-logo',
+  'commons-player-photo',
   'club-coordinates',
 ];
 

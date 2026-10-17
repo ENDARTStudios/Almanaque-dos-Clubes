@@ -39,7 +39,11 @@ export type MediaKey =
   // das outras: sem carimbo, um clube cujo QID não tem P625/P159/P115/P131 resolvível
   // reencabeça a fila para sempre. O escritor é o bot de enriquecimento contínuo
   // (`enrich-bot-queues.ts`), que reusa o connector `extractClubCoordinatesBulk`.
-  | 'coordinates';
+  | 'coordinates'
+  // T578 — imagem da CATEGORIA do Commons (coletor `commons-images.service.ts`). Chave
+  // própria porque a fonte é outra: P18/infobox (chave `logo`) pode não ter nada e a
+  // categoria do Commons ter. Sem a chave, o alvo sem P18 voltaria toda volta.
+  | 'commonsLogo';
 
 export type MediaAttemptStatus = 'enriched' | 'no_source' | 'already_present' | 'error';
 
@@ -47,6 +51,12 @@ export interface PendingClubQueryOptions {
   limit: number;
   /** Mídias que o clube precisa ter AINDA NÃO TENTADAS (basta não ter nenhuma delas). */
   media: MediaKey[];
+  /**
+   * Condição do PRÓPRIO job (ex.: `"logoUrl" IS NULL`). Sem ela, a seleção pode
+   * devolver alvos que já têm o dado (o cursor só olha a tentativa) e o lote os
+   * descarta depois — o começo da fila não anda. Default: só o cursor.
+   */
+  needs?: Prisma.Sql;
   country?: string;
   /**
    * T547 (opt-in) — reprocessar o que foi tentado há mais de N dias (atualização).
@@ -120,10 +130,11 @@ export async function selectPendingClubs(
   opts: PendingClubQueryOptions,
 ): Promise<Array<{ id: string; qid: string; name: string }>> {
   const pais = opts.country ? Prisma.sql` AND country = ${opts.country}` : Prisma.empty;
+  const needs = opts.needs ? Prisma.sql` AND ${opts.needs}` : Prisma.empty;
 
   return prisma.$queryRaw<Array<{ id: string; qid: string; name: string }>>`
     SELECT id, qid, name FROM clubs
-    WHERE "deletedAt" IS NULL AND qid IS NOT NULL${pais}
+    WHERE "deletedAt" IS NULL AND qid IS NOT NULL${pais}${needs}
       AND ${clausulaNaoTentada(opts.media, opts.refreshDays)}
     ORDER BY name ASC
     LIMIT ${opts.limit}
@@ -173,9 +184,10 @@ export async function stampMediaAttempts(
 
 /**
  * Chave de mídia do jogador. `profile` = foto/país/posição (job de mídia);
- * `club` = vínculo com o clube atual (T551, P54 do Wikidata).
+ * `club` = vínculo com o clube atual (T551, P54 do Wikidata);
+ * `commonsPhoto` = foto pela categoria homônima do Commons (T578).
  */
-export type PlayerMediaKey = 'profile' | 'club';
+export type PlayerMediaKey = 'profile' | 'club' | 'commonsPhoto';
 
 export interface PendingPlayerQueryOptions {
   limit: number;
