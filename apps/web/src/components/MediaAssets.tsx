@@ -124,8 +124,10 @@ export function PlayerPhoto({
 }
 
 /* T579 (ITEM 19) — a `CountryFlag` que vivia aqui (PNG de `flagcdn.com`) foi REMOVIDA e
-   substituída por `@/components/CountryFlag`, que deriva a bandeira do próprio código ISO2
-   do acervo. Motivo declarado: o asset era buscado de um CDN de terceiro, com a largura e a
-   licença fora do nosso controle — e nenhuma tela a usava (componente morto, `tsc` não
-   acusava porque era exportado). A nova é clicável, tem nome acessível com o país em texto
-   e alvo de 24 px. */
+   substituída por `@/components/CountryFlag`. Motivo declarado: o asset era buscado de um CDN
+   de terceiro, com a largura e a licença fora do nosso controle — e nenhuma tela a usava
+   (componente morto, `tsc` não acusava porque era exportado). A nova é clicável, tem nome
+   acessível com o país em texto e alvo de 24 px.
+   T579b — a bandeira dessa `CountryFlag` deixou de ser emoji (que no Windows degrada para as
+   duas letras regionais) e passou a ser SVG/PNG PRÓPRIO em `/flags/<iso2>.svg`, adquirido do
+   Commons com licença auditada por arquivo (`apps/api/src/scripts/data/flags-provenance.json`). */

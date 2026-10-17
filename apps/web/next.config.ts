@@ -13,8 +13,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       // T502 — mídia do acervo (escudos/fotos via Special:FilePath do Commons)
-      { protocol: 'https', hostname: 'commons.wikimedia.org', pathname: '/wiki/Special:FilePath/**' },
-      { protocol: 'https', hostname: 'flagcdn.com' },
+      {
+        protocol: 'https',
+        hostname: 'commons.wikimedia.org',
+        pathname: '/wiki/Special:FilePath/**',
+      },
+      // T579b — `flagcdn.com` SAIU: a bandeira do país é asset NOSSO (`/flags/<iso2>.svg`,
+      // ver `apps/api/src/scripts/harvest-flags.ts`). Nenhuma CDN de terceiro serve asset.
     ],
     // Flag para testes de carga/E2E e ambientes sem cota.
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === '1',
@@ -41,8 +46,11 @@ const nextConfig: NextConfig = {
             // nada no bundle de produção usa eval (Leaflet/recharts/GSAP não
             // usam). 'unsafe-inline' permanece (exigido pelos scripts inline
             // de bootstrap do Next sem nonce); migração para nonce = M5.
+            // T579b: `https://flagcdn.com` REMOVIDO do img-src — a bandeira passou a ser
+            // asset servido por `'self'` (`/flags/…`), então a whitelist não precisa mais
+            // dela. Menos origem externa autorizada a executar requisição de imagem.
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://commons.wikimedia.org https://upload.wikimedia.org https://flagcdn.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://commons.wikimedia.org https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.almanaquedosclubes.com wss://api.almanaquedosclubes.com https://*.up.railway.app wss://*.up.railway.app; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },

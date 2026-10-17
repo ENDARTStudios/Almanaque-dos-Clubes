@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
-import { LOCALE_FLAGS, type Locale } from '@/i18n/config';
+import { type Locale } from '@/i18n/config';
+import LocaleFlag from '@/components/LocaleFlag';
 import { Mail, Send } from 'lucide-react';
 import { openCookieConsent } from '@/components/CookieConsentBanner';
 
@@ -130,10 +131,10 @@ export default function Footer() {
                   key={l}
                   onClick={() => setLocale(l)}
                   aria-label={l}
-                  className={`inline-flex h-6 w-6 items-center justify-center text-lg leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
+                  className={`inline-flex h-6 w-6 items-center justify-center leading-none cursor-pointer ${locale === l ? 'opacity-100' : 'opacity-40 hover:opacity-70'} transition-opacity duration-150`}
                   title={l}
                 >
-                  {LOCALE_FLAGS[l]}
+                  <LocaleFlag locale={l} />
                 </button>
               ))}
             </div>
