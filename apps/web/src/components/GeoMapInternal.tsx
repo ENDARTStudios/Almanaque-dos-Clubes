@@ -153,6 +153,7 @@ export default function GeoMapInternal() {
             checked={onlyWomen}
             onChange={(e) => setOnlyWomen(e.target.checked)}
             data-testid="geo-women-toggle"
+            className="h-6 w-6 shrink-0"
           />
           {s.womenToggle}
         </label>
