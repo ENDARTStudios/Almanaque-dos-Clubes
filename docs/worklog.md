@@ -3079,3 +3079,58 @@ Stage Summary:
   overwrite e re-run noop provado em produção (dry-run → apply → re-run).
 - Nenhuma contagem do acervo mudou (clubs/players/competitions/stadiums/matches/rankings
   idênticos antes × depois) — só a tabela de referência.
+
+---
+
+Task ID: goal-2026-10-16/i18n-bandeira
+Agent: Doer — correção dos defeitos de i18n/bandeira da auditoria visual de produção
+Task: corrigir, COM MEDIÇÃO, o nome do país fora do idioma nas 5 telas, a bandeira de 12,63 px
+do seletor de idioma, a bandeira ausente e o h1 não traduzido da `/map`, e reconciliar o
+discurso sobre os códigos ISO retirados.
+
+Work Log:
+
+- **Causa raiz do nome do país (item 1).** O `CountryIndex` renderizava `p.name`, o nome canônico
+  da tabela `countries` — em inglês. A linha abaixo do `/players` já usava ICU, daí a contradição
+  "Spain 6.006" × "Espanha". Um caminho só passou a valer: `countryLabel(ISO2, locale)`
+  (ICU → sigla → valor cru). O prop `name` do `CountryFlag` (sem chamadores) saiu para não
+  sobrar segunda régua. A busca local do índice passou a casar o rótulo visível (quem digita
+  "Espanha" encontrava só "Spain" antes).
+- **Medição em navegador real, não inferência.** Build de produção do worktree (`next build
+--webpack` + `next start`) com a API pública de produção (GET read-only) e Playwright,
+  3 idiomas × 3 telas: BR/Espanha/Reino Unido/Alemanha/Itália aparecem como
+  Brasil·Brazil·Brasil, Espanha·Spain·España, Reino Unido·United Kingdom·Reino Unido,
+  Alemanha·Germany·Alemania, Itália·Italy·Italia. O `.mjs` de prova usa o MÓDULO real
+  (bundle do esbuild), não uma cópia da regra.
+- **Bandeira do seletor (item 2), medido no DOM.** Antes: 12,63 px de altura de conteúdo
+  (24 ÷ 1,9) — duas causas: `max-width:100%` do preflight dentro do controle de 24 px e
+  `Math.round` no `width`. Depois: caixa 30,39×16,00, conteúdo 30,39×16,00, alvo de toque
+  38,39×24. As 3 bandeiras do rodapé em 3 idiomas: 15,99–16,00 px de altura.
+- **`/map` (itens 3 e 4).** Bandeira ao lado do seletor (o `<option>` nativo não aceita
+  `<img>`; a bandeira é decorativa e o texto da opção nomeia o país). `h1` reusa
+  `home.explore.map`; as demais strings foram para `i18n/wsMapPage.ts`, lendo o cookie como as
+  outras páginas de servidor. Medido: "World map"/"Mapa mundial", "País"/"Country",
+  opções "Brazil (BR) · 605"/"Brasil (BR) · 605".
+- **Códigos retirados (item 5): decisão (a).** Bandeira histórica + sigla; nunca o nome do
+  sucessor. O teste que já existia (`t579-country-flag`) foi MANTIDO e o cartão do índice ganhou
+  teste próprio (DD → "DD", não "German Democratic Republic"/"Alemanha"). A frase do
+  D-2026-10-16-t580 que dizia "a UI usa o rótulo da tabela ANTES do ICU" foi corrigida — era
+  exatamente a doc que contradizia o código.
+- **Bugs que os gates/medições pegaram:** (1) `pages.explore.map` não existe — a chave é
+  `home.explore.map` (o typecheck pegou); (2) o seletor do Playwright
+  `[data-testid$="-"]` casava o cabeçalho do índice e não o cartão — a primeira rodada "mediu"
+  zero cartões e parecia que o fetch tinha falhado; (3) `next build` também usa Turbopack e o
+  junction de `node_modules` do worktree faz o Turbopack panicar — `--webpack` resolve;
+  (4) o dev server com CSP bloqueia `eval` do webpack e o componente client não hidrata — a
+  verificação válida é em modo produção.
+- **Fora do escopo, declarado:** `limitations` (dado gerado pela API, em pt), `title`/meta
+  literais (padrão de todas as telas), `/preview/mapa` (não auditada) e outras frases literais
+  de `/players`/`/clubs` que a auditoria não mediu.
+
+Stage Summary:
+
+- Nome do país localizado nas 5 telas, no mesmo caminho (ICU pelo ISO2), com prova em navegador
+  nos 3 idiomas; bandeira do seletor em 16 px de altura e alvo de 24 px; `/map` com h1 e corpo
+  traduzidos e bandeira no seletor; política dos códigos retirados declarada = a que está no ar
+- 191 testes unitários do web verdes, `tsc --noEmit` limpo, prettier sem mudanças
+- Nada foi escrito em produção: só GET público da API nos screenshots/medições

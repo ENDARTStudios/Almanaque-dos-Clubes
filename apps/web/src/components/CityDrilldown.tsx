@@ -45,7 +45,7 @@ interface IndiceCidades {
 
 export default function CityDrilldown({ country }: { country: string }) {
   const listRef = useRef<HTMLUListElement>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [indice, setIndice] = useState<IndiceCidades | null>(null);
   const [estado, setEstado] = useState<'loading' | 'done' | 'error'>('loading');
   useGsapStagger(listRef, 'li');
@@ -119,7 +119,7 @@ export default function CityDrilldown({ country }: { country: string }) {
   if (cidades.length === 0) {
     return (
       <p className="mb-6 text-sm text-ink-2" data-testid="city-drilldown-gap">
-        {t('pages.byCountry.citiesGapNone').replace('{n}', semCidade.toLocaleString('pt-BR'))}
+        {t('pages.byCountry.citiesGapNone').replace('{n}', semCidade.toLocaleString(locale))}
       </p>
     );
   }
@@ -128,14 +128,14 @@ export default function CityDrilldown({ country }: { country: string }) {
     <section className="mb-6" aria-label={t('pages.byCountry.citiesLabel')}>
       <div className="mb-2 flex flex-wrap items-baseline gap-x-3">
         <h3 className="font-heading text-base font-bold" data-testid="city-drilldown-title">
-          {t('pages.byCountry.citiesTitle')} · {cidades.length.toLocaleString('pt-BR')}
+          {t('pages.byCountry.citiesTitle')} · {cidades.length.toLocaleString(locale)}
         </h3>
         {/* A LACUNA, declarada e visível — o que substitui o limiar. */}
         {semCidade > 0 ? (
           <span className="text-xs text-ink-3" data-testid="city-drilldown-partial">
             {t('pages.byCountry.citiesCoverage')
-              .replace('{com}', comCidade.toLocaleString('pt-BR'))
-              .replace('{total}', totalClubes.toLocaleString('pt-BR'))
+              .replace('{com}', comCidade.toLocaleString(locale))
+              .replace('{total}', totalClubes.toLocaleString(locale))
               .replace('{pct}', String(cobertura))}
           </span>
         ) : null}
@@ -168,7 +168,7 @@ export default function CityDrilldown({ country }: { country: string }) {
                 <span className="text-foreground">{c.name}</span>
                 {/* Contagem rotulada: "12 clubes", não "12". */}
                 <span className="num text-ink-3">
-                  {c.clubs.toLocaleString('pt-BR')} {t('pages.byCountry.clubs')}
+                  {c.clubs.toLocaleString(locale)} {t('pages.byCountry.clubs')}
                 </span>
               </Link>
             </li>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useGsapStagger } from '@/hooks/useGsap';
 import { api } from '@/lib/api';
 import { CountryFlag } from '@/components/CountryFlag';
+import { countryLabel } from '@/lib/country-flag';
 import { useI18n } from '@/i18n/Provider';
 
 /**
@@ -36,6 +37,13 @@ import { useI18n } from '@/i18n/Provider';
 
 interface PaisEntry {
   code: string;
+  /**
+   * Nome canônico da tabela `countries` — REFERÊNCIA do acervo, e em inglês
+   * (`docs/DECISOES.md`, D-2026-10-16-t580). Não é o rótulo da tela: o rótulo visível vem de
+   * `countryLabel(code, locale)` (ICU), que é o único caminho que respeita o idioma do
+   * usuário. Aqui ele serve para a BUSCA (quem digita "Brazil" também encontra) e como último
+   * recurso quando o código não é par de letras.
+   */
   name: string | null;
   clubs?: number;
   players?: number;
@@ -102,14 +110,33 @@ export default function CountryIndex({
 
   const paises = indice?.countries ?? [];
 
+  /**
+   * Rótulo VISÍVEL do país — ICU pelo ISO2, no idioma do usuário (mesmo caminho da bandeira).
+   *
+   * O DEFEITO MEDIDO (auditoria de 16/10, em produção): este cartão renderizava `p.name`, que
+   * é o nome da tabela `countries` — em inglês. Resultado em pt-br: "United Kingdom", "Germany",
+   * "Spain"; em es-es: "Spain ES 39 competiciones" — 0 de 29 nomes no idioma da página. E o
+   * `/players` se contradizia sozinho: o cartão dizia "Spain 6.006" e a linha logo abaixo,
+   * "Espanha". O nome do país é DADO, então a tradução vem do ICU por ISO2 e não do dicionário.
+   *
+   * `?? p.name ?? p.code` é o resto do contrato: `countryLabel` só devolve `null` para valor
+   * vazio, mas a assinatura não promete isso — e esconder o país porque o código é estranho
+   * seria perder acervo.
+   */
+  const visibleName = (p: PaisEntry) => countryLabel(p.code, locale) ?? p.name ?? p.code;
+
   /** Filtro local por nome/código. Com 220 países, rolar não é navegação. */
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     if (!termo) return paises;
-    return paises.filter(
-      (p) => p.code.toLowerCase().includes(termo) || (p.name ?? '').toLowerCase().includes(termo),
+    // Casa o que está na TELA (rótulo do ICU), a sigla e o nome canônico do acervo: antes só o
+    // canônico casava, então quem digitava "Espanha" não encontrava "Spain".
+    return paises.filter((p) =>
+      [visibleName(p), p.code, p.name ?? ''].some((v) => v.toLowerCase().includes(termo)),
     );
-  }, [paises, busca]);
+    // `visibleName` é derivada de `locale` (já na lista); listá-la recriaria a memo a cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paises, busca, locale]);
 
   const visiveis = todos || busca.trim() ? filtrados : filtrados.slice(0, INICIAL);
 
@@ -139,7 +166,7 @@ export default function CountryIndex({
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <h2 className="font-heading text-lg font-bold" data-testid="country-index-title">
           {/* Contagem ROTULADA: "24 países", nunca "24" solto — a regra do conceito. */}
-          {t('pages.byCountry.title')} · {totalPaises.toLocaleString('pt-BR')}
+          {t('pages.byCountry.title')} · {totalPaises.toLocaleString(locale)}
         </h2>
         {/* Busca local: com 220 países a lista é longa demais para rolar. */}
         <input
@@ -194,9 +221,10 @@ export default function CountryIndex({
                     <CountryFlag code={p.code} locale={locale} showName={false} />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-foreground">
-                        {/* Nome legível quando existe; o código é o rótulo quando não. Esconder
-                            o país porque a tabela `Country` não tem a linha seria perder acervo. */}
-                        {p.name ?? p.code}
+                        {/* Nome no idioma do usuário (ICU pelo ISO2). O código é o rótulo quando
+                            o país não tem nome no ICU — esconder o país porque o código é
+                            estranho seria perder acervo. */}
+                        {visibleName(p)}
                       </span>
                       <span className="num block text-[0.6875rem] uppercase tracking-wider text-ink-3">
                         {p.code}
@@ -204,7 +232,8 @@ export default function CountryIndex({
                     </span>
                   </span>
                   <span className="num shrink-0 text-right text-lg text-foreground">
-                    {n.toLocaleString('pt-BR')}
+                    {/* Formatação de número pelo locale: em pt-br "6.006", em en-us "6,006". */}
+                    {n.toLocaleString(locale)}
                     <span className="mt-0.5 block text-[0.625rem] font-normal normal-case tracking-normal text-ink-3">
                       {rotulo}
                     </span>

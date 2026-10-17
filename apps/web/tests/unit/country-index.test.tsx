@@ -86,6 +86,30 @@ describe('CountryIndex — agrupamento por país', () => {
     expect(link.getAttribute('href')).toBe('/clubs?country=BR');
   });
 
+  it('(f) o nome do país aparece no IDIOMA da página, não no da tabela `countries`', async () => {
+    /* O defeito medido em produção (auditoria de 16/10): este cartão renderizava `p.name`, que
+       é o nome canônico da tabela `countries` — em INGLÊS. Em pt-br a tela mostrava "Spain";
+       em es-es, "Spain ES 39 competiciones" (0 de 29 nomes no idioma da página), e o /players
+       se contradizia: cartão "Spain 6.006" acima de linhas "Espanha". */
+    get.mockResolvedValue(indice([{ code: 'ES', name: 'Spain', clubs: 39 }]));
+    await montar();
+    const cartao = screen.getByTestId('country-ES');
+    expect(cartao.textContent).toContain('Espanha');
+    expect(cartao.textContent).not.toContain('Spain');
+  });
+
+  it('(g) país RETIRADO da ISO mostra a SIGLA ao lado da bandeira — nunca o nome do sucessor', async () => {
+    /* `name` da tabela traz o nome histórico em inglês ("German Democratic Republic") e o CLDR
+       diria "Alemanha". Aqui os dois estão errados para um acervo histórico: a sigla é o rótulo
+       e a bandeira de época é quem informa o país (ver lib/country-flag). */
+    get.mockResolvedValue(indice([{ code: 'DD', name: 'German Democratic Republic', clubs: 7 }]));
+    await montar();
+    const cartao = screen.getByTestId('country-DD');
+    expect(cartao.textContent).toContain('DD');
+    expect(cartao.textContent).not.toContain('German');
+    expect(cartao.textContent).not.toContain('Alemanha');
+  });
+
   it('(a) a contagem aparece ROTULADA, não solta', async () => {
     get.mockResolvedValue(indice([{ code: 'BR', name: 'Brazil', clubs: 817 }]));
     await montar();

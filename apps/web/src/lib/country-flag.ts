@@ -27,6 +27,12 @@
  *    `Intl.DisplayNames` com o locale do usuário devolve "Itália"/"Italy"/"Italia" para
  *    "IT". Um mapa de ~250 países em três idiomas seria dado nosso, desatualizável.
  *
+ *    **`countryLabel` é o rótulo VISÍVEL, e é o único caminho.** O nome que a tabela
+ *    `countries` guarda é a REFERÊNCIA do acervo e está em inglês (`docs/DECISOES.md`,
+ *    D-2026-10-16-t580) — ele não entra aqui: renderizá-lo cru é o defeito medido em produção,
+ *    em que a mesma tela mostrava "Spain 6.006" no cartão e "Espanha" na linha de baixo
+ *    (auditoria de 16/10 em `/clubs`, `/players` e `/competitions`).
+ *
  * 4. **Código RETIRADO da ISO 3166-1 não recebe o nome do Estado sucessor.** Medido no
  *    acervo (223 códigos distintos em clubes/jogadores): três países que não existem mais
  *    continuam nos dados — `DD` (Alemanha Oriental), `YU` (Iugoslávia) e `AN` (Antilhas
@@ -35,6 +41,16 @@
  *    errado, então `WITHDRAWN_ISO2` desliga o NOME e o rótulo volta a ser a própria sigla.
  *    A BANDEIRA, porém, esses três TÊM: os itens históricos do Wikidata (`Q16957`, `Q36704`,
  *    `Q25227`) declaram P41, e a bandeira de época é informação CORRETA para eles.
+ *
+ *    **DECISÃO (a que está no ar, e a que fica): bandeira histórica + SIGLA ao lado.** O
+ *    caminho de "fallback por sigla" sem bandeira foi DESCARTADO — a bandeira de época não
+ *    mente sobre o país e a sigla ao lado diz qual código do acervo é aquele. Quem mediu
+ *    (auditoria de 16/10, produção): `dd.png`, `an.svg` e `yu.svg` são servidos com 200 e a
+ *    RDA aparece com o emblema. Este módulo é o contrato disso: `countryLabel('DD', …)`
+ *    devolve `DD` (nunca "Alemanha"), e o manifesto tem a bandeira. Os dois testes em
+ *    `apps/web/tests/unit/t579-country-flag.test.tsx` (rótulo = sigla; `FLAG_ASSETS[code]`
+ *    definido) travam o par — se alguém reintroduzir o fallback por sigla ou o nome do
+ *    sucessor, o teste cai.
  */
 
 interface DisplayNamesLike {
@@ -114,9 +130,14 @@ export function countryName(value: string | null | undefined, locale: string): s
 }
 
 /**
- * Texto de país para exibir quando NÃO há bandeira: nome no idioma do usuário, ou o
- * código, ou o valor cru que veio do acervo. Nunca string vazia (perder o país é perder
- * acervo) — e nunca um nome chutado a partir de código desconhecido.
+ * Rótulo de país para EXIBIR — o texto ao lado da bandeira e o nome acessível do link.
+ *
+ * Precedência, e é a política inteira num lugar só: nome do ICU no idioma do usuário → a
+ * própria sigla (código retirado da ISO, código que o ICU não conhece, `ZZ`) → o valor cru do
+ * acervo (nunca string vazia: perder o país é perder acervo).
+ *
+ * O que NÃO entra: o `name` da tabela `countries`. Ele é referência em inglês — usá-lo aqui
+ * reintroduz o defeito de a tela contradizer o idioma escolhido.
  */
 export function countryLabel(value: string | null | undefined, locale: string): string | null {
   if (typeof value !== 'string' || value.trim().length === 0) return null;
