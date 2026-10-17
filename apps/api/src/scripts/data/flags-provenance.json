@@ -3,7 +3,7 @@
   "orcamentoBytes": 2500000,
   "larguraMiniatura": 320,
   "limiteArquivoBytes": 60000,
-  "totalBytes": 1232203,
+  "totalBytes": 1234372,
   "bandeiras": [
     {
       "iso2": "AD",
@@ -1733,6 +1733,29 @@
       "thumbnailReason": null
     },
     {
+      "iso2": "GL",
+      "name": "Gronelândia",
+      "qid": "Q223",
+      "qidFrom": "p297",
+      "commonsFile": "Flag of Greenland.svg",
+      "claimId": "q223$8af9fdea-4657-9678-b89d-520356bc8a25",
+      "rank": "preferred",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Flag_of_Greenland.svg",
+      "license": "Public domain",
+      "author": "Jeffrey Connell ( IceKarma )",
+      "credit": "Own work",
+      "usageTerms": "Public domain",
+      "usageRestrictions": [
+        "insignia"
+      ],
+      "src": "/flags/gl.svg",
+      "thumbnail": false,
+      "bytes": 246,
+      "width": 900,
+      "height": 600,
+      "thumbnailReason": null
+    },
+    {
       "iso2": "GM",
       "name": "The Gambia",
       "qid": "Q1005",
@@ -3275,6 +3298,29 @@
       "thumbnailReason": null
     },
     {
+      "iso2": "NC",
+      "name": "Nova Caledónia",
+      "qid": "Q33788",
+      "qidFrom": "p297",
+      "commonsFile": "Flag of FLNKS.svg",
+      "claimId": "Q33788$24283d6d-478f-137e-51bb-773217104367",
+      "rank": "normal",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Flag_of_FLNKS.svg",
+      "license": "Public domain",
+      "author": "User:WarX",
+      "credit": "Own work",
+      "usageTerms": "Public domain",
+      "usageRestrictions": [
+        "insignia"
+      ],
+      "src": "/flags/nc.svg",
+      "thumbnail": false,
+      "bytes": 1730,
+      "width": 900,
+      "height": 450,
+      "thumbnailReason": null
+    },
+    {
       "iso2": "NE",
       "name": "Níger",
       "qid": "Q1032",
@@ -3777,6 +3823,29 @@
       "bytes": 310,
       "width": 1400,
       "height": 550,
+      "thumbnailReason": null
+    },
+    {
+      "iso2": "RE",
+      "name": "Reunião",
+      "qid": "Q17070",
+      "qidFrom": "p297",
+      "commonsFile": "Flag of France.svg",
+      "claimId": "Q17070$1aab38e6-45e2-01b3-c6d2-dab3219c5533",
+      "rank": "preferred",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Flag_of_France.svg",
+      "license": "Public domain",
+      "author": "Original: Unknown Vector: SKopp",
+      "credit": "This SVG flag includes elements that have been taken or adapted from this flag:",
+      "usageTerms": "Public domain",
+      "usageRestrictions": [
+        "insignia"
+      ],
+      "src": "/flags/re.svg",
+      "thumbnail": false,
+      "bytes": 193,
+      "width": 900,
+      "height": 600,
       "thumbnailReason": null
     },
     {
@@ -5080,6 +5149,7 @@
     "FM",
     "GD",
     "GG",
+    "GL",
     "GY",
     "IM",
     "JE",
@@ -5094,6 +5164,7 @@
     "MR",
     "MS",
     "MV",
+    "NC",
     "NE",
     "NI",
     "NL",
@@ -5102,6 +5173,7 @@
     "PG",
     "PR",
     "PW",
+    "RE",
     "RW",
     "SB",
     "SS",
