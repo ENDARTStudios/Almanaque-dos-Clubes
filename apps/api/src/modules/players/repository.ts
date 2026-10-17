@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js';
+import type { Prisma } from '@prisma/client';
 import { searchMatchedIds, idsInCondition } from '../../lib/search.js';
 
 // T448b-2i — busca case/acento-insensível (translate nativo, sem extensão).
@@ -46,7 +47,12 @@ export interface PlayerCountryIndex {
 
 export const playersRepository = {
   async create(data: Omit<Player, 'id' | 'createdAt' | 'updatedAt'>): Promise<Player> {
-    return prisma.player.create({ data }) as Promise<Player>;
+    // Cast na FRONTEIRA domain→prisma: as colunas Json do perfil enriquecido
+    // (T-22.3) são `unknown`/precisas no domínio e JsonValue no cliente — o
+    // runtime é o mesmo documento; só a visão de tipos diverge.
+    return prisma.player.create({
+      data: data as unknown as Prisma.PlayerUncheckedCreateInput,
+    }) as unknown as Promise<Player>;
   },
 
   async findMany(params: ListPlayersParams = {}): Promise<Player[]> {
@@ -88,7 +94,10 @@ export const playersRepository = {
     id: string,
     data: Partial<Omit<Player, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Player> {
-    return prisma.player.update({ where: { id }, data }) as Promise<Player>;
+    return prisma.player.update({
+      where: { id },
+      data: data as Prisma.PlayerUncheckedUpdateInput,
+    }) as unknown as Promise<Player>;
   },
 
   async remove(id: string): Promise<void> {
