@@ -85,10 +85,13 @@ async function main(): Promise<void> {
     const unmatched: string[] = [];
     for (const t of teams) {
       const norm = normalizeName(t.name);
+      // BSA = competição masculina: candidatos só gender='men' (evita escrever
+      // dados do time masculino em rows femininas homônimas).
       const candidates = await prisma.club.findMany({
         where: {
           deletedAt: null,
           country: 'BR',
+          gender: 'men',
           OR: [
             { name: { contains: t.name.split(' ')[0] ?? '', mode: 'insensitive' } },
             { fullName: { contains: t.name.split(' ')[0] ?? '', mode: 'insensitive' } },

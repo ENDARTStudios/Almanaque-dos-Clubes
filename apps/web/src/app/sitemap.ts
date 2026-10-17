@@ -25,6 +25,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    // Legends — hall da fama (resumo agregado, atualiza com ingestão).
+    {
+      url: `${baseUrl}/legends`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
     // WS-C-3 — `/map` público (aprovado). Só entra no sitemap após observação 24–72h verdes
     // + aprovação explícita do Operador (patch local em `feat/ws-c-3-sitemap-map`).
     {
