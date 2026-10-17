@@ -232,20 +232,6 @@ export default function RankingsTable() {
 
   return (
     <div className="mt-8">
-      {/* T449a-close — rótulo honesto do piloto (Inglaterra/RSSSF/tabelas-só) */}
-      <div
-        className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-foreground/5 px-3 py-2 text-xs"
-        data-testid="ranking-pilot-badge"
-      >
-        <span className="font-semibold text-foreground">{t.pilotBadge}</span>
-        <span className="text-foreground/60">{t.pilotSubtitle}</span>
-        <Link
-          href="/metodologia#ranking-piloto-inglaterra"
-          className="text-primary-ink hover:underline"
-        >
-          {t.pilotMethodology}
-        </Link>
-      </div>
       <div role="tablist" aria-label={t.title} className="mb-4 flex flex-wrap gap-2">
         {(['division', 'pyramid'] as const).map((v) => (
           <button
@@ -510,6 +496,26 @@ export default function RankingsTable() {
         {loading ? <p className="text-sm text-foreground/70">…</p> : null}
       </div>
       {hasFilters ? null : null}
+
+      {/* ESCOPO E FONTE — no RODAPÉ, depois do dado.
+          Antes isto era um badge com borda, fundo próprio e `font-semibold`, posicionado ACIMA da
+          tabela: o primeiro elemento que o olho encontrava era a ressalva de proveniência, e não o
+          ranking. A ressalva continua aqui porque ela é honesta e necessária (este ranking piloto
+          cobre só a Inglaterra e não inclui títulos ainda) — mas ela responde a uma pergunta que o
+          usuário faz DEPOIS de ver o número, não antes. */}
+      <p
+        className="mt-6 text-[0.6875rem] leading-snug text-ink-3 [text-wrap:pretty]"
+        data-testid="ranking-pilot-badge"
+      >
+        {t.pilotBadge}
+        <span className="text-ink-3/80"> · {t.pilotSubtitle}</span>{' '}
+        <Link
+          href="/metodologia#ranking-piloto-inglaterra"
+          className="underline decoration-dotted underline-offset-2 hover:text-primary-ink"
+        >
+          {t.pilotMethodology}
+        </Link>
+      </p>
     </div>
   );
 }

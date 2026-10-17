@@ -10,6 +10,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
 import { TrophyCup } from '@/components/icons';
+import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 
 // Mapeamento do portal (Operador, 08/10 — Entrega 2): sub-abas Visão Geral |
@@ -27,7 +28,7 @@ interface Competition {
   fansCount?: number | null;
   officialSite?: string | null;
   socialLinks?: Record<string, { handle: string; url: string } | null> | null;
-  followersSnapshot?: Record<string, number | null> & { updatedAt?: string } | null;
+  followersSnapshot?: (Record<string, number | null> & { updatedAt?: string }) | null;
   qid?: string | null;
   importedFrom?: string | null;
   /** T509 (W6) — foto do troféu (Wikimedia Commons). */
@@ -94,7 +95,10 @@ export async function generateMetadata({
   const { id } = await params;
   const res = await getCompetition(id);
   if (!res?.data) return { title: 'Competição não encontrada' };
-  return { title: res.data.name, description: `${res.data.name} — ${res.data.country ?? 'Internacional'}` };
+  return {
+    title: res.data.name,
+    description: `${res.data.name} — ${res.data.country ?? 'Internacional'}`,
+  };
 }
 
 export default async function CompetitionDetailPage({
@@ -120,7 +124,9 @@ export default async function CompetitionDetailPage({
   // que é ilustração (o desenho nunca se apresenta como o troféu oficial).
   const ic = wIconsStrings[locale];
 
-  const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '') ? (tabParam as Tab) : 'visao';
+  const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '')
+    ? (tabParam as Tab)
+    : 'visao';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -159,7 +165,12 @@ export default async function CompetitionDetailPage({
               className="w-20 h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={comp.trophyImageUrl} alt="" className="object-contain w-16 h-16" loading="lazy" />
+              <img
+                src={comp.trophyImageUrl}
+                alt=""
+                className="object-contain w-16 h-16"
+                loading="lazy"
+              />
             </span>
           ) : (
             <div
@@ -258,7 +269,9 @@ export default async function CompetitionDetailPage({
             ) : (
               <Info label={t.currentChampion} value={t.emCatalogacao} />
             )}
-            {overview ? <Info label={t.totalEditions} value={String(overview.totalEditions)} /> : null}
+            {overview ? (
+              <Info label={t.totalEditions} value={String(overview.totalEditions)} />
+            ) : null}
             {comp.qid && <Info label="Wikidata" value={comp.qid} />}
           </dl>
         ) : null}
@@ -290,8 +303,12 @@ export default async function CompetitionDetailPage({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-foreground/5 text-left">
-                    <th scope="col" className="px-4 py-3 font-semibold">{t.year}</th>
-                    <th scope="col" className="px-4 py-3 font-semibold">{t.champion}</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.year}
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold">
+                      {t.champion}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -299,7 +316,10 @@ export default async function CompetitionDetailPage({
                     <tr key={e.year} className="border-t border-border">
                       <td className="px-4 py-3 font-semibold">{e.year}</td>
                       <td className="px-4 py-3">
-                        <Link href={`/clubs/${e.champion.id}`} className="text-primary-ink hover:underline">
+                        <Link
+                          href={`/clubs/${e.champion.id}`}
+                          className="text-primary-ink hover:underline"
+                        >
                           {e.champion.name}
                         </Link>
                       </td>
@@ -352,7 +372,10 @@ export default async function CompetitionDetailPage({
                   <span className="text-lg font-heading font-bold text-primary-ink w-8 text-center">
                     {i + 1}
                   </span>
-                  <Link href={`/clubs/${w.clubId}`} className="flex-1 text-foreground hover:text-primary-ink">
+                  <Link
+                    href={`/clubs/${w.clubId}`}
+                    className="flex-1 text-foreground hover:text-primary-ink"
+                  >
                     {w.name}
                   </Link>
                   <span className="text-sm font-semibold text-foreground/70">
@@ -425,24 +448,48 @@ export default async function CompetitionDetailPage({
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-foreground/5 text-left">
-                          <th scope="col" className="px-3 py-2">{t.pos}</th>
-                          <th scope="col" className="px-3 py-2">{t.club}</th>
-                          <th scope="col" className="px-3 py-2">{t.played}</th>
-                          <th scope="col" className="px-3 py-2">{t.won}</th>
-                          <th scope="col" className="px-3 py-2">{t.drawn}</th>
-                          <th scope="col" className="px-3 py-2">{t.lost}</th>
-                          <th scope="col" className="px-3 py-2">{t.goalsFor}</th>
-                          <th scope="col" className="px-3 py-2">{t.goalsAgainst}</th>
-                          <th scope="col" className="px-3 py-2 font-semibold">{t.points}</th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.pos}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.club}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.played}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.won}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.drawn}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.lost}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.goalsFor}
+                          </th>
+                          <th scope="col" className="px-3 py-2">
+                            {t.goalsAgainst}
+                          </th>
+                          <th scope="col" className="px-3 py-2 font-semibold">
+                            {t.points}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {se.standings.map((row) => (
-                          <tr key={`${se.season}-${row.position}`} className="border-t border-border">
+                          <tr
+                            key={`${se.season}-${row.position}`}
+                            className="border-t border-border"
+                          >
                             <td className="px-3 py-2 font-semibold">{row.position}</td>
                             <td className="px-3 py-2">
                               {row.clubId ? (
-                                <Link href={`/clubs/${row.clubId}`} className="text-primary-ink hover:underline">
+                                <Link
+                                  href={`/clubs/${row.clubId}`}
+                                  className="text-primary-ink hover:underline"
+                                >
                                   {row.matchedName ?? row.clubName}
                                 </Link>
                               ) : (
@@ -464,22 +511,18 @@ export default async function CompetitionDetailPage({
                 ) : (
                   <p className="text-sm text-foreground/70">{t.seasonsEmpty}</p>
                 )}
-                {se.sourceUrl ? (
-                  <a
-                    href={se.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-2 text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
-                  >
-                    {t.source} ({t.wikipedia})
-                  </a>
-                ) : null}
+                {/* FONTE — rodapé da seção, abaixo da tabela de temporadas. A tabela é o
+                    dado; a origem vem depois e em `SourceNote`, com o peso único do design
+                    system. Antes era um link solto de 12px com cor própria. */}
+                <SourceNote href={se.sourceUrl ?? null} label={t.source} detail={t.wikipedia} />
               </section>
             ))}
           </div>
         ) : null}
 
-        {tab === 'visao' ? <p className="text-xs text-foreground/70 mt-6">{t.overviewHint}</p> : null}
+        {tab === 'visao' ? (
+          <p className="text-xs text-foreground/70 mt-6">{t.overviewHint}</p>
+        ) : null}
       </div>
     </div>
   );

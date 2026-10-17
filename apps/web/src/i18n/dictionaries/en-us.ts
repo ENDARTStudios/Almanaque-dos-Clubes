@@ -5,7 +5,7 @@ const en: Dictionary = {
     name: 'Almanaque dos Clubes',
     tagline: 'The history of world football in one place',
     description:
-      'Historical football archive under construction, with documented provenance. Search clubs, players, competitions and rankings with verified sources (methodology at /metodologia). AI features: coming soon.',
+      'World football history in numbers: clubs, players, competitions, rankings, titles and records. Every figure with its origin documented (methodology at /metodologia).',
   },
   nav: {
     clubs: 'Clubs & National Teams',
@@ -52,7 +52,7 @@ const en: Dictionary = {
   footer: {
     landmark: 'Footer',
     tagline:
-      'World football history in the making, with verified sources. Clubs, players, competitions and auditable rankings (methodology at /metodologia).',
+      'Football history in numbers: clubs, players, competitions, rankings and records, with the origin of every figure documented (methodology at /metodologia).',
     platformTitle: 'Platform',
     platformClubs: 'Clubs',
     platformPlayers: 'Players',
@@ -110,7 +110,7 @@ const en: Dictionary = {
     heroTitle: 'The History of Football',
     heroTitleAccent: 'in One Place',
     heroSubtitle:
-      'Historical football archive under construction, with documented provenance. Search clubs, players, competitions and rankings with verified sources (methodology at /metodologia). AI features: coming soon.',
+      'World football in numbers: clubs, players, competitions and rankings, with titles, records and history, and the origin of every figure documented (methodology at /metodologia).',
     ctaSearch: 'Start Searching',
     ctaRegister: 'Create Free Account',
     stats: {
@@ -141,7 +141,7 @@ const en: Dictionary = {
       },
       {
         title: 'Auditable Rankings',
-        desc: 'Historical rankings with verified sources and publication dates.',
+        desc: 'Club position, points and division across the years, season by season.',
       },
       {
         title: 'Smart Search',
@@ -437,7 +437,7 @@ const en: Dictionary = {
     },
     rankings: {
       title: 'Rankings',
-      subtitle: 'Historical rankings with verified sources and publication dates.',
+      subtitle: 'Club position, points and division across the years, season by season.',
       pilotBadge: 'England pilot · RSSSF source',
       pilotSubtitle:
         'Based on final league tables from English competitions (RSSSF). No titles in this phase.',

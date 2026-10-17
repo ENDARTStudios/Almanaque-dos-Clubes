@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { wsC2Strings } from '@/i18n/wsC2';
+import SourceNote from '@/components/SourceNote';
 import { selectCarouselSubset, type CarouselScope } from '@/lib/carousel';
 
 // WS-C-2 — Carrossel determinístico sobre GET /api/v1/champions/carousel.
@@ -163,25 +164,16 @@ export default function ChampionsCarousel() {
                 <p className="text-xs text-foreground/70 mt-0.5">
                   {c2.season}: {scope.season}
                 </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[11px] uppercase tracking-wide text-foreground/70">
-                    {scope.source.type}
-                  </span>
-                  {scope.source.license && (
-                    <span className="text-[11px] text-foreground/70">· {scope.source.license}</span>
-                  )}
-                </div>
-                {scope.source.sourceUrl && (
-                  <a
-                    href={scope.source.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid={`champion-source-${scope.hierarchy}`}
-                    className="inline-block text-xs text-foreground/70 hover:text-primary-ink transition-colors mt-1 underline decoration-dotted underline-offset-2"
-                  >
-                    {c2.source}
-                  </a>
-                )}
+                {/* FONTE — secundária. Antes o tipo vinha em CAIXA ALTA com `tracking-wide`, o que
+                    dá volume tipográfico a um metadado, e a licença competia em peso com o dado.
+                    Agora é uma linha discreta na base do cartão: temporada e competição seguem
+                    sendo o que o olho encontra primeiro. */}
+                <SourceNote
+                  href={scope.source.sourceUrl ?? null}
+                  label={c2.source}
+                  detail={[scope.source.type, scope.source.license].filter(Boolean).join(' · ')}
+                  data-testid={`champion-source-${scope.hierarchy}`}
+                />
               </article>
             ))}
           </div>
