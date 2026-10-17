@@ -15,3 +15,9 @@
 *.woff2 binary
 *.pdf binary
 *.db binary
+
+# T579b — BANDEIRAS são ASSETS obtidos de terceiro (Wikimedia Commons), não código:
+# guardadas BYTE-EXATAS como servidas. Sem isto o `* text=auto eol=lf` converte os SVG
+# com CRLF para LF na gravação e o `bytes` registrado na procedência deixa de bater com o
+# arquivo versionado (e o re-run da aquisição num clone limpo reescreveria o asset).
+apps/web/public/flags/** -text

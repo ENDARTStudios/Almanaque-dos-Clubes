@@ -9,3 +9,11 @@ graft/
 **/.next/
 **/coverage/
 **/node_modules/
+
+# T579b — ARQUIVO GERADO por `apps/api/src/scripts/harvest-flags.ts`: o JSON de procedência
+# das bandeiras (168 registros com licença/autor por arquivo) sai do `JSON.stringify` do
+# script, que não dobra arrays curtos numa linha como o prettier faria. Reformatar à mão
+# seria desfeito a cada nova aquisição — o conteúdo é auditável, o estilo não é decisão de
+# quem revisa. O manifesto do componente (`apps/web/src/lib/flag-assets.generated.ts`) segue
+# FORMATADO (é código que o prettier do repo aceita).
+apps/api/src/scripts/data/flags-provenance.json

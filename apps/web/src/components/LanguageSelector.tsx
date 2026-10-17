@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Globe, Check } from 'lucide-react';
 import { useI18n } from '@/i18n/Provider';
-import { LOCALES, LOCALE_NAMES, LOCALE_FLAGS, type Locale } from '@/i18n/config';
+import { LOCALES, LOCALE_NAMES, type Locale } from '@/i18n/config';
+import LocaleFlag from '@/components/LocaleFlag';
 
 /**
  * Seletor de idioma — LISTA PRÓPRIA, com o design do site.
@@ -182,8 +183,8 @@ export default function LanguageSelector() {
                     destacado ? 'bg-foreground/5 text-primary-ink' : 'text-foreground'
                   }`}
                 >
-                  <span aria-hidden="true" className="text-base leading-none">
-                    {LOCALE_FLAGS[l]}
+                  <span aria-hidden="true">
+                    <LocaleFlag locale={l} />
                   </span>
                   <span className="flex-1">{LOCALE_NAMES[l]}</span>
                   {/* O idioma em uso é MARCADO. O `<select>` nativo mostrava isso pela posição;

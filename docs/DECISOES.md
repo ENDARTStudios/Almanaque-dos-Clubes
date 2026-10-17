@@ -2806,3 +2806,14 @@ lógica nova foi validada fora do repo em três bundles esbuild — roteador+la�
 gerado contra um stub fiel do `Prisma.Sql` medido no Prisma real (18/18) e a seleção do lote
 unificado executada com `$queryRaw` falso (8/8). Nenhuma requisição à fonte, nenhum deploy,
 nenhum acesso ao banco de produção.
+
+### [2026-10-16] Decisão: D-2026-10-16-t579b-bandeira-asset-proprio — a bandeira do país é ARQUIVO nosso (SVG/PNG do Commons), não emoji
+
+Motivo: a bandeira nasceu EMOJI derivado do ISO2 (T579/PR #681) com o argumento "sem asset, sem licença para auditar". O que aquele caminho não media é o RENDER: emoji de bandeira só existe no macOS/iOS — no Windows o usuário vê as DUAS LETRAS REGIONAIS ("IT") e o dado desaparece onde mais gente olha. O dono decidiu que a bandeira tem de ser SEMPRE visível e pediu SVG do Commons.
+
+1. **Asset servido do nosso domínio.** `/flags/<iso2 minusculo>.svg|.png`, adquirido do Wikimedia Commons pelo P41 do Wikidata (`apps/api/src/scripts/harvest-flags.ts`). Nenhuma CDN de terceiro em runtime — `flagcdn.com` saiu do CSP e do `images.remotePatterns` do `next.config.ts`.
+2. **Licença POR ARQUIVO, não "bandeira é PD".** Política única do repositório (`evaluateLicense`): CC0/CC BY/CC BY-SA/domínio público/GFDL. O que muda para bandeira é a leitura do campo `Restrictions` do Commons: `insignia`, `noresize`, `communist`, `terrorism`, `israelflag` e `trademarked` são NOTAS DE USO (o próprio Commons as declara independentes de copyright) e ficam registradas em `flags-provenance.json`; token FORA dessa lista fechada continua REJEITANDO, e o país cai para a sigla em texto. Medido nos 220 códigos do acervo: 220 obtidas, 0 rejeições.
+3. **Sem P41, sem bandeira.** Código sem arquivo obtido (QID sem P41, licença rejeitada, falha de download) cai para a SIGLA EM TEXTO. Bandeira errada é pior que bandeira ausente.
+4. **Orçamento de peso é requisito** (total ≤ 2,5 MB; medido: 1,18 MB em 220 arquivos). O que passa do teto por arquivo (60 KB) entra como MINIATURA RENDERIZADA pelo Commons (320 px, `.png`), com o motivo no registro; `noresize` preserva o original salvo se o orçamento obrigar (declarado).
+5. **Segunda fonte de QID, declarada.** A tabela `countries` tem 168 linhas, mas o acervo usa 220 códigos ISO2 em clube/jogador/competição/estádio. Os 52 sem linha na tabela têm o QID resolvido pelo P297 (propriedade canônica do código ISO, sem lista escrita à mão) e o registro diz a origem (`qidFrom`: `countries` | `p297`). O gap de DADO (semear as linhas) fica declarado no relatório do script.
+6. **O emoji saiu de todo lugar** — inclusive do seletor de idioma (`LOCALE_COUNTRY` + `LocaleFlag`), que tinha o mesmo defeito.

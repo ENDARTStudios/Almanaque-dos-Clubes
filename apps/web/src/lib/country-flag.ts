@@ -1,46 +1,45 @@
 /**
- * T579 — BANDEIRA DE PAÍS derivada do código ISO 3166-1 alpha-2 do acervo.
+ * T579b — BANDEIRA DO PAÍS como ASSET PRÓPRIO servido do nosso domínio.
  *
- * Duas decisões que este módulo materializa:
+ * HISTÓRICO, porque a decisão anterior foi revertida com medição: a bandeira nasceu EMOJI
+ * derivado do ISO2 (PR #681), e o argumento era "sem asset, sem licença para auditar".
+ * O que aquele caminho não media é o RENDER: emoji de bandeira só existe no macOS/iOS. No
+ * Windows — sistema do dono e da maioria do público doméstico — o usuário via as duas
+ * LETRAS REGIONAIS ("IT"), ou seja, o dado sumia justamente onde mais gente olha. A
+ * decisão do dono é que a bandeira seja SEMPRE visível e que o asset venha do Commons.
  *
- * 1. **A bandeira é derivada, não baixada.** O acervo guarda `country` como ISO2
- *    (`Club.country @db.VarChar(2)`, `Player.country`, `Competition.country`). Da sigla
- *    ISO2 a bandeira é CALCULÁVEL: os símbolos regionais Unicode são o bloco
- *    U+1F1E6..U+1F1FF mapeado em A..Z, então "IT" → 🇮🇹 sem asset, sem CDN de terceiro e
- *    sem arquivo de licença para auditar. O projeto já usava emoji de bandeira nesse
- *    papel (`LOCALE_FLAGS` em `i18n/config.ts`) e o `CountryFlag` anterior buscava PNG em
- *    `flagcdn.com` — dependência externa de terceiro para asset, que é o que se evita
- *    aqui (item 19: nada de CDN de terceiro para a bandeira).
+ * Consequências, e é isto que este módulo materializa:
  *
- *    Custo declarado: em plataformas sem glifos de bandeira (Windows, que só desenha as
- *    duas letras regionais) o usuário vê "IT" no lugar da bandeira. Isso é degradação
- *    HONESTA — mostra a sigla ISO, nunca uma bandeira errada.
+ * 1. **A bandeira é um ARQUIVO nosso** (`/flags/<iso2>.svg|.png`), adquirido do Wikimedia
+ *    Commons pelo P41 do Wikidata e com licença auditada POR ARQUIVO
+ *    (`apps/api/src/scripts/data/flags-provenance.json`). Nenhuma CDN de terceiro serve
+ *    asset em runtime — nem `flagcdn.com` (que o T579 tinha removido e o `next.config`
+ *    ainda permitia).
  *
- * 2. **O nome do país em texto é resolvido por ICU, não por um mapa escrito à mão.**
+ * 2. **Quem diz se há bandeira é o MANIFESTO** (`flag-assets.generated.ts`), gerado pelo
+ *    script de aquisição a partir da tabela `countries` do acervo (`iso2` + `qid` → P41 →
+ *    arquivo do Commons). Não existe mais heurística de "código é região?" para decidir
+ *    bandeira: a lista é o dado, não uma regra de adivinhação. Código sem arquivo (dado
+ *    sujo como `BR1`, país sem P41, falha de download) cai para a SIGLA EM TEXTO — bandeira
+ *    errada continua sendo pior que bandeira ausente.
+ *
+ * 3. **O nome do país em texto é resolvido por ICU, não por um mapa escrito à mão.**
  *    `Intl.DisplayNames` com o locale do usuário devolve "Itália"/"Italy"/"Italia" para
- *    "IT". Um mapa de ~250 países em três idiomas seria dado nosso, desatualizável; o ICU
- *    entrega o nome oficial no idioma do usuário.
- *
- * 3. **Código que não é região não vira bandeira.** Medido: o ICU trata `ZZ` como o
- *    pseudo-país ISO "Unknown or unspecified" e devolve "Região desconhecida" — e a
- *    derivação regional daria o par 🇿🇿, que não é bandeira de lugar nenhum. Por isso
- *    existe `isRegionCode`: ele compara o nome do código com o do `ZZ` e, quando iguais,
- *    trata como NÃO mapeado. Nesse caso o chamador mostra a sigla em TEXTO. Bandeira
- *    errada é pior que bandeira ausente, e "região desconhecida" é exatamente o que a
- *    sigla diz.
+ *    "IT". Um mapa de ~250 países em três idiomas seria dado nosso, desatualizável.
  *
  * 4. **Código RETIRADO da ISO 3166-1 não recebe o nome do Estado sucessor.** Medido no
- *    acervo (SQL em produção, 223 códigos distintos): três países que não existem mais
+ *    acervo (223 códigos distintos em clubes/jogadores): três países que não existem mais
  *    continuam nos dados — `DD` (Alemanha Oriental), `YU` (Iugoslávia) e `AN` (Antilhas
  *    Holandesas). O CLDR do ICU devolve, para eles, o nome do SUCESSOR ("Alemanha",
- *    "Sérvia", "Curaçao") e o emoji não tem glifo de bandeira (nenhum desses pares está no
- *    conjunto RGI do Unicode). Num acervo HISTÓRICO, chamar de "Alemanha" um clube da DDR é
- *    dado errado — então `WITHDRAWN_ISO2` desliga nome e bandeira para esses códigos e o
- *    rótulo volta a ser a própria sigla, que é o que o dado diz.
+ *    "Sérvia", "Curaçao"). Num acervo HISTÓRICO, chamar de "Alemanha" um clube da DDR é dado
+ *    errado, então `WITHDRAWN_ISO2` desliga o NOME e o rótulo volta a ser a própria sigla.
+ *    A BANDEIRA, porém, esses três TÊM: os itens históricos do Wikidata (`Q16957`, `Q36704`,
+ *    `Q25227`) declaram P41, e a bandeira de época é informação CORRETA para eles.
  */
 
-/** Bloco dos "regional indicators": A → U+1F1E6, B → U+1F1E7, … */
-const REGIONAL_INDICATOR_A = 0x1f1e6;
+interface DisplayNamesLike {
+  of(code: string): string | undefined;
+}
 
 /**
  * Códigos de países RETIRADOS da ISO 3166-1 que ainda existem no acervo (medido: `AN`,
@@ -67,28 +66,11 @@ const WITHDRAWN_ISO2 = new Set([
   'ZR', // Zaire
 ]);
 
-interface DisplayNamesLike {
-  of(code: string): string | undefined;
-}
-
 /** Código ISO2 normalizado (maiúsculas) ou `null` quando não é um par de letras. */
 export function toIso2(value?: string | null): string | null {
   if (typeof value !== 'string') return null;
   const code = value.trim().toUpperCase();
   return /^[A-Z]{2}$/.test(code) ? code : null;
-}
-
-/**
- * Emoji de bandeira do código (`'it'` → `'🇮🇹'`) ou `null` se o código não for ISO2.
- *
- * PURA de propósito: ela não sabe se a região EXISTE. Quem decide desenhar é o chamador,
- * que combina esta função com `isRegionCode` (ver o item 3 do cabeçalho).
- */
-export function flagEmoji(value?: string | null): string | null {
-  const code = toIso2(value);
-  if (!code) return null;
-  const points = [...code].map((letter) => REGIONAL_INDICATOR_A + (letter.charCodeAt(0) - 65));
-  return String.fromCodePoint(...points);
 }
 
 function makeDisplayNames(locale: string): DisplayNamesLike | null {
@@ -128,31 +110,6 @@ export function countryName(value: string | null | undefined, locale: string): s
     return trimmed;
   } catch {
     return null;
-  }
-}
-
-/**
- * O código corresponde a uma região com bandeira? `false` desliga a bandeira e deixa o
- * texto (sigla) fazer o trabalho.
- *
- * Usa `'en'` de propósito: o placeholder de região desconhecida existe em todos os idiomas,
- * então um único idioma basta para a comparação — e não amarra o resultado ao locale do
- * usuário. Sem `Intl.DisplayNames` no runtime não há como checar: nesse caso devolvemos
- * `true` (o ISO2 do acervo é a melhor informação disponível; a bandeira é derivada dele).
- */
-export function isRegionCode(value?: string | null): boolean {
-  const code = toIso2(value);
-  if (!code) return false;
-  // Retirado da ISO: sem nome confiável e sem glifo de bandeira (não estão no RGI do Unicode).
-  if (WITHDRAWN_ISO2.has(code)) return false;
-  const dn = makeDisplayNames('en');
-  if (!dn) return true;
-  try {
-    const name = dn.of(code);
-    if (typeof name !== 'string' || name.trim().length === 0) return false;
-    return name.trim() !== dn.of('ZZ');
-  } catch {
-    return true;
   }
 }
 
