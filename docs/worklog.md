@@ -2996,3 +2996,86 @@ Stage Summary:
 - Terceira ocorrência da classe "cursor existe, seleção não pergunta a ele" encontrada e
   fechada no lote unificado, com teste que trava o SQL dos dois modos
 - Nada foi tocado em produção: sem deploy, sem requisição à fonte, sem acesso ao banco
+
+---
+
+Task ID: goal-2026-10-16/t580
+Agent: Doer — seed da tabela `countries` (dívida de DADO declarada no T579b)
+Task: completar a tabela de referência `countries` com os códigos ISO2 que o acervo USA e a
+tabela não tinha — pela fonte canônica (Wikidata P297), sem inventar QID, sem sobrescrever o
+que existe e sem mexer em nenhuma contagem do acervo.
+
+Work Log:
+
+- **O gap, medido antes de escrever.** `Club.country`/`Player.country`/`Competition.country`/
+  `Stadium.country` usam **223** códigos ISO2; `countries` tinha **168** linhas; 168 + 55 = 223
+  ⇒ os conjuntos são **disjuntos** (nenhuma linha órfã) e os **55** que faltavam eram AG, AS,
+  AW, BB, BJ, BM, BS, BZ, CK, DM, DO, ER, FK, FM, GD, GG, GL, GY, IM, JE, KH, KI, KY, LA, LC,
+  LK, MM, MO, MR, MS, MV, NC, NE, NI, NL, NR, NU, PG, PR, PW, RE, RW, SB, SS, ST, SX, TC, TD,
+  TG, TO, TV, VA, VC, VG, WS. Nenhum é código obsoleto: **AN/DD/YU já têm linha** (com o nome
+  histórico do `wikidata-geo`) e são os únicos obsoletos que o acervo usa (DD: 223 jogadores e
+  8 clubes; YU: 118 jogadores, 7 clubes e 2 estádios; AN: 4 clubes) — não foram tocados.
+- **Fonte e guardas.** `apps/api/src/scripts/seed-missing-countries.ts` (novo) consulta o WDQS
+  com `VALUES ?iso2` + `?country wdt:P297 ?iso2` e tira do item `iso3` (P298), `continent`
+  (P30 **com rank**), coordenada (P625) e o QID. Guardas que fazem o script NÃO gravar: P297
+  respondendo 0 ou ≥2 itens; `P31` sem classe de país/território (lista fechada
+  `CLASSES_DE_PAIS`, derivada do P31 medido dos 55 — país, estado soberano, território
+  dependente, BOT, Crown Dependency, insular area/territory dos EUA, SAR da China, country do
+  Reino dos Países Baixos, associated state, autonomous country da Dinamarca, coletividade e
+  departamento ultramarinos da França); e ausência de label.
+- **Continente: rank preferido e, quando o modelo não conhece o QID, P361.** Medido nos 55:
+  **55/55** resolvem para UM código (`AF|AN|AS|EU|NA|OC|SA`), **11 com nota** — 7 pelo P30 de
+  rank `preferred` (AW, FM, NR, NL, PG, TO, WS) e 4 por P361 (`AS`, `CK`, `NC`, `NU`: P30 =
+  "Insular Oceania"/Q538, que o `CONTINENT_QID_TO_CODE` não conhece, → P361 Oceania/Q55643 →
+  `OC`). Zero `continent` NULL, zero ambiguidade.
+- **Zero overwrite, provado na rodada.** Só INSERT por `iso2` (`@unique`). As 168 linhas
+  existentes ficaram intocadas — inclusive `iso3` NULL (preencher é decisão à parte) — e as 3
+  obsoletas continuam `importedFrom='wikidata-geo'` com `iso3 IS NULL` (conferido por SQL
+  depois do apply: `3`).
+- **Produção (o script roda DENTRO do container; o Postgres local não existe).** Depois do
+  merge + deploy:
+  - DRY-RUN: `faltavam na tabela: 55` · `resolvidos pela fonte (P297): 55` · `recusados pela
+    guarda: 0` · `sem resposta do P297: 0` · `criaria=55`;
+  - APPLY: `criados=55 · já-existiam=0 · qid-em-uso=0` · `countries 168→223` ·
+    `lote(wikidata-p297-countries) 0→55`;
+  - **RE-RUN = NOOP**: `faltavam na tabela: 0` · `criados=0` · `countries 223→223` ·
+    `lote 55→55` — e sem sequer consultar a fonte (nenhum código faltando ⇒ nenhuma requisição).
+  - SQL de conferência: os 55 têm `iso2`, `iso3`, `name`, `continent`, `qid` e coordenada
+    preenchidos (`55|55|55|55|55|55`), tabela em **223** linhas.
+- **Integridade (impressa pelo próprio script nas três rodadas).** `clubs 12017 · players
+  105211 · competitions 1932 · stadiums 84 · matches 17265 · rankings 1879` — **idênticos**
+  antes e depois; só `countries` mudou. Smoke ao vivo: `health` 200, `rankings/entries` 200,
+  `clubs` 200, `players` 200, `competitions` 200 e `clubs/countries` 200 — o índice passou a
+  devolver nome para **100%** dos 220 países com clubes (`sem nome: 0`, era 52 códigos com
+  `null` antes), com os 52 novos visíveis (NL 201 clubes, WS 8, LA 7, MM 7, SB 7, TO 7 …).
+- **Testes sem rede e sem banco.** 23 casos novos em
+  `apps/api/tests/unit/scripts/seed-missing-countries.test.ts`: parse do SPARQL, cada guarda
+  (0/≥2 itens no P297, P31 sem classe de país, P298 com dois valores, sem label), rank
+  `preferred` (Reino dos Países Baixos → EU), fallback P361 (Insular Oceania → OC), dry-run que
+  não escreve, re-run noop e zero overwrite com store em memória, `fetch` injetado. Suíte da
+  API: **118 arquivos / 1066 testes passando**; `tsc --noEmit` 0 erros; `eslint` 0 erros nos
+  arquivos novos (1 warning `detect-object-injection`, a mesma classe do
+  `wikidata-geo.connector`).
+
+GAPS DECLARADOS: (1) **`name` em inglês, e isso DIVERGE do pedido da rodada** ("pt quando
+existir, senão en"): medido, **168/168** linhas da tabela estavam em EN e a UI usa o rótulo da
+tabela ANTES do `Intl.DisplayNames` do locale — 55 linhas em pt deixariam a MESMA referência em
+dois idiomas. Ficou isolado em `IDIOMA_DO_NOME`; traduzir os 223 rótulos é decisão à parte;
+(2) **`iso3` das 168 linhas pré-existentes continua NULL** — zero overwrite; o dado existe
+(P298) e o preenchimento é uma rodada própria; (3) **`NL` aponta para Q29999 ("Reino dos Países
+Baixos")**, porque o P297 truthy é dele — o item Q55 ("Países Baixos") tem `P297 = NL`
+**deprecado**; o rótulo exibido para 201 clubes holandeses fica "Kingdom of the Netherlands" e
+AW/CW/SX continuam linhas separadas (não absorvidas pelo Reino); (4) os **3 obsoletos** (DD, YU,
+AN) ficam como estão: já têm nome histórico e são usados pelo acervo — normalizá-los (nome
+atual + nota, ou prefixo histórico) é decisão de produto, não deste seed; (5) **GL, NC e RE**
+receberam linha mas não aparecem no índice de `/clubs/countries` porque NÃO têm clubes (têm
+jogador/competição/estádio) — a lacuna é do índice por clube, não da referência.
+
+Stage Summary:
+- Tabela `countries` completa: 223 códigos do acervo → 223 linhas, todas com `name`, `iso3`,
+  continente (2 letras do modelo), coordenada e QID; `qidFrom`/proveniência por marcador
+  (`wikidata-p297-countries`), reversível por um DELETE.
+- Fonte canônica (P297) com três guardas de plausibilidade, zero QID de memória, zero
+  overwrite e re-run noop provado em produção (dry-run → apply → re-run).
+- Nenhuma contagem do acervo mudou (clubs/players/competitions/stadiums/matches/rankings
+  idênticos antes × depois) — só a tabela de referência.
