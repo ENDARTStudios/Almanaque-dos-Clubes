@@ -5,8 +5,8 @@ description: Acessibilidade WCAG 2.2 AA para o Almanaque dos Clubes — contrast
 
 # Acessibilidade (WCAG 2.2 AA) — Almanaque dos Clubes
 
-O projeto tem `docs/ACCESSIBILITY.md` e testes em `apps/web/tests/e2e/`. Esta skill é o
-procedimento de trabalho, não substitui aquele documento.
+O projeto tem `docs/07-operations-marketing/ACCESSIBILITY.md` e testes em `apps/web/tests/e2e/`.
+Esta skill é o procedimento de trabalho, não substitui aquele documento.
 
 ## Contraste: medir, nunca estimar
 
@@ -16,10 +16,15 @@ UI/borda informativa exigem **3:1**. Meça com script, não "no olho":
 ```js
 // .tmp/contrast.mjs — luminância relativa WCAG
 const lin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-const lum = (h) => { const n = h.replace('#',''); const [r,g,b] = [0,2,4]
-  .map((i) => parseInt(n.slice(i,i+2),16)/255).map(lin);
-  return 0.2126*r + 0.7152*g + 0.0722*b; };
-const ratio = (a,b) => { const [x,y] = [lum(a),lum(b)].sort((p,q)=>q-p); return (x+0.05)/(y+0.05); };
+const lum = (h) => {
+  const n = h.replace('#', '');
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255).map(lin);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const ratio = (a, b) => {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+};
 ```
 
 Cuidado com **opacidade**: `text-foreground/60` sobre fundo escuro não é "60% de contraste",
