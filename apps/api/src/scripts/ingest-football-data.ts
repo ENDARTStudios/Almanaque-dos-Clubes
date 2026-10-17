@@ -51,8 +51,7 @@ function normalizeName(s: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replace(/\b(cf|fc|sc|ec|ac|sp|ca)\b/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^a-z0-9]+/g, '')
     .trim();
 }
 
