@@ -2,7 +2,7 @@
  * T-22.3 (tarefa 23) — enriquecimento do PERFIL do jogador via Wikidata (CC0).
  *
  * Fonte: Wikidata `action=wbgetentities` (dados CC0) —
- *   P1449 apelido · P569 nascimento (só precisão de DIA) · P2048 altura (unit Q1747289 = cm)
+ *   P1449 apelido · P569 nascimento (só precisão de DIA) · P2048 altura (unit Q174728 = cm, Q11573 = m ×100)
  *   P413 posição (item → label → PlayerPosition de packages/domain) · P423 pé preferido
  *   P54 member of sports team (qualifiers P580 ano, P582 endYear, P1350 jogos, P1351 gols)
  *   P166 award received (qualifier P585 ano) → `players.individualAwards`.
@@ -37,7 +37,11 @@ const ENTITY_URL = (qids: string[], props: string) =>
 const CHUNK_SIZE = 50;
 const PAUSE_MS = 500;
 const WIKIDATA_ENTITY_URL_BASE = 'https://www.wikidata.org/wiki/';
-const FOOT_UNIT_QID = 'Q1747289'; // centímetro
+// Unidades de P2048 provadas na fonte real (D-2026-10-17): Q174728 = CENTÍMETRO
+// (Q1747289 é "Samantha Mulder" — QID errado do 1º rollout, altura nunca preenchia);
+// Q11573 = metro (×100). Demais unidades = gap declarado.
+const HEIGHT_UNIT_CM_QID = 'Q174728';
+const HEIGHT_UNIT_M_QID = 'Q11573';
 
 const APPLY = process.argv.includes('--apply');
 const LIMIT = Number(
@@ -208,15 +212,20 @@ const firstQualifierAmount = (st: SnakLike, prop: string): number | null => {
 const qualifierTime = (st: SnakLike, prop: string): unknown =>
   (st.qualifiers?.[prop]?.[0]?.datavalue?.value as { time?: unknown } | undefined)?.time;
 
-/** P2048 → altura em cm (unit Q1747289, com folga para statement sem unit). */
+/** P2048 → altura em cm (unit Q174728 = cm, Q11573 = m ×100; sem unit = assume cm). */
 export function extractHeightCm(entity: EntityLike): number | null {
   const st = entity.claims?.P2048?.[0];
   const value = st?.mainsnak?.datavalue?.value as { amount?: unknown; unit?: unknown } | undefined;
   if (!value) return null;
   const unit = typeof value.unit === 'string' ? value.unit.split('/').pop() : undefined;
-  if (unit && unit !== FOOT_UNIT_QID) return null; // só cm; polegadas/metros = gap declarado
-  const cm = Math.round(Number(value.amount));
-  if (!Number.isFinite(cm) || cm < HEIGHT_MIN || cm > HEIGHT_MAX) return null;
+  const amount = Number(value.amount);
+  if (!Number.isFinite(amount)) return null;
+  let cm: number;
+  if (unit === HEIGHT_UNIT_M_QID) cm = amount * 100;
+  else if (!unit || unit === HEIGHT_UNIT_CM_QID) cm = amount;
+  else return null; // polegadas/milímetros/etc = gap declarado
+  cm = Math.round(cm);
+  if (cm < HEIGHT_MIN || cm > HEIGHT_MAX) return null;
   return cm;
 }
 

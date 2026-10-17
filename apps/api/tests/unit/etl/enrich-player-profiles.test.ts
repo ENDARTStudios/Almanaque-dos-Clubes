@@ -67,7 +67,7 @@ describe('T-22.3 — yearFromWikidataTime', () => {
 });
 
 describe('T-22.3 — extractHeightCm (P2048)', () => {
-  it('unit Q1747289 (cm) → inteiro', () => {
+  it('unit Q174728 (centímetro — o QID REAL na fonte) → inteiro', () => {
     expect(
       extractHeightCm({
         claims: {
@@ -75,7 +75,7 @@ describe('T-22.3 — extractHeightCm (P2048)', () => {
             {
               mainsnak: {
                 datavalue: {
-                  value: { amount: '+173', unit: 'http://www.wikidata.org/entity/Q1747289' },
+                  value: { amount: '+173', unit: 'http://www.wikidata.org/entity/Q174728' },
                 },
               },
             },
@@ -85,7 +85,7 @@ describe('T-22.3 — extractHeightCm (P2048)', () => {
     ).toBe(173);
   });
 
-  it('outra unidade (Q11573 = metro) é recusada — gap declarado', () => {
+  it('unit Q11573 (metro) × 100 → inteiro', () => {
     expect(
       extractHeightCm({
         claims: {
@@ -94,6 +94,24 @@ describe('T-22.3 — extractHeightCm (P2048)', () => {
               mainsnak: {
                 datavalue: {
                   value: { amount: '+1.73', unit: 'http://www.wikidata.org/entity/Q11573' },
+                },
+              },
+            },
+          ],
+        },
+      }),
+    ).toBe(173);
+  });
+
+  it('unit estranha (Q1747289 = "Samantha Mulder") é recusada — gap declarado', () => {
+    expect(
+      extractHeightCm({
+        claims: {
+          P2048: [
+            {
+              mainsnak: {
+                datavalue: {
+                  value: { amount: '+173', unit: 'http://www.wikidata.org/entity/Q1747289' },
                 },
               },
             },
