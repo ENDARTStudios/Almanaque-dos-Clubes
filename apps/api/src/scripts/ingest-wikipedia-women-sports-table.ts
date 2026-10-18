@@ -43,7 +43,10 @@ async function resolveTemplates(names: string[]): Promise<Map<string, W3Template
     const body = await fetchText(
       mwApi({
         action: 'query',
-        titles: names.slice(i, i + 50).map((t) => `Predefinição:${t}`).join('|'),
+        titles: names
+          .slice(i, i + 50)
+          .map((t) => `Predefinição:${t}`)
+          .join('|'),
         prop: 'revisions',
         rvprop: 'content',
         rvslots: 'main',
@@ -110,10 +113,16 @@ async function main(): Promise<void> {
     const res = await fetchText(mwApi({ action: 'parse', page: target.article, prop: 'wikitext' }));
     await sleep(1100);
     const wt = (JSON.parse(res) as { parse?: { wikitext: string } }).parse?.wikitext;
-    if (!wt) { console.log('  ! sem wikitexto'); continue; }
+    if (!wt) {
+      console.log('  ! sem wikitexto');
+      continue;
+    }
 
     const block = extractSportsTableBlock(wt);
-    if (!block) { console.log('  ! sem Sports table (gap)'); continue; }
+    if (!block) {
+      console.log('  ! sem Sports table (gap)');
+      continue;
+    }
 
     const rows: W10TableRow[] = parseSportsTable(block);
     console.log(`  times=${rows.length}`);
