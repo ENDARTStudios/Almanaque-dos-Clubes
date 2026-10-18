@@ -7,14 +7,32 @@ name: Deploy Web (Vercel)
 # `vercel deploy --prod` sem necessidade e queimando `api-deployments-free-per-day`
 # (bloqueou o WS-C-2 por ~24h). O CI (security-gate/migration-drift) continua no ci.yml.
 #
-# PENDENTE (janela segura, ainda NAO aplicado): a integracao NATIVA da Vercel segue
-# ativa e auto-deploya producao no `main` a cada push (docs-only inclusive -- foi o que
-# estourou `api-deployments-free-per-day`). O filtro de paths acima so controla ESTE
-# workflow; nao impede a nativa. Plano escolhido (Opcao 2, reversivel):
-#   apps/web/vercel.json -> "git": { "deploymentEnabled": { "main": false } }
-# Efeito: desliga a producao automatica nativa no `main`, MANTEM previews de PR, e a
-# producao passa a ser unicamente este workflow. Reverter = remover o bloco "git".
-# Aplicar so apos a janela de cota, com smoke de release web real.
+# T586 — ESTADO ATUAL, que supersede o plano pendente que estava aqui.
+#
+# O QUE FOI MEDIDO ANTES DE AGIR (7 dias deste repositorio):
+#   165 commits no `main`, dos quais 104 (63%) nao tocavam `apps/web` — e cada um custava um
+#   build; 96 branches com push (de 282 no total), 37 delas sem mudanca relevante; e, na janela
+#   de 45 min analisada, 18 de 20 deploys eram PREVIEW. Preview era ~90% do consumo.
+#
+# O QUE MUDOU: a integracao nativa da Vercel esta DESLIGADA inteira —
+#   apps/web/vercel.json -> "git": { "deploymentEnabled": false }
+# O schema oficial (openapi.vercel.sh/vercel.json) diz: "any non specified branch is `true` by
+# default", e o campo aceita booleano. `false` desliga todos os branches.
+#
+# POR QUE ISSO NAO PARA A PRODUCAO: quem publica producao e ESTE workflow, um deploy por CLI
+# (`vercel deploy --prod`), e nao um "auto-deployment on commit". O filtro de paths acima
+# continua valendo — so roda quando algo do app muda.
+#
+# `ignoreCommand` (apps/web/scripts/ignore-build.mjs) fica ligado como GUARDA: se as previews
+# forem reativadas, branch que nao toca o app nem as dependencias compartilhadas nao construi.
+# Enquanto a integracao estiver desligada, ele nao e acionado e nao custa nada.
+#
+# REVERTER AS PREVIEWS: trocar `false` por `{ "main": false }` no vercel.json. Com a guarda
+# ligada, isso devolve preview apenas para branches que realmente mexem no app.
+#
+# Dispara APENAS quando algo que afeta o build do web muda. Reversível: para voltar ao
+# comportamento antigo, reintroduza o job no ci.yml.
+
 #
 # Dispara APENAS quando algo que afeta o build do web muda. Reversível: para voltar ao
 # comportamento antigo, reintroduza o job no ci.yml.
