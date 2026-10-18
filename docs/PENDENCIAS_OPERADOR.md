@@ -27,7 +27,9 @@ Depois de feito: responda "feito o item Nº X"
 > Prioritárias para a Fase 10 (Go to Production).
 
 ### [1] ~~Escolher e registrar domínio oficial do Almanaque dos Clubes~~ ✅ FEITO
+
 Domínio registrado: `almanaquedosclubes.com` na Vercel (14/08/2026), expira 14/08/2027.
+
 - Frontend: Vercel (projeto `almanaque-dos-clubes`) → `almanaquedosclubes.com` + `www.almanaquedosclubes.com`
 - Backend API: Railway (serviço `Almanaque-dos-Clubes`) → `api.almanaquedosclubes.com`
 - DNS: Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`)
@@ -110,14 +112,33 @@ Depois de feito: responda "feito o item Nº 2"
 ```
 
 ### [4] ~~Concluir (ou cancelar) a janela "Setup - Screaming Frog SEO Spider 24.3" parada na tela~~ ✅ FEITO
+
 Por quê: o instalador do Screaming Frog exige elevação (UAC), que só o Operador pode autorizar; a automação instalou tudo o resto, mas o wizard de desktop ficou parado na página "Select Destination Location" aguardando clique.
 Onde: janela local do Windows "Setup - Screaming Frog SEO Spider 24.3" (aberta em 29/09/2026). Instalador salvo em `C:\Users\edina\AppData\Local\Temp\ScreamingFrogSEOSpider-24.3.exe` caso a janela tenha sido fechada.
 Passo a passo:
+
 1. Se a janela "Setup - Screaming Frog SEO Spider 24.3" estiver aberta: clicar Next → I Agree → Install → Finish (não precisa licença; o tier gratuito crawla até 500 URLs).
 2. Se houver um prompt do UAC pendente de uma segunda tentativa, autorizar ou cancelar (a instância extra já foi encerrada pela automação; só a janela original deve restar).
 3. Alternativa: cancelar o wizard e rodar depois `MSYS_NO_PATHCONV=1 /tmp/ScreamingFrogSEOSpider-24.3.exe /VERYSILENT /NORESTART` num shell admin.
-Como saber que deu certo: existe a pasta `C:\Program Files (x86)\Screaming Frog SEO Spider` com `screamingfrogseospider.exe`.
-Depois de feito: responder "feito o item Nº 4" — o MCP `screaming-frog-mcp` (já instalado via uv) passa a funcionar e o crawl de 500 URLs pode ser re-executado com o Spider.
-
+   Como saber que deu certo: existe a pasta `C:\Program Files (x86)\Screaming Frog SEO Spider` com `screamingfrogseospider.exe`.
+   Depois de feito: responder "feito o item Nº 4" — o MCP `screaming-frog-mcp` (já instalado via uv) passa a funcionar e o crawl de 500 URLs pode ser re-executado com o Spider.
 
 **FEITO (29/09/2026):** instalado pelo Operador em `D:\Program Files (x86)\Screaming Frog SEO Spider`. GUI validada rodando em modo free ("Lite", até 500 URLs). **Limite descoberto:** a CLI headless (`ScreamingFrogSEOSpiderCli.exe`) exige `licence.txt` com licença PAGA (username + chave; £199/ano remove o limite de 500 URLs) — confirmado na doc oficial; usuários free não têm chave. Com isso o MCP `screaming-frog-mcp` (que embrulha a CLI) **não funciona no tier free** e a entrada foi removida do config de usuário. O crawl de evidência SEO foi entregue com crawler Node próprio (`scripts/local/seo-crawl.mjs`). O GUI do SF segue utilizável manualmente (500 URLs), e o menu "MCP" embutido do SF 24.3 é caminho alternativo a explorar apenas se a licença paga existir um dia.
+
+## PostGIS em produção — requer migração de serviço (aprovado 18-10, bloqueado tecnicamente)
+
+O Operador aprovou aplicar PostGIS em produção (18-10), mas **o Postgres gerenciado do
+Railway não tem a extensão nem em `pg_available_extensions`** (Postgres 18.6 Debian;
+verificado por `pg_available_extensions` via ssh em 18-10). A migration
+`20260905_stadiums_postgis` é no-op seguro nesse cenário (guarda T430) — não há coluna
+`stadiums.location` em produção.
+
+Para executar, é preciso **trocar o serviço Postgres por uma imagem com PostGIS**
+(`postgis/postgis:18-3.5`) via migração em janela de manutenção:
+
+1. Novo serviço Railway com imagem postgis + `CREATE EXTENSION postgis`;
+2. `pg_dump` completo do serviço atual → restore no novo;
+3. Repoint de `DATABASE_URL`/`DATABASE_URL_APP` (literais) no serviço da API;
+4. Rodar o SQL da migration (coluna + GIST index) e o backfill de coordenadas de estádios;
+5. Healthcheck + smoke. Plano B sem PostGIS: reverse-geocode das ~11k lacunas de estado
+   dos clubes continua bloqueado sem polygon-contains.
