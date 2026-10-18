@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
-import { adminStrings, fill } from './strings';
+import { adminStrings } from './strings';
 import Pagination from './Pagination';
 
 /**
