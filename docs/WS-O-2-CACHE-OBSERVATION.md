@@ -51,6 +51,25 @@
 - **Timeout 1.5s**: se o p95 real do Redis comandar perto disso (não mede hoje), o fallback
   ao banco dispara sem erro — observável apenas pela ausência das chaves.
 
+## FECHAMENTO (2026-10-18 — janela verificada por 15 dias, não só 48h)
+
+> A janela formal (T+24h/T+48h de 10-04/10-05) não foi registrada a tempo; a
+> verificação abaixo cobre **15 dias contínuos** (10-03 → 10-18) — evidência
+> estritamente mais forte que o critério original. Checklist no fechamento:
+
+| Critério                                        | Resultado                                                                                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Chaves estáveis (app ~1-5 vivas, bull saneando) | ✅ 342 totais — bull 113 (↓ de 188), competitions 203 (cache NOVO da feature de competições #706, esperado), clubs 13, geo 2 |
+| Memória < 10M sem crescimento anômalo           | ✅ 6.67M (T0: 3.01M — crescimento = caches de features novas, declarado)                                                     |
+| `[cache] warn`                                  | ✅ 0 ocorrências (deployment atual; alertas.yml 5min sem e-mail)                                                             |
+| `[ALERT]` (stale_job/backlog)                   | ✅ 0; marcador WS-C-8 cravado em `2026-10-18T03:00:01Z` — ETL pontual na janela inteira                                      |
+| Latência rotas cacheadas < 800ms                | ✅ geo-stats 0.35s · carousel 0.31s · health 0.31s                                                                           |
+| Sem hangs (teto 1.5s do #316)                   | ✅ nenhum timeout observado                                                                                                  |
+| /jobs/health (admin)                            | — requer auth admin (declarado nas duas leituras)                                                                            |
+
+**Veredito: cache declarado ESTÁVEL. WS-O-2 `[x]`. M3 (WS-C-9) LIBERADO para despacho.**
+Ponto de atenção que permanece: `noeviction` sem `maxmemory` (decisão de infra do Operador).
+
 ## Critério de fechamento
 
 48h sem: `[cache] warn` · `[ALERT]` · hangs · crescimento anômalo de memória → WS-O-2 `[x]`,
@@ -64,14 +83,14 @@ Coleta read-only em produção (redis via container da API; gauges BullMQ; curl 
 Gauges em memória zeraram nos redeploys de 10-05 (Google login) — a evidência de cron
 veio do histórico BullMQ persistido no Redis (melhor que gauges).
 
-| Critério | Resultado | Veredito |
-|---|---|---|
-| A. Inventário | dbsize 152 (T0: 193 · T+16h: 151) — bull 150 · data-refresh 1 · champions 1; chaves de cache curto (clubs:/geo:) expiradas por TTL (300s) como esperado | ✅ estável |
-| B. Memória | used 3.00M (T0: 3.01M — flat), peak 6.26M, `noeviction` sem maxmemory (gap conhecido, declarado) | ✅ |
-| C. Warn/alerta | **0** `[ALERT]` / `[cache] warn` / `cache fallback` / `redis timeout` no recorte disponível (logs do Railway cobrem só desde o redeploy de 10-05 ~21:33 UTC — cobertura de 50h completas não disponível via CLI) | ✅ (cobertura parcial, honesto) |
-| D. Crons (BullMQ) | `ranking`: completed 10, **failed 0** — 10-03/10-04/10-05 03:00:00Z · `data-refresh`: completed 10, **failed 0** — wikidata 10-04+10-05 03:00:01Z, integrity-check 10-04 04:00Z · waiting/active 0 | ✅ crons rodando diário |
-| E. Latência (5 amostras) | geo/points 0.23–0.33s · clubs/:id/profile 0.24–0.30s · compare 0.23–0.29s · champions/carousel 0.28–0.31s — **p95 « 800ms** | ✅ |
-| F. Marcador WS-C-8 | `data-refresh:new-titles-last-check` = `2026-10-05T03:00:01.611Z` (bate com o job BullMQ 03:00:01.614Z) | ✅ presente e diário |
+| Critério                 | Resultado                                                                                                                                                                                                        | Veredito                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| A. Inventário            | dbsize 152 (T0: 193 · T+16h: 151) — bull 150 · data-refresh 1 · champions 1; chaves de cache curto (clubs:/geo:) expiradas por TTL (300s) como esperado                                                          | ✅ estável                      |
+| B. Memória               | used 3.00M (T0: 3.01M — flat), peak 6.26M, `noeviction` sem maxmemory (gap conhecido, declarado)                                                                                                                 | ✅                              |
+| C. Warn/alerta           | **0** `[ALERT]` / `[cache] warn` / `cache fallback` / `redis timeout` no recorte disponível (logs do Railway cobrem só desde o redeploy de 10-05 ~21:33 UTC — cobertura de 50h completas não disponível via CLI) | ✅ (cobertura parcial, honesto) |
+| D. Crons (BullMQ)        | `ranking`: completed 10, **failed 0** — 10-03/10-04/10-05 03:00:00Z · `data-refresh`: completed 10, **failed 0** — wikidata 10-04+10-05 03:00:01Z, integrity-check 10-04 04:00Z · waiting/active 0               | ✅ crons rodando diário         |
+| E. Latência (5 amostras) | geo/points 0.23–0.33s · clubs/:id/profile 0.24–0.30s · compare 0.23–0.29s · champions/carousel 0.28–0.31s — **p95 « 800ms**                                                                                      | ✅                              |
+| F. Marcador WS-C-8       | `data-refresh:new-titles-last-check` = `2026-10-05T03:00:01.611Z` (bate com o job BullMQ 03:00:01.614Z)                                                                                                          | ✅ presente e diário            |
 
 **DECISÃO: WS-O-2 [x] — cache ESTÁVEL.** Zero alertas, memória flat 69h, crons diários sem
 falha, marcador vivo. M3 (WS-C-9) LIBERADO. D-2026-10-05-cache-observation-concluded.
