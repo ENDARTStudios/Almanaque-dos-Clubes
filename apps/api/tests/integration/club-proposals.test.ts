@@ -60,11 +60,27 @@ beforeAll(async () => {
   tokenA = mk(userA, a.email);
   tokenB = mk(userB, b.email);
   tokenC = mk(userC, c.email);
-  // B é editor do clube
-  await app.inject({
-    method: 'POST',
-    url: `/api/v1/clubs/${clubId}/own`,
-    headers: { ...auth(tokenB), ...csrf() },
+  // WS-C-9 — B é editor APROVADO do clube: Elite ativo (C1) + posse 'active'
+  // (como sai da moderação C3 — aprovação humana não faz parte deste fluxo).
+  await prisma.subscription.create({
+    data: {
+      userId: userB,
+      plan: 'ELITE',
+      status: 'ACTIVE',
+      startedAt: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
+  await prisma.clubOwnership.create({
+    data: {
+      userId: userB,
+      clubId,
+      role: 'editor',
+      status: 'active',
+      approvedAt: new Date(),
+      approvedBy: 'test-setup',
+      evidenceNote: 'fixture: posse aprovada',
+    },
   });
 });
 
@@ -75,6 +91,7 @@ afterAll(async () => {
       where: { userId: { in: [userA, userB, userC] } },
     });
     await prisma.clubOwnership.deleteMany({ where: { userId: { in: [userA, userB, userC] } } });
+    await prisma.subscription.deleteMany({ where: { userId: { in: [userA, userB, userC] } } });
     await prisma.club.deleteMany({ where: { id: clubId } });
     await prisma.user.deleteMany({ where: { id: { in: [userA, userB, userC] } } });
   }
@@ -213,18 +230,25 @@ describe.skipIf(!dbOk || !isPostgres)('WS-C-10 propostas', () => {
     expect((notif!.payload as { reviewNote?: string }).reviewNote).toBe('Precisa de fontes.');
   });
 
-  it('auto-revisão bloqueada: editor que vira owner depois de propor não revisa a própria', async () => {
-    // C propõe e DEPOIS vira editor do clube → a proposta pending fica de C
+  it('auto-revisão bloqueada: editor não revisa a própria proposta (mesmo ativo)', async () => {
+    // C propõe; depois vira editor ATIVO do clube (posse 'active' como sai da
+    // moderação) → a proposta pending fica de C.
     await app.inject({
       method: 'POST',
       url: `/api/v1/clubs/${clubId}/description/proposals`,
       headers: { ...auth(tokenC), ...csrf() },
       payload: { userDescription: 'Proposta do futuro editor (10+ chars).' },
     });
-    await app.inject({
-      method: 'POST',
-      url: `/api/v1/clubs/${clubId}/own`,
-      headers: { ...auth(tokenC), ...csrf() },
+    await prisma.clubOwnership.create({
+      data: {
+        userId: userC,
+        clubId,
+        role: 'editor',
+        status: 'active',
+        approvedAt: new Date(),
+        approvedBy: 'test-setup',
+        evidenceNote: 'fixture: posse aprovada',
+      },
     });
     const prop = await prisma.clubDescriptionProposal.findFirst({
       where: { clubId, proposedBy: userC, status: 'pending' },

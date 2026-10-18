@@ -53,6 +53,8 @@ import { backupRoutes } from './modules/admin/backup.routes.js';
 import { adminMetricsRoutes } from './modules/admin/metrics.routes.js';
 import { catalogRoutes } from './modules/admin/catalog.routes.js';
 import { lgpdRoutes } from './modules/admin/lgpd.routes.js';
+// WS-C-9 — moderação de posses de clube (fila de pendentes, aprovar, revogar).
+import { clubOwnershipAdminRoutes } from './modules/admin/club-ownership.routes.js';
 import { idempotencyMiddleware } from './middleware/idempotency.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { isAllowedOrigin } from './config/cors.js';
@@ -258,6 +260,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(adminRoutes);
       await api.register(catalogRoutes);
       await api.register(lgpdRoutes);
+      await api.register(clubOwnershipAdminRoutes);
       await api.register(uploadRoutes);
       await api.register(graphRoutes);
       await api.register(ragRoutes);

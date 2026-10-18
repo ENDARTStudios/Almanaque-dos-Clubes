@@ -24,6 +24,40 @@ import { wsC10Strings } from '@/i18n/wsC10';
 import { wsC11Strings } from '@/i18n/wsC11';
 import ReportButton from './ReportButton';
 
+/**
+ * WS-C-9 — retirar o pedido/posse (DELETE /clubs/:id/own é imediato e
+ * idempotente). Compacto: aparece ao lado do estado pending/suspended/revoked.
+ */
+function WithdrawButton({
+  clubId,
+  label,
+  onDone,
+}: {
+  clubId: string;
+  label: string;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await api.delete(`/clubs/${clubId}/own`);
+          onDone();
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="mt-1 text-xs underline text-foreground/60"
+    >
+      {label}
+    </button>
+  );
+}
+
 interface Props {
   clubId: string;
 }
@@ -40,6 +74,10 @@ export default function ClubCommunity({ clubId }: Props) {
   const [failed, setFailed] = useState(false);
   const [userDescription, setUserDescription] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  // WS-C-9 C3 — estado da posse quando NÃO é owner ativo (pending/suspended/revoked).
+  const [ownershipStatus, setOwnershipStatus] = useState<
+    'pending' | 'suspended' | 'revoked' | null
+  >(null);
   const [owners, setOwners] = useState<OwnerView[]>([]);
   const [proposalStatus, setProposalStatus] = useState<
     'none' | 'pending' | 'approved' | 'rejected' | null
@@ -55,6 +93,7 @@ export default function ClubCommunity({ clubId }: Props) {
           data: {
             userDescription: string | null;
             isOwner: boolean;
+            ownershipStatus?: 'pending' | 'suspended' | 'revoked' | null;
             proposalStatus?: 'none' | 'pending' | 'approved' | 'rejected';
             pendingProposalsCount?: number;
             hasReported?: boolean;
@@ -64,6 +103,7 @@ export default function ClubCommunity({ clubId }: Props) {
       ]);
       setUserDescription(clubRes.data.userDescription ?? null);
       setIsOwner(clubRes.data.isOwner === true);
+      setOwnershipStatus(clubRes.data.ownershipStatus ?? null);
       setProposalStatus(clubRes.data.proposalStatus ?? null);
       setPendingCount(clubRes.data.pendingProposalsCount ?? 0);
       setHasReported(clubRes.data.hasReported);
@@ -146,16 +186,32 @@ export default function ClubCommunity({ clubId }: Props) {
               <ClubOwnersList owners={owners} s={s} />
             </div>
             <div className="ml-auto">
-              <ClubOwnerButton
-                clubId={clubId}
-                isOwner={isOwner}
-                s={s}
-                loggedIn={loggedIn}
-                onChanged={(now) => {
-                  setIsOwner(now);
-                  void load();
-                }}
-              />
+              {ownershipStatus ? (
+                <div className="max-w-xs" data-testid="club-ownership-status">
+                  <p
+                    role="status"
+                    className={`text-xs ${ownershipStatus === 'revoked' ? 'text-danger-ink' : 'text-warn-ink'}`}
+                  >
+                    {ownershipStatus === 'pending'
+                      ? s.statusPending
+                      : ownershipStatus === 'suspended'
+                        ? s.statusSuspended
+                        : s.statusRevoked}
+                  </p>
+                  <WithdrawButton clubId={clubId} label={s.leaveOwner} onDone={() => void load()} />
+                </div>
+              ) : (
+                <ClubOwnerButton
+                  clubId={clubId}
+                  isOwner={isOwner}
+                  s={s}
+                  loggedIn={loggedIn}
+                  onChanged={(now) => {
+                    setIsOwner(now);
+                    void load();
+                  }}
+                />
+              )}
             </div>
           </div>
 
