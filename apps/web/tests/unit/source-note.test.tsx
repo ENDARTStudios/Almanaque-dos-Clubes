@@ -59,20 +59,35 @@ describe('SourceNote — a fonte não compete com o dado', () => {
     expect(link.getAttribute('rel')).toBe('noopener noreferrer');
   });
 
-  it('(d) leitor de tela ouve que é a FONTE, não um link solto', () => {
-    /* Sem isto, a lista de links do leitor de tela vira "Wikidata", "RSSSF" — sem dizer o que
-       são. Secundária visualmente não significa sem significado. */
-    render(<SourceNote href="https://wikidata.org" label="Wikidata" />);
-    expect(screen.getByText(/Fonte:/)).toBeTruthy();
+  it('(d) NÃO duplica o rótulo: "Fonte" não vira "Fonte: Fonte"', () => {
+    /* O DEFEITO REAL que esta asserção trava: o componente trazia um `sr-only "Fonte: "` fixo, e
+       neste projeto o rótulo visível do link JÁ é a palavra "Fonte" (padrão de copy da casa). Quatro
+       dos cinco usos renderizavam "Fonte: Fonte" — e o teste anterior, que só olhava classes e
+       `href`, passou por cima disso. Texto renderizado é parte do contrato. */
+    const { container } = render(<SourceNote href="https://x.test" label="Fonte" />);
+    const texto = container.textContent ?? '';
+    expect(texto).toBe('Fonte');
+    expect(texto).not.toMatch(/Fonte:\s*Fonte/);
   });
 
-  it('(e) sem URL ainda declara a proveniência (texto vale, não some)', () => {
+  it('(e) prefixo acessível é opt-in, para quando o rótulo é NOME PRÓPRIO', () => {
+    /* "Wikidata" sozinho não diz que é a origem do dado — aí o prefixo serve. */
+    const { container } = render(
+      <SourceNote href="https://wikidata.org" label="Wikidata" prefixoAcessivel="Fonte: " />,
+    );
+    expect(container.textContent).toContain('Fonte:');
+    expect(container.textContent).toContain('Wikidata');
+    // E continua sr-only: não aparece visualmente.
+    expect(container.querySelector('.sr-only')?.textContent).toBe('Fonte: ');
+  });
+
+  it('(f) sem URL ainda declara a proveniência (texto vale, não some)', () => {
     render(<SourceNote label="Acervo interno" />);
     expect(screen.getByText(/Acervo interno/)).toBeTruthy();
     expect(screen.queryByRole('link')).toBeNull();
   });
 
-  it('(f) `detail` é opcional e não vira outro bloco de destaque', () => {
+  it('(g) `detail` é opcional e não vira outro bloco de destaque', () => {
     render(<SourceNote href="https://x.test" label="Wikidata" detail="CC0" />);
     const texto = screen.getByText(/Wikidata/).closest('p')!.textContent ?? '';
     expect(texto).toContain('CC0');
