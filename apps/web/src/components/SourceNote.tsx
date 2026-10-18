@@ -39,6 +39,14 @@ export interface SourceNoteProps {
    * precisa saber que é a FONTE e de ONDE — senão o link vira "Wikidata" solto na lista de links.
    */
   ariaLabel?: string;
+  /**
+   * Prefixo lido só pelo leitor de tela, antes do rótulo. Use quando o rótulo for um NOME PRÓPRIO
+   * ("Wikidata", "RSSSF") e ele sozinho não disser que é a origem do dado.
+   *
+   * Não use quando o rótulo já for "Fonte"/"Source"/"Fuente": o padrão de copy deste projeto é
+   * justamente esse, e o prefixo fixo que existia aqui antes gerava "Fonte: Fonte".
+   */
+  prefixoAcessivel?: string;
   className?: string;
   'data-testid'?: string;
 }
@@ -56,12 +64,21 @@ export default function SourceNote({
   label,
   detail,
   ariaLabel,
+  prefixoAcessivel,
   className,
   'data-testid': testId,
 }: SourceNoteProps) {
   const conteudo = (
     <>
-      <span className="sr-only">Fonte: </span>
+      {/* PREFIXO ACESSÍVEL — opcional, e o padrão é NÃO ter.
+          O `sr-only "Fonte: "` fixo que existia aqui produzia "Fonte: Fonte" em QUATRO dos cinco
+          usos, porque neste projeto o rótulo visível do link JÁ é a palavra "Fonte" (é o padrão de
+          copy da casa: "Fonte", "Fonte (Wikipédia)", "fonte"). Duplicar não ajuda ninguém, nem o
+          leitor de tela: ele anunciava "Fonte: Fonte".
+          O prefixo só faz sentido quando o rótulo é um NOME PRÓPRIO ("Wikidata", "RSSSF") — aí o
+          leitor de tela precisa de contexto para saber que aquilo é a origem do dado. Por isso é
+          opt-in: quem passa nome próprio passa `prefixoAcessivel="Fonte: "`. */}
+      {prefixoAcessivel ? <span className="sr-only">{prefixoAcessivel}</span> : null}
       {label}
       {detail ? <span className="text-ink-3/80"> · {detail}</span> : null}
     </>
