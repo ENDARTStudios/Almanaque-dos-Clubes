@@ -74,13 +74,20 @@ interface EntityLike {
   claims?: Record<string, Array<{ mainsnak?: { datavalue?: { value?: unknown } } }>>;
 }
 
-/** Todos os QIDs de P131 ("localizado na entidade administrativa") da entidade. */
-export function extractP131Qids(entity: unknown): string[] {
-  const claims = (entity as EntityLike | null)?.claims?.P131 ?? [];
+/**
+ * QIDs "place-like" para iniciar/continuar a caminhada até o estado.
+ * PROVADO na fonte (10-18): CLUBES NÃO TÊM P131 (propriedade de lugar) — o
+ * caminho canônico é P159 (sede, ex.: Q687712 → Q1642662 = Volta Redonda) e
+ * P115 (arena); daí P131 sobe cidade → estado. P131 puro resolvia 2/666.
+ */
+export function extractPlaceQids(entity: unknown): string[] {
+  const claims = (entity as EntityLike | null)?.claims ?? {};
   const out: string[] = [];
-  for (const snak of claims) {
-    const value = snak?.mainsnak?.datavalue?.value as { id?: unknown } | undefined;
-    if (typeof value?.id === 'string' && /^Q\d+$/.test(value.id)) out.push(value.id);
+  for (const prop of ['P131', 'P159', 'P115'] as const) {
+    for (const snak of claims[prop] ?? []) {
+      const value = snak?.mainsnak?.datavalue?.value as { id?: unknown } | undefined;
+      if (typeof value?.id === 'string' && /^Q\d+$/.test(value.id)) out.push(value.id);
+    }
   }
   return out;
 }
@@ -134,7 +141,7 @@ export function resolveStateViaP131(input: {
         out.missingEntities++;
         continue;
       }
-      for (const target of extractP131Qids(ent)) {
+      for (const target of extractPlaceQids(ent)) {
         const state = input.statesByQid.get(target);
         if (state) {
           // GUARDA DE PAÍS: State só é aceito no MESMO país do clube.
@@ -301,7 +308,7 @@ async function pass2WikidataP131(prisma: PrismaClient): Promise<void> {
       for (const [qid, ent] of got) entities.set(qid, ent);
       const next = new Set<string>();
       for (const qid of fresh) {
-        for (const t of extractP131Qids(entities.get(qid))) {
+        for (const t of extractPlaceQids(entities.get(qid))) {
           if (!statesByQid.has(t) && !fetched.has(t)) next.add(t);
         }
       }

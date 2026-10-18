@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  extractP131Qids,
+  extractPlaceQids,
   resolveStateViaP131,
   type StateRef,
 } from '../../../src/scripts/fill-club-states.js';
@@ -29,25 +29,27 @@ const states = new Map<string, StateRef>([
   ['Q133604', { id: 'state-uy-md', countryIso2: 'UY' }], // Montevidéu (departamento)
 ]);
 
-describe('T-24/28 — extractP131Qids', () => {
-  it('coleta só QIDs válidos; ignora novalue/somevalue e lixo', () => {
+describe('T-24/28 — extractPlaceQids (P131 + P159 + P115)', () => {
+  it('coleta P131, P159 e P115; ignora novalue/somevalue e lixo', () => {
     expect(
-      extractP131Qids({
+      extractPlaceQids({
         claims: {
-          P131: [
-            { mainsnak: { datavalue: { value: { id: 'Q175' } } } },
+          P131: [{ mainsnak: { datavalue: { value: { id: 'Q175' } } } }],
+          P159: [{ mainsnak: { datavalue: { value: { id: 'Q1642662' } } } }],
+          P115: [
+            { mainsnak: { datavalue: { value: { id: 'Q5402000' } } } },
             { mainsnak: { snaktype: 'novalue' } }, // sem datavalue
             { mainsnak: { datavalue: { value: { id: 'lixo' } } } },
-            { mainsnak: { datavalue: { value: 'Q175' } } }, // string, não entity-id
+            { mainsnak: { datavalue: { value: 'Q9' } } }, // string, não entity-id
           ],
         },
       }),
-    ).toEqual(['Q175']);
+    ).toEqual(['Q175', 'Q1642662', 'Q5402000']);
   });
 
   it('sem claims / entidade ausente = []', () => {
-    expect(extractP131Qids({ claims: {} })).toEqual([]);
-    expect(extractP131Qids(undefined)).toEqual([]);
+    expect(extractPlaceQids({ claims: {} })).toEqual([]);
+    expect(extractPlaceQids(undefined)).toEqual([]);
   });
 });
 
