@@ -30,6 +30,8 @@ export interface WsApoiadoresStrings {
   proofPlayers: string;
   proofMatches: string;
   proofTitles: string;
+  proofRankings: string;
+  proofCompetitions: string;
   /** Lacuna declarada quando a API não responde — nunca número estimado. */
   proofGap: string;
   audiencesTitle: string;
@@ -68,6 +70,8 @@ export const wsApoiadoresStrings: Record<Locale, WsApoiadoresStrings> = {
     proofPlayers: 'jogadores',
     proofMatches: 'partidas',
     proofTitles: 'títulos auditáveis',
+    proofRankings: 'rankings catalogados',
+    proofCompetitions: 'competições catalogadas',
     proofGap: 'em catalogação',
     audiencesTitle: 'Três formas de apoiar',
     audiencesSubtitle:
@@ -121,6 +125,8 @@ export const wsApoiadoresStrings: Record<Locale, WsApoiadoresStrings> = {
     proofPlayers: 'players',
     proofMatches: 'matches',
     proofTitles: 'auditable titles',
+    proofRankings: 'rankings cataloged',
+    proofCompetitions: 'competitions cataloged',
     proofGap: 'in cataloging',
     audiencesTitle: 'Three ways to support',
     audiencesSubtitle:
@@ -174,6 +180,8 @@ export const wsApoiadoresStrings: Record<Locale, WsApoiadoresStrings> = {
     proofPlayers: 'jugadores',
     proofMatches: 'partidos',
     proofTitles: 'títulos auditables',
+    proofRankings: 'rankings catalogados',
+    proofCompetitions: 'competiciones catalogadas',
     proofGap: 'en catalogación',
     audiencesTitle: 'Tres formas de apoyar',
     audiencesSubtitle:
