@@ -1064,3 +1064,77 @@ export function parseSportsResults(block: string): {
   );
   return { teams, matches, standings };
 }
+
+// ---------------------------------------------------------------------------
+// T450 wave 10 — {{#invoke:Sports table|main|style=WDL}}: classificação final
+// com win/draw/loss/gf/ga por código. Mais limpo que o sports results (não
+// precisa computar de partidas — os números já estão na tabela).
+// ---------------------------------------------------------------------------
+export interface W10TableRow {
+  code: string;
+  template: string;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+export function extractSportsTableBlock(wikitext: string): string | null {
+  const marker = wikitext.indexOf('#invoke:Sports table');
+  if (marker < 0) return null;
+  const braceStart = wikitext.lastIndexOf('{{', marker);
+  if (braceStart < 0) return null;
+  let depth = 1;
+  let i = braceStart + 2;
+  while (i < wikitext.length - 1) {
+    const two = wikitext.slice(i, i + 2);
+    if (two === '{{') { depth++; i += 2; continue; }
+    if (two === '}}') { depth--; if (depth === 0) return wikitext.slice(braceStart + 2, i); i += 2; continue; }
+    i++;
+  }
+  return null;
+}
+
+export function parseSportsTable(block: string): W10TableRow[] {
+  const templates = new Map<string, string>();
+  for (const m of block.matchAll(/\|\s*name_([A-Z0-9]{2,6})\s*=\s*\{\{(Futebol [^{}|]+)/g)) {
+    templates.set(m[1]!, m[2]!.trim());
+  }
+  const statRe = /\|\s*(win|draw|loss|gf|ga)_([A-Z0-9]{2,6})\s*=\s*(\d+)/g;
+  const raw = new Map<string, { won: number; drawn: number; lost: number; goalsFor: number; goalsAgainst: number }>();
+  let m: RegExpExecArray | null;
+  while ((m = statRe.exec(block)) !== null) {
+    const key = m[2]!;
+    if (!raw.has(key)) raw.set(key, { won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0 });
+    const st = raw.get(key)!;
+    const v = Number(m[3]);
+    if (m[1] === 'win') st.won = v;
+    else if (m[1] === 'draw') st.drawn = v;
+    else if (m[1] === 'loss') st.lost = v;
+    else if (m[1] === 'gf') st.goalsFor = v;
+    else if (m[1] === 'ga') st.goalsAgainst = v;
+  }
+  const out: W10TableRow[] = [];
+  for (const [code, st] of raw) {
+    const template = templates.get(code);
+    if (!template) continue;
+    out.push({
+      code,
+      template,
+      won: st.won,
+      drawn: st.drawn,
+      lost: st.lost,
+      goalsFor: st.goalsFor,
+      goalsAgainst: st.goalsAgainst,
+      points: st.won * 3 + st.drawn,
+    });
+  }
+  return out.sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.goalsFor - b.goalsAgainst - (a.goalsFor - a.goalsAgainst) ||
+      b.goalsFor - a.goalsFor,
+  );
+}
