@@ -28,13 +28,22 @@ interface ArchiveProof {
   players: number | null;
   matches: number | null;
   titles: number | null;
+  rankings: number | null;
+  competitions: number | null;
 }
 
 async function getProof(): Promise<ArchiveProof> {
-  const out: ArchiveProof = { clubs: null, players: null, matches: null, titles: null };
+  const out: ArchiveProof = {
+    clubs: null,
+    players: null,
+    matches: null,
+    titles: null,
+    rankings: null,
+    competitions: null,
+  };
   try {
     const base = getApiBase();
-    const [c, p, m, l] = await Promise.all([
+    const [c, p, m, l, r, k] = await Promise.all([
       fetch(`${base}/clubs?limit=1`, { next: { revalidate: 3600 } })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
@@ -47,12 +56,23 @@ async function getProof(): Promise<ArchiveProof> {
       fetch(`${base}/legends`, { next: { revalidate: 3600 } })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
+      fetch(`${base}/rankings?limit=1`, { next: { revalidate: 3600 } })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+      fetch(`${base}/competitions?limit=1`, { next: { revalidate: 3600 } })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
     ]);
     if (typeof c?.total === 'number') out.clubs = c.total;
     if (typeof p?.total === 'number') out.players = p.total;
     if (typeof m?.total === 'number') out.matches = m.total;
     if (typeof l?.data?.topChampions?.provenance?.titlesCounted === 'number')
       out.titles = l.data.topChampions.provenance.titlesCounted;
+    // T-24/28 — Rankings e Competições entram na PROVA: os envelopes de
+    // GET /rankings e GET /competitions já devolvem `total` (contagem da
+    // listagem inteira, não da página) — mesmo padrão do /clubs.
+    if (typeof r?.total === 'number') out.rankings = r.total;
+    if (typeof k?.total === 'number') out.competitions = k.total;
   } catch {
     // Lacuna declarada na renderização — nunca estimar.
   }
@@ -187,7 +207,7 @@ export default async function ApoiadoresPage() {
           {t.proofTitle}
         </h2>
         <p className="measure-readable mb-6 text-sm text-foreground/70">{t.proofNote}</p>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" data-testid="supporter-proof">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3" data-testid="supporter-proof">
           <ProofCard value={proof.clubs} unit={t.proofClubs} gapText={t.proofGap} locale={locale} />
           <ProofCard
             value={proof.players}
@@ -204,6 +224,18 @@ export default async function ApoiadoresPage() {
           <ProofCard
             value={proof.titles}
             unit={t.proofTitles}
+            gapText={t.proofGap}
+            locale={locale}
+          />
+          <ProofCard
+            value={proof.rankings}
+            unit={t.proofRankings}
+            gapText={t.proofGap}
+            locale={locale}
+          />
+          <ProofCard
+            value={proof.competitions}
+            unit={t.proofCompetitions}
             gapText={t.proofGap}
             locale={locale}
           />
