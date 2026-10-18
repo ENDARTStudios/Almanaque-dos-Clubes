@@ -14,8 +14,10 @@ import {
   CONTINENTAL_ANCHORS,
   INTERNATIONAL_ANCHORS,
   WOMEN_ANCHORS,
+  NATIONAL_ANCHOR_GROUPS,
   type AnchorCompetition,
 } from '@/lib/competition-anchors';
+import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
 
 // T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,6 +36,13 @@ interface Competition {
   name: string;
   country?: string | null;
   type?: string | null;
+}
+
+/** Entrada do índice de países (T577). */
+interface CompetitionCountry {
+  code: string;
+  name: string | null;
+  competitions: number;
 }
 
 async function getCompetitions(searchParams: { [key: string]: string | undefined }) {
@@ -61,6 +70,25 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
 // 165 competições internacionais (Copa do Mundo, Eurocopa, Copa América...) e a âncora
 // curada passa a ser a fonte da lista.
 
+/**
+ * T587 — países para o filtro de seleção.
+ *
+ * Vem de `/competitions/countries` (197 países, contagem real por país) e não de uma lista fixa:
+ * assim a opção mostra NOME e quantidade, e um país sem acervo não aparece para ser escolhido.
+ * Falha de rede devolve lista vazia — o filtro continua funcionando, só com "todos".
+ */
+async function getCompetitionCountries(): Promise<CompetitionCountry[]> {
+  try {
+    const res = await fetch(getApiBase() + '/competitions/countries', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const j = await res.json();
+    const d = j.data ?? j;
+    return Array.isArray(d.countries) ? d.countries : [];
+  } catch {
+    return [];
+  }
+}
+
 function AnchorChip({ c }: { c: AnchorCompetition }) {
   return (
     <Link
@@ -79,10 +107,24 @@ export default async function CompetitionsPage({
 }) {
   const sp = await searchParams;
   const { data: competitions, total, offset } = await getCompetitions(sp);
+  const countries = await getCompetitionCountries();
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
   const s = dict.pages.competitions.sections;
+  const degraus = agruparPorDegrau([
+    CONTINENTAL_ANCHORS,
+    INTERNATIONAL_ANCHORS,
+    WOMEN_ANCHORS,
+    ...NATIONAL_ANCHOR_GROUPS.map((g) => g.items),
+  ]);
+
+  const ROTULO_DEGRAU: Record<DegrauId, string> = {
+    mundial: s.degrauMundial,
+    continentalTop: s.degrauContinental,
+    continentalSecundaria: s.degrauContinentalSecundaria,
+    nacional: s.degrauNacional,
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -134,13 +176,19 @@ export default async function CompetitionsPage({
         </label>
         <label className="text-xs text-foreground/60">
           {dict.pages.competitions.filters.country}
-          <input
-            name="country"
-            defaultValue={sp.country ?? ''}
-            placeholder="BR"
-            maxLength={2}
-            className="field block mt-1 w-20"
-          />
+          {/* T587 — SELEÇÃO, não digitação. Antes era um `<input maxLength={2}>` pedindo o código
+              ISO de cabeça: o usuário tinha de saber que Portugal é `PT` e Peru é `PE`, e um erro
+              de uma letra devolvia lista vazia sem explicar. Os países vêm de
+              `/competitions/countries`, que já conta o acervo — então a opção mostra o NOME e
+              quantas competições existem ali, e não é possível escolher um país sem acervo. */}
+          <select name="country" defaultValue={sp.country ?? ''} className="field block mt-1">
+            <option value="">{s.countryAll}</option>
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name ?? c.code} ({c.code}) · {c.competitions}
+              </option>
+            ))}
+          </select>
         </label>
         <button
           type="submit"
@@ -161,7 +209,19 @@ export default async function CompetitionsPage({
         ) : null}
       </form>
 
-      {/* 2. DESTAQUES — competições procuradas por NOME, não por país. */}
+      {/* 2. DESTAQUES — competições de alcance, em DEGRAUS.
+          Antes eram três blocos de chips idênticos (continental, internacional, feminino) com
+          três defeitos medidos: a mesma competição aparecia em dois blocos (UEFA Champions,
+          Libertadores e AFC Elite — mesmo `id`, 25 entradas para 22 distintas); "FIFA World Cup" e
+          "Campeonato Cearense" tinham o mesmo peso; e todo chip era igual, então a seção não
+          respondia "qual importa mais?".
+
+          Agora cada degrau tem peso próprio, decrescente, e a competição aparece UMA vez:
+            MUNDIAL .............. cartão, nome em destaque, no topo
+            CONTINENTAL .......... cartão menor, borda de acento
+            CONTINENTAL · 2º ..... chip compacto
+            NACIONAL ............. chip compacto, mais apagado
+          A curadoria dos degraus vive em `lib/competition-tier.ts`, com o motivo de cada exclusão. */}
       <section className="mt-8" aria-labelledby="comp-destaques">
         <h2
           id="comp-destaques"
@@ -169,33 +229,66 @@ export default async function CompetitionsPage({
         >
           {s.destaques}
         </h2>
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink-3 min-w-24">{s.continental}</span>
-            {CONTINENTAL_ANCHORS.map((c) => (
-              <AnchorChip key={c.id} c={c} />
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink-3 min-w-24">{s.selecoes}</span>
-            {INTERNATIONAL_ANCHORS.map((c) => (
-              <AnchorChip key={c.id} c={c} />
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink-3 min-w-24">{s.feminino}</span>
-            {WOMEN_ANCHORS.map((c) => (
-              <AnchorChip key={c.id} c={c} />
-            ))}
+
+        <div className="space-y-6">
+          {degraus.map((degrau) => {
+            const rotulo = ROTULO_DEGRAU[degrau.id];
+            const ehMundial = degrau.id === 'mundial';
+            const ehContinentalTop = degrau.id === 'continentalTop';
+
+            return (
+              <div key={degrau.id} data-testid={`destaque-degrau-${degrau.id}`}>
+                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
+                  {rotulo}
+                </h3>
+
+                {ehMundial || ehContinentalTop ? (
+                  /* Dois degraus de cima: cartão. O tamanho do nome é o sinal de importância. */
+                  <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {degrau.itens.map((c) => (
+                      <li key={c.id}>
+                        <Link
+                          href={`/competitions/${c.id}`}
+                          className={`flex min-h-11 items-center rounded-xl border px-4 py-3 transition-colors duration-200 ${
+                            ehMundial
+                              ? 'border-primary/40 bg-surface text-base font-heading font-semibold text-foreground hover:border-primary'
+                              : 'border-border bg-surface-2 text-sm font-medium text-foreground hover:border-primary/60'
+                          }`}
+                        >
+                          {c.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  /* Degraus de baixo: chip compacto. Mesmo componente, peso menor. */
+                  <ul className="flex flex-wrap gap-2">
+                    {degrau.itens.map((c) => (
+                      <li key={c.id}>
+                        <AnchorChip c={c} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+
+          {/* O futebol feminino entra pelos degraus de ALCANCE (Copa América Femenina no
+              continental, Brasileirão A1/A2 e Frauen-Bundesliga no nacional), e não numa
+              fileira à parte — que é o que fazia as seis copas estaduais parecerem do mesmo
+              tamanho que a Champions. O atalho para o recorte completo fica aqui. */}
+          <p className="text-xs text-ink-3">
             <Link
               href="/competitions?gender=women"
-              className="inline-flex min-h-6 items-center text-sm text-primary-ink underline decoration-dotted underline-offset-2"
+              className="inline-flex min-h-6 items-center text-primary-ink underline decoration-dotted underline-offset-2"
             >
               {s.verTodasFeminino}
             </Link>
-          </div>
+          </p>
         </div>
-        <p className="mt-3 text-xs text-ink-3">{s.destaquesNota}</p>
+
+        <p className="mt-4 text-xs text-ink-3">{s.destaquesNota}</p>
       </section>
 
       {/* 3. PAÍSES — o eixo principal. Só aparece quando o usuário NÃO recortou ainda: filtrando
