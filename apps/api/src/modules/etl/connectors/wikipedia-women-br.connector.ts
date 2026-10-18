@@ -1090,8 +1090,17 @@ export function extractSportsTableBlock(wikitext: string): string | null {
   let i = braceStart + 2;
   while (i < wikitext.length - 1) {
     const two = wikitext.slice(i, i + 2);
-    if (two === '{{') { depth++; i += 2; continue; }
-    if (two === '}}') { depth--; if (depth === 0) return wikitext.slice(braceStart + 2, i); i += 2; continue; }
+    if (two === '{{') {
+      depth++;
+      i += 2;
+      continue;
+    }
+    if (two === '}}') {
+      depth--;
+      if (depth === 0) return wikitext.slice(braceStart + 2, i);
+      i += 2;
+      continue;
+    }
     i++;
   }
   return null;
@@ -1103,7 +1112,10 @@ export function parseSportsTable(block: string): W10TableRow[] {
     templates.set(m[1]!, m[2]!.trim());
   }
   const statRe = /\|\s*(win|draw|loss|gf|ga)_([A-Z0-9]{2,6})\s*=\s*(\d+)/g;
-  const raw = new Map<string, { won: number; drawn: number; lost: number; goalsFor: number; goalsAgainst: number }>();
+  const raw = new Map<
+    string,
+    { won: number; drawn: number; lost: number; goalsFor: number; goalsAgainst: number }
+  >();
   let m: RegExpExecArray | null;
   while ((m = statRe.exec(block)) !== null) {
     const key = m[2]!;
