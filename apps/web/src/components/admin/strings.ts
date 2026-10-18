@@ -191,6 +191,28 @@ export interface AdminStrings {
     forbidden: string;
     error: string;
   };
+  ownership: {
+    title: string;
+    subtitle: string;
+    statusLabel: string;
+    statusPending: string;
+    statusAll: string;
+    badgeNational: string;
+    approve: string;
+    revoke: string;
+    revokeReason: string;
+    revokeReasonPlaceholder: string;
+    revokeConfirm: string;
+    revokeCancel: string;
+    count: string;
+    page: string;
+    prev: string;
+    next: string;
+    empty: string;
+    loading: string;
+    forbidden: string;
+    error: string;
+  };
 }
 
 const PT: AdminStrings = {
@@ -238,6 +260,21 @@ const PT: AdminStrings = {
         href: '/admin/observability',
         label: 'Observabilidade',
         desc: 'Crons ativos, fila e alertas internos.',
+      },
+      {
+        href: '/admin/moderacao-clubes',
+        label: 'Moderação de clubes',
+        desc: 'Editores de clube: aprovar posses pendentes e revogar com motivo.',
+      },
+      {
+        href: '/admin/moderacao-clubes',
+        label: 'Club editors',
+        desc: 'Club editors queue: approve pending claims and revoke with a reason.',
+      },
+      {
+        href: '/admin/moderacao-clubes',
+        label: 'Moderación de clubes',
+        desc: 'Editores del club: aprobar posesiones pendientes y revocar con motivo.',
       },
       {
         href: '/admin/reports',
@@ -428,6 +465,29 @@ const PT: AdminStrings = {
     loading: 'Carregando…',
     forbidden: 'Acesso restrito a administradores.',
     error: 'Não foi possível carregar os dados de LGPD.',
+  },
+  ownership: {
+    title: 'Editores de clube',
+    subtitle:
+      'Fila de posses (WS-C-9): aprovar é humano e fica registrado — quem aprovou, quando e com qual evidência.',
+    statusLabel: 'Fila',
+    statusPending: 'Pendentes',
+    statusAll: 'Todas (exceto revogadas)',
+    badgeNational: 'Seleção',
+    approve: 'Aprovar',
+    revoke: 'Revogar',
+    revokeReason: 'Motivo da revogação (obrigatório, fica registrado)',
+    revokeReasonPlaceholder: 'Ex.: evidência não verificada; conduta abusiva…',
+    revokeConfirm: 'Confirmar revogação',
+    revokeCancel: 'Cancelar',
+    count: '{n} posse(s)',
+    page: 'Página {page} de {total}',
+    prev: 'Anterior',
+    next: 'Próxima',
+    empty: 'Nenhuma posse nesta fila.',
+    loading: 'Carregando posses…',
+    forbidden: 'Acesso restrito ao operador.',
+    error: 'Não foi possível carregar a fila.',
   },
 };
 
@@ -659,6 +719,29 @@ const EN: AdminStrings = {
     loading: 'Loading…',
     forbidden: 'Restricted to administrators.',
     error: 'Could not load the LGPD data.',
+  },
+  ownership: {
+    title: 'Club editors',
+    subtitle:
+      'Ownership queue (WS-C-9): approval is human and recorded — who approved, when and with which evidence.',
+    statusLabel: 'Queue',
+    statusPending: 'Pending',
+    statusAll: 'All (except revoked)',
+    badgeNational: 'National team',
+    approve: 'Approve',
+    revoke: 'Revoke',
+    revokeReason: 'Revocation reason (required, gets recorded)',
+    revokeReasonPlaceholder: 'E.g.: evidence not verified; abusive conduct…',
+    revokeConfirm: 'Confirm revocation',
+    revokeCancel: 'Cancel',
+    count: '{n} ownership(ies)',
+    page: 'Page {page} of {total}',
+    prev: 'Previous',
+    next: 'Next',
+    empty: 'No ownership in this queue.',
+    loading: 'Loading ownerships…',
+    forbidden: 'Operator-only access.',
+    error: 'Could not load the queue.',
   },
 };
 
@@ -894,6 +977,29 @@ const ES: AdminStrings = {
     loading: 'Cargando…',
     forbidden: 'Acceso restringido a administradores.',
     error: 'No se pudieron cargar los datos de LGPD.',
+  },
+  ownership: {
+    title: 'Editores del club',
+    subtitle:
+      'Fila de posesiones (WS-C-9): aprobar es humano y queda registrado — quién aprobó, cuándo y con qué evidencia.',
+    statusLabel: 'Fila',
+    statusPending: 'Pendientes',
+    statusAll: 'Todas (excepto revocadas)',
+    badgeNational: 'Selección',
+    approve: 'Aprobar',
+    revoke: 'Revocar',
+    revokeReason: 'Motivo de la revocación (obligatorio, queda registrado)',
+    revokeReasonPlaceholder: 'Ej.: evidencia no verificada; conducta abusiva…',
+    revokeConfirm: 'Confirmar revocación',
+    revokeCancel: 'Cancelar',
+    count: '{n} posesión(ones)',
+    page: 'Página {page} de {total}',
+    prev: 'Anterior',
+    next: 'Siguiente',
+    empty: 'Ninguna posesión en esta fila.',
+    loading: 'Cargando posesiones…',
+    forbidden: 'Acceso restringido al operador.',
+    error: 'No se pudo cargar la fila.',
   },
 };
 
