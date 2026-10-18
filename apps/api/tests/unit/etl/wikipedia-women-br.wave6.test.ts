@@ -81,3 +81,28 @@ describe('T450 wave 6 — formatos header-driven', () => {
     ]);
   });
 });
+
+describe('T450 wave 10 — Sports table (WDL)', () => {
+  it('extrai win/draw/loss/gf/ga por código, computa pontos e ordena', async () => {
+    const mod = await import(
+      '../../../src/modules/etl/connectors/wikipedia-women-br.connector.js'
+    );
+    const wt = [
+      '{{#invoke:Sports table|main|style=WDL',
+      '|team1=JUV |team2=PLA',
+      '|win_JUV=11 |draw_JUV=1 |loss_JUV=2 |gf_JUV=28 |ga_JUV=7',
+      '|win_PLA=10 |draw_PLA=3 |loss_PLA=1 |gf_PLA=28 |ga_PLA=7',
+      '|name_JUV={{Futebol Juventude Feminino}}',
+      '|name_PLA={{Futebol Palmeiras Feminino}}',
+      '}}',
+    ].join('\n');
+    const block = mod.extractSportsTableBlock(wt)!;
+    const rows = mod.parseSportsTable(block);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.template).toBe('Futebol Juventude Feminino');
+    expect(rows[0]!.points).toBe(34); // 11*3+1
+    expect(rows[0]!.won).toBe(11);
+    expect(rows[1]!.template).toBe('Futebol Palmeiras Feminino');
+    expect(rows[1]!.points).toBe(33); // 10*3+3
+  });
+});
