@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/api';
-import { buildMapViewModel, type GeoPointsResponseDto } from '@/lib/map-viewmodel';
+import { buildMapViewModel, groupByState, type GeoPointsResponseDto } from '@/lib/map-viewmodel';
 import { CountryFlag } from '@/components/CountryFlag';
 import { countryLabel } from '@/lib/country-flag';
 import { mapPageStrings, mapText } from '@/i18n/wsMapPage';
@@ -112,6 +112,11 @@ export default function GeoMapInternal() {
   }, [country, onlyWomen]);
 
   const vm = useMemo(() => (data ? buildMapViewModel(data) : null), [data]);
+
+  // T-26D — clubes agrupados POR ESTADO (ordem alfabética do idioma ativo; sem estado
+  // por último, como lacuna declarada). A bandeira vem do State (API); sem bandeira,
+  // a sigla ISO 3166-2 — e sem ambos, só o nome do grupo.
+  const stateGroups = useMemo(() => (vm ? groupByState(vm.points, locale) : []), [vm, locale]);
 
   // O país selecionado SEMPRE aparece no select — mesmo sem acervo (0 clubes).
   const options = useMemo(() => {
@@ -232,25 +237,60 @@ export default function GeoMapInternal() {
             {vm.points.length === 0 ? (
               <p className="text-sm text-foreground/70">{s.noPoints}</p>
             ) : (
-              <ul className="divide-y divide-border/50">
-                {vm.points.map((p) => (
-                  <li key={p.id} className="py-2" data-testid="geo-list-item">
-                    <p className="text-sm font-medium text-foreground">
-                      {p.name}
-                      {p.qid ? <span className="text-foreground/70"> · {p.qid}</span> : null}
-                    </p>
-                    <p className="text-xs text-foreground/70">{p.subtitle ?? '—'}</p>
-                    {p.attribution ? (
-                      <span
-                        className="text-[11px] text-foreground/70"
-                        data-testid="geo-item-attribution"
-                      >
-                        {p.attribution.geo}
+              <div className="space-y-8" data-testid="geo-state-groups">
+                {stateGroups.map((g) => (
+                  <section key={g.key} aria-label={g.name ?? s.noStateGroup}>
+                    {/* Cabeçalho SEMÂNTICO do grupo: bandeira do estado (decorativa — o
+                        nome vem do texto), sigla quando não há bandeira (gap honesto) e
+                        contagem de clubes. `h3` sob o `h2` da lista — sem pular nível. */}
+                    <h3 className="flex flex-wrap items-center gap-2 border-b border-border pb-2 mb-1">
+                      {g.flagUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={g.flagUrl}
+                          alt=""
+                          aria-hidden="true"
+                          className="h-4 w-auto max-w-8 object-contain rounded-sm border border-border/50"
+                          loading="lazy"
+                          data-testid="geo-state-flag"
+                        />
+                      ) : g.code ? (
+                        <span
+                          className="text-xs px-1.5 py-0.5 rounded bg-foreground/5 text-foreground/70 font-semibold"
+                          data-testid="geo-state-code"
+                        >
+                          {g.code}
+                        </span>
+                      ) : null}
+                      <span className="font-heading font-semibold text-foreground">
+                        {g.name ?? s.noStateGroup}
                       </span>
-                    ) : null}
-                  </li>
+                      <span className="text-xs text-foreground/70">
+                        {mapText(s.stateClubsCount, { n: g.clubs.length })}
+                      </span>
+                    </h3>
+                    <ul className="divide-y divide-border/50">
+                      {g.clubs.map((p) => (
+                        <li key={p.id} className="py-2" data-testid="geo-list-item">
+                          <p className="text-sm font-medium text-foreground">
+                            {p.name}
+                            {p.qid ? <span className="text-foreground/70"> · {p.qid}</span> : null}
+                          </p>
+                          <p className="text-xs text-foreground/70">{p.subtitle ?? '—'}</p>
+                          {p.attribution ? (
+                            <span
+                              className="text-[11px] text-foreground/70"
+                              data-testid="geo-item-attribution"
+                            >
+                              {p.attribution.geo}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 ))}
-              </ul>
+              </div>
             )}
           </section>
 

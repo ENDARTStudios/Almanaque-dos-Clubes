@@ -206,6 +206,11 @@ model Competition {
   // T509 (W6) — foto do troféu (Wikimedia Commons)
   trophyImageUrl String?
   trophyModel    Json? // T526 — modelo 3D do troféu (Commons só hospeda .stl; 0 modelos na fonte em 12-10-2026)
+  // T-24/25 — enriquecimento Wikidata (bot enrich-competitions, CC0)
+  description           Json?     // {pt,en,es,sourceUrl,at} — descrições CC0 + proveniência
+  inceptionYear         Int?      // P571 (só precisão ≥ ano; faixa 1850..atual+1)
+  dissolvedAt           DateTime? // P576 (competição extinta; precisão dia/ano)
+  competitionEnrichment Json?     // cursor {at,status,processed,updated,skipped,errors}
   seasons      CompetitionSeason[]
   country      String?  @db.VarChar(2)
   // WS-C-13
@@ -631,6 +636,9 @@ model State {
   latitude     Float?
   longitude    Float?
   qid          String?  @unique
+  // T-24/25 (passada 2 do enrich-competitions) — bandeira (P163) via Wikimedia Commons,
+  // mesmo pipeline de URL do trophyImageUrl (T509 → commonsFilePath).
+  flagUrl      String?
   importedFrom String?
   importedAt   DateTime?
   sourceUrl    String?

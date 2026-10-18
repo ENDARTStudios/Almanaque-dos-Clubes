@@ -64,6 +64,10 @@ export interface MapPageStrings {
   noLocationGap: string;
   /** Não há nenhum clube sem coordenada no recorte. */
   noLocationNone: string;
+  /** T-26D — contagem no cabeçalho do grupo de estado: `{n}`. */
+  stateClubsCount: string;
+  /** T-26D — grupo de lacuna: clubes com coordenada mas sem estado no acervo. */
+  noStateGroup: string;
 }
 
 export const mapPageStrings: Record<Locale, MapPageStrings> = {
@@ -95,6 +99,8 @@ export const mapPageStrings: Record<Locale, MapPageStrings> = {
     noLocationGap:
       '{n} clube(s) sem coordenada no acervo para este país — não são plotados (vazio-honesto).',
     noLocationNone: 'Nenhum clube sem coordenada para este país.',
+    stateClubsCount: '{n} clubes',
+    noStateGroup: 'Sem estado informado',
   },
   'en-us': {
     intro: [
@@ -124,6 +130,8 @@ export const mapPageStrings: Record<Locale, MapPageStrings> = {
     noLocationGap:
       '{n} club(s) without a coordinate in the archive for this country — they are not plotted (honest-empty).',
     noLocationNone: 'No club without a coordinate for this country.',
+    stateClubsCount: '{n} clubs',
+    noStateGroup: 'No state on record',
   },
   'es-es': {
     intro: [
@@ -153,6 +161,8 @@ export const mapPageStrings: Record<Locale, MapPageStrings> = {
     noLocationGap:
       '{n} club(es) sin coordenada en el acervo para este país — no se plotean (vacío-honesto).',
     noLocationNone: 'Ningún club sin coordenada para este país.',
+    stateClubsCount: '{n} clubes',
+    noStateGroup: 'Sin estado registrado',
   },
 };
 

@@ -50,6 +50,9 @@ export interface GeoFeatureItem {
   lng: number;
   coordSource: string | null;
   attribution: GeoAttribution | null;
+  /** T-26D — agrupamento por estado no mapa: código ISO 3166-2 e bandeira (State). */
+  stateCode?: string | null;
+  stateFlagUrl?: string | null;
 }
 
 export interface GeoPointsResponse {
@@ -102,6 +105,8 @@ interface ClubRow {
   latitude: number;
   longitude: number;
   metadata: unknown;
+  /** T-26D — referencia canônica do estado (código ISO 3166-2 + bandeira). */
+  stateRef?: { code: string; flagUrl: string | null } | null;
 }
 
 /** Mapeia um clube (com coordenada) para uma feature com atribuição por origem. */
@@ -120,6 +125,10 @@ export function mapGeoFeature(club: ClubRow): GeoFeatureItem {
     lng: club.longitude,
     coordSource,
     attribution: geoAttributionForMetadata(club.metadata),
+    // T-26D — ADITIVO: código ISO 3166-2 e bandeira vêm do State (P163 → Commons).
+    // flagUrl pode ser null — gap honesto: a UI mostra a sigla no lugar.
+    stateCode: club.stateRef?.code ?? null,
+    stateFlagUrl: club.stateRef?.flagUrl ?? null,
   };
 }
 
@@ -168,6 +177,8 @@ export async function getGeoPoints(query: GeoPointsQuery): Promise<GeoPointsResp
             latitude: true,
             longitude: true,
             metadata: true,
+            // T-26D — código ISO 3166-2 + bandeira para o agrupamento por estado na UI.
+            stateRef: { select: { code: true, flagUrl: true } },
           },
           orderBy: { id: 'asc' },
           take: limit,

@@ -25,4 +25,13 @@ export interface Competition {
   importedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  // T-24/25 — enriquecimento Wikidata (bot enrich-competitions). O repositório
+  // devolve a linha Prisma COMPLETA (sem select) — estes campos já saem no payload
+  // de GET /competitions/:id; o tipo declara o que de fato sai. Opcionais para
+  // não quebrar construtores legados.
+  trophyImageUrl?: string | null;
+  description?: unknown; // {pt,en,es,sourceUrl,at} — CC0 + proveniência
+  inceptionYear?: number | null; // P571
+  dissolvedAt?: Date | null; // P576
+  competitionEnrichment?: unknown; // cursor {at,status,processed,updated,skipped,errors}
 }

@@ -23,6 +23,8 @@ export interface MetadataStrings {
   map: { title: string; description: string };
   /** Legends — hall da fama (títulos auditáveis + recordes de partidas). */
   legends: { title: string; description: string };
+  /** T-28 — landing de apoio (planos/parcerias/patrocínio, sem valor inventado). */
+  supporters: { title: string; description: string };
 }
 
 export const metadataStrings: Record<Locale, MetadataStrings> = {
@@ -61,6 +63,11 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
       description:
         'O hall da fama do acervo: clubes com mais títulos auditáveis, líderes por competição e recordes de partidas com placar — todo número com fonte.',
     },
+    supporters: {
+      title: 'Apoie o projeto',
+      description:
+        'Sustente o acervo aberto do futebol — clubes, jogadores, partidas e títulos com fonte verificada. Conheça os planos, parcerias e patrocínio.',
+    },
   },
   'en-us': {
     home: {
@@ -97,6 +104,11 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
       description:
         'The archive hall of fame: clubs with the most auditable titles, leaders by competition and scored-match records — every number sourced.',
     },
+    supporters: {
+      title: 'Support the project',
+      description:
+        'Sustain the open football archive — clubs, players, matches and titles with verified sources. Plans, partnerships and sponsorship.',
+    },
   },
   'es-es': {
     home: {
@@ -132,6 +144,11 @@ export const metadataStrings: Record<Locale, MetadataStrings> = {
       title: 'Leyendas — Salón de la Fama',
       description:
         'El salón de la fama del acervo: clubes con más títulos auditables, líderes por competición y récords de partidos con marcador — cada número con fuente.',
+    },
+    supporters: {
+      title: 'Apoya el proyecto',
+      description:
+        'Sostén el acervo abierto del fútbol — clubes, jugadores, partidos y títulos con fuente verificada. Conoce los planes, alianzas y patrocinio.',
     },
   },
 };

@@ -5,9 +5,12 @@ import { type Locale } from '@/i18n/config';
 import LocaleFlag from '@/components/LocaleFlag';
 import { Mail, Send } from 'lucide-react';
 import { openCookieConsent } from '@/components/CookieConsentBanner';
+import { wsFooterLinksStrings } from '@/i18n/wsFooterLinks';
 
 export default function Footer() {
   const { t, locale, setLocale } = useI18n();
+  // T-27 — rótulos dos links novos em módulo aditivo (mesmo locale do useI18n).
+  const fl = wsFooterLinksStrings[locale];
 
   const platformLinks = [
     { href: '/clubs', label: t('footer.platformClubs') },
@@ -18,11 +21,17 @@ export default function Footer() {
     // seção não ficar órfã (o encaixe no Navbar entra quando ela mergear).
     { href: '/matches', label: t('footer.platformMatches') },
     { href: '/search', label: t('footer.platformSearch') },
+    // T-27 — exploração e comparação: rotas públicas que ficavam sem entrada no rodapé.
+    { href: '/map', label: fl.worldMap },
+    { href: '/compare', label: fl.compare },
+    { href: '/legends', label: fl.legends },
   ];
 
   const aboutLinks = [
     { href: '/sobre', label: t('footer.aboutUs') },
     { href: '/planos', label: t('footer.plans') },
+    // T-27 — apoio (a landing de apoio; o billing real continua em /planos).
+    { href: '/apoiadores', label: fl.support },
     { href: '/metodologia', label: t('footer.methodology') },
   ];
 
