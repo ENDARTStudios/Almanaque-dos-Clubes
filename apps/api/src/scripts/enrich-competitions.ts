@@ -265,7 +265,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
       const desc = extractDescriptions(ent);
       const langs = Object.keys(desc) as CompetitionDescriptionLang[];
       if (langs.length > 0) {
-        data.description = {
+        (data as Record<string, unknown>).description = {
           ...desc,
           sourceUrl: `${WIKIDATA_ENTITY_URL_BASE}${comp.qid}`,
           at: new Date().toISOString(),
@@ -278,7 +278,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
     if (comp.inceptionYear == null) {
       const year = extractInceptionYear(ent);
       if (year != null) {
-        data.inceptionYear = year;
+        (data as Record<string, unknown>).inceptionYear = year;
         log.push(`inceptionYear=${year}`);
       } else skipped++;
     }
@@ -287,7 +287,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
     if (comp.dissolvedAt == null) {
       const dissolved = extractDissolvedAt(ent);
       if (dissolved) {
-        data.dissolvedAt = dissolved;
+        (data as Record<string, unknown>).dissolvedAt = dissolved;
         log.push(`dissolvedAt=${dissolved.toISOString().slice(0, 10)}`);
       } else skipped++;
     }
