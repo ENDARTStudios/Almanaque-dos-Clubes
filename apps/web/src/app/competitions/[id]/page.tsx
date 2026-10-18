@@ -130,7 +130,72 @@ async function getCompetition(id: string) {
   }
 }
 
-const TABS = ['visao', 'edicoes', 'clubes', 'campeoes', 'temporadas'] as const;
+/**
+ * T30/T33 — histórico derivado das PARTIDAS (não do resumo de edições).
+ *
+ * A distinção importa: `overview.totals` soma o que está catalogado em
+ * `CompetitionSeason` (19 linhas nas quatro grandes ligas); esta tabela soma 3.800 partidas
+ * por liga. São números diferentes porque medem coisas diferentes, e a tela diz qual é qual.
+ */
+interface HistoryTableRow {
+  clubId: string;
+  clubName: string | null;
+  position: number;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
+interface HistoryMatchRef {
+  date: string;
+  season: string;
+  round: string | null;
+  homeClubName: string | null;
+  awayClubName: string | null;
+  homeScore: number;
+  awayScore: number;
+  margin: number;
+  goals: number;
+  winnerName: string | null;
+  loserName: string | null;
+}
+interface HistoryDto {
+  table: HistoryTableRow[];
+  records: {
+    biggestWin: HistoryMatchRef | null;
+    highestScoring: HistoryMatchRef | null;
+    matchesUsed: number;
+    totalGoals: number;
+    goalsPerMatch: number | null;
+    goallessDraws: number;
+  };
+  champions: Array<{ season: string; clubId: string; clubName: string | null; points: number }>;
+  seasons: string[];
+  rounds: number;
+  matchesUsed: number;
+  truncated: boolean;
+  pointsPerWin: number;
+  pointsRuleNote: string;
+}
+
+async function getCompetitionHistory(id: string): Promise<HistoryDto | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/competitions/${id}/history`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json.data ?? null) as HistoryDto | null;
+  } catch {
+    return null;
+  }
+}
+
+const TABS = ['visao', 'edicoes', 'clubes', 'campeoes', 'temporadas', 'pontuacao'] as const;
 type Tab = (typeof TABS)[number];
 
 export async function generateMetadata({
@@ -159,6 +224,9 @@ export default async function CompetitionDetailPage({
   const res = await getCompetition(id);
   if (!res?.data) notFound();
   const comp = res.data;
+  /* Só busca o histórico quando a aba pede: a consulta varre as partidas da competição inteira,
+     e pagar isso em toda visita de qualquer aba seria desperdício. */
+  const matchHistory = tabParam === 'pontuacao' ? await getCompetitionHistory(id) : null;
   const overview = res.overview;
   const seasons = res.seasons ?? [];
 
@@ -201,6 +269,10 @@ export default async function CompetitionDetailPage({
     { id: 'campeoes', label: t.tabs.topWinners },
     // T508 (W4) — classificação por temporada (só quando há dado no acervo).
     ...(seasons.length > 0 ? [{ id: 'temporadas' as Tab, label: t.tabs.seasons }] : []),
+    // T30/T33 — só aparece se a competição TEM partidas com placar: aba vazia não é opção.
+    ...(matchHistory && matchHistory.matchesUsed > 0
+      ? [{ id: 'pontuacao' as Tab, label: ti.tabLabel }]
+      : []),
   ];
 
   return (
@@ -444,6 +516,210 @@ export default async function CompetitionDetailPage({
           ) : (
             <p className="text-sm text-foreground/60">{t.editionsEmpty}</p>
           )
+        ) : null}
+
+        {tab === 'pontuacao' ? (
+          <div className="space-y-8" data-testid="competition-points">
+            {matchHistory && matchHistory.matchesUsed > 0 ? (
+              <>
+                {/*
+                  T33 — MÉTRICAS PRINCIPAIS. Cada número vem das partidas, e o rodapé diz de
+                  quantas: sem isso o leitor não sabe se "3,1 gols por jogo" são 10 jogos ou 3.800.
+                */}
+                <section aria-labelledby="metrics-title">
+                  <h2 id="metrics-title" className="text-xl font-heading font-bold mb-3">
+                    {ti.metricsTitle}
+                  </h2>
+                  <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <Info label={ti.matchesUsed} value={String(matchHistory.records.matchesUsed)} />
+                    <Info label={ti.totalGoals} value={String(matchHistory.records.totalGoals)} />
+                    <Info
+                      label={ti.goalsPerMatch}
+                      value={
+                        matchHistory.records.goalsPerMatch != null
+                          ? String(matchHistory.records.goalsPerMatch).replace('.', ',')
+                          : '—'
+                      }
+                    />
+                    <Info
+                      label={ti.goallessDraws}
+                      value={String(matchHistory.records.goallessDraws)}
+                    />
+                  </dl>
+                </section>
+
+                {/* T33 — RECORDES. Uma goleada e a mesma partida vista dos dois lados: o card
+                    mostra o vencedor E o derrotado, em vez de repetir o jogo em dois blocos. */}
+                <section aria-labelledby="records-title">
+                  <h2 id="records-title" className="text-xl font-heading font-bold mb-3">
+                    {ti.recordsTitle}
+                  </h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {matchHistory.records.biggestWin ? (
+                      <div
+                        className="rounded-xl border border-border p-4"
+                        data-testid="record-biggest-win"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-foreground/60">
+                          {ti.biggestWin}
+                        </p>
+                        <p className="mt-2 font-heading font-bold text-lg">
+                          {matchHistory.records.biggestWin.homeClubName ?? '—'}{' '}
+                          {matchHistory.records.biggestWin.homeScore} ×{' '}
+                          {matchHistory.records.biggestWin.awayScore}{' '}
+                          {matchHistory.records.biggestWin.awayClubName ?? '—'}
+                        </p>
+                        <p className="mt-1 text-sm text-foreground/70">
+                          {ti.biggestDefeatNote.replace(
+                            '{club}',
+                            matchHistory.records.biggestWin.loserName ?? '—',
+                          )}{' '}
+                          · {matchHistory.records.biggestWin.season}
+                          {matchHistory.records.biggestWin.round
+                            ? ` · ${ti.roundLabel} ${matchHistory.records.biggestWin.round}`
+                            : ''}
+                        </p>
+                      </div>
+                    ) : null}
+                    {matchHistory.records.highestScoring ? (
+                      <div
+                        className="rounded-xl border border-border p-4"
+                        data-testid="record-highest-scoring"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-foreground/60">
+                          {ti.highestScoring}
+                        </p>
+                        <p className="mt-2 font-heading font-bold text-lg">
+                          {matchHistory.records.highestScoring.homeClubName ?? '—'}{' '}
+                          {matchHistory.records.highestScoring.homeScore} ×{' '}
+                          {matchHistory.records.highestScoring.awayScore}{' '}
+                          {matchHistory.records.highestScoring.awayClubName ?? '—'}
+                        </p>
+                        <p className="mt-1 text-sm text-foreground/70">
+                          {ti.goalsInMatch.replace(
+                            '{n}',
+                            String(matchHistory.records.highestScoring.goals),
+                          )}{' '}
+                          · {matchHistory.records.highestScoring.season}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+
+                {/*
+                  T30 — TABELA HISTÓRICA DE PONTOS CORRIDOS. A régua de pontos vai no caption
+                  porque somar eras com réguas diferentes produz um total que nunca existiu.
+                */}
+                <section aria-labelledby="table-title">
+                  <h2 id="table-title" className="text-xl font-heading font-bold mb-3">
+                    {ti.tableTitle}
+                  </h2>
+                  <div className="overflow-x-auto rounded-xl border border-border">
+                    <table className="w-full text-sm">
+                      <caption className="bg-foreground/5 px-4 py-2 text-left text-xs text-foreground/70">
+                        {matchHistory.pointsRuleNote} {ti.tableScopeNote}
+                      </caption>
+                      <thead>
+                        <tr className="bg-foreground/5 text-left">
+                          <th scope="col" className="px-3 py-3 font-semibold">
+                            #
+                          </th>
+                          <th scope="col" className="px-3 py-3 font-semibold">
+                            {t.club}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colPlayed}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colWins}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colDraws}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colLosses}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colGoalsFor}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colGoalsAgainst}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colGoalDiff}
+                          </th>
+                          <th scope="col" className="px-3 py-3 text-right font-semibold">
+                            {ti.colPoints}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {matchHistory.table.map((row) => (
+                          <tr key={row.clubId} className="border-t border-border">
+                            <td className="px-3 py-2 tabular-nums text-foreground/60">
+                              {row.position}
+                            </td>
+                            <td className="px-3 py-2 font-semibold">
+                              {row.clubName ? (
+                                <Link href={`/clubs/${row.clubId}`} className="hover:underline">
+                                  {row.clubName}
+                                </Link>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-right tabular-nums">{row.played}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{row.wins}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{row.draws}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{row.losses}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{row.goalsFor}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">
+                              {row.goalsAgainst}
+                            </td>
+                            <td className="px-3 py-2 text-right tabular-nums">
+                              {row.goalDifference > 0
+                                ? `+${row.goalDifference}`
+                                : row.goalDifference}
+                            </td>
+                            <td className="px-3 py-2 text-right font-bold tabular-nums">
+                              {row.points}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {matchHistory.truncated ? (
+                    <p className="mt-2 text-xs text-foreground/60">{ti.truncatedNote}</p>
+                  ) : null}
+                </section>
+
+                {/* T33 — MAIORES CAMPEÕES: campeão derivado por pontos de cada temporada. */}
+                {matchHistory.champions.length > 0 ? (
+                  <section aria-labelledby="champions-title">
+                    <h2 id="champions-title" className="text-xl font-heading font-bold mb-3">
+                      {ti.championsTitle}
+                    </h2>
+                    <ul className="divide-y divide-border rounded-xl border border-border">
+                      {matchHistory.champions.map((c) => (
+                        <li
+                          key={c.season}
+                          className="flex items-center justify-between px-4 py-2 text-sm"
+                        >
+                          <span className="font-semibold tabular-nums">{c.season}</span>
+                          <span>{c.clubName ?? '—'}</span>
+                          <span className="tabular-nums text-foreground/60">{c.points} pts</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-foreground/70">{ti.emptyState}</p>
+            )}
+          </div>
         ) : null}
 
         {tab === 'temporadas' ? (
