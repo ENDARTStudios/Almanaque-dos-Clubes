@@ -2,10 +2,13 @@
 /**
  * WS-C-9 — editor da descrição comunitária (só visível para owners ativos).
  * PATCH /clubs/:id/description — server sanitiza (sem HTML) e valida 2000 chars.
+ * Erros de posse (pending/suspended/revoked — gates C1/C3) viram mensagens
+ * específicas via ownershipErrorMessage (mesmo mapa do fluxo de claim).
  */
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import type { ClubCommunityStrings } from '@/i18n/wsC9';
+import { ownershipErrorMessage } from './ClubOwnerButton';
 
 const MAX = 2000;
 
@@ -34,7 +37,7 @@ export default function ClubDescriptionEditor({ clubId, initial, s, onSaved }: P
       setOpen(false);
       setFeedback({ ok: true, msg: s.saved });
     } catch (err) {
-      setFeedback({ ok: false, msg: err instanceof Error ? err.message : 'Erro' });
+      setFeedback({ ok: false, msg: ownershipErrorMessage(err, s) });
     } finally {
       setBusy(false);
     }

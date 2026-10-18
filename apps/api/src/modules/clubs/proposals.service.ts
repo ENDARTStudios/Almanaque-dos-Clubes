@@ -17,7 +17,12 @@ import { withRlsContext } from '../../config/rls-context.js';
 import { auditLog, AuditAction, EntityType } from '../audit/audit-log.service.js';
 import { createNotification } from '../notifications/notification.service.js';
 import { DomainError, NotFoundError } from '@almanaque/domain';
-import { isActiveOwner, sanitizeDescription, updateDescription } from './club-ownership.service.js';
+import {
+  getOwnershipStatus,
+  isActiveOwner,
+  sanitizeDescription,
+  updateDescription,
+} from './club-ownership.service.js';
 import type { SessionMetadata } from '../auth/session.service.js';
 
 export interface ProposalView {
@@ -53,8 +58,10 @@ export async function pendingCount(clubId: string): Promise<number> {
 }
 
 /**
- * Propõe uma edição. Editor ativo → auto-aprova (aplica + registra approved).
- * Não-editor → registra pending (409 se já tem pending para o clube).
+ * Propõe uma edição. Editor com posse 'active' → auto-aprova (aplica + registra
+ * approved; o gate C1/C3 roda dentro de updateDescription — Elite perdido
+ * suspende a posse e rejeita com OWNERSHIP_SUSPENDED). Posse pending/revoked →
+ * erro específico. Não-editor → registra pending (409 se já tem pending).
  */
 export async function propose(
   userId: string,
@@ -68,8 +75,25 @@ export async function propose(
   });
   if (!club) throw new NotFoundError('Clube', clubId);
 
-  // Editor ativo: auto-aprovação — aplica direto e registra approved.
-  if (await isActiveOwner(userId, clubId)) {
+  // WS-C-9 — auto-aprovação SÓ para posse 'active' (quem passou por C1–C3).
+  // pending/revoked bloqueiam com erro claro; suspended/active passam pelo
+  // gate de publicação ( Elite corrente exigido no ato de publicar).
+  const ownershipStatus = await getOwnershipStatus(userId, clubId);
+  if (ownershipStatus === 'pending') {
+    throw new DomainError(
+      'Sua posse neste clube está em revisão (até 5 dias úteis) — após aprovada, suas edições publicam direto.',
+      'OWNERSHIP_PENDING_REVIEW',
+      409,
+    );
+  }
+  if (ownershipStatus === 'revoked') {
+    throw new DomainError(
+      'Sua posse neste clube foi revogada pela moderação.',
+      'OWNERSHIP_REVOKED',
+      403,
+    );
+  }
+  if (ownershipStatus === 'active' || ownershipStatus === 'suspended') {
     await updateDescription(userId, clubId, rawText, metadata);
     await withRlsContext({ role: 'SERVICE' }, async (tx) =>
       tx.clubDescriptionProposal.create({

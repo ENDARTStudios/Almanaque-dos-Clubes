@@ -124,7 +124,8 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
   }
   if (!res.ok) {
     const parsed = await parseErrorBody();
-    const enveloped = parsed?.error as { code?: string; message?: string; details?: unknown } | undefined;
+    const enveloped = parsed?.error as
+      { code?: string; message?: string; details?: unknown } | undefined;
     // Erros Fastify de framework (ex.: FST_ERR_CTP_EMPTY_JSON_BODY) vêm SEM o
     // envelope {error:{}} — usam {code, error, message} no topo.
     const flatMessage = (parsed as { message?: string } | null)?.message;
@@ -146,10 +147,14 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
         : [];
     // T455 — status acessível ao chamador (AuthProvider distingue 401 de
     // erro transitório: só 401 resolve "deslogado").
+    // WS-C-9 — o código de domínio sobe junto (ex.: PLAN_REQUIRED): o componente
+    // traduz para mensagem i18n específica; o `message` segue como fallback.
     const error = new Error(details.length ? details.join('; ') : body.error.message) as Error & {
       status?: number;
+      code?: string;
     };
     error.status = res.status;
+    error.code = body.error.code;
     throw error;
   }
   return res.json() as Promise<T>;
