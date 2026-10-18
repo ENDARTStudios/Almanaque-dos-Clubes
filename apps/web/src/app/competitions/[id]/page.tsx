@@ -5,13 +5,15 @@ import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import { getDictionary } from '@/i18n/getDictionary';
-import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
+import { LOCALE_COOKIE, normalizeLocale, type Locale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
-import { TrophyCup } from '@/components/icons';
+import { TrophyCup, TrophyMedal } from '@/components/icons';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
+import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
+import { formatCount } from '@/lib/format';
 
 // Mapeamento do portal (Operador, 08/10 — Entrega 2): sub-abas Visão Geral |
 // Edições | Clubes | Maiores Campeões sobre o overview WON da API. Honestidade:
@@ -33,6 +35,17 @@ interface Competition {
   importedFrom?: string | null;
   /** T509 (W6) — foto do troféu (Wikimedia Commons). */
   trophyImageUrl?: string | null;
+  /** T-24/25 — enriquecimento Wikidata (CC0): descrições pt/en/es + proveniência. */
+  description?: {
+    pt?: string | null;
+    en?: string | null;
+    es?: string | null;
+    sourceUrl?: string | null;
+  } | null;
+  /** P571 — ano de fundação (só precisão ≥ ano). */
+  inceptionYear?: number | null;
+  /** P576 — dissolução (competição extinta). */
+  dissolvedAt?: string | null;
 }
 
 interface SeasonRow {
@@ -49,6 +62,34 @@ interface SeasonRow {
   points: number | null;
 }
 
+interface PodiumClubDto {
+  clubId: string | null;
+  clubName: string;
+}
+
+/** T-24/25 — blocos de insights (funções puras em apps/api/.../insights.ts), ADITIVOS. */
+interface CompetitionHistoryDto {
+  firstEditionYear: number | null;
+  lastEditionYear: number | null;
+  editionsCount: number;
+  editionsWithChampion: number;
+  status: 'extinta' | 'vigente' | 'sem_edicao_recente';
+  biggestChampion: { clubId: string; clubName: string; titles: number } | null;
+  longestStreak: { clubName: string; from: number; to: number } | null;
+}
+
+interface CompetitionPodiumDto {
+  champion: PodiumClubDto | null;
+  runnerUp: PodiumClubDto | null;
+  /** Só de tabela de LIGA — copa (fase de grupos) vem null honesto. */
+  third: PodiumClubDto | null;
+}
+
+interface CompetitionTotalsDto {
+  matches: number | null;
+  goals: number | null;
+}
+
 interface CompetitionSeasonData {
   season: string;
   standings: SeasonRow[] | null;
@@ -58,6 +99,8 @@ interface CompetitionSeasonData {
   runnerUpId: string | null;
   champion: { id: string; name: string | null } | null;
   runnerUp: { id: string; name: string | null } | null;
+  /** T-24/25 — 3º colocado quando a tabela é de liga (posições 1..N únicas). */
+  third: PodiumClubDto | null;
   totalMatches: number | null;
   totalGoals: number | null;
 }
@@ -67,6 +110,9 @@ interface Overview {
   topWinners: Array<{ clubId: string; name: string; titles: number }>;
   participants: Array<{ id: string; name: string; city?: string | null; country?: string | null }>;
   totalEditions: number;
+  history?: CompetitionHistoryDto | null;
+  podium?: CompetitionPodiumDto | null;
+  totals?: CompetitionTotalsDto | null;
 }
 
 async function getCompetition(id: string) {
@@ -123,6 +169,17 @@ export default async function CompetitionDetailPage({
   // T576 — sem imagem oficial do troféu, o cabeçalho usa a taça autoral e DECLARA
   // que é ilustração (o desenho nunca se apresenta como o troféu oficial).
   const ic = wIconsStrings[locale];
+  // T-26 — strings dos blocos de insights (pódio/história/métricas), módulo aditivo.
+  const ti = wsCompetitionInsightsStrings[locale];
+  const history = overview?.history ?? null;
+  const podium = overview?.podium ?? null;
+  const totals = overview?.totals ?? null;
+  // Descrição no locale ativo (dado CC0 do enriquecimento — sem tradução local).
+  const descKey = ({ 'pt-br': 'pt', 'en-us': 'en', 'es-es': 'es' } as const)[locale];
+  const descriptionText = comp.description?.[descKey]?.trim() || null;
+  const descriptionSourceUrl = comp.description?.sourceUrl ?? null;
+  const dissolvedYear =
+    comp.dissolvedAt != null ? new Date(comp.dissolvedAt).getUTCFullYear() : null;
 
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '')
     ? (tabParam as Tab)
@@ -391,6 +448,58 @@ export default async function CompetitionDetailPage({
 
         {tab === 'temporadas' ? (
           <div className="space-y-8">
+            {/* T-26 — RESUMO POR EDIÇÃO: partidas/gols/artilheiro/3º quando o acervo tem.
+                Tabela só entra se ao menos uma edição tem dado — sem tabela placebo. */}
+            {seasons.some(
+              (s) =>
+                s.totalMatches != null ||
+                s.totalGoals != null ||
+                s.topScorer != null ||
+                s.third != null,
+            ) ? (
+              <div
+                className="overflow-x-auto rounded-xl border border-border"
+                data-testid="seasons-summary"
+              >
+                <table className="w-full text-sm">
+                  <caption className="bg-foreground/5 px-4 py-2 text-left text-xs text-foreground/70">
+                    {ti.metricsNote}
+                  </caption>
+                  <thead>
+                    <tr className="bg-foreground/5 text-left">
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {t.season}
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {t.matches}
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {t.goals}
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {t.topScorer}
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {ti.thirdPlace}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seasons.map((se) => (
+                      <tr key={`summary-${se.season}`} className="border-t border-border">
+                        <td className="px-4 py-3 font-semibold">{se.season}</td>
+                        <td className="px-4 py-3">{se.totalMatches ?? '—'}</td>
+                        <td className="px-4 py-3">{se.totalGoals ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          {se.topScorer ? `${se.topScorer.name} (${se.topScorer.goals})` : '—'}
+                        </td>
+                        <td className="px-4 py-3">{se.third?.clubName ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
             {seasons.map((se) => (
               <section key={se.season} data-testid={`season-${se.season}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
@@ -427,6 +536,22 @@ export default async function CompetitionDetailPage({
                         >
                           {se.runnerUp.name ?? se.runnerUp.id}
                         </Link>
+                      </span>
+                    ) : null}
+                    {se.third ? (
+                      <span>
+                        {se.champion || se.runnerUp ? ' · ' : ''}
+                        {ti.thirdPlace}:{' '}
+                        {se.third.clubId ? (
+                          <Link
+                            href={`/clubs/${se.third.clubId}`}
+                            className="text-primary-ink hover:underline"
+                          >
+                            {se.third.clubName}
+                          </Link>
+                        ) : (
+                          se.third.clubName
+                        )}
                       </span>
                     ) : null}
                     {se.totalMatches ? (
@@ -521,7 +646,196 @@ export default async function CompetitionDetailPage({
         ) : null}
 
         {tab === 'visao' ? (
-          <p className="text-xs text-foreground/70 mt-6">{t.overviewHint}</p>
+          <div className="space-y-10" data-testid="competition-insights">
+            {/* PÓDIO — última edição com campeão catalogado (T510). Campeão em destaque;
+                vice/3º só quando o acervo tem (copa sem 3º de liga = slot não renderiza). */}
+            <section aria-labelledby="podium-title">
+              <h2 id="podium-title" className="text-xl font-heading font-bold mb-3">
+                {ti.podiumTitle}
+              </h2>
+              {podium?.champion ? (
+                <div className="space-y-4" data-testid="competition-podium">
+                  <article className="rounded-xl border border-primary/40 bg-primary/5 p-5">
+                    <div className="flex flex-wrap items-center gap-4">
+                      {comp.trophyImageUrl ? (
+                        <span className="w-16 h-16 rounded-xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={comp.trophyImageUrl}
+                            alt=""
+                            className="object-contain w-12 h-12"
+                            loading="lazy"
+                          />
+                        </span>
+                      ) : null}
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-primary-ink">
+                          {ti.podiumChampion}
+                        </p>
+                        <p className="text-2xl font-heading font-bold text-foreground mt-0.5">
+                          {podium.champion.clubId ? (
+                            <Link
+                              href={`/clubs/${podium.champion.clubId}`}
+                              className="hover:text-primary-ink"
+                            >
+                              {podium.champion.clubName}
+                            </Link>
+                          ) : (
+                            podium.champion.clubName
+                          )}
+                        </p>
+                        {history?.lastEditionYear != null ? (
+                          <p className="text-xs text-foreground/70 mt-1">
+                            {insText(ti.lastEdition, { year: history.lastEditionYear })}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </article>
+                  {podium.runnerUp || podium.third ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {podium.runnerUp ? (
+                        <PodiumSlot
+                          club={podium.runnerUp}
+                          label={t.runnerUp}
+                          medalNote={ti.medalSilver}
+                          tone="silver"
+                        />
+                      ) : null}
+                      {podium.third ? (
+                        <PodiumSlot
+                          club={podium.third}
+                          label={ti.thirdPlace}
+                          medalNote={ti.medalBronze}
+                          tone="bronze"
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/70" data-testid="podium-empty">
+                  {ti.podiumEmpty}
+                </p>
+              )}
+            </section>
+
+            {/* HISTÓRIA — só o que o acervo sustenta; lacuna vira texto declarado. */}
+            <section aria-labelledby="history-title">
+              <div className="flex flex-wrap items-center gap-3 mb-3">
+                <h2 id="history-title" className="text-xl font-heading font-bold">
+                  {ti.historyTitle}
+                </h2>
+                {history?.status === 'vigente' ? (
+                  <span
+                    className="text-xs px-2.5 py-1 rounded-full bg-success-surface text-success-ink font-semibold"
+                    data-testid="competition-status"
+                  >
+                    {ti.statusVigente}
+                  </span>
+                ) : null}
+                {history?.status === 'extinta' ? (
+                  <span
+                    className="text-xs px-2.5 py-1 rounded-full bg-foreground/5 text-foreground/70"
+                    data-testid="competition-status"
+                  >
+                    {dissolvedYear != null
+                      ? insText(ti.statusExtinta, { year: dissolvedYear })
+                      : ti.statusExtinta.replace(' {year}', '')}
+                  </span>
+                ) : null}
+                {history?.status === 'sem_edicao_recente' ? (
+                  <span
+                    className="text-xs px-2.5 py-1 rounded-full bg-foreground/5 text-foreground/70"
+                    data-testid="competition-status"
+                  >
+                    {ti.statusSemEdicao}
+                  </span>
+                ) : null}
+              </div>
+              {history && history.editionsCount > 0 ? (
+                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {history.firstEditionYear != null ? (
+                    <HistoryStat label={ti.firstEdition} value={String(history.firstEditionYear)} />
+                  ) : null}
+                  <HistoryStat label={ti.editionsCount} value={String(history.editionsCount)} />
+                  {history.biggestChampion ? (
+                    <HistoryStat
+                      label={ti.biggestChampion}
+                      value={
+                        <Link
+                          href={`/clubs/${history.biggestChampion.clubId}`}
+                          className="text-primary-ink hover:underline"
+                        >
+                          {history.biggestChampion.clubName}
+                        </Link>
+                      }
+                      extra={`${history.biggestChampion.titles} ${t.titles}`}
+                    />
+                  ) : null}
+                  {history.longestStreak ? (
+                    <HistoryStat
+                      label={ti.longestStreak}
+                      value={history.longestStreak.clubName}
+                      extra={`${history.longestStreak.from}–${history.longestStreak.to}`}
+                    />
+                  ) : null}
+                </dl>
+              ) : (
+                <p className="text-sm text-foreground/70" data-testid="history-empty">
+                  {ti.historyEmpty}
+                </p>
+              )}
+              {descriptionText ? (
+                <div className="mt-5">
+                  <h3 className="text-sm font-semibold text-foreground">{ti.aboutTitle}</h3>
+                  <p className="measure-readable text-sm text-foreground mt-1">{descriptionText}</p>
+                  <SourceNote
+                    href={descriptionSourceUrl}
+                    label="Wikidata"
+                    detail="CC0"
+                    ariaLabel={
+                      locale === 'pt-br'
+                        ? 'Fonte da descrição: Wikidata (CC0)'
+                        : locale === 'en-us'
+                          ? 'Description source: Wikidata (CC0)'
+                          : 'Fuente de la descripción: Wikidata (CC0)'
+                    }
+                  />
+                </div>
+              ) : null}
+            </section>
+
+            {/* MÉTRICAS — totais SOMENTE das edições catalogadas (nota de escopo visível). */}
+            {totals && (totals.matches != null || totals.goals != null) ? (
+              <section aria-labelledby="metrics-title">
+                <h2 id="metrics-title" className="text-xl font-heading font-bold mb-3">
+                  {ti.metricsTitle}
+                </h2>
+                <div className="grid grid-cols-2 gap-4 max-w-md" data-testid="competition-totals">
+                  {totals.matches != null ? (
+                    <div className="rounded-xl border border-border bg-muted p-4">
+                      <p className="font-heading text-3xl font-bold text-primary-ink">
+                        {formatCount(totals.matches, locale)}
+                      </p>
+                      <p className="text-sm text-foreground/70">{t.matches}</p>
+                    </div>
+                  ) : null}
+                  {totals.goals != null ? (
+                    <div className="rounded-xl border border-border bg-muted p-4">
+                      <p className="font-heading text-3xl font-bold text-primary-ink">
+                        {formatCount(totals.goals, locale)}
+                      </p>
+                      <p className="text-sm text-foreground/70">{t.goals}</p>
+                    </div>
+                  ) : null}
+                </div>
+                <p className="text-xs text-foreground/70 mt-2">{ti.metricsNote}</p>
+              </section>
+            ) : null}
+
+            <p className="text-xs text-foreground/70">{t.overviewHint}</p>
+          </div>
         ) : null}
       </div>
     </div>
@@ -537,5 +851,78 @@ function Info({ label, value, extra }: { label: string; value: React.ReactNode; 
         {extra ? <span className="text-foreground/70"> · {extra}</span> : null}
       </p>
     </div>
+  );
+}
+
+/**
+ * Estatística da HISTÓRIA — mesmo molde do `Info` do cabeçalho, com valor grande.
+ * Só entra quando o acervo tem o dado (chamada condicional no JSX).
+ */
+function HistoryStat({
+  label,
+  value,
+  extra,
+}: {
+  label: string;
+  value: React.ReactNode;
+  extra?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-muted p-4" data-testid="history-stat">
+      <dt className="text-xs text-foreground/70 uppercase tracking-wider">{label}</dt>
+      <dd className="font-heading text-lg font-bold text-foreground mt-0.5">
+        {value}
+        {extra ? (
+          <span className="text-sm font-semibold text-foreground/70"> · {extra}</span>
+        ) : null}
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * Slot de vice/3º do pódio — MEDALHA É ILUSTRAÇÃO AUTORAL (ícone autoral do design
+ * system), nunca foto de medalha: o rótulo declara isso no próprio card. Sem clube no
+ * acervo, o slot nem renderiza (chamada condicional) — não existe pódio inventado.
+ */
+function PodiumSlot({
+  club,
+  label,
+  medalNote,
+  tone,
+}: {
+  club: PodiumClubDto;
+  label: string;
+  medalNote: string;
+  tone: 'silver' | 'bronze';
+}) {
+  return (
+    <article
+      className="rounded-xl border border-border bg-background p-4"
+      data-testid={tone === 'silver' ? 'podium-runner-up' : 'podium-third'}
+    >
+      <div className="flex items-center gap-3">
+        {/* Ícone decorativo (aria-hidden): quem nomeia o slot é o rótulo de texto. */}
+        <span
+          aria-hidden="true"
+          className={`shrink-0 ${tone === 'silver' ? 'text-ink-2' : 'text-secondary'}`}
+        >
+          <TrophyMedal size={28} />
+        </span>
+        <div>
+          <p className="text-xs text-foreground/70">{label}</p>
+          <p className="font-heading font-bold text-foreground">
+            {club.clubId ? (
+              <Link href={`/clubs/${club.clubId}`} className="hover:text-primary-ink">
+                {club.clubName}
+              </Link>
+            ) : (
+              club.clubName
+            )}
+          </p>
+        </div>
+      </div>
+      <p className="mt-2 text-[0.6875rem] leading-snug text-ink-3">{medalNote}</p>
+    </article>
   );
 }
