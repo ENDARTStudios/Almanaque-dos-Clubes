@@ -830,21 +830,30 @@ model Favorite {
 }
 
 // WS-C-9 Modo Clube — um usuário representa/edita um clube.
-// Nesta fase: auto-aprovado (status 'active' direto na criação).
+// Critérios C1–C4 (docs/EDITORES-DE-CLUBES-CRITERIOS.md): nasce 'pending' (C3,
+// revisão humana — NUNCA 'active' automático); evidência de vínculo (C2) e
+// revisão registrada (quem revisou) em colunas próprias.
 model ClubOwnership {
-  id         String    @id @default(uuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clubId     String
-  club       Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  role       String    @default("editor") // 'editor' | 'admin' (admin = futuro)
-  status     String    @default("active") // 'pending' | 'active' | 'revoked'
-  requestedAt DateTime @default(now())
-  approvedAt  DateTime?
-  approvedBy  String?
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId       String
+  club         Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  role         String    @default("editor") // 'editor' | 'admin' (admin = futuro)
+  status       String    @default("pending") // 'pending' | 'active' | 'suspended' | 'revoked'
+  requestedAt  DateTime  @default(now())
+  approvedAt   DateTime?
+  approvedBy   String?
+  // C2 — prova de vínculo verificável por terceiro (link e/ou nota declarada).
+  evidenceUrl  String?
+  evidenceNote String?
+  // C3 — quem fez a revisão (aprovação ou revogação); approvedBy fica na
+  // aprovação; na revogação o motivo vai para evidenceNote (marcado) + auditoria.
+  reviewedBy   String?
 
   @@unique([userId, clubId])
   @@index([clubId])
+  @@index([status])
   @@index([userId])
 }
 
