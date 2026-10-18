@@ -40,6 +40,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
+    // T-28 — landing de apoio (planos/parcerias/patrocínio); estática, muda pouco.
+    {
+      url: `${baseUrl}/apoiadores`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
     // WS-C-2 — `/search` é noindex (queries dinâmicas); fora do sitemap.
     {
       url: `${baseUrl}/auth/login`,
