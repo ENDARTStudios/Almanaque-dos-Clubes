@@ -26,6 +26,7 @@ let dbOk = true;
 const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
 let userA = ''; // Elite (editor em teste)
 let userB = ''; // FREE
+let operadorId = ''; // Operador (linha real — FK da auditoria)
 let clubId = '';
 let clubNacional = '';
 let clubFull = '';
@@ -64,16 +65,22 @@ beforeAll(async () => {
     return;
   }
   const suffix = Date.now();
-  const [a, b] = await prisma.$transaction([
+  const [a, b, operador] = await prisma.$transaction([
     prisma.user.create({
       data: { email: `own-gates-a-${suffix}@test.local`, passwordHash: 'x' },
     }),
     prisma.user.create({
       data: { email: `own-gates-b-${suffix}@test.local`, passwordHash: 'x' },
     }),
+    // Operador com LINHA REAL em users: a auditoria tem FK p/ users
+    // (audit_logs_userId_fkey) — userId inexistente quebra o approve em teste.
+    prisma.user.create({
+      data: { email: `own-gates-op-${suffix}@test.local`, passwordHash: 'x' },
+    }),
   ]);
   userA = a.id;
   userB = b.id;
+  operadorId = operador.id;
   await prisma.subscription.create({ data: eliteFixture(userA) });
   const club = await prisma.club.create({
     data: { name: 'Ownership Gates FC', city: 'São Paulo', country: 'BR' },
@@ -89,9 +96,10 @@ beforeAll(async () => {
   clubFull = full.id;
   tokenA = app.jwt.sign({ sub: userA, email: a.email, roles: [], permissions: [], type: 'access' });
   tokenB = app.jwt.sign({ sub: userB, email: b.email, roles: [], permissions: [], type: 'access' });
-  // Operador: e-mail na allowlist default (env.ts) + papel admin.
+  // Operador: sub = usuário REAL (FK da auditoria) + e-mail na allowlist
+  // default (env.ts) + papel admin.
   tokenOperador = app.jwt.sign({
-    sub: 'operador-test',
+    sub: operadorId,
     email: 'endart.studios@gmail.com',
     roles: ['admin'],
     permissions: [],
@@ -104,9 +112,11 @@ afterAll(async () => {
     await prisma.clubOwnership.deleteMany({
       where: { clubId: { in: [clubId, clubNacional, clubFull] } },
     });
-    await prisma.subscription.deleteMany({ where: { userId: { in: [userA, userB] } } });
+    await prisma.subscription.deleteMany({
+      where: { userId: { in: [userA, userB, operadorId] } },
+    });
     await prisma.club.deleteMany({ where: { id: { in: [clubId, clubNacional, clubFull] } } });
-    await prisma.user.deleteMany({ where: { id: { in: [userA, userB] } } });
+    await prisma.user.deleteMany({ where: { id: { in: [userA, userB, operadorId] } } });
   }
   await app.close();
 });
@@ -185,26 +195,28 @@ describe.skipIf(!dbOk || !isPostgres)('WS-C-9 gates C1–C4 (rotas)', () => {
     expect(res.json().error.code).toBe('MANUAL_CURATION_REQUIRED');
   });
 
-  it('4ª posse do clube → 409 CLUB_EDITORS_FULL (1 editor + 3 curadores)', async () => {
-    // 3 terceiros já ocupam (pending/active/suspended) → a claim de A é a 4ª.
+  it('clube com 4 posses (1 editor + 3 curadores) → nova claim 409 CLUB_EDITORS_FULL', async () => {
+    // 4 terceiros já ocupam (pending/active/suspended contam; revogada não) →
+    // o teto C4 (1 editor + 3 curadores) está cheio e a claim de A é bloqueada.
     const suffix = Date.now();
     const others = await prisma.user.createMany({
-      data: [1, 2, 3].map((i) => ({
+      data: [1, 2, 3, 4].map((i) => ({
         email: `own-full-${suffix}-${i}@test.local`,
         passwordHash: 'x',
       })),
     });
-    expect(others.count).toBe(3);
+    expect(others.count).toBe(4);
     const users = await prisma.user.findMany({
       where: { email: { startsWith: `own-full-${suffix}-` } },
       select: { id: true },
     });
+    expect(users.length).toBe(4);
     try {
       await prisma.clubOwnership.createMany({
         data: users.map((u, i) => ({
           userId: u.id,
           clubId: clubFull,
-          status: ['pending', 'active', 'suspended'][i],
+          status: ['active', 'pending', 'pending', 'suspended'][i], // 1 editor + 3 curadores
         })),
       });
       const res = await app.inject({
@@ -236,8 +248,8 @@ describe.skipIf(!dbOk || !isPostgres)('WS-C-9 gates C1–C4 (rotas)', () => {
     const updated = await prisma.clubOwnership.findUnique({
       where: { userId_clubId: { userId: userA, clubId } },
     });
-    expect(updated?.approvedBy).toBe('operador-test');
-    expect(updated?.reviewedBy).toBe('operador-test');
+    expect(updated?.approvedBy).toBe(operadorId);
+    expect(updated?.reviewedBy).toBe(operadorId);
     expect(updated?.approvedAt).not.toBeNull();
 
     // Editor aprovado publica (HTML sanitizado) — e propose auto-aprova.

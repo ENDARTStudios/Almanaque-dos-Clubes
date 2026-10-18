@@ -187,9 +187,11 @@ export async function ownClub(
   }
 
   // C4 — teto de 1 editor + 3 curadores (contam pending/active/suspended;
-  // revogadas não ocupam vaga).
+  // revogadas não ocupam vaga). Com 4 ocupantes, a nova claim é bloqueada.
   const occupying = await withRlsContext({ role: 'SERVICE' }, (tx) =>
-    tx.clubOwnership.count({ where: { clubId, status: { not: 'revoked' } } }),
+    tx.clubOwnership.count({
+      where: { clubId, status: { in: ['pending', 'active', 'suspended'] } },
+    }),
   );
   if (occupying >= MAX_OWNERSHIPS_PER_CLUB) {
     throw new DomainError(

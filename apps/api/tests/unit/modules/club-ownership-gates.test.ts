@@ -8,7 +8,7 @@
  *  4. Aprovação                 → 'active' + approvedBy/reviewedBy registrados
  *  5. propose() com posse pending → OWNERSHIP_PENDING_REVIEW
  *  6. propose() com posse active  → auto-aprova (editor que passou por C1–C3)
- *  7. 4ª posse no clube         → CLUB_EDITORS_FULL (1 editor + 3 curadores)
+ *  7. clube cheio (4 posses)    → CLUB_EDITORS_FULL (1 editor + 3 curadores)
  *  8. Elite perdido             → posse 'suspended' + OWNERSHIP_SUSPENDED
  *  + seleção nacional → MANUAL_CURATION_REQUIRED; renovou Elite → reativa;
  *    revogada → OWNERSHIP_REVOKED; revogar 2× → OWNERSHIP_ALREADY_REVOKED.
@@ -379,13 +379,25 @@ describe('WS-C-9 C1 na publicação — Elite perdido', () => {
 });
 
 describe('WS-C-9 C4 — conduta', () => {
-  it('4ª posse no clube (1 editor + 3 curadores) → CLUB_EDITORS_FULL (409)', async () => {
+  it('clube cheio (4 posses: 1 editor + 3 curadores) → CLUB_EDITORS_FULL (409)', async () => {
     state.subscription = eliteActive();
     state.occupyingCount = MAX_OWNERSHIPS_PER_CLUB;
     tx.clubOwnership.count.mockResolvedValue(state.occupyingCount);
     await expect(
       ownClub('user-1', 'club-1', { evidenceUrl: 'https://clube.com.br/eu' }),
     ).rejects.toMatchObject({ code: 'CLUB_EDITORS_FULL', statusCode: 409 });
+  });
+
+  it('fronteira: 3 ocupantes (pending/active/suspended) ainda cabem → claim criada', async () => {
+    state.subscription = eliteActive();
+    state.occupyingCount = MAX_OWNERSHIPS_PER_CLUB - 1;
+    tx.clubOwnership.count.mockResolvedValue(state.occupyingCount);
+    const result = await ownClub('user-1', 'club-1', { evidenceUrl: 'https://clube.com.br/eu' });
+    expect(result).toEqual({ created: true, status: 'pending' });
+    // a contagem do teto inclui pending/active/suspended (revogada não ocupa)
+    expect(tx.clubOwnership.count).toHaveBeenCalledWith({
+      where: { clubId: 'club-1', status: { in: ['pending', 'active', 'suspended'] } },
+    });
   });
 
   it('revogação com motivo → revoked + stamped em evidenceNote + reviewedBy', async () => {
