@@ -104,8 +104,8 @@ importers:
         specifier: ^0.45.0
         version: 0.45.1
       bullmq:
-        specifier: ^6.3.12
-        version: 6.3.12(ioredis@6.0.0)
+        specifier: ^6.3.15
+        version: 6.3.16(ioredis@6.0.0)
       dotenv:
         specifier: ^18.0.7
         version: 18.0.7
@@ -2131,8 +2131,8 @@ packages:
       redis:
         optional: true
 
-  bullmq@6.3.12:
-    resolution: {integrity: sha512-zuPU+RbyiTzRtxVeokO0EotJ+PkHyAEXugEAYYyP+pm7bbJAbrvQR1SHW6MCUgA0e4C23/07dcOCymEe+GNGHw==}
+  bullmq@6.3.16:
+    resolution: {integrity: sha512-savxnrdqckobnm31XWwCKTAswkxrNIqLD/PsdwgYaDpst0UdULu/QjOtPdn86KNrBq8WoHKhJvbgGK13dgPJ8w==}
     engines: {node: '>=14.17.0'}
     peerDependencies:
       bullmq-otel: '>=2.0.0'
@@ -2251,8 +2251,8 @@ packages:
     resolution: {integrity: sha512-yuToqVvRrj6pfDXREyQAAv8SkAEk/8GS3jQRTiUMm66TVtBYmqQeoEjL2Lmq8Rpo6271vH76InTChTitEAm65w==}
     engines: {node: '>=22'}
 
-  cron-parser@5.10.1:
-    resolution: {integrity: sha512-pKRrRagItwk9rGIStcUyMxFX34x56zoX3KDf9HJ4ttwkXIK1qxK63EvXvEDmlxI9AdPJ+Y7TEKRftRlW5eSS7A==}
+  cron-parser@5.10.2:
+    resolution: {integrity: sha512-JfAYMY0LZaWQTuict8PhtF/ksSnq8xefSDmQUnnoqvkPYkU/y3UP0DTWzJKFBz0P1IXsDG8q0vY3zHkoFZOhvw==}
     engines: {node: '>=18'}
 
   cron-parser@5.7.0:
@@ -6248,9 +6248,9 @@ snapshots:
     optionalDependencies:
       ioredis: 6.0.0
 
-  bullmq@6.3.12(ioredis@6.0.0):
+  bullmq@6.3.16(ioredis@6.0.0):
     dependencies:
-      cron-parser: 5.10.1
+      cron-parser: 5.10.2
       msgpackr: 2.1.0
       node-abort-controller: 3.1.1
       semver: 7.8.5
@@ -6347,7 +6347,7 @@ snapshots:
 
   cookie@2.0.1: {}
 
-  cron-parser@5.10.1:
+  cron-parser@5.10.2:
     dependencies:
       luxon: 3.7.2
 
