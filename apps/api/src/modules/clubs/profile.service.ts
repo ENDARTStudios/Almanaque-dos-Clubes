@@ -386,6 +386,51 @@ async function loadRelatedEdges(clubId: string): Promise<ProfileRelatedEdge[]> {
     });
 }
 
+/** T32 — escudos do clube, em ordem cronológica. */
+export interface ClubCrestItem {
+  id: string;
+  imageUrl: string;
+  sourceUrl: string;
+  license: string;
+  attribution: string | null;
+  yearFrom: number | null;
+  yearTo: number | null;
+  isCurrent: boolean;
+  periodLabel: string | null;
+}
+
+/**
+ * Escudos ao longo do tempo.
+ *
+ * Ordena por `yearFrom` com os nulos por último: escudo sem ano conhecido é CONTEXTO, e não pode
+ * abrir a linha do tempo à frente de um escudo datado de 1902. `isCurrent` desempata para o
+ * escudo vigente ficar por último quando a data é a mesma.
+ */
+export async function loadCrests(clubId: string): Promise<ClubCrestItem[]> {
+  const linhas = await prisma.clubCrest.findMany({
+    where: { clubId },
+    select: {
+      id: true,
+      imageUrl: true,
+      sourceUrl: true,
+      license: true,
+      attribution: true,
+      yearFrom: true,
+      yearTo: true,
+      isCurrent: true,
+      periodLabel: true,
+    },
+  });
+  return linhas.sort((a, b) => {
+    if (a.yearFrom === null && b.yearFrom === null)
+      return Number(a.isCurrent) - Number(b.isCurrent);
+    if (a.yearFrom === null) return 1;
+    if (b.yearFrom === null) return -1;
+    if (a.yearFrom !== b.yearFrom) return a.yearFrom - b.yearFrom;
+    return Number(a.isCurrent) - Number(b.isCurrent);
+  });
+}
+
 export async function loadRankings(clubId: string): Promise<ProfileRankingItem[]> {
   const entries = await prisma.rankingEntry.findMany({
     where: { clubId, ranking: { publishedAt: { not: null } } },

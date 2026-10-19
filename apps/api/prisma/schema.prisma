@@ -32,71 +32,73 @@ datasource db {
 // -----------------------------------------------------------------------------
 
 model Club {
-  favorites Favorite[]
-  owners ClubOwnership[]
-  descriptionProposals ClubDescriptionProposal[]
+  favorites                Favorite[]
+  /// T32 — escudos ao longo do tempo (evolução da identidade visual).
+  crests                   ClubCrest[]
+  owners                   ClubOwnership[]
+  descriptionProposals     ClubDescriptionProposal[]
   // T508 (W4) — temporadas em que o clube foi campeão/vice (CompetitionSeason).
-  seasonsAsChampion CompetitionSeason[] @relation("CompetitionSeasonChampion")
-  seasonsAsRunnerUp CompetitionSeason[] @relation("CompetitionSeasonRunnerUp")
-  id           String     @id @default(uuid())
-  name         String
-  fullName     String?
-  shortName    String?
-  city         String?
-  state        String?
-  country      String?    @db.VarChar(2) // ISO 3166-1 alpha-2
-  foundedYear  Int?
-  status       ClubStatus @default(ACTIVE)
-  primaryColor String?    @db.Char(7) // #RRGGBB
-  website      String?
+  seasonsAsChampion        CompetitionSeason[]       @relation("CompetitionSeasonChampion")
+  seasonsAsRunnerUp        CompetitionSeason[]       @relation("CompetitionSeasonRunnerUp")
+  id                       String                    @id @default(uuid())
+  name                     String
+  fullName                 String?
+  shortName                String?
+  city                     String?
+  state                    String?
+  country                  String?                   @db.VarChar(2) // ISO 3166-1 alpha-2
+  foundedYear              Int?
+  status                   ClubStatus                @default(ACTIVE)
+  primaryColor             String?                   @db.Char(7) // #RRGGBB
+  website                  String?
   // T450 — 'men' | 'women' | 'mixed' (default 'men' para o acervo existente;
   // semeado por T450 marca 'women' — convenção WOMENS_GENDER_VALUE)
-  gender       String     @default("men")
+  gender                   String                    @default("men")
   // WS-C-13 — redes sociais + snapshot estático de seguidores (Wikidata/owner)
-  socialLinks            Json?
-  followersSnapshot      Json?
-  socialLinksUpdatedAt   DateTime?
+  socialLinks              Json?
+  followersSnapshot        Json?
+  socialLinksUpdatedAt     DateTime?
   // WS-C-9 Modo Clube — conteúdo da comunidade, ADITIVO aos dados oficiais
   // (Wikidata): nunca sobrescreve name/city/etc.
-  userDescription           String?    @db.Text // máx 2000 chars (validado na API)
-  userDescriptionSource     String?    // 'community' | 'official'
-  userDescriptionUpdatedAt  DateTime?
-  qid          String?    @unique // Wikidata Q-identifier (ex: Q12345)
-  latitude     Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
+  userDescription          String?                   @db.Text // máx 2000 chars (validado na API)
+  userDescriptionSource    String? // 'community' | 'official'
+  userDescriptionUpdatedAt DateTime?
+  qid                      String?                   @unique // Wikidata Q-identifier (ex: Q12345)
+  latitude                 Float? // Coordenada (P625) de localização do clube (mapa-múndi)
   // T502 — mídia visual (Wikidata P154/P115/P625/P1083/P18) + identidade (seleções)
-  logoUrl           String?
-  teamColors        Json?
-  stadiumName       String?
-  stadiumImage      String?
-  stadiumCapacity   Int?
-  stadiumLat        Float?
-  stadiumLng        Float?
-  kind              String  @default("club") // 'club' | 'national_team' | 'federation'
-  federation        String?
+  logoUrl                  String?
+  teamColors               Json?
+  stadiumName              String?
+  stadiumImage             String?
+  stadiumCapacity          Int?
+  stadiumLat               Float?
+  stadiumLng               Float?
+  kind                     String                    @default("club") // 'club' | 'national_team' | 'federation'
+  federation               String?
   // T507 — texto editorial por idioma (Wikipedia REST, CC-BY-SA 3.0).
   // Shape: { pt?: {extract, sourceUrl}, en?: {...}, es?: {...} }
-  editorialText     Json?
+  editorialText            Json?
   // T509 (W6) — histórico de uniformes [{season, type, imageUrl, sourceUrl}]
-  kitHistory        Json?
-  anthem        Json? // T524 — hino do clube: áudio (licença verificada), metadados (compositor/ano) e letra (só com licença livre)
-  pennants      Json? // T525 — flâmulas do clube (imagens com licença verificada + curiosidades da fonte)
+  kitHistory               Json?
+  anthem                   Json? // T524 — hino do clube: áudio (licença verificada), metadados (compositor/ano) e letra (só com licença livre)
+  pennants                 Json? // T525 — flâmulas do clube (imagens com licença verificada + curiosidades da fonte)
   // T528 — registro de TENTATIVA por mídia: { "<media>": { at, status, reason? } }.
   // É o CURSOR do job em lote `enrich-all-media` (e dos jobs de mídia/editorial):
   // sem ele a seleção por `campo IS NULL` reprocessa o mesmo lote alfabético toda
   // noite e a cobertura não avança. Gap vira registro auditável, não retrabalho.
-  mediaEnrichment Json?
-  longitude    Float?     // Coordenada (P625) de localização do clube (mapa-múndi)
-  importedFrom String?    // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
-  importedAt   DateTime?
-  sourceUrl    String?    // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  mediaEnrichment          Json?
+  longitude                Float? // Coordenada (P625) de localização do clube (mapa-múndi)
+  importedFrom             String? // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt               DateTime?
+  sourceUrl                String? // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
   // WS-D M1a-3 — proveniência de coordenadas geocodificadas (JSONB livre).
   // Ex.: { coordSource, coordPrecision: "exact"|"municipality", coordResolvedAt }.
-  metadata     Json?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  metadata                 Json?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
   // T449EN — remoção por admin/ruído (NÃO é clube extinto: o acervo histórico
   // permanece ACTIVE); exclui das views públicas por padrão.
-  deletedAt    DateTime?
+  deletedAt                DateTime?
 
   // Coluna tsvector Unsupported para busca full-text (definida via SQL raw).
   // Ver `prisma/fulltext-indexes.sql` e evidência 2.11.
@@ -105,20 +107,20 @@ model Club {
   // Relações
   players       Player[]
   rankings      RankingEntry[]
-  homeMatches   Match[]    @relation("homeMatches")
-  awayMatches   Match[]    @relation("awayMatches")
-  stadiums      Stadium[]  // Um clube pode ter vários estádios ao longo da história
+  homeMatches   Match[]        @relation("homeMatches")
+  awayMatches   Match[]        @relation("awayMatches")
+  stadiums      Stadium[] // Um clube pode ter vários estádios ao longo da história
   // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
   // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
   createdBy     String?
-  createdByUser User?      @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
+  createdByUser User?          @relation("ClubCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
 
   // T466 — geografia normalizada (FKs nullable; campos texto legados preservados p/ compat)
-  countryId String?
+  countryId  String?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  stateId   String?
+  stateId    String?
   stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
-  cityId    String?
+  cityId     String?
   cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
 
   // T448b-2f — homônimos nacionais legítimos (identidade = QID). O único global
@@ -138,6 +140,54 @@ model Club {
   @@map("clubs")
 }
 
+/// T32 — EVOLUÇÃO DOS ESCUDOS de um clube.
+///
+/// ── POR QUE UMA TABELA, E NÃO UM CAMPO ARRAY ───────────────────────────────────────────
+/// Escudo tem LICENÇA e ATRIBUIÇÃO próprias, ano de início e de fim, e pode ser corrigido
+/// individualmente. Guardar como JSON em `Club` amarraria a licença ao registro do clube e
+/// impediria indexar por período.
+///
+/// ── A LICENÇA É OBRIGATÓRIA, E ISSO É DELIBERADO ─────────────────────────────────────
+/// Escudo de clube é marca registrada. `license` e `sourceUrl` são obrigatórios porque um
+/// escudo sem procedência não pode entrar no acervo: não dá para remover depois o que não
+/// se sabe de onde veio. O bot só grava arquivo com licença LIVRE verificada — o Commons não
+/// aceita fair use, mas a licença específica é LIDA e gravada, nunca presumida.
+model ClubCrest {
+  id     String @id @default(uuid())
+  clubId String
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  /// URL da imagem (Commons, https).
+  imageUrl    String
+  /// Página de origem — auditabilidade. Obrigatória junto com `license`.
+  sourceUrl   String
+  /// Licença em texto curto: "Public domain", "CC BY-SA 4.0", ...
+  license     String
+  /// Atribuição quando a licença exige. Null em domínio público.
+  attribution String?
+
+  /// Ano de início do uso. Null = desconhecido (NÃO é zero nem "antes de 1900").
+  yearFrom  Int?
+  /// Ano de término. Null = ainda em uso, ou desconhecido — ver `isCurrent`.
+  yearTo    Int?
+  /// Verdadeiro só para o escudo vigente. Um clube pode ter vários históricos.
+  isCurrent Boolean @default(false)
+
+  /// Rótulo do período já pronto ("1902–1970"). Evita a tela recalcular e errar quando
+  /// falta um dos anos.
+  periodLabel String?
+
+  importedFrom String?
+  importedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  /// O mesmo arquivo não entra duas vezes para o mesmo clube.
+  @@unique([clubId, imageUrl])
+  @@index([clubId, yearFrom])
+  @@map("club_crests")
+}
+
 enum ClubStatus {
   ACTIVE
   INACTIVE
@@ -149,41 +199,41 @@ enum ClubStatus {
 // -----------------------------------------------------------------------------
 
 model Player {
-  id           String    @id @default(uuid())
-  fullName     String
+  id                   String         @id @default(uuid())
+  fullName             String
   // T522 — entradas de ranking de jogador.
-  rankingEntries RankingEntry[]
+  rankingEntries       RankingEntry[]
   // WS-C-13
-  officialSite           String?
-  socialLinks            Json?
-  followersSnapshot      Json?
-  socialLinksUpdatedAt   DateTime?
-  shortName    String?
-  birthDate    DateTime?
-  country      String?   @db.VarChar(2)
+  officialSite         String?
+  socialLinks          Json?
+  followersSnapshot    Json?
+  socialLinksUpdatedAt DateTime?
+  shortName            String?
+  birthDate            DateTime?
+  country              String?        @db.VarChar(2)
   // T034 — P21 Wikidata ('men' | 'women'); nullable, ingestão preenche quando a fonte traz.
-  gender       String?
+  gender               String?
   // T502 — P18 Wikidata (Wikimedia Commons, CC-BY-SA/CC0)
-  photoUrl     String?
+  photoUrl             String?
   // T550 — cursor de TENTATIVA do job de perfil (foto/país/posição), mesma ideia de
   // `clubs.mediaEnrichment` (T528): `{ "profile": { at, status } }`.
-  mediaEnrichment Json?
+  mediaEnrichment      Json?
   // T-22.3 (tarefa 23) — perfil enriquecido via Wikidata (bot enrich-player-profiles).
   // Zero overwrite: o bot só preenche colunas NULL (re-run = noop).
-  nickname        String?
-  heightCm        Int?
-  preferredFoot   String?   // 'left' | 'right' | 'both'
-  individualAwards Json?    // [{qid,label,year,sourceUrl}] — proveniência por item
-  profileEnrichment Json?   // cursor {at,status,processed,updated,skipped,errors} (padrão mediaEnrichment T550)
-  position     String?
-  clubId       String?
-  club         Club?     @relation(fields: [clubId], references: [id], onDelete: SetNull)
-  qid          String?   @unique // Wikidata Q-identifier
-  importedFrom String?   // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
-  importedAt   DateTime?
-  sourceUrl    String?   // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  nickname             String?
+  heightCm             Int?
+  preferredFoot        String? // 'left' | 'right' | 'both'
+  individualAwards     Json? // [{qid,label,year,sourceUrl}] — proveniência por item
+  profileEnrichment    Json? // cursor {at,status,processed,updated,skipped,errors} (padrão mediaEnrichment T550)
+  position             String?
+  clubId               String?
+  club                 Club?          @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  qid                  String?        @unique // Wikidata Q-identifier
+  importedFrom         String? // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt           DateTime?
+  sourceUrl            String? // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   search_vector Unsupported("tsvector")?
 
@@ -200,35 +250,35 @@ model Player {
 // -----------------------------------------------------------------------------
 
 model Competition {
-  id           String   @id @default(uuid())
-  name         String
-  gender       String   @default("men") // T450 — 'men' | 'women'
+  id                    String              @id @default(uuid())
+  name                  String
+  gender                String              @default("men") // T450 — 'men' | 'women'
   // T509 (W6) — foto do troféu (Wikimedia Commons)
-  trophyImageUrl String?
-  trophyModel    Json? // T526 — modelo 3D do troféu (Commons só hospeda .stl; 0 modelos na fonte em 12-10-2026)
+  trophyImageUrl        String?
+  trophyModel           Json? // T526 — modelo 3D do troféu (Commons só hospeda .stl; 0 modelos na fonte em 12-10-2026)
   // T-24/25 — enriquecimento Wikidata (bot enrich-competitions, CC0)
-  description           Json?     // {pt,en,es,sourceUrl,at} — descrições CC0 + proveniência
-  inceptionYear         Int?      // P571 (só precisão ≥ ano; faixa 1850..atual+1)
+  description           Json? // {pt,en,es,sourceUrl,at} — descrições CC0 + proveniência
+  inceptionYear         Int? // P571 (só precisão ≥ ano; faixa 1850..atual+1)
   dissolvedAt           DateTime? // P576 (competição extinta; precisão dia/ano)
-  competitionEnrichment Json?     // cursor {at,status,processed,updated,skipped,errors}
-  seasons      CompetitionSeason[]
-  country      String?  @db.VarChar(2)
+  competitionEnrichment Json? // cursor {at,status,processed,updated,skipped,errors}
+  seasons               CompetitionSeason[]
+  country               String?             @db.VarChar(2)
   // WS-C-13
-  officialSite           String?
-  socialLinks            Json?
-  followersSnapshot      Json?
-  socialLinksUpdatedAt   DateTime?
-  type         CompetitionType?
-  level        Int? // T449c-v1 — degrau na pirâmide nacional (1 = elite); NULL = desconhecido
-  qid          String?  @unique // Wikidata Q-identifier
-  importedFrom String?  // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
-  importedAt   DateTime?
-  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  officialSite          String?
+  socialLinks           Json?
+  followersSnapshot     Json?
+  socialLinksUpdatedAt  DateTime?
+  type                  CompetitionType?
+  level                 Int? // T449c-v1 — degrau na pirâmide nacional (1 = elite); NULL = desconhecido
+  qid                   String?             @unique // Wikidata Q-identifier
+  importedFrom          String? // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  importedAt            DateTime?
+  sourceUrl             String? // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
   // T448b-2i — soft-delete de duplicatas legacy (identidade canônica = qid). Sem hard delete.
-  deletedAt      DateTime?
-  deletionReason String?
+  deletedAt             DateTime?
+  deletionReason        String?
 
   search_vector Unsupported("tsvector")?
 
@@ -256,10 +306,10 @@ enum CompetitionType {
 // -----------------------------------------------------------------------------
 
 model Ranking {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   name           String
   // T522 — 'club' (padrão) | 'player': separa o ranking de clube do de jogador.
-  type           String   @default("club")
+  type           String       @default("club")
   competitionId  String?
   competition    Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   season         String?
@@ -269,8 +319,8 @@ model Ranking {
   tierVersion    String? // versão do mapeamento de tier usado
   formulaVersion String? // versão da fórmula do agregado
   publishedAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   entries RankingEntry[]
 
@@ -290,19 +340,19 @@ model RankingEntry {
   rankingId     String
   ranking       Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
   clubId        String?
-  club          Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club          Club?    @relation(fields: [clubId], references: [id], onDelete: Cascade)
   // T522 — ranking de JOGADOR: a entrada aponta para o jogador (clubId fica NULL).
   playerId      String?
-  player        Player?    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player        Player?  @relation(fields: [playerId], references: [id], onDelete: Cascade)
   // position NULL = registro sem posição publicada (dados insuficientes) — T425
-  position      Int?     // 1 = primeiro, 2 = segundo, etc.; NULL = não ranqueado
-  points        Int?     // 0-100 normalizado por gênero; NULL se dados insuficientes
+  position      Int? // 1 = primeiro, 2 = segundo, etc.; NULL = não ranqueado
+  points        Int? // 0-100 normalizado por gênero; NULL se dados insuficientes
   // Base auditável do ranking (T425) — a UI exibe "com base em N partidas / T títulos".
-  baseMatches   Int?     // nº de partidas que compõem a base do clube-ano
-  baseTitles    Int?     // nº de títulos auditáveis que compõem a base
-  dataSourceIds Json?    // proveniência (ex.: ["rsssf","wikidata"]) — JSONB
-  reason        String?  // NULL ou motivo de não-publicação (ex.: "dados insuficientes")
-  gender        String?  // "men" | "women" — isolamento por gênero (T425)
+  baseMatches   Int? // nº de partidas que compõem a base do clube-ano
+  baseTitles    Int? // nº de títulos auditáveis que compõem a base
+  dataSourceIds Json? // proveniência (ex.: ["rsssf","wikidata"]) — JSONB
+  reason        String? // NULL ou motivo de não-publicação (ex.: "dados insuficientes")
+  gender        String? // "men" | "women" — isolamento por gênero (T425)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -321,34 +371,34 @@ model RankingEntry {
 // -----------------------------------------------------------------------------
 
 model User {
-  favorites Favorite[]
-  notifications Notification[]
-  clubOwnerships ClubOwnership[]
-  proposalsSubmitted ClubDescriptionProposal[] @relation("ProposalProposer")
-  proposalsReviewed ClubDescriptionProposal[] @relation("ProposalReviewer")
-  reportsSubmitted Report[]
-  activities UserActivity[]
-  id            String   @id @default(uuid())
-  email         String   @unique
-  name          String?
-  passwordHash  String?  // argon2id; null = conta só-social (Google)
+  favorites            Favorite[]
+  notifications        Notification[]
+  clubOwnerships       ClubOwnership[]
+  proposalsSubmitted   ClubDescriptionProposal[] @relation("ProposalProposer")
+  proposalsReviewed    ClubDescriptionProposal[] @relation("ProposalReviewer")
+  reportsSubmitted     Report[]
+  activities           UserActivity[]
+  id                   String                    @id @default(uuid())
+  email                String                    @unique
+  name                 String?
+  passwordHash         String? // argon2id; null = conta só-social (Google)
   // WS-C-15 — aniversário: opcional no onboarding; trava após 1ª concessão
-  birthDate            DateTime? @db.Date
+  birthDate            DateTime?                 @db.Date
   birthdayGiftLastYear Int?
-  status        UserStatus @default(ACTIVE)
-  emailVerified DateTime?
-  lastLoginAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime? // T470 — soft-delete (titular); e-mail anonimizado na exclusão
+  status               UserStatus                @default(ACTIVE)
+  emailVerified        DateTime?
+  lastLoginAt          DateTime?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  deletedAt            DateTime? // T470 — soft-delete (titular); e-mail anonimizado na exclusão
 
   // Relações
-  sessions      Session[]
-  auditLogs     AuditLog[]
-  subscriptions Subscription[]
-  billings      Billing[]
-  userRoles     UserRole[]
-  clubsCreated  Club[]   @relation("ClubCreatedByUser")
+  sessions            Session[]
+  auditLogs           AuditLog[]
+  subscriptions       Subscription[]
+  billings            Billing[]
+  userRoles           UserRole[]
+  clubsCreated        Club[]               @relation("ClubCreatedByUser")
   dataSubjectRequests DataSubjectRequest[]
   copyrightNotices    CopyrightNotice[]
 
@@ -372,15 +422,15 @@ enum UserStatus {
 // -----------------------------------------------------------------------------
 
 model Session {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash   String   @unique // SHA-256 do refresh token (ver crypto.ts)
-  userAgent   String?
-  ipAddress   String?
-  expiresAt   DateTime
-  revokedAt   DateTime? // null = ativa; não-null = revogada
-  createdAt   DateTime @default(now())
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique // SHA-256 do refresh token (ver crypto.ts)
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime? // null = ativa; não-null = revogada
+  createdAt DateTime  @default(now())
 
   @@index([userId])
   @@index([expiresAt])
@@ -420,10 +470,10 @@ model Permission {
 }
 
 model UserRole {
-  userId String
-  roleId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  userId     String
+  roleId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   assignedAt DateTime @default(now())
 
   @@id([userId, roleId])
@@ -448,17 +498,17 @@ model RolePermission {
 // -----------------------------------------------------------------------------
 
 model Subscription {
-  id          String             @id @default(uuid())
-  userId      String             @unique
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan        SubscriptionPlan   @default(FREE)
-  status      SubscriptionStatus @default(PENDING)
-  startedAt   DateTime           @default(now())
-  cancelledAt DateTime?
+  id               String             @id @default(uuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             SubscriptionPlan   @default(FREE)
+  status           SubscriptionStatus @default(PENDING)
+  startedAt        DateTime           @default(now())
+  cancelledAt      DateTime?
   currentPeriodEnd DateTime?
-  trial_used_at DateTime?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  trial_used_at    DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   billings Billing[]
 
@@ -483,18 +533,18 @@ enum SubscriptionStatus {
 }
 
 model Billing {
-  id             String             @id @default(uuid())
+  id             String        @id @default(uuid())
   subscriptionId String
-  subscription   Subscription       @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   userId         String
-  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   amountCents    Int
-  currency       String             @default("BRL") @db.VarChar(3)
-  status         BillingStatus      @default(PENDING)
+  currency       String        @default("BRL") @db.VarChar(3)
+  status         BillingStatus @default(PENDING)
   paidAt         DateTime?
   externalId     String? // ID no provedor de pagamento
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([subscriptionId])
   @@index([userId])
@@ -520,13 +570,13 @@ enum SeasonStatus {
 // RLS owner-only (rls_notifications_setup.sql); SERVICE insere (ETL/crons).
 // -----------------------------------------------------------------------------
 model Notification {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // "new_title" | "new_competition" | "ranking_change" | "system"
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // "new_title" | "new_competition" | "ranking_change" | "system"
   payload   Json
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
   readAt    DateTime?
 
   @@index([userId, createdAt(sort: Desc)])
@@ -536,7 +586,7 @@ model Notification {
 
 model Season {
   id        String       @id @default(uuid())
-  name      String       // "2024", "2024-2025", etc.
+  name      String // "2024", "2024-2025", etc.
   startDate DateTime?
   endDate   DateTime?
   status    SeasonStatus @default(PLANNED)
@@ -555,35 +605,35 @@ model Season {
 // -----------------------------------------------------------------------------
 
 model Stadium {
-  id           String   @id @default(uuid())
-  name         String
-  city         String?
-  state        String?
-  country      String?  @db.VarChar(2)
-  latitude     Float?
-  longitude    Float?
-  capacity     Int?
-  surface      String?  // grass, artificial, hybrid
+  id        String                               @id @default(uuid())
+  name      String
+  city      String?
+  state     String?
+  country   String?                              @db.VarChar(2)
+  latitude  Float?
+  longitude Float?
+  capacity  Int?
+  surface   String? // grass, artificial, hybrid
   // Coordenada PostGIS (EWKT: SRID=4326) — coluna geometry(Point,4326). Ver migration
   // 20260905_stadiums_postgis e docs/DATA-INGESTION.md §13.
-  location     Unsupported("geometry(Point,4326)")?
-  qid          String?  @unique // Wikidata Q-identifier
-  clubId       String?  // clube mandante principal
-  club         Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  location  Unsupported("geometry(Point,4326)")?
+  qid       String?                              @unique // Wikidata Q-identifier
+  clubId    String? // clube mandante principal
+  club      Club?                                @relation(fields: [clubId], references: [id], onDelete: SetNull)
 
   // T466 — geografia normalizada (FKs nullable)
-  countryId String?
+  countryId  String?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  stateId   String?
+  stateId    String?
   stateRef   State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
-  cityId    String?
+  cityId     String?
   cityRef    City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
 
-  importedFrom String?  // "wikidata", "openstreetmap", "manual"
+  importedFrom String? // "wikidata", "openstreetmap", "manual"
   importedAt   DateTime?
-  sourceUrl    String?  // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sourceUrl    String? // URL pública de origem (auditabilidade; ex.: https://www.wikidata.org/wiki/Q12345)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   matches Match[]
 
@@ -604,19 +654,19 @@ model Stadium {
 // -----------------------------------------------------------------------------
 
 model Country {
-  id           String   @id @default(uuid())
-  iso2         String   @unique @db.Char(2) // ISO 3166-1 alpha-2 (P297)
-  iso3         String?  @db.Char(3) // ISO 3166-1 alpha-3 (P298)
+  id           String    @id @default(uuid())
+  iso2         String    @unique @db.Char(2) // ISO 3166-1 alpha-2 (P297)
+  iso3         String?   @db.Char(3) // ISO 3166-1 alpha-3 (P298)
   name         String
-  continent    String?  @db.VarChar(2) // AF | AN | AS | EU | NA | OC | SA (P30)
+  continent    String?   @db.VarChar(2) // AF | AN | AS | EU | NA | OC | SA (P30)
   latitude     Float?
   longitude    Float?
-  qid          String?  @unique // Wikidata Q-id do país
+  qid          String?   @unique // Wikidata Q-id do país
   importedFrom String?
   importedAt   DateTime?
   sourceUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   states   State[]
   cities   City[]
@@ -628,22 +678,22 @@ model Country {
 }
 
 model State {
-  id           String   @id @default(uuid())
-  code         String   @unique // ISO 3166-2 (P300) — chave de dedup
+  id           String    @id @default(uuid())
+  code         String    @unique // ISO 3166-2 (P300) — chave de dedup
   name         String
   countryId    String
-  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  country      Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
   latitude     Float?
   longitude    Float?
-  qid          String?  @unique
+  qid          String?   @unique
   // T-24/25 (passada 2 do enrich-competitions) — bandeira (P163) via Wikimedia Commons,
   // mesmo pipeline de URL do trophyImageUrl (T509 → commonsFilePath).
   flagUrl      String?
   importedFrom String?
   importedAt   DateTime?
   sourceUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   cities   City[]
   clubs    Club[]
@@ -654,20 +704,20 @@ model State {
 }
 
 model City {
-  id           String   @id @default(uuid())
-  qid          String?  @unique // Wikidata Q-id (P131) — chave de dedup
+  id           String    @id @default(uuid())
+  qid          String?   @unique // Wikidata Q-id (P131) — chave de dedup
   name         String
   countryId    String
-  country      Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  country      Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
   stateId      String?
-  state        State?   @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  state        State?    @relation(fields: [stateId], references: [id], onDelete: SetNull)
   latitude     Float?
   longitude    Float?
   importedFrom String?
   importedAt   DateTime?
   sourceUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   clubs    Club[]
   stadiums Stadium[]
@@ -690,33 +740,33 @@ enum MatchStatus {
 }
 
 model Match {
-  id            String      @id @default(uuid())
+  id            String       @id @default(uuid())
   homeClubId    String
-  homeClub      Club        @relation("homeMatches", fields: [homeClubId], references: [id], onDelete: Cascade)
+  homeClub      Club         @relation("homeMatches", fields: [homeClubId], references: [id], onDelete: Cascade)
   awayClubId    String
-  awayClub      Club        @relation("awayMatches", fields: [awayClubId], references: [id], onDelete: Cascade)
+  awayClub      Club         @relation("awayMatches", fields: [awayClubId], references: [id], onDelete: Cascade)
   date          DateTime
   competitionId String?
   competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   seasonId      String?
-  season        Season?     @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  season        Season?      @relation(fields: [seasonId], references: [id], onDelete: SetNull)
   homeScore     Int?
   awayScore     Int?
   scorers       Json? // T519 — autores dos gols quando a fonte imprime ({raw, home[], away[], sidesVerified})
   sourceNote    String? // T519 — anotação da fonte sobre a partida (ex.: "played in Uberlândia-MG", "replay")
-  round         String?     // "1", "2", "final", "semifinal", etc.
-  venue         String?     // nome do estádio (texto livre)
+  round         String? // "1", "2", "final", "semifinal", etc.
+  venue         String? // nome do estádio (texto livre)
   stadiumId     String?
-  stadium       Stadium?    @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
-  status        MatchStatus @default(SCHEDULED)
-  qid           String?     @unique  // Wikidata match QID (raro; quando houver item de partida)
-  importedFrom  String?     // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
+  stadium       Stadium?     @relation(fields: [stadiumId], references: [id], onDelete: SetNull)
+  status        MatchStatus  @default(SCHEDULED)
+  qid           String?      @unique // Wikidata match QID (raro; quando houver item de partida)
+  importedFrom  String? // "wikidata", "rsssf", "fbref", "football-data", "thesportsdb", "manual"
   importedAt    DateTime?
-  sourceUrl     String?     // URL pública de origem da partida
-  license       String?     // licença/uso da fonte (ex.: "CC0", "RSSSF") — proveniência
-  dedupKey      String?     @unique  // chave estável: competicao|temporada|dataISO|homeClubId|awayClubId
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  sourceUrl     String? // URL pública de origem da partida
+  license       String? // licença/uso da fonte (ex.: "CC0", "RSSSF") — proveniência
+  dedupKey      String?      @unique // chave estável: competicao|temporada|dataISO|homeClubId|awayClubId
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([homeClubId])
   @@index([awayClubId])
@@ -742,11 +792,11 @@ model Match {
 model KnowledgeGraph {
   id         String   @id @default(uuid())
   sourceId   String
-  sourceType String   // "Club", "Player", "Competition"
+  sourceType String // "Club", "Player", "Competition"
   targetId   String
-  targetType String   // "Club", "Player", "Competition"
-  relation   String   // "PLAYED_FOR", "MANAGED_BY", "PART_OF", "WON", "RIVAL"
-  metadata   Json?    // {season, year, ...}
+  targetType String // "Club", "Player", "Competition"
+  relation   String // "PLAYED_FOR", "MANAGED_BY", "PART_OF", "WON", "RIVAL"
+  metadata   Json? // {season, year, ...}
   createdAt  DateTime @default(now())
 
   @@index([sourceId, sourceType])
@@ -771,15 +821,15 @@ enum BillingStatus {
 // -----------------------------------------------------------------------------
 
 model CookieConsent {
-  id         String   @id @default(uuid())
-  visitorId  String   // hash anônimo do visitante (cookie httpOnly + localStorage)
-  version    String   // versão da política vigente no momento do consentimento
-  categories Json     // { necessary: true, preferences: boolean, analytics: boolean, personalization: boolean, marketing: boolean }
-  consentedAt DateTime @default(now())
-  userAgent  String?
-  ipHash     String?  // hash SHA-256 do IP (não armazena IP em claro)
-  revokedAt  DateTime?
-  metadata   Json?    // { source: "banner" | "preferences" | "api", ... }
+  id          String    @id @default(uuid())
+  visitorId   String // hash anônimo do visitante (cookie httpOnly + localStorage)
+  version     String // versão da política vigente no momento do consentimento
+  categories  Json // { necessary: true, preferences: boolean, analytics: boolean, personalization: boolean, marketing: boolean }
+  consentedAt DateTime  @default(now())
+  userAgent   String?
+  ipHash      String? // hash SHA-256 do IP (não armazena IP em claro)
+  revokedAt   DateTime?
+  metadata    Json? // { source: "banner" | "preferences" | "api", ... }
 
   @@index([visitorId])
   @@index([version])
@@ -791,7 +841,7 @@ model CookiePolicyVersion {
   id          String   @id @default(uuid())
   version     String   @unique // "1.0", "1.1", etc.
   effectiveAt DateTime @default(now())
-  checksum    String?  // SHA-256 do conteúdo da política no momento
+  checksum    String? // SHA-256 do conteúdo da política no momento
   createdAt   DateTime @default(now())
 
   @@map("cookie_policy_versions")
@@ -807,22 +857,21 @@ model CookiePolicyVersion {
 // -----------------------------------------------------------------------------
 
 model Favorite {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   userId              String
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   // WS-C-12 — generalização polymorphic: clubId/club mantidos para compat
   // (deprecated; populated só quando targetType='club').
   clubId              String?
-  club                Club?    @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  targetType          String   @default("club") // 'club' | 'player' | 'competition'
+  club                Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  targetType          String    @default("club") // 'club' | 'player' | 'competition'
   targetId            String
-  notificationsActive Boolean  @default(true)
-  createdAt           DateTime @default(now())
+  notificationsActive Boolean   @default(true)
+  createdAt           DateTime  @default(now())
   deletedAt           DateTime?
 
   @@index([targetType, targetId])
   @@index([userId, targetType])
-
   @@index([userId])
   @@index([clubId])
   @@index([userId, deletedAt])
@@ -861,18 +910,18 @@ model ClubOwnership {
 // autenticado; revisada por editor do clube. 1 pending por usuário+clube
 // (verificado no código, não em constraint — permite re-propostas).
 model ClubDescriptionProposal {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   clubId          String
-  club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club            Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   proposedBy      String
-  proposer        User     @relation("ProposalProposer", fields: [proposedBy], references: [id], onDelete: Cascade)
-  userDescription String   @db.Text
-  status          String   @default("pending") // 'pending' | 'approved' | 'rejected'
-  createdAt       DateTime @default(now())
+  proposer        User      @relation("ProposalProposer", fields: [proposedBy], references: [id], onDelete: Cascade)
+  userDescription String    @db.Text
+  status          String    @default("pending") // 'pending' | 'approved' | 'rejected'
+  createdAt       DateTime  @default(now())
   reviewedAt      DateTime?
   reviewedBy      String?
-  reviewer        User?    @relation("ProposalReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
-  reviewNote      String?  @db.Text
+  reviewer        User?     @relation("ProposalReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  reviewNote      String?   @db.Text
 
   @@index([clubId, createdAt(sort: Desc)])
   @@index([proposedBy, clubId])
@@ -917,7 +966,6 @@ model Report {
   @@index([reporterId, createdAt(sort: Desc)])
 }
 
-
 // -----------------------------------------------------------------------------
 // WS-P — Log de eventos de pagamento (T444). Idempotência de webhook por
 // `providerEventId` UNIQUE: o mesmo evento processado 2× gera 1 efeito.
@@ -934,24 +982,23 @@ model PaymentEvent {
   @@map("payment_events")
 }
 
-
 // -----------------------------------------------------------------------------
 // WS-L 2ª CAMADA — Direitos do titular (LGPD art. 18) e DMCA (T445)
 // -----------------------------------------------------------------------------
 
 model PrivacyRequest {
-  id          String   @id @default(uuid())
-  requesterId String?  // userId se autenticado; null para não-usuários
-  email       String   // contato do titular (sempre preenchido)
-  rightType   String   // confirmação | acesso | correção | anonimização | portabilidade | eliminação | info_compartilhamento | info_consequência | revisão_automatizada | revogação
-  status      String   @default("recebido") // recebido | em_andamento | atendido | indeferido
-  token       String?  @unique // para não-usuários confirmarem identidade
-  slaDueAt    DateTime
-  fulfilledAt DateTime?
+  id            String    @id @default(uuid())
+  requesterId   String? // userId se autenticado; null para não-usuários
+  email         String // contato do titular (sempre preenchido)
+  rightType     String // confirmação | acesso | correção | anonimização | portabilidade | eliminação | info_compartilhamento | info_consequência | revisão_automatizada | revogação
+  status        String    @default("recebido") // recebido | em_andamento | atendido | indeferido
+  token         String?   @unique // para não-usuários confirmarem identidade
+  slaDueAt      DateTime
+  fulfilledAt   DateTime?
   deferredUntil DateTime? // prazo estendido (art. 18 §3 — notificação ANPD em 15 dias)
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([email])
   @@index([status, slaDueAt])
@@ -959,22 +1006,20 @@ model PrivacyRequest {
 }
 
 model CopyrightClaim {
-  id          String   @id @default(uuid())
-  material    String   // descrição do material alegadamente violado
-  location    String   // URL ou localização na plataforma
-  fundament   String   // fundamentação legal (DMCA art. 512, Lei 9.610/98)
+  id           String    @id @default(uuid())
+  material     String // descrição do material alegadamente violado
+  location     String // URL ou localização na plataforma
+  fundament    String // fundamentação legal (DMCA art. 512, Lei 9.610/98)
   contactEmail String
-  status      String   @default("recebida") // recebida | em_analise | deferida | indeferida | retirado
-  resolution  String?
-  resolvedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status       String    @default("recebida") // recebida | em_analise | deferida | indeferida | retirado
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([status])
   @@map("copyright_claims")
 }
-
-
 
 // -----------------------------------------------------------------------------
 // AUDIT LOG — append-only (somente insert). NUNCA update/delete via Prisma.
@@ -983,13 +1028,13 @@ model CopyrightClaim {
 
 model AuditLog {
   id         String   @id @default(uuid())
-  entityType String   // "User", "Club", "Subscription", "Session", etc.
-  entityId   String   // ID da entidade afetada
-  action     String   // "create", "update", "delete", "login", "logout", "deny", etc.
-  userId     String?  // quem executou (null se sistema)
+  entityType String // "User", "Club", "Subscription", "Session", etc.
+  entityId   String // ID da entidade afetada
+  action     String // "create", "update", "delete", "login", "logout", "deny", etc.
+  userId     String? // quem executou (null se sistema)
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  changes    Json?   // {field: {old, new}, ...} — JSONB no PostgreSQL
-  metadata   Json?    // {ip, userAgent, ...} — JSONB
+  changes    Json? // {field: {old, new}, ...} — JSONB no PostgreSQL
+  metadata   Json? // {ip, userAgent, ...} — JSONB
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
@@ -1032,22 +1077,22 @@ enum DsrStatus {
 }
 
 model DataSubjectRequest {
-  id                String          @id @default(uuid())
-  protocol          String          @unique // protocolo rastreável (dsr_…)
-  userId            String
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type              DsrType
-  jurisdiction      DsrJurisdiction @default(BR)
-  status            DsrStatus       @default(received)
-  description       String? // sanitizado, limitado
-  requestedFields   Json? // escopo do pedido (ex.: account, billing, favorites)
-  deadlineAt        DateTime?
-  completedAt       DateTime?
-  responseSummary   String? // sem PII desnecessária
-  internalNote      String? // apenas admin; nunca exposto fora do admin
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  deletedAt         DateTime?
+  id              String          @id @default(uuid())
+  protocol        String          @unique // protocolo rastreável (dsr_…)
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            DsrType
+  jurisdiction    DsrJurisdiction @default(BR)
+  status          DsrStatus       @default(received)
+  description     String? // sanitizado, limitado
+  requestedFields Json? // escopo do pedido (ex.: account, billing, favorites)
+  deadlineAt      DateTime?
+  completedAt     DateTime?
+  responseSummary String? // sem PII desnecessária
+  internalNote    String? // apenas admin; nunca exposto fora do admin
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
 
   @@index([userId])
   @@index([status])
@@ -1071,28 +1116,28 @@ enum CopyrightNoticeStatus {
 }
 
 model CopyrightNotice {
-  id                 String                @id @default(uuid())
-  protocol           String                @unique // protocolo rastreável (cr_…)
-  type               CopyrightNoticeType
-  status             CopyrightNoticeStatus @default(received)
-  userId             String
-  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  originalNoticeId   String?
-  originalNotice     CopyrightNotice?      @relation("NoticeCounter", fields: [originalNoticeId], references: [id], onDelete: SetNull)
-  counterNotices     CopyrightNotice[]     @relation("NoticeCounter")
-  workTitle          String
-  workUrl            String?
-  materialUrl        String
-  description        String
+  id                   String                @id @default(uuid())
+  protocol             String                @unique // protocolo rastreável (cr_…)
+  type                 CopyrightNoticeType
+  status               CopyrightNoticeStatus @default(received)
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalNoticeId     String?
+  originalNotice       CopyrightNotice?      @relation("NoticeCounter", fields: [originalNoticeId], references: [id], onDelete: SetNull)
+  counterNotices       CopyrightNotice[]     @relation("NoticeCounter")
+  workTitle            String
+  workUrl              String?
+  materialUrl          String
+  description          String
   goodFaithDeclaration Boolean
-  accuracyDeclaration Boolean
-  signatureText      String
-  jurisdiction       DsrJurisdiction       @default(BR)
-  responseSummary    String?
-  internalNote       String?
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-  deletedAt          DateTime?
+  accuracyDeclaration  Boolean
+  signatureText        String
+  jurisdiction         DsrJurisdiction       @default(BR)
+  responseSummary      String?
+  internalNote         String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
 
   @@index([userId])
   @@index([status])
@@ -1104,14 +1149,14 @@ model CopyrightNotice {
 
 /// T508 (W4) — classificação/artilheiro/totais por temporada (fonte Wikipedia/RSSSF).
 model CompetitionSeason {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   competitionId String
   competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  season        String   @db.VarChar(9)
+  season        String      @db.VarChar(9)
   championId    String?
-  champion      Club?    @relation("CompetitionSeasonChampion", fields: [championId], references: [id], onDelete: SetNull)
+  champion      Club?       @relation("CompetitionSeasonChampion", fields: [championId], references: [id], onDelete: SetNull)
   runnerUpId    String?
-  runnerUp      Club?    @relation("CompetitionSeasonRunnerUp", fields: [runnerUpId], references: [id], onDelete: SetNull)
+  runnerUp      Club?       @relation("CompetitionSeasonRunnerUp", fields: [runnerUpId], references: [id], onDelete: SetNull)
   totalMatches  Int?
   totalGoals    Int?
   topScorer     Json?
@@ -1119,8 +1164,8 @@ model CompetitionSeason {
   sourceUrl     String?
   importedFrom  String?
   importedAt    DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@unique([competitionId, season])
   @@index([competitionId])
