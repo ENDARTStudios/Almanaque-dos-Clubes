@@ -62,6 +62,20 @@ export interface WsCompetitionInsightsStrings {
   truncatedNote: string;
   emptyState: string;
 
+  /* ---- T31 — evolução rodada a rodada ---- */
+  /** Título da seção. */
+  roundsTitle: string;
+  /** `aria-label` do seletor de temporada. */
+  seasonPickerLabel: string;
+  /** Título do gráfico; `{season}`. */
+  roundsChartTitle: string;
+  /** `<summary>` da tabela alternativa dentro do gráfico. */
+  roundsTableSummary: string;
+  /** Legenda de um destaque; `{club}` e `{delta}`. */
+  roundsHighlight: string;
+  /** Nenhuma rodada para a temporada escolhida. */
+  roundsEmpty: string;
+
   /** Título da seção de história. */
   historyTitle: string;
   /** Primeira edição catalogada (ano). */
@@ -91,6 +105,12 @@ export interface WsCompetitionInsightsStrings {
 
 export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsStrings> = {
   'pt-br': {
+    roundsTitle: 'Evolução rodada a rodada',
+    seasonPickerLabel: 'Escolher temporada',
+    roundsChartTitle: 'Posição de cada clube na temporada {season}',
+    roundsTableSummary: 'Ver a posição de cada clube, rodada a rodada',
+    roundsHighlight: '{club}: {delta} posições',
+    roundsEmpty: 'Nenhuma rodada catalogada para esta temporada.',
     tabLabel: 'Pontos corridos',
     metricsTitleMatches: 'Números das partidas',
     matchesUsed: 'Partidas com placar',
@@ -137,6 +157,12 @@ export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsS
     metricsNote: 'Soma das edições com dado catalogado — o resto do acervo ainda vem.',
   },
   'en-us': {
+    roundsTitle: 'Round-by-round evolution',
+    seasonPickerLabel: 'Choose a season',
+    roundsChartTitle: 'Each club’s position in the {season} season',
+    roundsTableSummary: 'See every club’s position, round by round',
+    roundsHighlight: '{club}: {delta} places',
+    roundsEmpty: 'No rounds cataloged for this season.',
     tabLabel: 'All-time table',
     metricsTitleMatches: 'Match numbers',
     matchesUsed: 'Matches with score',
@@ -183,6 +209,12 @@ export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsS
     metricsNote: 'Sum of editions with cataloged data — the rest of the archive is still coming.',
   },
   'es-es': {
+    roundsTitle: 'Evolución jornada a jornada',
+    seasonPickerLabel: 'Elegir temporada',
+    roundsChartTitle: 'Posición de cada club en la temporada {season}',
+    roundsTableSummary: 'Ver la posición de cada club, jornada a jornada',
+    roundsHighlight: '{club}: {delta} posiciones',
+    roundsEmpty: 'Ninguna jornada catalogada para esta temporada.',
     tabLabel: 'Puntos corridos',
     metricsTitleMatches: 'Números de los partidos',
     matchesUsed: 'Partidos con marcador',
