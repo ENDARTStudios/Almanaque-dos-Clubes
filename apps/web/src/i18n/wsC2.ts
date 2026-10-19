@@ -37,6 +37,16 @@ export interface WsC2Strings {
     statsTopRivals: string;
     statsOpponent: string;
     statsEmpty: string;
+    /** T32 — evolção dos escudos. */
+    crestsTitle: string;
+    crestCurrent: string;
+    crestUnknownPeriod: string;
+    crestLicense: string;
+    crestSource: string;
+    crestAttribution: string;
+    crestSingleNote: string;
+    /** `{period}` */
+    crestImageAlt: string;
     kits: string;
     kitsEmpty: string;
     kitSeason: string;
@@ -153,6 +163,15 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Confrontos mais frequentes',
       statsOpponent: 'Adversário',
       statsEmpty: 'Sem partidas registradas no acervo ainda.',
+      crestsTitle: 'Evolução do escudo',
+      crestCurrent: 'Vigente',
+      crestUnknownPeriod: 'Período não catalogado',
+      crestLicense: 'Licença',
+      crestSource: 'Origem',
+      crestAttribution: 'Autor',
+      crestSingleNote:
+        'O acervo tem um escudo catalogado deste clube — ainda sem registro de versões anteriores.',
+      crestImageAlt: 'Escudo do clube no período {period}',
       kits: 'Uniformes',
       kitsEmpty: '',
       kitSeason: 'Temporada',
@@ -271,6 +290,15 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Most frequent matchups',
       statsOpponent: 'Opponent',
       statsEmpty: 'No matches recorded in the archive yet.',
+      crestsTitle: 'Crest evolution',
+      crestCurrent: 'Current',
+      crestUnknownPeriod: 'Period not cataloged',
+      crestLicense: 'License',
+      crestSource: 'Source',
+      crestAttribution: 'Author',
+      crestSingleNote:
+        'The archive has one cataloged crest for this club — no earlier versions recorded yet.',
+      crestImageAlt: 'Club crest for the {period} period',
       kits: 'Kits',
       kitsEmpty: '',
       kitSeason: 'Season',
@@ -389,6 +417,15 @@ export const wsC2Strings: Record<Locale, WsC2Strings> = {
       statsTopRivals: 'Enfrentamientos más frecuentes',
       statsOpponent: 'Rival',
       statsEmpty: 'Sin partidos registrados en el acervo todavía.',
+      crestsTitle: 'Evolución del escudo',
+      crestCurrent: 'Vigente',
+      crestUnknownPeriod: 'Período no catalogado',
+      crestLicense: 'Licencia',
+      crestSource: 'Origen',
+      crestAttribution: 'Autor',
+      crestSingleNote:
+        'El acervo tiene un escudo catalogado de este club — aún sin registro de versiones anteriores.',
+      crestImageAlt: 'Escudo del club en el período {period}',
       kits: 'Uniformes',
       kitsEmpty: '',
       kitSeason: 'Temporada',

@@ -293,6 +293,11 @@ const pt: Dictionary = {
         destaques: 'Destaques',
         destaquesNota:
           'Competições que as pessoas procuram pelo nome. Para navegar por país, use o índice abaixo.',
+        degrauMundial: 'Mundial',
+        degrauContinental: 'Continental',
+        degrauContinentalSecundaria: 'Continental · 2º escalão',
+        degrauNacional: 'Nacional',
+        countryAll: 'Todos os países',
       },
     },
     market: {

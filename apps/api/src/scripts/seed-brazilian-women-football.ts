@@ -163,7 +163,33 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error('Erro:', (err as Error).message);
-  process.exit(1);
-});
+/**
+ * GUARDA DE EXECUÇÃO — faltava, e a falta tinha dois efeitos, um deles grave.
+ *
+ * 1. O teste `tests/unit/t450-seed-brazilian-women.test.ts` importa as funções PURAS deste módulo
+ *    (`buildBrWomensSparql`, `dedupeByQid`, `fetchBrWomensClubs`) para exercitá-las com `fetch`
+ *    mockado. Sem a guarda, o simples `import` executava `main()` — ou seja, um teste de unidade
+ *    disparava o SEED DE VERDADE contra o banco, escrevendo clubes como efeito colateral de
+ *    "testar a query".
+ *
+ * 2. Quando `main()` falha nesse caminho, ele chama `process.exit(1)`, e o vitest trata isso como
+ *    erro não tratado: a suíte inteira sai vermelha com "Test Files 209 passed" — 209 de 209
+ *    testes passando e a execução reprovada. A mensagem não aponta para o defeito, aponta para o
+ *    sintoma, o que torna o diagnóstico caro.
+ *
+ * O sintoma é intermitente porque depende de `main()` ter sucesso (banco disponível, sem corrida
+ * de estado) — então o teste passa na maioria das vezes e falha de vez em quando, sem que a causa
+ * apareça. A guarda elimina as duas coisas: importar deixa de executar, e o script continua
+ * funcionando quando chamado direto (`node dist/scripts/seed-brazilian-women-football.js`).
+ *
+ * Mesmo padrão dos outros scripts do projeto (ver `ingest-states-wikidata.ts`,
+ * `link-clubs-state.ts`).
+ */
+const invokedDirectly =
+  process.argv[1] !== undefined && /seed-brazilian-women-football\.(ts|js)$/.test(process.argv[1]);
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error('Erro:', (err as Error).message);
+    process.exit(1);
+  });
+}

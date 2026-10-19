@@ -13,6 +13,8 @@ import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
 import { CountryFlag } from '@/components/CountryFlag';
 import ClubTimeline from '@/components/ClubTimeline';
+import { CrestTimeline } from '@/components/CrestTimeline';
+import SourceNote from '@/components/SourceNote';
 import RelatedClubs from '@/components/RelatedClubs';
 import ClubCommunity from '@/components/ClubCommunity';
 
@@ -228,6 +230,31 @@ async function getAnthem(id: string): Promise<AnthemPayload | null> {
   }
 }
 
+interface CrestPayload {
+  id: string;
+  imageUrl: string;
+  sourceUrl: string;
+  license: string;
+  attribution: string | null;
+  yearFrom: number | null;
+  yearTo: number | null;
+  isCurrent: boolean;
+  periodLabel: string | null;
+}
+
+/** T32 — escudos ao longo do tempo. Falha de rede devolve [] (a seção não aparece) e nunca
+ *  derruba o perfil: escudo é detalhe comparado ao resto da página. */
+async function getCrests(id: string): Promise<CrestPayload[]> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/crests`, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json.data?.crests ?? []) as CrestPayload[];
+  } catch {
+    return [];
+  }
+}
+
 async function getKits(id: string): Promise<KitEntryPayload[] | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/kits`, { next: { revalidate: 300 } });
@@ -293,14 +320,30 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
-  const [stats, kits, anthem, pennants] = await Promise.all([
+  const [stats, kits, anthem, pennants, crests] = await Promise.all([
     getStatistics(id),
     getKits(id),
     getAnthem(id),
     getPennants(id),
+    getCrests(id),
   ]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
+  /* T32 — strings dos escudos. `imageAlt` é TEMPLATE com `{period}`, não função: props de
+     Server Component para Client Component precisam ser serializáveis, e uma função derrubou a
+     árvore inteira com o erro #441 do React — a seção simplesmente não aparecia, e o HTML
+     público não tinha nem o título. Quem troca o `{period}` é o próprio componente. */
+  const crestStrings = {
+    title: s.crestsTitle,
+    current: s.crestCurrent,
+    unknownPeriod: s.crestUnknownPeriod,
+    licenseLabel: s.crestLicense,
+    sourceLabel: s.crestSource,
+    attributionLabel: s.crestAttribution,
+    singleNote: s.crestSingleNote,
+    imageAlt: s.crestImageAlt,
+    // Template cru: o componente troca `{period}`. Passar função daqui quebraria.
+  };
   // T576 — sem escudo oficial no acervo, o cabeçalho usa o ícone autoral e DECLARA
   // que é ilustração (o desenho nunca se apresenta como escudo oficial).
   const media = (club as { media?: { logoUrl?: string | null } }).media;
@@ -382,7 +425,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           {club.country && (
             <InfoItem
               label={s.country}
-              value={<CountryFlag code={club.country} locale={locale} basePath="/clubs" destination="clubs" />}
+              value={
+                <CountryFlag
+                  code={club.country}
+                  locale={locale}
+                  basePath="/clubs"
+                  destination="clubs"
+                />
+              }
             />
           )}
           {club.city && <InfoItem label={s.city} value={club.city} />}
@@ -509,22 +559,16 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     {tl.hierarchy}
                     {tl.gender === 'women' ? ` · ${s.genderWomen}` : ''}
                   </p>
+                  {/* FONTE — abaixo do título, não ao lado do ANO.
+                      Este bloco é a galeria de títulos e repetia o mesmo desenho que o
+                      `ClubTimeline` tinha antes do T582: o link da fonte dividia a linha com o
+                      ANO, que é o dado. Dois elementos no mesmo eixo horizontal competem por
+                      atenção, e num cartão de título o que importa é o ano. */}
+                  <SourceNote href={tl.sourceUrl} label={s.source} />
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-heading font-semibold text-primary-ink tabular-nums">
-                    {tl.year ?? '—'}
-                  </span>
-                  {tl.sourceUrl && (
-                    <a
-                      href={tl.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-foreground/70 hover:text-primary-ink underline decoration-dotted underline-offset-2"
-                    >
-                      {s.source}
-                    </a>
-                  )}
-                </div>
+                <span className="shrink-0 text-sm font-heading font-semibold text-primary-ink tabular-nums">
+                  {tl.year ?? '—'}
+                </span>
               </li>
             ))}
           </ul>
@@ -602,6 +646,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       })()}
 
       <ClubTimeline clubId={club.id} locale={locale} />
+
+      {/* T32 — escudos ao longo do tempo. Só aparece quando há escudo com licença verificada:
+          seção vazia prometeria um dado que não existe. */}
+      {crests.length > 0 ? <CrestTimeline crests={crests} strings={crestStrings} /> : null}
 
       {kits && kits.length > 0 ? (
         <Section title={s.kits} testid="club-kits">
@@ -752,8 +800,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
                     // campos por casa/fora, e imprimir 0 é afirmar um dado que não existe.
                     // `null` mantém as TRÊS linhas com o tipo uniforme (senão a união
                     // não deixa ler os campos) e a tabela mostra "—".
-                    { label: s.statsHome, row: { ...stats.overall.home, goalDiff: null, points: null } },
-                    { label: s.statsAway, row: { ...stats.overall.away, goalDiff: null, points: null } },
+                    {
+                      label: s.statsHome,
+                      row: { ...stats.overall.home, goalDiff: null, points: null },
+                    },
+                    {
+                      label: s.statsAway,
+                      row: { ...stats.overall.away, goalDiff: null, points: null },
+                    },
                   ] as Array<{
                     label: string;
                     // Tipo EXPLÍCITO (e não interseção com o shape do overall): casa/fora
@@ -827,7 +881,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
               <ul className="text-sm space-y-1">
                 {stats.topRivals.slice(0, 5).map((r) => (
                   <li key={r.opponentId} className="border-t border-border/50 py-1.5">
-                    <Link href={`/clubs/${r.opponentId}`} className="text-primary-ink hover:underline">
+                    <Link
+                      href={`/clubs/${r.opponentId}`}
+                      className="text-primary-ink hover:underline"
+                    >
                       {r.opponentName}
                     </Link>{' '}
                     <span className="text-foreground/70">

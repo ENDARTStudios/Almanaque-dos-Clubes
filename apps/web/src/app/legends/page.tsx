@@ -6,6 +6,7 @@ import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { metadataStrings } from '@/i18n/wsMetadata';
+import SourceNote from '@/components/SourceNote';
 import { wsLegendsStrings } from '@/i18n/wsLegends';
 import { formatCount, formatDate } from '@/lib/format';
 import LegendsTopChart from '@/components/LegendsTopChart';
@@ -128,16 +129,12 @@ function RecordCard({
       <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground/70">{label}</h3>
       <p className="mb-1 font-heading text-4xl font-bold text-primary-ink">{value}</p>
       <div className="text-sm text-foreground">{children}</div>
-      {sourceUrl ? (
-        <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-block text-xs text-primary-ink underline underline-offset-2 transition-colors duration-200 hover:opacity-80"
-        >
-          {sourceText} <span aria-hidden="true">↗</span>
-        </a>
-      ) : null}
+      {/* FONTE — secundária. Este cartão tem um RECORDE como assunto: o número em 36px é o dado,
+          e a fonte vem depois dele. Antes o link usava `text-primary-ink` (a cor de acento da
+          marca) MAIS sublinhado mais uma seta `↗` — três sinais de destaque no rodapé de um cartão
+          cujo protagonista é o recorde. Cor de acento sinaliza "isto é importante"; num metadado
+          ela inverte a hierarquia. */}
+      <SourceNote href={sourceUrl} label={sourceText} />
     </article>
   );
 }

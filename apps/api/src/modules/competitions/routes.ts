@@ -83,6 +83,41 @@ export const competitionsRoutes: FastifyPluginAsync = async (app: FastifyInstanc
     },
   );
 
+  /**
+   * T30/T33 — tabela histórica de pontos corridos, recordes e campeões derivados das partidas.
+   * Pública e somente-leitura: é dado de acervo, não de usuário.
+   */
+  app.get<{ Params: { id: string } }>('/competitions/:id/history', async (request, reply) => {
+    try {
+      const history = await competitionsService.getMatchHistory(request.params.id);
+      return reply.send({ data: history });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
+  /**
+   * T31 — evolução rodada a rodada de UMA temporada (quem subiu e caiu jogo a jogo).
+   * `season` é obrigatório na query: sem ele a resposta seria ambígua.
+   */
+  app.get<{ Params: { id: string }; Querystring: { season?: string } }>(
+    '/competitions/:id/rounds',
+    async (request, reply) => {
+      const season = request.query.season;
+      if (!season) {
+        return reply.status(422).send({
+          error: { code: 'VALIDATION_ERROR', message: 'query `season` é obrigatória' },
+        });
+      }
+      try {
+        const rounds = await competitionsService.getSeasonRounds(request.params.id, season);
+        return reply.send({ data: rounds });
+      } catch (err) {
+        return handleDomainError(err, reply);
+      }
+    },
+  );
+
   app.put<{ Params: { id: string } }>(
     '/competitions/:id',
     { preHandler: [authenticate, requirePermission(PERMISSIONS.COMPETITIONS_MANAGE)] },

@@ -135,4 +135,69 @@ export const competitionsRepository = {
   async remove(id: string): Promise<void> {
     await prisma.competition.delete({ where: { id } });
   },
+
+  /**
+   * Partidas de uma competição, com o rótulo da temporada — base das tarefas 30, 31 e 33.
+   *
+   * `take` é limitado de propósito: uma competição com 10 temporadas tem ~3.800 partidas, o que
+   * é barato; mas nada impede que o acervo cresça, e uma resposta de 50 mil linhas derrubaria a
+   * página. O teto é explícito e o serviço declara quando o conjunto foi truncado.
+   *
+   * Só partidas com placar: `homeScore`/`awayScore` não nulos. Ausência de placar não é 0×0, e
+   * filtrar aqui evita que o erro se espalhe por todos os agregados.
+   */
+  async findMatches(
+    competitionId: string,
+    opts: { take?: number } = {},
+  ): Promise<
+    Array<{
+      date: Date;
+      round: string | null;
+      homeClubId: string;
+      awayClubId: string;
+      homeScore: number | null;
+      awayScore: number | null;
+      seasonLabel: string | null;
+    }>
+  > {
+    const rows = await prisma.match.findMany({
+      where: {
+        competitionId,
+        homeScore: { not: null },
+        awayScore: { not: null },
+      },
+      select: {
+        date: true,
+        round: true,
+        homeClubId: true,
+        awayClubId: true,
+        homeScore: true,
+        awayScore: true,
+        season: { select: { name: true } },
+      },
+      orderBy: [{ date: 'asc' }],
+      take: Math.min(opts.take ?? 20000, 20000),
+    });
+    return rows.map((m) => ({
+      date: m.date,
+      round: m.round,
+      homeClubId: m.homeClubId,
+      awayClubId: m.awayClubId,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      seasonLabel: m.season?.name ?? null,
+    }));
+  },
+
+  /** Nomes dos clubes por id — a tabela precisa de rótulo legível, não de UUID. */
+  async findClubNames(
+    ids: string[],
+  ): Promise<Map<string, { name: string; logoUrl: string | null }>> {
+    if (ids.length === 0) return new Map();
+    const rows = await prisma.club.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, logoUrl: true },
+    });
+    return new Map(rows.map((c) => [c.id, { name: c.name, logoUrl: c.logoUrl }]));
+  },
 };

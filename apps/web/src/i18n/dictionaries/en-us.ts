@@ -287,6 +287,11 @@ const en: Dictionary = {
         destaques: 'Highlights',
         destaquesNota:
           'Competitions people look up by name. To browse by country, use the index below.',
+        degrauMundial: 'Worldwide',
+        degrauContinental: 'Continental',
+        degrauContinentalSecundaria: 'Continental · second tier',
+        degrauNacional: 'National',
+        countryAll: 'All countries',
       },
     },
     market: {

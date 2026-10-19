@@ -334,6 +334,13 @@ export interface Dictionary {
         /** T577 — faixa dos destaques curados, no topo da página. */
         destaques: string;
         destaquesNota: string;
+        /** T587 — rótulos dos degraus de alcance. Ver `lib/competition-tier.ts`. */
+        degrauMundial: string;
+        degrauContinental: string;
+        degrauContinentalSecundaria: string;
+        degrauNacional: string;
+        /** T587 — o filtro de país virou seleção; este é o rótulo da opção "todos". */
+        countryAll: string;
       };
     };
     market: {

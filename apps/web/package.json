@@ -10,7 +10,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "icons:export": "node scripts/export-icons.mjs"
+    "icons:export": "node scripts/export-icons.mjs",
+    "test:ignore-build": "node --test scripts/ignore-build.test.mjs"
   },
   "dependencies": {
     "@types/dompurify": "^3.2.0",

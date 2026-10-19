@@ -53,9 +53,15 @@ apps/api/.rollback-db-url
 apps/api/.appuser-pwd
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
+#
+# ANCORADO na raiz (`/graft/`), e nao `graft/`: a forma sem ancoragem casa QUALQUER diretorio com
+# esse nome em qualquer profundidade, e por isso engolia tambem `.claude/skills/graft/` — a skill
+# que ensina a usar o grafo, que o `docs/AGENTS.md` declara como obrigatoria ("GRAFT-FIRST") e que
+# o proprio AGENTS.md diz que DEVE ser commitada junto com `.claude/`.
+# Efeito medido do defeito: a skill existia so na maquina de quem a tinha, e um clone limpo ou uma
+# worktree nova (a deste repositorio chega a 27) nascia sem ela — o agente caia em grep cego
+# exatamente no repositorio que indexou o grafo para evitar isso.
 /graft/
-
-graft/
 
 # Turborepo (cache local) e runtime do husky
 .turbo/

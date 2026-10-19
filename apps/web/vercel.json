@@ -1,9 +1,10 @@
 {
   "installCommand": "cd .. && pnpm install --frozen-lockfile",
   "buildCommand": "next build",
+
   "git": {
-    "deploymentEnabled": {
-      "main": false
-    }
-  }
+    "deploymentEnabled": false
+  },
+
+  "ignoreCommand": "node scripts/ignore-build.mjs"
 }

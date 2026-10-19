@@ -14,11 +14,12 @@ import {
 } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
-import { getClubProfile } from './profile.service.js';
+import { getClubProfile, loadCrests } from './profile.service.js';
 import { getClubRelated, getClubTimeline } from './insights.service.js';
 import { getClubComparison } from './compare.service.js';
 import { getClubStatistics } from './statistics.service.js';
 import {
+  getOwnershipStatus,
   isActiveOwner,
   listOwners,
   ownClub,
@@ -234,6 +235,10 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         }
         const userId = (request.user as { id?: string } | undefined)?.id;
         const isOwner = userId ? await isActiveOwner(userId, request.params.id) : false;
+        // WS-C-9 C3 — estado da posse para a UI (pending/suspended/revoked);
+        // 'active' já é coberto por isOwner, null = nunca reivindicou.
+        const ownershipStatus =
+          userId && !isOwner ? await getOwnershipStatus(userId, request.params.id) : null;
         // WS-C-10: status da última proposta do usuário; pendentes só contam
         // para editors (dados de moderação não vazam para anônimos).
         const proposalStatus = userId
@@ -256,6 +261,7 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
             userDescription: raw.userDescription ?? null,
             userDescriptionUpdatedAt: raw.userDescriptionUpdatedAt ?? null,
             isOwner,
+            ownershipStatus,
             proposalStatus: proposalStatus ?? (userId ? 'none' : undefined),
             pendingProposalsCount,
             hasReported: hasReportedClub,
@@ -282,6 +288,21 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * T523-kits — uniformes do clube (kitHistory): composição por peças
    * (verificadas no Commons) e/ou foto curada. Read-only.
    */
+  /** T32 — escudos do clube ao longo do tempo (evolução da identidade visual). */
+  app.get<{ Params: { id: string } }>('/clubs/:id/crests', async (request, reply) => {
+    try {
+      const club = await prisma.club.findFirst({
+        where: { id: request.params.id, deletedAt: null },
+        select: { id: true },
+      });
+      if (!club) throw new NotFoundError('Clube', request.params.id);
+      const crests = await loadCrests(request.params.id);
+      return reply.send({ data: { crests } });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
   app.get<{ Params: { id: string } }>('/clubs/:id/kits', async (request, reply) => {
     try {
       const club = await prisma.club.findFirst({
@@ -477,8 +498,10 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   // -----------------------------------------------------------------
 
   /**
-   * POST /clubs/:id/own — "sou editor deste clube". Auto-aprovado nesta fase
-   * (status 'active' direto). Idempotente: 201 se criou, 200 se já existia.
+   * POST /clubs/:id/own — "sou editor deste clube" (gates C1–C4 do WS-C-9):
+   * exige Elite ativo (PLAN_REQUIRED), evidência de vínculo (EVIDENCE_REQUIRED)
+   * e nasce 'pending' — revisão humana (5 dias úteis). Idempotente: 201 se
+   * criou, 200 se já existia (pending/active). Erros: 422/403/409 com código.
    */
   app.post<{ Params: { id: string } }>(
     '/clubs/:id/own',
@@ -491,7 +514,18 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     async (request, reply) => {
       try {
         const userId = request.user!.id;
-        const result = await ownClub(userId, request.params.id, extractMetadata(request));
+        const body = z
+          .object({
+            evidenceUrl: z.string().max(500).optional(),
+            evidenceNote: z.string().max(1000).optional(),
+          })
+          .parse(request.body ?? {});
+        const result = await ownClub(
+          userId,
+          request.params.id,
+          { evidenceUrl: body.evidenceUrl, evidenceNote: body.evidenceNote },
+          extractMetadata(request),
+        );
         return reply.status(result.created ? 201 : 200).send({ data: result });
       } catch (err) {
         return handleDomainError(err, reply);

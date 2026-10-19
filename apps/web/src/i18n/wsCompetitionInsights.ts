@@ -31,6 +31,51 @@ export interface WsCompetitionInsightsStrings {
   /** Pódio vazio: nenhuma edição com campeão catalogado. */
   podiumEmpty: string;
 
+  /* ---- T30/T31/T33 — aba de pontos corridos e recordes (derivada de PARTIDAS) ---- */
+  /** Rótulo da aba na navegação. */
+  tabLabel: string;
+  /** Título do bloco de métricas gerais. */
+  metricsTitleMatches: string;
+  matchesUsed: string;
+  totalGoals: string;
+  goalsPerMatch: string;
+  goallessDraws: string;
+  recordsTitle: string;
+  biggestWin: string;
+  /** `{club}` — quem sofreu a maior goleada. */
+  biggestDefeatNote: string;
+  highestScoring: string;
+  /** `{n}` — total de gols na partida. */
+  goalsInMatch: string;
+  roundLabel: string;
+  tableTitle: string;
+  tableScopeNote: string;
+  colPlayed: string;
+  colWins: string;
+  colDraws: string;
+  colLosses: string;
+  colGoalsFor: string;
+  colGoalsAgainst: string;
+  colGoalDiff: string;
+  colPoints: string;
+  championsTitle: string;
+  truncatedNote: string;
+  emptyState: string;
+
+  /* ---- T31 — evolução rodada a rodada ---- */
+  /** Título da seção. */
+  roundsTitle: string;
+  /** `aria-label` do seletor de temporada. */
+  seasonPickerLabel: string;
+  /** Título do gráfico; `{season}`. */
+  roundsChartTitle: string;
+  /** `<summary>` da tabela alternativa dentro do gráfico. */
+  roundsTableSummary: string;
+  /** Legenda de um destaque; `{club}` e `{delta}`. */
+  roundsHighlight: string;
+  /** Nenhuma rodada para a temporada escolhida. */
+  roundsEmpty: string;
+
   /** Título da seção de história. */
   historyTitle: string;
   /** Primeira edição catalogada (ano). */
@@ -60,6 +105,37 @@ export interface WsCompetitionInsightsStrings {
 
 export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsStrings> = {
   'pt-br': {
+    roundsTitle: 'Evolução rodada a rodada',
+    seasonPickerLabel: 'Escolher temporada',
+    roundsChartTitle: 'Posição de cada clube na temporada {season}',
+    roundsTableSummary: 'Ver a posição de cada clube, rodada a rodada',
+    roundsHighlight: '{club}: {delta} posições',
+    roundsEmpty: 'Nenhuma rodada catalogada para esta temporada.',
+    tabLabel: 'Pontos corridos',
+    metricsTitleMatches: 'Números das partidas',
+    matchesUsed: 'Partidas com placar',
+    totalGoals: 'Gols',
+    goalsPerMatch: 'Gols por jogo',
+    goallessDraws: 'Empates em 0 a 0',
+    recordsTitle: 'Recordes',
+    biggestWin: 'Maior goleada',
+    biggestDefeatNote: 'Maior derrota: {club}',
+    highestScoring: 'Jogo com mais gols',
+    goalsInMatch: '{n} gols na partida',
+    roundLabel: 'Rodada',
+    tableTitle: 'Tabela histórica de pontos corridos',
+    tableScopeNote: 'Soma de todas as partidas com placar no acervo.',
+    colPlayed: 'J',
+    colWins: 'V',
+    colDraws: 'E',
+    colLosses: 'D',
+    colGoalsFor: 'GP',
+    colGoalsAgainst: 'GC',
+    colGoalDiff: 'SG',
+    colPoints: 'Pts',
+    championsTitle: 'Campeões por temporada',
+    truncatedNote: 'A consulta foi limitada a 20 mil partidas — a tabela pode estar incompleta.',
+    emptyState: 'Nenhuma partida com placar catalogada para esta competição ainda.',
     podiumTitle: 'Pódio da última edição',
     podiumChampion: 'Campeão vigente',
     thirdPlace: '3º lugar',
@@ -81,6 +157,37 @@ export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsS
     metricsNote: 'Soma das edições com dado catalogado — o resto do acervo ainda vem.',
   },
   'en-us': {
+    roundsTitle: 'Round-by-round evolution',
+    seasonPickerLabel: 'Choose a season',
+    roundsChartTitle: 'Each club’s position in the {season} season',
+    roundsTableSummary: 'See every club’s position, round by round',
+    roundsHighlight: '{club}: {delta} places',
+    roundsEmpty: 'No rounds cataloged for this season.',
+    tabLabel: 'All-time table',
+    metricsTitleMatches: 'Match numbers',
+    matchesUsed: 'Matches with score',
+    totalGoals: 'Goals',
+    goalsPerMatch: 'Goals per match',
+    goallessDraws: '0-0 draws',
+    recordsTitle: 'Records',
+    biggestWin: 'Biggest win',
+    biggestDefeatNote: 'Biggest defeat: {club}',
+    highestScoring: 'Highest-scoring match',
+    goalsInMatch: '{n} goals in the match',
+    roundLabel: 'Round',
+    tableTitle: 'All-time league table',
+    tableScopeNote: 'Sum of every match with a score in the archive.',
+    colPlayed: 'P',
+    colWins: 'W',
+    colDraws: 'D',
+    colLosses: 'L',
+    colGoalsFor: 'GF',
+    colGoalsAgainst: 'GA',
+    colGoalDiff: 'GD',
+    colPoints: 'Pts',
+    championsTitle: 'Champions by season',
+    truncatedNote: 'The query was capped at 20,000 matches — the table may be incomplete.',
+    emptyState: 'No match with a score cataloged for this competition yet.',
     podiumTitle: 'Latest edition podium',
     podiumChampion: 'Reigning champion',
     thirdPlace: '3rd place',
@@ -102,6 +209,37 @@ export const wsCompetitionInsightsStrings: Record<Locale, WsCompetitionInsightsS
     metricsNote: 'Sum of editions with cataloged data — the rest of the archive is still coming.',
   },
   'es-es': {
+    roundsTitle: 'Evolución jornada a jornada',
+    seasonPickerLabel: 'Elegir temporada',
+    roundsChartTitle: 'Posición de cada club en la temporada {season}',
+    roundsTableSummary: 'Ver la posición de cada club, jornada a jornada',
+    roundsHighlight: '{club}: {delta} posiciones',
+    roundsEmpty: 'Ninguna jornada catalogada para esta temporada.',
+    tabLabel: 'Puntos corridos',
+    metricsTitleMatches: 'Números de los partidos',
+    matchesUsed: 'Partidos con marcador',
+    totalGoals: 'Goles',
+    goalsPerMatch: 'Goles por partido',
+    goallessDraws: 'Empates 0 a 0',
+    recordsTitle: 'Récords',
+    biggestWin: 'Mayor goleada',
+    biggestDefeatNote: 'Mayor derrota: {club}',
+    highestScoring: 'Partido con más goles',
+    goalsInMatch: '{n} goles en el partido',
+    roundLabel: 'Jornada',
+    tableTitle: 'Tabla histórica de puntos corridos',
+    tableScopeNote: 'Suma de todos los partidos con marcador del acervo.',
+    colPlayed: 'PJ',
+    colWins: 'G',
+    colDraws: 'E',
+    colLosses: 'P',
+    colGoalsFor: 'GF',
+    colGoalsAgainst: 'GC',
+    colGoalDiff: 'DG',
+    colPoints: 'Pts',
+    championsTitle: 'Campeones por temporada',
+    truncatedNote: 'La consulta se limitó a 20 mil partidos — la tabla puede estar incompleta.',
+    emptyState: 'Todavía no hay partido con marcador catalogado para esta competición.',
     podiumTitle: 'Podio de la última edición',
     podiumChampion: 'Campeón vigente',
     thirdPlace: '3.er puesto',

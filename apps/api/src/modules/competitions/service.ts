@@ -17,6 +17,13 @@ import {
   type CompetitionTotals,
   type SeasonRowInput,
 } from './insights.js';
+import {
+  buildRecords,
+  buildRoundEvolution,
+  buildTable,
+  championsBySeason,
+  positionChanges,
+} from './match-stats.js';
 
 /** T-24/25 — overview + blocos de insights (history/podium/totals), aditivo. */
 export type CompetitionOverviewWithInsights = CompetitionOverview & {
@@ -147,6 +154,128 @@ export const competitionsService = {
   },
 
   /** T508/T510 — temporadas da competição (classificação/artilheiro/campeão). */
+  /**
+   * T30/T33 — histórico derivado das PARTIDAS: tabela de pontos corridos, recordes e campeões.
+   *
+   * `truncated` existe porque a resposta é limitada em 20 mil partidas: se o acervo crescer
+   * além disso, a tabela parcial estaria SILENCIOSAMENTE errada. Declarar o corte é a diferença
+   * entre "não temos tudo" e "temos e está certo".
+   */
+  async getMatchHistory(id: string): Promise<unknown> {
+    await this.getById(id); // 404 honesto
+    const partidas = await competitionsRepository.findMatches(id);
+    const comTemporada = partidas.map((m) => ({
+      date: m.date,
+      season: m.seasonLabel ?? '',
+      round: m.round,
+      homeClubId: m.homeClubId,
+      awayClubId: m.awayClubId,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+    }));
+
+    const tabela = buildTable(comTemporada);
+    const records = buildRecords(comTemporada);
+    const campeoes = championsBySeason(comTemporada);
+
+    const ids = new Set<string>();
+    for (const r of tabela) ids.add(r.clubId);
+    for (const c of campeoes) ids.add(c.clubId);
+    if (records.biggestWin) {
+      ids.add(records.biggestWin.winnerClubId);
+      ids.add(records.biggestWin.loserClubId);
+      ids.add(records.biggestWin.homeClubId);
+      ids.add(records.biggestWin.awayClubId);
+    }
+    if (records.highestScoring) {
+      ids.add(records.highestScoring.homeClubId);
+      ids.add(records.highestScoring.awayClubId);
+    }
+    const nomes = await competitionsRepository.findClubNames([...ids]);
+    const nome = (clubId: string) => nomes.get(clubId)?.name ?? null;
+
+    return {
+      table: tabela.map((r) => ({ ...r, clubName: nome(r.clubId) })),
+      records: {
+        ...records,
+        biggestWin: records.biggestWin
+          ? {
+              ...records.biggestWin,
+              homeClubName: nome(records.biggestWin.homeClubId),
+              awayClubName: nome(records.biggestWin.awayClubId),
+              winnerName: nome(records.biggestWin.winnerClubId),
+              loserName: nome(records.biggestWin.loserClubId),
+            }
+          : null,
+        highestScoring: records.highestScoring
+          ? {
+              ...records.highestScoring,
+              homeClubName: nome(records.highestScoring.homeClubId),
+              awayClubName: nome(records.highestScoring.awayClubId),
+            }
+          : null,
+      },
+      champions: campeoes.map((c) => ({ ...c, clubName: nome(c.clubId) })),
+      seasons: [...new Set(comTemporada.map((m) => m.season).filter(Boolean))].sort(),
+      rounds: [...new Set(comTemporada.map((m) => m.round).filter((r): r is string => !!r))].length,
+      matchesUsed: comTemporada.length,
+      truncated: partidas.length >= 20000,
+      pointsPerWin: 3,
+      pointsRuleNote:
+        'Vitória = 3 pontos. Vale para todas as partidas deste acervo (2015 em diante); ' +
+        'competições anteriores a 1995 usavam 2, e somar as duas eras com a mesma régua ' +
+        'produziria um total que nunca existiu.',
+    };
+  },
+
+  /**
+   * T31 — classificação rodada a rodada de UMA temporada (quem subiu e caiu jogo a jogo).
+   *
+   * A temporada é obrigatória: misturar temporadas na mesma evolução produziria uma
+   * classificação que nunca existiu em campo — clubes de anos diferentes na mesma tabela.
+   */
+  async getSeasonRounds(id: string, season: string): Promise<unknown> {
+    await this.getById(id);
+    const partidas = await competitionsRepository.findMatches(id);
+    const daTemporada = partidas
+      .filter((m) => (m.seasonLabel ?? '') === season)
+      .map((m) => ({
+        date: m.date,
+        season: m.seasonLabel ?? '',
+        round: m.round,
+        homeClubId: m.homeClubId,
+        awayClubId: m.awayClubId,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+      }));
+
+    const evolucao = buildRoundEvolution(daTemporada);
+    const ids = new Set<string>();
+    for (const r of evolucao) for (const linha of r.table) ids.add(linha.clubId);
+    const nomes = await competitionsRepository.findClubNames([...ids]);
+
+    /* `positionChange` calculado aqui, entre rodadas consecutivas: é o dado que a interface
+       desenha (subiu/caiu). Deixar a conta para o cliente permitiria que duas telas
+       discordassem sobre a mesma variação. */
+    let anterior: (typeof evolucao)[number]['table'] = [];
+    const rounds = evolucao.map((r) => {
+      const mudancas = positionChanges(anterior, r.table);
+      anterior = r.table;
+      return {
+        round: r.round,
+        roundNumber: r.roundNumber,
+        matchesInRound: r.matchesInRound,
+        table: r.table.map((linha) => ({
+          ...linha,
+          clubName: nomes.get(linha.clubId)?.name ?? null,
+          positionChange: mudancas.get(linha.clubId) ?? null,
+        })),
+      };
+    });
+
+    return { season, rounds, matchesUsed: daTemporada.length };
+  },
+
   async getSeasons(id: string): Promise<unknown[]> {
     const competition = await this.getById(id); // 404 honesto
     // T-24/25 — third só derivável de tabela de liga (copa = fase de grupos).
