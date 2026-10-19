@@ -40,7 +40,10 @@ export interface CrestTimelineStrings {
   sourceLabel: string;
   attributionLabel: string;
   singleNote: string;
-  imageAlt: (period: string) => string;
+  /** Template com `{period}`. STRING, não função: props de Server Component para Client
+   *  Component precisam ser serializáveis, e uma função derruba a árvore inteira com o erro
+   *  #441 do React — a seção simplesmente não aparece. */
+  imageAlt: string;
 }
 
 export function CrestTimeline({
@@ -96,7 +99,7 @@ export function CrestTimeline({
                     host em `images.remotePatterns`. */}
                 <img
                   src={c.imageUrl}
-                  alt={strings.imageAlt(periodo)}
+                  alt={strings.imageAlt.replace('{period}', periodo)}
                   width={80}
                   height={80}
                   loading="lazy"

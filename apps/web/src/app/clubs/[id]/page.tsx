@@ -329,9 +329,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   ]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
-  /* T32 — strings dos escudos. O `imageAlt` é função porque a descrição carrega o período:
-     um alt genérico ("escudo") diria a mesma coisa para todas as versões e não ajudaria
-     ninguém a distinguir uma da outra. */
+  /* T32 — strings dos escudos. `imageAlt` é TEMPLATE com `{period}`, não função: props de
+     Server Component para Client Component precisam ser serializáveis, e uma função derrubou a
+     árvore inteira com o erro #441 do React — a seção simplesmente não aparecia, e o HTML
+     público não tinha nem o título. Quem troca o `{period}` é o próprio componente. */
   const crestStrings = {
     title: s.crestsTitle,
     current: s.crestCurrent,
@@ -340,7 +341,8 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
     sourceLabel: s.crestSource,
     attributionLabel: s.crestAttribution,
     singleNote: s.crestSingleNote,
-    imageAlt: (periodo: string) => s.crestImageAlt.replace('{period}', periodo),
+    imageAlt: s.crestImageAlt,
+    // Template cru: o componente troca `{period}`. Passar função daqui quebraria.
   };
   // T576 — sem escudo oficial no acervo, o cabeçalho usa o ícone autoral e DECLARA
   // que é ilustração (o desenho nunca se apresenta como escudo oficial).
