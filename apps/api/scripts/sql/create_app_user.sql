@@ -14,7 +14,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "audit_logs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "CompetitionSeason" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "billings" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cities" TO app_user;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;
+-- T32 — escudos ao longo do tempo. Tabela criada em 20261018220000_t32_club_crests; o GRANT
+-- vem AQUI e não na migration, seguindo a regra D-2026-09-15-migration-grants-rule.
+-- (Esquecer este GRANT derrubou o deploy do T593: a tabela existia, o Prisma Client a conhecia,
+--  e a consulta devolvia 42501 "permission denied". A migration criou a tabela; o acesso é
+--  responsabilidade deste arquivo — são dois lugares, e só um deles era óbvio.)
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "club_crests" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_consents" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_policy_versions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "competitions" TO app_user;
