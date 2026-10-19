@@ -13,6 +13,7 @@ import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
 import { CountryFlag } from '@/components/CountryFlag';
 import ClubTimeline from '@/components/ClubTimeline';
+import { CrestTimeline } from '@/components/CrestTimeline';
 import SourceNote from '@/components/SourceNote';
 import RelatedClubs from '@/components/RelatedClubs';
 import ClubCommunity from '@/components/ClubCommunity';
@@ -229,6 +230,31 @@ async function getAnthem(id: string): Promise<AnthemPayload | null> {
   }
 }
 
+interface CrestPayload {
+  id: string;
+  imageUrl: string;
+  sourceUrl: string;
+  license: string;
+  attribution: string | null;
+  yearFrom: number | null;
+  yearTo: number | null;
+  isCurrent: boolean;
+  periodLabel: string | null;
+}
+
+/** T32 — escudos ao longo do tempo. Falha de rede devolve [] (a seção não aparece) e nunca
+ *  derruba o perfil: escudo é detalhe comparado ao resto da página. */
+async function getCrests(id: string): Promise<CrestPayload[]> {
+  try {
+    const res = await fetch(`${getApiBase()}/clubs/${id}/crests`, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json.data?.crests ?? []) as CrestPayload[];
+  } catch {
+    return [];
+  }
+}
+
 async function getKits(id: string): Promise<KitEntryPayload[] | null> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/kits`, { next: { revalidate: 300 } });
@@ -294,14 +320,28 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const club = await getProfile(id);
   if (!club) notFound();
-  const [stats, kits, anthem, pennants] = await Promise.all([
+  const [stats, kits, anthem, pennants, crests] = await Promise.all([
     getStatistics(id),
     getKits(id),
     getAnthem(id),
     getPennants(id),
+    getCrests(id),
   ]);
   const locale = await getLocale();
   const s = wsC2Strings[locale].profile;
+  /* T32 — strings dos escudos. O `imageAlt` é função porque a descrição carrega o período:
+     um alt genérico ("escudo") diria a mesma coisa para todas as versões e não ajudaria
+     ninguém a distinguir uma da outra. */
+  const crestStrings = {
+    title: s.crestsTitle,
+    current: s.crestCurrent,
+    unknownPeriod: s.crestUnknownPeriod,
+    licenseLabel: s.crestLicense,
+    sourceLabel: s.crestSource,
+    attributionLabel: s.crestAttribution,
+    singleNote: s.crestSingleNote,
+    imageAlt: (periodo: string) => s.crestImageAlt.replace('{period}', periodo),
+  };
   // T576 — sem escudo oficial no acervo, o cabeçalho usa o ícone autoral e DECLARA
   // que é ilustração (o desenho nunca se apresenta como escudo oficial).
   const media = (club as { media?: { logoUrl?: string | null } }).media;
@@ -604,6 +644,10 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
       })()}
 
       <ClubTimeline clubId={club.id} locale={locale} />
+
+      {/* T32 — escudos ao longo do tempo. Só aparece quando há escudo com licença verificada:
+          seção vazia prometeria um dado que não existe. */}
+      {crests.length > 0 ? <CrestTimeline crests={crests} strings={crestStrings} /> : null}
 
       {kits && kits.length > 0 ? (
         <Section title={s.kits} testid="club-kits">

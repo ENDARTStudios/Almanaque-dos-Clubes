@@ -14,7 +14,7 @@ import {
 } from '../auth/authenticate.middleware.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { geoAttributionForMetadata } from '../../lib/geocoding/geo-attribution.js';
-import { getClubProfile } from './profile.service.js';
+import { getClubProfile, loadCrests } from './profile.service.js';
 import { getClubRelated, getClubTimeline } from './insights.service.js';
 import { getClubComparison } from './compare.service.js';
 import { getClubStatistics } from './statistics.service.js';
@@ -288,6 +288,21 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * T523-kits — uniformes do clube (kitHistory): composição por peças
    * (verificadas no Commons) e/ou foto curada. Read-only.
    */
+  /** T32 — escudos do clube ao longo do tempo (evolução da identidade visual). */
+  app.get<{ Params: { id: string } }>('/clubs/:id/crests', async (request, reply) => {
+    try {
+      const club = await prisma.club.findFirst({
+        where: { id: request.params.id, deletedAt: null },
+        select: { id: true },
+      });
+      if (!club) throw new NotFoundError('Clube', request.params.id);
+      const crests = await loadCrests(request.params.id);
+      return reply.send({ data: { crests } });
+    } catch (err) {
+      return handleDomainError(err, reply);
+    }
+  });
+
   app.get<{ Params: { id: string } }>('/clubs/:id/kits', async (request, reply) => {
     try {
       const club = await prisma.club.findFirst({
