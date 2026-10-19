@@ -13,6 +13,7 @@ import { TrophyCup, TrophyMedal } from '@/components/icons';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
+import { PositionChart } from '@/components/PositionChart';
 import { formatCount } from '@/lib/format';
 
 // Mapeamento do portal (Operador, 08/10 — Entrega 2): sub-abas Visão Geral |
@@ -182,6 +183,42 @@ interface HistoryDto {
   pointsRuleNote: string;
 }
 
+interface RoundTableRow {
+  clubId: string;
+  clubName: string | null;
+  position: number;
+  points: number;
+  positionChange: number | null;
+}
+interface SeasonRoundsDto {
+  season: string;
+  rounds: Array<{
+    round: string;
+    roundNumber: number | null;
+    matchesInRound: number;
+    table: RoundTableRow[];
+  }>;
+  matchesUsed: number;
+}
+
+/**
+ * T31 — evolução rodada a rodada de UMA temporada.
+ *
+ * `season` é obrigatório no endpoint e a função devolve null sem ele: pedir "as rodadas"
+ * sem dizer de que ano traria a resposta errada, e a página prefere não desenhar a inventar.
+ */
+async function getSeasonRounds(id: string, season: string): Promise<SeasonRoundsDto | null> {
+  try {
+    const url = `${getApiBase()}/competitions/${id}/rounds?season=${encodeURIComponent(season)}`;
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json.data ?? null) as SeasonRoundsDto | null;
+  } catch {
+    return null;
+  }
+}
+
 async function getCompetitionHistory(id: string): Promise<HistoryDto | null> {
   try {
     const res = await fetch(`${getApiBase()}/competitions/${id}/history`, {
@@ -217,16 +254,25 @@ export default async function CompetitionDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; season?: string }>;
 }) {
   const { id } = await params;
-  const { tab: tabParam } = await searchParams;
+  const { tab: tabParam, season: seasonParam } = await searchParams;
   const res = await getCompetition(id);
   if (!res?.data) notFound();
   const comp = res.data;
   /* Só busca o histórico quando a aba pede: a consulta varre as partidas da competição inteira,
      e pagar isso em toda visita de qualquer aba seria desperdício. */
   const matchHistory = tabParam === 'pontuacao' ? await getCompetitionHistory(id) : null;
+  /* Temporada: a pedida na URL, ou a MAIS RECENTE do acervo. Sem esse padrão a aba abriria
+     vazia até o usuário escolher — e a primeira pergunta de quem chega é "como foi o último
+     campeonato?", não "escolha um ano". */
+  const temporadaEscolhida =
+    seasonParam ?? (matchHistory?.seasons.at(-1) as string | undefined) ?? null;
+  const seasonRounds =
+    tabParam === 'pontuacao' && temporadaEscolhida
+      ? await getSeasonRounds(id, temporadaEscolhida)
+      : null;
   const overview = res.overview;
   const seasons = res.seasons ?? [];
 
@@ -606,6 +652,63 @@ export default async function CompetitionDetailPage({
                     ) : null}
                   </div>
                 </section>
+
+                {/*
+                  T31 — EVOLUÇÃO RODADA A RODADA. A temporada é escolhida por link (sem
+                  JavaScript): são dez opções e um `<select>` controlado exigiria cliente só
+                  para navegar. O gráfico é SVG no servidor, e a tabela alternativa dentro
+                  dele é a mesma informação em texto — para quem não lê o desenho e para
+                  conferir o desenho contra o número.
+                */}
+                {matchHistory.seasons.length > 0 ? (
+                  <section aria-labelledby="rounds-title">
+                    <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
+                      <h2 id="rounds-title" className="text-xl font-heading font-bold">
+                        {ti.roundsTitle}
+                      </h2>
+                      <nav aria-label={ti.seasonPickerLabel} className="flex flex-wrap gap-1.5">
+                        {matchHistory.seasons.map((se) => {
+                          const ativa = se === temporadaEscolhida;
+                          return (
+                            <Link
+                              key={se}
+                              href={`/competitions/${id}?tab=pontuacao&season=${encodeURIComponent(se)}`}
+                              aria-current={ativa ? 'page' : undefined}
+                              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                                ativa
+                                  ? 'border-primary bg-primary text-primary-foreground font-semibold'
+                                  : 'border-border hover:border-foreground/40'
+                              }`}
+                            >
+                              {se}
+                            </Link>
+                          );
+                        })}
+                      </nav>
+                    </div>
+                    {seasonRounds && seasonRounds.rounds.length > 1 ? (
+                      <PositionChart
+                        rounds={seasonRounds.rounds.map((r) => ({
+                          round: r.round,
+                          table: r.table.map((t) => ({
+                            clubId: t.clubId,
+                            position: t.position,
+                            clubName: t.clubName,
+                          })),
+                        }))}
+                        title={insText(ti.roundsChartTitle, { season: seasonRounds.season })}
+                        tableSummaryLabel={ti.roundsTableSummary}
+                        clubLabel={t.club}
+                        highlightLabel={(nome, delta) =>
+                          insText(ti.roundsHighlight, { club: nome, delta })
+                        }
+                        totalRounds={seasonRounds.rounds.length}
+                      />
+                    ) : (
+                      <p className="text-sm text-foreground/70">{ti.roundsEmpty}</p>
+                    )}
+                  </section>
+                ) : null}
 
                 {/*
                   T30 — TABELA HISTÓRICA DE PONTOS CORRIDOS. A régua de pontos vai no caption
