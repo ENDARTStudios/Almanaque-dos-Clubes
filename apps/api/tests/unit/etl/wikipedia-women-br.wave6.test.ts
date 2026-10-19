@@ -84,9 +84,7 @@ describe('T450 wave 6 — formatos header-driven', () => {
 
 describe('T450 wave 10 — Sports table (WDL)', () => {
   it('extrai win/draw/loss/gf/ga por código, computa pontos e ordena', async () => {
-    const mod = await import(
-      '../../../src/modules/etl/connectors/wikipedia-women-br.connector.js'
-    );
+    const mod = await import('../../../src/modules/etl/connectors/wikipedia-women-br.connector.js');
     const wt = [
       '{{#invoke:Sports table|main|style=WDL',
       '|team1=JUV |team2=PLA',
