@@ -1034,7 +1034,7 @@ export default async function CompetitionDetailPage({
               </h2>
               {podium?.champion ? (
                 <div className="space-y-4" data-testid="competition-podium">
-                  <article className="rounded-xl border border-primary/40 bg-primary/5 p-5">
+                  <article className="rounded-xl border border-secondary/40 bg-secondary/5 p-5">
                     <div className="flex flex-wrap items-center gap-4">
                       {comp.trophyImageUrl ? (
                         <span className="w-16 h-16 rounded-xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0">
@@ -1048,14 +1048,14 @@ export default async function CompetitionDetailPage({
                         </span>
                       ) : null}
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-primary-ink">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
                           {ti.podiumChampion}
                         </p>
                         <p className="text-2xl font-heading font-bold text-foreground mt-0.5">
                           {podium.champion.clubId ? (
                             <Link
                               href={`/clubs/${podium.champion.clubId}`}
-                              className="hover:text-primary-ink"
+                              className="hover:text-secondary"
                             >
                               {podium.champion.clubName}
                             </Link>
