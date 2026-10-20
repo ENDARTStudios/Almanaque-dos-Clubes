@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from './CommandPaletteProvider';
@@ -263,13 +264,19 @@ export default function Navbar() {
                 <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
                 <span aria-hidden="true" className="block h-0.5 w-5 bg-current" />
               </button>
-              <Link href="/" className="flex shrink-0 items-baseline gap-1.5">
-                <span className="font-heading text-2xl font-bold leading-none text-primary-ink">
-                  ALMANAQUE
-                </span>
-                <span className="hidden font-heading text-base leading-none text-foreground/70 sm:inline">
-                  dos Clubes
-                </span>
+              <Link
+                href="/"
+                className="flex shrink-0 items-center"
+                aria-label="Almanaque dos Clubes"
+              >
+                <Image
+                  src="/brand/logo-horizontal-claro.svg"
+                  alt=""
+                  width={1171}
+                  height={319}
+                  priority
+                  className="h-10 w-auto sm:h-12"
+                />
               </Link>
             </div>
 

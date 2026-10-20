@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800" height="800" viewBox="0 0 800 800">
+  <title>ALM símbolo light</title>
+  <g id="Layer_1" data-name="Layer 1">
+  </g>
+  <g id="Símbolo">
+    <g id="Símbolo-2" data-name="Símbolo">
+      <path id="Bola" d="M220 250 C220 150.59 300.59 70 400 70 C499.41 70 580 150.59 580 250 C580 349.41 499.41 430 400 430 C300.59 430 220 349.41 220 250 Z" fill="#be123c"/>
+      <path id="Pentágono_1" data-name="Pentágono 1" d="M340.35 230.62 L400 187.28 L459.65 230.62 L436.87 300.74 L363.13 300.74 Z" fill="#faf8f5"/>
+      <path id="Costura_1" data-name="Costura 1" d="M400 187.28 L400 124.56" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_2" data-name="Costura 2" d="M400 187.28 L340.35 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_3" data-name="Costura 3" d="M400 187.28 L459.65 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_4" data-name="Costura 4" d="M400 124.56 L340.35 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_5" data-name="Costura 5" d="M400 124.56 L459.65 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_6" data-name="Costura 6" d="M363.13 402.23 L436.87 402.23" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_7" data-name="Costura 7" d="M363.13 402.23 L326.27 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_8" data-name="Costura 8" d="M363.13 402.23 L326.27 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_9" data-name="Costura 9" d="M436.87 402.23 L473.73 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_10" data-name="Costura 10" d="M436.87 402.23 L473.73 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_11" data-name="Costura 11" d="M221.05 230.62 L221.05 269.38" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_12" data-name="Costura 12" d="M221.05 230.62 L243.83 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_13" data-name="Costura 13" d="M221.05 230.62 L243.83 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_14" data-name="Costura 14" d="M578.95 230.62 L578.95 269.38" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_15" data-name="Costura 15" d="M578.95 230.62 L556.17 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_16" data-name="Costura 16" d="M578.95 230.62 L556.17 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_17" data-name="Costura 17" d="M363.13 300.74 L436.87 300.74" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_18" data-name="Costura 18" d="M363.13 300.74 L340.35 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_19" data-name="Costura 19" d="M363.13 300.74 L326.27 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_20" data-name="Costura 20" d="M363.13 426.18 L326.27 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_21" data-name="Costura 21" d="M363.13 73.82 L436.87 73.82" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_22" data-name="Costura 22" d="M363.13 73.82 L340.35 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_23" data-name="Costura 23" d="M363.13 73.82 L326.27 85.79" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_24" data-name="Costura 24" d="M436.87 300.74 L459.65 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_25" data-name="Costura 25" d="M436.87 300.74 L473.73 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_26" data-name="Costura 26" d="M436.87 426.18 L473.73 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_27" data-name="Costura 27" d="M436.87 73.82 L459.65 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_28" data-name="Costura 28" d="M436.87 73.82 L473.73 85.79" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_29" data-name="Costura 29" d="M266.62 332.1 L266.62 370.87" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_30" data-name="Costura 30" d="M266.62 332.1 L326.27 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_31" data-name="Costura 31" d="M266.62 332.1 L243.83 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_32" data-name="Costura 32" d="M266.62 370.87 L326.27 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_33" data-name="Costura 33" d="M266.62 370.87 L243.83 339.51" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_34" data-name="Costura 34" d="M266.62 129.13 L243.83 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_35" data-name="Costura 35" d="M533.38 332.1 L533.38 370.87" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_36" data-name="Costura 36" d="M533.38 332.1 L473.73 351.48" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_37" data-name="Costura 37" d="M533.38 332.1 L556.17 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_38" data-name="Costura 38" d="M533.38 370.87 L473.73 414.21" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_39" data-name="Costura 39" d="M533.38 370.87 L556.17 339.51" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_40" data-name="Costura 40" d="M533.38 129.13 L556.17 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_41" data-name="Costura 41" d="M280.7 211.24 L280.7 148.52" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_42" data-name="Costura 42" d="M280.7 211.24 L340.35 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_43" data-name="Costura 43" d="M280.7 211.24 L243.83 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_44" data-name="Costura 44" d="M280.7 148.52 L340.35 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_45" data-name="Costura 45" d="M280.7 148.52 L243.83 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_46" data-name="Costura 46" d="M519.3 211.24 L519.3 148.52" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_47" data-name="Costura 47" d="M519.3 211.24 L459.65 230.62" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_48" data-name="Costura 48" d="M519.3 211.24 L556.17 261.98" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_49" data-name="Costura 49" d="M519.3 148.52 L459.65 105.18" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Costura_50" data-name="Costura 50" d="M519.3 148.52 L556.17 160.49" fill="none" stroke="#faf8f5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Página_esquerda" data-name="Página esquerda" d="M124 250 L400 430 L400 730 L124 562 Z" fill="#12100f"/>
+      <path id="Página_direita" data-name="Página direita" d="M676 250 L400 430 L400 730 L676 562 Z" fill="#12100f"/>
+      <path id="Contorno_dourado_esquerdo" data-name="Contorno dourado esquerdo" d="M124 250 L400 430 L400 730 L124 562 Z" fill="none" stroke="#c9a227" stroke-width="3.12" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="Contorno_dourado_direito" data-name="Contorno dourado direito" d="M676 250 L400 430 L400 730 L676 562 Z" fill="none" stroke="#c9a227" stroke-width="3.12" stroke-linecap="round" stroke-linejoin="round"/>
+      <g id="Inicial_A" data-name="Inicial A">
+        <path d="M279.42 555.57 C277.98 554.63 277.2 553.46 277.08 552.06 L274.2 532.91 C274.2 532.31 273.84 531.77 273.12 531.3 L250.26 516.39 C249.54 515.92 249.18 515.99 249.18 516.59 L246.3 531.99 C246.18 533.23 245.4 533.38 243.96 532.44 L222.9 518.71 C221.34 517.69 220.74 516.52 221.1 515.19 L247.56 410.77 C247.8 409.61 248.58 409.46 249.9 410.32 L274.2 426.17 C275.52 427.03 276.3 428.2 276.54 429.67 L302.82 568.49 L303 569.33 C303 570.41 302.34 570.52 301.02 569.66 Z M252.78 497.52 C252.78 498.12 253.02 498.57 253.5 498.89 L269.7 509.45 C270.3 509.84 270.54 509.7 270.42 509.02 L261.96 454.36 C261.84 453.93 261.66 453.63 261.42 453.47 C261.18 453.31 261 453.38 260.88 453.66 Z" fill="#c9a227"/>
+      </g>
+      <g id="Inicial_C" data-name="Inicial C">
+        <path d="M537.91 554.52 C527.11 561.57 518.44 564.01 511.9 561.86 C505.36 559.7 502.09 553.22 502.09 542.42 L502.09 484.1 C502.09 473.42 505.36 462.77 511.9 452.15 C518.44 441.52 527.11 432.69 537.91 425.64 C548.83 418.52 557.56 416.01 564.1 418.1 C570.64 420.2 573.91 426.58 573.91 437.26 L573.91 439.24 C573.91 439.84 573.7 440.49 573.28 441.18 C572.86 441.88 572.35 442.42 571.75 442.81 L550.69 457.45 C549.25 458.39 548.53 458.2 548.53 456.88 L548.53 452.2 C548.53 448.72 547.57 446.52 545.65 445.61 C543.73 444.71 541.15 445.31 537.91 447.42 C534.79 449.46 532.27 452.18 530.35 455.59 C528.43 459.01 527.47 462.45 527.47 465.93 L527.47 528.03 C527.47 531.51 528.43 533.68 530.35 534.52 C532.27 535.37 534.79 534.78 537.91 532.74 C541.15 530.63 543.73 527.9 545.65 524.54 C547.57 521.19 548.53 517.78 548.53 514.3 L548.53 509.44 C548.53 508.84 548.74 508.19 549.16 507.49 C549.58 506.8 550.09 506.26 550.69 505.87 L571.75 493.03 C572.35 492.64 572.86 492.52 573.28 492.66 C573.7 492.81 573.91 493.18 573.91 493.78 L573.91 495.58 C573.91 506.38 570.61 517.15 564.01 527.87 C557.41 538.59 548.71 547.48 537.91 554.52 Z" fill="#c9a227"/>
+      </g>
+      <path id="Vinco" d="M395.2 430 L400 730 L404.8 430 Z" fill="#faf8f5"/>
+    </g>
+  </g>
+</svg>
