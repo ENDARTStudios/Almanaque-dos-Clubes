@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@almanaque/api": "workspace:*",
-    "bullmq": "^6.0.9",
-    "resend": "^6.19.0"
+    "bullmq": "^6.3.17",
+    "resend": "^6.34.1"
   },
   "devDependencies": {
     "tsx": "^4.23.15",
