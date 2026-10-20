@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
 import { formatPrice, PLAN_CENTS, yearlyCents, type BillingCurrency } from '@/lib/pricing';
@@ -16,6 +17,7 @@ export default function ContentDocument({
 }) {
   const { t, dict, locale, setLocale } = useI18n();
   const doc = dict.pages[namespace];
+  const isSobre = namespace === 'sobre';
 
   // Cabeçalhos da tabela de inventário (Política de Cookies), localizados.
   const inventoryHeaders =
@@ -26,14 +28,16 @@ export default function ContentDocument({
   // Substitui tokens de preço pela moeda da localização real (nunca pelo idioma).
   const withPrices = (text: string): string => {
     if (!currency) return text;
-    return text
-      .replaceAll('{free}', formatPrice(currency, PLAN_CENTS.FREE, locale))
-      .replaceAll('{proMonthly}', formatPrice(currency, PLAN_CENTS.PRO, locale))
-      .replaceAll('{eliteMonthly}', formatPrice(currency, PLAN_CENTS.ELITE, locale))
-      // T545 — os tokens ANUAIS existem porque o texto reusava o mensal aqui
-      // ("R$ 4,90 anual"), contradizendo o botão de checkout logo abaixo.
-      .replaceAll('{proYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.PRO), locale))
-      .replaceAll('{eliteYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.ELITE), locale));
+    return (
+      text
+        .replaceAll('{free}', formatPrice(currency, PLAN_CENTS.FREE, locale))
+        .replaceAll('{proMonthly}', formatPrice(currency, PLAN_CENTS.PRO, locale))
+        .replaceAll('{eliteMonthly}', formatPrice(currency, PLAN_CENTS.ELITE, locale))
+        // T545 — os tokens ANUAIS existem porque o texto reusava o mensal aqui
+        // ("R$ 4,90 anual"), contradizendo o botão de checkout logo abaixo.
+        .replaceAll('{proYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.PRO), locale))
+        .replaceAll('{eliteYearly}', formatPrice(currency, yearlyCents(PLAN_CENTS.ELITE), locale))
+    );
   };
 
   return (
@@ -54,6 +58,19 @@ export default function ContentDocument({
           ))}
         </div>
       </div>
+      {isSobre ? (
+        <div className="mb-8 rounded-xl border border-border bg-muted px-6 py-8 sm:px-10 sm:py-10">
+          <Image
+            src="/brand/logo-principal-fundo-claro.svg"
+            alt="Almanaque dos Clubes"
+            width={1012}
+            height={789}
+            priority
+            sizes="(max-width: 640px) 90vw, 380px"
+            className="mx-auto h-auto w-full max-w-[320px] sm:max-w-[380px]"
+          />
+        </div>
+      ) : null}
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
         {withPrices(doc.title)}
       </h1>
