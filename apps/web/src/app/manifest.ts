@@ -7,11 +7,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'A história do futebol mundial num só lugar',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#DC2626',
+    background_color: '#faf8f5',
+    theme_color: '#be123c',
     icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/brand/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
   };
 }
