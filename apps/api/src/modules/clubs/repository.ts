@@ -81,6 +81,39 @@ export interface GeoStatsState {
  * falta é o DADO, não o clube. `semCidade` existe para a tela poder DECLARAR a lacuna em vez de
  * escondê-la, que é a mesma regra do `total: null` no subtítulo de `/clubs` (T548).
  */
+/**
+ * T3 — ÍNDICE DE ESTADOS para o agrupamento de `/clubs`.
+ *
+ * Existe porque a premissa do `CityDrilldown` envelheceu: ele nasceu quando `stateId` estava em
+ * 1 de 100 clubes, e por isso pulava o nível de estado. Os bots A/B/C (T588/T589/T590) levaram
+ * `stateId` a 2.815 clubes, e o nível intermediário passou a existir de verdade.
+ *
+ * `withCity` por estado não é enfeite: é o que permite a tela decidir, com número, se o
+ * terceiro nível (cidade) tem dado suficiente — em vez de assumir que tem.
+ */
+export interface StateIndexEntry {
+  /** id de `states` — o valor do filtro `?state=`. */
+  id: string;
+  name: string;
+  /** Código ISO 3166-2, ex.: `BR-SP`. */
+  code: string;
+  clubs: number;
+  /** Clubes deste estado que também têm `city` — mede se dá para abrir o 3º nível. */
+  withCity: number;
+}
+export interface StateIndex {
+  generatedAt: string;
+  source: 'derived';
+  baseQuery: string;
+  country: string;
+  totals: {
+    withState: number;
+    withoutState: number;
+    states: number;
+  };
+  states: StateIndexEntry[];
+}
+
 export interface CityIndexEntry {
   /** Nome da cidade exatamente como está em `clubs.city` — é o valor do filtro `?city=`. */
   name: string;
@@ -401,16 +434,84 @@ export const clubsRepository = {
    * grafias da mesma cidade ("São Paulo" e "Sao Paulo") viram duas entradas — preferi isso a
    * normalizar por conta própria e juntar cidades que talvez não sejam a mesma.
    */
-  async cityIndex(country: string): Promise<CityIndex> {
+  /**
+   * T3 — ÍNDICE DE ESTADOS do país: quantos clubes cada estado tem, e quantos deles têm cidade.
+   *
+   * Conta pela FK `stateId` — a MESMA coluna que o filtro `?state=` usa. Contar por outra coluna
+   * produziria um índice cujos números não batem com o resultado do clique, defeito que o
+   * `countryIndex` já documenta ter evitado.
+   *
+   * `withoutState` é devolvido de propósito: a tela precisa poder DECLARAR quantos clubes não
+   * têm estado, em vez de fingir que o país inteiro está coberto.
+   */
+  async stateIndex(country: string): Promise<StateIndex> {
     const iso = country.toUpperCase();
+    const [porEstado, semEstado] = await Promise.all([
+      prisma.club.groupBy({
+        by: ['stateId'],
+        where: { country: iso, stateId: { not: null }, deletedAt: null },
+        _count: { _all: true },
+      }),
+      prisma.club.count({ where: { country: iso, stateId: null, deletedAt: null } }),
+    ]);
+
+    const ids = porEstado.map((e) => e.stateId).filter((v): v is string => Boolean(v));
+    /* `withCity` por estado: uma consulta agregada, não N consultas — um `groupBy` por estado
+       seria 1 + 393 idas ao banco para montar um índice. */
+    const comCidade = await prisma.club.groupBy({
+      by: ['stateId'],
+      where: { country: iso, stateId: { in: ids }, city: { not: null }, deletedAt: null },
+      _count: { _all: true },
+    });
+    const cidadePorEstado = new Map(comCidade.map((c) => [c.stateId as string, c._count._all]));
+
+    const estados = await prisma.state.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, code: true },
+    });
+    const meta = new Map(estados.map((e) => [e.id, e]));
+
+    const states: StateIndexEntry[] = porEstado
+      .filter((e) => e.stateId && meta.has(e.stateId))
+      .map((e) => {
+        const m = meta.get(e.stateId as string)!;
+        return {
+          id: m.id,
+          name: m.name,
+          code: m.code,
+          clubs: e._count._all,
+          withCity: cidadePorEstado.get(m.id) ?? 0,
+        };
+      })
+      .sort((a, b) => b.clubs - a.clubs || a.name.localeCompare(b.name));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      source: 'derived',
+      baseQuery: 'COUNT(clubs) GROUP BY "stateId" WHERE country = $1 (coluna do filtro público)',
+      country: iso,
+      totals: {
+        withState: states.reduce((acc, e) => acc + e.clubs, 0),
+        withoutState: semEstado,
+        states: states.length,
+      },
+      states,
+    };
+  },
+
+  async cityIndex(country: string, stateId?: string): Promise<CityIndex> {
+    const iso = country.toUpperCase();
+    /* `stateId` opcional: o terceiro nível da hierarquia (cidade) só faz sentido DENTRO de um
+       estado. Sem ele, devolve o país inteiro — comportamento anterior, preservado. */
+    const filtroEstado = stateId ? { stateId } : {};
     const [porCidade, semCidade] = await Promise.all([
       prisma.club.groupBy({
         by: ['city'],
-        where: { country: iso, city: { not: null }, deletedAt: null },
+        where: { country: iso, city: { not: null }, deletedAt: null, ...filtroEstado },
         _count: { _all: true },
       }),
       prisma.club.count({
-        where: { country: iso, city: null, deletedAt: null },
+        where: { country: iso, city: null, deletedAt: null, ...filtroEstado },
       }),
     ]);
 
