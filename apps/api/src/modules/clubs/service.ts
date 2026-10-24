@@ -16,6 +16,7 @@ import {
   type ClubTitleView,
   type GeoStats,
   type ListClubsParams,
+  type StateIndex,
 } from './repository.js';
 import { cache } from '../../services/cache.js';
 import { decideClubUniqueness } from './club-uniqueness.js';
@@ -116,16 +117,33 @@ export const clubsService = {
   },
 
   /**
+   * T3 — índice de ESTADOS do país (nível intermediário da hierarquia de `/clubs`).
+   *
+   * Mesmo TTL da lista: o índice muda quando um clube entra ou muda de estado, não a cada
+   * requisição. `withCity` por estado vem junto porque é ele que decide, com número, se o
+   * terceiro nível da tela tem dado para abrir.
+   */
+  async stateIndex(country: string): Promise<StateIndex> {
+    const iso = country.toUpperCase();
+    return cache.remember(`clubs:state-index:${iso}`, CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.stateIndex(iso),
+    );
+  },
+
+  /**
    * Cidades de um país — segundo nível do agrupamento de `/clubs`.
    *
    * Devolve também `totals.withoutCity`. A tela usa isso para DECLARAR a lacuna: o campo `city`
    * cobre 93% na Alemanha e 26% na Suécia (medido), então uma lista curta de cidades não
    * significa acervo pequeno — significa dado faltando.
    */
-  async cityIndex(country: string): Promise<CityIndex> {
+  async cityIndex(country: string, stateId?: string): Promise<CityIndex> {
     const iso = country.toUpperCase();
-    return cache.remember(`clubs:city-index:${iso}`, CLUBS_LIST_TTL_SECONDS, () =>
-      clubsRepository.cityIndex(iso),
+    /* Chave de cache inclui o estado: sem isso, pedir as cidades de SP devolveria o cache das
+       cidades do país inteiro — resposta errada com aparência de certa. */
+    const chave = stateId ? `clubs:city-index:${iso}:${stateId}` : `clubs:city-index:${iso}`;
+    return cache.remember(chave, CLUBS_LIST_TTL_SECONDS, () =>
+      clubsRepository.cityIndex(iso, stateId),
     );
   },
 

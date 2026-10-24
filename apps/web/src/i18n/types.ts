@@ -295,6 +295,20 @@ export interface Dictionary {
       competitions: string;
       error: string;
       /** Segundo nível do agrupamento: cidades dentro do país escolhido. */
+      /** T3 — nível de ESTADO da hierarquia de `/clubs`. */
+      statesTitle: string;
+      statesLabel: string;
+      /** `{com}`, `{total}`, `{pct}` — cobertura de estado, declarada. */
+      statesCoverage: string;
+      statesFilter: string;
+      statesEmpty: string;
+      /** `{n}` — nenhum clube do país tem estado registrado. */
+      statesGapNone: string;
+      /** `{state}`, `{n}` — cidades dentro do estado escolhido. */
+      citiesInState: string;
+      /** `{state}` — o estado não tem cidade catalogada. */
+      citiesInStateNone: string;
+
       citiesTitle: string;
       citiesLabel: string;
       /** `{n}` é o total de cidades. */
