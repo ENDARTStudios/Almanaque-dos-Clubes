@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import PageHeading from '@/components/PageHeading';
 import DashboardStatsSection from '@/components/DashboardStatsSection';
+import HeartClubSection from '@/components/HeartClubSection';
 import { useI18n } from '@/i18n/Provider';
 
 /**
@@ -53,6 +54,10 @@ export default function DashboardPage() {
 
       {/* WS-C-14 — stats do usuário + favoritos recentes + placeholder de tracking. */}
       <DashboardStatsSection />
+
+      {/* T596 — Time do Coração: a torcida DECLARADA, acima do acervo seguido.
+          É a identidade do usuário, não mais um favorito — por isso vem primeiro. */}
+      <HeartClubSection />
 
       <section aria-labelledby="meu-acervo" className="mb-10">
         <h2

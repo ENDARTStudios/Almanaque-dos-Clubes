@@ -224,6 +224,19 @@ const pt: Dictionary = {
       historyPending:
         'O registro de atividade está desativado até a publicação das políticas de cookies. Enquanto isso, não há histórico para mostrar — e esta página não vai fingir que a sua conta está vazia.',
       historyBack: 'Voltar ao Meu Almanaque',
+      // T596 — Time do Coração: a torcida declarada, distinta dos favoritos seguidos.
+      heartClubTitle: 'Time do Coração',
+      heartClubDesc: 'O clube de que você é torcedor fanático — a sua torcida declarada.',
+      heartClubNone: 'Você ainda não declarou seu Time do Coração.',
+      heartClubSearchLabel: 'Buscar clube para declarar como Time do Coração',
+      heartClubSearchPlaceholder: 'Digite o nome do clube…',
+      heartClubSearchEmpty: 'Nenhum clube encontrado com esse nome.',
+      heartClubSet: 'Definir como Time do Coração',
+      heartClubChange: 'Trocar',
+      heartClubRemove: 'Remover',
+      heartClubView: 'Ver clube',
+      heartClubError: 'Não foi possível salvar o Time do Coração — tente de novo.',
+      heartClubRemoved: 'Time do Coração removido.',
     },
     byCountry: {
       title: 'Por país',

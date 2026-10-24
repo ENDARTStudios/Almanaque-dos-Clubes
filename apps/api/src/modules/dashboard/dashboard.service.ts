@@ -10,6 +10,7 @@ import { prisma } from '../../config/prisma.js';
 import { withRlsContext } from '../../config/rls-context.js';
 import { env } from '../../config/env.js';
 import { NotFoundError } from '@almanaque/domain';
+import type { HeartClubView } from '../users/heart-club.service.js';
 
 export interface DashboardPayload {
   user: {
@@ -46,6 +47,8 @@ export interface DashboardPayload {
     country: string | null;
     fansCount: number;
   }>;
+  /** T596 — Time do Coração: a declaração de torcida do usuário, ou null. */
+  heartClub: HeartClubView | null;
   ownedClubs: Array<{ id: string; name: string; qid: string | null; role: string; since: Date }>;
   tracking: { enabled: boolean };
 }
@@ -74,6 +77,10 @@ export async function getDashboard(userId: string): Promise<DashboardPayload> {
         createdAt: true,
         deletedAt: true,
         userRoles: { select: { role: { select: { name: true } } } },
+        // T596 — Time do Coração
+        heartClub: {
+          select: { id: true, name: true, qid: true, country: true, logoUrl: true },
+        },
       },
     });
     if (!user || user.deletedAt) throw new NotFoundError('Usuário', userId);
@@ -218,6 +225,15 @@ export async function getDashboard(userId: string): Promise<DashboardPayload> {
         read: n.read,
       })),
       favoriteClubs,
+      heartClub: user.heartClub
+        ? {
+            clubId: user.heartClub.id,
+            name: user.heartClub.name,
+            qid: user.heartClub.qid,
+            country: user.heartClub.country,
+            logoUrl: user.heartClub.logoUrl,
+          }
+        : null,
       ownedClubs: ownedClubs.map((o) => ({
         id: o.club.id,
         name: o.club.name,

@@ -221,6 +221,19 @@ const es: Dictionary = {
       historyPending:
         'El registro de actividad está desactivado hasta la publicación de las políticas de cookies. Mientras tanto no hay historial que mostrar — y esta página no va a fingir que tu cuenta está vacía.',
       historyBack: 'Volver a Mi Almanaque',
+      // T596 — Club del Corazón: la hinchada declarada, distinta de los favoritos seguidos.
+      heartClubTitle: 'Club del Corazón',
+      heartClubDesc: 'El club del que eres hincha fanático: tu hinchada declarada.',
+      heartClubNone: 'Todavía no has declarado tu Club del Corazón.',
+      heartClubSearchLabel: 'Buscar un club para declararlo como Club del Corazón',
+      heartClubSearchPlaceholder: 'Escribe el nombre del club…',
+      heartClubSearchEmpty: 'Ningún club encontrado con ese nombre.',
+      heartClubSet: 'Definir como Club del Corazón',
+      heartClubChange: 'Cambiar',
+      heartClubRemove: 'Quitar',
+      heartClubView: 'Ver club',
+      heartClubError: 'No se pudo guardar el Club del Corazón: inténtalo de nuevo.',
+      heartClubRemoved: 'Club del Corazón eliminado.',
     },
     byCountry: {
       title: 'Por país',
