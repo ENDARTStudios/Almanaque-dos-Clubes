@@ -266,6 +266,19 @@ export interface Dictionary {
       historyEmpty: string;
       historyPending: string;
       historyBack: string;
+      /** T596 — Time do Coração: o clube de que o usuário é torcedor fanático. */
+      heartClubTitle: string;
+      heartClubDesc: string;
+      heartClubNone: string;
+      heartClubSearchLabel: string;
+      heartClubSearchPlaceholder: string;
+      heartClubSearchEmpty: string;
+      heartClubSet: string;
+      heartClubChange: string;
+      heartClubRemove: string;
+      heartClubView: string;
+      heartClubError: string;
+      heartClubRemoved: string;
     };
     // T556 — índice de países: o agrupamento de `/clubs` e `/players`.
     byCountry: {

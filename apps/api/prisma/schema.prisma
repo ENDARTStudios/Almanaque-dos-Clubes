@@ -110,6 +110,9 @@ model Club {
   homeMatches   Match[]        @relation("homeMatches")
   awayMatches   Match[]        @relation("awayMatches")
   stadiums      Stadium[] // Um clube pode ter vários estádios ao longo da história
+  // T596 — Time do Coração: usuários que declararam este clube como o clube do
+  // coração (torcedor fanático). Distinto de `favorites` (clubes seguidos).
+  heartedBy     User[]         @relation("UserHeartClub")
   // `creator` opcional: quem cadastrou (admin). Null se importado por ETL.
   // (AuditLog é polimórfico via entityType+entityId — sem FK explícita para Club.)
   createdBy     String?
@@ -373,6 +376,11 @@ model RankingEntry {
 model User {
   favorites            Favorite[]
   notifications        Notification[]
+  // T596 — TIME DO CORAÇÃO: o clube de que o usuário é torcedor fanático.
+  // Vínculo 1:1, distinto de `favorites` (que são os clubes SEGUIDOS — plural,
+  // sem hierarquia). Null = ainda não escolheu; nunca presumimos um.
+  heartClubId          String?
+  heartClub            Club?       @relation("UserHeartClub", fields: [heartClubId], references: [id], onDelete: SetNull)
   clubOwnerships       ClubOwnership[]
   proposalsSubmitted   ClubDescriptionProposal[] @relation("ProposalProposer")
   proposalsReviewed    ClubDescriptionProposal[] @relation("ProposalReviewer")
@@ -407,6 +415,8 @@ model User {
   // Índice composto: validação de login (email + status) — útil para "encontrar
   // usuários ativos por email" sem table scan
   @@index([email, status])
+  // T596 — contagem de torcedores por clube (Time do Coração)
+  @@index([heartClubId])
   @@map("users")
 }
 

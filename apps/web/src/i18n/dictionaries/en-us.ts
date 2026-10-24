@@ -219,6 +219,19 @@ const en: Dictionary = {
       historyPending:
         'Activity logging is disabled until the cookie policies are published. Until then there is no history to show — and this page will not pretend your account is empty.',
       historyBack: 'Back to My Almanac',
+      // T596 — Heart Club: the declared allegiance, distinct from followed favorites.
+      heartClubTitle: 'Heart Club',
+      heartClubDesc: 'The club you are a die-hard supporter of — your declared allegiance.',
+      heartClubNone: 'You have not declared your Heart Club yet.',
+      heartClubSearchLabel: 'Search a club to declare as your Heart Club',
+      heartClubSearchPlaceholder: 'Type the club name…',
+      heartClubSearchEmpty: 'No club found with that name.',
+      heartClubSet: 'Set as Heart Club',
+      heartClubChange: 'Change',
+      heartClubRemove: 'Remove',
+      heartClubView: 'View club',
+      heartClubError: 'Could not save your Heart Club — please try again.',
+      heartClubRemoved: 'Heart Club removed.',
     },
     byCountry: {
       title: 'By country',

@@ -19,6 +19,28 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-10-24] Decisão: D-2026-10-24-t596-direito-autoral-midia — "flagrante jornalístico" NÃO ampara o acervo; licença verificada segue sendo a única via
+
+Motivo: o Operador propôs usar o "direito de flagrante jornalístico" (Lei 9.610/98) como
+respaldo para usar logos de clubes e imagens de jogadores. A análise jurídica registrada
+(docs/D-2026-10-24-FLAGRANTE-JORNALISTICO.md) conclui que a tese NÃO cobre o Almanaque:
+(1) a exceção do art. 46, VIII protege a CITAÇÃO de obras em reportagem jornalística — é
+prerrogativa do INFORMADOR, efêmera por natureza; um produto comercial persistente que
+hospeda e exibe mídia em catálogo não é reportagem; (2) a jurisprudência do STJ já restringiu
+o alcance do "flagrante noticioso" e não o estende a plataformas; (3) escudo de clube é
+MARCA REGISTRADA (Lei 9.279/96) — matéria de direito marcário, nem sequer regida pela lei
+de direito autoral, e uso comercial não autorizado de marca é infração independentemente de
+crédito ou menção à fonte. Consequências práticas, já em vigor nesta rodada (T596):
+escudos entram SOMENTE por Wikimedia Commons/Wikidata com licença LIDA e GRAVADA por arquivo
+(NC/ND recusados) — ver o bot P18 (`enrich-club-crests-p18.ts`); footylogos.com, Seeklogo e
+Brands of the World ficam FORA do acervo (republicam marcas sem licença verificável); fontes
+históricas (historiadofutebol.com) servem de REFERÊNCIA editorial, nunca de cópia.
+
+Alternativas consideradas: (a) adotar a tese e publicar logos "por fim informativo" —
+descartada: expõe o produto a notificação de remoção (o acervo já opera com política DMCA
+própria) e contradiz a honestidade documental do projeto; (b) status quo (licença verificada)
+— mantida e reforçada.
+
 ### [2026-09-28] Decisão: D-2026-09-28-ws-d-m1b-conservative-engine — engine M1b-conservadora (insert-only)
 
 Motivo: aprovado M1b-conservadora (piloto primeiro). **Engine:** `lib/wikidata/expansion/{types,filters,extract-attributes,plan-builder,apply-plan}.ts` + `scripts/expand-wikidata-conservative.ts` (**DRY default**; `--apply --allow-production`; `--stage=PILOT|FULL`; `--country=<ISO2>`). **Filtros conservadores:** `P31=Q476028` direto; sem `P576`; exclusão por hints (feminino/reserva/juvenil/futsal/beach/seleção) **por campo**; país ISO mapeado; label útil. **Competições:** whitelist de classes P31 observada (`Q15991303`/`Q8463186`/`Q15991290`/`Q3270632`/`Q18608583`/`Q1478437`). **Coords:** P625 > P159 > P115 > P131 (cobertura reportada; gap declarado). **Dedupe por QID:** `existing_qid`/`soft_deleted_qid_reserved`/`possible_homonym`/`possible_competition_name_conflict` → **skip**. **Só INSERT** (nunca update/merge/rename/reativar); chunks 100 `Serializable`; manifest. Testes unit **21/21**; tsc/lint 0. **Zero migration.** **Apply em produção = piloto (FASE 3) após gate.**
