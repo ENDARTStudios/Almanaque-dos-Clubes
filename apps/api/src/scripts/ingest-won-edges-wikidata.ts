@@ -251,7 +251,9 @@ async function main(): Promise<void> {
       `T598/DQ-02 — GUARDA: ${result.implausible.length} candidato(s) 'nacional' rejeitado(s) por país da mãe ≠ país do clube:`,
     );
     for (const i of result.implausible.slice(0, 10))
-      log.warn(`  ${i.winnerQid}(${i.winnerCountry}) × ${i.motherQid}(${i.motherCountry}) ${i.year}`);
+      log.warn(
+        `  ${i.winnerQid}(${i.winnerCountry}) × ${i.motherQid}(${i.motherCountry}) ${i.year}`,
+      );
   }
 
   if (result.orphans.length > 0) {
