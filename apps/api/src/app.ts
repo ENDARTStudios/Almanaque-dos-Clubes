@@ -25,6 +25,7 @@ import { reportsRoutes } from './modules/reports/routes.js';
 import { dashboardRoutes } from './modules/dashboard/routes.js';
 import { usersRoutes } from './modules/users/heart-club.routes.js';
 import { coverageRoutes } from './modules/coverage/routes.js';
+import { reviewRoutes } from './modules/admin/review.routes.js';
 import { playersRoutes } from './modules/players/routes.js';
 import { competitionsRoutes } from './modules/competitions/routes.js';
 import { rankingsRoutes } from './modules/rankings/routes.js';
@@ -281,6 +282,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(favoritesRoutes);
       await api.register(usersRoutes);
       await api.register(coverageRoutes);
+      await api.register(reviewRoutes);
       await api.register(wsTicketRoutes);
       await api.register(compareRoutes);
       await api.register(championsRoutes);

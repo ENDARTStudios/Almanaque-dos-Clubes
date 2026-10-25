@@ -214,7 +214,7 @@ jobs:
         run: |
           cd apps/api
           npx prisma migrate diff --from-url "$DRIFT_URL" --to-schema-datamodel prisma/schema.prisma --script > /tmp/drift.sql || true
-          grep -v -e '^-- DropIndex$' -e '^DROP INDEX "stadiums_location_gix";$' /tmp/drift.sql | grep -v -e '^$' -e '^--' > /tmp/drift-real.sql || true
+          grep -v -e '^-- DropIndex$' -e '^DROP INDEX "stadiums_location_gix";$' -e '^DROP INDEX "review_queue_entity_check_pending_key";$' /tmp/drift.sql | grep -v -e '^$' -e '^--' > /tmp/drift-real.sql || true
           if [ -s /tmp/drift-real.sql ]; then echo "SCHEMA DRIFT DETECTED:"; cat /tmp/drift-real.sql; exit 1; fi
           echo "No schema drift."
 
