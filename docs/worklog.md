@@ -3134,3 +3134,53 @@ Stage Summary:
   traduzidos e bandeira no seletor; política dos códigos retirados declarada = a que está no ar
 - 191 testes unitários do web verdes, `tsc --noEmit` limpo, prettier sem mudanças
 - Nada foi escrito em produção: só GET público da API nos screenshots/medições
+
+---
+
+Task ID: goal-2026-10-24/t596-time-coracao
+Agent: Doer — itens 34 (Time do Coração), 35 (parecer jurídico) e 36 (escudos via P18)
+Task: implementar a declaração de torcida na área do usuário, ampliar a cobertura de
+escudos por fonte com licença verificada e registrar a análise do "flagrante
+jornalístico" proposto como respaldo legal.
+
+Work Log:
+
+- **Item 34 — Time do Coração é DECLARAÇÃO, não favorito.** `users.heartClubId`
+  (FK → clubs, ON DELETE SET NULL, migration aditiva `20261024000000_t596_user_heart_club`)
+  dá o vínculo 1:1 por construção; `favorites` continua sendo a lista plural de clubes
+  seguidos, sem hierarquia. O sistema NUNCA infere a torcida do histórico — a seção
+  começa vazia e honesta ("Você ainda não declarou"). Rotas `PUT/DELETE/GET
+  /users/me/heart-club` sob RLS owner (padrão T442), idempotentes, 404 para clube
+  inexistente/soft-deleted. Busca da UI reusa `/search/global?type=club` (homônimos
+  separados por QID — nunca colapsados). Dashboard carrega `heartClub`. i18n pt/en/es.
+- **Item 36 — P18 com licença LIDA, e o teto do método medido.** Universo em produção:
+  11.258 clubes com QID e sem escudo vigente → 190 têm P18 vetorial/transparente
+  (10.440 SEM P18 — gap declarado do método; 628 jpg descartados: P18 em jpg é quase
+  sempre foto de estádio; 2 licenças recusadas). `enrich-club-crests-p18.ts` segue a
+  mesma régua do bot T32 (`licencaAceita`; NC/ND fora). footylogos.com, Seeklogo e
+  Brands of the World ficam FORA do acervo — republicam marcas sem licença verificável;
+  fontes históricas são referência editorial, nunca cópia.
+- **Item 35 — parecer registrado, e ele é NEGATIVO.** O "flagrante jornalístico"
+  (art. 46, VIII, Lei 9.610/98) ampara reportagem efêmera do INFORMADOR, não catálogo
+  comercial persistente; o STJ já estreitou a tese; escudo é MARCA (Lei 9.279/96) —
+  matéria nem sequer regida pela lei autoral. Documento: `docs/D-2026-10-24-FLAGRANTE-
+  JORNALISTICO.md` + decisão D-2026-10-24-t596-direito-autoral-midia em DECISOES.md.
+  Caminho legítimo futuro para escudos sem licença livre: licenciamento direto do
+  detentor (decisão comercial do Operador).
+- **Aplicação em produção (24-10-2026):** dry-run 188 → apply 188 escudos gravados
+  (92 CC BY 4.0, 70 PD, 17 CC BY-SA 4.0, 5 CC BY-SA 3.0, 4 CC0), re-run noop provado,
+  reversível por `DELETE FROM club_crests WHERE "importedFrom"='wikidata-p18'`.
+  Acervo: 807 escudos (619 do T32 + 188 do P18).
+- **Fecho de UI (revisão pós-merge):** linha de 3 botões podia estourar 390px —
+  `flex-wrap` no cartão; N botões "Definir" idênticos confundiam leitor de tela —
+  `aria-label` com o nome do clube; `setState` síncrono no effect da busca (warning
+  react-hooks) — termo curto agora esconde resultados na renderização.
+
+Stage Summary:
+
+- Time do Coração no ar: schema + API + UI, testes 5/5 integração e 6/6 unit (bot),
+  239/239 web, tsc/lint limpos, `ui:audit:ci` verde. PR #750 merged; CI e deploy web
+  verdes em main; smoke de produção 401 (rota autenticada, correto).
+- +188 escudos com licença verificada em produção (teto honesto do P18 declarado:
+  92% dos clubes sem escudo não têm imagem utilizável no Wikidata — a próxima onda de
+  cobertura só entra por lista curada do bot T32 ou licenciamento direto).

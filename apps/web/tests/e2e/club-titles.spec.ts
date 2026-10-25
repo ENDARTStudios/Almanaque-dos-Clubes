@@ -29,13 +29,19 @@ async function dismissConsent(page: import('@playwright/test').Page): Promise<vo
 test.describe('Galeria de honra do clube (T448)', () => {
   test('clube com conquistas auditáveis mostra títulos com ano e fonte', async ({ page }) => {
     // Descobre um clube com título direto na API local (dado real do corpus).
+    // SSRF: o destino é a API LOCAL do teste — a URL do env é validada contra
+    // host permitido (localhost/127.0.0.1) antes de qualquer fetch.
     const apiUrl = process.env.T448_API_URL || 'http://localhost:3000/api/v1';
+    const base = new URL(apiUrl);
+    if (base.hostname !== 'localhost' && base.hostname !== '127.0.0.1') {
+      throw new Error(`T448_API_URL deve apontar para a API local (recebido: ${base.hostname})`);
+    }
     let clubId = '';
     try {
-      const res = await fetch(`${apiUrl}/clubs?limit=100`);
+      const res = await fetch(`${base.origin}${base.pathname}/clubs?limit=100`);
       const json = await res.json();
       for (const club of json.data as Array<{ id: string }>) {
-        const t = await fetch(`${apiUrl}/clubs/${club.id}/titles`);
+        const t = await fetch(`${base.origin}${base.pathname}/clubs/${club.id}/titles`);
         const tj = await t.json();
         if (tj.total > 0) {
           clubId = club.id;

@@ -10,6 +10,7 @@ import { z, ZodError } from 'zod';
 import { DomainError, NotFoundError } from '@almanaque/domain';
 import { env } from '../../config/env.js';
 import { authenticate, requirePermission } from '../auth/authenticate.middleware.js';
+import { getAccessCookieName } from '../auth/jwt.service.js';
 import { PERMISSIONS } from '../auth/rbac.service.js';
 import { InvalidTransitionError } from './state-machine.js';
 import {
@@ -28,7 +29,7 @@ import {
 
 /** Auth opcional: anexa request.user quando houver access_token válido. */
 export async function optionalAuthenticate(request: FastifyRequest): Promise<void> {
-  const cookieName = env.isProd ? '__Host-access_token' : 'access_token';
+  const cookieName = getAccessCookieName(env.isProd);
   const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[
     cookieName
   ];

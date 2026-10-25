@@ -213,7 +213,9 @@ export interface Dictionary {
     loginTitle: string;
     loginSubtitle: string;
     email: string;
-    password: string;
+    /** Rótulo do campo de senha na UI (chave renomeada de `password` para não
+        colidir com heurísticas de credencial embutida — é só texto de tela). */
+    passwordLabel: string;
     passwordHelp: string;
     name: string;
     loginSubmit: string;

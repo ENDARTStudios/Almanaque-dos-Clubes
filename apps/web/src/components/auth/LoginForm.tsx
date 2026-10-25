@@ -89,7 +89,7 @@ export function LoginForm() {
 
       <div className="auth-card__field">
         <label htmlFor="login-password" className="auth-card__label">
-          {t('auth.password')}
+          {t('auth.passwordLabel')}
         </label>
         <input
           id="login-password"

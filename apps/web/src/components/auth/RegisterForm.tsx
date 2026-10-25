@@ -86,7 +86,7 @@ export function RegisterForm() {
 
       <div className="auth-card__field">
         <label htmlFor="register-password" className="auth-card__label">
-          {t('auth.password')}
+          {t('auth.passwordLabel')}
         </label>
         <input
           id="register-password"

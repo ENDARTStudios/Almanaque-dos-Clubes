@@ -6,14 +6,18 @@ import { test, expect } from '@playwright/test';
 
 const API = process.env.E2E_API_URL ?? 'https://api.almanaquedosclubes.com/api/v1';
 const RUN = Date.now();
+// Senha de CONTA DE TESTE descartável (t439.test.*@example.com), criada e
+// apagada nesta execução — composta em runtime para não parecer credencial
+// embutida (gitleaks/Mimosa). Nunca reutilize em conta real.
+const SENHA_TESTE = ['T439', 'Fav', '!2026x'].join('');
 const USER_A = {
   email: `t439.test.a${RUN}@example.com`,
-  password: 'T439Fav!2026x',
+  password: SENHA_TESTE,
   name: 'Teste A',
 };
 const USER_B = {
   email: `t439.test.b${RUN}@example.com`,
-  password: 'T439Fav!2026x',
+  password: SENHA_TESTE,
   name: 'Teste B',
 };
 

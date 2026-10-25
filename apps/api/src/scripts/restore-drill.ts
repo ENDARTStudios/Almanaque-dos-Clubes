@@ -12,7 +12,7 @@
  */
 import { PrismaClient } from '@prisma/client';
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { spawnSync, execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { writeFileSync, unlinkSync, statSync } from 'node:fs';
 
 const prisma = new PrismaClient();
@@ -87,7 +87,14 @@ async function main(): Promise<void> {
     };
   })();
 
-  execSync(`createdb "${drillDb}"`, { env: pgEnv, stdio: 'pipe' });
+  // createdb/dropdb via spawn com args (nunca interpolação em shell — o nome do
+  // DB efêmero é derivado de Date.now(), mas a regra do script é não passar
+  // string nenhuma por shell).
+  const created = run('createdb', [drillDb], pgEnv);
+  if (created.code !== 0) {
+    console.error(JSON.stringify({ step: 'createdb', ok: false, stderr: created.stderr.slice(0, 300) }));
+    process.exit(1);
+  }
   const restore = run(
     'pg_restore',
     ['--dbname', drillDb, '--no-owner', '--no-privileges', dumpPath],
@@ -97,7 +104,7 @@ async function main(): Promise<void> {
     console.error(
       JSON.stringify({ step: 'pg_restore', ok: false, stderr: restore.stderr.slice(0, 300) }),
     );
-    execSync(`dropdb --if-exists "${drillDb}"`, { env: pgEnv });
+    run('dropdb', ['--if-exists', drillDb], pgEnv);
     process.exit(1);
   }
   console.log(JSON.stringify({ step: 'pg_restore', ok: true, drillDb }));
@@ -128,7 +135,7 @@ async function main(): Promise<void> {
   await drillPrisma.$disconnect();
 
   // 4. Limpa DB efêmero
-  execSync(`dropdb --if-exists "${drillDb}"`, { env: pgEnv, stdio: 'pipe' });
+  run('dropdb', ['--if-exists', drillDb], pgEnv);
   unlinkSync(dumpPath);
 
   // 5. Resultado

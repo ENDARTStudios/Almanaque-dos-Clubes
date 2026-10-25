@@ -167,7 +167,7 @@ const es: Dictionary = {
     loginTitle: 'Entrar',
     loginSubtitle: 'Accede a tu cuenta de Almanaque dos Clubes',
     email: 'Correo',
-    password: 'Contraseña',
+    passwordLabel: 'Contraseña',
     passwordHelp: 'Mín. 8 caracteres, con mayúscula, minúscula y un número.',
     name: 'Nombre',
     loginSubmit: 'Entrar',
