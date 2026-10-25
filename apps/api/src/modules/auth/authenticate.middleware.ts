@@ -16,6 +16,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { env } from '../../config/env.js';
 import { isAccessBlocked } from './access-blocklist.service.js';
+import { getAccessCookieName } from './jwt.service.js';
 
 /**
  * Payload do access token validado.
@@ -41,7 +42,7 @@ interface ValidatedPayload {
  * - Token type !== 'access' (confusion attack)
  */
 export async function authenticate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-  const cookieName = env.isProd ? '__Host-access_token' : 'access_token';
+  const cookieName = getAccessCookieName(env.isProd);
   const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[
     cookieName
   ];
@@ -117,7 +118,7 @@ export async function optionalAuthenticate(
   request: FastifyRequest,
   _reply: FastifyReply,
 ): Promise<void> {
-  const cookieName = env.isProd ? '__Host-access_token' : 'access_token';
+  const cookieName = getAccessCookieName(env.isProd);
   const accessToken = (request.cookies as Record<string, string | undefined> | undefined)?.[
     cookieName
   ];

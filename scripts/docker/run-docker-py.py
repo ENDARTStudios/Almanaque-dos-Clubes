@@ -1,7 +1,10 @@
 import subprocess
-import os
+from pathlib import Path
 
-os.chdir(r'd:\PROJETOS\Almanaque dos Clubes\Almanaque dos Clubes')
+# Diretório do script: os arquivos de saída são escritos SEMPRE aqui (caminho
+# resolvido e ancorado no __file__, nunca relativo ao cwd — que varia com quem
+# invoca).
+DIRETORIO = Path(__file__).resolve().parent
 
 results = []
 
@@ -49,8 +52,8 @@ try:
 except Exception as e:
     results.append(f"Erro: {e}")
 
-# Salvar e mostrar
-with open('diagnostic-output.txt', 'w', encoding='utf-8') as f:
-    f.write('\n'.join(results))
+# Salvar e mostrar — sempre no diretório do script (caminho resolvido acima),
+# mesma forma do run-py-cmd.py (write_text em caminho ancorado no __file__).
+(DIRETORIO / 'diagnostic-output.txt').write_text('\n'.join(results), encoding='utf-8')
 
 print('\n'.join(results))

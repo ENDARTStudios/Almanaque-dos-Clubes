@@ -217,14 +217,24 @@ async function paisesDoJson(arquivo: string): Promise<Pais[]> {
 const INTERVALO_DOWNLOAD_MS = 500;
 let ultimoDownload = 0;
 
+/** Hosts de onde este script pode baixar bytes (egress fixo — SSRF). */
+const HOSTS_PERMITIDOS = new Set(['upload.wikimedia.org', 'commons.wikimedia.org']);
+
 async function baixar(url: string, tentativas = 5): Promise<Buffer> {
+  // Allowlist de egress: só Wikimedia, https. As URLs vêm do acervo/API do
+  // Commons — se um dia vierem de outro lugar, o download falha aqui em vez
+  // de apontar a rede do Operador para destino arbitrário.
+  const destino = new URL(url);
+  if (destino.protocol !== 'https:' || !HOSTS_PERMITIDOS.has(destino.hostname)) {
+    throw new Error(`host fora da allowlist de download: ${destino.hostname}`);
+  }
   let erro: unknown = null;
   for (let i = 0; i < tentativas; i++) {
     const espera = ultimoDownload + INTERVALO_DOWNLOAD_MS - Date.now();
     if (espera > 0) await new Promise((r) => setTimeout(r, espera));
     ultimoDownload = Date.now();
     try {
-      const res = await fetch(url, { headers: { 'user-agent': COMMONS_USER_AGENT } });
+      const res = await fetch(destino, { headers: { 'user-agent': COMMONS_USER_AGENT } });
       if (res.status === 429 || res.status >= 500) {
         erro = new Error(`HTTP ${res.status}`);
         await new Promise((r) => setTimeout(r, 2 ** i * 1000));

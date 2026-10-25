@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from './CommandPaletteProvider';
@@ -263,13 +264,19 @@ export default function Navbar() {
                 <span aria-hidden="true" className="mb-1 block h-0.5 w-5 bg-current" />
                 <span aria-hidden="true" className="block h-0.5 w-5 bg-current" />
               </button>
-              <Link href="/" className="flex shrink-0 items-baseline gap-1.5">
-                <span className="font-heading text-2xl font-bold leading-none text-primary-ink">
-                  ALMANAQUE
-                </span>
-                <span className="hidden font-heading text-base leading-none text-foreground/70 sm:inline">
-                  dos Clubes
-                </span>
+              <Link
+                href="/"
+                className="flex shrink-0 items-center"
+                aria-label="Almanaque dos Clubes"
+              >
+                <Image
+                  src="/brand/logo-horizontal-claro.svg"
+                  alt=""
+                  width={1171}
+                  height={319}
+                  priority
+                  className="h-10 w-auto sm:h-12"
+                />
               </Link>
             </div>
 
@@ -330,19 +337,16 @@ export default function Navbar() {
                         <p className="truncate px-4 py-1 text-xs text-foreground/70">
                           {user.email}
                         </p>
+                        {/* T597 — UMA entrada para a área do usuário: "Meu Almanaque".
+                            A segunda entrada ("Favoritos" → /favoritos) era a mesma lógica
+                            com outro nome; o painel de favoritos vive dentro de /dashboard. */}
                         <Link
                           href="/dashboard"
                           onClick={closeMenu}
+                          data-testid="nav-meualmanaque"
                           className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
                         >
                           {t('nav.dashboard')}
-                        </Link>
-                        <Link
-                          href="/favoritos"
-                          onClick={closeMenu}
-                          className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                        >
-                          {t('pages.favoritos.title')}
                         </Link>
                         <Link
                           href="/dashboard/subscription"
@@ -458,7 +462,6 @@ export default function Navbar() {
                 <ul className="space-y-1">
                   {[
                     { href: '/mercado-da-bola', label: t('nav.market') },
-                    { href: '/favoritos', label: t('pages.favoritos.title') },
                     { href: '/planos', label: t('footer.plans') },
                   ].map((l) => (
                     <li key={l.href}>

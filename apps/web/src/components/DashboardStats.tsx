@@ -20,7 +20,9 @@ export default function DashboardStats({ stats }: { stats: DashboardStatsData })
       title: 'Favoritos',
       value: favTotal,
       detail: `${stats.totalFavorites.club} clubes · ${stats.totalFavorites.player} jogadores · ${stats.totalFavorites.competition} competições`,
-      href: '/favoritos',
+      // T597 — o painel de favoritos vive NESTA página (âncora da seção);
+      // /favoritos virou redirecionamento de compatibilidade.
+      href: '#favoritos',
       testid: 'dash-favorites',
     },
     {

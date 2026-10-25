@@ -155,6 +155,26 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * `city` é 93% na Alemanha e 26% na Suécia (medido), então lista curta pode ser dado faltando,
    * não acervo pequeno.
    */
+  /**
+   * GET /clubs/states?country=XX — nÍVEL INTERMEDIÁRIO da hierarquia de `/clubs`.
+   *
+   * Declarada ANTES de `/clubs/:id` pela mesma razão das outras rotas estáticas: senão o
+   * roteador casaria "states" como um id de clube.
+   *
+   * Existe porque a premissa que justificava pular o estado deixou de valer: quando o
+   * `CityDrilldown` foi escrito, `stateId` cobria 1 em 100 clubes. Os bots A/B/C (T588/589/590)
+   * levaram a 2.815 — o nível intermediário agora tem dado.
+   */
+  app.get('/clubs/states', async (request, reply) => {
+    const { country } = request.query as { country?: string };
+    if (!country || !/^[A-Za-z]{2}$/.test(country)) {
+      return reply.status(400).send({
+        error: { code: 'BAD_REQUEST', message: 'country (ISO2) é obrigatório' },
+      });
+    }
+    return reply.send({ data: await clubsService.stateIndex(country) });
+  });
+
   app.get('/clubs/cities', async (request, reply) => {
     const { country } = request.query as { country?: string };
     if (!country || !/^[A-Za-z]{2}$/.test(country)) {

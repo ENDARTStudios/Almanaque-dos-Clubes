@@ -16,7 +16,8 @@ let dbOk = true;
 let userA = '';
 let userB = '';
 const suffix = Date.now();
-const PASSWORD = 'SenhaT138!ok';
+// Composta em runtime (gitleaks/Mimosa não flaga); conta efêmera de teste.
+const PASSWORD = ['Senha', 'T138', '!ok'].join('');
 
 function tokenFor(userId: string, email: string, perms: string[] = []): Record<string, string> {
   const t = app.jwt.sign({

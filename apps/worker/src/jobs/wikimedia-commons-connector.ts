@@ -23,6 +23,12 @@ async function commonsApi(params: Record<string, string>): Promise<any> {
     url.searchParams.set(key, value);
   }
 
+  // Egress fixo: só o host do Commons, https (guarda de SSRF).
+  if (url.protocol !== 'https:' || url.hostname !== 'commons.wikimedia.org') {
+    console.error(`${PREFIX} host fora da allowlist: ${url.hostname}`);
+    return null;
+  }
+
   try {
     const res = await fetch(url.toString());
     if (!res.ok) {

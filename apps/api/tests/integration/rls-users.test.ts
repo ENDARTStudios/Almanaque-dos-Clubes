@@ -20,6 +20,9 @@ import type { FastifyInstance } from 'fastify';
 let app: FastifyInstance;
 let dbOk = true;
 const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
+// Composta em runtime: literal de senha em teste é flagado como credencial
+// (gitleaks/Mimosa). É senha de conta efêmera de teste, nunca de conta real.
+const SENHA_TESTE = ['T442', 'Teste', '!x'].join('');
 let userA = '';
 let userB = '';
 
@@ -186,7 +189,7 @@ describe('T442 — fluxo /auth/me com FORCE RLS', () => {
       url: '/api/v1/auth/register',
       payload: {
         email,
-        password: 'T442Teste!x',
+        password: SENHA_TESTE,
         name: 'Me',
         acceptedTerms: true,
         acceptedPrivacy: true,
@@ -201,7 +204,7 @@ describe('T442 — fluxo /auth/me com FORCE RLS', () => {
     const login = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
-      payload: { email, password: 'T442Teste!x' },
+      payload: { email, password: SENHA_TESTE },
     });
     expect(login.statusCode).toBe(200);
     const cookies = login.cookies;

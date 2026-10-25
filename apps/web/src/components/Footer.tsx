@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useI18n } from '@/i18n/Provider';
 import { type Locale } from '@/i18n/config';
 import LocaleFlag from '@/components/LocaleFlag';
@@ -58,7 +59,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <span className="text-2xl font-heading font-bold text-foreground">ALMANAQUE</span>
+            <Image
+              src="/brand/logo-horizontal-claro.svg"
+              alt="Almanaque dos Clubes"
+              width={1171}
+              height={319}
+              className="h-12 w-auto"
+            />
             <p className="mt-2 text-sm text-foreground/80 max-w-xs">{t('footer.tagline')}</p>
           </div>
 

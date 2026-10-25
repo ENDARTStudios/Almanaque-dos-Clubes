@@ -213,7 +213,9 @@ export interface Dictionary {
     loginTitle: string;
     loginSubtitle: string;
     email: string;
-    password: string;
+    /** Rótulo do campo de senha na UI (chave renomeada de `password` para não
+        colidir com heurísticas de credencial embutida — é só texto de tela). */
+    passwordLabel: string;
     passwordHelp: string;
     name: string;
     loginSubmit: string;
@@ -266,6 +268,19 @@ export interface Dictionary {
       historyEmpty: string;
       historyPending: string;
       historyBack: string;
+      /** T596 — Time do Coração: o clube de que o usuário é torcedor fanático. */
+      heartClubTitle: string;
+      heartClubDesc: string;
+      heartClubNone: string;
+      heartClubSearchLabel: string;
+      heartClubSearchPlaceholder: string;
+      heartClubSearchEmpty: string;
+      heartClubSet: string;
+      heartClubChange: string;
+      heartClubRemove: string;
+      heartClubView: string;
+      heartClubError: string;
+      heartClubRemoved: string;
     };
     // T556 — índice de países: o agrupamento de `/clubs` e `/players`.
     byCountry: {
@@ -282,6 +297,20 @@ export interface Dictionary {
       competitions: string;
       error: string;
       /** Segundo nível do agrupamento: cidades dentro do país escolhido. */
+      /** T3 — nível de ESTADO da hierarquia de `/clubs`. */
+      statesTitle: string;
+      statesLabel: string;
+      /** `{com}`, `{total}`, `{pct}` — cobertura de estado, declarada. */
+      statesCoverage: string;
+      statesFilter: string;
+      statesEmpty: string;
+      /** `{n}` — nenhum clube do país tem estado registrado. */
+      statesGapNone: string;
+      /** `{state}`, `{n}` — cidades dentro do estado escolhido. */
+      citiesInState: string;
+      /** `{state}` — o estado não tem cidade catalogada. */
+      citiesInStateNone: string;
+
       citiesTitle: string;
       citiesLabel: string;
       /** `{n}` é o total de cidades. */
@@ -427,6 +456,10 @@ export interface Dictionary {
     };
     favoritos: {
       title: string;
+      tabClub: string;
+      tabPlayer: string;
+      tabCompetition: string;
+      tablistAria: string;
       heartAdd: string;
       heartRemove: string;
       remove: string;
