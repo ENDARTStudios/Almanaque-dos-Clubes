@@ -1105,7 +1105,9 @@ model ReviewQueue {
   updatedAt    DateTime  @updatedAt
 
   /// Uma checagem por entidade pendente de cada vez (idempotência do feed).
-  @@unique([entityType, entityId, check, status])
+  /// Implementada como ÍNDICE PARCIAL (WHERE status='PENDING') na migration —
+  /// Prisma não modela índice parcial, então NÃO existe @@unique aqui de
+  /// propósito (o drift-check do CI filtra o DROP do índice).
   @@index([status, severity, createdAt])
   @@index([entityType, entityId])
   @@map("review_queue")
