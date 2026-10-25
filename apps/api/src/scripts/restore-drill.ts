@@ -92,7 +92,9 @@ async function main(): Promise<void> {
   // string nenhuma por shell).
   const created = run('createdb', [drillDb], pgEnv);
   if (created.code !== 0) {
-    console.error(JSON.stringify({ step: 'createdb', ok: false, stderr: created.stderr.slice(0, 300) }));
+    console.error(
+      JSON.stringify({ step: 'createdb', ok: false, stderr: created.stderr.slice(0, 300) }),
+    );
     process.exit(1);
   }
   const restore = run(
