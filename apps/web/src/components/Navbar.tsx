@@ -337,19 +337,16 @@ export default function Navbar() {
                         <p className="truncate px-4 py-1 text-xs text-foreground/70">
                           {user.email}
                         </p>
+                        {/* T597 — UMA entrada para a área do usuário: "Meu Almanaque".
+                            A segunda entrada ("Favoritos" → /favoritos) era a mesma lógica
+                            com outro nome; o painel de favoritos vive dentro de /dashboard. */}
                         <Link
                           href="/dashboard"
                           onClick={closeMenu}
+                          data-testid="nav-meualmanaque"
                           className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
                         >
                           {t('nav.dashboard')}
-                        </Link>
-                        <Link
-                          href="/favoritos"
-                          onClick={closeMenu}
-                          className="block px-4 py-2 text-sm text-foreground hover:bg-foreground/5"
-                        >
-                          {t('pages.favoritos.title')}
                         </Link>
                         <Link
                           href="/dashboard/subscription"
@@ -465,7 +462,6 @@ export default function Navbar() {
                 <ul className="space-y-1">
                   {[
                     { href: '/mercado-da-bola', label: t('nav.market') },
-                    { href: '/favoritos', label: t('pages.favoritos.title') },
                     { href: '/planos', label: t('footer.plans') },
                   ].map((l) => (
                     <li key={l.href}>

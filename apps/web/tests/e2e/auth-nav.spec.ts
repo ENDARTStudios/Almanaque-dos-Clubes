@@ -32,7 +32,7 @@ test.describe('Navbar — indicador de sessão (T450)', () => {
     await expect(page.getByTestId('nav-user-menu')).toHaveCount(0);
   });
 
-  test('logado: navbar mostra o usuário e o menu (Assinatura/Painel/Sair)', async ({ page }) => {
+  test('logado: navbar mostra o usuário e o menu (Assinatura/Meu Almanaque/Sair)', async ({ page }) => {
     await page.route('**/api/v1/auth/me', mockAuthMe(200, USER));
     await page.goto('/privacidade');
     await expect(page.getByTestId('nav-user-menu')).toBeVisible();
@@ -43,7 +43,10 @@ test.describe('Navbar — indicador de sessão (T450)', () => {
     const dropdown = page.getByTestId('nav-user-dropdown');
     await expect(dropdown).toBeVisible();
     await expect(dropdown.getByRole('link', { name: 'Assinatura' })).toBeVisible();
-    await expect(dropdown.getByRole('link', { name: 'Painel' })).toBeVisible();
+    // T597 — uma única entrada para a área do usuário (era "Painel" + "Meu Almanaque"
+    // em /favoritos, mesma lógica em duas portas).
+    await expect(dropdown.getByRole('link', { name: 'Meu Almanaque' })).toBeVisible();
+    await expect(dropdown.getByRole('link', { name: 'Meu Almanaque' })).toHaveAttribute('href', '/dashboard');
     await expect(dropdown.getByTestId('nav-signout')).toBeVisible();
   });
 

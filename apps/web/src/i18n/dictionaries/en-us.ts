@@ -401,7 +401,13 @@ const en: Dictionary = {
       goalsByStintAria: 'Bar chart of the player’s goals in each club stint.',
     },
     favoritos: {
-      title: 'My Almanaque',
+      // T597 — section EMBEDDED in My Almanac; the title was the whole area's
+      // name back when /favoritos was a standalone page.
+      title: 'Favorites',
+      tabClub: 'Clubs',
+      tabPlayer: 'Players',
+      tabCompetition: 'Competitions',
+      tablistAria: 'Favorite type',
       heartAdd: 'Favorite',
       heartRemove: 'Favorited',
       remove: 'Remove',
