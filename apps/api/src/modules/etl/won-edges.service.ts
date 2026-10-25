@@ -51,7 +51,7 @@ export interface CompetitionRefFull {
 }
 
 export interface WonEdgeRepo {
-  findClubByQid(qid: string): Promise<{ id: string } | null>;
+  findClubByQid(qid: string): Promise<{ id: string; country: string | null } | null>;
   findCompetitionByQid(qid: string): Promise<CompetitionRefFull | null>;
   /** Aresta WON existente do par (clube, competição) num dado ano — null se inexistente. */
   findWonEdge(args: {
@@ -70,7 +70,7 @@ export interface WonEdgeRepo {
 export function createPrismaWonEdgeRepo(prisma: PrismaClient): WonEdgeRepo {
   return {
     async findClubByQid(qid) {
-      return prisma.club.findUnique({ where: { qid }, select: { id: true } });
+      return prisma.club.findUnique({ where: { qid }, select: { id: true, country: true } });
     },
     async findCompetitionByQid(qid) {
       return prisma.competition.findUnique({
@@ -149,6 +149,22 @@ export interface WonEdgeOrphan {
   reason: 'club_missing';
 }
 
+/**
+ * T598/DQ-02 — candidato REJEITADO pela guarda de plausibilidade: hierarquia
+ * 'nacional' exige que a competição-mãe pertença ao PAÍS do clube vencedor.
+ * O caso que motivou a guarda: o item Wikidata do "World Football Challenge"
+ * (amistoso de verão) tem P3450 apontando para a Major League Soccer — subir
+ * essa mãe publicaria "Real Madrid campeão da MLS" (issue #753).
+ */
+export interface WonEdgeImplausible {
+  winnerQid: string;
+  winnerCountry: string;
+  motherQid: string;
+  motherCountry: string;
+  year: number;
+  reason: 'national_country_mismatch';
+}
+
 export interface WonEdgeSyncCounts {
   created: number;
   skipped: number;
@@ -163,6 +179,7 @@ export interface WonEdgeSyncResult {
   gaps: WonEdgeGap[];
   gapByHierarchy: Record<RankHierarchy, number>;
   orphans: WonEdgeOrphan[];
+  implausible: WonEdgeImplausible[];
   totalCandidates: number;
 }
 
@@ -192,6 +209,7 @@ export async function syncWonEdges(
   const gapByHierarchy = emptyHierarchyMap(() => 0);
   const gaps: WonEdgeGap[] = [];
   const orphans: WonEdgeOrphan[] = [];
+  const implausible: WonEdgeImplausible[] = [];
   const createdRows: WonEdgeCreated[] = [];
   const seen = new Set<string>();
   let duplicatesInBatch = 0;
@@ -229,6 +247,27 @@ export async function syncWonEdges(
     }
 
     const metadata = buildWonEdgeMetadata({ candidate, motherRef: mother, importedAt });
+
+    // T598/DQ-02 — GUARDA DE PLAUSIBILIDADE: título 'nacional' de um clube numa
+    // liga de OUTRO país é rejeitado (dados dos dois lados conhecidos; quando
+    // algum falta, passa — a guarda é precisa, não adivinha).
+    if (
+      metadata.hierarchy === 'nacional' &&
+      mother.country &&
+      club.country &&
+      mother.country !== club.country
+    ) {
+      implausible.push({
+        winnerQid: candidate.winnerQid,
+        winnerCountry: club.country,
+        motherQid: candidate.motherQid,
+        motherCountry: mother.country,
+        year: candidate.year,
+        reason: 'national_country_mismatch',
+      });
+      continue;
+    }
+
     const existing = await repo.findWonEdge({
       clubId: club.id,
       competitionId: mother.id,
@@ -281,6 +320,7 @@ export async function syncWonEdges(
     gaps,
     gapByHierarchy,
     orphans,
+    implausible,
     totalCandidates: candidates.length,
   };
 }
