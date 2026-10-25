@@ -354,7 +354,10 @@ describe('syncWonEdges (repo mock)', () => {
     } as unknown as PrismaClient;
     const repo = createPrismaWonEdgeRepo(prisma);
     expect(await repo.findClubByQid('Q1')).toEqual({ id: 'c1' });
-    expect(findUnique).toHaveBeenCalledWith({ where: { qid: 'Q1' }, select: { id: true, country: true } });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { qid: 'Q1' },
+      select: { id: true, country: true },
+    });
   });
 });
 
