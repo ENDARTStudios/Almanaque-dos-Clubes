@@ -105,6 +105,8 @@ describe.skipIf(!dbOk || !isPostgres)('DQ-01 — matriz de cobertura', () => {
     expect(row2025!.lastMatchDate).toBe('2025-03-08');
     expect(row2025!.lastUpdatedAt).toBeTruthy();
     expect(row2025!.pilot).toBe(false); // QID da fixture não está no escopo do MVP
+    expect(row2025!.freshnessDays).toBe(0); // acabou de criar (DATA-03)
+    expect(row2025!.stale).toBe(false);
     expect(row2030).toBeDefined();
     expect(row2030!.matchesTotal).toBe(1);
     expect(row2030!.matchesWithScore).toBe(0);

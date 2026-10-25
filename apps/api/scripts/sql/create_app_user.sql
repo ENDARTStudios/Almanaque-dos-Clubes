@@ -21,6 +21,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;GRANT SELECT, 
 --  e a consulta devolvia 42501 "permission denied". A migration criou a tabela; o acesso é
 --  responsabilidade deste arquivo — são dois lugares, e só um deles era óbvio.)
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "club_crests" TO app_user;
+-- T599/DQ-04 — fila de revisão de dados (anomalias sinalizadas antes da publicação).
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "review_queue" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_consents" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_policy_versions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "competitions" TO app_user;

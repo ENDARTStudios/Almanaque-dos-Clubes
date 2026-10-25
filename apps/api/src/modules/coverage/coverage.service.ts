@@ -23,6 +23,13 @@ import { prisma } from '../../config/prisma.js';
 /** QIDs das competições do piloto MVP (lidos do acervo em produção, 2026-10-25). */
 export const PILOT_COMPETITION_QIDS = ['Q206813', 'Q9448', 'Q184795'] as const;
 
+/**
+ * DATA-03 — acordo de frescor: um recorte com dados cuja última atualização é
+ * mais velha que isto é sinalizado `stale` (não é erro — é o gatilho para a
+ * equipe olhar a ingestão; o valor vem do cadence batch atual do acervo).
+ */
+export const FRESHNESS_SLA_DAYS = 45;
+
 export interface CoverageRow {
   competitionId: string | null;
   competitionName: string | null;
@@ -39,6 +46,10 @@ export interface CoverageRow {
   sources: string[];
   rankings: number;
   pilot: boolean;
+  /** Dias desde a última atualização do recorte (null = sem dado). */
+  freshnessDays: number | null;
+  /** Recorte com dado mais velho que o acordo (DATA-03). */
+  stale: boolean;
 }
 
 export interface CoverageMatrix {
@@ -98,6 +109,7 @@ export async function buildCoverageMatrix(pilotOnly = false): Promise<CoverageMa
   );
 
   const pilotSet = new Set<string>(PILOT_COMPETITION_QIDS);
+  const agora = Date.now();
   const rows: CoverageRow[] = raw
     .map((r) => ({
       competitionId: r.competitionId,
@@ -118,6 +130,8 @@ export async function buildCoverageMatrix(pilotOnly = false): Promise<CoverageMa
         .filter(Boolean),
       rankings: r.competitionId ? (rankingsByComp.get(r.competitionId) ?? 0) : 0,
       pilot: r.qid ? pilotSet.has(r.qid) : false,
+      freshnessDays: r.updatedAt ? Math.floor((agora - r.updatedAt.getTime()) / 86_400_000) : null,
+      stale: r.updatedAt ? agora - r.updatedAt.getTime() > FRESHNESS_SLA_DAYS * 86_400_000 : false,
     }))
     .filter((r) => (pilotOnly ? r.pilot : true));
 
@@ -136,7 +150,7 @@ export function renderMarkdown(m: CoverageMatrix): string {
     '|---|---|---|---|---|---|---|---|---|---|';
   const lines = m.rows.map(
     (r) =>
-      `| ${r.competitionName ?? '(sem competição)'} | ${r.qid ?? '—'} | ${r.year} | ${r.matchesTotal} | ${r.matchesWithScore} | ${r.matchesScheduled} | ${r.matchesWithSourceUrl} | ${r.sources.join('/') || '—'} | ${r.rankings} | ${r.lastUpdatedAt ?? '—'} |`,
+      `| ${r.competitionName ?? '(sem competição)'} | ${r.qid ?? '—'} | ${r.year} | ${r.matchesTotal} | ${r.matchesWithScore} | ${r.matchesScheduled} | ${r.matchesWithSourceUrl} | ${r.sources.join('/') || '—'} | ${r.rankings} | ${r.lastUpdatedAt ?? '—'}${r.stale ? ' ⚠️ stale' : ''} |`,
   );
   return [head, ...lines].join('\n');
 }
