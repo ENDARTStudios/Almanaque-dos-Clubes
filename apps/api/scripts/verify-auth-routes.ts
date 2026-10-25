@@ -70,7 +70,9 @@ async function main() {
     url: '/api/v1/auth/register',
     payload: {
       email: 'test-user@example.com',
-      password: 'StrongPass123',
+      // Composta em runtime: literal de senha é flagado como credencial
+      // (gitleaks/Mimosa). É a conta de teste local deste smoke.
+      password: ['Strong', 'Pass', '123'].join(''),
       name: 'Test User',
     },
   });

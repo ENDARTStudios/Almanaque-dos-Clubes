@@ -109,7 +109,7 @@ export interface AuthResult {
  * @example
  *   const { user, refreshToken } = await register({
  *     email: 'user@example.com',
- *     password: 'StrongPass123',
+ *     password: '<senha-forte-fornecida-pelo-usuário>',
  *     name: 'João Silva',
  *   }, { userAgent: '...', ipAddress: '...' });
  */

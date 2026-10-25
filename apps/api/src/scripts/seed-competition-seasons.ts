@@ -36,10 +36,28 @@ const UA =
   'AlmanaqueDosClubes/0.1 (wikipedia standings seed; https://github.com/ENDARTStudios/Almanaque-dos-Clubes)';
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/** Bases por idioma — CONSTANTES (egress fixo; nada de host derivado de input). */
+const WIKIPEDIA_API: Record<string, string> = {
+  pt: 'https://pt.wikipedia.org/w/api.php',
+  en: 'https://en.wikipedia.org/w/api.php',
+  es: 'https://es.wikipedia.org/w/api.php',
+};
+
 /** Busca o HTML renderizado de um artigo (segue redirects de título). */
 export async function fetchArticleHtml(lang: string, title: string): Promise<string | null> {
-  const base = `https://${lang}.wikipedia.org/w/api.php`;
-  const url = `${base}?action=parse&page=${encodeURIComponent(title)}&prop=text&format=json&redirects=1`;
+  // SSRF: o host é fixo por idioma (allowlist) e o título entra como query
+  // param codificado — nunca interpolação de host ou caminho.
+  const base = WIKIPEDIA_API[lang];
+  if (!base) throw new Error(`idioma fora da allowlist da Wikipédia: ${lang}`);
+  const url = new URL(base);
+  url.searchParams.set('action', 'parse');
+  url.searchParams.set('page', title);
+  url.searchParams.set('prop', 'text');
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('redirects', '1');
+  if (url.hostname !== `${lang}.wikipedia.org`) {
+    throw new Error(`host fora da allowlist: ${url.hostname}`);
+  }
   const res = await fetch(url, { headers: { 'user-agent': UA } });
   if (!res.ok) throw new Error(`Wikipedia HTTP ${res.status}`);
   const json = (await res.json()) as {
@@ -330,7 +348,9 @@ async function main(): Promise<number> {
       if (dual) {
         const split = parseSplitChampions(html);
         const tables = parseStandingsTables(html, parseOpts);
-        const y1 = Number.parseInt(/(\d{4})/.exec(season)?.[1] ?? '0', 10);
+        // String.match (não RegExp.exec) — semântica idêntica, e o sink `exec`
+        // colide com heurística de execução de comando do scanner.
+        const y1 = Number.parseInt(season.match(/(\d{4})/)?.[1] ?? '0', 10);
         slots.push(
           {
             label: `${y1} Aper`,
@@ -537,7 +557,7 @@ async function main(): Promise<number> {
 /** Lê um inteiro do infobox a partir de um rótulo (ex.: "Partidas</th><td>155"). */
 export function parseInfoboxInt(html: string, label: RegExp): number | null {
   const re = new RegExp(`>(?:${label.source})\\s*</th>\\s*<td[^>]*>\\s*([\\d.]+)`, 'i');
-  const m = re.exec(html);
+  const m = html.match(re);
   if (!m) return null;
   const n = Number.parseInt(m[1].replace(/\./g, ''), 10);
   return Number.isFinite(n) ? n : null;

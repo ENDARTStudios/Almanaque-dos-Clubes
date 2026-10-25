@@ -29,7 +29,8 @@ export const COPA_DO_BRASIL = 4425;
 export const COPA_LIBERTADORES = 4480;
 
 const PREFIX = '[SportsDB]';
-const BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
+// A URL âncora é CONSTANTE dentro de sportsDbFetch (egress fixo, com allowlist
+// de host na frente do fetch) — nada de base configurável.
 
 function isApiKeyMissing(): boolean {
   if (!process.env.SPORTSDB_API_KEY) {
@@ -42,12 +43,30 @@ function isApiKeyMissing(): boolean {
 async function sportsDbFetch(endpoint: string, params?: Record<string, string>): Promise<any> {
   if (isApiKeyMissing()) return null;
 
-  const url = new URL(`${BASE_URL}/${process.env.SPORTSDB_API_KEY}/${endpoint}`);
+  // Validação na ENTRADA (SSRF): a chave e o endpoint só podem conter os
+  // caracteres do caminho da API — nada de '/', '@', '..', query ou fragmento.
+  // A URL âncora é CONSTANTE; os segmentos entram por mutação do pathname e o
+  // egress é re-checado contra o host fixo antes do fetch (defesa em
+  // profundidade — o host permitido é www.thesportsdb.com, https, nunca rede
+  // interna).
+  const chave = process.env.SPORTSDB_API_KEY ?? '';
+  if (!/^[A-Za-z0-9]{1,64}$/.test(chave) || !/^[A-Za-z0-9_.-]{1,64}$/.test(endpoint)) {
+    console.error(`${PREFIX} key/endpoint fora do formato permitido`);
+    return null;
+  }
+
+  const url = new URL('https://www.thesportsdb.com/api/v1/json');
+  url.pathname += `/${chave}/${endpoint}`;
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }
+  }
+
+  if (url.protocol !== 'https:' || url.hostname !== 'www.thesportsdb.com') {
+    console.error(`${PREFIX} destino fora da allowlist: ${url.hostname}`);
+    return null;
   }
 
   try {

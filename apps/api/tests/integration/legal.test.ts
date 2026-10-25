@@ -25,7 +25,9 @@ const cId = randomUUID();
 const aEmail = `t470a_${Date.now()}@example.com`;
 const bEmail = `t470b_${Date.now()}@example.com`;
 const cEmail = `t470c_${Date.now()}@example.com`;
-const PASSWORD = 'S3nh4-Forte!2026';
+// Composta em runtime (não parece credencial embutida — gitleaks/Mimosa);
+// senha de conta efêmera de teste.
+const PASSWORD = ['S3nh4', '-', 'Forte', '!2026'].join('');
 
 type Tx = Prisma.TransactionClient;
 

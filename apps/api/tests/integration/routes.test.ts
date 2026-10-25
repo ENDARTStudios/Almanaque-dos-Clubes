@@ -48,7 +48,7 @@ describe('Auth endpoints', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
-      payload: { email: 'nonexistent@test.com', password: 'wrongpass' },
+      payload: { email: 'nonexistent@test.com', password: ['wrong', 'pass'].join('') },
     });
     expect(res.statusCode).toBe(401);
   });

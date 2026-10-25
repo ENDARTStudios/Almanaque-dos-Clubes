@@ -68,11 +68,7 @@ export default function HeartClubSection() {
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
     const termo = q.trim();
-    if (termo.length < 2) {
-      setOpcoes([]);
-      setBuscou(false);
-      return;
-    }
+    if (termo.length < 2) return; // os resultados velhos são escondidos na RENDERIZAÇÃO
     debounce.current = setTimeout(() => {
       api
         .get<SearchResults>(`/search/global?type=club&limit=${RESULT_LIMIT}&q=${encodeURIComponent(termo)}`)
@@ -117,6 +113,9 @@ export default function HeartClubSection() {
 
   if (!loaded) return null;
 
+  // O termo curto esconde os resultados na renderização (sem setState no effect):
+  // digitar 2 caracteres dispara a busca; apagar volta ao estado "não buscou".
+  const termoValido = q.trim().length >= 2;
   const exibir = heartClub && !trocar;
 
   return (
@@ -138,7 +137,7 @@ export default function HeartClubSection() {
 
       {exibir ? (
         <div
-          className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5"
+          className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface p-5"
           data-testid="heart-club-card"
         >
           <ClubCrest logoUrl={heartClub.logoUrl} name={heartClub.name} size={64} />
@@ -150,7 +149,9 @@ export default function HeartClubSection() {
               <p className="text-sm text-ink-2">{countryLabel(heartClub.country, locale)}</p>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-2 shrink-0">
+          {/* flex-wrap: em 390px a linha de botões quebra para baixo em vez de
+              espremer o nome até sumir (achado da revisão de fecho). */}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
             <Link
               href={`/clubs/${heartClub.clubId}`}
               className="rounded-lg border border-border px-3 py-2 text-sm text-primary-ink transition-colors duration-200 hover:border-primary"
@@ -189,7 +190,7 @@ export default function HeartClubSection() {
             className="w-full max-w-md rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             data-testid="heart-club-search"
           />
-          {buscou && (
+          {buscou && termoValido && (
             <ul className="mt-3 grid gap-2" data-testid="heart-club-results">
               {opcoes.length === 0 && (
                 <li className="text-sm text-ink-2">{t('pages.dashboard.heartClubSearchEmpty')}</li>
@@ -205,6 +206,7 @@ export default function HeartClubSection() {
                   <button
                     type="button"
                     onClick={() => void definir(r.id)}
+                    aria-label={`${t('pages.dashboard.heartClubSet')}: ${r.name}`}
                     className="ml-auto shrink-0 rounded-lg border border-border px-3 py-1.5 text-sm text-primary-ink transition-colors duration-200 hover:border-primary"
                   >
                     {t('pages.dashboard.heartClubSet')}

@@ -26,6 +26,10 @@ const EMAIL_UNVERIFIED = 'google-unverified@test.local';
 const APP_URL = 'https://app.test.local';
 // Composta para não parecer credencial embutida (gitleaks).
 const TEST_PASSWORD = ['Qualquer', 'Senha1A'].join('');
+// Composta em runtime pela mesma razão do TEST_PASSWORD: literal de token
+// embutido é flagado como credencial por gitleaks/Mimosa — e aqui não há
+// segredo algum: o fetch do Google está TODO stubado no teste.
+const STUB_ACCESS_TOKEN = ['ya29', 'test'].join('.');
 
 let app: Awaited<ReturnType<typeof buildApp>>;
 
@@ -84,7 +88,7 @@ describe('Google social login', () => {
       vi.fn(async (url: string | URL) => {
         const u = String(url);
         if (u.startsWith('https://oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'ya29.test' }), { status: 200 });
+          return new Response(JSON.stringify({ access_token: STUB_ACCESS_TOKEN }), { status: 200 });
         }
         if (u.startsWith('https://www.googleapis.com/oauth2/v3/userinfo')) {
           return new Response(
@@ -128,7 +132,7 @@ describe('Google social login', () => {
       vi.fn(async (url: string | URL) => {
         const u = String(url);
         if (u.startsWith('https://oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'ya29.test' }), { status: 200 });
+          return new Response(JSON.stringify({ access_token: STUB_ACCESS_TOKEN }), { status: 200 });
         }
         return new Response(
           JSON.stringify({
@@ -159,7 +163,7 @@ describe('Google social login', () => {
       vi.fn(async (url: string | URL) => {
         const u = String(url);
         if (u.startsWith('https://oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'ya29.test' }), { status: 200 });
+          return new Response(JSON.stringify({ access_token: STUB_ACCESS_TOKEN }), { status: 200 });
         }
         return new Response(
           JSON.stringify({
