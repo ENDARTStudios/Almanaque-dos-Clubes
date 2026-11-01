@@ -232,6 +232,11 @@ const PT: AdminStrings = {
         desc: 'Curadoria de clubes, competições e dados do acervo.',
       },
       {
+        href: '/admin/revisao',
+        label: 'Revisão de dados',
+        desc: 'Fila de anomalias sinalizadas pelo integrity-check: resolver ou descartar.',
+      },
+      {
         href: '/admin/metricas',
         label: 'Métricas',
         desc: 'Números de uso e de conteúdo do acervo.',
@@ -508,6 +513,11 @@ const EN: AdminStrings = {
         label: 'Catalog',
         desc: 'Curation of clubs, competitions and archive data.',
       },
+      {
+        href: '/admin/revisao',
+        label: 'Data review',
+        desc: 'Queue of anomalies flagged by the integrity check: resolve or dismiss.',
+      },
       { href: '/admin/metricas', label: 'Metrics', desc: 'Usage and content numbers.' },
       {
         href: '/admin/auditoria',
@@ -761,6 +771,11 @@ const ES: AdminStrings = {
         href: '/admin/catalogo',
         label: 'Catálogo',
         desc: 'Curaduría de clubes, competiciones y datos del acervo.',
+      },
+      {
+        href: '/admin/revisao',
+        label: 'Revisión de datos',
+        desc: 'Fila de anomalías señaladas por el integrity-check: resolver o descartar.',
       },
       { href: '/admin/metricas', label: 'Métricas', desc: 'Números de uso y de contenido.' },
       {

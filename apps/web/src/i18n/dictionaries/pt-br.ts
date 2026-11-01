@@ -18,7 +18,9 @@ const pt: Dictionary = {
     shortRankings: 'Rankings',
     search: 'Busca',
     login: 'Entrar',
-    dashboard: 'Painel',
+    // T597 — UMA entrada para a área do usuário (o painel de favoritos foi
+    // integrado a /dashboard; 'Painel' não existe mais como nome de seção).
+    dashboard: 'Meu Almanaque',
     signOut: 'Sair',
     subscription: 'Assinatura',
     market: 'Mercado da Bola',
@@ -407,7 +409,13 @@ const pt: Dictionary = {
       goalsByStintAria: 'Gráfico de barras dos gols do jogador em cada passagem por clube.',
     },
     favoritos: {
-      title: 'Meu Almanaque',
+      // T597 — seção EMBUTIDA no Meu Almanaque; o título era o nome da área
+      // inteira quando /favoritos era página própria.
+      title: 'Favoritos',
+      tabClub: 'Clubes',
+      tabPlayer: 'Jogadores',
+      tabCompetition: 'Competições',
+      tablistAria: 'Tipo de favorito',
       heartAdd: 'Favoritar',
       heartRemove: 'Favorito',
       remove: 'Remover',

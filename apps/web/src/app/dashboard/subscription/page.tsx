@@ -45,7 +45,7 @@ export default async function SubscriptionPage() {
         href="/dashboard"
         className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
       >
-        &larr; Voltar ao Painel
+        &larr; Voltar ao Meu Almanaque
       </Link>
       <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">Planos</h1>
       <p className="text-foreground/60 mb-8">Escolha o plano ideal para você.</p>

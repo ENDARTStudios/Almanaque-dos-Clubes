@@ -76,7 +76,11 @@ export type Gender = 'men' | 'women';
  * conforme o acervo ganha competições conhecidas (mundial/continental); os
  * demais caem no default nacional.
  */
-export const COMPETITION_HIERARCHY_BY_QID: Record<string, RankHierarchy> = {};
+export const COMPETITION_HIERARCHY_BY_QID: Record<string, RankHierarchy> = {
+  // T598/DQ-02 — Intercontinental Cup (Q182473) é título MUNDIAL (era publicada
+  // como 'nacional' no carrossel — issue #753).
+  Q182473: 'mundial',
+};
 
 /** Override por `país:type` (ex.: "BR:LEAGUE" → nacional). Estrito por chave exata. */
 export const HIERARCHY_BY_COUNTRY_TYPE: Record<string, RankHierarchy> = {};

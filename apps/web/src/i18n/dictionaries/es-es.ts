@@ -403,7 +403,13 @@ const es: Dictionary = {
       goalsByStintAria: 'Gráfico de barras de los goles del jugador en cada etapa por club.',
     },
     favoritos: {
-      title: 'Mi Almanaque',
+      // T597 — sección INTEGRADA en Mi Almanaque; el título era el nombre de
+      // toda el área cuando /favoritos era una página propia.
+      title: 'Favoritos',
+      tabClub: 'Clubes',
+      tabPlayer: 'Jugadores',
+      tabCompetition: 'Competiciones',
+      tablistAria: 'Tipo de favorito',
       heartAdd: 'Favoritar',
       heartRemove: 'Favorito',
       remove: 'Quitar',

@@ -1086,6 +1086,33 @@ enum DsrStatus {
   cancelled
 }
 
+/// T599/DQ-04 — FILA DE REVISÃO de dados: anomalias sinalizadas ANTES de virarem
+/// produto. O integrity-check alimenta (idempotente, 1 linha pendente por
+/// entidade+checagem); um admin resolve (corrigiu) ou descarta (falso positivo)
+/// com nota. Nada aqui é público — é ferramenta da equipe.
+model ReviewQueue {
+  id           String    @id @default(uuid())
+  entityType   String // "Match" | "Club" | "Competition" | "RankingEntry" | "KnowledgeGraph"
+  entityId     String
+  check        String // ex.: "match_negative_score", "clubs_active_without_qid"
+  reason       String // texto humano do achado (com sample quando houver)
+  severity     String    @default("high") // "high" | "medium" | "low"
+  status       String    @default("PENDING") // "PENDING" | "RESOLVED" | "DISMISSED"
+  resolvedBy   String? // userId do admin
+  resolvedAt   DateTime?
+  resolutionNote String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  /// Uma checagem por entidade pendente de cada vez (idempotência do feed).
+  /// Implementada como ÍNDICE PARCIAL (WHERE status='PENDING') na migration —
+  /// Prisma não modela índice parcial, então NÃO existe @@unique aqui de
+  /// propósito (o drift-check do CI filtra o DROP do índice).
+  @@index([status, severity, createdAt])
+  @@index([entityType, entityId])
+  @@map("review_queue")
+}
+
 model DataSubjectRequest {
   id              String          @id @default(uuid())
   protocol        String          @unique // protocolo rastreável (dsr_…)

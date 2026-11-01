@@ -12,6 +12,7 @@
  */
 import { prisma } from '../config/prisma.js';
 import { logger } from '../config/logger.js';
+import { runMatchValidations, syncAnomaliesToQueue } from './match-validations.js';
 
 export interface Anomaly {
   check: string;
@@ -101,6 +102,18 @@ export async function runIntegrityCheck(): Promise<IntegrityReport> {
        WHERE points IS NOT NULL AND (points < 0 OR points > 100) LIMIT ${SAMPLE_SIZE}`,
     ),
   );
+
+  // T599/DQ-04 — checagens de partida + fila de revisão humana (o feed é
+  // idempotente; re-run não duplica pendência).
+  const matchAnomalies = await runMatchValidations();
+  for (const m of matchAnomalies) {
+    anomalies.push({
+      check: m.check,
+      count: m.count,
+      sample: m.sample.map((s) => ({ id: s.id, detail: s.detail })),
+    });
+  }
+  await syncAnomaliesToQueue(matchAnomalies);
 
   const report: IntegrityReport = {
     checkedAt: new Date().toISOString(),

@@ -246,6 +246,16 @@ async function main(): Promise<void> {
     for (const [name, n] of top) log.info(`  ${n}\t${name}`);
   }
 
+  if (result.implausible.length > 0) {
+    log.warn(
+      `T598/DQ-02 — GUARDA: ${result.implausible.length} candidato(s) 'nacional' rejeitado(s) por país da mãe ≠ país do clube:`,
+    );
+    for (const i of result.implausible.slice(0, 10))
+      log.warn(
+        `  ${i.winnerQid}(${i.winnerCountry}) × ${i.motherQid}(${i.motherCountry}) ${i.year}`,
+      );
+  }
+
   if (result.orphans.length > 0) {
     log.info(`\nÓrfãos (vencedor não está em clubs — ex. seleções): ${result.orphans.length}`);
     for (const o of result.orphans.slice(0, 5))

@@ -22,6 +22,8 @@ const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
 
 let clubId = '';
 let compId = '';
+let compUsId = '';
+let compBrId = '';
 const QID_CLUB = 'Q94800448';
 const QID_COMP = 'Q94800449';
 const QID_COMP_AUSENTE = 'Q94800999';
@@ -61,6 +63,28 @@ beforeAll(async () => {
     data: { name: 'Liga de Teste T448', type: 'LEAGUE', qid: QID_COMP, importedFrom: 'manual' },
   });
   compId = comp.id;
+  // T598/DQ-02 — fixtures da guarda de plausibilidade: liga de OUTRO país
+  // (deve ser REJEITADA) e liga do MESMO país (deve passar).
+  const compUS = await prisma.competition.create({
+    data: {
+      name: 'Liga US de Teste T598',
+      type: 'LEAGUE',
+      country: 'US',
+      qid: 'Q94800459',
+      importedFrom: 'manual',
+    },
+  });
+  compUsId = compUS.id;
+  const compBR = await prisma.competition.create({
+    data: {
+      name: 'Liga BR de Teste T598',
+      type: 'LEAGUE',
+      country: 'BR',
+      qid: 'Q94800460',
+      importedFrom: 'manual',
+    },
+  });
+  compBrId = compBR.id;
 });
 
 afterAll(async () => {
@@ -70,6 +94,8 @@ afterAll(async () => {
         OR: [
           { sourceId: clubId },
           { targetId: compId },
+          { targetId: compUsId },
+          { targetId: compBrId },
           {
             metadata: {
               path: ['sourceUrl'],
@@ -80,7 +106,7 @@ afterAll(async () => {
       },
     });
     await prisma.club.deleteMany({ where: { id: clubId } });
-    await prisma.competition.deleteMany({ where: { id: compId } });
+    await prisma.competition.deleteMany({ where: { id: { in: [compId, compUsId, compBrId] } } });
   }
   await app.close();
 });
@@ -172,4 +198,66 @@ describe('T448 — syncWonEdges com Prisma real', () => {
   // aresta 'mundial' aqui contaminaria o DB compartilhado e quebraria as
   // assertions de campeão do T441 (classe R2: estado compartilhado entre
   // arquivos de teste paralelos).
+  // T598/DQ-02 — GUARDA DE PLAUSIBILIDADE (issue #753): título 'nacional' de um
+  // clube numa liga de OUTRO país é rejeitado. O caso real: o item Wikidata do
+  // "World Football Challenge" (amistoso) aponta a MLS como mãe — sem a guarda,
+  // o acervo publicava "Real Madrid campeão da MLS".
+  it('guarda: clube BR + liga US nacional → REJEITADO (implausible), nada gravado', async () => {
+    if (!dbOk || !isPostgres) return;
+    const result = await syncWonEdges(
+      [
+        {
+          editionQid: 'Q94800461',
+          motherQid: 'Q94800459',
+          winnerQid: QID_CLUB,
+          year: 1902,
+          motherName: 'Liga US de Teste T598',
+        },
+      ],
+      createPrismaWonEdgeRepo(prisma),
+    );
+    expect(result.implausible).toHaveLength(1);
+    expect(result.implausible[0]).toMatchObject({
+      winnerCountry: 'BR',
+      motherCountry: 'US',
+      reason: 'national_country_mismatch',
+    });
+    expect(result.counts.created).toBe(0);
+    const edge = await prisma.knowledgeGraph.findFirst({
+      where: {
+        sourceId: clubId,
+        targetId: compUsId,
+        relation: 'WON',
+        metadata: { path: ['year'], equals: 1902 },
+      },
+    });
+    expect(edge).toBeNull();
+  });
+
+  it('guarda NÃO dispara com países iguais (BR+BR) — aresta criada', async () => {
+    if (!dbOk || !isPostgres) return;
+    const result = await syncWonEdges(
+      [
+        {
+          editionQid: 'Q94800462',
+          motherQid: 'Q94800460',
+          winnerQid: QID_CLUB,
+          year: 1903,
+          motherName: 'Liga BR de Teste T598',
+        },
+      ],
+      createPrismaWonEdgeRepo(prisma),
+    );
+    expect(result.implausible).toHaveLength(0);
+    expect(result.counts.created).toBe(1);
+    const edge = await prisma.knowledgeGraph.findFirst({
+      where: {
+        sourceId: clubId,
+        targetId: compBrId,
+        relation: 'WON',
+        metadata: { path: ['year'], equals: 1903 },
+      },
+    });
+    expect(edge).not.toBeNull();
+  });
 });

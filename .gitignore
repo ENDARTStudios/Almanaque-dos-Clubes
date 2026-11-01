@@ -33,8 +33,12 @@ pnpm-debug.log*
 *.swo
 .DS_Store
 
-# Coverage
-coverage/
+# Coverage (output do vitest — ancorado nos pacotes, para não ignorar
+# diretórios de domínio com o mesmo nome, ex. modules/coverage do DQ-01)
+/coverage/
+apps/api/coverage/
+apps/web/coverage/
+apps/worker/coverage/
 .nyc_output/
 
 # Uploads

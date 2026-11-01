@@ -456,6 +456,10 @@ export interface Dictionary {
     };
     favoritos: {
       title: string;
+      tabClub: string;
+      tabPlayer: string;
+      tabCompetition: string;
+      tablistAria: string;
       heartAdd: string;
       heartRemove: string;
       remove: string;
