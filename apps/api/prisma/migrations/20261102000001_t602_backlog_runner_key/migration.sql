@@ -5,7 +5,11 @@
 -- alteração é segura. Ainda assim é aditiva: coluna com default '' e troca de
 -- índice único, sem tocar dado existente.
 
-ALTER TABLE "ingest_backlog" ADD COLUMN "runnerKey" TEXT NOT NULL DEFAULT '';
+-- Sem DEFAULT: o schema Prisma não declara default (um DEFAULT aqui vira drift
+-- detectado pelo gate). Backfill explícito e depois NOT NULL.
+ALTER TABLE "ingest_backlog" ADD COLUMN "runnerKey" TEXT;
+UPDATE "ingest_backlog" SET "runnerKey" = '' WHERE "runnerKey" IS NULL;
+ALTER TABLE "ingest_backlog" ALTER COLUMN "runnerKey" SET NOT NULL;
 
 DROP INDEX "ingest_backlog_sourceKey_season_key";
 
