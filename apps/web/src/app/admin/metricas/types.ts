@@ -15,6 +15,17 @@ export interface AdminMetricsPayload {
     competitionSeasons: number;
     seasonsWithChampion: number;
     rankings: number;
+    /** Rankings por tipo — expõe a lacuna de ranking de jogador (0 em 2026-11). */
+    rankingsByType: Record<string, number>;
+  };
+  /** Frescor do dado: última ESCRITA real por entidade + flags da automação. */
+  frescura: {
+    clubsLastWrite: string | null;
+    playersLastWrite: string | null;
+    matchesLastWrite: string | null;
+    rankingsLastWrite: string | null;
+    schedulerEnabled: boolean;
+    incrementalWrites: boolean;
   };
   cobertura: {
     clubs: {
