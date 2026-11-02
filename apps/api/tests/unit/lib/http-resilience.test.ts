@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fetchWithRetry } from '../../../scripts/lib/http-resilience.js';
+import { fetchWithRetry, parseRetryAfterMs } from '../../../scripts/lib/http-resilience.js';
 
 // T428 — helper compartilhado de resiliência HTTP (CI nunca faz rede externa:
 // o fetcher é injetado; nenhum mock toca a rede real).
@@ -59,5 +59,39 @@ describe('fetchWithRetry (helper http-resilience)', () => {
     );
     expect(res.ok).toBe(true);
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it('429 com Retry-After em segundos espera o tempo pedido (não o backoff padrão)', async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        headers: { get: (h: string) => (h === 'retry-after' ? '0.05' : null) },
+      })
+      .mockResolvedValue({ ok: true, status: 200 });
+    const started = Date.now();
+    const res = await fetchWithRetry(
+      'https://example.org/x',
+      { headers: {} },
+      { fetcher, retryDelaysMs: [60000], timeoutMs: 1000 },
+    );
+    expect(res.ok).toBe(true);
+    expect(Date.now() - started).toBeLessThan(5000); // respeitou 50ms, não os 60s
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('parseRetryAfterMs', () => {
+  it('segundos → ms', () => expect(parseRetryAfterMs('12')).toBe(12000));
+  it('data HTTP → diferença até ela', () => {
+    const inTwoSec = new Date(Date.now() + 2000).toUTCString();
+    const ms = parseRetryAfterMs(inTwoSec);
+    expect(ms).toBeGreaterThan(0);
+    expect(ms).toBeLessThan(4000);
+  });
+  it('ausente/inválido → null', () => {
+    expect(parseRetryAfterMs(null)).toBeNull();
+    expect(parseRetryAfterMs('abc')).toBeNull();
   });
 });
