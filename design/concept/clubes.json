@@ -1,0 +1,1628 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Clubes",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 1030,
+   "props": {
+    "fill": "#F7F3EC"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "topo/linha",
+   "x": 0,
+   "y": 72,
+   "width": 1440,
+   "height": 1,
+   "props": {
+    "fill": "#D9D0C3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "marca",
+   "text": "ALMANAQUE",
+   "x": 72,
+   "y": 28,
+   "width": 260,
+   "props": {
+    "fontSize": 19,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left",
+    "letterSpacing": 1.0
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "marca/2",
+   "text": "dos Clubes",
+   "x": 258,
+   "y": 35,
+   "width": 140,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left",
+    "letterSpacing": 0.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Competições",
+   "text": "Competições",
+   "x": 430,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Clubes",
+   "text": "Clubes",
+   "x": 538,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 600,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "nav/Clubes/sublinhado",
+   "x": 538,
+   "y": 56,
+   "width": 40,
+   "height": 2,
+   "props": {
+    "fill": "#8E1B2E"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Jogadores",
+   "text": "Jogadores",
+   "x": 646,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Rankings",
+   "text": "Rankings",
+   "x": 754,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Mapa",
+   "text": "Mapa",
+   "x": 862,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Lendas",
+   "text": "Lendas",
+   "x": 970,
+   "y": 34,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "titulo",
+   "text": "Clubes",
+   "x": 72,
+   "y": 122,
+   "width": 500,
+   "props": {
+    "fontSize": 54,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left",
+    "letterSpacing": -0.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "subtitulo",
+   "text": "12.017 clubes — navegue por estado e, dentro dele, por cidade.",
+   "x": 72,
+   "y": 190,
+   "width": 640,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "left",
+    "lineHeight": 22
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "contagem",
+   "text": "12.017",
+   "x": 1108,
+   "y": 118,
+   "width": 260,
+   "props": {
+    "fontSize": 58,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "contagem/r",
+   "text": "clubes no acervo",
+   "x": 1108,
+   "y": 182,
+   "width": 260,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#6B6259",
+    "textAlign": "right",
+    "letterSpacing": 1.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "busca",
+   "x": 72,
+   "y": 250,
+   "width": 1296,
+   "height": 56,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "busca/t",
+   "text": "Buscar clube por nome, cidade ou país…",
+   "x": 92,
+   "y": 270,
+   "width": 600,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "busca/atalho",
+   "x": 1292,
+   "y": 262,
+   "width": 56,
+   "height": 32,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "busca/atalho/t",
+   "text": "⌘K",
+   "x": 1304,
+   "y": 271,
+   "width": 40,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "p1/t",
+   "text": "ESTADOS · 393",
+   "x": 72,
+   "y": 324,
+   "width": 900,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 600,
+    "fill": "#14100E",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "p1/cob",
+   "text": "2.815 de 12.017 clubes com estado (23%)",
+   "x": 72,
+   "y": 342,
+   "width": 520,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "e/BR-SP/bg",
+   "x": 62,
+   "y": 364,
+   "width": 570,
+   "height": 40,
+   "props": {
+    "fill": "#14100E",
+    "cornerRadius": 6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SP/n",
+   "text": "São Paulo",
+   "x": 72,
+   "y": 372,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 600,
+    "fill": "#FFF8F2",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SP/c",
+   "text": "BR-SP",
+   "x": 432,
+   "y": 373,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#C9A227",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SP/q",
+   "text": "78",
+   "x": 492,
+   "y": 372,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#FFF8F2",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RJ/n",
+   "text": "Rio de Janeiro",
+   "x": 72,
+   "y": 416,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RJ/c",
+   "text": "BR-RJ",
+   "x": 432,
+   "y": 417,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RJ/q",
+   "text": "71",
+   "x": 492,
+   "y": 416,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RS/n",
+   "text": "Rio Grande do Sul",
+   "x": 72,
+   "y": 460,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RS/c",
+   "text": "BR-RS",
+   "x": 432,
+   "y": 461,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-RS/q",
+   "text": "42",
+   "x": 492,
+   "y": 460,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-MG/n",
+   "text": "Minas Gerais",
+   "x": 72,
+   "y": 504,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-MG/c",
+   "text": "BR-MG",
+   "x": 432,
+   "y": 505,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-MG/q",
+   "text": "36",
+   "x": 492,
+   "y": 504,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-PR/n",
+   "text": "Paraná",
+   "x": 72,
+   "y": 548,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-PR/c",
+   "text": "BR-PR",
+   "x": 432,
+   "y": 549,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-PR/q",
+   "text": "30",
+   "x": 492,
+   "y": 548,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SC/n",
+   "text": "Santa Catarina",
+   "x": 72,
+   "y": 592,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SC/c",
+   "text": "BR-SC",
+   "x": 432,
+   "y": 593,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-SC/q",
+   "text": "27",
+   "x": 492,
+   "y": 592,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-BA/n",
+   "text": "Bahia",
+   "x": 72,
+   "y": 636,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-BA/c",
+   "text": "BR-BA",
+   "x": 432,
+   "y": 637,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-BA/q",
+   "text": "25",
+   "x": 492,
+   "y": 636,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-CE/n",
+   "text": "Ceará",
+   "x": 72,
+   "y": 680,
+   "width": 380,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-CE/c",
+   "text": "BR-CE",
+   "x": 432,
+   "y": 681,
+   "width": 80,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "e/BR-CE/q",
+   "text": "21",
+   "x": 492,
+   "y": 680,
+   "width": 100,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Consolas",
+    "fontWeight": 400,
+    "fill": "#4A423B",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "p2/t",
+   "text": "CIDADES EM SÃO PAULO · 38",
+   "x": 732,
+   "y": 324,
+   "width": 900,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "p2/liga",
+   "x": 708,
+   "y": 360,
+   "width": 2,
+   "height": 330,
+   "props": {
+    "fill": "#B23348"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/São Paulo/bg",
+   "x": 732,
+   "y": 366,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/São Paulo/n",
+   "text": "São Paulo",
+   "x": 748,
+   "y": 372,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/São Paulo/q",
+   "text": "12 clubes",
+   "x": 1032,
+   "y": 373,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Araraquara/bg",
+   "x": 732,
+   "y": 408,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Araraquara/n",
+   "text": "Araraquara",
+   "x": 748,
+   "y": 414,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Araraquara/q",
+   "text": "4 clubes",
+   "x": 1032,
+   "y": 415,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Campinas/bg",
+   "x": 732,
+   "y": 450,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Campinas/n",
+   "text": "Campinas",
+   "x": 748,
+   "y": 456,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Campinas/q",
+   "text": "3 clubes",
+   "x": 1032,
+   "y": 457,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Bragança Paulista/bg",
+   "x": 732,
+   "y": 492,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Bragança Paulista/n",
+   "text": "Bragança Paulista",
+   "x": 748,
+   "y": 498,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Bragança Paulista/q",
+   "text": "2 clubes",
+   "x": 1032,
+   "y": 499,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Santos/bg",
+   "x": 732,
+   "y": 534,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Santos/n",
+   "text": "Santos",
+   "x": 748,
+   "y": 540,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Santos/q",
+   "text": "2 clubes",
+   "x": 1032,
+   "y": 541,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Ribeirão Preto/bg",
+   "x": 732,
+   "y": 576,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Ribeirão Preto/n",
+   "text": "Ribeirão Preto",
+   "x": 748,
+   "y": 582,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Ribeirão Preto/q",
+   "text": "2 clubes",
+   "x": 1032,
+   "y": 583,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "c/Sorocaba/bg",
+   "x": 732,
+   "y": 618,
+   "width": 420,
+   "height": 36,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 6,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Sorocaba/n",
+   "text": "Sorocaba",
+   "x": 748,
+   "y": 624,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 500,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "c/Sorocaba/q",
+   "text": "2 clubes",
+   "x": 1032,
+   "y": 625,
+   "width": 100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "destaque/linha",
+   "x": 72,
+   "y": 720,
+   "width": 1296,
+   "height": 2,
+   "props": {
+    "fill": "#14100E"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "destaque/t",
+   "text": "CLUBES MAIS VISITADOS",
+   "x": 72,
+   "y": 736,
+   "width": 900,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 600,
+    "fill": "#14100E",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/0",
+   "x": 72,
+   "y": 764,
+   "width": 244,
+   "height": 112,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/0/selo",
+   "x": 90,
+   "y": 784,
+   "width": 36,
+   "height": 36,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 18,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/0/n",
+   "text": "Flamengo",
+   "x": 90,
+   "y": 830,
+   "width": 200,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/0/l",
+   "text": "Rio de Janeiro · BR",
+   "x": 90,
+   "y": 852,
+   "width": 220,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/0/j",
+   "text": "426 jogos",
+   "x": 222,
+   "y": 784,
+   "width": 80,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/1",
+   "x": 328,
+   "y": 764,
+   "width": 244,
+   "height": 112,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/1/selo",
+   "x": 346,
+   "y": 784,
+   "width": 36,
+   "height": 36,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 18,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/1/n",
+   "text": "Palmeiras",
+   "x": 346,
+   "y": 830,
+   "width": 200,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/1/l",
+   "text": "São Paulo · BR",
+   "x": 346,
+   "y": 852,
+   "width": 220,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/1/j",
+   "text": "434 jogos",
+   "x": 478,
+   "y": 784,
+   "width": 80,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/2",
+   "x": 584,
+   "y": 764,
+   "width": 244,
+   "height": 112,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/2/selo",
+   "x": 602,
+   "y": 784,
+   "width": 36,
+   "height": 36,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 18,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/2/n",
+   "text": "Corinthians",
+   "x": 602,
+   "y": 830,
+   "width": 200,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/2/l",
+   "text": "São Paulo · BR",
+   "x": 602,
+   "y": 852,
+   "width": 220,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/2/j",
+   "text": "410 jogos",
+   "x": 734,
+   "y": 784,
+   "width": 80,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/3",
+   "x": 840,
+   "y": 764,
+   "width": 244,
+   "height": 112,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/3/selo",
+   "x": 858,
+   "y": 784,
+   "width": 36,
+   "height": 36,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 18,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/3/n",
+   "text": "Atlético-MG",
+   "x": 858,
+   "y": 830,
+   "width": 200,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/3/l",
+   "text": "Minas Gerais · BR",
+   "x": 858,
+   "y": 852,
+   "width": 220,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/3/j",
+   "text": "423 jogos",
+   "x": 990,
+   "y": 784,
+   "width": 80,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/4",
+   "x": 1096,
+   "y": 764,
+   "width": 244,
+   "height": 112,
+   "props": {
+    "fill": "#FFFDF8",
+    "cornerRadius": 8,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "cx/4/selo",
+   "x": 1114,
+   "y": 784,
+   "width": 36,
+   "height": 36,
+   "props": {
+    "fill": "#EDE6DA",
+    "cornerRadius": 18,
+    "stroke": "#D9D0C3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/4/n",
+   "text": "Grêmio",
+   "x": 1114,
+   "y": 830,
+   "width": 200,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Georgia",
+    "fontWeight": 700,
+    "fill": "#14100E",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/4/l",
+   "text": "Rio Grande do Sul · BR",
+   "x": 1114,
+   "y": 852,
+   "width": 220,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "cx/4/j",
+   "text": "398 jogos",
+   "x": 1246,
+   "y": 784,
+   "width": 80,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Consolas",
+    "fontWeight": 600,
+    "fill": "#8E1B2E",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "rodape/linha",
+   "x": 72,
+   "y": 985,
+   "width": 1296,
+   "height": 1,
+   "props": {
+    "fill": "#D9D0C3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "rodape/nota",
+   "text": "O estado é contexto de navegação — o filtro por cidade continua funcionando sozinho.",
+   "x": 72,
+   "y": 999,
+   "width": 900,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Segoe UI",
+    "fontWeight": 400,
+    "fill": "#6B6259",
+    "textAlign": "left"
+   }
+  }
+ }
+]

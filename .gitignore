@@ -81,3 +81,5 @@ apps/api/.appuser-pwd
 # escolhia como alvo, abrindo PRs que o CI reprovava com ERR_PNPM_OUTDATED_LOCKFILE contra a
 # RAIZ (o PR #511 estava assim). Removido em 2026-10-13: nao ha fonte de verdade dupla.
 apps/web/pnpm-lock.yaml
+# Vendor temporário (skill de logo clone raso; biblioteca de marcas não versionada)
+/.vendor/
