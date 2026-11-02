@@ -69,7 +69,13 @@ describe('planBacklog', () => {
 
   it('bloqueada não gera item; temporada ausente gera never_ingested', () => {
     const items = planBacklog(sources, [
-      { qid: 'Q206813', year: 2023, matchesTotal: 380, matchesWithScore: 380 },
+      {
+        qid: 'Q206813',
+        year: 2023,
+        matchesTotal: 380,
+        matchesWithScore: 380,
+        matchesWithScorers: 380,
+      },
     ]);
     expect(items.some((i) => i.sourceKey === 'soccerwiki')).toBe(false);
     const anos = items.map((i) => i.seasonLabel).sort();
@@ -79,16 +85,31 @@ describe('planBacklog', () => {
 
   it('temporada com partida sem placar vira missing_scores (revisita a fonte)', () => {
     const items = planBacklog(sources, [
-      { qid: 'Q206813', year: 2023, matchesTotal: 380, matchesWithScore: 370 },
+      {
+        qid: 'Q206813',
+        year: 2023,
+        matchesTotal: 380,
+        matchesWithScore: 370,
+        matchesWithScorers: 100,
+      },
     ]);
     const alvo = items.find((i) => i.seasonLabel === '2023');
     expect(alvo?.reason).toBe('missing_scores');
   });
 
+  it('placar completo NÃO basta: temporada sem autores dos gols volta para a fila', () => {
+    const items = planBacklog(
+      [{ sourceKey: 'rsssf', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
+      [{ qid: 'Q1', year: 2024, matchesTotal: 100, matchesWithScore: 100, matchesWithScorers: 2 }],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0].reason).toBe('missing_scorers');
+  });
+
   it('cobertura completa não gera item', () => {
     const items = planBacklog(
       [{ sourceKey: 'rsssf', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
-      [{ qid: 'Q1', year: 2024, matchesTotal: 10, matchesWithScore: 10 }],
+      [{ qid: 'Q1', year: 2024, matchesTotal: 10, matchesWithScore: 10, matchesWithScorers: 10 }],
     );
     expect(items).toHaveLength(0);
   });

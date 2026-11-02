@@ -87,6 +87,7 @@ async function doPlan(prisma: PrismaClient, dryRun: boolean): Promise<void> {
     year: r.year,
     matchesTotal: r.matchesTotal,
     matchesWithScore: r.matchesWithScore,
+    matchesWithScorers: r.matchesWithScorers,
   }));
   const items = planBacklog(sourceSeasonRefs(), coverage);
   console.log(`\nPLANO: ${items.length} item(ns) a ingerir`);

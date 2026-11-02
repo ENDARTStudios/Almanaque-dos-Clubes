@@ -66,6 +66,7 @@ export async function planAndRunBacklog(
     year: r.year,
     matchesTotal: r.matchesTotal,
     matchesWithScore: r.matchesWithScore,
+    matchesWithScorers: r.matchesWithScorers,
   }));
 
   const items = planBacklog(sources, coverage);

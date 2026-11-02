@@ -100,6 +100,7 @@ describe.skipIf(!dbOk || !isPostgres)('DQ-01 — matriz de cobertura', () => {
     expect(row2025!.matchesWithScore).toBe(2);
     expect(row2025!.matchesScheduled).toBe(0);
     expect(row2025!.matchesWithSourceUrl).toBe(2);
+    expect(row2025!.matchesWithScorers).toBe(0); // fixture não tem autores de gol
     expect(row2025!.sources).toEqual(['rsssf']);
     expect(row2025!.firstMatchDate).toBe('2025-03-01');
     expect(row2025!.lastMatchDate).toBe('2025-03-08');
