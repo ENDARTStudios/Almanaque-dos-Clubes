@@ -39,7 +39,7 @@ const CHUNK_SIZE = 50;
 // 200/1000; lote de 200 → 0 erros. Pausa ADAPTATIVA entre chunks: dobra a cada
 // falha, decai 20% a cada sucesso, entre BASE e MAX. Chunk que esgota as tentativas
 // é re-tentado CHUNK_ATTEMPTS vezes antes de contar erro (os QIDs ficam p/ a próxima rodada).
-const BASE_PAUSE_MS = 800;
+const BASE_PAUSE_MS = 1_500;
 const MAX_PAUSE_MS = 15_000;
 const CHUNK_ATTEMPTS = 3;
 /** Backoff interno do fetch sob 429: mais longo que o default 1s/2s/4s (Retry-After manda mais). */
@@ -205,22 +205,30 @@ async function fetchOneChunk(
   return null;
 }
 
+interface ChunkFetchResult {
+  entities: Map<string, EntityLike>;
+  /** QIDs de chunks que FALHARAM (429/timeout) — transitório: NÃO gravar cursor. */
+  failedQids: Set<string>;
+}
+
 async function fetchEntitiesChunked(
   qids: string[],
   props: 'claims|labels' | 'labels',
-): Promise<Map<string, EntityLike>> {
-  const out = new Map<string, EntityLike>();
+): Promise<ChunkFetchResult> {
+  const entities = new Map<string, EntityLike>();
+  const failedQids = new Set<string>();
   const unique = chunked([...new Set(qids)], CHUNK_SIZE);
   for (let i = 0; i < unique.length; i++) {
     const got = await fetchOneChunk(unique[i], props);
-    if (got) for (const [qid, ent] of got) out.set(qid, ent);
+    if (got) for (const [qid, ent] of got) entities.set(qid, ent);
+    else for (const qid of unique[i]) failedQids.add(qid);
     if (i < unique.length - 1) {
       await sleep(currentPauseMs);
       // Sucesso volta ao ritmo de cruzeiro gradualmente (sem oscilar).
       if (got) currentPauseMs = Math.max(BASE_PAUSE_MS, Math.floor(currentPauseMs * 0.8));
     }
   }
-  return out;
+  return { entities, failedQids };
 }
 
 // ---------------------------------------------------------------------------
@@ -418,7 +426,7 @@ async function main(): Promise<void> {
   }
   console.log(`  fila: ${players.length} jogador(es)`);
 
-  const entities = await fetchEntitiesChunked(
+  const { entities, failedQids } = await fetchEntitiesChunked(
     players.map((p) => p.qid),
     'claims|labels',
   );
@@ -435,7 +443,7 @@ async function main(): Promise<void> {
       }
     }
   }
-  const labelEntities = await fetchEntitiesChunked(refQids, 'labels');
+  const labelEntities = (await fetchEntitiesChunked(refQids, 'labels')).entities;
   const labelByQid = new Map<string, string>();
   for (const [qid, ent] of labelEntities) {
     const label = ent.labels?.en?.value ?? ent.labels?.['pt-br']?.value ?? ent.labels?.pt?.value;
@@ -452,28 +460,42 @@ async function main(): Promise<void> {
     missingClub: 0,
     kgWritten: 0,
     errors: 0,
+    semEntidade: 0,
   };
 
   for (const p of players) {
     totals.processed++;
     const ent = entities.get(p.qid);
     if (!ent?.claims) {
-      totals.errors++;
-      console.log(`  [${p.qid}] ${p.fullName}: entidade não obtida do Wikidata`);
-      if (APPLY) {
-        await prisma.player.update({
-          where: { id: p.id },
-          data: {
-            profileEnrichment: {
-              at: nowIso(),
-              status: 'error',
-              processed: 0,
-              updated: 0,
-              skipped: 0,
-              errors: 1,
+      // Transitório (chunk no 429/timeout) ≠ QID inexistente. Transitório NÃO grava
+      // cursor — o jogador volta na próxima rodada. QID morto/redirecionado grava
+      // `missing` para não ocupar a fila para sempre (gap declarado no acervo).
+      const transient = failedQids.has(p.qid);
+      if (transient) {
+        totals.errors++;
+        console.log(
+          `  [${p.qid}] ${p.fullName}: fetch transitório falhou — retorna na próxima rodada`,
+        );
+      } else {
+        totals.semEntidade++;
+        console.log(
+          `  [${p.qid}] ${p.fullName}: sem entidade no Wikidata (QID morto/redirecionado)`,
+        );
+        if (APPLY) {
+          await prisma.player.update({
+            where: { id: p.id },
+            data: {
+              profileEnrichment: {
+                at: nowIso(),
+                status: 'missing',
+                processed: 0,
+                updated: 0,
+                skipped: 0,
+                errors: 0,
+              },
             },
-          },
-        });
+          });
+        }
       }
       continue;
     }
@@ -642,7 +664,7 @@ async function main(): Promise<void> {
   console.log(
     `\nResumo (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
       `atualizado=${totals.updated} skipped=${totals.skipped} ` +
-      `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors}`,
+      `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors} semEntidade=${totals.semEntidade}`,
   );
   if (!APPLY) console.log('DRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
   await prisma.$disconnect();
