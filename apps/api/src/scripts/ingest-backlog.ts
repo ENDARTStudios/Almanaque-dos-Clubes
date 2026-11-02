@@ -13,7 +13,6 @@ import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
-import { SOURCES } from './seed-matches-rsssf.js';
 import { buildCoverageMatrix } from '../modules/coverage/coverage.service.js';
 import {
   closeItem,
@@ -22,9 +21,7 @@ import {
   syncBacklog,
   type CoverageStat,
   type ItemOutcome,
-  type SourceSeasonRef,
 } from '../modules/ingest/backlog.js';
-import { isAutomationAllowed } from '../modules/ingest/source-registry.js';
 
 /** Pausa entre itens: rate limit é por rajada (lição T528). */
 const PAUSE_BETWEEN_ITEMS_MS = 1500;
@@ -34,16 +31,11 @@ function argValue(name: string): string | null {
   return found ? found.slice(name.length + 3) : null;
 }
 
-/** Temporadas publicadas por fonte, no formato do planejador. */
-export function sourceSeasonRefs(): SourceSeasonRef[] {
-  return Object.entries(SOURCES)
-    .filter(([key]) => isAutomationAllowed(key))
-    .map(([key, spec]) => ({
-      sourceKey: key,
-      competitionQid: spec.competitionQid,
-      seasons: spec.seasons.map((s) => ({ label: s.label })),
-    }));
-}
+// A montagem das temporadas por fonte mora no RUNNER (mapeamento rsssf → br/pl/lib).
+// Aqui só se reexporta para o CLI.
+import { sourceSeasonRefs } from '../modules/ingest/backlog-runner.js';
+
+export { sourceSeasonRefs };
 
 function runSeeder(sourceKey: string, season: string): Promise<{ code: number; tail: string }> {
   const here = dirname(fileURLToPath(import.meta.url));
@@ -69,8 +61,12 @@ function runSeeder(sourceKey: string, season: string): Promise<{ code: number; t
  * Executa um item: spawn do seeder. `ok` só com exit 0 E sem erro de rede
  * reconhecível no output — o redeploy/429 vira falha transitória, não conclusão.
  */
-export async function runItem(item: { sourceKey: string; season: string }): Promise<ItemOutcome> {
-  const r = await runSeeder(item.sourceKey, item.season);
+export async function runItem(item: {
+  sourceKey: string;
+  runnerKey: string;
+  season: string;
+}): Promise<ItemOutcome> {
+  const r = await runSeeder(item.runnerKey, item.season);
   const transitório = /HTTP (429|5\d\d)|ECONNRESET|ETIMEDOUT|fetch failed/i.test(r.tail);
   if (r.code === 0) return { ok: true, transient: false, detail: r.tail.slice(-300) };
   return {
@@ -89,7 +85,7 @@ async function doPlan(prisma: PrismaClient, dryRun: boolean): Promise<void> {
     matchesWithScore: r.matchesWithScore,
     matchesWithScorers: r.matchesWithScorers,
   }));
-  const items = planBacklog(sourceSeasonRefs(), coverage);
+  const items = planBacklog(await sourceSeasonRefs(), coverage);
   console.log(`\nPLANO: ${items.length} item(ns) a ingerir`);
   for (const i of items.slice(0, 40)) {
     console.log(`  ${i.sourceKey.padEnd(6)} ${i.seasonLabel.padEnd(8)} ${i.reason}`);
@@ -127,7 +123,11 @@ async function doRun(prisma: PrismaClient, limit: number, apply: boolean): Promi
       console.log('  DRY-RUN: item devolvido à fila.');
       continue;
     }
-    const outcome = await runItem({ sourceKey: item.sourceKey, season: item.season });
+    const outcome = await runItem({
+      sourceKey: item.sourceKey,
+      runnerKey: item.runnerKey,
+      season: item.season,
+    });
     await closeItem(prisma, item.id, outcome);
     console.log(
       `  ${outcome.ok ? 'DONE' : outcome.transient ? 'PENDING (transitório)' : 'FAILED'}`,

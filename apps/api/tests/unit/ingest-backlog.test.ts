@@ -57,11 +57,13 @@ describe('planBacklog', () => {
   const sources = [
     {
       sourceKey: 'rsssf',
+      runnerKey: 'br',
       competitionQid: 'Q206813',
       seasons: [{ label: '2022' }, { label: '2023' }, { label: '2024' }],
     },
     {
       sourceKey: 'soccerwiki', // bloqueada: não pode gerar item
+      runnerKey: 'soccerwiki',
       competitionQid: 'Q44',
       seasons: [{ label: '2023' }],
     },
@@ -99,7 +101,7 @@ describe('planBacklog', () => {
 
   it('placar completo NÃO basta: temporada sem autores dos gols volta para a fila', () => {
     const items = planBacklog(
-      [{ sourceKey: 'rsssf', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
+      [{ sourceKey: 'rsssf', runnerKey: 'br', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
       [{ qid: 'Q1', year: 2024, matchesTotal: 100, matchesWithScore: 100, matchesWithScorers: 2 }],
     );
     expect(items).toHaveLength(1);
@@ -108,7 +110,7 @@ describe('planBacklog', () => {
 
   it('cobertura completa não gera item', () => {
     const items = planBacklog(
-      [{ sourceKey: 'rsssf', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
+      [{ sourceKey: 'rsssf', runnerKey: 'br', competitionQid: 'Q1', seasons: [{ label: '2024' }] }],
       [{ qid: 'Q1', year: 2024, matchesTotal: 10, matchesWithScore: 10, matchesWithScorers: 10 }],
     );
     expect(items).toHaveLength(0);

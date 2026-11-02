@@ -24,6 +24,7 @@ const PAUSE_MS = 1500;
 /** Representação mínima da fonte que o runner precisa (injetável para teste). */
 export interface RunnerSource {
   sourceKey: string;
+  runnerKey: string;
   competitionQid: string;
   seasons: Array<{ label: string }>;
 }
@@ -33,7 +34,7 @@ export interface RunnerDeps {
   /** Temporadas publicadas por fonte (em produção vem de SOURCES do seeder). */
   sources: () => Promise<RunnerSource[]> | RunnerSource[];
   /** Executa um item e devolve o resultado, já com a classificação transitória. */
-  run: (item: { sourceKey: string; season: string }) => Promise<{
+  run: (item: { sourceKey: string; runnerKey: string; season: string }) => Promise<{
     ok: boolean;
     transient: boolean;
     detail: string;
@@ -81,7 +82,11 @@ export async function planAndRunBacklog(
       where: { id: item.id },
       data: { status: 'RUNNING', startedAt: new Date() },
     });
-    const outcome = await deps.run({ sourceKey: item.sourceKey, season: item.season });
+    const outcome = await deps.run({
+      sourceKey: item.sourceKey,
+      runnerKey: item.runnerKey,
+      season: item.season,
+    });
     await closeItem(deps.prisma, item.id, outcome);
     if (outcome.ok) done += 1;
     else failed += 1;
@@ -103,10 +108,14 @@ export async function planAndRunBacklog(
  */
 export async function sourceSeasonRefs(): Promise<RunnerSource[]> {
   const { SOURCES } = await import('../../scripts/seed-matches-rsssf.js');
+  // A chave do seeder (br/pl/lib...) NÃO é a chave do registro de fontes: o
+  // registro tem `rsssf` (a fonte), o seeder tem o adaptador. Sem este mapeamento
+  // a trava legal descartava TODA fonte e a fila nascia vazia.
   return Object.entries(SOURCES)
-    .filter(([key]) => isAutomationAllowed(key))
+    .filter(([key]) => (isAutomationAllowed('rsssf') ? Boolean(key) : false))
     .map(([key, spec]) => ({
-      sourceKey: key,
+      sourceKey: 'rsssf',
+      runnerKey: key,
       competitionQid: spec.competitionQid,
       seasons: spec.seasons.map((season) => ({ label: season.label })),
     }));
