@@ -92,7 +92,7 @@ export const GAP_DIMENSIONS: readonly GapDimension[] = [
   },
   {
     key: 'player-profile',
-    label: 'Jogadores sem posição/apelido (perfil Wikidata)',
+    label: 'Jogadores sem posição (perfil Wikidata; `nickname` é opcional)',
     bot: { script: 'enrich-player-profiles.js', args: [] },
   },
 ] as const;
@@ -146,7 +146,11 @@ export async function readInventory(prisma: PrismaClient): Promise<{
       (SELECT count(*) FROM clubs WHERE "deletedAt" IS NULL
          AND ("kitHistory" IS NULL OR anthem IS NULL OR pennants IS NULL))::int                AS "club-details",
       (SELECT count(*) FROM players WHERE "photoUrl" IS NULL)::int                            AS "player-media",
-      (SELECT count(*) FROM players WHERE position IS NULL OR nickname IS NULL)::int           AS "player-profile"
+      -- position é o dado que o produto usa; nickname é OPCIONAL e nunca foi
+      -- preenchido em massa — contá-lo junto inflava a pendência para 105.211
+      -- (medido em 02-11: position nulo = 16.037; nickname = 0 preenchidos).
+      -- ATENÇÃO: nada de backtick neste comentário — fecha o template do SQL.
+      (SELECT count(*) FROM players WHERE position IS NULL)::int                              AS "player-profile"
   `;
   const totals = (rows[0] ?? {}) as Record<string, number>;
   const asNum = (o: Record<string, unknown>) =>
