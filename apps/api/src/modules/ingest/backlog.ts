@@ -25,6 +25,8 @@ export const SCORERS_TARGET_RATIO = 0.95;
 
 export interface PlannedItem {
   sourceKey: string;
+  /** Adaptador concreto da fonte (ex.: br/pl/lib no RSSSF). */
+  runnerKey: string;
   seasonLabel: string;
   competitionQid: string;
   /** Por que este item existe (auditoria: "nunca ingerida" × "sem placar" × "sem autor de gol"). */
@@ -35,6 +37,7 @@ export interface PlannedItem {
 
 export interface SourceSeasonRef {
   sourceKey: string;
+  runnerKey: string;
   competitionQid: string;
   seasons: Array<{ label: string }>;
 }
@@ -78,6 +81,7 @@ export function planBacklog(sources: SourceSeasonRef[], coverage: CoverageStat[]
       if (stats.length === 0) {
         items.push({
           sourceKey: src.sourceKey,
+          runnerKey: src.runnerKey,
           seasonLabel: season.label,
           competitionQid: src.competitionQid,
           reason: 'never_ingested',
@@ -92,6 +96,7 @@ export function planBacklog(sources: SourceSeasonRef[], coverage: CoverageStat[]
       if (total > 0 && comPlacar < total) {
         items.push({
           sourceKey: src.sourceKey,
+          runnerKey: src.runnerKey,
           seasonLabel: season.label,
           competitionQid: src.competitionQid,
           reason: 'missing_scores',
@@ -103,6 +108,7 @@ export function planBacklog(sources: SourceSeasonRef[], coverage: CoverageStat[]
         // temporada completa: sem esta checagem a fila nascia vazia.
         items.push({
           sourceKey: src.sourceKey,
+          runnerKey: src.runnerKey,
           seasonLabel: season.label,
           competitionQid: src.competitionQid,
           reason: 'missing_scorers',
@@ -137,7 +143,11 @@ export async function syncBacklog(
   for (const item of orderBacklog(items)) {
     const existing = await prisma.ingestBacklog.findUnique({
       where: {
-        sourceKey_season: { sourceKey: item.sourceKey, season: item.seasonLabel },
+        sourceKey_competitionQid_season: {
+          sourceKey: item.sourceKey,
+          competitionQid: item.competitionQid,
+          season: item.seasonLabel,
+        },
       },
       select: { id: true, status: true },
     });
@@ -145,6 +155,7 @@ export async function syncBacklog(
       await prisma.ingestBacklog.create({
         data: {
           sourceKey: item.sourceKey,
+          runnerKey: item.runnerKey,
           season: item.seasonLabel,
           competitionQid: item.competitionQid,
           status: 'PENDING',

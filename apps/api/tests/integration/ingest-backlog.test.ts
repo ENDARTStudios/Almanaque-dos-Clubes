@@ -37,6 +37,7 @@ describe.skipIf(!dbOk || !isPostgres)('T602 — ingest_backlog', () => {
     const items = [
       {
         sourceKey: SRC,
+        runnerKey: 'br',
         seasonLabel: '2024',
         competitionQid: 'Q1',
         reason: 'never_ingested' as const,
@@ -86,6 +87,7 @@ describe.skipIf(!dbOk || !isPostgres)('T602 — ingest_backlog', () => {
     const novo = await prisma.ingestBacklog.create({
       data: {
         sourceKey: SRC,
+        runnerKey: 'br',
         season: '2001',
         competitionQid: 'Q1',
         reason: 'never_ingested',
@@ -104,7 +106,12 @@ describe.skipIf(!dbOk || !isPostgres)('T602 — ingest_backlog', () => {
     const out = await planAndRunBacklog(1, {
       prisma,
       sources: () => [
-        { sourceKey: 'rsssf', competitionQid: 'Q602-SEM-COBERTURA', seasons: [{ label: '1899' }] },
+        {
+          sourceKey: 'rsssf',
+          runnerKey: 'br',
+          competitionQid: 'Q602-SEM-COBERTURA',
+          seasons: [{ label: '1899' }],
+        },
       ],
       run: async (item) => {
         executados.push(`${item.sourceKey}:${item.season}`);
@@ -115,7 +122,9 @@ describe.skipIf(!dbOk || !isPostgres)('T602 — ingest_backlog', () => {
     expect(out.planned).toBeGreaterThanOrEqual(1);
     expect(out.done).toBe(1);
     expect(executados[0]).toBe('rsssf:1899');
-    await prisma.ingestBacklog.deleteMany({ where: { sourceKey: 'rsssf', season: '1899' } });
+    await prisma.ingestBacklog.deleteMany({
+      where: { sourceKey: 'rsssf', competitionQid: 'Q602-SEM-COBERTURA', season: '1899' },
+    });
   });
 
   it('fonte bloqueada não entra no plano mesmo se listada', async () => {

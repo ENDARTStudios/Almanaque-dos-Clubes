@@ -1123,6 +1123,8 @@ model IngestBacklog {
   id             String    @id @default(uuid())
   /// Chave do registro de fontes (`apps/api/src/modules/ingest/source-registry.ts`).
   sourceKey      String
+  /// Chave do ADAPTADOR dentro da fonte (ex.: RSSSF tem br/pl/lib/ligue1/...).
+  runnerKey      String
   /// Rótulo da temporada como a fonte publica ("2023", "2018-19").
   season         String
   competitionQid String?
@@ -1136,7 +1138,8 @@ model IngestBacklog {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  @@unique([sourceKey, season])
+  // A temporada "2023" existe em várias competições: a chave inclui a competição.
+  @@unique([sourceKey, competitionQid, season])
   @@index([status, createdAt])
   @@map("ingest_backlog")
 }
