@@ -19,6 +19,41 @@ Alternativas consideradas: <se houver>
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 <!-- Novas decisões devem ser adicionadas ACIMA da linha abaixo, em ordem cronológica. -->
 
+### [2026-11-02] Decisão: D-2026-11-02-plataforma-gratuita — o Almanaque é público e gratuito, mantido por doações; NC passa a ser aceita (ND não)
+
+Motivo: decisão de produto do Operador — o Almanaque dos Clubes NÃO é plataforma paga;
+o acesso é gratuito e a manutenção é financiada por doações de usuários e parceiros. Isso
+muda o alcance da política de mídia, que antes recusava CC-BY-NC por "o produto é
+comercial". Efeitos aplicados nesta rodada (T601):
+
+1. **`licencaAceita` aceita NC** (`ACEITA_NAO_COMERCIAL = true` em
+   `scripts/enrich-club-crests.ts`, régua compartilhada com o bot P18). Fundamento: a
+   cláusula NC veda uso "primarily intended for or directed toward commercial advantage or
+   monetary compensation"; o acervo não vende acesso, não vende dado e não exibe anúncio —
+   doação de manutenção não é contraprestação pelo dado. A licença continua gravada
+   VERBATIM por arquivo (`club_crests.license`), então a atribuição segue auditável.
+2. **ND continua RECUSADA.** Não é preço: exibir escudo exige recorte/redimensionamento e
+   miniatura — obra derivada. `CC BY-NC-ND` fica fora.
+3. **MARCA não muda.** Licença de direito autoral não concede uso de marca (Lei 9.279/96).
+   Escudo segue exigindo arquivo livre OU autorização do detentor — ver
+   D-2026-10-24-t596. O que a mudança de modelo faz é tornar viável PEDIR autorização a
+   clubes e federações (acervo público, sem venda de acesso).
+4. **Gatilho de reversão declarado**: se o produto voltar a monetizar (assinatura, anúncio,
+   venda de dado), `ACEITA_NAO_COMERCIAL` volta a `false` e todo arquivo NC já gravado
+   precisa ser revisto antes de qualquer cobrança.
+5. **Billing não foi removido nesta rodada.** Existem assinantes reais (histórico de
+   checkout validado) e a conversão para gratuito exige decisão sobre assinaturas vigentes,
+   estorno e comunicação — matéria de dinheiro/identidade do Operador. O que mudou aqui é a
+   POLÍTICA DE DADOS e a posição pública; o desligamento comercial é rodada própria.
+6. **Consequência de posicionamento**: "maior plataforma pública de futebol do mundo" é
+   ambição — só se declara o que a matriz de cobertura (DQ-01) mede. O site não passa a
+   afirmar cobertura que o dado não tem.
+
+Alternativas consideradas: (a) manter a recusa de NC até a conversão comercial ser
+desligada — descartada pelo Operador, que já declarou o novo modelo; (b) aceitar NC e ND —
+descartada: ND inviabiliza a exibição; (c) usar footylogos/Seeklogo — segue descartado por
+falta de licença verificável.
+
 ### [2026-10-24] Decisão: D-2026-10-24-t596-direito-autoral-midia — "flagrante jornalístico" NÃO ampara o acervo; licença verificada segue sendo a única via
 
 Motivo: o Operador propôs usar o "direito de flagrante jornalístico" (Lei 9.610/98) como

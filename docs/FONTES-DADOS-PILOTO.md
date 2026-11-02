@@ -11,7 +11,7 @@
 |---|---|---|---|---|
 | Edições, vencedores, elencos, escudos (P18) | **Wikidata** | CC0 (domínio público) | Não exigida (reconhecimento bem-vindo) | `ingest-won-edges-wikidata`, bots de mídia (T502/T519/T593/T596) |
 | Resultados e tabelas históricas | **RSSSF** | Uso livre **com crédito** | "Source: RSSSF" + crédito ao compilador (o acervo grava `importedFrom='rsssf'` + `sourceUrl` por linha) | ingestões T519/T527/T538/T549 |
-| Mídia (escudos, bandeiras, fotos) | **Wikimedia Commons** | Licença por arquivo, lida e gravada (NC/ND recusados) | Conforme o arquivo (`attribution` em `club_crests`) | `harvest-flags`, `enrich-club-crests*`, `enrich-*-media` |
+| Mídia (escudos, bandeiras, fotos) | **Wikimedia Commons** + **Flickr/CC** | Licença por arquivo, lida e gravada. Desde D-2026-11-02 (plataforma gratuita) **NC é aceita**; ND continua recusada | Conforme o arquivo (`attribution` em `club_crests`) | `harvest-flags`, `enrich-club-crests*`, `enrich-*-media` |
 | Dados complementares (fase de avaliação) | **TheSportsDB** | Conector existe; **uso NÃO aprovado para produção** até a licença/redistribuição ser confirmada | — | `apps/worker/src/jobs/thesportsdb-connector.ts` |
 
 ## 2. Cobertura assumida no MVP (medida, não prometida)
@@ -63,3 +63,17 @@ da partida por `matches.status`) fica registrada no issue #762 quando aprovada.
 
 Mudança de fonte, de frequência ou de escopo de redistribuição = nova entrada
 neste documento com data e motivo (mesmo protocolo do `DECISOES.md`).
+
+## 7. Modelo do produto e uso de licenças (D-2026-11-02)
+
+O Almanaque é **público e gratuito**, mantido por doações de usuários e parceiros.
+
+- **CC BY-NC / CC BY-NC-SA passam a ser aceitas** para mídia: não há venda de acesso,
+  de dado nem anúncio. A licença é gravada verbatim por arquivo.
+- **CC BY-NC-ND continua recusada**: recorte, redimensionamento e miniatura são derivadas.
+- **Marca não é licença**: escudo de clube é marca registrada (Lei 9.279/96). A fonte
+  segura é arquivo livre OU autorização do detentor. O novo modelo **viabiliza o pedido de
+  autorização** (acervo público, sem cobrança de acesso) — isso é trabalho de curadoria,
+  não de bot.
+- **Gatilho de reversão**: voltar a monetizar = `ACEITA_NAO_COMERCIAL=false` + revisão de
+  todo arquivo NC já gravado.
