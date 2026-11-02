@@ -80,6 +80,25 @@ export interface AdminMetricsPayload {
     competitionSeasons: number;
     seasonsWithChampion: number;
     rankings: number;
+    /**
+     * Rankings por TIPO (`club` | `player`). Existe porque a soma sozinha
+     * escondia uma lacuna real: em 2026-11-02 havia 71 rankings de clube e
+     * ZERO de jogador — um número só não deixava isso visível no painel.
+     */
+    rankingsByType: Record<string, number>;
+  };
+  /**
+   * Frescor do dado por entidade: a última escrita REAL em cada tabela. É o KPI
+   * que responde "a automação está atualizando?" sem abrir o banco — comparar
+   * estas datas com o cron (03:00 UTC) mostra se o pipeline parou.
+   */
+  frescura: {
+    clubsLastWrite: string | null;
+    playersLastWrite: string | null;
+    matchesLastWrite: string | null;
+    rankingsLastWrite: string | null;
+    schedulerEnabled: boolean;
+    incrementalWrites: boolean;
   };
   cobertura: {
     clubs: ClubCoverageRaw;
@@ -222,6 +241,28 @@ async function computeMetrics(): Promise<AdminMetricsPayload> {
     ];
     const filaPorChave: Record<string, number> = Object.fromEntries(filaEntries);
 
+    // --- Rankings por tipo (a soma escondia o zero de jogador) --------------
+    const rankingTypeRows = await tx.ranking.groupBy({
+      by: ['type'],
+      _count: { _all: true },
+    });
+    const rankingsByType: Record<string, number> = Object.fromEntries(
+      rankingTypeRows.map((r) => [r.type, r._count._all] as const),
+    );
+
+    // --- Frescor: última ESCRITA real por entidade --------------------------
+    // `max(updatedAt)` é honesto: se o job rodou e não mudou nada, não há
+    // escrita — e é isso que o painel deve mostrar (não "rodou às 03:00").
+    const freshRows = await tx.$queryRaw<Array<Record<string, unknown>>>`
+      SELECT (SELECT max("updatedAt") FROM clubs)               AS "clubs",
+             (SELECT max("updatedAt") FROM players)             AS "players",
+             (SELECT max("updatedAt") FROM matches)             AS "matches",
+             (SELECT max("updatedAt") FROM rankings)            AS "rankings"
+    `;
+    const fresh = freshRows[0] ?? {};
+    const asIso = (v: unknown): string | null =>
+      v instanceof Date ? v.toISOString() : v ? new Date(String(v)).toISOString() : null;
+
     // --- Produto ------------------------------------------------------------
     const [usersTotal, usersActive, usersWithBirthDate, usersGiftReceived] = await Promise.all([
       tx.user.count({ where: { deletedAt: null } }),
@@ -298,6 +339,15 @@ async function computeMetrics(): Promise<AdminMetricsPayload> {
         competitionSeasons,
         seasonsWithChampion,
         rankings,
+        rankingsByType,
+      },
+      frescura: {
+        clubsLastWrite: asIso(fresh.clubs),
+        playersLastWrite: asIso(fresh.players),
+        matchesLastWrite: asIso(fresh.matches),
+        rankingsLastWrite: asIso(fresh.rankings),
+        schedulerEnabled: process.env.ETL_SCHEDULER_ENABLED === '1',
+        incrementalWrites: (process.env.WIKIDATA_DRY_RUN ?? 'true') === 'false',
       },
       cobertura: { clubs: clubCov, players: playerCov },
       filaPorChave,

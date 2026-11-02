@@ -24,6 +24,19 @@ export interface AdminMetricsStrings {
     users: string;
     champions: string;
   };
+  rankingsPlayerGap: string;
+  frescuraTitle: string;
+  frescuraNote: string;
+  frescura: {
+    clubs: string;
+    players: string;
+    matches: string;
+    rankings: string;
+    schedulerOn: string;
+    schedulerOff: string;
+    writesOn: string;
+    writesOff: string;
+  };
   acervoTitle: string;
   acervo: {
     nationalTeams: string;
@@ -34,6 +47,8 @@ export interface AdminMetricsStrings {
     seasons: string;
     seasonsWithChampion: string;
     rankings: string;
+    rankingsClub: string;
+    rankingsPlayer: string;
   };
   coberturaTitle: string;
   coberturaNote: string;
@@ -115,6 +130,21 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       users: 'Usuários',
       champions: 'Temporadas com campeão',
     },
+    rankingsPlayerGap:
+      'Ranking de jogador está ZERADO — falta rodar a ingestão de artilheiros (T522) para os recortes do acervo.',
+    frescuraTitle: 'Atualização automática',
+    frescuraNote:
+      'Última ESCRITA real em cada tabela (não a última execução do cron). Se a data esfriar, o pipeline parou.',
+    frescura: {
+      clubs: 'Clubes — última escrita',
+      players: 'Jogadores — última escrita',
+      matches: 'Partidas — última escrita',
+      rankings: 'Rankings — última escrita',
+      schedulerOn: 'Scheduler: ativo',
+      schedulerOff: 'Scheduler: DESATIVADO',
+      writesOn: 'Enriquecimento: escreve',
+      writesOff: 'Enriquecimento: dry-run',
+    },
     acervoTitle: 'Acervo',
     acervo: {
       nationalTeams: 'Seleções',
@@ -125,6 +155,8 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       seasons: 'Temporadas',
       seasonsWithChampion: 'Temporadas com campeão',
       rankings: 'Rankings',
+      rankingsClub: 'Rankings de clube',
+      rankingsPlayer: 'Rankings de jogador',
     },
     coberturaTitle: 'Cobertura',
     coberturaNote: 'Clubes com o campo preenchido (não nulo).',
@@ -215,6 +247,21 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       users: 'Users',
       champions: 'Seasons with champion',
     },
+    rankingsPlayerGap:
+      'Player rankings are at ZERO — the top-scorer ingestion (T522) has not run for the archive slices.',
+    frescuraTitle: 'Automatic refresh',
+    frescuraNote:
+      'Last REAL write to each table (not the last cron run). If the date goes cold, the pipeline stopped.',
+    frescura: {
+      clubs: 'Clubs — last write',
+      players: 'Players — last write',
+      matches: 'Matches — last write',
+      rankings: 'Rankings — last write',
+      schedulerOn: 'Scheduler: on',
+      schedulerOff: 'Scheduler: OFF',
+      writesOn: 'Enrichment: writing',
+      writesOff: 'Enrichment: dry-run',
+    },
     acervoTitle: 'Collection',
     acervo: {
       nationalTeams: 'National teams',
@@ -225,6 +272,8 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       seasons: 'Seasons',
       seasonsWithChampion: 'Seasons with champion',
       rankings: 'Rankings',
+      rankingsClub: 'Club rankings',
+      rankingsPlayer: 'Player rankings',
     },
     coberturaTitle: 'Coverage',
     coberturaNote: 'Clubs with the field filled (not null).',
@@ -316,6 +365,21 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       users: 'Usuarios',
       champions: 'Temporadas con campeón',
     },
+    rankingsPlayerGap:
+      'El ranking de jugador está en CERO — falta la ingesta de goleadores (T522) para los recortes del acervo.',
+    frescuraTitle: 'Actualización automática',
+    frescuraNote:
+      'Última ESCRITURA real en cada tabla (no la última ejecución del cron). Si la fecha se enfría, el pipeline se detuvo.',
+    frescura: {
+      clubs: 'Clubes — última escritura',
+      players: 'Jugadores — última escritura',
+      matches: 'Partidos — última escritura',
+      rankings: 'Rankings — última escritura',
+      schedulerOn: 'Scheduler: activo',
+      schedulerOff: 'Scheduler: DESACTIVADO',
+      writesOn: 'Enriquecimiento: escribe',
+      writesOff: 'Enriquecimiento: dry-run',
+    },
     acervoTitle: 'Acervo',
     acervo: {
       nationalTeams: 'Selecciones',
@@ -326,6 +390,8 @@ export const adminMetricsStrings: Record<Locale, AdminMetricsStrings> = {
       seasons: 'Temporadas',
       seasonsWithChampion: 'Temporadas con campeón',
       rankings: 'Rankings',
+      rankingsClub: 'Rankings de club',
+      rankingsPlayer: 'Rankings de jugador',
     },
     coberturaTitle: 'Cobertura',
     coberturaNote: 'Clubes con el campo rellenado (no nulo).',
