@@ -19,6 +19,10 @@
 import type { PrismaClient } from '@prisma/client';
 import { isAutomationAllowed } from './source-registry.js';
 
+/** Razão de cobertura de `scorers` abaixo da qual a temporada volta para a fila.
+ * 0,95 = meta P0 (docs/META-DADOS-COMPLETOS.md). */
+export const SCORERS_TARGET_RATIO = 0.95;
+
 export interface PlannedItem {
   sourceKey: string;
   seasonLabel: string;
@@ -40,6 +44,7 @@ export interface CoverageStat {
   year: number;
   matchesTotal: number;
   matchesWithScore: number;
+  matchesWithScorers: number;
 }
 
 /** Ano da temporada a partir do rótulo ("2023" → 2023; "2018-19" → 2018). */
@@ -82,6 +87,7 @@ export function planBacklog(sources: SourceSeasonRef[], coverage: CoverageStat[]
       }
       const total = stats.reduce((n, s) => n + s.matchesTotal, 0);
       const comPlacar = stats.reduce((n, s) => n + s.matchesWithScore, 0);
+      const comGols = stats.reduce((n, s) => n + s.matchesWithScorers, 0);
       // Temporada existe mas tem partida sem placar: vale revisitar a fonte.
       if (total > 0 && comPlacar < total) {
         items.push({
@@ -89,6 +95,17 @@ export function planBacklog(sources: SourceSeasonRef[], coverage: CoverageStat[]
           seasonLabel: season.label,
           competitionQid: src.competitionQid,
           reason: 'missing_scores',
+          seasonLabelYear: ano,
+        });
+      } else if (total > 0 && comGols < total * SCORERS_TARGET_RATIO) {
+        // O MAIOR gap do acervo: 126 de 17.265 partidas têm autor do gol — e é o
+        // dado que alimenta o ranking de jogador. Placar completo NÃO significa
+        // temporada completa: sem esta checagem a fila nascia vazia.
+        items.push({
+          sourceKey: src.sourceKey,
+          seasonLabel: season.label,
+          competitionQid: src.competitionQid,
+          reason: 'missing_scorers',
           seasonLabelYear: ano,
         });
       }
