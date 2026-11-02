@@ -72,3 +72,24 @@ Medição automática: `node dist/scripts/gap-bot.js` (pendências) + `GET /api/
 Esta meta é revisada **quando**: (a) uma linha for atingida (sobe a meta); (b) uma
 fonte mudar de licença (a linha cai para "bloqueada"); (c) o escopo do MVP mudar.
 Toda revisão entra aqui com data e o número medido.
+
+## 6. Achado da primeira execução da fila (2026-11-02)
+
+A fila foi populada em produção (**54 itens**, 24 temporadas do RSSSF) e o primeiro
+item (`rsssf 2024-2025`) rodou até `DONE`. **Mas o número de partidas com autores dos
+gols não mudou (126).** Leitura honesta:
+
+- `DONE` significa **"a fonte respondeu e o pipeline rodou"**, não "o dado apareceu";
+- as páginas do RSSSF trazem, para essas temporadas, os gols **dentro da linha da
+  partida** apenas em parte dos arquivos; o que elas têm de forma sistemática é a
+  tabela **"Top scorers"** (totais por jogador na temporada);
+- portanto a meta #3 (≥80% de `scorers` por partida) **não é atingível com o parser
+  atual**. O caminho é um segundo parser: **tabela de artilheiros por temporada** →
+  alimenta diretamente o ranking de jogador (que precisa de total por jogador, não do
+  minuto de cada gol).
+
+**Consequência para a meta:** a linha #3 passa a ter duas metas separadas —
+(a) artilheiros por temporada (viável agora, fonte = tabela "Top scorers"), e
+(b) autores por partida (só onde a fonte imprime na linha do jogo). O ranking de
+jogador depende de (a), não de (b). A fila precisa ganhar `reason='missing_topscorers'`
+para diferenciar.
