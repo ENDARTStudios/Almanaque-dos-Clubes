@@ -133,11 +133,39 @@ export const rankingsRepository = {
     }) as Promise<Ranking>;
   },
 
-  async findEntries(rankingId: string): Promise<RankingEntry[]> {
-    return prisma.rankingEntry.findMany({
+  /**
+   * Entradas com o NOME do clube/jogador resolvido.
+   *
+   * `RankingEntry` guarda `clubId`/`playerId`, que são UUIDs. Uma tela de ranking feita só com
+   * eles mostraria posição, pontos e um identificador — e nenhum nome —, obrigando o consumidor a
+   * N+1 chamadas ou a exibir UUID na tela. O `include` resolve na MESMA query, com `select`
+   * enxuto: id e nome, não o clube inteiro.
+   *
+   * `nulls: 'last'` é correção, não estilo: em `ASC` o Postgres põe NULL primeiro, e a entrada
+   * SEM posição publicada (T425 — dados insuficientes) encabeçaria o ranking.
+   */
+  async findEntries(
+    rankingId: string,
+  ): Promise<Array<RankingEntry & { clubName: string | null; playerName: string | null }>> {
+    const linhas = await prisma.rankingEntry.findMany({
       where: { rankingId },
-      orderBy: { position: 'asc' },
-    }) as Promise<RankingEntry[]>;
+      orderBy: { position: { sort: 'asc', nulls: 'last' } },
+      include: {
+        club: { select: { name: true } },
+        player: { select: { fullName: true } },
+      },
+    });
+    return linhas.map((l) => {
+      const { club, player, ...resto } = l as typeof l & {
+        club: { name: string } | null;
+        player: { fullName: string } | null;
+      };
+      return {
+        ...(resto as unknown as RankingEntry),
+        clubName: club?.name ?? null,
+        playerName: player?.fullName ?? null,
+      };
+    });
   },
 
   // --- T438 — leitura pública otimizada (cursor-based) ---

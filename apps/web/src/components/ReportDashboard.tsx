@@ -7,6 +7,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { ReportStrings } from '@/i18n/wsC11';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
+import type { Locale } from '@/i18n/config';
 
 interface PendingReport {
   id: string;
@@ -20,7 +23,7 @@ interface PendingReport {
   reportCount: number;
 }
 
-export default function ReportDashboard({ s }: { s: ReportStrings }) {
+export default function ReportDashboard({ s, locale }: { s: ReportStrings; locale: Locale }) {
   const [reports, setReports] = useState<PendingReport[] | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [resolving, setResolving] = useState<{ id: string } | null>(null);
@@ -79,9 +82,9 @@ export default function ReportDashboard({ s }: { s: ReportStrings }) {
       <h3 className="text-sm font-semibold text-foreground mb-3">{s.dashboardTitle}</h3>
       {reports === null && <p className="text-sm text-foreground/70">…</p>}
       {reports?.length === 0 && (
-        <p className="text-sm text-foreground/70" data-testid="reports-empty">
-          {s.noReports}
-        </p>
+        <div data-testid="reports-empty">
+          <EmptyState title={s.noReports} body={fichaStrings[locale].states.emptyBody} />
+        </div>
       )}
       <ul className="space-y-3">
         {reports?.map((r) => (

@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/Provider';
 import ConfirmDialog from './ConfirmDialog';
 import Pagination from './Pagination';
 import { adminStrings, fill } from './strings';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * T-ADMIN — catálogo de MÍDIA (`/admin/catalogo`).
@@ -418,9 +420,12 @@ export default function MediaCatalog() {
           {s.catalog.error}
         </p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-ink-2 py-8" data-testid="catalog-empty">
-          {appliedQ.trim() ? s.catalog.emptyFiltered : s.catalog.empty}
-        </p>
+        <div data-testid="catalog-empty">
+          <EmptyState
+            title={appliedQ.trim() ? s.catalog.emptyFiltered : s.catalog.empty}
+            body={fichaStrings[locale].states.emptyBody}
+          />
+        </div>
       ) : (
         <>
           <ul className="space-y-2" data-testid="catalog-list">

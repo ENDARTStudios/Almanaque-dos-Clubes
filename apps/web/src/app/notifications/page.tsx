@@ -5,6 +5,9 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { wsC8Strings, notificationTypeLabel } from '@/i18n/wsC8';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState, ErrorState, SkeletonFicha } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * WS-C-8 — histórico completo de notificações (/notifications).
@@ -108,15 +111,22 @@ function NotificationsList() {
       </div>
 
       {failed ? (
-        <p role="alert" className="text-sm text-danger-ink">
-          {s.title}: ERROR
-        </p>
+        /*
+          ERA `{s.title}: ERROR` — o título da página concatenado com a palavra "ERROR" em
+          inglês. Não dizia o que falhou nem em que idioma. ErrorState diz, e oferece retry.
+        */
+        <ErrorState
+          title={fichaStrings[locale].states.errorTitle}
+          body={fichaStrings[locale].states.errorBody}
+          retryLabel={fichaStrings[locale].states.retry}
+          retryHref="/notifications"
+        />
       ) : items === null ? (
-        <p className="text-sm text-foreground/70">…</p>
+        <SkeletonFicha rows={4} label={fichaStrings[locale].states.loading} />
       ) : items.length === 0 ? (
-        <p className="text-sm text-foreground/70 py-10" data-testid="notifications-empty">
-          {s.empty}
-        </p>
+        <div data-testid="notifications-empty">
+          <EmptyState title={s.empty} body={fichaStrings[locale].states.emptyBody} />
+        </div>
       ) : (
         <ul className="divide-y divide-border/50">
           {items.map((n) => (
@@ -190,9 +200,9 @@ export default function NotificationsPage() {
   const s = wsC8Strings[locale].notifications;
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-8">
-        {s.title}
-      </h1>
+      <div className="mb-8">
+        <FichaHead title={s.title} />
+      </div>
       <ProtectedRoute>
         <NotificationsList />
       </ProtectedRoute>

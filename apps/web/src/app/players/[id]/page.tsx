@@ -15,6 +15,10 @@ import { CountryFlag } from '@/components/CountryFlag';
 import PlayerGoalsByStintChart from '@/components/PlayerGoalsByStintChart';
 import { wIconsStrings, positionLabel } from '@/i18n/wsIcons';
 import { wt579Strings } from '@/i18n/wsT579';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState } from '@/components/ficha/States';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 interface Player {
   id: string;
@@ -65,17 +69,21 @@ interface ProfileExtras {
   }>;
 }
 
+/**
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = não foi possível perguntar.
+ */
 async function getPlayer(
   id: string,
-): Promise<{ data: Player; profile: ProfileExtras | null } | null> {
+): Promise<{ data: Player; profile: ProfileExtras | null } | null | undefined> {
   try {
     const res = await fetch(`${getApiBase()}/players/${id}`, { cache: 'no-store' });
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    if (!res.ok) return undefined;
     const json = await res.json();
     if (!json.data) return null;
     return { data: json.data as Player, profile: (json.profile ?? null) as ProfileExtras | null };
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -100,6 +108,11 @@ export async function generateMetadata({
 export default async function PlayerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const res = await getPlayer(id);
+  // `undefined` = não conseguimos perguntar; `null` = a origem disse que não existe.
+  if (res === undefined)
+    return (
+      <DetailUnavailable retryHref={`/players/${id}`} backHref="/players" backLabel="Jogadores" />
+    );
   if (!res) notFound();
   const p = res.data;
   const profile = res.profile;
@@ -170,9 +183,7 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
         <div className="flex items-start gap-6">
           <PlayerPhoto photoUrl={photoUrl} name={p.fullName} position={p.position} size={80} />
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
-              {p.fullName}
-            </h1>
+            <FichaHead title={p.fullName} />
             <div className="mt-3">
               <FavoriteButton
                 targetType="player"
@@ -346,9 +357,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               </table>
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="career-empty">
-              {t.careerEmpty}
-            </p>
+            <div data-testid="career-empty">
+              <EmptyState title={t.careerEmpty} body={fichaStrings[locale].states.emptyBody} />
+            </div>
           )}
         </section>
 
@@ -375,9 +386,12 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="achievements-empty">
-              {t.achievementsEmpty}
-            </p>
+            <div data-testid="achievements-empty">
+              <EmptyState
+                title={t.achievementsEmpty}
+                body={fichaStrings[locale].states.emptyBody}
+              />
+            </div>
           )}
         </section>
 
@@ -410,9 +424,12 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="individual-awards-empty">
-              {t.individualAwardsEmpty}
-            </p>
+            <div data-testid="individual-awards-empty">
+              <EmptyState
+                title={t.individualAwardsEmpty}
+                body={fichaStrings[locale].states.emptyBody}
+              />
+            </div>
           )}
         </section>
 
@@ -437,9 +454,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
               ))}
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="clubs-empty">
-              {t.clubsEmpty}
-            </p>
+            <div data-testid="clubs-empty">
+              <EmptyState title={t.clubsEmpty} body={fichaStrings[locale].states.emptyBody} />
+            </div>
           )}
         </section>
       </div>

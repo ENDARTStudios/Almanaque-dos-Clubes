@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
 import SearchBar from '@/components/SearchBar';
 import CountryIndex from '@/components/CountryIndex';
 import { CountryFlag } from '@/components/CountryFlag';
@@ -18,6 +18,11 @@ import {
   type AnchorCompetition,
 } from '@/lib/competition-anchors';
 import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
+import SectionHeading from '@/components/ficha/SectionHeading';
+import TierCard from '@/components/ficha/TierCard';
+import DataTable from '@/components/ficha/DataTable';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 // T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
 export async function generateMetadata(): Promise<Metadata> {
@@ -57,10 +62,12 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
   try {
     const base = getApiBase();
     const res = await fetch(base + '/competitions?' + params.toString(), { cache: 'no-store' });
-    if (!res.ok) return { data: [], total: 0, offset: 0 };
+    // `null` = FALHOU. Antes devolvia `{ data: [], total: 0 }` — indistinguível de "acervo
+    // vazio", e a página imprimia "Explore 0 competições" com a API fora do ar.
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { data: [], total: 0, offset: 0 };
+    return null;
   }
 }
 
@@ -106,7 +113,16 @@ export default async function CompetitionsPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const sp = await searchParams;
-  const { data: competitions, total, offset } = await getCompetitions(sp);
+  const resultado = await getCompetitions(sp);
+  /*
+    FALHA ≠ VAZIO. A primeira é "não foi possível saber"; a segunda é "não há dado". Fundir as
+    duas faz a página afirmar "0 competições" quando o acervo tem 1.932 e a consulta é que não
+    voltou — foi o que o screenshot com a API fora mostrou, com um "0" gigante em vermelho.
+  */
+  const falhou = resultado === null;
+  const competitions = resultado?.data ?? [];
+  const total = resultado?.total ?? 0;
+  const offset = resultado?.offset ?? 0;
   const countries = await getCompetitionCountries();
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
@@ -128,10 +144,22 @@ export default async function CompetitionsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading
-        titleKey="pages.competitions.title"
-        subtitleKey="pages.competitions.subtitle"
-        subtitleParams={{ n: total }}
+      {/*
+        FichaHead no lugar do PageHeading: o PageHeading já era um h1 limpo (sem eyebrow), mas
+        não carregava o NÚMERO-ÂNCORA — e o acervo tem 1.932 competições, que é o dado da página.
+        O `{n}` do subtítulo é interpolado aqui porque estamos num Server Component que fala com
+        `dict` (strings cruas), não com `t()`. O placeholder existe nos três idiomas. */}
+      <FichaHead
+        title={dict.pages.competitions.title}
+        subtitle={
+          /* Na falha, SEM subtítulo: o `errorBody` diz "o número que aparece abaixo é o último
+             que conseguimos verificar" — e abaixo não há número, porque a âncora também saiu.
+             O `ErrorState` logo adiante explica a falha; repetir aqui seria texto que se
+             refere a algo que a página não mostra. */
+          falhou ? undefined : dict.pages.competitions.subtitle.replace('{n}', String(total))
+        }
+        // âncora é manchete: 0 não é manchete, e com falha de rede o número seria mentira
+        anchor={falhou || total === 0 ? undefined : String(total)}
       />
 
       {/* T577 — REORGANIZAÇÃO. O que havia antes: seis grupos de "âncoras" curadas (continental,
@@ -223,12 +251,7 @@ export default async function CompetitionsPage({
             NACIONAL ............. chip compacto, mais apagado
           A curadoria dos degraus vive em `lib/competition-tier.ts`, com o motivo de cada exclusão. */}
       <section className="mt-8" aria-labelledby="comp-destaques">
-        <h2
-          id="comp-destaques"
-          className="text-sm font-heading font-semibold uppercase tracking-wider text-ink-2 mb-3"
-        >
-          {s.destaques}
-        </h2>
+        <SectionHeading id="comp-destaques">{s.destaques}</SectionHeading>
 
         <div className="space-y-6">
           {degraus.map((degrau) => {
@@ -238,25 +261,20 @@ export default async function CompetitionsPage({
 
             return (
               <div key={degrau.id} data-testid={`destaque-degrau-${degrau.id}`}>
-                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
-                  {rotulo}
-                </h3>
+                <SectionHeading as="h3">{rotulo}</SectionHeading>
 
                 {ehMundial || ehContinentalTop ? (
                   /* Dois degraus de cima: cartão. O tamanho do nome é o sinal de importância. */
                   <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {degrau.itens.map((c) => (
                       <li key={c.id}>
-                        <Link
+                        <TierCard
+                          tier={degrau.id}
+                          name={c.name}
+                          meta={c.country ?? ''}
+                          tierLabel={rotulo}
                           href={`/competitions/${c.id}`}
-                          className={`flex min-h-11 items-center rounded-xl border px-4 py-3 transition-colors duration-200 ${
-                            ehMundial
-                              ? 'border-primary/40 bg-surface text-base font-heading font-semibold text-foreground hover:border-primary'
-                              : 'border-border bg-surface-2 text-sm font-medium text-foreground hover:border-primary/60'
-                          }`}
-                        >
-                          {c.name}
-                        </Link>
+                        />
                       </li>
                     ))}
                   </ul>
@@ -322,45 +340,65 @@ export default async function CompetitionsPage({
           </div>
         }
       >
-        {competitions.length ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {competitions.map((c: Competition) => (
+        {falhou ? (
+          <ErrorState
+            title={fichaStrings[locale].states.errorTitle}
+            body={fichaStrings[locale].states.errorBody}
+            retryLabel={fichaStrings[locale].states.retry}
+            retryHref="/competitions"
+          />
+        ) : competitions.length ? (
+          /*
+            ERA uma grade de cartões idênticos — 1.932 vezes o mesmo retângulo. Dois defeitos,
+            um deles medido pela skill:
+              · "no rows of identical cards": cartão igual para tudo significa que nada é
+                destaque, e 1.932 cartões não são escaneáveis;
+              · não há como COMPARAR duas linhas: o olho não encontra a mesma coluna duas vezes.
+            A tabela resolve os dois — alinha o que é comparável e cabe muito mais por tela.
+            Os rótulos de tipo deixaram de ser literais em português no JSX ('Liga', 'Copa',
+            'Internacional') e passam pelo dicionário.
+          */
+          <DataTable
+            caption={s.todas}
+            columns={[
+              { header: dict.pages.competitions.filters.competition, align: 'left' },
+              { header: dict.pages.competitions.filters.country, align: 'left' },
+              { header: dict.pages.competitions.filters.type, align: 'left' },
+            ]}
+            rows={competitions.map((c: Competition) => [
               <Link
                 key={c.id}
                 href={`/competitions/${c.id}`}
-                className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
+                className="text-primary-ink hover:underline"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
-                  {c.name.slice(0, 2).toUpperCase()}
-                </div>
-                <h3 className="text-lg font-heading font-semibold text-foreground">{c.name}</h3>
-                {/* T579 (ITEM 19) — o país da competição com bandeira derivada do ISO2 e o
-                    nome por extenso no idioma do usuário. Não é clique aqui: o cartão todo
-                    já leva à competição (âncora dentro de âncora é HTML inválido). O caminho
-                    clicável para o país é o índice de países e/ou o `?country=` do filtro. */}
-                {c.country ? (
-                  <p className="mt-1 text-sm text-foreground/60">
-                    <CountryFlag code={c.country} locale={locale} />
-                  </p>
-                ) : (
-                  <p className="text-sm text-foreground/60 mt-1">Internacional</p>
-                )}
-                {c.type ? (
-                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary-ink">
-                    {c.type === 'LEAGUE'
-                      ? 'Liga'
-                      : c.type === 'CUP'
-                        ? 'Copa'
-                        : c.type === 'TOURNAMENT'
-                          ? 'Torneio'
-                          : c.type}
-                  </span>
-                ) : null}
-              </Link>
-            ))}
-          </div>
+                {c.name}
+              </Link>,
+              c.country ? (
+                <span key={`c-${c.id}`} className="flex items-center gap-2">
+                  <CountryFlag code={c.country} locale={locale} />
+                  <span className="text-ink-3">{c.country}</span>
+                </span>
+              ) : (
+                <span key={`c-${c.id}`} className="text-ink-3">
+                  {dict.pages.competitions.filters.international}
+                </span>
+              ),
+              <span key={`t-${c.id}`} className="text-ink-2">
+                {c.type === 'LEAGUE'
+                  ? dict.pages.competitions.filters.league
+                  : c.type === 'CUP'
+                    ? dict.pages.competitions.filters.cup
+                    : c.type === 'TOURNAMENT'
+                      ? dict.pages.competitions.filters.tournament
+                      : (c.type ?? '—')}
+              </span>,
+            ])}
+          />
         ) : (
-          <p className="text-center text-foreground/60 py-12">Nenhuma competição encontrada.</p>
+          <EmptyState
+            title={fichaStrings[locale].states.emptyTitle}
+            body={fichaStrings[locale].states.emptyBody}
+          />
         )}
         {total > 50 ? (
           <nav

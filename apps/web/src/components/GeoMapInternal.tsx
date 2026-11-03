@@ -15,6 +15,8 @@ import { CountryFlag } from '@/components/CountryFlag';
 import { countryLabel } from '@/lib/country-flag';
 import { mapPageStrings, mapText } from '@/i18n/wsMapPage';
 import { useI18n } from '@/i18n/Provider';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 const GeoMapCanvas = dynamic(() => import('./GeoMapCanvas'), {
   ssr: false,
@@ -235,7 +237,7 @@ export default function GeoMapInternal() {
               />
             </h2>
             {vm.points.length === 0 ? (
-              <p className="text-sm text-foreground/70">{s.noPoints}</p>
+              <EmptyState title={s.noPoints} body={fichaStrings[locale].states.emptyBody} />
             ) : (
               <div className="space-y-8" data-testid="geo-state-groups">
                 {stateGroups.map((g) => (

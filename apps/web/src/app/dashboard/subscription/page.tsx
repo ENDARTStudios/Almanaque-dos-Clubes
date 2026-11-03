@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import SubscriptionManager from '@/components/SubscriptionManager';
 import UpgradeButton from '@/components/UpgradeButton';
 import { mapCountryToCurrency, formatPrice, PLAN_CENTS } from '@/lib/pricing';
+import FichaHead from '@/components/ficha/FichaHead';
 
 export const metadata: Metadata = { title: 'Assinatura' };
 
@@ -47,7 +48,7 @@ export default async function SubscriptionPage() {
       >
         &larr; Voltar ao Meu Almanaque
       </Link>
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">Planos</h1>
+      <FichaHead title="Planos" />
       <p className="text-foreground/60 mb-8">Escolha o plano ideal para você.</p>
       <SubscriptionManager />
       <div className="grid sm:grid-cols-3 gap-6">

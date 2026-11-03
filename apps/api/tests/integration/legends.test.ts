@@ -10,6 +10,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { prisma } from '../../src/config/prisma.js';
+import { cache } from '../../src/services/cache.js';
+import { LEGENDS_CACHE_KEY } from '../../src/modules/legends/service.js';
 import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
@@ -126,9 +128,29 @@ beforeAll(async () => {
       mkMatch(`${PREFIX}-m4`, a.id, b.id, 0, 0, new Date('2020-06-01T00:00:00Z')),
     ],
   });
+
+  /*
+    POR QUE ISTO É OBRIGATÓRIO, E NÃO UM DETALHE DE TESTE
+
+    `GET /legends` cacheia o resumo por 5 minutos numa chave FIXA (`legends:summary`). A chave não
+    depende do dado: quem cria fixture e chama a rota recebe o que estava em cache de QUALQUER
+    execução anterior. Foi por isso que este arquivo falhava com
+    `expected undefined to match object { titles: 2 }` — os clubes que o próprio teste acabou de
+    criar não estavam no item, porque o item vinha do cache de um banco vazio.
+
+    O repo já tinha registrado essa classe de defeito no próprio `services/cache.ts`
+    (T448d): "falha de Redis aqui deixou a vitrine de campeões velha por 2 rodadas". Aqui o
+    cache não falhou — ele funcionou, e por isso mentiu.
+
+    Invalidar AQUI e no `afterAll`: antes, para o teste não nascer velho; depois, para não deixar
+    o resumo com dados de fixture servido para as próximas suítes.
+  */
+  await cache.invalidate(LEGENDS_CACHE_KEY);
 });
 
 afterAll(async () => {
+  // não deixar o resumo com dados de FIXTURE no cache para as próximas suítes
+  await cache.invalidate(LEGENDS_CACHE_KEY);
   if (dbOk && isPostgres) {
     await prisma.match.deleteMany({ where: { id: { startsWith: `${PREFIX}-` } } });
     await prisma.knowledgeGraph.deleteMany({

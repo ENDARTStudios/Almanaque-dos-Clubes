@@ -13,14 +13,19 @@ export const metadata: Metadata = {
 // documenta fontes, licenças, critério de verificação, divergências, correções
 // e limitações conhecidas (R3: ancorada no estado real de produção).
 
+import FichaHead from '@/components/ficha/FichaHead';
+
+const TITULO = 'Metodologia e fontes';
+
 export default function MetodologiaPage() {
   if (!legalPagesEnabled()) notFound();
 
   return (
     <div className="measure-readable mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        Metodologia e fontes
-      </h1>
+      {/* FichaHead no lugar do h1 solto. O título e a linha de versão continuam literais:
+          esta página é documentação interna em português, atrás de flag — traduzir o conteúdo
+          dela é outra tarefa, e misturar as duas esconderia a que importa aqui. */}
+      <FichaHead title={TITULO} />
       <p className="text-sm text-foreground/70 mb-8">
         Última atualização: 25/09/2026 · END ART Studios
       </p>
