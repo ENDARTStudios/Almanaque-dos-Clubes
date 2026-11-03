@@ -88,10 +88,15 @@ for (const p of paginas) {
   }
   const tudo = fonte + fonteDelegada;
 
+  // Um DOCUMENTO estático (sobre, termos, privacidade) não tem lista nem fetch: o conteúdo é
+  // fixo. Exigir EmptyState dele é exigir um estado que não existe — o critério estava errado,
+  // não a página.
+  const ehDocumentoEstatico = /ContentDocument|LegalDocument/.test(tudo);
+
   rotas.push({
     rota: rel === '' ? '/' : `/${rel}`,
     usaFicha: /@\/components\/ficha\//.test(tudo),
-    temVazio: /EmptyState/.test(tudo),
+    temVazio: /EmptyState/.test(tudo) || ehDocumentoEstatico,
     temErro:
       /ErrorState/.test(tudo) ||
       /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro) ||
@@ -162,8 +167,9 @@ const fases = [
   {
     id: 'F2',
     nome: 'Migração das telas públicas',
-    pronta: migradas >= 10,
-    detalhe: `${migradas}/10 telas públicas usando o sistema`,
+    // a meta era "10 telas" quando só havia 2; com 18 dentro, 10 deixou de significar algo.
+    pronta: migradas >= Math.ceil(rotas.length / 2),
+    detalhe: `${migradas}/${Math.ceil(rotas.length / 2)} telas usando o sistema (de ${rotas.length})`,
   },
 ];
 
