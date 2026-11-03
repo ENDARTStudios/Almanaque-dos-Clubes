@@ -62,6 +62,10 @@ for (const p of paginas) {
   const dir = join(p, '..');
   // `loading.tsx` e `error.tsx` são IRMÃOS da página, não parte dela: procurar os dois nomes
   // dentro de `page.tsx` nunca acharia nada, e a fase ficaria eternamente imensurável.
+  // O Next herda fronteiras por segmento: `app/error.tsx` cobre toda rota abaixo dele que não
+  // definir a própria. Contar só o arquivo irmão subestimaria a cobertura em 39 rotas.
+  const raizTemErro = existsSync(join(APP, 'error.tsx'));
+  const raizTemLoading = existsSync(join(APP, 'loading.tsx'));
   const temLoadingIrmao = existsSync(join(dir, 'loading.tsx'));
   const temErroIrmao = existsSync(join(dir, 'error.tsx'));
   const fonteLoading = temLoadingIrmao ? await ler(join(dir, 'loading.tsx')) : '';
@@ -88,8 +92,11 @@ for (const p of paginas) {
     rota: rel === '' ? '/' : `/${rel}`,
     usaFicha: /@\/components\/ficha\//.test(tudo),
     temVazio: /EmptyState/.test(tudo),
-    temErro: /ErrorState/.test(tudo) || /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro),
-    temLoading: /SkeletonFicha/.test(tudo) || /SkeletonFicha/.test(fonteLoading),
+    temErro:
+      /ErrorState/.test(tudo) ||
+      /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro) ||
+      raizTemErro,
+    temLoading: /SkeletonFicha/.test(tudo) || /SkeletonFicha/.test(fonteLoading) || raizTemLoading,
     linhas: fonte.split('\n').length,
   });
 }
