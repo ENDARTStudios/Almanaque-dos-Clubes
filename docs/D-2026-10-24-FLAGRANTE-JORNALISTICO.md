@@ -59,3 +59,16 @@ O caminho legítimo para exibir um escudo que não esteja em licença livre é
 como fazem jogos oficiais licenciados. Isso é decisão comercial do Operador, não de
 ingestão automática. Enquanto não houver acordo, a honestidade do acervo vale: escudo
 sem licença verificável não entra — lacuna declarada em vez de risco assumido.
+
+## Atualização de 2026-11-02 — plataforma gratuita (D-2026-11-02)
+
+O modelo mudou: o Almanaque é público e gratuito, mantido por doações. **O núcleo deste
+parecer não muda** — o "flagrante jornalístico" continua não amparando catálogo persistente,
+e escudo continua sendo marca (Lei 9.279/96), matéria fora da lei autoral. O que muda é o
+alcance das licenças **de direito autoral**: CC-BY-**NC** passa a ser aceita para mídia,
+porque não há venda de acesso, dado ou anúncio. `ND` continua fora (exibição exige derivada).
+
+Consequência prática: (1) o conjunto de arquivos utilizáveis cresce no Commons/Flickr;
+(2) fica viável pedir autorização a clubes e federações para escudos — um acervo público e
+sem cobrança de acesso é uma justificativa honesta; (3) a regra "arquivo com licença lida e
+gravada" permanece a única via de entrada automática.

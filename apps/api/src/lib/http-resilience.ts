@@ -34,6 +34,19 @@ export interface FetchWithRetryOptions {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Teto do Retry-After aceito: acima disso preferimos falhar e deixar a fila re-tentar. */
+const MAX_HEADER_DELAY_MS = 60_000;
+
+/** Parse do Retry-After (segundos ou data HTTP); null quando ausente/inválido. */
+export function parseRetryAfterMs(header: string | null): number | null {
+  if (!header) return null;
+  const seconds = Number(header.trim());
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.round(seconds * 1000);
+  const dateMs = Date.parse(header);
+  if (Number.isFinite(dateMs)) return Math.max(0, dateMs - Date.now());
+  return null;
+}
+
 /** Fetcher default — o signal do timeout é aplicado pelo fetchWithTimeout. */
 const defaultFetcher: Fetcher = (url, init) => {
   const { headers, signal } = init;
@@ -73,12 +86,22 @@ export async function fetchWithRetry(
   for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
     try {
       const res = await fetchWithTimeout(url, init, timeoutMs, opts.fetcher);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        // 429 (rate limit): a fonte manda QUANTO esperar — ignorar o Retry-After e
+        // insistir em 1s/2s/4s só queima as tentativas (medido no Wikidata, 10-18).
+        const retryAfterMs =
+          res.status === 429 ? parseRetryAfterMs(res.headers?.get?.('retry-after') ?? null) : null;
+        const err = new Error(`HTTP ${res.status}`) as Error & { retryAfterMs?: number };
+        if (retryAfterMs != null) err.retryAfterMs = retryAfterMs;
+        throw err;
+      }
       return res;
     } catch (err) {
       lastError = err;
       if (attempt === retryDelays.length) break;
-      const delay = retryDelays[attempt];
+      const headerDelay = (err as { retryAfterMs?: number }).retryAfterMs;
+      const delay =
+        headerDelay != null ? Math.min(headerDelay, MAX_HEADER_DELAY_MS) : retryDelays[attempt];
       log.warn(
         {
           label,

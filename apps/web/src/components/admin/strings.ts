@@ -237,6 +237,11 @@ const PT: AdminStrings = {
         desc: 'Fila de anomalias sinalizadas pelo integrity-check: resolver ou descartar.',
       },
       {
+        href: '/admin/bots',
+        label: 'Sistema de bots',
+        desc: 'Bots por domínio do acervo: última rodada, quanto rendeu e disparo manual.',
+      },
+      {
         href: '/admin/metricas',
         label: 'Métricas',
         desc: 'Números de uso e de conteúdo do acervo.',
@@ -518,6 +523,11 @@ const EN: AdminStrings = {
         label: 'Data review',
         desc: 'Queue of anomalies flagged by the integrity check: resolve or dismiss.',
       },
+      {
+        href: '/admin/bots',
+        label: 'Bot system',
+        desc: 'Bots per archive domain: last run, what it delivered, manual trigger.',
+      },
       { href: '/admin/metricas', label: 'Metrics', desc: 'Usage and content numbers.' },
       {
         href: '/admin/auditoria',
@@ -776,6 +786,11 @@ const ES: AdminStrings = {
         href: '/admin/revisao',
         label: 'Revisión de datos',
         desc: 'Fila de anomalías señaladas por el integrity-check: resolver o descartar.',
+      },
+      {
+        href: '/admin/bots',
+        label: 'Sistema de bots',
+        desc: 'Bots por dominio del acervo: última ejecución, cuánto aportó y disparo manual.',
       },
       { href: '/admin/metricas', label: 'Métricas', desc: 'Números de uso y de contenido.' },
       {
