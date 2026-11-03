@@ -83,3 +83,6 @@ apps/api/.appuser-pwd
 apps/web/pnpm-lock.yaml
 # Vendor temporário (skill de logo clone raso; biblioteca de marcas não versionada)
 /.vendor/
+
+# bytecode Python dos geradores de design
+design/concept/__pycache__/
