@@ -634,7 +634,7 @@ def v3_clube():
         ex += w + 12
 
     # ELENCO
-    ey = sy + 116
+    ey = sy + 210  # escudos tem 135px + rotulo do ano: 116 invadia a tabela do elenco
     rule("el/rule", M, ey, CONTENT, INK, 2)
     kicker("el/l", "Elenco · 2025", M, ey + 12, INK, 700)
     cols_e = [("Jogador", M, 340, "left"), ("Posição", M + 360, 180, "left"),
@@ -864,7 +864,7 @@ def v3_jogador():
     for i, (rot, val, cor) in enumerate(leg):
         rect(f"g/d/l{i}/b", M + 830, gy + 70 + i * 22, 10, 10, fill=cor if cor != BORDER else INK_3)
         txt(f"g/d/l{i}/r", rot, M + 848, gy + 68 + i * 22, 120, 10, INK_2, BODY)
-        num(f"g/d/l{i}/v", val, M + 970, gy + 66 + i * 22, 12, INK, w=60)
+        num(f"g/d/l{i}/v", val, M + 900, gy + 66 + i * 22, 12, INK, 50, align="left")
 
     # CARREIRA
     cy = gy + 206

@@ -54,6 +54,36 @@ SECOES = [
 ]
 
 
+
+def assentar_rodape(cmds, margem=52):
+    """Move o rodapé de procedência para logo abaixo do último bloco de conteúdo.
+
+    O defeito que isto corrige: eu escrevia o `y` do rodapé à mão em cada página, com folga
+    generosa. Em 11 das 18 telas o conteúdo terminava muito antes e sobrava um vazio de 150 a
+    966px entre o último bloco e a nota de fonte. Encolher a moldura não resolvia — o buraco
+    estava DENTRO da página.
+    """
+    prov = [c for c in cmds if (c["params"].get("name") or "").startswith("prov/")]
+    if not prov:
+        return cmds
+    prov_y = min(c["params"].get("y", 0) for c in prov)
+    fundo = 0
+    for c in cmds:
+        pr = c["params"]
+        nm = pr.get("name") or ""
+        if nm.startswith("prov/"):
+            continue
+        if pr.get("x") == 0 and pr.get("y") == 0 and pr.get("width") == LARGURA:
+            continue
+        y, h = pr.get("y"), pr.get("height")
+        if isinstance(y, (int, float)):
+            fundo = max(fundo, y + (h if isinstance(h, (int, float)) and h > 0 else 14))
+    delta = (fundo + margem) - prov_y
+    for c in prov:
+        c["params"]["y"] = c["params"].get("y", 0) + delta
+    return cmds
+
+
 def res(resposta):
     if resposta.get("isError"):
         raise RuntimeError((resposta.get("content") or [{}])[0].get("text", "erro"))
@@ -101,10 +131,17 @@ def main():
                 ficha.cmd.clear()
                 fn()
                 ficha.normalizar(ficha.cmd)
+                assentar_rodape(ficha.cmd)
+                # A moldura passa a ter a altura do CONTEUDO, nao um numero escolhido a mao.
+                # Era o maior defeito do conceito: 11 de 18 telas tinham vazio de 150 a 966px
+                # porque eu declarei alturas generosas e o conteudo nao chegava la.
                 altura = int(max(
                     (c["params"].get("y", 0) + c["params"].get("height", 0))
-                    for c in ficha.cmd if isinstance(c["params"].get("y"), (int, float))
-                ))
+                    for c in ficha.cmd
+                    if isinstance(c["params"].get("y"), (int, float))
+                    and isinstance(c["params"].get("height"), (int, float))
+                    and not (c["params"].get("x") == 0 and c["params"].get("width") == LARGURA)
+                )) + 60
                 fundo = "#12100f" if nome_frame == "lendas" else (
                     "#f2efea" if nome_frame == "admin" else "#faf8f5")
                 r = res(cliente.chamar("run_command", {
