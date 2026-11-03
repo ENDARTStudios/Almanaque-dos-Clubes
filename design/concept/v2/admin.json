@@ -1,0 +1,1747 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Admin",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 940,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/top",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 52,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/brand",
+   "text": "ALMANAQUE",
+   "x": 64,
+   "y": 16,
+   "width": 240,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/brand/2",
+   "text": "admin",
+   "x": 168,
+   "y": 18,
+   "width": 120,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/env",
+   "text": "produção",
+   "x": 976,
+   "y": 18,
+   "width": 120,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#c9a227",
+    "textAlign": "left",
+    "letterSpacing": 1.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/user",
+   "text": "edina@…",
+   "x": 1176,
+   "y": 18,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/k",
+   "text": "Painel",
+   "x": 64,
+   "y": 84,
+   "width": 400,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/titulo",
+   "text": "Operação",
+   "x": 64,
+   "y": 100,
+   "width": 600,
+   "props": {
+    "fontSize": 42,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.5,
+    "lineHeight": 42.84
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/sub",
+   "text": "Estado do acervo, filas de ingestão e pendências de moderação.",
+   "x": 64,
+   "y": 154,
+   "width": 700,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/rule",
+   "x": 64,
+   "y": 186,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi0/l",
+   "text": "CLUBES",
+   "x": 64.0,
+   "y": 204,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi0/v",
+   "text": "12.017",
+   "x": 64.0,
+   "y": 220,
+   "width": 260,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi0/n",
+   "text": "+18 hoje",
+   "x": 64.0,
+   "y": 262,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi1/l",
+   "text": "JOGADORES",
+   "x": 392.0,
+   "y": 204,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi1/v",
+   "text": "105.211",
+   "x": 392.0,
+   "y": 220,
+   "width": 260,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi1/n",
+   "text": "+412 hoje",
+   "x": 392.0,
+   "y": 262,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi2/l",
+   "text": "PARTIDAS",
+   "x": 720.0,
+   "y": 204,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi2/v",
+   "text": "17.265",
+   "x": 720.0,
+   "y": 220,
+   "width": 260,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi2/n",
+   "text": "+0 hoje",
+   "x": 720.0,
+   "y": 262,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi3/l",
+   "text": "FILAS PENDENTES",
+   "x": 1048.0,
+   "y": 204,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi3/v",
+   "text": "3",
+   "x": 1048.0,
+   "y": 220,
+   "width": 260,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#be123c",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/kpi3/n",
+   "text": "2 falhas · 1 parada",
+   "x": 1048.0,
+   "y": 262,
+   "width": 260,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Fila",
+   "text": "FILA",
+   "x": 64,
+   "y": 300,
+   "width": 320,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Estado",
+   "text": "ESTADO",
+   "x": 404,
+   "y": 300,
+   "width": 160,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Detalhe",
+   "text": "DETALHE",
+   "x": 584,
+   "y": 300,
+   "width": 480,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Quando",
+   "text": "QUANDO",
+   "x": 1084,
+   "y": 300,
+   "width": 200,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "th/rule",
+   "x": 64,
+   "y": 320,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Fila",
+   "text": "rsssf-won",
+   "x": 64,
+   "y": 326,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Estado",
+   "text": "concluída",
+   "x": 404,
+   "y": 326,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Detalhe",
+   "text": "12.417 linhas",
+   "x": 584,
+   "y": 326,
+   "width": 480,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Quando",
+   "text": "02/11 04:12",
+   "x": 1084,
+   "y": 326,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/0/line",
+   "x": 56,
+   "y": 352,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/st0",
+   "x": 394,
+   "y": 332,
+   "width": 6,
+   "height": 6,
+   "props": {
+    "fill": "#6b6560",
+    "cornerRadius": 3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/bg",
+   "x": 56,
+   "y": 353,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Fila",
+   "text": "football-data",
+   "x": 64,
+   "y": 360,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Estado",
+   "text": "falhou",
+   "x": 404,
+   "y": 360,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Detalhe",
+   "text": "timeout na fonte",
+   "x": 584,
+   "y": 360,
+   "width": 480,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Quando",
+   "text": "02/11 03:50",
+   "x": 1084,
+   "y": 360,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/line",
+   "x": 56,
+   "y": 386,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/st1",
+   "x": 394,
+   "y": 366,
+   "width": 6,
+   "height": 6,
+   "props": {
+    "fill": "#be123c",
+    "cornerRadius": 3
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Fila",
+   "text": "wikidata-clubes",
+   "x": 64,
+   "y": 394,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Estado",
+   "text": "parada",
+   "x": 404,
+   "y": 394,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Detalhe",
+   "text": "aguardando operador",
+   "x": 584,
+   "y": 394,
+   "width": 480,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Quando",
+   "text": "01/11 22:10",
+   "x": 1084,
+   "y": 394,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/2/line",
+   "x": 56,
+   "y": 420,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/st2",
+   "x": 394,
+   "y": 400,
+   "width": 6,
+   "height": 6,
+   "props": {
+    "fill": "#94600a",
+    "cornerRadius": 3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/bg",
+   "x": 56,
+   "y": 421,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Fila",
+   "text": "crest-library",
+   "x": 64,
+   "y": 428,
+   "width": 320,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Estado",
+   "text": "concluída",
+   "x": 404,
+   "y": 428,
+   "width": 160,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Detalhe",
+   "text": "11 escudos",
+   "x": 584,
+   "y": 428,
+   "width": 480,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Quando",
+   "text": "01/11 20:04",
+   "x": 1084,
+   "y": 428,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/line",
+   "x": 56,
+   "y": 454,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/st3",
+   "x": 394,
+   "y": 434,
+   "width": 6,
+   "height": 6,
+   "props": {
+    "fill": "#6b6560",
+    "cornerRadius": 3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/mod/rule",
+   "x": 64,
+   "y": 488,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/mod/l",
+   "text": "MODERAÇÃO PENDENTE",
+   "x": 64,
+   "y": 500,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/mod/n",
+   "text": "7 itens",
+   "x": 996,
+   "y": 499,
+   "width": 380,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Tipo",
+   "text": "TIPO",
+   "x": 64,
+   "y": 526,
+   "width": 200,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Alvo",
+   "text": "ALVO",
+   "x": 284,
+   "y": 526,
+   "width": 380,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Enviado por",
+   "text": "ENVIADO POR",
+   "x": 684,
+   "y": 526,
+   "width": 280,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Idade",
+   "text": "IDADE",
+   "x": 984,
+   "y": 526,
+   "width": 120,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Ação",
+   "text": "AÇÃO",
+   "x": 1124,
+   "y": 526,
+   "width": 220,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "th/rule",
+   "x": 64,
+   "y": 546,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Tipo",
+   "text": "Descrição",
+   "x": 64,
+   "y": 552,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Alvo",
+   "text": "SE Palmeiras",
+   "x": 284,
+   "y": 552,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Enviado por",
+   "text": "comunidade",
+   "x": 684,
+   "y": 552,
+   "width": 280,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Idade",
+   "text": "2 h",
+   "x": 984,
+   "y": 552,
+   "width": 120,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Ação",
+   "text": "revisar",
+   "x": 1124,
+   "y": 552,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/0/line",
+   "x": 56,
+   "y": 578,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/bg",
+   "x": 56,
+   "y": 579,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Tipo",
+   "text": "Escudo",
+   "x": 64,
+   "y": 586,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Alvo",
+   "text": "Real Betis",
+   "x": 284,
+   "y": 586,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Enviado por",
+   "text": "comunidade",
+   "x": 684,
+   "y": 586,
+   "width": 280,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Idade",
+   "text": "5 h",
+   "x": 984,
+   "y": 586,
+   "width": 120,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Ação",
+   "text": "revisar",
+   "x": 1124,
+   "y": 586,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/line",
+   "x": 56,
+   "y": 612,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Tipo",
+   "text": "Posse",
+   "x": 64,
+   "y": 620,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Alvo",
+   "text": "Racing Club",
+   "x": 284,
+   "y": 620,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Enviado por",
+   "text": "clube oficial",
+   "x": 684,
+   "y": 620,
+   "width": 280,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Idade",
+   "text": "1 d",
+   "x": 984,
+   "y": 620,
+   "width": 120,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Ação",
+   "text": "aprovar",
+   "x": 1124,
+   "y": 620,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/2/line",
+   "x": 56,
+   "y": 646,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/bg",
+   "x": 56,
+   "y": 647,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Tipo",
+   "text": "Descrição",
+   "x": 64,
+   "y": 654,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Alvo",
+   "text": "Vasco da Gama",
+   "x": 284,
+   "y": 654,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Enviado por",
+   "text": "comunidade",
+   "x": 684,
+   "y": 654,
+   "width": 280,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Idade",
+   "text": "1 d",
+   "x": 984,
+   "y": 654,
+   "width": 120,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Ação",
+   "text": "revisar",
+   "x": 1124,
+   "y": 654,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/line",
+   "x": 56,
+   "y": 680,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/log/rule",
+   "x": 64,
+   "y": 712,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/log/l",
+   "text": "ÚLTIMAS AÇÕES",
+   "x": 64,
+   "y": 724,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg0/q",
+   "text": "02/11 04:12",
+   "x": 64,
+   "y": 750,
+   "width": 160,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg0/f",
+   "text": "rsssf-won",
+   "x": 244,
+   "y": 750,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg0/o",
+   "text": "12.417 linhas aplicadas",
+   "x": 464,
+   "y": 750,
+   "width": 820,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/lg0/l",
+   "x": 64,
+   "y": 770,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg1/q",
+   "text": "02/11 03:50",
+   "x": 64,
+   "y": 778,
+   "width": 160,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg1/f",
+   "text": "football-data",
+   "x": 244,
+   "y": 778,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg1/o",
+   "text": "falhou — timeout na fonte, 3 tentativas",
+   "x": 464,
+   "y": 778,
+   "width": 820,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/lg1/l",
+   "x": 64,
+   "y": 798,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg2/q",
+   "text": "01/11 22:10",
+   "x": 64,
+   "y": 806,
+   "width": 160,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg2/f",
+   "text": "wikidata-clubes",
+   "x": 244,
+   "y": 806,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg2/o",
+   "text": "pausada pelo operador",
+   "x": 464,
+   "y": 806,
+   "width": 820,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/lg2/l",
+   "x": 64,
+   "y": 826,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg3/q",
+   "text": "01/11 20:04",
+   "x": 64,
+   "y": 834,
+   "width": 160,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg3/f",
+   "text": "crest-library",
+   "x": 244,
+   "y": 834,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "a/lg3/o",
+   "text": "11 escudos com licença verificada",
+   "x": 464,
+   "y": 834,
+   "width": 820,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "a/lg3/l",
+   "x": 64,
+   "y": 854,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "prov/line",
+   "x": 64,
+   "y": 900,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "prov/note",
+   "text": "Admin não é vitrine: sem faixa escura, sem número-âncora. Mesmos tokens, mesma régua tipográfica, densidade maior.",
+   "x": 64,
+   "y": 912,
+   "width": 1100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ }
+]

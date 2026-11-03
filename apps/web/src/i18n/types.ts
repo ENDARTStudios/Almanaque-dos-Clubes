@@ -32,6 +32,8 @@ export interface Dictionary {
     shortClubs: string;
     shortPlayers: string;
     shortRankings: string;
+    /** Rótulo curto de /compare na barra (o conceito FICHA lista "Comparar" como destino). */
+    compare: string;
     search: string;
     login: string;
     dashboard: string;
@@ -180,11 +182,13 @@ export interface Dictionary {
     };
   };
   home: {
+    heroKicker: string;
     heroTitle: string;
     heroTitleAccent: string;
     heroSubtitle: string;
     ctaSearch: string;
     ctaRegister: string;
+    exploreNoAccount: string;
     stats: {
       clubs: string;
       players: string;
@@ -192,13 +196,18 @@ export interface Dictionary {
       matches: string;
       rankings: string;
     };
+    statsNote: string;
     explore: {
       label: string;
       title: string;
       clubs: string;
       competitions: string;
+      players: string;
       rankings: string;
+      legends: string;
+      legendsNote: string;
       map: string;
+      mapNote: string;
       compare: string;
       inArchive: string;
       worldwide: string;
@@ -230,6 +239,10 @@ export interface Dictionary {
     registerLink: string;
     acceptTerms: string;
     acceptPrivacy: string;
+    /** Rótulo do link dentro do consentimento — nome COMPLETO do documento, para a frase
+     *  não repetir o nome duas vezes (era "…Termos de Uso e Serviço Termos de Uso"). */
+    termsLink: string;
+    privacyLink: string;
     acceptRequired: string;
     registerErrorDefault: string;
     forgotPasswordLink: string;
@@ -342,6 +355,11 @@ export interface Dictionary {
         all: string;
         league: string;
         cup: string;
+        /** T588 — a lista de competições virou tabela e precisava destes rótulos.
+         *  Antes eles estavam CRAVADOS em português no JSX ('Liga', 'Copa', 'Internacional'). */
+        tournament: string;
+        international: string;
+        competition: string;
         apply: string;
         /** T577 — sair do recorte atual (limpar filtros). */
         clear: string;

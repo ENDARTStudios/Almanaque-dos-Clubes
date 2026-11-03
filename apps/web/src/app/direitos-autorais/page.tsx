@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
 import DireitosAutoraisPanel from '@/components/DireitosAutoraisPanel';
+import FichaHead from '@/components/ficha/FichaHead';
 
 // T470 — Notificações de direitos autorais (Lei 9.610/98 + análoga; SEM safe
 // harbor formal/DMCA). Logado = formulários com protocolo; deslogado = canal manual.
@@ -24,10 +25,13 @@ export default function DireitosAutoraisPage() {
           ← /termos
         </Link>
       </div>
+      {/* O painel começa com um h2 e a página não tinha h1 — a hierarquia começava no nível 2.
+          Título literal, como em /direitos-titular: é página legal em português, atrás de flag. */}
+      <FichaHead title="Direitos Autorais" />
       <p className="text-foreground/70 mb-8 leading-relaxed">
         Notificações e contranotificações são registradas com protocolo e passam por triagem manual
-        com decisão motivada; conteúdo inequivocamente infrator é removido. Canal manual (sem conta):
-        endart.studios+direitos@gmail.com.
+        com decisão motivada; conteúdo inequivocamente infrator é removido. Canal manual (sem
+        conta): endart.studios+direitos@gmail.com.
       </p>
       <DireitosAutoraisPanel />
     </div>

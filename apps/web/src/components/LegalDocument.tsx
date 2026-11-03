@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
+import FichaHead from '@/components/ficha/FichaHead';
 
 export default function LegalDocument({ kind }: { kind: 'terms' | 'privacy' }) {
   const { t, dict, locale, setLocale } = useI18n();
@@ -26,9 +27,9 @@ export default function LegalDocument({ kind }: { kind: 'terms' | 'privacy' }) {
         </div>
       </div>
 
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        {doc.title}
-      </h1>
+      {/* só o título vai para o FichaHead: a linha de versão/data fica logo abaixo dele,
+          onde o leitor de documento legal procura — ela é metadado, não subtítulo. */}
+      <FichaHead title={doc.title} />
       <p className="text-sm text-foreground/70 mb-8">
         {/* T469 — versão/data POR documento (vinham hardcoded e compartilhados). */}
         {t('legal.updatedLabel')}: {doc.updated ?? '2026-09-19'} ({doc.version ?? 'v1.2'}) · END ART

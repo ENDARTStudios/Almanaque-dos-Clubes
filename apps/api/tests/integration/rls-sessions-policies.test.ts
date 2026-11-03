@@ -60,11 +60,28 @@ describe('RLS sessions — matriz completa (T377)', () => {
       USER_A,
       USER_B,
     );
-    await prisma.$executeRawUnsafe(
-      `DELETE FROM sessions WHERE "tokenHash" IN ($1, $2)`,
-      HASH_A,
-      HASH_B,
-    );
+    /*
+      ── POR QUE ESTE DELETE PRECISA DE CONTEXTO ──────────────────────────────────────────
+      A tabela `sessions` tem **RLS FORÇADO** (`relforcerowsecurity = true`): o DONO também é
+      filtrado pelas políticas. Sem `app.current_user_id`, a política de SELECT não casa nada —
+      então um `DELETE` simples apagava ZERO linhas e o resíduo de execuções anteriores ficava.
+
+      O sintoma era um teste que mentia sobre o próprio código:
+        · `countSessions` devolvia 2 onde se esperava 1 (sessões antigas de execuções passadas);
+        · o INSERT batia em restrição única de `tokenHash`.
+
+      A política `sessions_delete_service` libera DELETE quando `app.current_user_role =
+      'SERVICE'` — é o mesmo contexto que o app usa para expurgar sessão. O `set_config(...,
+      true)` é local à transação, então não vaza para o resto da suíte.
+
+      E apaga por `userId` (não por `tokenHash`): a asserção conta as sessões DO USUÁRIO, então a
+      fixture tem de remover tudo que pertence a esses dois usuários, inclusive sobras com hash
+      diferente.
+    */
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_role', 'SERVICE', true)`);
+      await tx.$executeRawUnsafe(`DELETE FROM sessions WHERE "userId" IN ($1, $2)`, USER_A, USER_B);
+    });
     await prisma.$executeRawUnsafe(
       `INSERT INTO sessions (id, "userId", "tokenHash", "expiresAt")
        VALUES (gen_random_uuid(), $1, $2, '2030-01-01'),

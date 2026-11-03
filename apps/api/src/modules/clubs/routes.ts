@@ -176,13 +176,18 @@ export const clubsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   app.get('/clubs/cities', async (request, reply) => {
-    const { country } = request.query as { country?: string };
+    /* `state` é OPCIONAL: sem ele devolve o país inteiro (comportamento anterior, preservado).
+       Com ele, devolve só as cidades daquele estado — o terceiro nível da hierarquia.
+       O parâmetro existia na camada de serviço desde o T595, mas esta rota passou a lê-lo só
+       depois: enquanto não passava, pedir as cidades de SP devolvia as 276 do Brasil inteiro,
+       com cidades de outros estados na lista. Resposta errada com aparência de certa. */
+    const { country, state } = request.query as { country?: string; state?: string };
     if (!country || !/^[A-Za-z]{2}$/.test(country)) {
       return reply
         .status(400)
         .send({ error: { code: 'BAD_REQUEST', message: 'country (ISO2) é obrigatório' } });
     }
-    return reply.send({ data: await clubsService.cityIndex(country) });
+    return reply.send({ data: await clubsService.cityIndex(country, state || undefined) });
   });
 
   /**

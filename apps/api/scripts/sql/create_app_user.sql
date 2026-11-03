@@ -23,6 +23,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "clubs" TO app_user;GRANT SELECT, 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "club_crests" TO app_user;
 -- T599/DQ-04 — fila de revisão de dados (anomalias sinalizadas antes da publicação).
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "review_queue" TO app_user;
+-- T602 — fila de ingestão contínua (job consome sem aprovação por rodada).
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "ingest_backlog" TO app_user;
+-- T603 — histórico de execuções dos bots.
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "bot_runs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_consents" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "cookie_policy_versions" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "competitions" TO app_user;

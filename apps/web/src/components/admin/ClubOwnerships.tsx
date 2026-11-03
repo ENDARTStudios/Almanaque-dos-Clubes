@@ -5,6 +5,8 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { adminStrings } from './strings';
 import Pagination from './Pagination';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * WS-C-9 — fila de moderação de posses de clube (critério C3): lista as posses
@@ -138,7 +140,9 @@ export default function ClubOwnerships() {
       {state === 'error' && <p className="text-sm text-danger-ink">{s.ownership.error}</p>}
 
       {state === 'ok' && rows.length === 0 && (
-        <p className="text-sm text-ink-2">{s.ownership.empty}</p>
+        <div data-testid="ownership-empty">
+          <EmptyState title={s.ownership.empty} body={fichaStrings[locale].states.emptyBody} />
+        </div>
       )}
 
       {actionError && (

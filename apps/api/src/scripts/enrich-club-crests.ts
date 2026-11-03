@@ -60,12 +60,34 @@ const LICENCAS_LIVRES = [
   'pd',
 ];
 
+/**
+ * T601/D-2026-11-02 — o Almanaque é plataforma PÚBLICA e GRATUITA, mantida por
+ * doações (decisão do Operador). Isso muda o alcance das licenças aceitas:
+ *
+ * - **NC (non-commercial) passa a ser aceita.** A cláusula NC proíbe uso
+ *   "primarily intended for or directed toward commercial advantage or monetary
+ *   compensation"; o acervo não vende acesso, não vende dado e não exibe anúncio —
+ *   recebe doações para manutenção, o que a leitura conservadora da Creative
+ *   Commons admite como não comercial. A licença é gravada VERBATIM em
+ *   `club_crests.license`, então a atribuição continua auditável por arquivo.
+ * - **ND (no-derivatives) CONTINUA fora.** Não é questão de preço: a exibição
+ *   exige recortar/redimensionar/servir miniatura, e isso é obra derivada.
+ * - **Marca é outra régua.** Licença de direito autoral não concede uso de MARCA
+ *   (Lei 9.279/96): escudo continua exigindo amparo próprio (arquivo livre do
+ *   Commons ou autorização do detentor). Ver D-2026-10-24-t596.
+ *
+ * Se o produto voltar a monetizar (assinatura, anúncio, venda de dado), esta
+ * opção DEVE voltar a `false` e os arquivos NC já gravados precisam ser revistos.
+ */
+const ACEITA_NAO_COMERCIAL = true;
+
 export function licencaAceita(licenca: string | null | undefined): boolean {
   if (!licenca) return false;
   const l = licenca.trim().toLowerCase();
-  /* NC (non-commercial) e ND (no-derivatives) ficam FORA mesmo sendo "CC": este é um produto, e
-     ND impediria recortar/redimensionar a imagem numa lista de escudos. */
-  if (l.includes('-nc') || l.includes('-nd') || l.includes('noncommercial')) return false;
+  // ND fica fora SEMPRE (recortar/redimensionar é derivada).
+  if (l.includes('-nd') || l.includes('noderiv')) return false;
+  const ehNC = l.includes('-nc') || l.includes('noncommercial') || l.includes('non-commercial');
+  if (ehNC) return ACEITA_NAO_COMERCIAL;
   return LICENCAS_LIVRES.some((aceita) => l === aceita || l.startsWith(aceita));
 }
 

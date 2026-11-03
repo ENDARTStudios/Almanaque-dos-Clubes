@@ -1,0 +1,1575 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Lendas",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 1180,
+   "props": {
+    "fill": "#12100f"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "top/line",
+   "x": 0,
+   "y": 60,
+   "width": 1440,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand",
+   "text": "ALMANAQUE",
+   "x": 64,
+   "y": 20,
+   "width": 260,
+   "props": {
+    "fontSize": 22,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left",
+    "letterSpacing": -0.3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "brand/mark",
+   "x": 196,
+   "y": 20,
+   "width": 4,
+   "height": 22,
+   "props": {
+    "fill": "#e8412f"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand/2",
+   "text": "dos Clubes",
+   "x": 208,
+   "y": 26,
+   "width": 160,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 0.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Competições",
+   "text": "Competições",
+   "x": 420,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Clubes",
+   "text": "Clubes",
+   "x": 524,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Jogadores",
+   "text": "Jogadores",
+   "x": 620,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Rankings",
+   "text": "Rankings",
+   "x": 716,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Mapa",
+   "text": "Mapa",
+   "x": 812,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Lendas",
+   "text": "Lendas",
+   "x": 908,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "nav/Lendas/u",
+   "x": 908,
+   "y": 46,
+   "width": 26,
+   "height": 2,
+   "props": {
+    "fill": "#e8412f"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Comparar",
+   "text": "Comparar",
+   "x": 1004,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "search",
+   "x": 1076,
+   "y": 16,
+   "width": 210,
+   "height": 30,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 15,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "search/t",
+   "text": "Buscar no Almanaque…",
+   "x": 1090,
+   "y": 23,
+   "width": 190,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "enter",
+   "x": 1298,
+   "y": 16,
+   "width": 78,
+   "height": 30,
+   "props": {
+    "fill": "#e8412f",
+    "cornerRadius": 15
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "enter/t",
+   "text": "Entrar",
+   "x": 1314,
+   "y": 23,
+   "width": 60,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#12100f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/k",
+   "text": "Panteão · a memória do esporte",
+   "x": 64,
+   "y": 104,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/titulo",
+   "text": "Lendas e Imortais",
+   "x": 64,
+   "y": 122,
+   "width": 900,
+   "props": {
+    "fontSize": 76,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left",
+    "letterSpacing": -0.5,
+    "lineHeight": 77.52
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/sub",
+   "text": "Os maiores jogadores, os maiores times e os recordes que definiram o esporte — cada feito com a fonte ao lado.",
+   "x": 64,
+   "y": 214,
+   "width": 720,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left",
+    "lineHeight": 22
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/rule",
+   "x": 64,
+   "y": 268,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc0",
+   "text": "1.284",
+   "x": 616,
+   "y": 276,
+   "width": 240,
+   "props": {
+    "fontSize": 48,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#c9a227",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc0/r",
+   "text": "jogadores no panteão",
+   "x": 616,
+   "y": 332,
+   "width": 240,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc1",
+   "text": "312",
+   "x": 876,
+   "y": 276,
+   "width": 240,
+   "props": {
+    "fontSize": 48,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#c9a227",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc1/r",
+   "text": "títulos mundiais",
+   "x": 876,
+   "y": 332,
+   "width": 240,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc2",
+   "text": "97",
+   "x": 1136,
+   "y": 276,
+   "width": 240,
+   "props": {
+    "fontSize": 48,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#c9a227",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/anc2/r",
+   "text": "recordes abertos",
+   "x": 1136,
+   "y": 332,
+   "width": 240,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/p/l",
+   "text": "MAIORES JOGADORES DA HISTÓRIA",
+   "x": 64,
+   "y": 372,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#c9a227",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j0/p",
+   "text": "1",
+   "x": 64,
+   "y": 410,
+   "width": 50,
+   "props": {
+    "fontSize": 36,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#6b625a",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j0/foto",
+   "x": 126,
+   "y": 404,
+   "width": 56,
+   "height": 56,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 28,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j0/n",
+   "text": "Pelé",
+   "x": 202,
+   "y": 408,
+   "width": 340,
+   "props": {
+    "fontSize": 26,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j0/v",
+   "text": "1940–2022",
+   "x": 202,
+   "y": 438,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j0/f",
+   "text": "3 Copas do Mundo · 1.279 gols em 1.363 jogos",
+   "x": 584,
+   "y": 420,
+   "width": 560,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j0/l",
+   "x": 64,
+   "y": 470,
+   "width": 1120,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j1/p",
+   "text": "2",
+   "x": 64,
+   "y": 486,
+   "width": 50,
+   "props": {
+    "fontSize": 36,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#6b625a",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j1/foto",
+   "x": 126,
+   "y": 480,
+   "width": 56,
+   "height": 56,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 28,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j1/n",
+   "text": "Diego Maradona",
+   "x": 202,
+   "y": 484,
+   "width": 340,
+   "props": {
+    "fontSize": 26,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j1/v",
+   "text": "1960–2020",
+   "x": 202,
+   "y": 514,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j1/f",
+   "text": "1 Copa · 1986, o torneio de um homem só",
+   "x": 584,
+   "y": 496,
+   "width": 560,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j1/l",
+   "x": 64,
+   "y": 546,
+   "width": 1120,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j2/p",
+   "text": "3",
+   "x": 64,
+   "y": 562,
+   "width": 50,
+   "props": {
+    "fontSize": 36,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#6b625a",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j2/foto",
+   "x": 126,
+   "y": 556,
+   "width": 56,
+   "height": 56,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 28,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j2/n",
+   "text": "Lionel Messi",
+   "x": 202,
+   "y": 560,
+   "width": 340,
+   "props": {
+    "fontSize": 26,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j2/v",
+   "text": "1987–",
+   "x": 202,
+   "y": 590,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j2/f",
+   "text": "8 Bolas de Ouro · 1 Copa · 4 Champions",
+   "x": 584,
+   "y": 572,
+   "width": 560,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j2/l",
+   "x": 64,
+   "y": 622,
+   "width": 1120,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j3/p",
+   "text": "4",
+   "x": 64,
+   "y": 638,
+   "width": 50,
+   "props": {
+    "fontSize": 36,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#6b625a",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j3/foto",
+   "x": 126,
+   "y": 632,
+   "width": 56,
+   "height": 56,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 28,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j3/n",
+   "text": "Ronaldo Nazário",
+   "x": 202,
+   "y": 636,
+   "width": 340,
+   "props": {
+    "fontSize": 26,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j3/v",
+   "text": "1976–",
+   "x": 202,
+   "y": 666,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j3/f",
+   "text": "2 Copas · 2 Bolas de Ouro · 15 gols em Copas",
+   "x": 584,
+   "y": 648,
+   "width": 560,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j3/l",
+   "x": 64,
+   "y": 698,
+   "width": 1120,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j4/p",
+   "text": "5",
+   "x": 64,
+   "y": 714,
+   "width": 50,
+   "props": {
+    "fontSize": 36,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#6b625a",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j4/foto",
+   "x": 126,
+   "y": 708,
+   "width": 56,
+   "height": 56,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 28,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j4/n",
+   "text": "Franz Beckenbauer",
+   "x": 202,
+   "y": 712,
+   "width": 340,
+   "props": {
+    "fontSize": 26,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j4/v",
+   "text": "1945–2024",
+   "x": 202,
+   "y": 742,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/j4/f",
+   "text": "1 Copa como jogador e 1 como técnico",
+   "x": 584,
+   "y": 724,
+   "width": 560,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/j4/l",
+   "x": 64,
+   "y": 774,
+   "width": 1120,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r/l",
+   "text": "RECORDES",
+   "x": 1076,
+   "y": 372,
+   "width": 300,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/r0/bg",
+   "x": 1062,
+   "y": 396,
+   "width": 300,
+   "height": 86,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r0/rot",
+   "text": "Gols numa temporada",
+   "x": 1076,
+   "y": 404,
+   "width": 270,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.4
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r0/v",
+   "text": "91",
+   "x": 1076,
+   "y": 422,
+   "width": 270,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r0/quem",
+   "text": "Messi · 2012",
+   "x": 1076,
+   "y": 464,
+   "width": 270,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/r1/bg",
+   "x": 1062,
+   "y": 494,
+   "width": 300,
+   "height": 86,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r1/rot",
+   "text": "Títulos de liga",
+   "x": 1076,
+   "y": 502,
+   "width": 270,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.4
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r1/v",
+   "text": "13",
+   "x": 1076,
+   "y": 520,
+   "width": 270,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r1/quem",
+   "text": "Gento · 1953–1971",
+   "x": 1076,
+   "y": 562,
+   "width": 270,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/r2/bg",
+   "x": 1062,
+   "y": 592,
+   "width": 300,
+   "height": 86,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r2/rot",
+   "text": "Maior público",
+   "x": 1076,
+   "y": 600,
+   "width": 270,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#8d8880",
+    "textAlign": "left",
+    "letterSpacing": 1.4
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r2/v",
+   "text": "199.854",
+   "x": 1076,
+   "y": 618,
+   "width": 270,
+   "props": {
+    "fontSize": 34,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/r2/quem",
+   "text": "Maracanã · 1950",
+   "x": 1076,
+   "y": 660,
+   "width": 270,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#b3aea3",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t/rule",
+   "x": 64,
+   "y": 830,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t/l",
+   "text": "MAIORES TIMES DA HISTÓRIA",
+   "x": 64,
+   "y": 842,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#c9a227",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t0",
+   "x": 64,
+   "y": 864,
+   "width": 249.6,
+   "height": 90,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t0/n",
+   "text": "Real Madrid",
+   "x": 80,
+   "y": 880,
+   "width": 217.6,
+   "props": {
+    "fontSize": 17,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t0/f",
+   "text": "14 Copas da Europa",
+   "x": 80,
+   "y": 906,
+   "width": 217.6,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t0/a",
+   "text": "desde 1902",
+   "x": 80,
+   "y": 926,
+   "width": 217.6,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t1",
+   "x": 329.6,
+   "y": 864,
+   "width": 249.6,
+   "height": 90,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t1/n",
+   "text": "Milan",
+   "x": 345.6,
+   "y": 880,
+   "width": 217.6,
+   "props": {
+    "fontSize": 17,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t1/f",
+   "text": "7 Copas da Europa",
+   "x": 345.6,
+   "y": 906,
+   "width": 217.6,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t1/a",
+   "text": "desde 1899",
+   "x": 345.6,
+   "y": 926,
+   "width": 217.6,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t2",
+   "x": 595.2,
+   "y": 864,
+   "width": 249.6,
+   "height": 90,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t2/n",
+   "text": "Bayern de Munique",
+   "x": 611.2,
+   "y": 880,
+   "width": 217.6,
+   "props": {
+    "fontSize": 17,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t2/f",
+   "text": "6 Copas da Europa",
+   "x": 611.2,
+   "y": 906,
+   "width": 217.6,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t2/a",
+   "text": "desde 1900",
+   "x": 611.2,
+   "y": 926,
+   "width": 217.6,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t3",
+   "x": 860.8000000000001,
+   "y": 864,
+   "width": 249.6,
+   "height": 90,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t3/n",
+   "text": "Barcelona",
+   "x": 876.8000000000001,
+   "y": 880,
+   "width": 217.6,
+   "props": {
+    "fontSize": 17,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t3/f",
+   "text": "5 Copas da Europa",
+   "x": 876.8000000000001,
+   "y": 906,
+   "width": 217.6,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t3/a",
+   "text": "desde 1899",
+   "x": 876.8000000000001,
+   "y": 926,
+   "width": 217.6,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "l/t4",
+   "x": 1126.4,
+   "y": 864,
+   "width": 249.6,
+   "height": 90,
+   "props": {
+    "fill": "#1a1715",
+    "cornerRadius": 2,
+    "stroke": "#6b625a",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t4/n",
+   "text": "Santos",
+   "x": 1142.4,
+   "y": 880,
+   "width": 217.6,
+   "props": {
+    "fontSize": 17,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#f7f3ea",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t4/f",
+   "text": "3 Mundiais · Pelé",
+   "x": 1142.4,
+   "y": 906,
+   "width": 217.6,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#e8412f",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "l/t4/a",
+   "text": "desde 1912",
+   "x": 1142.4,
+   "y": 926,
+   "width": 217.6,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "prov/line",
+   "x": 64,
+   "y": 1120,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#6b625a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "prov/note",
+   "text": "Cada número traz a fonte que o comprova — feito sem procedência não entra no panteão.",
+   "x": 64,
+   "y": 1132,
+   "width": 1100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#8d8880",
+    "textAlign": "left"
+   }
+  }
+ }
+]

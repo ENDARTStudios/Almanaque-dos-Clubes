@@ -5,6 +5,8 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import Pagination from './Pagination';
 import { adminStrings } from './strings';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * T-ADMIN — trilha de auditoria (`/admin/auditoria`).
@@ -222,9 +224,9 @@ export default function AuditTrail() {
 
       {state === 'ok' &&
         (entries.length === 0 ? (
-          <p className="text-sm text-ink-2 py-8" data-testid="audit-empty">
-            {s.audit.empty}
-          </p>
+          <div data-testid="audit-empty">
+            <EmptyState title={s.audit.empty} body={fichaStrings[locale].states.emptyBody} />
+          </div>
         ) : (
           <>
             <ul className="space-y-2" data-testid="audit-list">
