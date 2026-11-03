@@ -40,6 +40,23 @@ beforeAll(async () => {
   app = await buildApp();
   await app.ready();
   if (!isPostgres) return;
+
+  /*
+    ── AUTOSSUFICIÊNCIA DO ROLE ────────────────────────────────────────────────────────────
+    Este arquivo faz `SET LOCAL ROLE app_user` mas o role era criado por OUTRO arquivo
+    (`rls-sessions-policies`). Rodando a suíte completa em paralelo, esta suíte podia começar
+    ANTES de o role existir: o `SET LOCAL ROLE` falhava e os 9 testes apareciam como
+    "skipped" com o arquivo marcado como falho — um teste que passava sozinho e quebrava
+    junto.
+
+    Um teste que depende do efeito colateral de outro arquivo não é um teste: é uma ordem de
+    execução disfarçada. Criar o role aqui (idempotente, como lá) torna este arquivo
+    independente de quem roda primeiro.
+  */
+  await prisma.$executeRawUnsafe(
+    `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_user') THEN CREATE ROLE app_user; END IF; END $$`,
+  );
+  await prisma.$executeRawUnsafe(`GRANT SELECT, INSERT, UPDATE, DELETE ON users TO app_user`);
   try {
     await prisma.user.count();
   } catch {
