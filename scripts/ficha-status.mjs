@@ -72,6 +72,10 @@ const EXCECOES_VAZIO = new Map([
     'ficha de registro único: campo ausente mostra "—" no próprio campo, não uma caixa de vazio',
   ],
   [
+    '/',
+    'composição de abertura: cada seção traz o próprio estado; não há um vazio único de página',
+  ],
+  [
     '/temporadas/[id]',
     'ficha de registro único: leva às partidas da temporada, onde os números existem',
   ],
@@ -91,7 +95,11 @@ const paginas = await andar(APP, (n) => n === 'page.tsx');
 const rotas = [];
 for (const p of paginas) {
   const fonte = await ler(p);
-  const rel = relative(APP, p).replace(/\\/g, '/').replace('/page.tsx', '');
+  // A rota raiz chega como `page.tsx` (sem barra), então o `replace('/page.tsx','')` não a
+  // limpava e ela virava a rota "/page.tsx". Isso mantinha o bug silencioso: a home nunca era
+  // contada como "/", e nenhuma exceção de vazio para ela casava.
+  const bruto = relative(APP, p).replace(/\\/g, '/');
+  const rel = bruto === 'page.tsx' ? '' : bruto.replace(/\/page\.tsx$/, '');
   const dir = join(p, '..');
   // `loading.tsx` e `error.tsx` são IRMÃOS da página, não parte dela: procurar os dois nomes
   // dentro de `page.tsx` nunca acharia nada, e a fase ficaria eternamente imensurável.
