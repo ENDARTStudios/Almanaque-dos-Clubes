@@ -40,31 +40,25 @@ const out = await page.evaluate(() => {
     return (x + 0.05) / (y + 0.05);
   };
 
+  // Seletores da ABERTURA FICHA (a home atual). Eles eram do herói anterior
+  // (`hero-promise`, `hero-proof-label`…) e passaram a devolver "SELETOR AUSENTE" para tudo:
+  // o medidor continuava verde medindo NADA. Um instrumento que não encontra o que medir não é
+  // evidência — por isso os data-testid abaixo são parte do contrato da home.
   const samples = [
     ['h1', 'section h1'],
-    ['promise', '[data-testid="hero-promise"]'],
-    ['promiseNote', '[data-testid="hero-promise-note"]'],
-    ['eyebrow', '[data-testid="hero-eyebrow"]'],
-    ['eyebrowInline', '[data-testid="hero-promise"] span'],
-    ['ctaNote', '[data-testid="hero-cta-note"]'],
+    ['heroKicker', '[data-testid="home-hero-kicker"]'],
+    ['heroSubtitle', '[data-testid="home-hero-subtitle"]'],
     ['ctaPrimaryLabel', 'section a[href="/search"]'],
     ['ctaSecondaryLabel', 'section a[href="/auth/register"]'],
-    ['proofLabel', '[data-testid="hero-proof-label"]'],
-    ['proofDisclaimer', '[data-testid="hero-proof-disclaimer"]'],
-    ['ctaNote', '[data-testid="hero-cta-note"]'],
-    ['promiseNote', '[data-testid="hero-promise-note"]'],
-    ['statsGap', '[data-testid="hero-stats-gap"]'],
-    ['statLabel', 'dl dt'],
-    ['statValue', 'dl dd'],
-    ['statsNote', 'dl + p'],
-    ['featuresSubtitle', 'section h2 ~ p'],
-    ['howStepDesc', 'ol li p'],
-    ['stepNumber', 'ol li span'],
-    ['closingDesc', 'section:last-of-type p'],
-    ['statsGap', '[data-testid="hero-stats-gap"]'],
+    ['ctaNote', '[data-testid="home-hero-explore-link"]'],
+    ['statLabel', '[data-testid="home-stat-label-clubs"]'],
+    ['statValue', '[data-testid="home-stat-clubs"]'],
+    ['statsNote', '[data-testid="home-stats-note"]'],
+    ['exploreLabel', '[data-testid="home-explore-label"]'],
+    ['exploreTitle', '[data-testid="home-explore-title"]'],
+    ['portaTitle', '[data-testid="home-porta-title-clubs"]'],
+    ['portaCount', '[data-testid="home-porta-count-clubs"]'],
     ['championsHeading', 'section[aria-label] h2'],
-    ['championsEmpty', '[data-testid="champions-empty"]'],
-    ['championsGapsNote', 'section[aria-label] > p:last-child'],
   ];
 
   return samples.map(([name, sel]) => {
@@ -122,4 +116,7 @@ for (const row of out) {
   );
 }
 console.log(`\n${fails} reprovacao(oes) de contraste`);
+// O script antes imprimia o número e saía com 0 de qualquer forma — um medidor que não
+// reprova nada. Agora ele é um portão de verdade quando invocado explicitamente.
+process.exitCode = fails > 0 ? 1 : 0;
 await browser.close();

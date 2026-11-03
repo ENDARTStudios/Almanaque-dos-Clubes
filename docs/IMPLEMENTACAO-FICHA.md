@@ -137,15 +137,35 @@ caem para nulo), `/clubs` (declara a lacuna no subtítulo), `/apoiadores`, `/adm
 
 ### F4 · Identidade visual — ✓ CONCLUÍDA
 
-| #    | Item            | Como foi                                                         |
-| ---- | --------------- | ---------------------------------------------------------------- |
-| F4.2 | Globo na home   | **refeito**, não portado: o SVG do conceito vazava da esfera     |
-| F4.3 | Gráficos em uso | `DataTable` no índice de competições · `Donut` na ficha do clube |
+| #    | Item            | Como foi                                                                                        |
+| ---- | --------------- | ----------------------------------------------------------------------------------------------- |
+| F4.1 | Home            | **refeita no conceito**: abertura de duas linhas, globo, faixa de 5 totais, 6 portas de entrada |
+| F4.2 | Globo na home   | **refeito**, não portado: o SVG do conceito vazava da esfera                                    |
+| F4.3 | Gráficos em uso | `DataTable` no índice de competições · `Donut` na ficha do clube                                |
+| F4.4 | Barra superior  | ordem do conceito: Competições · Clubes · Jogadores · Rankings · Mapa · Lendas · Comparar       |
 
+> **F4.1 corrige o defeito que o Operador viu.** O sistema FICHA existia nos tokens e nos
+> componentes, mas a home continuava sendo a composição do conceito ANTERIOR — cartão de prova,
+> três contadores e cards de recurso. Quem abria o site via uma primeira tela que não se parecia
+> com o quadro `home` apresentado. A troca não foi cosmética: os textos do conceito já estavam no
+> dicionário (`home.heroTitle`, `home.stats`, `home.explore`) desde antes e simplesmente não
+> eram consumidos; o globo estava a 8% de opacidade como fundo. Agora a abertura consome os dois.
+>
 > **F4.2 é o caso que justifica o resto deste documento.** O `globo-animado.svg` do conceito foi
 > renderizado em Chromium e OLHADO antes de ser portado. Tinha meridianos vazando da esfera e
 > gomos pentagonais chapados saindo da silhueta. Portar teria importado os defeitos com aparência
 > de trabalho feito. O componente `Globe` refaz a projeção e o teste trava as invariantes.
+>
+> **A verificação do F4.1 foi feita no pixel, não na intenção:** screenshot em 1440/768/390,
+> `run.mjs audit` (0 overflow horizontal, 1 h1, 2 linhas) e `run.mjs contrast` em 14 seletores
+> da abertura — todos ≥ AA (o menor: 5,42:1 para metadado de 11–12,5 px). O globo expôs ainda um
+> defeito real do componente: o paralelo do hemisfério sul nascia com `ry` negativo, o Chromium
+> recusava o atributo e a linha não era desenhada. Corrigido com `Math.abs` e travado por teste.
+>
+> **Números são reais ou lacuna.** Os cinco totais vêm de `GET /clubs|players|competitions|matches|rankings?limit=1`;
+> a porta "Mapa-múndi" usa `GET /clubs/countries` (`totals.countries`). "Lendas" não exibe
+> contagem porque a API não publica uma — o conceito usava `1.284` ilustrativo, e número
+> inventado é defeito, não fidelidade de desenho.
 
 ### F5 · Qualidade — ✓ CONCLUÍDA
 
