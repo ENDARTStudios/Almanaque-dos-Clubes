@@ -89,8 +89,14 @@ export const stadiumsRepository = {
     const linhas = (await prisma.stadium.findMany({
       where: onde(params),
       select: SELECT,
-      // capacidade desc: o maior estádio é o que interessa primeiro; sem capacidade, vai ao fim
-      orderBy: [{ capacity: 'desc' }, { name: 'asc' }],
+      /*
+        Capacidade decrescente, com NULL no FIM.
+        `nulls: 'last'` não é enfeite: no Postgres o NULL é tratado como o MAIOR valor, então em
+        `DESC` ele sobe para o topo. Sem isso, o estádio sem capacidade cadastrada encabeça a
+        lista — e a lista é ordenada justamente por capacidade. O teste de integração pegou isto;
+        o typecheck não tinha como.
+      */
+      orderBy: [{ capacity: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
       take: Math.min(limit, 100),
       skip: offset,
     })) as Bruto[];
