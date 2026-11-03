@@ -11,6 +11,8 @@ import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
 import { TrophyCup } from '@/components/icons';
 import CompetitionPodium from '@/components/ficha/CompetitionPodium';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
@@ -505,9 +507,9 @@ export default async function CompetitionDetailPage({
               </table>
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="edicoes-empty">
-              {t.editionsEmpty}
-            </p>
+            <div data-testid="edicoes-empty">
+              <EmptyState title={t.editionsEmpty} body={fichaStrings[locale].states.emptyBody} />
+            </div>
           )
         ) : null}
 
@@ -531,9 +533,12 @@ export default async function CompetitionDetailPage({
               </div>
             </>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="clubes-empty">
-              {t.participantsEmpty}
-            </p>
+            <div data-testid="clubes-empty">
+              <EmptyState
+                title={t.participantsEmpty}
+                body={fichaStrings[locale].states.emptyBody}
+              />
+            </div>
           )
         ) : null}
 
@@ -1107,9 +1112,12 @@ export default async function CompetitionDetailPage({
                   ) : null}
                 </dl>
               ) : (
-                <p className="text-sm text-foreground/70" data-testid="history-empty">
-                  {ti.historyEmpty}
-                </p>
+                <div data-testid="history-empty">
+                  <EmptyState
+                    title={ti.historyEmpty}
+                    body={fichaStrings[locale].states.emptyBody}
+                  />
+                </div>
               )}
               {descriptionText ? (
                 <div className="mt-5">

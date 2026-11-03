@@ -47,13 +47,20 @@ export interface ErrorStateProps {
   retryLabel: string;
   /** Server Component não tem onClick: o retry é um link para a mesma rota. */
   retryHref?: string;
+  /**
+   * Ação de retry para CLIENT Components (error boundary). Numa fronteira de erro a ação certa é
+   * `reset()`, que tenta renderizar de novo — não recarregar a rota. Passar o link ali perderia o
+   * estado que ainda está em memória.
+   */
+  retryAction?: React.ReactNode;
 }
 
-export function ErrorState({ title, body, retryLabel, retryHref }: ErrorStateProps) {
+export function ErrorState({ title, body, retryLabel, retryHref, retryAction }: ErrorStateProps) {
   return (
     <div role="alert" className="rounded-lg border border-border bg-danger-surface px-5 py-6">
       <p className="font-heading text-lg font-semibold text-danger-ink">{title}</p>
       <p className="measure-readable mt-2 text-sm text-ink-2">{body}</p>
+      {retryAction ? <div className="mt-4">{retryAction}</div> : null}
       {retryHref ? (
         <a
           href={retryHref}

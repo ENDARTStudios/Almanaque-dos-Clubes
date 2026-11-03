@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+/**
+ * ficha-status — responde "o que falta" lendo o código, não a memória de ninguém.
+ *
+ * ── POR QUE UM SCRIPT, E NÃO UMA LISTA NO MARKDOWN ──────────────────────────────────────────
+ * Uma checklist escrita à mão envelhece no primeiro commit. Este script recalcula o estado a
+ * cada execução, então a resposta para "o que falta implementar" é sempre a mesma pergunta feita
+ * ao repositório — e não uma sugestão de quem escreveu o documento por último.
+ *
+ * Saídas:
+ *   node scripts/ficha-status.mjs           tabela legível
+ *   node scripts/ficha-status.mjs --json    para CI ou outra ferramenta
+ *   node scripts/ficha-status.mjs --check   sai com 1 se houver bloqueio de fase
+ *
+ * O que ele mede, e por quê:
+ *   1. ROTAS — quantas existem e quantas usam o sistema FICHA (import de components/ficha).
+ *      Sem isso, "migrar as telas" é uma frase sem denominador.
+ *   2. COMPONENTES — quais existem, quais têm teste, quais são usados por alguma página.
+ *      Componente sem uso é código morto; componente sem teste é regressão esperando.
+ *   3. ESTADOS — quantas páginas tratam vazio, erro e carregando. É a lacuna que o conceito
+ *      declarou e que ninguém consegue ver de fora.
+ *   4. PORTÃO — o que a fase atual exige para ser considerada concluída.
+ */
+
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
+
+const RAIZ = process.cwd();
+const WEB = join(RAIZ, 'apps/web');
+const APP = join(WEB, 'src/app');
+const COMP = join(WEB, 'src/components/ficha');
+const TESTES = join(WEB, 'tests');
+
+const args = new Set(process.argv.slice(2));
+const JSON_OUT = args.has('--json');
+const CHECK = args.has('--check');
+
+async function andar(dir, filtro) {
+  const saida = [];
+  if (!existsSync(dir)) return saida;
+  for (const entrada of await readdir(dir, { withFileTypes: true })) {
+    const caminho = join(dir, entrada.name);
+    if (entrada.isDirectory()) {
+      if (entrada.name === 'node_modules' || entrada.name.startsWith('.')) continue;
+      saida.push(...(await andar(caminho, filtro)));
+    } else if (filtro(entrada.name)) {
+      saida.push(caminho);
+    }
+  }
+  return saida;
+}
+
+const ler = (p) => readFile(p, 'utf8');
+
+// ── 1. rotas ────────────────────────────────────────────────────────────────────────────────
+const paginas = await andar(APP, (n) => n === 'page.tsx');
+const rotas = [];
+for (const p of paginas) {
+  const fonte = await ler(p);
+  const rel = relative(APP, p).replace(/\\/g, '/').replace('/page.tsx', '');
+  const dir = join(p, '..');
+  // `loading.tsx` e `error.tsx` são IRMÃOS da página, não parte dela: procurar os dois nomes
+  // dentro de `page.tsx` nunca acharia nada, e a fase ficaria eternamente imensurável.
+  const temLoadingIrmao = existsSync(join(dir, 'loading.tsx'));
+  const temErroIrmao = existsSync(join(dir, 'error.tsx'));
+  const fonteLoading = temLoadingIrmao ? await ler(join(dir, 'loading.tsx')) : '';
+  const fonteErro = temErroIrmao ? await ler(join(dir, 'error.tsx')) : '';
+  rotas.push({
+    rota: rel === '' ? '/' : `/${rel}`,
+    usaFicha: /@\/components\/ficha\//.test(fonte),
+    temVazio: /EmptyState/.test(fonte),
+    temErro: /ErrorState/.test(fonte) || /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro),
+    temLoading: /SkeletonFicha/.test(fonte) || /SkeletonFicha/.test(fonteLoading),
+    linhas: fonte.split('\n').length,
+  });
+}
+
+// ── 2. componentes ──────────────────────────────────────────────────────────────────────────
+const arquivosComp = existsSync(COMP)
+  ? (await readdir(COMP)).filter((n) => n.endsWith('.tsx'))
+  : [];
+const fontesPagina = await Promise.all(paginas.map(ler));
+const fontesOutros = await Promise.all(
+  (await andar(join(WEB, 'src'), (n) => n.endsWith('.tsx'))).map(ler),
+);
+const testeFontes = (await andar(TESTES, (n) => n.endsWith('.tsx') || n.endsWith('.ts'))).map(
+  (p) => p,
+);
+const testeConteudo = (await Promise.all(testeFontes.map(ler))).join('\n');
+
+const componentes = arquivosComp.map((n) => {
+  const nome = n.replace('.tsx', '');
+  const importado = fontesOutros.some((f) => f.includes(`ficha/${nome}`));
+  // o teste pode importar o componente pelo caminho
+  const testado = testeConteudo.includes(`ficha/${nome}`);
+  return { nome, testado, usado: importado };
+});
+
+// ── 3. estados ─────────────────────────────────────────────────────────────────────────────
+const estados = {
+  vazio: rotas.filter((r) => r.temVazio).length,
+  erro: rotas.filter((r) => r.temErro).length,
+  carregando: rotas.filter((r) => r.temLoading).length,
+};
+
+// ── 4. fases e portões ─────────────────────────────────────────────────────────────────────
+const comTeste = componentes.filter((c) => c.testado).length;
+const semTeste = componentes.filter((c) => !c.testado);
+const migradas = rotas.filter((r) => r.usaFicha).length;
+
+const fases = [
+  {
+    id: 'F0',
+    nome: 'Fundação',
+    pronta: componentes.length >= 8 && comTeste === componentes.length,
+    detalhe: `${comTeste}/${componentes.length} componentes com teste`,
+  },
+  {
+    id: 'F1',
+    nome: 'Estados em toda página migrada',
+    pronta: migradas > 0 && rotas.filter((r) => r.usaFicha).every((r) => r.temVazio),
+    detalhe: `${rotas.filter((r) => r.usaFicha && r.temVazio).length}/${migradas} páginas migradas com vazio`,
+  },
+  {
+    id: 'F2',
+    nome: 'Migração das telas públicas',
+    pronta: migradas >= 10,
+    detalhe: `${migradas}/10 telas públicas usando o sistema`,
+  },
+];
+
+const resultado = {
+  rotas: { total: rotas.length, migradas },
+  componentes: { total: componentes.length, comTeste, semTeste: semTeste.map((c) => c.nome) },
+  estados,
+  fases,
+  bloqueios: fases.filter((f) => !f.pronta).map((f) => `${f.id} ${f.nome}: ${f.detalhe}`),
+};
+
+if (JSON_OUT) {
+  console.log(JSON.stringify(resultado, null, 2));
+} else {
+  const linha = (a, b) => console.log(`  ${String(a).padEnd(38)} ${b}`);
+
+  console.log('\n  ROTAS');
+  linha('total de rotas', resultado.rotas.total);
+  linha('usando o sistema FICHA', `${migradas} (${Math.round((migradas / rotas.length) * 100)}%)`);
+
+  console.log('\n  COMPONENTES');
+  for (const c of componentes) {
+    const marcas = [c.testado ? 'teste' : '—', c.usado ? 'em uso' : '—'];
+    linha(`  ${c.nome}`, marcas.join(' · '));
+  }
+
+  console.log('\n  ESTADOS (rotas que tratam)');
+  linha('vazio', `${estados.vazio}/${rotas.length}`);
+  linha('erro', `${estados.erro}/${rotas.length}`);
+  linha('carregando', `${estados.carregando}/${rotas.length}`);
+
+  console.log('\n  FASES');
+  for (const f of fases) {
+    console.log(`  ${f.pronta ? '✓' : '·'} ${f.id} ${f.nome} — ${f.detalhe}`);
+  }
+
+  if (resultado.bloqueios.length) {
+    console.log('\n  BLOQUEIOS');
+    resultado.bloqueios.forEach((b) => console.log(`    ! ${b}`));
+  }
+  console.log('');
+}
+
+if (CHECK && resultado.bloqueios.length) process.exit(1);
