@@ -295,8 +295,12 @@
      e é justamente onde o pódio fica): primary-ink 6,99:1 · secondary 4,65:1 · branco dentro do
      primary 6,29:1. O acento quase foi `#a16207`, que dá 4,29 na faixa e REPROVARIA.
 
-     O escuro virou a EXCEÇÃO declarada (`.theme-dark`, abaixo), usada só onde um terceiro impõe
-     superfície própria. */
+     O escuro virou a EXCEÇÃO declarada (`.theme-dark`, abaixo). ATENÇÃO: hoje ela é código
+     RESERVADO e INALCANÇÁVEL — nenhum componente aplica a classe; o herói chegou a forçá-la e a
+     removeu (ver o comentário em HeroSection). Os tokens continuam válidos para quando um caso
+     concreto os exigir, mas a frase anterior — "usada só onde um terceiro impõe superfície
+     própria" — descrevia um uso que NÃO existe. Quem for usar o escuro aplica a classe e mede o
+     contraste de novo; se ele não for voltar, o bloco pode sair junto com esta nota. */
   --color-primary: #be123c;
   --color-primary-ink: #9f1239;
   --color-on-primary: #ffffff;
