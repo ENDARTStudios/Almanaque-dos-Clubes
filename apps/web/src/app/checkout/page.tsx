@@ -38,10 +38,14 @@ export default async function CheckoutPage() {
         currency={currency}
         nextChargeMonthlyIso={proximaMensalIso}
         nextChargeYearlyIso={proximaAnualIso}
+        /* A ação entra DEPOIS do preço e ANTES das listas de apoio. Antes ela vinha no fim da
+           página: no screenshot caía abaixo da dobra e ficava parcialmente COBERTA pelo banner
+           de cookies. A ação primária de uma tela de compra não pode depender de rolar nem
+           pode ficar atrás de um aviso fixo.
+           showPriceTable=false: o resumo logo acima já traz preço, periodicidade, desconto e
+           renovação — repetir duplicaria o mesmo bloco na mesma tela. */
+        action={<CheckoutButton paymentsEnabled currency={currency} showPriceTable={false} />}
       />
-      {/* showPriceTable=false: o resumo acima já traz preço, periodicidade, desconto e
-          renovação — repetir aqui duplicaria o mesmo bloco na mesma tela. */}
-      <CheckoutButton paymentsEnabled currency={currency} showPriceTable={false} />
     </div>
   );
 }

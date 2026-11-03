@@ -11,6 +11,12 @@ import FavoriteButton from '@/components/FavoriteButton';
 import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
+import Pillar from '@/components/ficha/Pillar';
+import { Donut } from '@/components/ficha/Charts';
+import { EmptyState } from '@/components/ficha/States';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
+import { fichaStrings } from '@/i18n/wsFicha';
+import { formatCount } from '@/lib/format';
 import { CountryFlag } from '@/components/CountryFlag';
 import ClubTimeline from '@/components/ClubTimeline';
 import { CrestTimeline } from '@/components/CrestTimeline';
@@ -279,14 +285,19 @@ async function getStatistics(id: string): Promise<ClubStatisticsPayload | null> 
   }
 }
 
-async function getProfile(id: string): Promise<ClubProfile | null> {
+/**
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = não foi possível perguntar.
+ * Fundir os dois últimos fazia a ficha afirmar "não existe" com a API fora do ar.
+ */
+async function getProfile(id: string): Promise<ClubProfile | null | undefined> {
   try {
     const res = await fetch(`${getApiBase()}/clubs/${id}/profile`, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    if (!res.ok) return undefined;
     const json = await res.json();
-    return json.data as ClubProfile;
+    return (json.data as ClubProfile) ?? null;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -302,6 +313,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const club = await getProfile(id);
+  // sem resposta da origem não sabemos se o clube existe: não afirmamos nem indexamos
+  if (club === undefined)
+    return { title: 'Clube — Almanaque dos Clubes', robots: { index: false } };
   if (!club) return { title: 'Clube não encontrado', robots: { index: false } };
   const place = [club.city, club.state, club.country].filter(Boolean).join(', ');
   return {
@@ -319,6 +333,9 @@ export async function generateMetadata({
 export default async function ClubDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const club = await getProfile(id);
+  // `undefined` = não conseguimos perguntar; `null` = a origem disse que não existe.
+  if (club === undefined)
+    return <DetailUnavailable retryHref={`/clubs/${id}`} backHref="/clubs" backLabel="Clubes" />;
   if (!club) notFound();
   const [stats, kits, anthem, pennants, crests] = await Promise.all([
     getStatistics(id),
@@ -777,10 +794,65 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
       {stats && stats.overall.played > 0 ? (
         <Section title={s.statistics} testid="club-statistics">
+          {/* Os quatro pilares do sistema: o resumo antes da tabela. Número em display
+              (font-heading) porque aqui ele é imagem, não dado de tabela. */}
+          {/*
+            O anel V/E/D: a tabela abaixo dá os números em linha, mas a PROPORÇÃO entre
+            vitória, empate e derrota é o que se lê de imediato — e é o tipo de leitura que
+            uma tabela não faz. O resumo acessível repete os valores em texto, porque um
+            gráfico sem descrição é um retângulo colorido para o leitor de tela.
+          */}
+          <div className="mb-5 flex flex-wrap items-center gap-6">
+            <Donut
+              size={104}
+              thickness={14}
+              title={fichaStrings[locale].charts.donutLabel}
+              summary={`${s.statsWins}: ${stats.overall.wins} · ${s.statsDraws}: ${stats.overall.draws} · ${s.statsLosses}: ${stats.overall.losses}`}
+              data={[
+                { label: s.statsWins, value: stats.overall.wins, colorIndex: 2 },
+                { label: s.statsDraws, value: stats.overall.draws, colorIndex: 1 },
+                { label: s.statsLosses, value: stats.overall.losses, colorIndex: 0 },
+              ]}
+            />
+            <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-3)]"
+                />
+                {s.statsWins}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-2)]"
+                />
+                {s.statsDraws}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-1)]"
+                />
+                {s.statsLosses}
+              </span>
+            </div>
+          </div>
+
+          <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Pillar label={s.statsPlayed} value={formatCount(stats.overall.played, locale)} />
+            <Pillar label={s.statsWins} value={formatCount(stats.overall.wins, locale)} accent />
+            <Pillar label={s.statsGoalsFor} value={formatCount(stats.overall.goalsFor, locale)} />
+            <Pillar
+              label={s.statsPoints}
+              value={stats.overall.points != null ? formatCount(stats.overall.points, locale) : '—'}
+            />
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse" data-testid="club-stats-overall">
               <thead>
-                <tr className="text-left text-xs text-foreground/70 uppercase tracking-wider">
+                <tr className="text-left text-xs text-ink-3">
                   <th className="py-2 pr-4 font-semibold">&nbsp;</th>
                   <th className="py-2 px-2 font-semibold">{s.statsPlayed}</th>
                   <th className="py-2 px-2 font-semibold">{s.statsWins}</th>
@@ -899,7 +971,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         </Section>
       ) : stats ? (
         <Section title={s.statistics} testid="club-statistics">
-          <p className="text-sm text-foreground/70">{s.statsEmpty}</p>
+          <EmptyState title={s.statsEmpty} body={fichaStrings[locale].states.emptyBody} />
         </Section>
       ) : null}
 

@@ -34,7 +34,11 @@
     "ui:shot": "node plugins/almanaque-design/tools/run.mjs shot",
     "ui:contrast": "node plugins/almanaque-design/tools/run.mjs contrast",
     "ui:visual": "node plugins/almanaque-design/tools/run.mjs audit",
-    "prepare": "husky || exit 0"
+    "prepare": "husky || exit 0",
+    "ficha:status": "node scripts/ficha-status.mjs",
+    "ficha:check": "node scripts/ficha-status.mjs --check",
+    "ficha:verify:api": "node scripts/verify-api.mjs",
+    "shot": "pnpm --filter web exec node scripts/shot.mjs"
   },
   "onlyBuiltDependencies": [
     "argon2",

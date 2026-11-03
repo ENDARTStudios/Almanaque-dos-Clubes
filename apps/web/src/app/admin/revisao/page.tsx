@@ -13,6 +13,7 @@ import OperatorGate from '@/components/OperatorGate';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { wsT599Strings, type WsT599Strings } from '@/i18n/wsT599';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 interface QueueRow {
   id: string;
@@ -76,7 +77,7 @@ export default function AdminRevisaoPage() {
   return (
     <OperatorGate>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <h1 className="text-3xl font-heading font-bold text-foreground mb-2">{s.title}</h1>
+        <AdminHeading title={s.title} />
         <p className="text-sm text-ink-2 mb-6">{s.subtitle}</p>
 
         <div

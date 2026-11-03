@@ -10,6 +10,9 @@ import SourceNote from '@/components/SourceNote';
 import { wsLegendsStrings } from '@/i18n/wsLegends';
 import { formatCount, formatDate } from '@/lib/format';
 import LegendsTopChart from '@/components/LegendsTopChart';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * Legends — hall da fama (server component, fonte única: GET /api/v1/legends).
@@ -187,14 +190,22 @@ export default async function LegendsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
       <header className="mb-10">
-        <h1 className="mb-2 font-heading text-3xl font-bold text-foreground sm:text-4xl">
-          {t.hero.title}
-        </h1>
-        <p className="mb-3 max-w-3xl text-lg text-foreground/60">{t.hero.subtitle}</p>
-        <p className="text-xs text-foreground/70">{t.hero.provenance}</p>
+        <FichaHead title={t.hero.title} subtitle={t.hero.subtitle} />
+        <p className="text-xs text-ink-3">{t.hero.provenance}</p>
       </header>
 
-      {payload === null ? <p className="text-foreground/80">{t.loadError}</p> : null}
+      {payload !== null && (payload.data.topChampions.items.length ?? 0) === 0 ? (
+        <EmptyState title={t.hero.title} body={fichaStrings[locale].states.emptyBody} />
+      ) : null}
+
+      {payload === null ? (
+        <ErrorState
+          title={t.loadError}
+          body={fichaStrings[locale].states.errorBody}
+          retryLabel={fichaStrings[locale].states.retry}
+          retryHref="/legends"
+        />
+      ) : null}
 
       {/* (a) MAIORES CAMPEÕES — barras horizontais com valor visível. */}
       <section aria-labelledby="legends-top-title" className="mb-12">

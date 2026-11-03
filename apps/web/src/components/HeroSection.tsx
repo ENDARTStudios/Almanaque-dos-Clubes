@@ -14,6 +14,7 @@ import { useGsapFadeIn, useGsapStagger } from '@/hooks/useGsap';
 import { useI18n } from '@/i18n/Provider';
 import { wsC12Strings } from '@/i18n/wsC12';
 import { formatCount } from '@/lib/format';
+import FichaGlobe from '@/components/ficha/Globe';
 import HeroChampionCarousel, { type HeroChampion } from './HeroChampionCarousel';
 
 const featureIcons = [BookOpen, Trophy, SearchIcon, Brain, BarChart3, Globe];
@@ -63,6 +64,25 @@ export default function HeroSection({
       className="relative isolate overflow-hidden bg-background text-foreground"
       aria-labelledby="hero-title"
     >
+      {/*
+        GLOBO — a peça assinatura do conceito, agora em vetor próprio.
+
+        O desenho original (`globo-animado.svg`) foi RENDERIZADO e OLHADO antes de entrar aqui:
+        tinha meridianos e paralelos vazando da esfera e gomos pentagonais chapados saindo da
+        silhueta. O componente `Globe` corrige os dois com projeção ortográfica real e clip
+        circular — a comparação dos dois screenshots está descrita no commit.
+
+        Fica a 8% de opacidade e SÓ em `lg`: é estrutura de fundo, não ilustração de destaque.
+        A camada de gradiente que o herói removeu era outra coisa — aquela virava MANCHA sobre
+        papel claro; um traço de linha fina não. Ainda assim, discreto: quem lê o título não
+        precisa saber que ele está ali.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-20 right-0 hidden text-foreground select-none lg:block"
+      >
+        <FichaGlobe size={520} opacity={0.08} />
+      </div>
       {/* As três camadas decorativas (`theme-dark-glow`/`-grid`/`-grain`) foram REMOVIDAS na
           inversão para o tema claro. Elas eram um gradiente quente e um grão desenhados para
           somar luz sobre fundo quase-preto; sobre papel claro o mesmo gradiente vira MANCHA, e

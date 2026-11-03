@@ -1,4 +1,8 @@
+import { cookies } from 'next/headers';
 import DiagnosticsClient from './DiagnosticsPanel';
+import AdminHeading from '@/components/ficha/AdminHeading';
+import { diagnosticsStrings } from './strings';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import type { WebProcessView } from './types';
 
 /**
@@ -23,7 +27,7 @@ import type { WebProcessView } from './types';
  */
 export const dynamic = 'force-dynamic';
 
-export default function AdminDiagnosticsPage() {
+export default async function AdminDiagnosticsPage() {
   const web: WebProcessView = {
     nodeEnv: process.env.NODE_ENV ?? null,
     commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
@@ -35,5 +39,17 @@ export default function AdminDiagnosticsPage() {
     },
   };
 
-  return <DiagnosticsClient web={web} />;
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const t = diagnosticsStrings[locale];
+
+  return (
+    <>
+      {/* A página NÃO tinha h1 nenhum: o painel começa nos cartões, e o leitor de tela não
+          encontrava título de página. `AdminHeading` porque é painel de operação — régua menor
+          que a do público, pelo motivo registrado no componente. */}
+      <AdminHeading title={t.title} subtitle={t.subtitle} />
+      <DiagnosticsClient web={web} />
+    </>
+  );
 }
