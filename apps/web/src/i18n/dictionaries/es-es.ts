@@ -180,8 +180,10 @@ const es: Dictionary = {
     registerSubmit: 'Registrarse',
     haveAccount: '¿Ya tienes cuenta?',
     registerLink: 'Inicia sesión',
-    acceptTerms: 'He leído y acepto los Términos de Uso y Servicio',
-    acceptPrivacy: 'He leído y acepto la Política de Privacidad (LGPD)',
+    acceptTerms: 'He leído y acepto los',
+    acceptPrivacy: 'He leído y acepto la',
+    termsLink: 'Términos de Uso y Servicio',
+    privacyLink: 'Política de Privacidad',
     acceptRequired:
       'Debes aceptar los Términos de Uso y la Política de Privacidad para registrarte.',
     registerErrorDefault: 'Error al crear la cuenta',

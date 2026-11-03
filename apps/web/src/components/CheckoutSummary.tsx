@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { PLAN_FEATURES } from '@/lib/plan-features';
 import { formatPrice, PLAN_CENTS, yearlyCents, type BillingCurrency } from '@/lib/pricing';
+import FichaHead from '@/components/ficha/FichaHead';
 
 // T472a — resumo pré-confirmação do checkout, i18n pt/en/es. Consome a FONTE
 // ÚNICA (plan-features.ts) por locale — sem lista paralela (anti-hardcode T465).
@@ -59,7 +60,7 @@ export default function CheckoutSummary({
 
   return (
     <>
-      <h1 className="text-3xl font-heading font-bold mb-2">{c.title}</h1>
+      <FichaHead title={c.title} />
       <p className="text-foreground/70 mb-6">{c.intro}</p>
 
       {/* T555 — o resumo que os Termos prometem ANTES da confirmação */}

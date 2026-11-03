@@ -230,6 +230,10 @@ export interface Dictionary {
     registerLink: string;
     acceptTerms: string;
     acceptPrivacy: string;
+    /** Rótulo do link dentro do consentimento — nome COMPLETO do documento, para a frase
+     *  não repetir o nome duas vezes (era "…Termos de Uso e Serviço Termos de Uso"). */
+    termsLink: string;
+    privacyLink: string;
     acceptRequired: string;
     registerErrorDefault: string;
     forgotPasswordLink: string;

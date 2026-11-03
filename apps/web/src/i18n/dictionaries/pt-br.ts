@@ -181,8 +181,10 @@ const pt: Dictionary = {
     registerSubmit: 'Cadastrar',
     haveAccount: 'Já tem conta?',
     registerLink: 'Faça login',
-    acceptTerms: 'Li e aceito os Termos de Uso e Serviço',
-    acceptPrivacy: 'Li e aceito a Política de Privacidade (LGPD)',
+    acceptTerms: 'Li e aceito os',
+    acceptPrivacy: 'Li e aceito a',
+    termsLink: 'Termos de Uso e Serviço',
+    privacyLink: 'Política de Privacidade',
     acceptRequired:
       'É necessário aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.',
     registerErrorDefault: 'Erro ao cadastrar',
