@@ -68,6 +68,10 @@ const EXCECOES_VAZIO = new Map([
   // que é uma leitura melhor que uma caixa dizendo "nada aqui" num painel de trabalho.
   ['/direitos-titular', 'documento legal com formulário de requisição: não há lista'],
   [
+    '/direitos-autorais',
+    'documento legal com formulários de notificação: não há lista que possa vir vazia',
+  ],
+  [
     '/estadios/[id]',
     'ficha de registro único: campo ausente mostra "—" no próprio campo, não uma caixa de vazio',
   ],

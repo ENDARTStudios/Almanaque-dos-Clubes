@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 import { wsC2Strings } from '@/i18n/wsC2';
 
 // WS-C-2 — busca global tipada sobre GET /api/v1/search/global.
@@ -192,9 +194,9 @@ export default function GlobalSearch() {
               {s.total.replace('{n}', String(data.pagination.total))}
             </p>
             {data.results.length === 0 ? (
-              <p className="text-sm text-foreground/70" data-testid="search-empty">
-                {s.empty}
-              </p>
+              <div data-testid="search-empty">
+                <EmptyState title={s.empty} body={fichaStrings[locale].states.emptyBody} />
+              </div>
             ) : (
               <ul className="divide-y divide-border/50">
                 {data.results.map((r) => (
@@ -240,7 +242,5 @@ export default function GlobalSearch() {
 }
 
 function type_valid(v: unknown): v is 'all' | 'club' | 'competition' | 'player' {
-  return (
-    v === 'all' || v === 'club' || v === 'competition' || v === 'player'
-  );
+  return v === 'all' || v === 'club' || v === 'competition' || v === 'player';
 }
