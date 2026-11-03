@@ -10,7 +10,9 @@ import type { CSSProperties } from 'react';
  * `#00000018` fixo, que simplesmente desaparecia no fundo escuro.
  *
  * As cores usam as variáveis CSS do tema (e não hex fixo), então o mesmo componente acompanha
- * o tema vigente sem alteração: hoje o CLARO é o padrão e o escuro é a exceção `.theme-dark`.
+ * o tema vigente sem alteração: hoje o CLARO é o padrão. A exceção `.theme-dark` existe nos
+ * tokens mas está INALCANÇÁVEL (nenhum componente aplica a classe) — se ela passar a ser
+ * usada, este arquivo acompanha sozinho, porque lê as variáveis CSS e não hex fixo.
  * O motivo de existir continua o mesmo, só espelhado: o Recharts desenha `Tooltip` e `Legend`
  * com fundo BRANCO e texto escuro inline, que sobre uma superfície escura vira um retângulo
  * branco no meio do gráfico.

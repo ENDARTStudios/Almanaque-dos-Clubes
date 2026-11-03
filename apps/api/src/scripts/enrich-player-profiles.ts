@@ -35,7 +35,15 @@ const ENTITY_URL = (qids: string[], props: string) =>
   `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qids.join('|')}` +
   `&props=${props}&format=json`;
 const CHUNK_SIZE = 50;
-const PAUSE_MS = 500;
+// Rate limit do Wikidata (medido 10-18): lote de 1000 → erros=50 e, na repetição,
+// 200/1000; lote de 200 → 0 erros. Pausa ADAPTATIVA entre chunks: dobra a cada
+// falha, decai 20% a cada sucesso, entre BASE e MAX. Chunk que esgota as tentativas
+// é re-tentado CHUNK_ATTEMPTS vezes antes de contar erro (os QIDs ficam p/ a próxima rodada).
+const BASE_PAUSE_MS = 1_500;
+const MAX_PAUSE_MS = 15_000;
+const CHUNK_ATTEMPTS = 3;
+/** Backoff interno do fetch sob 429: mais longo que o default 1s/2s/4s (Retry-After manda mais). */
+const WIKIDATA_RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 20_000];
 const WIKIDATA_ENTITY_URL_BASE = 'https://www.wikidata.org/wiki/';
 // Unidades de P2048 provadas na fonte real (D-2026-10-17): Q174728 = CENTÍMETRO
 // (Q1747289 é "Samantha Mulder" — QID errado do 1º rollout, altura nunca preenchia);
@@ -167,29 +175,60 @@ function chunked<T>(arr: T[], size: number): T[][] {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function fetchEntitiesChunked(
-  qids: string[],
+/** Pausa corrente entre chunks — cresce ao ser throttled, decai ao fluxo normal. */
+let currentPauseMs = BASE_PAUSE_MS;
+
+async function fetchOneChunk(
+  part: string[],
   props: 'claims|labels' | 'labels',
-): Promise<Map<string, EntityLike>> {
-  const out = new Map<string, EntityLike>();
-  for (const part of chunked([...new Set(qids)], CHUNK_SIZE)) {
+): Promise<Map<string, EntityLike> | null> {
+  for (let attempt = 1; attempt <= CHUNK_ATTEMPTS; attempt++) {
     try {
       const res = await fetchWithRetry(
         ENTITY_URL(part, props),
         { headers: { 'user-agent': UA, Accept: 'application/json' } },
-        { label: 'enrich-player-profiles' },
+        { label: 'enrich-player-profiles', retryDelaysMs: WIKIDATA_RETRY_DELAYS_MS },
       );
       const json = (await res.json()) as { entities?: Record<string, EntityLike> };
-      for (const [qid, ent] of Object.entries(json.entities ?? {})) out.set(qid, ent);
+      return new Map(Object.entries(json.entities ?? {}));
     } catch (err) {
-      // Falha ruidosa do CHUNK: os QIDs dele ficam sem dado (contam como erro no
-      // resumo), o lote continua — a próxima rodada os re-tenta (cursor não avança
-      // para jogador cujo fetch falhou? avança: status='error' grava a tentativa).
-      console.error(`  chunk (${part.length} QIDs) falhou: ${(err as Error).message.slice(0, 90)}`);
+      const last = attempt === CHUNK_ATTEMPTS;
+      console.error(
+        `  chunk (${part.length} QIDs) tentativa ${attempt}/${CHUNK_ATTEMPTS} falhou: ${(err as Error).message.slice(0, 90)}${last ? ' — QIDs ficam p/ a próxima rodada' : ''}`,
+      );
+      if (last) return null;
+      // Throttled: desacelera este e os próximos chunks antes de re-tentar.
+      currentPauseMs = Math.min(MAX_PAUSE_MS, currentPauseMs * 2);
+      await sleep(currentPauseMs);
     }
-    await sleep(PAUSE_MS);
   }
-  return out;
+  return null;
+}
+
+interface ChunkFetchResult {
+  entities: Map<string, EntityLike>;
+  /** QIDs de chunks que FALHARAM (429/timeout) — transitório: NÃO gravar cursor. */
+  failedQids: Set<string>;
+}
+
+async function fetchEntitiesChunked(
+  qids: string[],
+  props: 'claims|labels' | 'labels',
+): Promise<ChunkFetchResult> {
+  const entities = new Map<string, EntityLike>();
+  const failedQids = new Set<string>();
+  const unique = chunked([...new Set(qids)], CHUNK_SIZE);
+  for (let i = 0; i < unique.length; i++) {
+    const got = await fetchOneChunk(unique[i], props);
+    if (got) for (const [qid, ent] of got) entities.set(qid, ent);
+    else for (const qid of unique[i]) failedQids.add(qid);
+    if (i < unique.length - 1) {
+      await sleep(currentPauseMs);
+      // Sucesso volta ao ritmo de cruzeiro gradualmente (sem oscilar).
+      if (got) currentPauseMs = Math.max(BASE_PAUSE_MS, Math.floor(currentPauseMs * 0.8));
+    }
+  }
+  return { entities, failedQids };
 }
 
 // ---------------------------------------------------------------------------
@@ -387,7 +426,7 @@ async function main(): Promise<void> {
   }
   console.log(`  fila: ${players.length} jogador(es)`);
 
-  const entities = await fetchEntitiesChunked(
+  const { entities, failedQids } = await fetchEntitiesChunked(
     players.map((p) => p.qid),
     'claims|labels',
   );
@@ -404,7 +443,7 @@ async function main(): Promise<void> {
       }
     }
   }
-  const labelEntities = await fetchEntitiesChunked(refQids, 'labels');
+  const labelEntities = (await fetchEntitiesChunked(refQids, 'labels')).entities;
   const labelByQid = new Map<string, string>();
   for (const [qid, ent] of labelEntities) {
     const label = ent.labels?.en?.value ?? ent.labels?.['pt-br']?.value ?? ent.labels?.pt?.value;
@@ -421,28 +460,42 @@ async function main(): Promise<void> {
     missingClub: 0,
     kgWritten: 0,
     errors: 0,
+    semEntidade: 0,
   };
 
   for (const p of players) {
     totals.processed++;
     const ent = entities.get(p.qid);
     if (!ent?.claims) {
-      totals.errors++;
-      console.log(`  [${p.qid}] ${p.fullName}: entidade não obtida do Wikidata`);
-      if (APPLY) {
-        await prisma.player.update({
-          where: { id: p.id },
-          data: {
-            profileEnrichment: {
-              at: nowIso(),
-              status: 'error',
-              processed: 0,
-              updated: 0,
-              skipped: 0,
-              errors: 1,
+      // Transitório (chunk no 429/timeout) ≠ QID inexistente. Transitório NÃO grava
+      // cursor — o jogador volta na próxima rodada. QID morto/redirecionado grava
+      // `missing` para não ocupar a fila para sempre (gap declarado no acervo).
+      const transient = failedQids.has(p.qid);
+      if (transient) {
+        totals.errors++;
+        console.log(
+          `  [${p.qid}] ${p.fullName}: fetch transitório falhou — retorna na próxima rodada`,
+        );
+      } else {
+        totals.semEntidade++;
+        console.log(
+          `  [${p.qid}] ${p.fullName}: sem entidade no Wikidata (QID morto/redirecionado)`,
+        );
+        if (APPLY) {
+          await prisma.player.update({
+            where: { id: p.id },
+            data: {
+              profileEnrichment: {
+                at: nowIso(),
+                status: 'missing',
+                processed: 0,
+                updated: 0,
+                skipped: 0,
+                errors: 0,
+              },
             },
-          },
-        });
+          });
+        }
       }
       continue;
     }
@@ -611,7 +664,7 @@ async function main(): Promise<void> {
   console.log(
     `\nResumo (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
       `atualizado=${totals.updated} skipped=${totals.skipped} ` +
-      `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors}`,
+      `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors} semEntidade=${totals.semEntidade}`,
   );
   if (!APPLY) console.log('DRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
   await prisma.$disconnect();

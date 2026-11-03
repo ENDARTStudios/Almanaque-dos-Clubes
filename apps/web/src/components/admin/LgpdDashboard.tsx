@@ -5,6 +5,8 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import ConfirmDialog from './ConfirmDialog';
 import { adminStrings } from './strings';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * T-ADMIN — painel LGPD (`/admin/lgpd`).
@@ -145,9 +147,9 @@ export default function LgpdDashboard() {
             </h2>
             <p className="text-sm text-ink-2">{s.lgpd.consentsSubtitle}</p>
             {consents.length === 0 ? (
-              <p className="text-sm text-ink-2 py-2" data-testid="lgpd-consents-empty">
-                {s.lgpd.empty}
-              </p>
+              <div data-testid="lgpd-consents-empty">
+                <EmptyState title={s.lgpd.empty} body={fichaStrings[locale].states.emptyBody} />
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" data-testid="lgpd-consents">
@@ -198,9 +200,9 @@ export default function LgpdDashboard() {
               {s.lgpd.deletionsGrace}
             </p>
             {deletions.length === 0 ? (
-              <p className="text-sm text-ink-2 py-2" data-testid="lgpd-deletions-empty">
-                {s.lgpd.empty}
-              </p>
+              <div data-testid="lgpd-deletions-empty">
+                <EmptyState title={s.lgpd.empty} body={fichaStrings[locale].states.emptyBody} />
+              </div>
             ) : (
               <ul className="space-y-2" data-testid="lgpd-deletions">
                 {deletions.map((d) => (

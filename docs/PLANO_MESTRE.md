@@ -9,7 +9,9 @@
 
 > **Reconciliação 2026-09-02:** status consolidado atualizado em "STATUS CONSOLIDADO — 2026-09-02" (final do arquivo). Este checklist por fase reflete o estado por Fase; aquele reflete o estado por domínio com o backlog completo.
 >
-> **Reconciliação 2026-10-11 (⚠️ VIGENTE):** o estado atual está em **"📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)"** (final do arquivo). O bloco de 2026-09-02 e os checklists de escopo ficaram defasados por T443–T517 (ex.: ele registra 1.889 clubes/2.396 jogadores; a produção tem 12.001/105.211). **Regra: marco se audita pela PRODUÇÃO (`curl` + `SELECT`), nunca por este documento** — é exatamente a armadilha que produziu uma auditoria externa dizendo "nenhum marco atingido" em 11-10-2026. Os itens do checklist abaixo foram corrigidos no lugar em 2026-10-11 e marcados com a evidência.
+> **Reconciliação 2026-11-02 (⚠️ VIGENTE — SUPEROU a de 2026-10-11):** os números de produção estão no bloco **"📊 STATUS CONSOLIDADO — 2026-11-02"** (final do arquivo). A de 2026-10-11 fica como histórico.
+>
+> **Reconciliação 2026-10-11 (histórico, superada):** o estado atual está em **"📊 STATUS CONSOLIDADO — 2026-10-11 (Reconciliação por evidência de produção)"** (final do arquivo). O bloco de 2026-09-02 e os checklists de escopo ficaram defasados por T443–T517 (ex.: ele registra 1.889 clubes/2.396 jogadores; a produção tem 12.001/105.211). **Regra: marco se audita pela PRODUÇÃO (`curl` + `SELECT`), nunca por este documento** — é exatamente a armadilha que produziu uma auditoria externa dizendo "nenhum marco atingido" em 11-10-2026. Os itens do checklist abaixo foram corrigidos no lugar em 2026-10-11 e marcados com a evidência.
 
 - [x] Fase 0 – Setup `[OBRIGATÓRIO]` ✅ (T002: lint 0 erros, typecheck 0 erros)
 - [x] Fase 1 – Infra base `[OBRIGATÓRIO]` ✅ (testes de integração 17/17)
@@ -852,3 +854,79 @@ verdade em 02-09 e **deixou de ser** em 02-10 (cron T451) e nas ondas T473–T51
 2026-09-02 e os checklists de fase como **histórico datado**; a fonte de verdade de estado é a produção. Reforça a R3
 (dispatch ancora em query de produção), agora estendida ao próprio ato de auditar. Este documento foi reconciliado no
 mesmo commit desta seção.
+
+---
+
+## 📊 STATUS CONSOLIDADO — 2026-11-02 (Reconciliação por evidência de produção)
+
+> Medido com `SELECT` no container de produção (Railway) e `curl` na API pública, em
+> 2026-11-02. Substitui a reconciliação de 2026-10-11 (mantida como histórico).
+> Script de cobertura: `coverage-matrix` (DQ-01) + `GET /api/v1/coverage`.
+
+### Acervo
+
+| Entidade | 2026-10-11 | **2026-11-02** | Variação | Evidência |
+|---|---:|---:|---|---|
+| Clubes (ativos) | 12.001 | **12.003** | +2 | `COUNT(*) clubs WHERE deletedAt IS NULL` |
+| — clubes (`kind='club'`) | — | **9.699** | — | `GROUP BY kind` |
+| — seleções (`kind='national_team'`) | — | **2.300** | — | `GROUP BY kind` |
+| Jogadores | 105.211 | **105.211** | 0 | `COUNT(*) players` |
+| Partidas | 17.265 | **17.265** | 0 | `COUNT(*) matches`; **100% com placar** |
+| Competições (ativas) | 1.932 | **1.929** | −3 (3 soft-deleted) | `WHERE deletedAt IS NULL` |
+| Temporadas de competição | 114 | **114** | 0 | `COUNT(*) CompetitionSeason` |
+| — com campeão | 114 | **114** | 0 | `WHERE championId IS NOT NULL` |
+| Rankings | 293¹ | **71** | ver nota | `GROUP BY type` → **71 clube · 0 jogador** |
+| Arestas WON (títulos) | 5.205 | **5.203** | −2 (cura DQ-02 #753) | `knowledge_graph WHERE relation='WON'` |
+| Escudos (`club_crests`) | 0² | **807** | +807 | 619 T32 + 188 P18 (T596) |
+| Usuários | — | **76** | — | `users WHERE deletedAt IS NULL` |
+| Favoritos ativos | — | **31** | — | `favorites WHERE deletedAt IS NULL` |
+
+¹ A contagem de 293 vinha do baseline antigo e misturava escopos; a medição de hoje é a
+tabela `rankings` (71 linhas) — comparação de contagem não é comparação de cobertura.
+² `club_crests` nasceu em 18-10-2026 (T32/T593); em 11-10 não existia.
+
+### Cobertura de campos (o que a automação já encheu)
+
+| Campo | 2026-10-11 | **2026-11-02** | % |
+|---|---:|---:|---:|
+| `Clubs.logoUrl` | 752 (6,3%) | **2.236** | **18,6%** |
+| `Clubs.anthem` | 13 | **14** | 0,1% |
+| `Clubs.kitHistory` | 11 | **2.311** | **19,3%** |
+| `Clubs.latitude` | — | **6.794** | **56,6%** |
+| `Players.photoUrl` | 864 (0,8%) | **29.978** | **28,5%** |
+| `Players.country` | — | **98.599** | **93,7%** |
+| `Players.position` | — | **89.082** | **84,7%** |
+| `Players.clubId` | 108 (0,1%) | **2.909** | **2,8%** |
+
+⚠️ **Regressão encontrada nesta reconciliação:** `ranking_entries` com `playerId`
+= **0**. A rodada T522 chegou a popular ranking de jogador; hoje o tipo `player` está
+zerado em `rankings`. O painel admin passou a expor `rankingsByType` justamente para
+não esconder isso. Ação: reexecutar a ingestão de artilheiros (marcada na página
+`/admin/metricas` como lacuna declarada).
+
+### Atualização automática (verificado, não presumido)
+
+| Mecanismo | Estado em produção | Evidência |
+|---|---|---|
+| Scheduler de ETL | **ativo** (`ETL_SCHEDULER_ENABLED=1`) | env do container + log de boot com 6 crons |
+| Enriquecimento incremental | **escreve** (`WIKIDATA_DRY_RUN=false`) | env do container |
+| Crons registrados | wikidata 03:00 · ranking 03:00 · enrich 04:00–07:00 UTC · integrity domingo 04:00 | `railway logs` (boot) |
+| Última escrita em `clubs` | **2026-11-01** | `max(updatedAt)` |
+| Última escrita em `players` | **2026-11-02** (hoje) | `max(updatedAt)` |
+| Última escrita em `matches` | 2026-10-13 | ingestão de partidas é **batch manual** (CLI), não cron |
+| Última escrita em `rankings` | 2026-10-17 | recálculo idempotente; sem mudança = sem escrita |
+
+**Leitura honesta:** o enriquecimento de clubes e jogadores é automático e está
+rodando (escritas de ontem e de hoje). **Partidas e rankings NÃO se atualizam sozinhos**
+— partidas dependem de rodada de ingestão (RSSSF) e o ranking de jogador precisa da
+ingestão de artilheiros. O painel `/admin/metricas` agora mostra essas datas para que
+a parada seja vista, não descoberta.
+
+### Produto e painéis
+
+- `/admin/metricas`: KPIs calculados a cada requisição (`computeMetrics` + cache de
+  60s) — **dinâmico, sem intervenção humana**. Novos campos: `rankingsByType` e
+  `frescura` (última escrita por entidade + flags do scheduler/enriquecimento).
+- Home (hero): contagens via SSR com `revalidate: 3600` — dinâmico a cada hora.
+- `GET /api/v1/coverage` (DQ-01): matriz por competição×temporada com
+  `freshnessDays`/`stale` (SLA 45 dias) — dinâmico por chamada.

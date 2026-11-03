@@ -295,8 +295,12 @@
      e é justamente onde o pódio fica): primary-ink 6,99:1 · secondary 4,65:1 · branco dentro do
      primary 6,29:1. O acento quase foi `#a16207`, que dá 4,29 na faixa e REPROVARIA.
 
-     O escuro virou a EXCEÇÃO declarada (`.theme-dark`, abaixo), usada só onde um terceiro impõe
-     superfície própria. */
+     O escuro virou a EXCEÇÃO declarada (`.theme-dark`, abaixo). ATENÇÃO: hoje ela é código
+     RESERVADO e INALCANÇÁVEL — nenhum componente aplica a classe; o herói chegou a forçá-la e a
+     removeu (ver o comentário em HeroSection). Os tokens continuam válidos para quando um caso
+     concreto os exigir, mas a frase anterior — "usada só onde um terceiro impõe superfície
+     própria" — descrevia um uso que NÃO existe. Quem for usar o escuro aplica a classe e mede o
+     contraste de novo; se ele não for voltar, o bloco pode sair junto com esta nota. */
   --color-primary: #be123c;
   --color-primary-ink: #9f1239;
   --color-on-primary: #ffffff;
@@ -341,6 +345,44 @@
   --color-info-surface: #dbeafe;
   --color-neutral-surface: #efece7;
   --color-ring: #94600a;
+
+  /* ── Paleta de DADO (ampliação 2026-11) ────────────────────────────────────────────────
+     As institucionais (primary, secondary) sustentam a interface e não sustentam dado: com
+     duas cores, a terceira categoria de um gráfico virava cinza e desaparecia. Estas quatro
+     só aparecem em série de gráfico, faixa de alcance e mapa — nunca em botão, link ou
+     superfície de interface.
+
+     Contraste medido sobre --color-background (#faf8f5), o pior caso claro:
+       viz-3 #0f6b6b = 6,00:1 · viz-4 #5c6b1f = 5,58:1
+       viz-5 #6d2e5f = 9,00:1 · viz-6 #34506b = 7,91:1
+     Nenhuma é violeta nem índigo: essas duas famílias são a assinatura da paleta de
+     assistente, e o repo as evita por decisão. */
+  --color-viz-1: #be123c;
+  --color-viz-2: #94600a;
+  --color-viz-3: #0f6b6b;
+  --color-viz-4: #5c6b1f;
+  --color-viz-5: #6d2e5f;
+  --color-viz-6: #34506b;
+
+  /* Alcance: a cor REFORÇA o degrau, nunca é o único portador. O card de mundial tem borda de
+     2px e o de nacional tem fio de 1px — a hierarquia se lê em preto e branco. */
+  --color-tier-mundial: #94600a;
+  --color-tier-continental: #be123c;
+  --color-tier-nacional: #0f6b6b;
+  --color-tier-estadual: #34506b;
+
+  /* ── Metais ───────────────────────────────────────────────────────────────────────────
+     A cor do OBJETO e a cor da PALAVRA não são a mesma. O metal vivo (#c9a227 ouro) sobre o
+     papel dá 2,28:1 — reprova para texto, e é correto que reprove: ele existe como
+     preenchimento de forma (medalhão, taça). O texto usa o metal escurecido, que passa AA:
+       ouro #94600a 5,03:1 · prata #5d6670 5,50:1 · bronze #8a5a2b 5,54:1 */
+  --color-metal-ouro: #c9a227;
+  --color-metal-prata: #b8bfc7;
+  --color-metal-bronze: #c07a45;
+  --color-metal-ouro-ink: #94600a;
+  --color-metal-prata-ink: #5d6670;
+  --color-metal-bronze-ink: #8a5a2b;
+
   --font-heading: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
 }
@@ -486,315 +528,69 @@
     color: var(--color-ink-2);
     opacity: 1;
   }
-  /* ── Card de autenticação com FLIP (login ⇄ cadastro) ────────────────────────────────
-     Estrutura vinda de uma referência de design que o Operador pediu para aplicar nas telas
-     de auth (carrossel "CSS Logins"): card de 660×520, DUAS metades de 50%, um
-     `<input type="checkbox">` escondido e um `<label for>` que dispara a troca; as metades
-     cruzam em `0.65s` movendo `translate: 100% 0` / `-100% 0`.
-     Três desvios deliberados da referência, cada um por um motivo:
-       1. CORES E FONTES do Almanaque (o Operador escolheu "estrutura do vídeo, cores e fontes
-          da casa"). A referência é clara com um botão quase preto; aqui a superfície é a
-          escura editorial e o CTA usa `--color-primary`.
-       2. SEM imagem de fundo. A referência usa uma foto de montanha genérica
-          (`hero.jpg`, crédito Vecteezy) — uma imagem de terceiro que não é do acervo e
-          adicionaria requisição + licença. No lugar dela, os utilitários de textura que já
-          existem (`theme-dark-grid`/`-glow`/`-grain`), que são SVG/gradiente de custo zero.
-       3. SEM `visibility` na troca. A referência faz `visibility: hidden`, que é discreto e não
-          interpola de forma confiável; aqui a metade oculta usa **`inert`** (atributo), que a
-          tira do tab order E da árvore de acessibilidade, enquanto o crossfade continua sendo
-          `opacity` + `transform`. Sem armadilha de foco em campo invisível.
 
-     Tamanho: a referência é 660×520, mas o NOSSO cadastro tem nome + email + senha + 2
-     aceites obrigatórios + data de nascimento — 520px não comporta. O card cresce até
-     `max(520px, conteúdo)` e as metades acompanham; a altura é via `min-height`.
-     Abaixo de 1024px as metades NÃO podem ficar lado a lado (não cabem 2×330px), então o
-     layout empilha: a metade de texto vira faixa superior, o formulário vem abaixo e a troca
-     passa a ser um crossfade simples. */
-  .auth-card {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    max-width: 660px;
-    border-radius: 24px;
-    /* O `border` é o MESMO valor do `background`: era assim na referência e é o que cria o
-       vão entre a moldura externa e a metade interna (que tem raio menor, 18px). */
-    border: 8px solid var(--color-background);
-    background: var(--color-background);
-    /* A referência é 660×520, mas o NOSSO cadastro não cabe lá. Medido: o painel de cadastro
-       precisa de 701px (título 36 + subtítulo 38 + formulário 531 + padding 64) e o de login
-       só 410px. Com `min-height` menor o botão de envio do cadastro saía 37px ABAIXO do card e
-       era cortado pelo `overflow: hidden` — ou seja, era impossível concluir o cadastro.
-       720px acomoda o maior caso; o painel de login centraliza no espaço restante. */
-    min-height: 720px;
-  }
-  .auth-card__toggle {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  }
-  .auth-card__pane {
-    /* `translate` (propriedade independente) para o slide, `opacity` para o crossfade —
-       nenhuma das duas anima layout, então não há reflow por frame. */
-    transition:
-      translate 0.65s ease-in-out,
-      opacity 0.65s ease-in-out;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 50%;
-    opacity: 0;
-  }
-  .auth-card__pane--hero {
-    z-index: 4;
-    border-radius: 18px;
-    /* Texto em VINHO, não em `#f9f9f9` fixo: era a tinta do fundo escuro, e sobre o painel
-       claro daria 1,1:1 — ilegível. Com o token, o painel acompanha o tema. */
-    color: var(--color-primary-ink);
-    /* A referência usava uma FOTO de montanha nesta metade. Em vez de reproduzir a foto (de
-       terceiro: exigiria licença e uma requisição), a superfície é feita de material do próprio
-       design system. A primeira versão trazia DOIS halos radiais coloridos (`--color-primary` a
-       30% e `--color-secondary` a 22%) e o detector de anti-padrões reprovou COM RAZÃO:
-       "radial-gradient spotlight glow … reflex AI decoration … a floating colored haze".
-       O borrão colorido saiu. No lugar entrou o MESMO motivo da hero do site (a linha de campo
-       desenhada como elemento, em `.auth-card__mark`), sobre um gradiente neutro — material
-       deliberado em vez de névoa. (O gradiente neutro era escuro; a inversão para claro está
-       documentada logo abaixo.) */
-    /* Painel de marca em CLARO tingido de vinho — antes era um gradiente escuro em hex FIXO
-       (`#2a2320 → #16130f`), escrito para o tema escuro e portanto imune à troca de tokens: no
-       site claro ele continuava a ser um retângulo quase-preto dominando a tela de login
-       (medido: fundo `#1c1917`). Dois problemas concretos, não estéticos:
-         1. destoava do site inteiro, e o detector de anti-padrões não pega isso porque o
-            CONTRASTE estava certo (16,61:1) — o defeito era de coerência, não de leitura;
-         2. era o único lugar do app com cor que não vinha de token, então qualquer mudança de
-            tema o deixava para trás.
-       Agora o painel é derivado dos tokens e acompanha o tema. Medido sobre `#fdf2f4`: título
-       em vinho 7,32:1 · corpo em `ink-2` 6,97:1 · borda do botão 7,32:1. */
-    background: linear-gradient(
-      160deg,
-      color-mix(in oklab, var(--color-primary) 6%, var(--color-background)) 0%,
-      color-mix(in oklab, var(--color-primary) 12%, var(--color-background)) 58%,
-      color-mix(in oklab, var(--color-primary) 8%, var(--color-background)) 100%
-    );
-    overflow: hidden;
-  }
-  /* Linha de campo: 1 linha horizontal + círculo central, na cor da marca. O traço do SVG é a
-     única cor literal que sobrou aqui, e é deliberado — `background-image` com data-URI não lê
-     custom property. Em compensação a OPACIDADE subiu de 0,07 para 0,14: a 7% o traço sumia
-     sobre o papel claro, que era o mesmo motivo de ele ter sido calibrado no escuro. */
-  .auth-card__mark {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='600' viewBox='0 0 960 600'%3E%3Cg fill='none' stroke='%239f1239' stroke-width='1.5'%3E%3Cpath d='M0 300h960M480 0v600'/%3E%3Ccircle cx='480' cy='300' r='120'/%3E%3Cpath d='M0 60h60v480H0M960 60h-60v480h60'/%3E%3C/g%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    opacity: 0.14;
-  }
-  /* ── GEOMETRIA (posição + animação) ──────────────────────────────────────────────────────
-     Derivada do MODIFICADOR DO CARD (`auth-card--login` / `auth-card--register`), que já
-     existe no DOM e diz em que modo estamos. Duas tentativas anteriores falharam por motivos
-     que valem registro, porque ambos foram bugs reais medidos e não hipóteses:
-       1. `.auth-card__pane--form` — essa classe NUNCA existiu no DOM (o JSX aplica `--login`
-          e `--register`), então `left: 50%`, o fundo elevado e o padding nunca eram aplicados.
-       2. `--hero`/`--register` com dois pares de `left` de MESMA especificidade: a segunda
-          regra vencia e empurrava os QUATRO painéis para `left: 50%`, empilhando-os. O painel
-          visível acabou 322px fora do card (medido).
-     Com o modificador do card não há empate de especificidade nem dependência da ordem do DOM.
-     A referência usava `.hero { left: 0 }` e `.form { left: 50% }`; aqui a mesma geometria é
-     expressa por modo. */
-  .auth-card--login .auth-card__pane--hero,
-  .auth-card--register .auth-card__pane:not(.auth-card__pane--hero) {
-    left: 0;
-  }
-  .auth-card--login .auth-card__pane:not(.auth-card__pane--hero),
-  .auth-card--register .auth-card__pane--hero {
-    left: 50%;
-  }
-  /* Deslocamento da troca: o painel que SAI vai para o lado oposto ao seu. Por isso o
-     `translate` acompanha a posição do painel (quem está em `left: 0` anda +100%; quem está em
-     `left: 50%` anda -100%) e não o seu tipo — foi confundir isso que jogou o painel para fora
-     do card. */
-  .auth-card--login .auth-card__toggle:checked ~ .auth-card__pane--hero,
-  .auth-card--register .auth-card__toggle:checked ~ .auth-card__pane:not(.auth-card__pane--hero) {
-    translate: 100% 0;
-  }
-  .auth-card--login .auth-card__toggle:checked ~ .auth-card__pane:not(.auth-card__pane--hero),
-  .auth-card--register .auth-card__toggle:checked ~ .auth-card__pane--hero {
-    translate: -100% 0;
-  }
-  /* No estado de REPOUSO cada painel fica no seu lado; quem troca de lado é o que sai. Isso
-     mantém o painel do cadastro à esquerda na rota de cadastro (como na referência). */
-  .auth-card--register .auth-card__pane--hero {
-    left: 50%;
-  }
-  /* Metade do formulário: superfície elevada com respiro interno. O padding de 32px é o que
-     faltava — sem ele o botão de envio ficava FORA do card (medido: excedia 16px) e era
-     cortado pelo `overflow: hidden`. */
-  .auth-card__pane--login:not(.auth-card__pane--hero),
-  .auth-card__pane--register:not(.auth-card__pane--hero) {
-    z-index: 3;
-    padding: 32px 28px;
-    background: var(--color-muted);
-    border-radius: 18px;
-  }
-  /* A metade inativa não pode interceptar clique NEM foco — e a troca precisa ANIMAR. Por isso
-     a visibilidade é 100% CSS (nada de classe discreta vinda do React, que escondia na hora e
-     matava o crossfade): ao esconder, o `visibility: hidden` entra com ATRASO igual ao da
-     transição, para o fade terminar antes; ao mostrar, entra com atraso ZERO, para o conteúdo
-     aparecer enquanto desliza. O `inert` continua vindo do JSX e cuida do tab order.
-     As duas metades existem no DOM desde o primeiro render — o que muda é só o checkbox. */
-  .auth-card__pane--login {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s, 0s;
-  }
-  .auth-card__toggle:checked ~ .auth-card__pane--login {
-    opacity: 0;
-    visibility: hidden;
-    transition-delay: 0.65s, 0s;
-  }
-  /* O cadastro nasce OCULTO (a rota padrão é o login). */
-  .auth-card .auth-card__pane--register {
-    opacity: 0;
-    visibility: hidden;
-    transition-delay: 0.65s, 0s;
-  }
-  .auth-card__toggle:checked ~ .auth-card__pane--register {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s, 0s;
-  }
-  /* Anel de foco na PÍLULA (o input está clipado): o alvo visível precisa mostrar que o
-     teclado chegou nele. Sem isto o toggle seria inalcançável visualmente por teclado. */
-  .auth-card__toggle:focus-visible ~ .auth-card__pane .auth-card__switch {
-    outline: 2px solid var(--color-ring);
-    outline-offset: 4px;
-  }
-  @media (max-width: 1023px) {
-    .auth-card {
-      max-width: 520px;
-    }
-    .auth-card__pane {
-      position: relative;
-      top: auto;
-      bottom: auto;
-      left: auto;
-      width: 100%;
-      translate: none;
-      transition: none;
-    }
-    /* Empilhado NÃO há duas colunas: o `left` derivado do modo volta a `auto` e, principalmente,
-       o `translate` da troca precisa ser ANULADO. O seletor tem de ser tão específico quanto a
-       regra de desktop que liga o `translate` (`.auth-card--login .auth-card__toggle:checked ~
-       .auth-card__pane--hero`), senão ela vence e o painel sai do card — medido: 306px fora da
-       moldura, com o botão de envio inalcançável. */
-    .auth-card .auth-card__pane,
-    .auth-card--login .auth-card__pane,
-    .auth-card--register .auth-card__pane,
-    .auth-card--login .auth-card__pane--hero,
-    .auth-card--register .auth-card__pane--hero,
-    .auth-card--login .auth-card__toggle:checked ~ .auth-card__pane,
-    .auth-card--register .auth-card__toggle:checked ~ .auth-card__pane,
-    .auth-card--login .auth-card__toggle:checked ~ .auth-card__pane--hero,
-    .auth-card--register .auth-card__toggle:checked ~ .auth-card__pane--hero,
-    .auth-card--login .auth-card__toggle:checked ~ .auth-card__pane:not(.auth-card__pane--hero),
-    .auth-card--register .auth-card__toggle:checked ~ .auth-card__pane:not(.auth-card__pane--hero) {
-      left: auto;
-      translate: none;
-    }
-    .auth-card__pane {
-      display: none;
-      border-radius: 18px;
-    }
-    .auth-card--login .auth-card__pane:not(.auth-card__pane--hero),
-    .auth-card--register .auth-card__pane:not(.auth-card__pane--hero) {
-      padding: 32px 28px;
-    }
-    .auth-card--login .auth-card__pane--hero,
-    .auth-card--register .auth-card__pane--hero {
-      padding: 40px 28px;
-    }
-    /* Empilhado, o que manda é a ROTA (não o toggle): só a metade da página atual aparece,
-       evitando duas cópias do formulário no fluxo. */
-    .auth-card--login .auth-card__pane--hero.auth-card__pane--login,
-    .auth-card--login .auth-card__pane:not(.auth-card__pane--hero),
-    .auth-card--register .auth-card__pane--hero.auth-card__pane--register,
-    .auth-card--register .auth-card__pane--register:not(.auth-card__pane--hero) {
-      display: block;
-    }
-    .auth-card--login .auth-card__pane--hero.auth-card__pane--register,
-    .auth-card--login .auth-card__pane--register:not(.auth-card__pane--hero),
-    .auth-card--register .auth-card__pane--hero.auth-card__pane--login,
-    .auth-card--register .auth-card__pane--login:not(.auth-card__pane--hero) {
-      display: none;
-    }
-    /* Empilhado não há duas colunas: zera o deslocamento lateral de TODOS os painéis,
-       inclusive o `left: 50%` derivado do modo. */
-    .auth-card .auth-card__pane,
-    .auth-card__toggle:checked ~ .auth-card__pane {
-      left: auto;
-      translate: none;
-      opacity: 1;
-    }
-  }
-  /* `prefers-reduced-motion`: a troca continua acontecendo (é funcional, não decorativa),
-     mas sem o deslocamento — só o crossfade instantâneo. */
-  @media (prefers-reduced-motion: reduce) {
-    .auth-card__pane {
-      transition: none;
-    }
-  }
+  /* ── O banner de cookies não pode cobrir o rodapé ─────────────────────────────────────────
+   O banner é `position: fixed; bottom: 0` e NADA reservava espaço para ele: em todas as
+   páginas, o fim do conteúdo ficava atrás dele. Medido em Chromium — o banner ocupa
+   **141px** no desktop/tablet e **149px** no mobile, e cobria exatamente essa faixa do rodapé
+   (na tela de checkout ele cobria os botões de assinar).
 
-  /* ── Conteúdo interno das metades ────────────────────────────────────────────────────
-     Medidas tiradas da referência: título de seção centralizado; rótulo acima do campo,
-     alinhado à esquerda; CTA em caixa alta com `letter-spacing: 1px` e 13px; pílula com
-     `padding: 12px 40px` e `border-radius: 32px`. */
-  .auth-card__title {
-    margin: 0 0 8px;
-    text-align: center;
-    font-size: 1.5rem;
+   `:has()` resolve sem estado em JS: o próprio DOM diz se o banner está lá. Quando o visitante
+   aceita ou recusa, o banner sai do documento, o seletor deixa de casar e a reserva desaparece
+   junto — sem listener, sem classe no `<body>`, sem efeito colateral de hidratação.
+
+   10rem (160px) = 149px medidos no pior caso + 11px de folga. Se o texto do banner mudar e
+   crescer, o valor precisa ser medido de novo — por isso o número está aqui com a origem dele.
+   Reserve maior que o banner é inofensivo (só espaço); menor volta a cobrir. */
+  body:has([data-testid='cookie-banner']) {
+    padding-bottom: 10rem;
   }
-  .auth-card__subtitle {
-    margin: 0 0 24px;
-    text-align: center;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    /* `ink-2` no lugar do `color-mix` de 70%: medido, `foreground/70` sobre este papel dá
-       4,13:1 e REPROVA em AA. `ink-2` dá 6,97:1 e não depende da superfície embaixo. */
-    color: var(--color-ink-2);
-  }
+  /* ── Card de autenticação — coluna única ──────────────────────────────────────────────
+     O QUE MUDOU, E POR QUÊ
+     A versão anterior era um card de DUAS metades (herói + formulário) com troca animada por
+     `<input type=checkbox>` + `~`, 660px de largura e `min-height: 720px`. Três problemas,
+     todos visíveis no screenshot da tela em execução e nenhum deles de gosto:
+
+       1. VAZIO. A altura era dimensionada pelo CADASTRO (que tem nome, e-mail, senha, data de
+          nascimento e dois aceites). No login sobravam ~240px de retângulo vazio abaixo do
+          botão — o formulário boiava no topo de um card grande demais para ele.
+       2. CAIXA ALTA. O CTA era `text-transform: uppercase` + `letter-spacing: 1px`. A regra do
+          sistema é caixa baixa em título e ação; "ENTRAR" em versalete é o molde que o detector
+          de anti-padrões marca.
+       3. LANDING. Metade da tela vendia ("O futebol é eterno") ao lado de um formulário. Login
+          é TAREFA: quem chega ali já decidiu entrar. O espaço vale mais dando lugar ao campo do
+          que a uma promessa.
+
+     A composição agora é uma coluna de 26rem: título, subtítulo, formulário, saída alternativa.
+     A altura é a do conteúdo. Nenhuma geometria condicional, nenhum `~`, nenhum `inert` — as
+     classes `__toggle`, `__pane*`, `__hero*`, `__mark` e `__switch` deixaram de existir.
+
+     O que NÃO mudou: os nomes das classes de formulário (`__field`, `__label`, `__input`,
+     `__submit`, `__consent`…). `LoginForm` e `RegisterForm` seguem intocados — reescrever a
+     casca não é motivo para mexer em formulário que funciona. */
   .auth-card__form {
     display: block;
-  }
-  /* O login tem menos campos que o cadastro; o miolo do painel centraliza para o card não
-     ficar com o conteúdo colado no topo quando o cadastro define a altura. */
-  .auth-card__pane--login:not(.auth-card__pane--hero) {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
   }
   .auth-card__field + .auth-card__field,
   .auth-card__field + .auth-card__consents,
   .auth-card__consents + .auth-card__field {
-    margin-top: 14px;
+    margin-top: 0.875rem;
   }
   .auth-card__label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 0.375rem;
     font-size: 0.75rem;
-    letter-spacing: 0.3px;
-    color: var(--color-ink-2);
+    font-weight: 500;
+    /* sem `letter-spacing`: espaçar rótulo pequeno é o mesmo molde do versalete, em menor grau */
+    letter-spacing: 0;
+    color: var(--color-ink-3);
   }
   .auth-card__input {
     width: 100%;
-    padding: 11px 14px;
-    border: 1px solid transparent;
+    /* 44px é o alvo de toque; `padding` sozinho dava 38px e o polegar errava o campo */
+    min-height: 44px;
+    padding: 0.6875rem 0.875rem;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     background: var(--color-background);
     color: var(--color-foreground);
@@ -808,7 +604,7 @@
     opacity: 1;
   }
   .auth-card__input:hover {
-    border-color: var(--color-border);
+    border-color: var(--color-ink-3);
   }
   .auth-card__input:focus {
     border-color: var(--color-primary);
@@ -819,8 +615,8 @@
     outline-offset: 1px;
   }
   .auth-card__help {
-    margin: 6px 0 0;
-    /* 12px é o PISO do portão (	iny-text reprova abaixo disso). Estava 0.6875rem = 11px. */
+    margin: 0.375rem 0 0;
+    /* 12px é o PISO do portão (`tiny-text` reprova abaixo disso). */
     font-size: 0.75rem;
     line-height: 1.45;
     color: var(--color-ink-2);
@@ -828,12 +624,12 @@
   .auth-card__consents {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.5rem;
   }
   .auth-card__consent {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 0.5rem;
     font-size: 0.8125rem;
     line-height: 1.45;
     color: var(--color-ink-2);
@@ -847,10 +643,10 @@
   .auth-card__row {
     display: flex;
     justify-content: flex-end;
-    margin: 12px 0 16px;
+    margin: 0.75rem 0 1rem;
   }
   .auth-card__link {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--color-primary-ink);
     text-decoration: none;
     cursor: pointer;
@@ -860,9 +656,8 @@
   }
   /**
    * T554 — variante para link que é alvo por si só (ex.: "Esqueci minha senha?"), onde
-   * WCAG 2.5.8 pede ≥24px. Não vai na classe base de propósito: os links de
-   * Termos/Privacidade do cadastro são texto inline no meio da frase e têm a exceção da
-   * norma — crescer ali desalinharia a linha com o checkbox.
+   * WCAG 2.5.8 pede ≥24px. Não vai na classe base de propósito: os links de Termos/Privacidade
+   * do cadastro são texto inline no meio da frase e têm a exceção da norma.
    */
   .auth-card__link--target {
     display: inline-flex;
@@ -871,8 +666,8 @@
     padding: 2px 0;
   }
   .auth-card__error {
-    margin-bottom: 16px;
-    padding: 10px 12px;
+    margin-bottom: 1rem;
+    padding: 0.625rem 0.75rem;
     border: 1px solid var(--color-danger-ink);
     border-radius: 10px;
     background: var(--color-danger-surface);
@@ -881,33 +676,44 @@
   }
   .auth-card__submit {
     width: 100%;
-    margin-top: 16px;
-    padding: 13px;
+    /* 44px e não 38: é a ação primária da tela, e alvo pequeno é o defeito mais comum de login */
+    min-height: 44px;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
     border: 0;
     border-radius: 10px;
     background: var(--color-primary);
     color: var(--color-on-primary);
     font-family: var(--font-heading);
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    /* SEM versalete e SEM tracking: eram os dois defeitos do CTA anterior */
+    letter-spacing: 0;
+    text-transform: none;
     cursor: pointer;
     transition: opacity 0.2s ease-out;
   }
   .auth-card__submit:hover {
     opacity: 0.9;
   }
+  .auth-card__submit:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  .auth-card__submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
   .auth-card__divider {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin: 18px 0;
+    gap: 0.75rem;
+    margin: 1.125rem 0;
   }
   .auth-card__divider-line {
     height: 1px;
     flex: 1;
-    background: color-mix(in oklab, var(--color-foreground) 20%, transparent);
+    background: var(--color-border);
   }
   .auth-card__divider-text {
     font-size: 0.75rem;
@@ -916,13 +722,14 @@
   .auth-card__social {
     display: flex;
     width: 100%;
+    min-height: 44px;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 11px;
+    gap: 0.5rem;
+    padding: 0.6875rem;
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    background: var(--color-background);
+    background: var(--color-surface);
     font-size: 0.8125rem;
     color: var(--color-foreground);
     text-decoration: none;
@@ -931,87 +738,16 @@
   .auth-card__social:hover {
     border-color: var(--color-primary);
   }
-  /* Metade de texto: na referência era a foto de montanha com o conteúdo centralizado. Aqui
-     o fundo é o gradiente definido no próprio `.auth-card__pane--hero` (a "foto" é feita de
-     gradiente, sem requisição de imagem) e o conteúdo é o mesmo trio título + apoio + pílula.
-     Os valores `#f9f9f9`/`#212625` são fixos de propósito: esta metade é sempre escura (é a
-     superfície "foto"), então não acompanha o tema. */
-  .auth-card__hero-content {
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 0 32px;
-    text-align: center;
-  }
-  .auth-card__hero-title {
-    margin: 0;
-    font-size: 1.5rem;
-    /* Tinta do painel claro. Era `#f9f9f9`, que existe só para o fundo escuro. */
-    color: var(--color-primary-ink);
-    text-wrap: balance;
-  }
-  .auth-card__hero-text {
-    margin: 0;
-    max-width: 30ch;
-    font-size: 0.875rem;
-    line-height: 1.45;
-    /* `ink-2` em vez de `rgb(249 249 249 / 85%)`: sobre o painel claro o branco a 85% daria
-       ~1,1:1. Medido: `#57534e` sobre `#fdf2f4` = 6,97:1. */
-    color: var(--color-ink-2);
-  }
-  .auth-card__switch {
-    display: inline-block;
-    padding: 12px 40px;
-    /* Botão outline em VINHO. Era `#f9f9f9` em borda, fundo e texto — desenhado para o painel
-       escuro, e no painel claro ficava praticamente invisível (o detector de contraste NÃO pega
-       isso: o texto não é ilegível contra o fundo medido, ele simplesmente não se destaca como
-       controle). Medido sobre `#fdf2f4`: borda e texto `#9f1239` = 7,32:1. */
-    border: 1px solid var(--color-primary-ink);
-    border-radius: 32px;
-    background: transparent;
-    color: var(--color-primary-ink);
-    font-size: 13px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition:
-      background-color 0.3s ease-out,
-      color 0.3s ease-out;
-  }
-  .auth-card__switch:hover {
-    /* Inverte para preenchido. Branco sobre o vinho = 7,18:1. */
-    background: var(--color-primary-ink);
-    color: var(--color-on-primary);
-  }
-  /* Telas de auth sem par de troca (recuperar/redefinir senha): um card de metade única, com
-     a mesma linguagem do card de duas metades. */
-  .auth-single {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    padding: 40px 16px;
-  }
-  .auth-single__card {
-    max-width: 420px;
-  }
-  .auth-single__inner {
-    padding: 32px 28px;
-    background: var(--color-muted);
-    border-radius: 18px;
-  }
-  .auth-single__footer {
-    margin-top: 20px;
-    text-align: center;
-  }
+  /* Saída para a outra tela de auth. Era um `<label>` que acionava o checkbox da troca animada;
+     agora é um link de verdade, que navega, é focável e aparece na lista de links do leitor de
+     tela — o label escondido nunca aparecia. */
+  /* Telas de metade única (recuperar/redefinir senha): mesma casca, sem rodapé de troca. */
   /* Confirmação (recuperar/redefinir senha). Sobre a superfície de sucesso, `foreground` dá
      17,19:1 e `success-ink` daria 5,63:1 — os dois passam, e `foreground` é o que mantém o
      texto de confirmação legível como texto normal, não como texto colorido de estado. */
   .auth-card__success {
-    margin-bottom: 16px;
-    padding: 10px 12px;
+    margin-bottom: 1rem;
+    padding: 0.625rem 0.75rem;
     border: 1px solid var(--color-success-ink);
     border-radius: 10px;
     background: var(--color-success-surface);
@@ -1041,7 +777,7 @@
      overlay "pisca"; mais lento, o usuário de teclado espera por uma animação que ele já
      dispensou ao digitar.
      Só `opacity` e `transform`: nenhuma das duas anima layout, então não há reflow por frame —
-     que é a mesma regra que o `.auth-card__pane` segue e o que o portão de movimento cobra. */
+     que é a mesma regra que o portão de movimento cobra. */
   .palette-in {
     animation: fadeIn 0.18s ease-out forwards;
   }
@@ -1129,5 +865,73 @@
   }
   .print-only {
     display: block !important;
+  }
+}
+
+/* ── FICHA: animação de gráfico ────────────────────────────────────────────────────────────
+   Os keyframes só existem quando o movimento é PERMITIDO. Quem pede menos movimento recebe o
+   desenho final inteiro, parado — não um fade que esconde o dado. É a diferença entre "sem
+   animação" e "sem conteúdo": a primeira é aceitável, a segunda é defeito.
+
+   Cada animação repete o significado do gráfico:
+     barras crescem do eixo (scaleY de 0 a 1) — a ordem de aparecimento é a ordem de leitura;
+     linha desenha com `stroke-dashoffset` — a linha sendo desenhada É a série temporal;
+     rosca aparece em sequência — a proporção é construída, não revelada de surpresa.
+
+   Todas rodam UMA vez (`both`, sem `infinite`). Dado não fica pulsando: pulsação é enfeite e
+   compete com a leitura. Durações abaixo de 900ms, com a curva `ease-out` forte do sistema.
+   A curva que começa devagar está proibida: ela atrasa justamente o primeiro quadro, que é o
+   que o olho acompanha — e o portão `ui:audit:ci` reprova. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ficha-grow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes ficha-grow-h {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes ficha-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ficha-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .ficha-bar {
+    animation: ficha-grow 520ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .ficha-bar-h {
+    animation: ficha-grow-h 520ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    transform-origin: left center;
+  }
+  .ficha-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: ficha-draw 700ms cubic-bezier(0.77, 0, 0.175, 1) 120ms forwards;
+  }
+  .ficha-dot {
+    animation: ficha-fade-in 200ms ease-out both;
+  }
+  .ficha-arc {
+    animation: ficha-fade-in 420ms ease-out both;
   }
 }

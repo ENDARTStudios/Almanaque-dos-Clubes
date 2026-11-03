@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
+import { getDictionary } from '@/i18n/getDictionary';
 import RankingsTable from '@/components/RankingsTable';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { metadataStrings } from '@/i18n/wsMetadata';
@@ -14,10 +15,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.title, description: t.description };
 }
 
-export default function RankingsPage() {
+export default async function RankingsPage() {
+  // o dicionário era resolvido dentro do PageHeading (Client Component). O FichaHead é Server e
+  // recebe strings, então o locale é lido aqui — o mesmo cookie do generateMetadata.
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading titleKey="pages.rankings.title" subtitleKey="pages.rankings.subtitle" />
+      <FichaHead title={dict.pages.rankings.title} subtitle={dict.pages.rankings.subtitle} />
       <RankingsTable />
     </div>
   );

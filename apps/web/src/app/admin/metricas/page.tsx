@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/Provider';
 import MetricsCharts from './MetricsCharts';
 import { adminMetricsStrings } from './strings';
 import type { AdminMetricsPayload } from './types';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 /**
  * Painel de MÉTRICAS do admin (/admin/metricas).
@@ -27,11 +28,30 @@ function KpiCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-function MetricRow({ label, value }: { label: string; value: number }) {
+/**
+ * Data de última escrita no locale do usuário; `null` vira travessão — lacuna
+ * declarada, nunca "agora" inventado.
+ */
+function fmtDate(iso: string | null, locale: string): string {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    });
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+function MetricRow({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-t border-border/50 py-1.5 first:border-t-0">
       <dt className="text-sm text-foreground/70">{label}</dt>
-      <dd className="text-sm font-medium text-foreground tabular-nums">{value.toLocaleString()}</dd>
+      <dd className="text-sm font-medium text-foreground tabular-nums">
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </dd>
     </div>
   );
 }
@@ -92,7 +112,7 @@ function MetricsPanel() {
     );
   }
 
-  const { acervo, cobertura, filaPorChave, produto, series } = data;
+  const { acervo, cobertura, filaPorChave, produto, series, frescura } = data;
 
   return (
     <div className="space-y-8">
@@ -143,6 +163,15 @@ function MetricsPanel() {
             <MetricRow label={s.acervo.seasons} value={acervo.seasons} />
             <MetricRow label={s.acervo.seasonsWithChampion} value={acervo.seasonsWithChampion} />
             <MetricRow label={s.acervo.rankings} value={acervo.rankings} />
+            <MetricRow label={s.acervo.rankingsClub} value={acervo.rankingsByType.club ?? 0} />
+            <MetricRow label={s.acervo.rankingsPlayer} value={acervo.rankingsByType.player ?? 0} />
+            {/* Zero aqui NÃO é estado vazio bonito: é lacuna de acervo declarada
+                (em 2026-11 o ranking de jogador estava zerado após uma rodada). */}
+            {(acervo.rankingsByType.player ?? 0) === 0 && (
+              <p className="mt-2 text-xs text-warn-ink" data-testid="rankings-player-gap">
+                {s.rankingsPlayerGap}
+              </p>
+            )}
           </dl>
         </section>
 
@@ -160,6 +189,49 @@ function MetricsPanel() {
             <MetricRow label={s.produto.planPro} value={produto.subscriptionsByPlan.PRO ?? 0} />
             <MetricRow label={s.produto.planElite} value={produto.subscriptionsByPlan.ELITE ?? 0} />
           </dl>
+        </section>
+
+        {/* Frescor — a automação está escrevendo? (KPI declarado, não inferido) */}
+        <section className="rounded-xl border border-border bg-muted p-5">
+          <h2 className="mb-1 text-lg font-heading font-semibold text-foreground">
+            {s.frescuraTitle}
+          </h2>
+          <p className="mb-3 text-sm text-foreground/70">{s.frescuraNote}</p>
+          <dl>
+            <MetricRow label={s.frescura.clubs} value={fmtDate(frescura.clubsLastWrite, locale)} />
+            <MetricRow
+              label={s.frescura.players}
+              value={fmtDate(frescura.playersLastWrite, locale)}
+            />
+            <MetricRow
+              label={s.frescura.matches}
+              value={fmtDate(frescura.matchesLastWrite, locale)}
+            />
+            <MetricRow
+              label={s.frescura.rankings}
+              value={fmtDate(frescura.rankingsLastWrite, locale)}
+            />
+          </dl>
+          <p className="mt-2 flex flex-wrap gap-2 text-xs">
+            <span
+              className={
+                frescura.schedulerEnabled
+                  ? 'rounded-full bg-success-surface px-2 py-0.5 text-success-ink'
+                  : 'rounded-full bg-danger-surface px-2 py-0.5 text-danger-ink'
+              }
+            >
+              {frescura.schedulerEnabled ? s.frescura.schedulerOn : s.frescura.schedulerOff}
+            </span>
+            <span
+              className={
+                frescura.incrementalWrites
+                  ? 'rounded-full bg-success-surface px-2 py-0.5 text-success-ink'
+                  : 'rounded-full bg-warn-surface px-2 py-0.5 text-warn-ink'
+              }
+            >
+              {frescura.incrementalWrites ? s.frescura.writesOn : s.frescura.writesOff}
+            </span>
+          </p>
         </section>
 
         {/* Cobertura — clubes */}
@@ -229,7 +301,7 @@ export default function AdminMetricsPage() {
           ferramenta que a pessoa não podia abrir. O gate tem de vir ANTES de qualquer coisa que
           prometa acesso. */}
       <OperatorGate>
-        <h1 className="text-3xl font-heading font-bold text-foreground sm:text-4xl">{s.title}</h1>
+        <AdminHeading title={s.title} />
         <p className="mt-1 mb-8 text-foreground/60">{s.subtitle}</p>
         <MetricsPanel />
       </OperatorGate>

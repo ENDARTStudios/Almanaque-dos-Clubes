@@ -169,7 +169,33 @@ function auditar() {
     )) {
       const alvo = m[1];
       if (ISENCOES_CAMINHO.has(alvo)) continue;
-      if (!existsSync(join(repoRoot, alvo))) {
+      /*
+        ── CAMINHO RELATIVO À SKILL ─────────────────────────────────────────────────────────
+        Skills vendorizadas documentam seus próprios utilitários como `scripts/x.py`, relativo
+        ao diretório da SKILL — o próprio `SKILL.md` do logo-design diz: "All scripts ... live in
+        the `scripts/` folder next to this SKILL.md".
+
+        O audit resolvia SEMPRE contra a raiz do repositório e acusava seis scripts inexistentes
+        que EXISTEM em `plugins/almanaque-design/skills/logo-design/scripts/`. Falso positivo no
+        gate que existe justamente para pegar instrução falsa — e um falso positivo desses ensina
+        a ignorar o gate.
+
+        Resolução em ordem: raiz do repo → diretório do arquivo → raiz da SKILL mais próxima
+        (o primeiro ancestral com `SKILL.md`).
+      */
+      const candidatos = [join(repoRoot, alvo), join(repoRoot, dirname(arq), alvo)];
+      let dirDaSkill = dirname(arq);
+      for (;;) {
+        const abs = join(repoRoot, dirDaSkill);
+        if (existsSync(join(abs, 'SKILL.md'))) {
+          candidatos.push(join(abs, alvo));
+          break;
+        }
+        const pai = dirname(dirDaSkill);
+        if (pai === dirDaSkill || dirDaSkill === '.') break;
+        dirDaSkill = pai;
+      }
+      if (!candidatos.some((c) => existsSync(c))) {
         bloqueios.push({
           regra: 'caminho-inexistente',
           arquivo: arq,

@@ -7,6 +7,7 @@ import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { metadataStrings } from '@/i18n/wsMetadata';
 import { wsApoiadoresStrings } from '@/i18n/wsApoiadores';
 import { formatCount } from '@/lib/format';
+import FichaHead from '@/components/ficha/FichaHead';
 
 /**
  * T-28 — /apoiadores: landing de apoio em Gancho → Promessa → PROVA → CTA.
@@ -183,9 +184,7 @@ export default async function ApoiadoresPage() {
         <p className="text-xs font-semibold uppercase tracking-wider text-primary-ink">
           {t.heroEyebrow}
         </p>
-        <h1 className="mt-2 font-heading text-4xl font-bold text-foreground sm:text-5xl">
-          {t.heroTitle}
-        </h1>
+        <FichaHead title={t.heroTitle} />
         {/* PROMESSA — o que a pessoa ganha, simples e direto. */}
         <p className="measure-readable mt-4 text-lg text-foreground/60">{t.heroSubtitle}</p>
         {/* CTA primário — exatamente 1 na dobra. */}

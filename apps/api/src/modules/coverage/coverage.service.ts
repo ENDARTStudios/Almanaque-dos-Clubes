@@ -40,6 +40,8 @@ export interface CoverageRow {
   matchesWithScore: number;
   matchesScheduled: number;
   matchesWithSourceUrl: number;
+  /** Partidas com autores dos gols — é o dado que alimenta o ranking de jogador. */
+  matchesWithScorers: number;
   firstMatchDate: string | null;
   lastMatchDate: string | null;
   lastUpdatedAt: string | null;
@@ -70,6 +72,7 @@ interface RawRow {
   withScore: bigint;
   scheduled: bigint;
   withSourceUrl: bigint;
+  withScorers: bigint;
   firstDate: Date | null;
   lastDate: Date | null;
   updatedAt: Date | null;
@@ -89,6 +92,7 @@ export async function buildCoverageMatrix(pilotOnly = false): Promise<CoverageMa
       COUNT(m."homeScore")::bigint         AS "withScore",
       COUNT(*) FILTER (WHERE m.status = 'SCHEDULED')::bigint   AS scheduled,
       COUNT(*) FILTER (WHERE m."sourceUrl" IS NOT NULL)::bigint AS "withSourceUrl",
+      COUNT(*) FILTER (WHERE m.scorers IS NOT NULL)::bigint     AS "withScorers",
       MIN(m.date)                          AS "firstDate",
       MAX(m.date)                          AS "lastDate",
       MAX(m."updatedAt")                   AS "updatedAt",
@@ -121,6 +125,7 @@ export async function buildCoverageMatrix(pilotOnly = false): Promise<CoverageMa
       matchesWithScore: Number(r.withScore),
       matchesScheduled: Number(r.scheduled),
       matchesWithSourceUrl: Number(r.withSourceUrl),
+      matchesWithScorers: Number(r.withScorers),
       firstMatchDate: r.firstDate ? r.firstDate.toISOString().slice(0, 10) : null,
       lastMatchDate: r.lastDate ? r.lastDate.toISOString().slice(0, 10) : null,
       lastUpdatedAt: r.updatedAt ? r.updatedAt.toISOString() : null,
@@ -150,7 +155,7 @@ export function renderMarkdown(m: CoverageMatrix): string {
     '|---|---|---|---|---|---|---|---|---|---|';
   const lines = m.rows.map(
     (r) =>
-      `| ${r.competitionName ?? '(sem competição)'} | ${r.qid ?? '—'} | ${r.year} | ${r.matchesTotal} | ${r.matchesWithScore} | ${r.matchesScheduled} | ${r.matchesWithSourceUrl} | ${r.sources.join('/') || '—'} | ${r.rankings} | ${r.lastUpdatedAt ?? '—'}${r.stale ? ' ⚠️ stale' : ''} |`,
+      `| ${r.competitionName ?? '(sem competição)'} | ${r.qid ?? '—'} | ${r.year} | ${r.matchesTotal} | ${r.matchesWithScore} | ${r.matchesWithScorers} | ${r.matchesScheduled} | ${r.matchesWithSourceUrl} | ${r.sources.join('/') || '—'} | ${r.rankings} | ${r.lastUpdatedAt ?? '—'}${r.stale ? ' ⚠️ stale' : ''} |`,
   );
   return [head, ...lines].join('\n');
 }
