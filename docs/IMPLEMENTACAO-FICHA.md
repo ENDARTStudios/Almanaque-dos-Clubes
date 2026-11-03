@@ -216,9 +216,27 @@ produção quebrado":
 | 2     | `rls-sessions-policies`: `sessions` tem **RLS FORÇADO**, então o `DELETE` do fixture (sem contexto) apagava ZERO — resíduo acumulava e o INSERT batia em restrição única | limpar com `role = SERVICE` e por `userId`  |
 | 1     | `enrich-media-service`: o mock devolvia sempre a entidade do clube, qualquer que fosse o id pedido em LOTE                                                               | responder um id por id PEDIDO               |
 
-**A lição comum: o banco de teste é stateful.** Três das quatro correções foram de ISOLAMENTO, não
-de lógica. Um teste que depende de estado acumulado mente sobre o código — e o número de falhas
-varia entre execuções justamente por isso.
+**A lição comum: cache de chave FIXA + teste que cria dado = teste que mente.** `legends` e
+`/clubs/geo-stats` guardam o resultado em chave fixa com TTL; o teste cria o fixture e lê o
+retrato de um banco SEM o fixture. Passava sozinho e falhava na suíte completa.
+
+E uma lição sobre relatar: numa rodada a suíte deu **zero** e eu escrevi "de 82 para zero". As
+rodadas seguintes deram 9, 2, 4 — em arquivos DIFERENTES, cada um passando isolado. **Zero de uma
+execução não é propriedade, é foto.** O que se afirma é estabilidade, e estabilidade se mede
+repetindo.
+
+Medido agora, três execuções consecutivas **sem limpar banco nem cache**:
+
+```
+218 arquivos · 1809 testes · 0 falhas
+218 arquivos · 1809 testes · 0 falhas
+218 arquivos · 1809 testes · 0 falhas
+```
+
+Duas tentativas anteriores de "isolar a suíte" falharam e foram revertidas — truncar as tabelas
+após cada arquivo destrói a execução PARALELA (um arquivo trunca enquanto outro roda), e serial +
+truncate passou de 90s para mais de 10min. A solução foi estreita: invalidar a chave de cache
+específica em quem cria fixture sobre endpoint cacheado.
 
 O comando acima está empacotado:
 
