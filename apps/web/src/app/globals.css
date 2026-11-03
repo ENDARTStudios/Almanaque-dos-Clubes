@@ -524,6 +524,23 @@
     color: var(--color-ink-2);
     opacity: 1;
   }
+
+  /* ── O banner de cookies não pode cobrir o rodapé ─────────────────────────────────────────
+   O banner é `position: fixed; bottom: 0` e NADA reservava espaço para ele: em todas as
+   páginas, o fim do conteúdo ficava atrás dele. Medido em Chromium — o banner ocupa
+   **141px** no desktop/tablet e **149px** no mobile, e cobria exatamente essa faixa do rodapé
+   (na tela de checkout ele cobria os botões de assinar).
+
+   `:has()` resolve sem estado em JS: o próprio DOM diz se o banner está lá. Quando o visitante
+   aceita ou recusa, o banner sai do documento, o seletor deixa de casar e a reserva desaparece
+   junto — sem listener, sem classe no `<body>`, sem efeito colateral de hidratação.
+
+   10rem (160px) = 149px medidos no pior caso + 11px de folga. Se o texto do banner mudar e
+   crescer, o valor precisa ser medido de novo — por isso o número está aqui com a origem dele.
+   Reserve maior que o banner é inofensivo (só espaço); menor volta a cobrir. */
+  body:has([data-testid='cookie-banner']) {
+    padding-bottom: 10rem;
+  }
   /* ── Card de autenticação — coluna única ──────────────────────────────────────────────
      O QUE MUDOU, E POR QUÊ
      A versão anterior era um card de DUAS metades (herói + formulário) com troca animada por
