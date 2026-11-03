@@ -66,12 +66,30 @@ for (const p of paginas) {
   const temErroIrmao = existsSync(join(dir, 'error.tsx'));
   const fonteLoading = temLoadingIrmao ? await ler(join(dir, 'loading.tsx')) : '';
   const fonteErro = temErroIrmao ? await ler(join(dir, 'error.tsx')) : '';
+  // A página pode DELEGAR a lista a um componente (CountryIndex, RankingsTable). O vazio
+  // pertence a quem renderiza a lista, não a quem a monta — então a medição segue um nível de
+  // delegação. Sem isso a fase penaliza uma arquitetura que está correta.
+  const importados = [...fonte.matchAll(/from '@\/components\/([\w/]+)'/g)]
+    .map((m) => m[1])
+    .filter((c) => !c.startsWith('ficha/'));
+  let fonteDelegada = '';
+  for (const alvo of importados) {
+    for (const ext of ['.tsx', '.ts']) {
+      const caminho = join(WEB, 'src/components', alvo + ext);
+      if (existsSync(caminho)) {
+        fonteDelegada += await ler(caminho);
+        break;
+      }
+    }
+  }
+  const tudo = fonte + fonteDelegada;
+
   rotas.push({
     rota: rel === '' ? '/' : `/${rel}`,
-    usaFicha: /@\/components\/ficha\//.test(fonte),
-    temVazio: /EmptyState/.test(fonte),
-    temErro: /ErrorState/.test(fonte) || /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro),
-    temLoading: /SkeletonFicha/.test(fonte) || /SkeletonFicha/.test(fonteLoading),
+    usaFicha: /@\/components\/ficha\//.test(tudo),
+    temVazio: /EmptyState/.test(tudo),
+    temErro: /ErrorState/.test(tudo) || /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro),
+    temLoading: /SkeletonFicha/.test(tudo) || /SkeletonFicha/.test(fonteLoading),
     linhas: fonte.split('\n').length,
   });
 }

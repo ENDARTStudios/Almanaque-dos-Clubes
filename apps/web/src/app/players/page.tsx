@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 import CountryIndex from '@/components/CountryIndex';
 import SearchBar from '@/components/SearchBar';
 import { CountryFlag } from '@/components/CountryFlag';
@@ -72,7 +74,11 @@ export default async function PlayersPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading titleKey="pages.players.title" subtitleKey="pages.players.subtitle" />
+      <FichaHead
+        title={dict.pages.players.title}
+        subtitle={dict.pages.players.subtitle}
+        anchor={total != null ? String(total) : undefined}
+      />
       <div className="mb-6">
         <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
       </div>
@@ -119,7 +125,9 @@ export default async function PlayersPage({
           </div>
         </section>
       ) : (
-        <p className="text-center text-foreground/60 py-12">{s.players.empty}</p>
+        <div className="py-8">
+          <EmptyState title={s.players.empty} body={fichaStrings[locale].states.emptyBody} />
+        </div>
       )}
     </div>
   );
