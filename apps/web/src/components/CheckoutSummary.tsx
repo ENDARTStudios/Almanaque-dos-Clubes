@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/Provider';
 import { PLAN_FEATURES } from '@/lib/plan-features';
@@ -18,7 +19,10 @@ export default function CheckoutSummary({
   currency = 'BRL',
   nextChargeMonthlyIso,
   nextChargeYearlyIso,
+  action,
 }: {
+  /** A ACAO de assinar, logo depois do preco e antes das caixas de divulgacao. */
+  action?: ReactNode;
   currency?: BillingCurrency;
   nextChargeMonthlyIso?: string;
   nextChargeYearlyIso?: string;
@@ -88,6 +92,8 @@ export default function CheckoutSummary({
           )}
         {linha(c.renewalLabel, c.renewalValue)}
       </dl>
+
+      {action ? <div className="mb-8">{action}</div> : null}
 
       <div className="rounded-xl border border-border p-6 mb-8 text-sm text-foreground/70">
         <p className="font-semibold text-foreground mb-2">{c.beforeTitle}</p>
