@@ -36,7 +36,8 @@
     "ui:visual": "node plugins/almanaque-design/tools/run.mjs audit",
     "prepare": "husky || exit 0",
     "ficha:status": "node scripts/ficha-status.mjs",
-    "ficha:check": "node scripts/ficha-status.mjs --check"
+    "ficha:check": "node scripts/ficha-status.mjs --check",
+    "ficha:verify:api": "node scripts/verify-api.mjs"
   },
   "onlyBuiltDependencies": [
     "argon2",
