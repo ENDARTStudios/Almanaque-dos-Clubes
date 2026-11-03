@@ -32,6 +32,8 @@ export interface Dictionary {
     shortClubs: string;
     shortPlayers: string;
     shortRankings: string;
+    /** Rótulo curto de /compare na barra (o conceito FICHA lista "Comparar" como destino). */
+    compare: string;
     search: string;
     login: string;
     dashboard: string;
@@ -180,11 +182,13 @@ export interface Dictionary {
     };
   };
   home: {
+    heroKicker: string;
     heroTitle: string;
     heroTitleAccent: string;
     heroSubtitle: string;
     ctaSearch: string;
     ctaRegister: string;
+    exploreNoAccount: string;
     stats: {
       clubs: string;
       players: string;
@@ -192,13 +196,18 @@ export interface Dictionary {
       matches: string;
       rankings: string;
     };
+    statsNote: string;
     explore: {
       label: string;
       title: string;
       clubs: string;
       competitions: string;
+      players: string;
       rankings: string;
+      legends: string;
+      legendsNote: string;
       map: string;
+      mapNote: string;
       compare: string;
       inArchive: string;
       worldwide: string;

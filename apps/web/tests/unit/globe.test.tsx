@@ -89,6 +89,19 @@ describe('Globe', () => {
     }
   });
 
+  it('nenhuma elipse tem semi-eixo NEGATIVO (o atributo é recusado e a linha some)', () => {
+    // O paralelo do hemisfério sul nasceu com ry negativo e o Chromium simplesmente NÃO
+    // desenhava a linha — erro de console, globo com metade dos paralelos. Sem o valor
+    // absoluto o defeito é invisível para o typecheck.
+    const { container } = render(<Globe />);
+    const elipses = container.querySelectorAll('ellipse');
+    expect(elipses.length).toBeGreaterThan(0);
+    for (const e of elipses) {
+      expect(Number(e.getAttribute('rx'))).toBeGreaterThanOrEqual(0);
+      expect(Number(e.getAttribute('ry'))).toBeGreaterThanOrEqual(0);
+    }
+  });
+
   it('usa o token de acento nos gomos, não um hex cru', () => {
     const { container } = render(<Globe />);
     const html = container.innerHTML;
