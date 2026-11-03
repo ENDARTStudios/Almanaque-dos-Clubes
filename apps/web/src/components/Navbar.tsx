@@ -147,15 +147,19 @@ export default function Navbar() {
   ];
 
   // Destinos globais, em ordem de uso. Cada um tem rótulo curto (barra) e completo (painel).
+  // Ordem do conceito FICHA (quadro `home`): Competições · Clubes · Jogadores · Rankings ·
+  // Mapa · Lendas · Comparar. Mapa antes de Lendas e Comparar como destino de primeira classe —
+  // é a ordem em que os destinos aparecem na topbar desenhada, e a barra é a assinatura da marca.
   const plainLinks = [
     { href: '/players', label: t('nav.shortPlayers'), full: t('nav.players') },
     { href: '/rankings', label: t('nav.shortRankings'), full: t('nav.rankings') },
+    { href: '/map', label: t('nav.map'), full: t('nav.map') },
     {
       href: '/legends',
       label: wsLegendsStrings[locale].nav.short,
       full: wsLegendsStrings[locale].nav.full,
     },
-    { href: '/map', label: t('nav.map'), full: t('nav.map') },
+    { href: '/compare', label: t('nav.compare'), full: t('nav.compare') },
   ];
 
   /**
