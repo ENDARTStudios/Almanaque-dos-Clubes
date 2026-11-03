@@ -176,6 +176,34 @@ for (const p of paginas) {
   const ehDocumentoEstatico = /ContentDocument|LegalDocument/.test(tudo) || !buscaDado;
 
   const rotaAtual = rel === '' ? '/' : `/${rel}`;
+  // ── FALHA vs VAZIO ───────────────────────────────────────────────────────────────────────
+  // Uma rota que BUSCA dado e só tem EmptyState apresenta "não foi possível saber" como "não há".
+  // Foi o defeito de /competitions, /players e /matches (com a API fora), e o mesmo raciocínio
+  // vale para as fichas: 404 falso. O portão exige ErrorState em quem busca dado.
+  const buscaDadoRota =
+    /fetch\(|fetchJson|getApiBase|api\.get|useEffect/.test(tudo) ||
+    /fetch\(|fetchJson|getApiBase|api\.get/.test(fonteLayouts);
+  // "tem superfície de erro" = ErrorState direto, OU o DetailUnavailable (que o contém e é
+  // delegado justamente para isso), OU o padrão `role="alert"` que os painéis de admin usam.
+  // Sem incluir a delegação de `ficha/`, toda ficha que corrigi aparecia como falsa positiva.
+  let fontesFicha = '';
+  for (const alvo of [...fonte.matchAll(/from '@\/components\/(ficha\/[\w/]+)'/g)].map(
+    (m) => m[1],
+  )) {
+    for (const ext of ['.tsx', '.ts']) {
+      const caminho = join(WEB, 'src/components', alvo + ext);
+      if (existsSync(caminho)) {
+        fontesFicha += await ler(caminho);
+        break;
+      }
+    }
+  }
+  const trataFalha =
+    /ErrorState/.test(tudo) ||
+    /DetailUnavailable/.test(tudo) ||
+    /role="alert"/.test(tudo) ||
+    /ErrorState|role="alert"/.test(fontesFicha);
+
   rotas.push({
     rota: rotaAtual,
     usaFicha: /@\/components\/ficha\//.test(tudo),
@@ -185,6 +213,8 @@ for (const p of paginas) {
       /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro) ||
       raizTemErro,
     temLoading: /SkeletonFicha/.test(tudo) || /SkeletonFicha/.test(fonteLoading) || raizTemLoading,
+    buscaDado: buscaDadoRota,
+    trataFalha,
     linhas: fonte.split('\n').length,
   });
 }
@@ -223,6 +253,29 @@ const semTeste = componentes.filter((c) => !c.testado);
 const semUso = componentes.filter((c) => !c.usado);
 const migradas = rotas.filter((r) => r.usaFicha).length;
 
+const EXCECOES_FALHA = new Set([
+  // o redirect não busca nada; fica fora por não ter UI
+  '/favoritos',
+  // A HOME e os painéis abaixo tratam a falha por SUPERFÍCIE PRÓPRIA, não pelo componente:
+  // a home cai para contagens nulas, /clubs declara a lacuna no subtítulo (`loadError`), e
+  // /admin/* usam cartões de estado com o zero no KPI. O critério do portão é "existe onde a
+  // falha aparecer" — e existe; só não é o ErrorState.
+  '/',
+  '/clubs',
+  '/apoiadores',
+  '/admin',
+  '/dashboard/subscription',
+]);
+
+const semFalha = rotas.filter(
+  (r) =>
+    r.buscaDado &&
+    !r.trataFalha &&
+    !EXCECOES_FALHA.has(r.rota) &&
+    r.rota !== '/auth/login' &&
+    r.rota !== '/auth/register',
+);
+
 const fases = [
   {
     id: 'F0',
@@ -254,6 +307,22 @@ const fases = [
     pronta: migradas >= Math.ceil(rotas.length / 2),
     detalhe: `${migradas}/${Math.ceil(rotas.length / 2)} telas usando o sistema (de ${rotas.length})`,
   },
+  {
+    id: 'F6',
+    /**
+     * FALHA ≠ VAZIO. Uma rota que busca dado e não tem `ErrorState` apresenta "não foi possível
+     * saber" com a mesma cara de "não há". Foi o defeito de `/competitions`, `/players` e
+     * `/matches` — vistos com a API fora — e a mesma família do 404 falso nas fichas.
+     *
+     * O portão NÃO tenta adivinhar a intenção do código: exige que exista uma superfície de erro
+     * em quem busca dado. Exceções são declaradas com motivo, como as de vazio.
+     */
+    nome: 'Falha tratada em quem busca dado',
+    pronta: semFalha.length === 0,
+    detalhe:
+      `${rotas.filter((r) => r.buscaDado && r.trataFalha).length}/${rotas.filter((r) => r.buscaDado).length} rotas que buscam dado têm ErrorState` +
+      (semFalha.length ? ` (sem: ${semFalha.map((r) => r.rota).join(', ')})` : ''),
+  },
 ];
 
 const resultado = {
@@ -262,6 +331,7 @@ const resultado = {
     migradas,
     // a lista explícita evita que eu tenha de adivinhar qual rota está faltando
     migradasSemVazio: rotas.filter((r) => r.usaFicha && !r.temVazio).map((r) => r.rota),
+    semTratamentoDeFalha: semFalha.map((r) => r.rota),
   },
   componentes: {
     total: componentes.length,

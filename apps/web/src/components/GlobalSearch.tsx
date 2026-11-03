@@ -182,8 +182,10 @@ export default function GlobalSearch() {
 
       <div id="global-search-results" aria-live="polite" className="mt-6">
         {state === 'loading' && <p className="text-sm text-foreground/70">{s.loading}</p>}
+        {/* `role="alert"`: o erro aparecia na tela e NÃO era anunciado — um leitor de tela só
+            descobre região viva se ela se declara. */}
         {state === 'error' && (
-          <p className="text-sm text-danger-ink" data-testid="search-error">
+          <p role="alert" className="text-sm text-danger-ink" data-testid="search-error">
             {s.error}
           </p>
         )}

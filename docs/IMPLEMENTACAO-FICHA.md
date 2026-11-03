@@ -48,6 +48,7 @@ F0 Fundação .......................... ✓ 13/13
 F0b Componentes em uso ............... ✓ 13/13
 F1 Estados ........................... ✓ 54/54
 F2 Migração das telas ................ ✓ 54/55
+F6 Falha tratada em quem busca dado .. ✓ 33/39 (+6 declaradas)
 ```
 
 ---
@@ -106,6 +107,22 @@ Resta **uma** rota fora, e ela não tem UI:
 | Rota         | Por que fica fora                                                    |
 | ------------ | -------------------------------------------------------------------- |
 | `/favoritos` | é um `redirect('/dashboard')` — T597 integrou os favoritos ao painel |
+
+### F6 · Falha tratada em quem busca dado — ✓ CONCLUÍDA
+
+Uma rota que busca dado e só tem `EmptyState` apresenta **"não foi possível saber"** com a mesma
+cara de **"não há"**. Esse defeito apareceu em três telas (`/competitions`, `/players`, `/matches`)
+quando a API caiu, e a mesma família inclui o **404 falso** das fichas de detalhe e a mensagem da
+fronteira de erro culpando a origem.
+
+| #    | Item                                                                       | Portão         |
+| ---- | -------------------------------------------------------------------------- | -------------- |
+| F6.1 | Rota que busca dado tem superfície de erro                                 | `ficha:status` |
+| F6.2 | 404 só quando a origem DISSE 404 (`null`), não quando falhou (`undefined`) | teste          |
+
+**Exceções declaradas** (a falha tem onde aparecer, só não é o `ErrorState`): `/` (contagens
+caem para nulo), `/clubs` (declara a lacuna no subtítulo), `/apoiadores`, `/admin`,
+`/dashboard/subscription`.
 
 ### F3 · Superfícies que não existiam — ✓ CONCLUÍDA
 
@@ -214,6 +231,20 @@ carregou bronze pintado de ouro. Extrair é pré-requisito de testar, não refac
 `@playwright/test` está instalado e os navegadores baixados. Renderizar um SVG/rota e **ver** o
 resultado custa um comando e pega o que nenhum teste de tipo pega. Foi assim que o globo foi
 recusado na primeira versão.
+
+### Quando a falha for confundida com ausência
+
+Pergunta obrigatória em todo carregador que fala com a API: **"o que esta tela mostra quando a
+consulta falha?"** Se a resposta for a mesma coisa que ela mostra quando não há dado, o defeito
+já existe — só não apareceu porque a origem estava de pé.
+
+Três formas distintas, três resultados distintos:
+
+| Resultado   | Significa                  | A tela                             |
+| ----------- | -------------------------- | ---------------------------------- |
+| valor       | existe                     | renderiza                          |
+| `null`      | a origem DISSE que não há  | `EmptyState` / `notFound()`        |
+| `undefined` | não foi possível perguntar | `ErrorState` / `DetailUnavailable` |
 
 ### Quando um item revelar um bug
 
