@@ -91,7 +91,6 @@ function pontosDoCouro(rotacao: number, total = 320): Array<[number, number]> {
   for (let i = 0; i < total; i++) {
     // amostragem uniforme na esfera
     const y = 1 - (i / (total - 1)) * 2;
-    const raioNoParalelo = Math.sqrt(Math.max(0, 1 - y * y));
     const theta = i * Math.PI * (3 - Math.sqrt(5));
     const lat = (Math.asin(y) * 180) / Math.PI;
     const lon = ((theta * 180) / Math.PI) % 360;
@@ -148,7 +147,11 @@ export default function Globe({ size = 220, opacity = 0.5, className }: GlobePro
           />
         ))}
 
-        {/* paralelos: elipses cujo centro sobe com a latitude */}
+        {/* paralelos: elipses cujo centro sobe com a latitude.
+            O semi-eixo VERTICAL é |R·cosφ·sinφ|: sem o valor absoluto, o paralelo do
+            hemisfério SUL nasce com `ry` negativo — o Chromium recusa o atributo e a linha
+            simplesmente não é desenhada (era o erro de console que o globo da home expôs).
+            Um globo com metade dos paralelos é um globo errado. */}
         {PARALELOS.map((lat) => {
           const f = (lat * Math.PI) / 180;
           return (
@@ -157,7 +160,7 @@ export default function Globe({ size = 220, opacity = 0.5, className }: GlobePro
               cx={CX}
               cy={CY - R * Math.sin(f)}
               rx={R * Math.cos(f)}
-              ry={R * Math.cos(f) * Math.sin(f)}
+              ry={Math.abs(R * Math.cos(f) * Math.sin(f))}
               fill="none"
               stroke="currentColor"
               strokeWidth={0.8}
