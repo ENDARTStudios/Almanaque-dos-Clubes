@@ -273,8 +273,8 @@ def v3_lendas():
            ("Público", "14", NIGHT_INK3), ("Outros", "13", NIGHT_BORDER)]
     for i, (rot, val, cor) in enumerate(leg):
         rect(f"l/g3/l{i}/b", M + 1100, gy + 74 + i * 22, 10, 10, fill=cor)
-        txt(f"l/g3/l{i}/r", rot, M + 1118, gy + 72 + i * 22, 120, 10, NIGHT_INK2, BODY)
-        num(f"l/g3/l{i}/v", val, M + 1240, gy + 70 + i * 22, 12, NIGHT_INK, 40)
+        txt(f"l/g3/l{i}/r", rot, M + 1118, gy + 72 + i * 22, 84, 10, NIGHT_INK2, BODY)
+        num(f"l/g3/l{i}/v", val, M + 1206, gy + 70 + i * 22, 12, NIGHT_INK, 40, align="left")
 
     # RECORDES em cartões
     ry = gy + 232

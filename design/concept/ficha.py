@@ -870,6 +870,47 @@ def p_admin():
     provenance("Admin não é vitrine: sem faixa escura, sem número-âncora. Mesmos tokens, mesma régua tipográfica, densidade maior.", 900)
 
 
+# ══ NORMALIZADOR ══════════════════════════════════════════════════════════════════════════
+# A skill design-system-almanaque tem tres regras que eu violei ao desenhar. Em vez de corrigir
+# pagina por pagina (e esquecer algumas), a correcao vive aqui e roda em TODA lista de comandos.
+#
+#   1. `--color-primary` (#be123c) e cor de PREENCHIMENTO. Para TEXTO o token de papel e
+#      `--color-primary-ink` (#9f1239). O proprio skill diz: "text-primary como texto e o defeito".
+#   2. Piso tipografico: nada abaixo de 10px. Eu tinha 12 camadas em 8px e 313 em 9px.
+#   3. Medida de linha: ~68ch para texto corrido. `rem` nao acompanha a fonte, `ch` sim.
+#
+# O normalizador e idempotente e roda antes de cada build — inclusive nos builds futuros.
+CRIMSON_TEXTO = "#9f1239"
+PISO_PX = 10
+MAX_CH = 68
+
+
+def normalizar(cmds):
+    ajustes = {"cor": 0, "tamanho": 0, "medida": 0}
+    for c in cmds:
+        if c["command"] != "text.create":
+            continue
+        props = c["params"].setdefault("props", {})
+        # 1. cor de texto
+        if props.get("fill") == CRIMSON:
+            props["fill"] = CRIMSON_TEXTO
+            ajustes["cor"] += 1
+        # 2. piso de tamanho
+        ts = props.get("fontSize")
+        if isinstance(ts, (int, float)) and ts < PISO_PX:
+            props["fontSize"] = PISO_PX
+            ajustes["tamanho"] += 1
+            ts = PISO_PX
+        # 3. medida de linha (so para corpo de texto, nao para titulo)
+        larg = c["params"].get("width")
+        if isinstance(ts, (int, float)) and 11 <= ts <= 17 and isinstance(larg, (int, float)):
+            limite = MAX_CH * ts * 0.55
+            if larg > limite:
+                c["params"]["width"] = round(limite)
+                ajustes["medida"] += 1
+    return ajustes
+
+
 PAGES = [
     ("competicoes", p_competicoes),
     ("clube", p_clube),
