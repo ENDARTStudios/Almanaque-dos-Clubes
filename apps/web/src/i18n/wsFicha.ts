@@ -23,6 +23,13 @@ export interface FichaStrings {
     emptyBody: string;
     errorTitle: string;
     errorBody: string;
+    /**
+     * Fronteira de erro (o componente quebrou), NÃO falha de origem.
+     * `errorBody` diz "a origem não respondeu" — o que é falso quando a exceção veio do próprio
+     * React, e ainda referencia "o número abaixo", que nesse caso não existe.
+     */
+    crashTitle: string;
+    crashBody: string;
     retry: string;
     loading: string;
     loadingChart: string;
@@ -52,6 +59,9 @@ export const fichaStrings: Record<Locale, FichaStrings> = {
       errorTitle: 'Não foi possível carregar',
       errorBody:
         'A origem não respondeu. O número que aparece abaixo é o último que conseguimos verificar.',
+      crashTitle: 'Esta tela falhou ao montar',
+      crashBody:
+        'O erro foi registrado. O identificador abaixo liga esta tela ao log — não é preciso recarregar a página para tentar de novo.',
       retry: 'Tentar de novo',
       loading: 'Carregando',
       loadingChart: 'Montando o gráfico',
@@ -75,6 +85,9 @@ export const fichaStrings: Record<Locale, FichaStrings> = {
         'This list is empty because the archive has no data for this slice. We do not fill it with samples.',
       errorTitle: 'Could not load',
       errorBody: 'The source did not answer. The number below is the last one we could verify.',
+      crashTitle: 'This screen failed to render',
+      crashBody:
+        'The error was recorded. The identifier below links this screen to the log — you do not need to reload to try again.',
       retry: 'Try again',
       loading: 'Loading',
       loadingChart: 'Building the chart',
@@ -98,6 +111,9 @@ export const fichaStrings: Record<Locale, FichaStrings> = {
         'Esta lista está vacía porque el acervo no tiene datos para este recorte. No la rellenamos con ejemplos.',
       errorTitle: 'No se pudo cargar',
       errorBody: 'El origen no respondió. El número de abajo es el último que pudimos verificar.',
+      crashTitle: 'Esta pantalla falló al montarse',
+      crashBody:
+        'El error quedó registrado. El identificador de abajo vincula esta pantalla al registro — no hace falta recargar para intentarlo de nuevo.',
       retry: 'Intentar de nuevo',
       loading: 'Cargando',
       loadingChart: 'Armando el gráfico',
