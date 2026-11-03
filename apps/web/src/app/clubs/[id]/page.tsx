@@ -11,6 +11,10 @@ import FavoriteButton from '@/components/FavoriteButton';
 import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
+import Pillar from '@/components/ficha/Pillar';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
+import { formatCount } from '@/lib/format';
 import { CountryFlag } from '@/components/CountryFlag';
 import ClubTimeline from '@/components/ClubTimeline';
 import { CrestTimeline } from '@/components/CrestTimeline';
@@ -777,10 +781,22 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
 
       {stats && stats.overall.played > 0 ? (
         <Section title={s.statistics} testid="club-statistics">
+          {/* Os quatro pilares do sistema: o resumo antes da tabela. Número em display
+              (font-heading) porque aqui ele é imagem, não dado de tabela. */}
+          <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Pillar label={s.statsPlayed} value={formatCount(stats.overall.played, locale)} />
+            <Pillar label={s.statsWins} value={formatCount(stats.overall.wins, locale)} accent />
+            <Pillar label={s.statsGoalsFor} value={formatCount(stats.overall.goalsFor, locale)} />
+            <Pillar
+              label={s.statsPoints}
+              value={stats.overall.points != null ? formatCount(stats.overall.points, locale) : '—'}
+            />
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse" data-testid="club-stats-overall">
               <thead>
-                <tr className="text-left text-xs text-foreground/70 uppercase tracking-wider">
+                <tr className="text-left text-xs text-ink-3">
                   <th className="py-2 pr-4 font-semibold">&nbsp;</th>
                   <th className="py-2 px-2 font-semibold">{s.statsPlayed}</th>
                   <th className="py-2 px-2 font-semibold">{s.statsWins}</th>
@@ -899,7 +915,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         </Section>
       ) : stats ? (
         <Section title={s.statistics} testid="club-statistics">
-          <p className="text-sm text-foreground/70">{s.statsEmpty}</p>
+          <EmptyState title={s.statsEmpty} body={fichaStrings[locale].states.emptyBody} />
         </Section>
       ) : null}
 
