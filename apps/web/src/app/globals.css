@@ -547,34 +547,6 @@
      O que NÃO mudou: os nomes das classes de formulário (`__field`, `__label`, `__input`,
      `__submit`, `__consent`…). `LoginForm` e `RegisterForm` seguem intocados — reescrever a
      casca não é motivo para mexer em formulário que funciona. */
-  .auth-card {
-    width: 100%;
-    max-width: 26rem;
-    padding: 2rem 1.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    background: var(--color-surface);
-  }
-  .auth-card__title {
-    margin: 0 0 0.5rem;
-    font-family: var(--font-heading);
-    font-size: 1.875rem;
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    /* explícito: o título do card herdava 1.5rem e centralização do molde de duas metades */
-    text-align: left;
-    text-transform: none;
-    color: var(--color-foreground);
-  }
-  .auth-card__subtitle {
-    margin: 0 0 1.75rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    text-align: left;
-    /* `ink-2` e não `foreground/70`: medido, 70% sobre este papel dá 4,13:1 e REPROVA em AA */
-    color: var(--color-ink-2);
-  }
   .auth-card__form {
     display: block;
   }
@@ -748,32 +720,7 @@
   /* Saída para a outra tela de auth. Era um `<label>` que acionava o checkbox da troca animada;
      agora é um link de verdade, que navega, é focável e aparece na lista de links do leitor de
      tela — o label escondido nunca aparecia. */
-  .auth-card__alternate {
-    margin: 1.5rem 0 0;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--color-border);
-    font-size: 0.8125rem;
-    color: var(--color-ink-2);
-    text-align: center;
-  }
   /* Telas de metade única (recuperar/redefinir senha): mesma casca, sem rodapé de troca. */
-  .auth-single {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-  }
-  .auth-single__card {
-    max-width: 26rem;
-  }
-  .auth-single__inner {
-    display: block;
-  }
-  .auth-single__footer {
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
-    text-align: center;
-  }
   /* Confirmação (recuperar/redefinir senha). Sobre a superfície de sucesso, `foreground` dá
      17,19:1 e `success-ink` daria 5,63:1 — os dois passam, e `foreground` é o que mantém o
      texto de confirmação legível como texto normal, não como texto colorido de estado. */

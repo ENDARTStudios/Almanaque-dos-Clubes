@@ -1,13 +1,17 @@
 import type { ReactNode } from 'react';
+import AuthShell from '@/components/ficha/AuthShell';
 
 /**
- * Painel de autenticação de METADE ÚNICA — para as telas que não têm par de troca
- * (`/auth/forgot-password` e `/auth/reset-password/[token]`).
+ * Telas de auth SEM par de troca — recuperar e redefinir senha.
  *
- * Reaproveita as classes internas do `AuthCard` (título, campos, botão), então as quatro telas
- * de auth usam exatamente a mesma linguagem visual. O que este componente NÃO tem: o toggle,
- * a metade de texto e o gradiente — não há o que trocar nessas telas, e um card com metade
- * decorativa vazia seria só peso.
+ * ── POR QUE ELE AINDA EXISTE, SE O `AuthShell` FAZ O TRABALHO ─────────────────────────────
+ * As quatro telas de auth compartilham a MESMA casca (`AuthShell`); o que muda é o rodapé. No
+ * login/cadastro o rodapé leva à outra tela do par; aqui ele leva de volta ao login. Este
+ * componente existe para que as duas páginas de senha não repitam o mesmo `<AuthShell
+ * footer={…}>` — e para que, se o rodapé dessas telas mudar, mude em um lugar.
+ *
+ * Antes ele montava a própria casca com `auth-single*` e `auth-card__title` em CSS próprio.
+ * Agora delega ao componente do sistema: a mesma peça, um desenho só.
  */
 export function AuthPanel({
   title,
@@ -21,16 +25,9 @@ export function AuthPanel({
   footer?: ReactNode;
 }) {
   return (
-    <div className="auth-single">
-      <div className="auth-card auth-single__card">
-        <div className="auth-single__inner">
-          <h1 className="auth-card__title">{title}</h1>
-          {subtitle && <p className="auth-card__subtitle">{subtitle}</p>}
-          {children}
-          {footer && <div className="auth-single__footer">{footer}</div>}
-        </div>
-      </div>
-    </div>
+    <AuthShell title={title} subtitle={subtitle} footer={footer}>
+      {children}
+    </AuthShell>
   );
 }
 

@@ -30,7 +30,10 @@ Duas regras do medidor que **não** são detalhe de implementação:
 1. **A medição segue UM NÍVEL de delegação.** A página pode delegar a lista a um componente
    (`CountryIndex`, `RankingsTable`, `GlobalSearch`). O vazio pertence a quem RENDERIZA a lista,
    não a quem a monta. Sem isso o critério reprova uma arquitetura que está correta.
-2. **O Next herda fronteiras por segmento.** `app/error.tsx` cobre toda rota abaixo dele que não
+2. **O visual pode vir do LAYOUT do segmento.** `/auth/login` é só uma guarda de sessão; o card
+   inteiro vem de `app/auth/layout.tsx`. Ler só o `page.tsx` dizia que a rota estava fora do
+   sistema quando o componente dela É do sistema.
+3. **O Next herda fronteiras por segmento.** `app/error.tsx` cobre toda rota abaixo dele que não
    definir a própria — um arquivo cobre 39 rotas. Contar só o arquivo irmão subestimaria a
    cobertura.
 
@@ -38,13 +41,13 @@ Duas regras do medidor que **não** são detalhe de implementação:
 
 ```
 rotas ................................ 55
-usando o sistema FICHA ............... 49 (89%)
-componentes .......................... 12 · 12 com teste · 12 em uso
-estados: vazio 49/49 migradas · erro 55/55 · carregando 55/55
-F0 Fundação .......................... ✓ 12/12
-F0b Componentes em uso ............... ✓ 12/12
-F1 Estados ........................... ✓ 49/49
-F2 Migração das telas ................ ✓ 49/55
+usando o sistema FICHA ............... 54 (98%)
+componentes .......................... 13 · 13 com teste · 13 em uso
+estados: vazio 54/54 migradas · erro 55/55 · carregando 55/55
+F0 Fundação .......................... ✓ 13/13
+F0b Componentes em uso ............... ✓ 13/13
+F1 Estados ........................... ✓ 54/54
+F2 Migração das telas ................ ✓ 54/55
 ```
 
 ---
@@ -86,13 +89,23 @@ exceção silenciosa é dívida escondida:
 
 ### F2 · Migração das telas — ✓ CONCLUÍDA (49/55)
 
-Todas as telas de dado migraram. As 6 restantes são **decisão**, não pendência:
+Todas as telas de dado migraram. **As telas de auth também** — e vale registrar por que isso
+mudou, porque a primeira versão deste documento as declarava "fora por decisão":
 
-| Rota                                                                                        | Por que fica fora                                                                                                                       |
-| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `/auth/login` · `/auth/register` · `/auth/forgot-password` · `/auth/reset-password/[token]` | card centralizado `auth-card__*`; um cabeçalho de página dentro de um card de 400px quebraria o layout — e o conceito não desenhou auth |
-| `/checkout`                                                                                 | fluxo de compra: composição própria, sem título de página                                                                               |
-| `/favoritos`                                                                                | é um redirect; não tem UI                                                                                                               |
+> A decisão era de quem escrevia o documento, não do projeto. "O conceito não desenhou auth" não é
+> um veredito: é a descrição de uma lacuna. Lacuna se preenche.
+
+O que foi feito: as quatro telas foram redesenhadas em coluna única e a casca virou
+`components/ficha/AuthShell` — antes eram `auth-card__*` em CSS próprio, uma ilha fora do sistema.
+Os três defeitos que o screenshot revelou (vazio de 240px no login, CTA em versalete, metade da
+tela vendendo) estão no commit do redesenho. O `/checkout` já tinha `<h1>`: passou a usar
+`FichaHead`.
+
+Resta **uma** rota fora, e ela não tem UI:
+
+| Rota         | Por que fica fora                                                    |
+| ------------ | -------------------------------------------------------------------- |
+| `/favoritos` | é um `redirect('/dashboard')` — T597 integrou os favoritos ao painel |
 
 ### F3 · Superfícies que não existiam — ✓ CONCLUÍDA
 

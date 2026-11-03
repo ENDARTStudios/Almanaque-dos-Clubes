@@ -66,6 +66,11 @@ const EXCECOES_VAZIO = new Map([
   ['/apoiadores', 'busca CONTAGENS para a prova do acervo, não uma lista'],
   // Painéis de operação: o "vazio" deles já é expresso como ZERO no KPI ou no cartão de estado,
   // que é uma leitura melhor que uma caixa dizendo "nada aqui" num painel de trabalho.
+  // Formulário de entrada não tem lista: um campo em branco é o ESTADO NORMAL da tela, não uma
+  // lacuna a declarar. Um "vazio" aqui seria uma caixa dizendo "nada aqui" em cima de um
+  // formulário que está pedindo a senha.
+  ['/auth/login', 'formulário de entrada: campo em branco é o estado normal, não lacuna'],
+  ['/auth/register', 'formulário de cadastro: campo em branco é o estado normal, não lacuna'],
   ['/direitos-titular', 'documento legal com formulário de requisição: não há lista'],
   [
     '/direitos-autorais',
@@ -131,7 +136,35 @@ for (const p of paginas) {
       }
     }
   }
-  const tudo = fonte + fonteDelegada;
+  // O visual de uma rota pode vir do LAYOUT do segmento, não da página: `/auth/login` é só uma
+  // guarda de sessão, e o card inteiro vem de `app/auth/layout.tsx`. Ler só o `page.tsx` dizia
+  // que essas rotas estavam fora do sistema — quando o componente delas É do sistema.
+  let fonteLayouts = '';
+  {
+    let dir = p;
+    while (dir !== APP && dir !== '.' && dir.length >= APP.length) {
+      for (const nome of ['layout.tsx', 'template.tsx']) {
+        const caminho = join(dir, nome);
+        if (existsSync(caminho)) {
+          const src = await ler(caminho);
+          fonteLayouts += src;
+          for (const m of src.matchAll(/from '@\/components\/([\w/]+)'/g)) {
+            if (m[1].startsWith('ficha/')) continue;
+            for (const ext of ['.tsx', '.ts']) {
+              const c = join(WEB, 'src/components', m[1] + ext);
+              if (existsSync(c)) {
+                fonteLayouts += await ler(c);
+                break;
+              }
+            }
+          }
+        }
+      }
+      dir = join(dir, '..');
+    }
+  }
+
+  const tudo = fonte + fonteDelegada + fonteLayouts;
 
   // Um DOCUMENTO estático (sobre, termos, privacidade) não tem lista nem fetch: o conteúdo é
   // fixo. Exigir EmptyState dele é exigir um estado que não existe — o critério estava errado,

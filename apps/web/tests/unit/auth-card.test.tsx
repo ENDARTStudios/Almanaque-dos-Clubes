@@ -59,7 +59,7 @@ describe('AuthCard — login', () => {
     expect(headings[0].textContent).toBe('Entrar');
 
     // nada de eyebrow acima do título: o h1 é o primeiro nó de texto
-    const card = container.querySelector('.auth-card')!;
+    const card = container.querySelector('[data-testid="auth-shell"]')!;
     const antes = Array.from(card.querySelectorAll('p, span, h2, h3')).filter(
       (el) => (el.compareDocumentPosition(headings[0]) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
     );
