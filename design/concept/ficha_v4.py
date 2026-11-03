@@ -196,7 +196,7 @@ def v4_metodologia():
     rw = CONTENT - 360
 
     # 1. FONTES
-    kicker("m/f/l", "1 · Fontes", rx, y + 10, INK, 700)
+    kicker("m/f/l", "Fontes", rx, y + 10, INK, 700)
     cols = [("Fonte", rx, 240, "left"), ("Licença", rx + 260, 160, "left"),
             ("O que fornece", rx + 440, rw - 440, "left")]
     table_header(cols, y + 34)
@@ -212,7 +212,7 @@ def v4_metodologia():
     # 2. RANKING 0-100 — a fórmula em detalhe
     ry = fy + 20
     rule("m/r/rule", rx, ry, rw, INK, 2)
-    kicker("m/r/l", "2 · Ranking 0-100 por competição e por ano", rx, ry + 12, OCHRE, 700)
+    kicker("m/r/l", "Ranking 0-100 por competição e por ano", rx, ry + 12, OCHRE, 700)
     txt("m/r/t",
         "Cada competição em cada ano recebe uma nota de 0 a 100. A nota não é a posição na tabela: "
         "é a força do torneio naquele ano, para que um título de 1995 possa ser comparado com um de 2025.",
@@ -245,7 +245,7 @@ def v4_metodologia():
     # 3. RANKING DE JOGADORES
     jy = ey + 84
     rule("m/j/rule", rx, jy, rw, INK, 2)
-    kicker("m/j/l", "3 · Ranking 0-100 de jogadores (artilheiros)", rx, jy + 12, OCHRE, 700)
+    kicker("m/j/l", "Ranking 0-100 de jogadores (artilheiros)", rx, jy + 12, OCHRE, 700)
     txt("m/j/t",
         "Para artilheiro, o peso vai em gols por competição ponderada, não em gols brutos — 30 gols "
         "num estadual não valem 30 na Champions.",
@@ -265,7 +265,7 @@ def v4_metodologia():
     # 4. AGREGADO CROSS-DIVISION + 5. ESTADUAIS
     ay = jy2 + 20
     rule("m/a/rule", rx, ay, rw, INK, 2)
-    kicker("m/a/l", "4 · Agregado cross-division · 5 · Conquistas estaduais", rx, ay + 12,
+    kicker("m/a/l", "Agregado cross-division · 5 · Conquistas estaduais", rx, ay + 12,
            OCHRE, 700)
     txt("m/a/t",
         "Três pilotos validam a ponderação entre divisões antes de publicar o agregado nacional:",
@@ -288,7 +288,7 @@ def v4_metodologia():
     # 6. CRITÉRIO DE VERIFICAÇÃO
     vy = py + 84
     rule("m/v/rule", rx, vy, rw, INK, 2)
-    kicker("m/v/l", "6 · Critério de verificação", rx, vy + 12, OCHRE, 700)
+    kicker("m/v/l", "Critério de verificação", rx, vy + 12, OCHRE, 700)
     criterios = [
         ("Duas fontes concordam", "entra sem marcação"),
         ("Duas fontes divergem", "entra com a divergência publicada, nunca a escolhida"),
@@ -305,7 +305,7 @@ def v4_metodologia():
     # 7. DIVERGÊNCIAS
     dy = vy2 + 14
     rule("m/d/rule", rx, dy, rw, INK, 2)
-    kicker("m/d/l", "7 · Divergências entre fontes", rx, dy + 12, CRIMSON, 700)
+    kicker("m/d/l", "Divergências entre fontes", rx, dy + 12, CRIMSON, 700)
     cols_d = [("Dado", rx, 200, "left"), ("Fonte A", rx + 220, 180, "left"),
               ("Fonte B", rx + 410, 180, "left"), ("Publicamos", rx + 600, rw - 600, "left")]
     table_header(cols_d, dy + 36)
@@ -321,7 +321,7 @@ def v4_metodologia():
     ly = dy2 + 18
     rect("m/l/bg", rx - 8, ly, rw + 16, 128, fill=SURFACE_2, cornerRadius=2,
          stroke=BORDER, strokeWeight=1)
-    kicker("m/l/t", "8 · Limitações conhecidas", rx + 4, ly + 12, CRIMSON, 700)
+    kicker("m/l/t", "Limitações conhecidas", rx + 4, ly + 12, CRIMSON, 700)
     limitacoes = [
         "Cidade normalizada cobre 3,7% dos clubes; por isso a hierarquia usa estado.",
         "Jogadores não têm estado nem cidade: o modelo não tem o campo.",
@@ -337,7 +337,7 @@ def v4_metodologia():
     # 9. CORREÇÕES + 10. VERSIONAMENTO
     cy2 = ly + 148
     rule("m/k/rule", rx, cy2, rw, INK, 2)
-    kicker("m/k/l", "9 · Correções", rx, cy2 + 12, INK, 700)
+    kicker("m/k/l", "Correções", rx, cy2 + 12, INK, 700)
     correcoes = [("02/11/2026", "Estados da Grécia", "+66 registros normalizados"),
                  ("28/10/2026", "Público do Maracanã", "corrigido para 199.854"),
                  ("15/09/2026", "Títulos do Palmeiras", "+2 estaduais reconhecidos")]
@@ -516,7 +516,7 @@ def v4_tabelas():
     # ── FORMATO 1: LIGA — pontos corridos ────────────────────────────────────────
     ly = fy + 82
     rule("t/l/rule", M, ly, CONTENT, INK, 2)
-    kicker("t/l/l", "1 · Liga · pontos corridos", M, ly + 12, INK, 700)
+    kicker("t/l/l", "Liga · pontos corridos", M, ly + 12, INK, 700)
     txt("t/l/n", "idêntico por dois turnos · 20 clubes · 38 rodadas", W - M - 500, ly + 11,
         500, 10, INK_3, BODY, 500, align="right")
     cols = [("#", M, 40, "right"), ("Clube", M + 50, 300, "left"),
@@ -546,7 +546,7 @@ def v4_tabelas():
     # ── FORMATO 2: COPA — mata-mata ──────────────────────────────────────────────
     cy = ty + 44
     rule("t/c/rule", M, cy, CONTENT, INK, 2)
-    kicker("t/c/l", "2 · Copa · mata-mata", M, cy + 12, INK, 700)
+    kicker("t/c/l", "Copa · mata-mata", M, cy + 12, INK, 700)
     txt("t/c/n", "ida e volta · gol fora desempata · 2 jogos por confronto", W - M - 520,
         cy + 11, 520, 10, INK_3, BODY, 500, align="right")
 
@@ -590,7 +590,7 @@ def v4_tabelas():
     # ── FORMATO 3: TORNEIO — grupos + mata-mata ─────────────────────────────────
     gy = by + 232
     rule("t/g/rule", M, gy, CONTENT, INK, 2)
-    kicker("t/g/l", "3 · Torneio · grupos + mata-mata", M, gy + 12, INK, 700)
+    kicker("t/g/l", "Torneio · grupos + mata-mata", M, gy + 12, INK, 700)
     txt("t/g/n", "4 grupos de 4 · 2 avançam · 3 jogos na fase de grupos", W - M - 520,
         gy + 11, 520, 10, INK_3, BODY, 500, align="right")
     grupos = [("Grupo A", [("Brasil", 7), ("Suíça", 5), ("Sérvia", 3), ("Camarões", 1)]),
@@ -614,7 +614,7 @@ def v4_tabelas():
     # ── FORMATO 4: SUPERCOPA — jogo único ───────────────────────────────────────
     sy = gy + 190
     rule("t/s/rule", M, sy, CONTENT, INK, 2)
-    kicker("t/s/l", "4 · Supercopa · jogo único", M, sy + 12, INK, 700)
+    kicker("t/s/l", "Supercopa · jogo único", M, sy + 12, INK, 700)
     txt("t/s/n", "campeão da liga × campeão da copa · sem tabela", W - M - 520, sy + 11,
         520, 10, INK_3, BODY, 500, align="right")
     rect("t/s/bg", M, sy + 38, CONTENT, 96, fill=SURFACE, cornerRadius=2, stroke=BORDER,

@@ -72,15 +72,28 @@ def txt(name, content, x, y, w, size, color, font=BODY, weight=400, align="left"
 
 
 def rule(name, x, y, w, color=BORDER, weight=1):
+    """Fio de tabela SIM; fio de seção NÃO.
+
+    O Taste Skill bane "hairline dividers". Uma linha entre linhas de tabela é parte de uma
+    tabela real e é permitida; um fio de 2px atravessando a página para separar seções é
+    divisória decorativa. A separação de seção passa a ser espaço + cabeçalho + escala.
+    """
+    if weight >= 2 and abs(w - (W - 2 * M)) < 1:
+        return  # fio de seção: não desenha (a separação é espaço + cabeçalho + escala)
     rect(name, x, y, w, weight, fill=color)
 
 
 def kicker(name, content, x, y, color=INK_3, w=600):
-    """Rótulo de seção: Barlow 600 em caixa alta com tracking largo. É o que dá ritmo de
-    impresso — sem ele a página vira interface."""
-    add("text.create", name=name, text=content.upper(), x=x, y=y, width=w,
-        props={"fontSize": 10, "fontFamily": BODY, "fontWeight": 600, "fill": color,
-               "letterSpacing": 2.2})
+    """Cabeçalho de seção — NÃO é eyebrow.
+
+    O Taste Skill proíbe "a small label above a heading" e "tiny uppercase letter-spaced
+    labels". A versão anterior era as duas coisas: 10px, caixa alta, tracking +2,2, sempre
+    acima do título. Agora é um cabeçalho de seção em caixa baixa, no tamanho de leitura, que
+    nomeia o bloco abaixo — e a página abre pelo título, não por ele.
+    """
+    add("text.create", name=name, text=content, x=x, y=y, width=w,
+        props={"fontSize": 12.5, "fontFamily": BODY, "fontWeight": 600, "fill": color,
+               "letterSpacing": 0})
 
 
 def display(name, content, x, y, size, color=INK, w=900, align="left", weight=700, lh=None):
@@ -139,17 +152,22 @@ def ficha_head(title, anchor, anchor_label, kicker_txt, sub, dark=False, y=104):
     line = NIGHT_BORDER if dark else INK
     accent = NIGHT_CRIMSON if dark else CRIMSON
 
-    kicker("kicker", kicker_txt, M, y, dim3, 700)
-    display("title", title, M, y + 18, 68, ink, w=880)
+    # Sem eyebrow acima do título: o Taste Skill proíbe rótulo pequeno sobre heading.
+    # O texto do kicker desce para o subtítulo, que já carregava o mesmo papel.
+    if kicker_txt and sub:
+        sub = f"{kicker_txt[0].upper()}{kicker_txt[1:]} · {sub}"
+    display("title", title, M, y, 68, ink, w=880)
     if anchor:
-        num("anchor", anchor, W - M - 320, y + 6, 76, accent, w=320)
-        add("text.create", name="anchor/l", text=anchor_label.upper(), x=W - M - 320,
-            y=y + 84, width=320,
-            props={"fontSize": 10, "fontFamily": BODY, "fontWeight": 600, "fill": dim3,
-                   "textAlign": "right", "letterSpacing": 2.0})
+        num("anchor", anchor, W - M - 320, y - 12, 76, accent, w=320)
+        # rótulo do âncora: caixa baixa e sem tracking — era outro "tiny tracked cap"
+        add("text.create", name="anchor/l", text=anchor_label, x=W - M - 320,
+            y=y + 66, width=320,
+            props={"fontSize": 11, "fontFamily": BODY, "fontWeight": 500, "fill": dim3,
+                   "textAlign": "right"})
     if sub:
-        txt("sub", sub, M, y + 104, 760, 15, dim, BODY, 400, lh=22)
-    rule("head/rule", M, y + (146 if sub else 108), CONTENT, line, 2)
+        txt("sub", sub, M, y + 84, 760, 15, dim, BODY, 400, lh=22)
+    # o fio do cabeçalho é divisória: o Taste Skill bane hairline divider.
+    _ = line  # mantido para o caso escuro, sem desenhar fio
     return y + (166 if sub else 128)
 
 
@@ -886,7 +904,7 @@ MAX_CH = 68
 
 
 def normalizar(cmds):
-    ajustes = {"cor": 0, "tamanho": 0, "medida": 0}
+    ajustes = {"cor": 0, "tamanho": 0, "medida": 0, "tracking": 0}
     for c in cmds:
         if c["command"] != "text.create":
             continue
@@ -901,6 +919,11 @@ def normalizar(cmds):
             props["fontSize"] = PISO_PX
             ajustes["tamanho"] += 1
             ts = PISO_PX
+        # 4. "no tiny uppercase letter-spaced labels": tracking so em texto pequeno
+        ls = props.get("letterSpacing")
+        if isinstance(ts, (int, float)) and ts <= 11 and isinstance(ls, (int, float)) and ls > 0.5:
+            props["letterSpacing"] = 0
+            ajustes["tracking"] = ajustes.get("tracking", 0) + 1
         # 3. medida de linha (so para corpo de texto, nao para titulo)
         larg = c["params"].get("width")
         if isinstance(ts, (int, float)) and 11 <= ts <= 17 and isinstance(larg, (int, float)):

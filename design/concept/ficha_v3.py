@@ -85,7 +85,7 @@ def v3_home():
 # 1. COMPETIÇÕES — filtro por país, imagem do troféu e medalhas
 # ═════════════════════════════════════════════════════════════════════════════════════════
 def v3_competicoes():
-    frame("Competições", h=1300)
+    frame("Competições", h=1160)
     topbar(active=0)
     y = ficha_head(
         "Competições", "1.932", "competições catalogadas",
@@ -112,7 +112,8 @@ def v3_competicoes():
                  cornerRadius=2, stroke=INK if ativo else BORDER, strokeWeight=1)
             if iso:
                 V.bandeira(iso, ox + 12, fy + 8, 20, 14)
-            txt(f"c/f/{rotulo}/{i}/t", nome, ox + (38 if iso else 14), fy + 7, larg - 50, 12,
+            txt(f"c/f/{rotulo}/{i}/t", nome, ox + (38 if iso else 14), fy + 9,
+                (larg - 50) if iso else (larg - 28), 12,
                 "#faf8f5" if ativo else INK_2, BODY, 600 if ativo else 500)
             ox += larg + 8
         fy += 40
