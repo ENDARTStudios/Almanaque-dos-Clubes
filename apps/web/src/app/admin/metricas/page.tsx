@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/Provider';
 import MetricsCharts from './MetricsCharts';
 import { adminMetricsStrings } from './strings';
 import type { AdminMetricsPayload } from './types';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 /**
  * Painel de MÉTRICAS do admin (/admin/metricas).
@@ -229,7 +230,7 @@ export default function AdminMetricsPage() {
           ferramenta que a pessoa não podia abrir. O gate tem de vir ANTES de qualquer coisa que
           prometa acesso. */}
       <OperatorGate>
-        <h1 className="text-3xl font-heading font-bold text-foreground sm:text-4xl">{s.title}</h1>
+        <AdminHeading title={s.title} />
         <p className="mt-1 mb-8 text-foreground/60">{s.subtitle}</p>
         <MetricsPanel />
       </OperatorGate>

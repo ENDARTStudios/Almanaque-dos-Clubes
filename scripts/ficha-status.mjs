@@ -64,6 +64,17 @@ const EXCECOES_VAZIO = new Map([
   ],
   ['/dashboard', 'painel de conta com cartões fixos, não uma lista de dados'],
   ['/apoiadores', 'busca CONTAGENS para a prova do acervo, não uma lista'],
+  // Painéis de operação: o "vazio" deles já é expresso como ZERO no KPI ou no cartão de estado,
+  // que é uma leitura melhor que uma caixa dizendo "nada aqui" num painel de trabalho.
+  ['/admin', 'índice de operação: cartões de KPI, o zero já é a resposta'],
+  ['/admin/metricas', 'painel de gráficos: série vazia desenha eixo, não caixa de vazio'],
+  [
+    '/admin/observability',
+    'cartões de saúde por serviço: o estado "sem dado" está no próprio cartão',
+  ],
+  ['/admin/upload', 'fluxo de envio, não lista: o vazio é o formulário em repouso'],
+  ['/admin/revisao', 'fila de revisão: a contagem no topo já diz quando está zerada'],
+  ['/admin/diagnostics', 'checagens fixas: cada linha tem o próprio estado'],
 ]);
 
 const paginas = await andar(APP, (n) => n === 'page.tsx');

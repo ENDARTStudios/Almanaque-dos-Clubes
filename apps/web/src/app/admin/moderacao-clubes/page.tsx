@@ -4,6 +4,7 @@ import OperatorGate from '@/components/OperatorGate';
 import ClubOwnerships from '@/components/admin/ClubOwnerships';
 import { useI18n } from '@/i18n/Provider';
 import { adminStrings } from '@/components/admin/strings';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 /**
  * WS-C-9 — /admin/moderacao-clubes.
@@ -20,9 +21,7 @@ export default function AdminClubOwnershipPage() {
   return (
     <OperatorGate>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-          {s.ownership.title}
-        </h1>
+        <AdminHeading title={s.ownership.title} />
         <p className="text-ink-2 mb-8">{s.ownership.subtitle}</p>
         <ClubOwnerships />
       </div>

@@ -7,6 +7,7 @@ import LogViewer, { type LogEntryView, type QueueJobView } from '@/components/Lo
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { wsO1Strings } from '@/i18n/wsO1';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 /**
  * WS-O-1 — painel de observabilidade operacional (/admin/observability).
@@ -282,7 +283,7 @@ export default function AdminObservabilityPage() {
           podia abrir. Verificado em navegador: o h1 era "Observabilidade" em vez de "Entrar".
           O gate tem de estar ANTES de qualquer coisa que prometa acesso. */}
       <OperatorGate>
-        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{t.title}</h1>
+        <AdminHeading title={t.title} />
         <p className="text-foreground/60 mt-1 mb-8">{t.subtitle}</p>
         <ObservabilityPanel />
       </OperatorGate>
