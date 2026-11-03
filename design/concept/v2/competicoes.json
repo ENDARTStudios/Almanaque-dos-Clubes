@@ -1,0 +1,2325 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Competições",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 1180,
+   "props": {
+    "fill": "#faf8f5"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "top/line",
+   "x": 0,
+   "y": 60,
+   "width": 1440,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand",
+   "text": "ALMANAQUE",
+   "x": 64,
+   "y": 20,
+   "width": 260,
+   "props": {
+    "fontSize": 22,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "brand/mark",
+   "x": 196,
+   "y": 20,
+   "width": 4,
+   "height": 22,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand/2",
+   "text": "dos Clubes",
+   "x": 208,
+   "y": 26,
+   "width": 160,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "letterSpacing": 0.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Competições",
+   "text": "Competições",
+   "x": 420,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "nav/Competições/u",
+   "x": 420,
+   "y": 46,
+   "width": 26,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Clubes",
+   "text": "Clubes",
+   "x": 524,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Jogadores",
+   "text": "Jogadores",
+   "x": 620,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Rankings",
+   "text": "Rankings",
+   "x": 716,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Mapa",
+   "text": "Mapa",
+   "x": 812,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Lendas",
+   "text": "Lendas",
+   "x": 908,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Comparar",
+   "text": "Comparar",
+   "x": 1004,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "search",
+   "x": 1076,
+   "y": 16,
+   "width": 210,
+   "height": 30,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 15,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "search/t",
+   "text": "Buscar no Almanaque…",
+   "x": 1090,
+   "y": 23,
+   "width": 190,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "enter",
+   "x": 1298,
+   "y": 16,
+   "width": 78,
+   "height": 30,
+   "props": {
+    "fill": "#be123c",
+    "cornerRadius": 15
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "enter/t",
+   "text": "Entrar",
+   "x": 1314,
+   "y": 23,
+   "width": 60,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#ffffff",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "kicker",
+   "text": "ACERVO · ALCANCE DECLARADO",
+   "x": 64,
+   "y": 104,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "title",
+   "text": "Competições",
+   "x": 64,
+   "y": 122,
+   "width": 880,
+   "props": {
+    "fontSize": 68,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.5,
+    "lineHeight": 69.36
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "anchor",
+   "text": "1.932",
+   "x": 1056,
+   "y": 110,
+   "width": 320,
+   "props": {
+    "fontSize": 76,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#be123c",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "anchor/l",
+   "text": "COMPETIÇÕES CATALOGADAS",
+   "x": 1056,
+   "y": 188,
+   "width": 320,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 2.0
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "sub",
+   "text": "Do mundial ao estadual: cada torneio com o alcance em que ele decide, e o índice completo abaixo.",
+   "x": 64,
+   "y": 208,
+   "width": 760,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "lineHeight": 22
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "head/rule",
+   "x": 64,
+   "y": 250,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/l",
+   "text": "MUNDIAL · DECIDE O MUNDO",
+   "x": 64,
+   "y": 280,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#94600a",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g1/0",
+   "x": 64,
+   "y": 302,
+   "width": 316.0,
+   "height": 92,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#94600a",
+    "strokeWeight": 2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/0/n",
+   "text": "FIFA World Cup",
+   "x": 82,
+   "y": 320,
+   "width": 280.0,
+   "props": {
+    "fontSize": 19,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "lineHeight": 21
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/0/m",
+   "text": "1930 · 23 edições",
+   "x": 82,
+   "y": 366,
+   "width": 280.0,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#94600a",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g1/1",
+   "x": 396.0,
+   "y": 302,
+   "width": 316.0,
+   "height": 92,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#94600a",
+    "strokeWeight": 2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/1/n",
+   "text": "FIFA Club World Cup",
+   "x": 414.0,
+   "y": 320,
+   "width": 280.0,
+   "props": {
+    "fontSize": 19,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "lineHeight": 21
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/1/m",
+   "text": "2000 · 21",
+   "x": 414.0,
+   "y": 366,
+   "width": 280.0,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#94600a",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g1/2",
+   "x": 728.0,
+   "y": 302,
+   "width": 316.0,
+   "height": 92,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#94600a",
+    "strokeWeight": 2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/2/n",
+   "text": "FIFA U-20 World Cup",
+   "x": 746.0,
+   "y": 320,
+   "width": 280.0,
+   "props": {
+    "fontSize": 19,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "lineHeight": 21
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/2/m",
+   "text": "1977 · 24",
+   "x": 746.0,
+   "y": 366,
+   "width": 280.0,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#94600a",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g1/3",
+   "x": 1060.0,
+   "y": 302,
+   "width": 316.0,
+   "height": 92,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#94600a",
+    "strokeWeight": 2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/3/n",
+   "text": "FIFA Women's World Cup",
+   "x": 1078.0,
+   "y": 320,
+   "width": 280.0,
+   "props": {
+    "fontSize": 19,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "lineHeight": 21
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g1/3/m",
+   "text": "1991 · 10",
+   "x": 1078.0,
+   "y": 366,
+   "width": 280.0,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#94600a",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/l",
+   "text": "CONTINENTAL",
+   "x": 64,
+   "y": 422,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#9f1239",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g2/0",
+   "x": 64,
+   "y": 444,
+   "width": 316.0,
+   "height": 64,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/0/n",
+   "text": "Copa Libertadores",
+   "x": 80,
+   "y": 458,
+   "width": 284.0,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/0/m",
+   "text": "1960 · 66",
+   "x": 80,
+   "y": 480,
+   "width": 284.0,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g2/1",
+   "x": 396.0,
+   "y": 444,
+   "width": 316.0,
+   "height": 64,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/1/n",
+   "text": "UEFA Champions League",
+   "x": 412.0,
+   "y": 458,
+   "width": 284.0,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/1/m",
+   "text": "1955 · 71",
+   "x": 412.0,
+   "y": 480,
+   "width": 284.0,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g2/2",
+   "x": 728.0,
+   "y": 444,
+   "width": 316.0,
+   "height": 64,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/2/n",
+   "text": "AFC Champions League Elite",
+   "x": 744.0,
+   "y": 458,
+   "width": 284.0,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/2/m",
+   "text": "1967 · 43",
+   "x": 744.0,
+   "y": 480,
+   "width": 284.0,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g2/3",
+   "x": 1060.0,
+   "y": 444,
+   "width": 316.0,
+   "height": 64,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/3/n",
+   "text": "Copa América",
+   "x": 1076.0,
+   "y": 458,
+   "width": 284.0,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g2/3/m",
+   "text": "1916 · 48",
+   "x": 1076.0,
+   "y": 480,
+   "width": 284.0,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g3/l",
+   "text": "CONTINENTAL · 2º ESCALÃO",
+   "x": 64,
+   "y": 530,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g3/0",
+   "x": 64,
+   "y": 550,
+   "width": 152,
+   "height": 28,
+   "props": {
+    "fill": "#f2efea",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g3/0/t",
+   "text": "Copa Sudamericana",
+   "x": 78,
+   "y": 557,
+   "width": 124,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g3/1",
+   "x": 226,
+   "y": 550,
+   "width": 188,
+   "height": 28,
+   "props": {
+    "fill": "#f2efea",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g3/1/t",
+   "text": "UEFA Conference League",
+   "x": 240,
+   "y": 557,
+   "width": 160,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g3/2",
+   "x": 424,
+   "y": 550,
+   "width": 130,
+   "height": 28,
+   "props": {
+    "fill": "#f2efea",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g3/2/t",
+   "text": "UEFA Super Cup",
+   "x": 438,
+   "y": 557,
+   "width": 102,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/l",
+   "text": "NACIONAL",
+   "x": 64,
+   "y": 598,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/0",
+   "x": 64,
+   "y": 618,
+   "width": 195,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/0/t",
+   "text": "Brasileirão Feminino A1",
+   "x": 78,
+   "y": 625,
+   "width": 167,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/1",
+   "x": 269,
+   "y": 618,
+   "width": 73,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/1/t",
+   "text": "FA Cup",
+   "x": 283,
+   "y": 625,
+   "width": 45,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/2",
+   "x": 352,
+   "y": 618,
+   "width": 130,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/2/t",
+   "text": "Copa do Brasil",
+   "x": 366,
+   "y": 625,
+   "width": 102,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/3",
+   "x": 492,
+   "y": 618,
+   "width": 116,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/3/t",
+   "text": "Copa del Rey",
+   "x": 506,
+   "y": 625,
+   "width": 88,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/4",
+   "x": 618,
+   "y": 618,
+   "width": 116,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/4/t",
+   "text": "Coppa Italia",
+   "x": 632,
+   "y": 625,
+   "width": 88,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/5",
+   "x": 744,
+   "y": 618,
+   "width": 80,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/5/t",
+   "text": "Ligue 1",
+   "x": 758,
+   "y": 625,
+   "width": 52,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/6",
+   "x": 834,
+   "y": 618,
+   "width": 102,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/6/t",
+   "text": "Bundesliga",
+   "x": 848,
+   "y": 625,
+   "width": 74,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "g4/7",
+   "x": 946,
+   "y": 618,
+   "width": 102,
+   "height": 28,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "g4/7/t",
+   "text": "Eredivisie",
+   "x": 960,
+   "y": 625,
+   "width": 74,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "idx/rule",
+   "x": 64,
+   "y": 666,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "idx/l",
+   "text": "ÍNDICE COMPLETO",
+   "x": 64,
+   "y": 680,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "idx/n",
+   "text": "1.932 competições · 197 países",
+   "x": 996,
+   "y": 679,
+   "width": 380,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Competição",
+   "text": "COMPETIÇÃO",
+   "x": 64,
+   "y": 704,
+   "width": 520,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/País",
+   "text": "PAÍS",
+   "x": 604,
+   "y": 704,
+   "width": 180,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Edições",
+   "text": "EDIÇÕES",
+   "x": 804,
+   "y": 704,
+   "width": 110,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Última",
+   "text": "ÚLTIMA",
+   "x": 934,
+   "y": 704,
+   "width": 110,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Alcance",
+   "text": "ALCANCE",
+   "x": 1064,
+   "y": 704,
+   "width": 220,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "th/rule",
+   "x": 64,
+   "y": 724,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Competição",
+   "text": "UEFA Champions League",
+   "x": 64,
+   "y": 730,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/País",
+   "text": "Europa",
+   "x": 604,
+   "y": 730,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Edições",
+   "text": "71",
+   "x": 804,
+   "y": 730,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 730,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Alcance",
+   "text": "Continental",
+   "x": 1064,
+   "y": 730,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/0/line",
+   "x": 56,
+   "y": 756,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/bg",
+   "x": 56,
+   "y": 757,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Competição",
+   "text": "Copa Libertadores",
+   "x": 64,
+   "y": 764,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/País",
+   "text": "América do Sul",
+   "x": 604,
+   "y": 764,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Edições",
+   "text": "66",
+   "x": 804,
+   "y": 764,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Última",
+   "text": "2025",
+   "x": 934,
+   "y": 764,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Alcance",
+   "text": "Continental",
+   "x": 1064,
+   "y": 764,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/line",
+   "x": 56,
+   "y": 790,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Competição",
+   "text": "Copa do Mundo FIFA",
+   "x": 64,
+   "y": 798,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/País",
+   "text": "Mundial",
+   "x": 604,
+   "y": 798,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Edições",
+   "text": "23",
+   "x": 804,
+   "y": 798,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Última",
+   "text": "2026",
+   "x": 934,
+   "y": 798,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Alcance",
+   "text": "Mundial",
+   "x": 1064,
+   "y": 798,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/2/line",
+   "x": 56,
+   "y": 824,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/bg",
+   "x": 56,
+   "y": 825,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Competição",
+   "text": "Campeonato Brasileiro Série A",
+   "x": 64,
+   "y": 832,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/País",
+   "text": "Brasil",
+   "x": 604,
+   "y": 832,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Edições",
+   "text": "69",
+   "x": 804,
+   "y": 832,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Última",
+   "text": "2025",
+   "x": 934,
+   "y": 832,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 832,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/line",
+   "x": 56,
+   "y": 858,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Competição",
+   "text": "Premier League",
+   "x": 64,
+   "y": 866,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/País",
+   "text": "Reino Unido",
+   "x": 604,
+   "y": 866,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Edições",
+   "text": "34",
+   "x": 804,
+   "y": 866,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 866,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 866,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/4/line",
+   "x": 56,
+   "y": 892,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/5/bg",
+   "x": 56,
+   "y": 893,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Competição",
+   "text": "La Liga",
+   "x": 64,
+   "y": 900,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/País",
+   "text": "Espanha",
+   "x": 604,
+   "y": 900,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Edições",
+   "text": "95",
+   "x": 804,
+   "y": 900,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 900,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 900,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/5/line",
+   "x": 56,
+   "y": 926,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Competição",
+   "text": "Serie A",
+   "x": 64,
+   "y": 934,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/País",
+   "text": "Itália",
+   "x": 604,
+   "y": 934,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Edições",
+   "text": "94",
+   "x": 804,
+   "y": 934,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 934,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 934,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/6/line",
+   "x": 56,
+   "y": 960,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/7/bg",
+   "x": 56,
+   "y": 961,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Competição",
+   "text": "Bundesliga",
+   "x": 64,
+   "y": 968,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/País",
+   "text": "Alemanha",
+   "x": 604,
+   "y": 968,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Edições",
+   "text": "62",
+   "x": 804,
+   "y": 968,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 968,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 968,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/7/line",
+   "x": 56,
+   "y": 994,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Competição",
+   "text": "Ligue 1",
+   "x": 64,
+   "y": 1002,
+   "width": 520,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/País",
+   "text": "França",
+   "x": 604,
+   "y": 1002,
+   "width": 180,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Edições",
+   "text": "88",
+   "x": 804,
+   "y": 1002,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Última",
+   "text": "2025-26",
+   "x": 934,
+   "y": 1002,
+   "width": 110,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Alcance",
+   "text": "Nacional",
+   "x": 1064,
+   "y": 1002,
+   "width": 220,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/8/line",
+   "x": 56,
+   "y": 1028,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "prov/line",
+   "x": 64,
+   "y": 1080,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "prov/note",
+   "text": "Competições estaduais ficam fora dos destaques por alcance regional — todas seguem no índice por país. Fonte: Wikidata (CC0).",
+   "x": 64,
+   "y": 1092,
+   "width": 1100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ }
+]
