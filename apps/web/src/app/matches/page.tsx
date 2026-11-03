@@ -6,6 +6,9 @@ import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wt541Strings } from '@/i18n/wsT541';
 import { wt579Strings } from '@/i18n/wsT579';
 import { ClubCrest } from '@/components/MediaAssets';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * T541 — página pública de PARTIDAS.
@@ -103,6 +106,10 @@ export default async function MatchesPage({
     fetchJson<{ data: MatchRow[]; total: number }>(`${base}/matches?${query.toString()}`),
   ]);
 
+  // `null` = a consulta FALHOU (o fetcher já devolve null). Zero resultados e falha de rede são
+  // coisas diferentes: a primeira é "não há partida para este recorte", a segunda é
+  // "não foi possível saber" — e a tela não pode apresentar a segunda como se fosse a primeira.
+  const falhou = list === null;
   const rows = list?.data ?? [];
   const total = list?.total ?? 0;
   const hasPrev = offset > 0;
@@ -136,8 +143,11 @@ export default async function MatchesPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <header className="mb-6">
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">{t.title}</h1>
-        <p className="mt-2 measure-readable text-foreground/60">{t.subtitle}</p>
+        <FichaHead
+          title={t.title}
+          subtitle={t.subtitle}
+          anchor={total != null ? String(total) : undefined}
+        />
       </header>
 
       {/* Filtros em formulário GET: sem JS, navegável por teclado, estado na URL. */}
@@ -203,16 +213,28 @@ export default async function MatchesPage({
           <Link href="/matches" className="text-sm text-primary-ink underline">
             {t.filters.clear}
           </Link>
-          <span className="text-sm text-foreground/60">
-            {total.toLocaleString(locale)} {t.filters.results}
-          </span>
+          {/* Contagem só quando há contagem: com a origem fora, "0 partidas encontradas"
+              contradizia o ErrorState logo abaixo — um dizia "nada", o outro "não deu para saber". */}
+          {falhou ? null : (
+            <span className="text-sm text-foreground/60">
+              {total.toLocaleString(locale)} {t.filters.results}
+            </span>
+          )}
         </div>
       </form>
 
-      {rows.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-border bg-background p-6 text-center">
-          <p className="font-heading text-lg text-foreground">{t.filters.noResults}</p>
-          <p className="mt-1 text-sm text-foreground/60">{t.filters.noResultsHint}</p>
+      {falhou ? (
+        <div className="mt-8">
+          <ErrorState
+            title={fichaStrings[locale].states.errorTitle}
+            body={fichaStrings[locale].states.errorBody}
+            retryLabel={fichaStrings[locale].states.retry}
+            retryHref="/matches"
+          />
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="mt-8">
+          <EmptyState title={t.filters.noResults} body={t.filters.noResultsHint} />
         </div>
       ) : (
         <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-background shadow-sm">

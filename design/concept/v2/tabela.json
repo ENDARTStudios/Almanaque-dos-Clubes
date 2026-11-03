@@ -1,0 +1,4837 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Tabela",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 1180,
+   "props": {
+    "fill": "#faf8f5"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "top/line",
+   "x": 0,
+   "y": 60,
+   "width": 1440,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand",
+   "text": "ALMANAQUE",
+   "x": 64,
+   "y": 20,
+   "width": 260,
+   "props": {
+    "fontSize": 22,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "brand/mark",
+   "x": 196,
+   "y": 20,
+   "width": 4,
+   "height": 22,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand/2",
+   "text": "dos Clubes",
+   "x": 208,
+   "y": 26,
+   "width": 160,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "letterSpacing": 0.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Competições",
+   "text": "Competições",
+   "x": 420,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "nav/Competições/u",
+   "x": 420,
+   "y": 46,
+   "width": 26,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Clubes",
+   "text": "Clubes",
+   "x": 524,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Jogadores",
+   "text": "Jogadores",
+   "x": 620,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Rankings",
+   "text": "Rankings",
+   "x": 716,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Mapa",
+   "text": "Mapa",
+   "x": 812,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Lendas",
+   "text": "Lendas",
+   "x": 908,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Comparar",
+   "text": "Comparar",
+   "x": 1004,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "search",
+   "x": 1076,
+   "y": 16,
+   "width": 210,
+   "height": 30,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 15,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "search/t",
+   "text": "Buscar no Almanaque…",
+   "x": 1090,
+   "y": 23,
+   "width": 190,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "enter",
+   "x": 1298,
+   "y": 16,
+   "width": 78,
+   "height": 30,
+   "props": {
+    "fill": "#be123c",
+    "cornerRadius": 15
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "enter/t",
+   "text": "Entrar",
+   "x": 1314,
+   "y": 23,
+   "width": 60,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#ffffff",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "kicker",
+   "text": "COMPETIÇÃO · CLASSIFICAÇÃO FINAL",
+   "x": 64,
+   "y": 104,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "title",
+   "text": "Premier League",
+   "x": 64,
+   "y": 122,
+   "width": 880,
+   "props": {
+    "fontSize": 68,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.5,
+    "lineHeight": 69.36
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "anchor",
+   "text": "38",
+   "x": 1056,
+   "y": 110,
+   "width": 320,
+   "props": {
+    "fontSize": 76,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#be123c",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "anchor/l",
+   "text": "RODADAS · 2024-25",
+   "x": 1056,
+   "y": 188,
+   "width": 320,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 2.0
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "sub",
+   "text": "Tabela acumulada com os critérios de desempate declarados. Pontos → saldo → gols pró.",
+   "x": 64,
+   "y": 208,
+   "width": 760,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "lineHeight": 22
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "head/rule",
+   "x": 64,
+   "y": 250,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/#",
+   "text": "#",
+   "x": 64,
+   "y": 294,
+   "width": 44,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Clube",
+   "text": "CLUBE",
+   "x": 124,
+   "y": 294,
+   "width": 380,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/J",
+   "text": "J",
+   "x": 524,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/V",
+   "text": "V",
+   "x": 594,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/E",
+   "text": "E",
+   "x": 664,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/D",
+   "text": "D",
+   "x": 734,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/GP",
+   "text": "GP",
+   "x": 804,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/GC",
+   "text": "GC",
+   "x": 874,
+   "y": 294,
+   "width": 60,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/SG",
+   "text": "SG",
+   "x": 944,
+   "y": 294,
+   "width": 70,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Pts",
+   "text": "PTS",
+   "x": 1034,
+   "y": 294,
+   "width": 80,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "right",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "th/Últ. 5",
+   "text": "ÚLT. 5",
+   "x": 1134,
+   "y": 294,
+   "width": 200,
+   "props": {
+    "fontSize": 9,
+    "fontFamily": "Barlow",
+    "fontWeight": 700,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 1.6
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "th/rule",
+   "x": 64,
+   "y": 314,
+   "width": 1312,
+   "height": 2,
+   "props": {
+    "fill": "#111111"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/#",
+   "text": "1",
+   "x": 64,
+   "y": 322,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Clube",
+   "text": "Liverpool",
+   "x": 124,
+   "y": 322,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/J",
+   "text": "38",
+   "x": 524,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/V",
+   "text": "25",
+   "x": 594,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/E",
+   "text": "9",
+   "x": 664,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/D",
+   "text": "4",
+   "x": 734,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/GP",
+   "text": "86",
+   "x": 804,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/GC",
+   "text": "41",
+   "x": 874,
+   "y": 322,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/SG",
+   "text": "+45",
+   "x": 944,
+   "y": 322,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Pts",
+   "text": "84",
+   "x": 1034,
+   "y": 322,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/0/Últ. 5",
+   "text": "V V V E V",
+   "x": 1134,
+   "y": 322,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/0/line",
+   "x": 56,
+   "y": 348,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/bg",
+   "x": 56,
+   "y": 349,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/#",
+   "text": "2",
+   "x": 64,
+   "y": 356,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Clube",
+   "text": "Arsenal",
+   "x": 124,
+   "y": 356,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/J",
+   "text": "38",
+   "x": 524,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/V",
+   "text": "20",
+   "x": 594,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/E",
+   "text": "14",
+   "x": 664,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/D",
+   "text": "4",
+   "x": 734,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/GP",
+   "text": "69",
+   "x": 804,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/GC",
+   "text": "34",
+   "x": 874,
+   "y": 356,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/SG",
+   "text": "+35",
+   "x": 944,
+   "y": 356,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Pts",
+   "text": "74",
+   "x": 1034,
+   "y": 356,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/1/Últ. 5",
+   "text": "E V V V E",
+   "x": 1134,
+   "y": 356,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/1/line",
+   "x": 56,
+   "y": 382,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/#",
+   "text": "3",
+   "x": 64,
+   "y": 390,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Clube",
+   "text": "Manchester City",
+   "x": 124,
+   "y": 390,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/J",
+   "text": "38",
+   "x": 524,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/V",
+   "text": "21",
+   "x": 594,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/E",
+   "text": "8",
+   "x": 664,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/D",
+   "text": "9",
+   "x": 734,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/GP",
+   "text": "72",
+   "x": 804,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/GC",
+   "text": "44",
+   "x": 874,
+   "y": 390,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/SG",
+   "text": "+28",
+   "x": 944,
+   "y": 390,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Pts",
+   "text": "71",
+   "x": 1034,
+   "y": 390,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/2/Últ. 5",
+   "text": "D V V E V",
+   "x": 1134,
+   "y": 390,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/2/line",
+   "x": 56,
+   "y": 416,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/bg",
+   "x": 56,
+   "y": 417,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/#",
+   "text": "4",
+   "x": 64,
+   "y": 424,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Clube",
+   "text": "Chelsea",
+   "x": 124,
+   "y": 424,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/J",
+   "text": "38",
+   "x": 524,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/V",
+   "text": "20",
+   "x": 594,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/E",
+   "text": "9",
+   "x": 664,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/D",
+   "text": "9",
+   "x": 734,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/GP",
+   "text": "64",
+   "x": 804,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/GC",
+   "text": "43",
+   "x": 874,
+   "y": 424,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/SG",
+   "text": "+21",
+   "x": 944,
+   "y": 424,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Pts",
+   "text": "69",
+   "x": 1034,
+   "y": 424,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/3/Últ. 5",
+   "text": "V V E V V",
+   "x": 1134,
+   "y": 424,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/3/line",
+   "x": 56,
+   "y": 450,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/#",
+   "text": "5",
+   "x": 64,
+   "y": 458,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Clube",
+   "text": "Newcastle United",
+   "x": 124,
+   "y": 458,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/J",
+   "text": "38",
+   "x": 524,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/V",
+   "text": "20",
+   "x": 594,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/E",
+   "text": "6",
+   "x": 664,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/D",
+   "text": "12",
+   "x": 734,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/GP",
+   "text": "68",
+   "x": 804,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/GC",
+   "text": "47",
+   "x": 874,
+   "y": 458,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/SG",
+   "text": "+21",
+   "x": 944,
+   "y": 458,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Pts",
+   "text": "66",
+   "x": 1034,
+   "y": 458,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/4/Últ. 5",
+   "text": "V D V V E",
+   "x": 1134,
+   "y": 458,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/4/line",
+   "x": 56,
+   "y": 484,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/5/bg",
+   "x": 56,
+   "y": 485,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/#",
+   "text": "6",
+   "x": 64,
+   "y": 492,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Clube",
+   "text": "Aston Villa",
+   "x": 124,
+   "y": 492,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/J",
+   "text": "38",
+   "x": 524,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/V",
+   "text": "19",
+   "x": 594,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/E",
+   "text": "9",
+   "x": 664,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/D",
+   "text": "10",
+   "x": 734,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/GP",
+   "text": "58",
+   "x": 804,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/GC",
+   "text": "51",
+   "x": 874,
+   "y": 492,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/SG",
+   "text": "+7",
+   "x": 944,
+   "y": 492,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Pts",
+   "text": "66",
+   "x": 1034,
+   "y": 492,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/5/Últ. 5",
+   "text": "E V V D V",
+   "x": 1134,
+   "y": 492,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/5/line",
+   "x": 56,
+   "y": 518,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/#",
+   "text": "7",
+   "x": 64,
+   "y": 526,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Clube",
+   "text": "Nottingham Forest",
+   "x": 124,
+   "y": 526,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/J",
+   "text": "38",
+   "x": 524,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/V",
+   "text": "19",
+   "x": 594,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/E",
+   "text": "8",
+   "x": 664,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/D",
+   "text": "11",
+   "x": 734,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/GP",
+   "text": "58",
+   "x": 804,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/GC",
+   "text": "46",
+   "x": 874,
+   "y": 526,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/SG",
+   "text": "+12",
+   "x": 944,
+   "y": 526,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Pts",
+   "text": "65",
+   "x": 1034,
+   "y": 526,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/6/Últ. 5",
+   "text": "V E D V V",
+   "x": 1134,
+   "y": 526,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/6/line",
+   "x": 56,
+   "y": 552,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/7/bg",
+   "x": 56,
+   "y": 553,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/#",
+   "text": "8",
+   "x": 64,
+   "y": 560,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Clube",
+   "text": "Brighton",
+   "x": 124,
+   "y": 560,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/J",
+   "text": "38",
+   "x": 524,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/V",
+   "text": "16",
+   "x": 594,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/E",
+   "text": "13",
+   "x": 664,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/D",
+   "text": "9",
+   "x": 734,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/GP",
+   "text": "66",
+   "x": 804,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/GC",
+   "text": "59",
+   "x": 874,
+   "y": 560,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/SG",
+   "text": "+7",
+   "x": 944,
+   "y": 560,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Pts",
+   "text": "61",
+   "x": 1034,
+   "y": 560,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/7/Últ. 5",
+   "text": "E E V V E",
+   "x": 1134,
+   "y": 560,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/7/line",
+   "x": 56,
+   "y": 586,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/#",
+   "text": "9",
+   "x": 64,
+   "y": 594,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Clube",
+   "text": "Bournemouth",
+   "x": 124,
+   "y": 594,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/J",
+   "text": "38",
+   "x": 524,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/V",
+   "text": "15",
+   "x": 594,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/E",
+   "text": "11",
+   "x": 664,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/D",
+   "text": "12",
+   "x": 734,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/GP",
+   "text": "58",
+   "x": 804,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/GC",
+   "text": "46",
+   "x": 874,
+   "y": 594,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/SG",
+   "text": "+12",
+   "x": 944,
+   "y": 594,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Pts",
+   "text": "56",
+   "x": 1034,
+   "y": 594,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/8/Últ. 5",
+   "text": "V V E D V",
+   "x": 1134,
+   "y": 594,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/8/line",
+   "x": 56,
+   "y": 620,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/9/bg",
+   "x": 56,
+   "y": 621,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/#",
+   "text": "10",
+   "x": 64,
+   "y": 628,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/Clube",
+   "text": "Brentford",
+   "x": 124,
+   "y": 628,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/J",
+   "text": "38",
+   "x": 524,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/V",
+   "text": "16",
+   "x": 594,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/E",
+   "text": "8",
+   "x": 664,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/D",
+   "text": "14",
+   "x": 734,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/GP",
+   "text": "66",
+   "x": 804,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/GC",
+   "text": "57",
+   "x": 874,
+   "y": 628,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/SG",
+   "text": "+9",
+   "x": 944,
+   "y": 628,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/Pts",
+   "text": "56",
+   "x": 1034,
+   "y": 628,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/9/Últ. 5",
+   "text": "D V E V E",
+   "x": 1134,
+   "y": 628,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/9/line",
+   "x": 56,
+   "y": 654,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/#",
+   "text": "11",
+   "x": 64,
+   "y": 662,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/Clube",
+   "text": "Fulham",
+   "x": 124,
+   "y": 662,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/J",
+   "text": "38",
+   "x": 524,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/V",
+   "text": "15",
+   "x": 594,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/E",
+   "text": "9",
+   "x": 664,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/D",
+   "text": "14",
+   "x": 734,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/GP",
+   "text": "54",
+   "x": 804,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/GC",
+   "text": "54",
+   "x": 874,
+   "y": 662,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/SG",
+   "text": "0",
+   "x": 944,
+   "y": 662,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/Pts",
+   "text": "54",
+   "x": 1034,
+   "y": 662,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/10/Últ. 5",
+   "text": "V D V E D",
+   "x": 1134,
+   "y": 662,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/10/line",
+   "x": 56,
+   "y": 688,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/11/bg",
+   "x": 56,
+   "y": 689,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/#",
+   "text": "12",
+   "x": 64,
+   "y": 696,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/Clube",
+   "text": "Crystal Palace",
+   "x": 124,
+   "y": 696,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/J",
+   "text": "38",
+   "x": 524,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/V",
+   "text": "13",
+   "x": 594,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/E",
+   "text": "14",
+   "x": 664,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/D",
+   "text": "11",
+   "x": 734,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/GP",
+   "text": "51",
+   "x": 804,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/GC",
+   "text": "51",
+   "x": 874,
+   "y": 696,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/SG",
+   "text": "0",
+   "x": 944,
+   "y": 696,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/Pts",
+   "text": "53",
+   "x": 1034,
+   "y": 696,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/11/Últ. 5",
+   "text": "E V E V V",
+   "x": 1134,
+   "y": 696,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/11/line",
+   "x": 56,
+   "y": 722,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/#",
+   "text": "13",
+   "x": 64,
+   "y": 730,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/Clube",
+   "text": "Everton",
+   "x": 124,
+   "y": 730,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/J",
+   "text": "38",
+   "x": 524,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/V",
+   "text": "11",
+   "x": 594,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/E",
+   "text": "15",
+   "x": 664,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/D",
+   "text": "12",
+   "x": 734,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/GP",
+   "text": "42",
+   "x": 804,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/GC",
+   "text": "44",
+   "x": 874,
+   "y": 730,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/SG",
+   "text": "-2",
+   "x": 944,
+   "y": 730,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/Pts",
+   "text": "48",
+   "x": 1034,
+   "y": 730,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/12/Últ. 5",
+   "text": "E E D V E",
+   "x": 1134,
+   "y": 730,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/12/line",
+   "x": 56,
+   "y": 756,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/13/bg",
+   "x": 56,
+   "y": 757,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/#",
+   "text": "14",
+   "x": 64,
+   "y": 764,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/Clube",
+   "text": "West Ham",
+   "x": 124,
+   "y": 764,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/J",
+   "text": "38",
+   "x": 524,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/V",
+   "text": "12",
+   "x": 594,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/E",
+   "text": "10",
+   "x": 664,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/D",
+   "text": "16",
+   "x": 734,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/GP",
+   "text": "46",
+   "x": 804,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/GC",
+   "text": "62",
+   "x": 874,
+   "y": 764,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/SG",
+   "text": "-16",
+   "x": 944,
+   "y": 764,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/Pts",
+   "text": "46",
+   "x": 1034,
+   "y": 764,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/13/Últ. 5",
+   "text": "D V E D V",
+   "x": 1134,
+   "y": 764,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/13/line",
+   "x": 56,
+   "y": 790,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/#",
+   "text": "15",
+   "x": 64,
+   "y": 798,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/Clube",
+   "text": "Manchester United",
+   "x": 124,
+   "y": 798,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/J",
+   "text": "38",
+   "x": 524,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/V",
+   "text": "11",
+   "x": 594,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/E",
+   "text": "9",
+   "x": 664,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/D",
+   "text": "18",
+   "x": 734,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/GP",
+   "text": "44",
+   "x": 804,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/GC",
+   "text": "54",
+   "x": 874,
+   "y": 798,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/SG",
+   "text": "-10",
+   "x": 944,
+   "y": 798,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/Pts",
+   "text": "42",
+   "x": 1034,
+   "y": 798,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/14/Últ. 5",
+   "text": "D D V E D",
+   "x": 1134,
+   "y": 798,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/14/line",
+   "x": 56,
+   "y": 824,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/15/bg",
+   "x": 56,
+   "y": 825,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/#",
+   "text": "16",
+   "x": 64,
+   "y": 832,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/Clube",
+   "text": "Wolves",
+   "x": 124,
+   "y": 832,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/J",
+   "text": "38",
+   "x": 524,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/V",
+   "text": "12",
+   "x": 594,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/E",
+   "text": "6",
+   "x": 664,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/D",
+   "text": "20",
+   "x": 734,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/GP",
+   "text": "54",
+   "x": 804,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/GC",
+   "text": "69",
+   "x": 874,
+   "y": 832,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/SG",
+   "text": "-15",
+   "x": 944,
+   "y": 832,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/Pts",
+   "text": "42",
+   "x": 1034,
+   "y": 832,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/15/Últ. 5",
+   "text": "V D D E D",
+   "x": 1134,
+   "y": 832,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/15/line",
+   "x": 56,
+   "y": 858,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/#",
+   "text": "17",
+   "x": 64,
+   "y": 866,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/Clube",
+   "text": "Tottenham",
+   "x": 124,
+   "y": 866,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/J",
+   "text": "38",
+   "x": 524,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/V",
+   "text": "11",
+   "x": 594,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/E",
+   "text": "5",
+   "x": 664,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/D",
+   "text": "22",
+   "x": 734,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/GP",
+   "text": "64",
+   "x": 804,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/GC",
+   "text": "65",
+   "x": 874,
+   "y": 866,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/SG",
+   "text": "-1",
+   "x": 944,
+   "y": 866,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/Pts",
+   "text": "38",
+   "x": 1034,
+   "y": 866,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/16/Últ. 5",
+   "text": "D V D D V",
+   "x": 1134,
+   "y": 866,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/16/line",
+   "x": 56,
+   "y": 892,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/17/bg",
+   "x": 56,
+   "y": 893,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/#",
+   "text": "18",
+   "x": 64,
+   "y": 900,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/Clube",
+   "text": "Leicester City",
+   "x": 124,
+   "y": 900,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/J",
+   "text": "38",
+   "x": 524,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/V",
+   "text": "6",
+   "x": 594,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/E",
+   "text": "7",
+   "x": 664,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/D",
+   "text": "25",
+   "x": 734,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/GP",
+   "text": "33",
+   "x": 804,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/GC",
+   "text": "80",
+   "x": 874,
+   "y": 900,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/SG",
+   "text": "-47",
+   "x": 944,
+   "y": 900,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/Pts",
+   "text": "25",
+   "x": 1034,
+   "y": 900,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/17/Últ. 5",
+   "text": "D D D E D",
+   "x": 1134,
+   "y": 900,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/17/line",
+   "x": 56,
+   "y": 926,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/#",
+   "text": "19",
+   "x": 64,
+   "y": 934,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/Clube",
+   "text": "Ipswich Town",
+   "x": 124,
+   "y": 934,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/J",
+   "text": "38",
+   "x": 524,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/V",
+   "text": "4",
+   "x": 594,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/E",
+   "text": "10",
+   "x": 664,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/D",
+   "text": "24",
+   "x": 734,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/GP",
+   "text": "36",
+   "x": 804,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/GC",
+   "text": "82",
+   "x": 874,
+   "y": 934,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/SG",
+   "text": "-46",
+   "x": 944,
+   "y": 934,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/Pts",
+   "text": "22",
+   "x": 1034,
+   "y": 934,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/18/Últ. 5",
+   "text": "D D E D D",
+   "x": 1134,
+   "y": 934,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/18/line",
+   "x": 56,
+   "y": 960,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/19/bg",
+   "x": 56,
+   "y": 961,
+   "width": 1328,
+   "height": 34,
+   "props": {
+    "fill": "#f2efea"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/#",
+   "text": "20",
+   "x": 64,
+   "y": 968,
+   "width": 44,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/Clube",
+   "text": "Southampton",
+   "x": 124,
+   "y": 968,
+   "width": 380,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/J",
+   "text": "38",
+   "x": 524,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/V",
+   "text": "2",
+   "x": 594,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/E",
+   "text": "6",
+   "x": 664,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/D",
+   "text": "30",
+   "x": 734,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/GP",
+   "text": "26",
+   "x": 804,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/GC",
+   "text": "86",
+   "x": 874,
+   "y": 968,
+   "width": 60,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/SG",
+   "text": "-60",
+   "x": 944,
+   "y": 968,
+   "width": 70,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/Pts",
+   "text": "12",
+   "x": 1034,
+   "y": 968,
+   "width": 80,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "td/19/Últ. 5",
+   "text": "D D D D E",
+   "x": 1134,
+   "y": 968,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "row/19/line",
+   "x": 56,
+   "y": 994,
+   "width": 1328,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "leg/0/b",
+   "x": 64,
+   "y": 1021,
+   "width": 20,
+   "height": 3,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "leg/0/t",
+   "text": "Champions League",
+   "x": 92,
+   "y": 1016,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "leg/1/b",
+   "x": 284,
+   "y": 1021,
+   "width": 20,
+   "height": 3,
+   "props": {
+    "fill": "#94600a"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "leg/1/t",
+   "text": "Europa League",
+   "x": 312,
+   "y": 1016,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "leg/2/b",
+   "x": 504,
+   "y": 1021,
+   "width": 20,
+   "height": 3,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "leg/2/t",
+   "text": "Rebaixamento",
+   "x": 532,
+   "y": 1016,
+   "width": 200,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "prov/line",
+   "x": 64,
+   "y": 1120,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "prov/note",
+   "text": "Fonte: football-data. Partidas sem placar não entram na tabela — ausência não é 0×0.",
+   "x": 64,
+   "y": 1132,
+   "width": 1100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ }
+]

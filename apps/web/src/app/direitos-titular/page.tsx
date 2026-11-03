@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalPagesEnabled } from '@/lib/flags';
 import DireitosTitularPanel from '@/components/DireitosTitularPanel';
+import FichaHead from '@/components/ficha/FichaHead';
 
 // T470 — Direitos do titular (LGPD art. 18): processo com protocolo rastreável.
 // Logado = fluxo automatizado (pedido/export/exclusão). Deslogado = orientação +
@@ -25,15 +26,15 @@ export default function DireitosTitularPage() {
           ← /privacidade
         </Link>
       </div>
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        Direitos do Titular
-      </h1>
+      {/* FichaHead no lugar do h1. O título continua literal: esta é uma página legal em
+          português, atrás de flag — traduzir o conteúdo dela é outra tarefa. */}
+      <FichaHead title="Direitos do Titular" />
       <p className="text-sm text-foreground/70 mb-8">LGPD, art. 18 · END ART Studios</p>
       <p className="text-foreground/70 mb-8 leading-relaxed">
-        Exerça seus direitos com protocolo rastreável. O recebimento é confirmado na hora; a resposta
-        conclusiva sai em até 15 dias no Brasil (LGPD, art. 18, §3, prorrogável, com comunicação à
-        ANPD) ou em até 1 mês no EEE/Reino Unido quando aplicável. Canal manual (sem conta):
-        endart.studios+privacidade@gmail.com.
+        Exerça seus direitos com protocolo rastreável. O recebimento é confirmado na hora; a
+        resposta conclusiva sai em até 15 dias no Brasil (LGPD, art. 18, §3, prorrogável, com
+        comunicação à ANPD) ou em até 1 mês no EEE/Reino Unido quando aplicável. Canal manual (sem
+        conta): endart.studios+privacidade@gmail.com.
       </p>
       <DireitosTitularPanel />
     </div>

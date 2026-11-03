@@ -7,6 +7,7 @@ import { wsC7Strings } from '@/i18n/wsC7';
 import { wsC5Strings } from '@/i18n/wsC5';
 import TitleBars from '@/components/TitleBars';
 import CompareTable from '@/components/CompareTable';
+import FichaHead from '@/components/ficha/FichaHead';
 
 // WS-C-7 — comparação server-rendered entre clubes (fonte: GET /clubs/compare).
 // Seletor interativo: reusa a página /compare existente (T440) — fonte-única.
@@ -122,7 +123,7 @@ export default async function ClubComparePage({
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">{s.title}</h1>
+      <FichaHead title={s.title} />
       <p className="text-foreground/60 mt-1 mb-8">{s.subtitle}</p>
 
       <div className="mb-8 text-sm text-foreground/60">

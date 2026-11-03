@@ -8,6 +8,7 @@ import OperatorGate from '@/components/OperatorGate';
 import ReportDashboard from '@/components/ReportDashboard';
 import { useI18n } from '@/i18n/Provider';
 import { wsC11Strings } from '@/i18n/wsC11';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 export default function AdminReportsPage() {
   const { locale } = useI18n();
@@ -16,9 +17,9 @@ export default function AdminReportsPage() {
   return (
     <OperatorGate>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <h1 className="text-3xl font-heading font-bold text-foreground mb-2">{s.dashboardTitle}</h1>
+        <AdminHeading title={s.dashboardTitle} />
         <div className="mt-6 rounded-2xl border border-border/50 bg-background p-5">
-          <ReportDashboard s={s} />
+          <ReportDashboard s={s} locale={locale} />
         </div>
       </div>
     </OperatorGate>

@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import ClubGrid from '@/components/ClubCard';
 import SearchBar from '@/components/SearchBar';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
 import CountryIndex from '@/components/CountryIndex';
 import CityDrilldown from '@/components/CityDrilldown';
 import { getApiBase } from '@/lib/api-base';
@@ -62,12 +62,20 @@ export default async function ClubsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading
-        titleKey="pages.clubs.title"
-        // T548 — quando a API falha, a linha do subtítulo DECLARA a lacuna; antes ela
-        // imprimia "Explore 0 clubes de futebol cadastrados" como se fosse fato.
-        subtitleKey={total == null ? 'pages.clubs.loadError' : 'pages.clubs.subtitle'}
-        {...(total == null ? {} : { subtitleParams: { n: total } })}
+      {/*
+        T548 preservado: quando a API falha, o subtítulo DECLARA a lacuna em vez de imprimir
+        "Explore 0 clubes" como se fosse fato. O que muda é que agora o número também é o
+        ÂNCORA à direita — e ele não aparece quando `total` é nulo, porque número desconhecido
+        não vira gráfico.
+      */}
+      <FichaHead
+        title={dict.pages.clubs.title}
+        subtitle={
+          total == null
+            ? dict.pages.clubs.loadError
+            : dict.pages.clubs.subtitle.replace('{n}', String(total))
+        }
+        anchor={total == null ? undefined : String(total)}
       />
       <div className="mb-8">
         <Suspense fallback={<div className="h-12 bg-neutral-surface rounded-xl animate-pulse" />}>

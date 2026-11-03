@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { Fragment } from 'react';
 import GeoMapInternal from '@/components/GeoMapInternal';
 import { getDictionary } from '@/i18n/getDictionary';
+import FichaHead from '@/components/ficha/FichaHead';
 import { mapPageStrings } from '@/i18n/wsMapPage';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { metadataStrings } from '@/i18n/wsMetadata';
@@ -37,9 +38,7 @@ export default async function MapPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
-        {dict.home.explore.map}
-      </h1>
+      <FichaHead title={dict.home.explore.map} />
       <p className="text-foreground/60 measure-readable mt-2 mb-6">
         {s.intro.map((segmento, i) =>
           segmento.strong ? (

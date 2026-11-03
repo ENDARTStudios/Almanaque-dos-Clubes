@@ -1,133 +1,67 @@
 'use client';
 
-import { Suspense, useCallback, useId } from 'react';
-import { useRouter } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { Suspense } from 'react';
+import Link from 'next/link';
+import AuthShell from '@/components/ficha/AuthShell';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
 /**
- * Shell das telas de autenticação — card de duas metades com TROCA (login ⇄ cadastro).
+ * Telas de entrada — login e cadastro, sobre a casca do sistema.
  *
- * Estrutura (a mesma da referência de design que o Operador pediu):
- *   <div class="auth-card">
- *     <input type="checkbox" class="auth-card__toggle" hidden>
- *     <div class="auth-card__pane --hero --login">       texto do login
- *     <div class="auth-card__pane --hero --register">    texto do cadastro
- *     <div class="auth-card__pane --login">              formulário de login
- *     <div class="auth-card__pane --register">           formulário de cadastro
- *   </div>
+ * ── O QUE MUDOU NESTA RODADA ─────────────────────────────────────────────────────────────
+ * A casca do card passou a ser `components/ficha/AuthShell`. Antes, o card era `auth-card__*`
+ * em CSS próprio: o desenho estava certo, mas morava fora do sistema — nenhuma rota de auth
+ * importava `@/components/ficha/`, então as quatro telas eram uma ilha. Ilha que ninguém reusa
+ * e ninguém testa é dívida, mesmo quando é bonita.
  *
- * Por que os QUATRO painéis ficam no DOM e são irmãos diretos do checkbox: a troca é CSS puro
- * (`~` + `:checked`), sem estado de animação em JS — animar em JS reintroduziria o problema de
- * "estado intermediário congelado" que já custou caro neste projeto. A metade que não
- * corresponde à rota atual recebe `inert` (tira do tab order e da árvore de acessibilidade) e a
- * classe `--hidden` (tira do ponteiro, com atraso igual ao da transição). Sem essas duas, o
- * usuário tabularia para dentro de um formulário invisível.
+ * ── O QUE ESTE COMPONENTE NÃO FAZ MAIS ────────────────────────────────────────────────────
+ * A versão anterior era um card de DUAS metades, com os quatro painéis coexistindo no DOM e a
+ * metade inativa levando `inert`, porque a troca era animada em CSS e `display:none` mataria a
+ * transição. Isso exigia uma regra especial (T554): só o painel ATIVO recebia `<h1>`.
  *
- * O checkbox marcado significa "modo cadastro", então o estado vem da ROTA (`mode`) e não de um
- * `useState`: navegar direto para /auth/register já deixa o card no estado certo, sem flash e
- * sem duas fontes de verdade. O `onChange` só navega.
+ * Agora só o formulário da rota atual é renderizado: **um `<h1>` por construção, não por
+ * condicional**. Sem `inert`, sem checkbox de estado, sem duas fontes de verdade para o modo —
+ * a rota continua sendo a única.
+ *
+ * A saída para a outra tela era um `<label>` que acionava o checkbox: não navegava, não recebia
+ * foco e não aparecia na lista de links do leitor de tela. É um `<Link>` de verdade.
  */
 export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
-  const router = useRouter();
-  const toggleId = useId();
   const isLogin = mode === 'login';
 
-  const handleToggle = useCallback(() => {
-    router.push(isLogin ? '/auth/register' : '/auth/login');
-  }, [isLogin, router]);
-
-  const paneClass = (pMode: 'login' | 'register', isHero: boolean) =>
-    ['auth-card__pane', isHero && 'auth-card__pane--hero', `auth-card__pane--${pMode}`]
-      .filter(Boolean)
-      .join(' ');
-
-  const hero = (pMode: 'login' | 'register', title: string, text: string, cta: string) => {
-    const active = pMode === mode;
-    return (
-      <div className={paneClass(pMode, true)} inert={!active}>
-        <div className="auth-card__mark" aria-hidden="true" />
-        <div className="auth-card__hero-content">
-          <h2 className="auth-card__hero-title">{title}</h2>
-          <p className="auth-card__hero-text">{text}</p>
-          <label htmlFor={toggleId} className="auth-card__switch">
-            {cta}
-          </label>
-        </div>
-      </div>
-    );
-  };
-
-  const form = (
-    pMode: 'login' | 'register',
-    title: string,
-    subtitle: string,
-    children: ReactNode,
-  ) => {
-    const active = pMode === mode;
-    return (
-      <div className={paneClass(pMode, false)} inert={!active}>
-        {/* T554 — só o painel ATIVO expõe `<h1>`: os dois formulários coexistem no DOM
-            (a troca é animada, então `display:none` não serve), e dois `<h1>` na mesma
-            página quebram 1.3.1/2.4.6 e o heading-order. O painel inativo usa `<p>` com a
-            MESMA classe — `.auth-card__title` define margem e tamanho, e o preflight
-            zera o peso do heading, então o desenho não muda. */}
-        {active ? (
-          <h1 className="auth-card__title">{title}</h1>
-        ) : (
-          <p className="auth-card__title">{title}</p>
-        )}
-        <p className="auth-card__subtitle">{subtitle}</p>
-        {children}
-      </div>
-    );
-  };
-
   return (
-    <div className={`auth-card auth-card--${mode}`}>
-      <input
-        id={toggleId}
-        type="checkbox"
-        className="auth-card__toggle"
-        checked={!isLogin}
-        onChange={handleToggle}
-        readOnly
-        aria-label={isLogin ? 'Ir para o cadastro' : 'Ir para o login'}
-      />
-
-      {hero(
-        'login',
-        'O futebol é eterno',
-        'Sua conta guarda o que você acompanha: favoritos, comparações e histórico.',
-        'Criar conta',
-      )}
-      {hero(
-        'register',
-        'Comece pelo que te trouxe aqui',
-        'A conta é gratuita e leva menos de um minuto. Sem cartão.',
-        'Entrar',
-      )}
-
-      {/* T567 — `LoginForm` usa `useSearchParams` (para honrar `?next=`), e o Next exige fronteira
-          de `Suspense` em quem lê search params: sem ela, a página que PRERENDERIZA este card
-          falha o build. O `RegisterForm` não lê, então fica fora — a fronteira é do que precisa,
-          não do bloco inteiro. */}
-      {form(
-        'login',
-        'Entrar',
-        'Acesse sua conta no Almanaque dos Clubes',
+    <AuthShell
+      title={isLogin ? 'Entrar' : 'Criar conta'}
+      subtitle={
+        isLogin
+          ? 'Acesse sua conta no Almanaque dos Clubes'
+          : 'Cadastre-se gratuitamente no Almanaque dos Clubes'
+      }
+      footer={
+        <>
+          {isLogin ? 'Ainda não tem conta? ' : 'Já tem conta? '}
+          <Link
+            href={isLogin ? '/auth/register' : '/auth/login'}
+            className="auth-card__link auth-card__link--target"
+          >
+            {isLogin ? 'Criar conta' : 'Entrar'}
+          </Link>
+        </>
+      }
+    >
+      {/* T567 — `LoginForm` usa `useSearchParams` (para honrar `?next=`), e o Next exige
+          fronteira de `Suspense` em quem lê search params: sem ela, a página que prerenderiza
+          este card falha o build. O `RegisterForm` não lê, então fica fora — a fronteira é do
+          que precisa, não do bloco inteiro. */}
+      {isLogin ? (
         <Suspense fallback={null}>
           <LoginForm />
-        </Suspense>,
+        </Suspense>
+      ) : (
+        <RegisterForm />
       )}
-      {form(
-        'register',
-        'Criar conta',
-        'Cadastre-se gratuitamente no Almanaque dos Clubes',
-        <RegisterForm />,
-      )}
-    </div>
+    </AuthShell>
   );
 }
 
