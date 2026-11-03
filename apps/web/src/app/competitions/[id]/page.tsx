@@ -9,7 +9,8 @@ import { LOCALE_COOKIE, normalizeLocale, type Locale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
-import { TrophyCup, TrophyMedal } from '@/components/icons';
+import { TrophyCup } from '@/components/icons';
+import { Medal } from '@/components/ficha/Metal';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
@@ -606,9 +607,7 @@ export default async function CompetitionDetailPage({
                         className="rounded-xl border border-border p-4"
                         data-testid="record-biggest-win"
                       >
-                        <p className="text-xs uppercase tracking-wide text-foreground/60">
-                          {ti.biggestWin}
-                        </p>
+                        <p className="text-xs text-ink-3">{ti.biggestWin}</p>
                         <p className="mt-2 font-heading font-bold text-lg">
                           {matchHistory.records.biggestWin.homeClubName ?? '—'}{' '}
                           {matchHistory.records.biggestWin.homeScore} ×{' '}
@@ -632,9 +631,7 @@ export default async function CompetitionDetailPage({
                         className="rounded-xl border border-border p-4"
                         data-testid="record-highest-scoring"
                       >
-                        <p className="text-xs uppercase tracking-wide text-foreground/60">
-                          {ti.highestScoring}
-                        </p>
+                        <p className="text-xs text-ink-3">{ti.highestScoring}</p>
                         <p className="mt-2 font-heading font-bold text-lg">
                           {matchHistory.records.highestScoring.homeClubName ?? '—'}{' '}
                           {matchHistory.records.highestScoring.homeScore} ×{' '}
@@ -1047,8 +1044,12 @@ export default async function CompetitionDetailPage({
                           />
                         </span>
                       ) : null}
+                      {/* o medalhão entra ANTES do nome: o lugar é forma + texto, não cor */}
+                      <span aria-hidden="true" className="shrink-0">
+                        <Medal metal="ouro" place={1} size={44} />
+                      </span>
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                        <p className="text-xs font-semibold text-[color:var(--color-metal-ouro-ink)]">
                           {ti.podiumChampion}
                         </p>
                         <p className="text-2xl font-heading font-bold text-foreground mt-0.5">
@@ -1224,7 +1225,7 @@ export default async function CompetitionDetailPage({
 function Info({ label, value, extra }: { label: string; value: React.ReactNode; extra?: string }) {
   return (
     <div>
-      <p className="text-xs text-foreground/70 uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-ink-3">{label}</p>
       <p className="text-sm font-medium text-foreground mt-0.5">
         {value}
         {extra ? <span className="text-foreground/70"> · {extra}</span> : null}
@@ -1248,7 +1249,7 @@ function HistoryStat({
 }) {
   return (
     <div className="rounded-xl border border-border bg-muted p-4" data-testid="history-stat">
-      <dt className="text-xs text-foreground/70 uppercase tracking-wider">{label}</dt>
+      <dt className="text-xs text-ink-3">{label}</dt>
       <dd className="font-heading text-lg font-bold text-foreground mt-0.5">
         {value}
         {extra ? (
@@ -1281,12 +1282,11 @@ function PodiumSlot({
       data-testid={tone === 'silver' ? 'podium-runner-up' : 'podium-third'}
     >
       <div className="flex items-center gap-3">
-        {/* Ícone decorativo (aria-hidden): quem nomeia o slot é o rótulo de texto. */}
-        <span
-          aria-hidden="true"
-          className={`shrink-0 ${tone === 'silver' ? 'text-ink-2' : 'text-secondary'}`}
-        >
-          <TrophyMedal size={28} />
+        {/* O medalhão é decorativo: quem nomeia o slot é o rótulo de texto ao lado.
+            Antes prata era `text-ink-2` (cinza) e bronze era `text-secondary` — que é OURO.
+            Os dois tons ficavam a um passo do mesmo, e o bronze lia como campeão. */}
+        <span aria-hidden="true" className="shrink-0">
+          <Medal metal={tone === 'silver' ? 'prata' : 'bronze'} place={tone === 'silver' ? 2 : 3} />
         </span>
         <div>
           <p className="text-xs text-foreground/70">{label}</p>
