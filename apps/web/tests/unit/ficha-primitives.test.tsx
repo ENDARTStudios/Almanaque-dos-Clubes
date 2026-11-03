@@ -64,6 +64,25 @@ describe('FichaHead', () => {
     expect(screen.queryByText('1.932')).toBeNull();
   });
 
+  /**
+   * O DEFEITO QUE ESTE CASO TRAVA
+   * Com a API fora do ar, `/competitions` imprimia um "0" GIGANTE em vermelho como manchete da
+   * página — enquanto o acervo tem 1.932 competições. O número não era zero: a consulta é que
+   * não voltou. "0" como manchete não informa nada e afirma algo falso.
+   * A página mostra a lacuna na área de conteúdo (ErrorState/EmptyState), que é onde ela se
+   * explica; o cabeçalho não repete a ausência como se fosse dado de destaque.
+   */
+  it('âncora "0" NÃO vira manchete — zero não é número de destaque', () => {
+    const { container } = render(
+      <FichaHead title="Competições" anchor="0" anchorLabel="competições" />,
+    );
+
+    expect(screen.queryByText('0')).toBeNull();
+    expect(screen.queryByText('competições')).toBeNull();
+    // só o título: nenhum bloco numérico à direita
+    expect(container.querySelectorAll('header > div')).toHaveLength(1);
+  });
+
   it('o subtítulo respeita a medida de leitura', () => {
     render(<FichaHead title="t" subtitle="Explora 1.932 competições." />);
     expect(screen.getByText('Explora 1.932 competições.').className).toContain('measure-readable');

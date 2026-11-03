@@ -23,7 +23,19 @@ export interface FichaHeadProps {
   title: string;
   /** Linha de contexto abaixo do título. Absorve o que antes era o eyebrow. */
   subtitle?: ReactNode;
-  /** Número de destaque à direita. Sem ele, o cabeçalho fica só com título e subtítulo. */
+  /**
+   * Número de destaque à direita. Sem ele, o cabeçalho fica só com título e subtítulo.
+   *
+   * ── POR QUE "0" NÃO VIRA ÂNCORA ──────────────────────────────────────────────────────────
+   * O âncora é a MANCHETE numérica da página. "0" como manchete não informa nada e, pior,
+   * AFIRMA algo falso quando a lista está vazia por falha de rede: a página imprimia um "0"
+   * gigante em vermelho enquanto o acervo tem 1.932 competições — o número não era zero, a
+   * consulta é que não voltou. Visto no screenshot de `/competitions` com a API fora.
+   *
+   * Contagem zero significa "não há o que contar". A página mostra o estado (vazio ou erro) na
+   * área de conteúdo, que é onde a lacuna se explica; o cabeçalho não repete a ausência como se
+   * fosse um dado de destaque.
+   */
   anchor?: string;
   /** Rótulo do número-âncora, em caixa baixa e sem tracking. */
   anchorLabel?: string;
@@ -41,6 +53,9 @@ export default function FichaHead({
   dark = false,
   actions,
 }: FichaHeadProps) {
+  // "0" e "" não são manchete: ver o comentário de `anchor` acima.
+  const mostrarAncora = Boolean(anchor) && anchor !== '0';
+
   return (
     <header className="mb-6 flex flex-wrap items-start justify-between gap-6">
       <div className="min-w-0 flex-1">
@@ -55,7 +70,7 @@ export default function FichaHead({
         {actions ? <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div> : null}
       </div>
 
-      {anchor ? (
+      {mostrarAncora ? (
         <div className="shrink-0 text-right">
           {/* imagem, não dado de tabela: por isso font-heading */}
           <div className="font-heading text-5xl font-bold leading-none tracking-[-0.03em] text-primary-ink sm:text-6xl lg:text-7xl">

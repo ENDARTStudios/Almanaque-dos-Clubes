@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import FichaHead from '@/components/ficha/FichaHead';
-import { EmptyState } from '@/components/ficha/States';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 import CountryIndex from '@/components/CountryIndex';
 import SearchBar from '@/components/SearchBar';
@@ -49,10 +49,10 @@ async function getPlayers(filtros: { search?: string; country?: string; position
     if (filtros.country) params.set('country', filtros.country);
     if (filtros.position) params.set('position', filtros.position);
     const res = await fetch(getApiBase() + '/players?' + params.toString(), { cache: 'no-store' });
-    if (!res.ok) return { data: [], total: 0 };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { data: [], total: 0 };
+    return null;
   }
 }
 
@@ -62,11 +62,16 @@ export default async function PlayersPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const sp = await searchParams;
-  const { data: players, total } = await getPlayers({
+  const resultado = await getPlayers({
     ...(sp.search ? { search: sp.search } : {}),
     ...(sp.country ? { country: sp.country } : {}),
     ...(sp.position ? { position: sp.position } : {}),
   });
+  // `null` = a consulta FALHOU. Lista vazia e falha de rede são coisas diferentes.
+  const falhou = resultado === null;
+  const players: Array<{ id: string; fullName: string; country?: string | null }> =
+    resultado?.data ?? [];
+  const total: number | null = resultado?.total ?? null;
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
@@ -82,9 +87,14 @@ export default async function PlayersPage({
       <div className="mb-6">
         <SearchBar targetPath="/players" searchKey="search" placeholderKey="pages.players.title" />
       </div>
-      <p className="text-sm text-ink-2 mt-2 mb-6">
-        {s.players.total.replace('{n}', String(total))}
-      </p>
+      {/* A linha de contagem só existe quando HÁ contagem. Na falha, quem fala é o ErrorState
+          logo abaixo — repetir "nenhum jogador" aqui seria afirmar ausência de acervo quando o
+          que faltou foi a resposta da origem. */}
+      {total != null ? (
+        <p className="text-sm text-ink-2 mt-2 mb-6">
+          {s.players.total.replace('{n}', String(total))}
+        </p>
+      ) : null}
       {/* AGRUPAMENTO POR PAÍS — mesmo desenho da sessão Clubes. Aqui o dado é bom: 98% dos
           jogadores têm `country` (ISO2). São 105.211 no acervo, então vale a mesma razão de ser
           índice em vez de listas na mesma página — a página não comporta tudo agrupado. */}
@@ -124,6 +134,18 @@ export default async function PlayersPage({
             ))}
           </div>
         </section>
+      ) : falhou ? (
+        /* FALHA ≠ VAZIO. Antes, com a API fora, a página dizia "Nenhum jogador encontrado" —
+           afirmando que o acervo não tem jogadores, quando tem 105.211 e a consulta é que não
+           voltou. */
+        <div className="py-8">
+          <ErrorState
+            title={fichaStrings[locale].states.errorTitle}
+            body={fichaStrings[locale].states.errorBody}
+            retryLabel={fichaStrings[locale].states.retry}
+            retryHref="/players"
+          />
+        </div>
       ) : (
         <div className="py-8">
           <EmptyState title={s.players.empty} body={fichaStrings[locale].states.emptyBody} />

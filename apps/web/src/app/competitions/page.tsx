@@ -21,7 +21,7 @@ import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import TierCard from '@/components/ficha/TierCard';
 import DataTable from '@/components/ficha/DataTable';
-import { EmptyState } from '@/components/ficha/States';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 
 // T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
@@ -62,10 +62,12 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
   try {
     const base = getApiBase();
     const res = await fetch(base + '/competitions?' + params.toString(), { cache: 'no-store' });
-    if (!res.ok) return { data: [], total: 0, offset: 0 };
+    // `null` = FALHOU. Antes devolvia `{ data: [], total: 0 }` — indistinguível de "acervo
+    // vazio", e a página imprimia "Explore 0 competições" com a API fora do ar.
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { data: [], total: 0, offset: 0 };
+    return null;
   }
 }
 
@@ -111,7 +113,16 @@ export default async function CompetitionsPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const sp = await searchParams;
-  const { data: competitions, total, offset } = await getCompetitions(sp);
+  const resultado = await getCompetitions(sp);
+  /*
+    FALHA ≠ VAZIO. A primeira é "não foi possível saber"; a segunda é "não há dado". Fundir as
+    duas faz a página afirmar "0 competições" quando o acervo tem 1.932 e a consulta é que não
+    voltou — foi o que o screenshot com a API fora mostrou, com um "0" gigante em vermelho.
+  */
+  const falhou = resultado === null;
+  const competitions = resultado?.data ?? [];
+  const total = resultado?.total ?? 0;
+  const offset = resultado?.offset ?? 0;
   const countries = await getCompetitionCountries();
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
@@ -140,8 +151,15 @@ export default async function CompetitionsPage({
         `dict` (strings cruas), não com `t()`. O placeholder existe nos três idiomas. */}
       <FichaHead
         title={dict.pages.competitions.title}
-        subtitle={dict.pages.competitions.subtitle.replace('{n}', String(total))}
-        anchor={String(total)}
+        subtitle={
+          /* Na falha, SEM subtítulo: o `errorBody` diz "o número que aparece abaixo é o último
+             que conseguimos verificar" — e abaixo não há número, porque a âncora também saiu.
+             O `ErrorState` logo adiante explica a falha; repetir aqui seria texto que se
+             refere a algo que a página não mostra. */
+          falhou ? undefined : dict.pages.competitions.subtitle.replace('{n}', String(total))
+        }
+        // âncora é manchete: 0 não é manchete, e com falha de rede o número seria mentira
+        anchor={falhou || total === 0 ? undefined : String(total)}
       />
 
       {/* T577 — REORGANIZAÇÃO. O que havia antes: seis grupos de "âncoras" curadas (continental,
@@ -322,7 +340,14 @@ export default async function CompetitionsPage({
           </div>
         }
       >
-        {competitions.length ? (
+        {falhou ? (
+          <ErrorState
+            title={fichaStrings[locale].states.errorTitle}
+            body={fichaStrings[locale].states.errorBody}
+            retryLabel={fichaStrings[locale].states.retry}
+            retryHref="/competitions"
+          />
+        ) : competitions.length ? (
           /*
             ERA uma grade de cartões idênticos — 1.932 vezes o mesmo retângulo. Dois defeitos,
             um deles medido pela skill:

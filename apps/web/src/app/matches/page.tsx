@@ -7,7 +7,7 @@ import { wt541Strings } from '@/i18n/wsT541';
 import { wt579Strings } from '@/i18n/wsT579';
 import { ClubCrest } from '@/components/MediaAssets';
 import FichaHead from '@/components/ficha/FichaHead';
-import { EmptyState } from '@/components/ficha/States';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
@@ -106,6 +106,10 @@ export default async function MatchesPage({
     fetchJson<{ data: MatchRow[]; total: number }>(`${base}/matches?${query.toString()}`),
   ]);
 
+  // `null` = a consulta FALHOU (o fetcher já devolve null). Zero resultados e falha de rede são
+  // coisas diferentes: a primeira é "não há partida para este recorte", a segunda é
+  // "não foi possível saber" — e a tela não pode apresentar a segunda como se fosse a primeira.
+  const falhou = list === null;
   const rows = list?.data ?? [];
   const total = list?.total ?? 0;
   const hasPrev = offset > 0;
@@ -209,13 +213,26 @@ export default async function MatchesPage({
           <Link href="/matches" className="text-sm text-primary-ink underline">
             {t.filters.clear}
           </Link>
-          <span className="text-sm text-foreground/60">
-            {total.toLocaleString(locale)} {t.filters.results}
-          </span>
+          {/* Contagem só quando há contagem: com a origem fora, "0 partidas encontradas"
+              contradizia o ErrorState logo abaixo — um dizia "nada", o outro "não deu para saber". */}
+          {falhou ? null : (
+            <span className="text-sm text-foreground/60">
+              {total.toLocaleString(locale)} {t.filters.results}
+            </span>
+          )}
         </div>
       </form>
 
-      {rows.length === 0 ? (
+      {falhou ? (
+        <div className="mt-8">
+          <ErrorState
+            title={fichaStrings[locale].states.errorTitle}
+            body={fichaStrings[locale].states.errorBody}
+            retryLabel={fichaStrings[locale].states.retry}
+            retryHref="/matches"
+          />
+        </div>
+      ) : rows.length === 0 ? (
         <div className="mt-8">
           <EmptyState title={t.filters.noResults} body={t.filters.noResultsHint} />
         </div>
