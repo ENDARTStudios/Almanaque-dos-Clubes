@@ -10,7 +10,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
 import { TrophyCup } from '@/components/icons';
-import { Medal } from '@/components/ficha/Metal';
+import CompetitionPodium from '@/components/ficha/CompetitionPodium';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
@@ -1029,75 +1029,20 @@ export default async function CompetitionDetailPage({
               <h2 id="podium-title" className="text-xl font-heading font-bold mb-3">
                 {ti.podiumTitle}
               </h2>
-              {podium?.champion ? (
-                <div className="space-y-4" data-testid="competition-podium">
-                  <article className="rounded-xl border border-secondary/40 bg-secondary/5 p-5">
-                    <div className="flex flex-wrap items-center gap-4">
-                      {comp.trophyImageUrl ? (
-                        <span className="w-16 h-16 rounded-xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={comp.trophyImageUrl}
-                            alt=""
-                            className="object-contain w-12 h-12"
-                            loading="lazy"
-                          />
-                        </span>
-                      ) : null}
-                      {/* o medalhão entra ANTES do nome: o lugar é forma + texto, não cor */}
-                      <span aria-hidden="true" className="shrink-0">
-                        <Medal metal="ouro" place={1} size={44} />
-                      </span>
-                      <div>
-                        <p className="text-xs font-semibold text-[color:var(--color-metal-ouro-ink)]">
-                          {ti.podiumChampion}
-                        </p>
-                        <p className="text-2xl font-heading font-bold text-foreground mt-0.5">
-                          {podium.champion.clubId ? (
-                            <Link
-                              href={`/clubs/${podium.champion.clubId}`}
-                              className="hover:text-secondary"
-                            >
-                              {podium.champion.clubName}
-                            </Link>
-                          ) : (
-                            podium.champion.clubName
-                          )}
-                        </p>
-                        {history?.lastEditionYear != null ? (
-                          <p className="text-xs text-foreground/70 mt-1">
-                            {insText(ti.lastEdition, { year: history.lastEditionYear })}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </article>
-                  {podium.runnerUp || podium.third ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {podium.runnerUp ? (
-                        <PodiumSlot
-                          club={podium.runnerUp}
-                          label={t.runnerUp}
-                          medalNote={ti.medalSilver}
-                          tone="silver"
-                        />
-                      ) : null}
-                      {podium.third ? (
-                        <PodiumSlot
-                          club={podium.third}
-                          label={ti.thirdPlace}
-                          medalNote={ti.medalBronze}
-                          tone="bronze"
-                        />
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <p className="text-sm text-foreground/70" data-testid="podium-empty">
-                  {ti.podiumEmpty}
-                </p>
-              )}
+              <CompetitionPodium
+                podium={podium ?? { champion: null, runnerUp: null, third: null }}
+                labels={{
+                  champion: ti.podiumChampion,
+                  runnerUp: t.runnerUp,
+                  third: ti.thirdPlace,
+                  empty: ti.podiumEmpty,
+                  lastEdition: (year: number) => insText(ti.lastEdition, { year }),
+                  medalSilverNote: ti.medalSilver,
+                  medalBronzeNote: ti.medalBronze,
+                }}
+                lastEditionYear={history?.lastEditionYear ?? null}
+                trophyImageUrl={comp.trophyImageUrl ?? null}
+              />
             </section>
 
             {/* HISTÓRIA — só o que o acervo sustenta; lacuna vira texto declarado. */}
@@ -1257,51 +1202,5 @@ function HistoryStat({
         ) : null}
       </dd>
     </div>
-  );
-}
-
-/**
- * Slot de vice/3º do pódio — MEDALHA É ILUSTRAÇÃO AUTORAL (ícone autoral do design
- * system), nunca foto de medalha: o rótulo declara isso no próprio card. Sem clube no
- * acervo, o slot nem renderiza (chamada condicional) — não existe pódio inventado.
- */
-function PodiumSlot({
-  club,
-  label,
-  medalNote,
-  tone,
-}: {
-  club: PodiumClubDto;
-  label: string;
-  medalNote: string;
-  tone: 'silver' | 'bronze';
-}) {
-  return (
-    <article
-      className="rounded-xl border border-border bg-background p-4"
-      data-testid={tone === 'silver' ? 'podium-runner-up' : 'podium-third'}
-    >
-      <div className="flex items-center gap-3">
-        {/* O medalhão é decorativo: quem nomeia o slot é o rótulo de texto ao lado.
-            Antes prata era `text-ink-2` (cinza) e bronze era `text-secondary` — que é OURO.
-            Os dois tons ficavam a um passo do mesmo, e o bronze lia como campeão. */}
-        <span aria-hidden="true" className="shrink-0">
-          <Medal metal={tone === 'silver' ? 'prata' : 'bronze'} place={tone === 'silver' ? 2 : 3} />
-        </span>
-        <div>
-          <p className="text-xs text-foreground/70">{label}</p>
-          <p className="font-heading font-bold text-foreground">
-            {club.clubId ? (
-              <Link href={`/clubs/${club.clubId}`} className="hover:text-primary-ink">
-                {club.clubName}
-              </Link>
-            ) : (
-              club.clubName
-            )}
-          </p>
-        </div>
-      </div>
-      <p className="mt-2 text-[0.6875rem] leading-snug text-ink-3">{medalNote}</p>
-    </article>
   );
 }
