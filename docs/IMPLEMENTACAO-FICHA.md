@@ -204,15 +204,21 @@ REDIS_URL="redis://localhost:6379" REDIS_HOST=localhost REDIS_PORT=6379 \
 Estado medido com esse comando: **1804 passando · 5 falhando** (era 1683 · 82 — as 82 eram só a
 URL do Railway).
 
-Uma execução posterior deu **9 falhando**, não 5. A diferença não é do código: o banco de teste é
-**stateful** e alguns testes não limpam tudo o que criam, então o resultado deriva entre
-execuções. Consequência prática: **o número de falhas não é uma linha de base estável** — o que
-se compara é o CONJUNTO de arquivos que falham, não a contagem. Para uma linha de base limpa,
-recriar o schema do banco de teste antes de rodar.
+Depois das correções abaixo: **218 arquivos · 1809 testes · 0 falhas**.
 
-As falhas restantes são **pré-existentes e comprovadas** contra `origin/main`: `legends` (2),
-`rls-sessions-policies` (2) e `enrich-media-service` (1). A primeira é estado de fixture na
-agregação; as duas últimas dependem de políticas RLS e de endpoint externo.
+O caminho até o zero, porque cada falha era de uma natureza diferente e nenhuma era "código de
+produção quebrado":
+
+| Falha | Causa real                                                                                                                                                               | Correção                                    |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| 82    | `.env` da raiz aponta para o Railway — as 82 eram "Authentication failed"                                                                                                | override local; nada de código              |
+| 2     | `legends` cacheava o resumo em chave FIXA por 5 min; o teste lia o retrato de outro estado do banco                                                                      | invalidar a chave no `beforeAll`/`afterAll` |
+| 2     | `rls-sessions-policies`: `sessions` tem **RLS FORÇADO**, então o `DELETE` do fixture (sem contexto) apagava ZERO — resíduo acumulava e o INSERT batia em restrição única | limpar com `role = SERVICE` e por `userId`  |
+| 1     | `enrich-media-service`: o mock devolvia sempre a entidade do clube, qualquer que fosse o id pedido em LOTE                                                               | responder um id por id PEDIDO               |
+
+**A lição comum: o banco de teste é stateful.** Três das quatro correções foram de ISOLAMENTO, não
+de lógica. Um teste que depende de estado acumulado mente sobre o código — e o número de falhas
+varia entre execuções justamente por isso.
 
 O comando acima está empacotado:
 

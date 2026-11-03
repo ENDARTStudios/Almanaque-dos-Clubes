@@ -84,20 +84,50 @@ describe('enrichClubsMediaBatch (T506 W1)', () => {
       'fetch',
       vi.fn(async (url: string) => {
         const u = String(url);
-        const json = u.includes(STADIUM_QID)
-          ? entityResponse(STADIUM_QID, {
+        /*
+          ── POR QUE O MOCK RESPONDE POR ID PEDIDO, E NÃO "O CLUBE" ─────────────────────────
+          O conector pede em LOTE (`ids=Q1|Q2|…`) e trata **id ausente na resposta** como FALHA DE
+          LEITURA — de propósito, porque "não veio" não é "não existe". O mock antigo devolvia
+          sempre a entidade do clube do fixture, qualquer que fosse o id pedido.
+
+          Isso passou a quebrar quando o banco de teste acumulou clubes de outras suítes: o lote
+          pede 50 clubes, vários fora do fixture, e o mock respondia a entidade errada →
+          `WikidataBatchError: não devolveu 1 de 1 ids pedidos`.
+
+          Agora o mock devolve uma entidade para CADA id pedido, com as claims do fixture só nos
+          QIDs que ele conhece — que é o comportamento de um servidor de verdade para entidades
+          sem os dados.
+        */
+        const pedidos = (u.match(/ids=([^&]+)/)?.[1] ?? '')
+          .split('|')
+          .filter(Boolean)
+          .map((q) => decodeURIComponent(q));
+        const claimsDe = (qid: string): Record<string, unknown> => {
+          if (qid === STADIUM_QID)
+            return {
               ...claim('P625', { latitude: -23.55, longitude: -46.63 }),
               ...claim('P1083', 78000),
               ...claim('P18', 'Arena_Test.jpg'),
-            })
-          : u.includes(COLOR_QID)
-            ? entityResponse(COLOR_QID, {}) // label "Label Q…" não é cor conhecida
-            : entityResponse(CLUB_QID, {
-                ...claim('P154', 'Escudo_Test.svg'),
-                ...claim('P115', { id: STADIUM_QID, 'entity-type': 'item' }),
-                ...claim('P465', 'FF0000'),
-                ...claim('P462', { id: COLOR_QID, 'entity-type': 'item' }),
-              });
+            };
+          // cor com rótulo desconhecido: REPORTADA, não inventada
+          if (qid === COLOR_QID) return {};
+          if (qid === CLUB_QID)
+            return {
+              ...claim('P154', 'Escudo_Test.svg'),
+              ...claim('P115', { id: STADIUM_QID, 'entity-type': 'item' }),
+              ...claim('P465', 'FF0000'),
+              ...claim('P462', { id: COLOR_QID, 'entity-type': 'item' }),
+            };
+          return {};
+        };
+        const json = {
+          entities: Object.fromEntries(
+            pedidos.map((qid) => [
+              qid,
+              { labels: { en: { language: 'en', value: `Label ${qid}` } }, claims: claimsDe(qid) },
+            ]),
+          ),
+        };
         return { ok: true, status: 200, json: async () => json } as unknown as Response;
       }),
     );
