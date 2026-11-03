@@ -18,6 +18,8 @@ import {
   type AnchorCompetition,
 } from '@/lib/competition-anchors';
 import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
+import SectionHeading from '@/components/ficha/SectionHeading';
+import TierCard from '@/components/ficha/TierCard';
 
 // T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
 export async function generateMetadata(): Promise<Metadata> {
@@ -223,12 +225,7 @@ export default async function CompetitionsPage({
             NACIONAL ............. chip compacto, mais apagado
           A curadoria dos degraus vive em `lib/competition-tier.ts`, com o motivo de cada exclusão. */}
       <section className="mt-8" aria-labelledby="comp-destaques">
-        <h2
-          id="comp-destaques"
-          className="text-sm font-heading font-semibold uppercase tracking-wider text-ink-2 mb-3"
-        >
-          {s.destaques}
-        </h2>
+        <SectionHeading id="comp-destaques">{s.destaques}</SectionHeading>
 
         <div className="space-y-6">
           {degraus.map((degrau) => {
@@ -238,25 +235,20 @@ export default async function CompetitionsPage({
 
             return (
               <div key={degrau.id} data-testid={`destaque-degrau-${degrau.id}`}>
-                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
-                  {rotulo}
-                </h3>
+                <SectionHeading as="h3">{rotulo}</SectionHeading>
 
                 {ehMundial || ehContinentalTop ? (
                   /* Dois degraus de cima: cartão. O tamanho do nome é o sinal de importância. */
                   <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {degrau.itens.map((c) => (
                       <li key={c.id}>
-                        <Link
+                        <TierCard
+                          tier={degrau.id}
+                          name={c.name}
+                          meta={c.country ?? ''}
+                          tierLabel={rotulo}
                           href={`/competitions/${c.id}`}
-                          className={`flex min-h-11 items-center rounded-xl border px-4 py-3 transition-colors duration-200 ${
-                            ehMundial
-                              ? 'border-primary/40 bg-surface text-base font-heading font-semibold text-foreground hover:border-primary'
-                              : 'border-border bg-surface-2 text-sm font-medium text-foreground hover:border-primary/60'
-                          }`}
-                        >
-                          {c.name}
-                        </Link>
+                        />
                       </li>
                     ))}
                   </ul>

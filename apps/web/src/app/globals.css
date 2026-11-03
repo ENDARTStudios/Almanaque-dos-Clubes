@@ -341,6 +341,44 @@
   --color-info-surface: #dbeafe;
   --color-neutral-surface: #efece7;
   --color-ring: #94600a;
+
+  /* ── Paleta de DADO (ampliação 2026-11) ────────────────────────────────────────────────
+     As institucionais (primary, secondary) sustentam a interface e não sustentam dado: com
+     duas cores, a terceira categoria de um gráfico virava cinza e desaparecia. Estas quatro
+     só aparecem em série de gráfico, faixa de alcance e mapa — nunca em botão, link ou
+     superfície de interface.
+
+     Contraste medido sobre --color-background (#faf8f5), o pior caso claro:
+       viz-3 #0f6b6b = 6,00:1 · viz-4 #5c6b1f = 5,58:1
+       viz-5 #6d2e5f = 9,00:1 · viz-6 #34506b = 7,91:1
+     Nenhuma é violeta nem índigo: essas duas famílias são a assinatura da paleta de
+     assistente, e o repo as evita por decisão. */
+  --color-viz-1: #be123c;
+  --color-viz-2: #94600a;
+  --color-viz-3: #0f6b6b;
+  --color-viz-4: #5c6b1f;
+  --color-viz-5: #6d2e5f;
+  --color-viz-6: #34506b;
+
+  /* Alcance: a cor REFORÇA o degrau, nunca é o único portador. O card de mundial tem borda de
+     2px e o de nacional tem fio de 1px — a hierarquia se lê em preto e branco. */
+  --color-tier-mundial: #94600a;
+  --color-tier-continental: #be123c;
+  --color-tier-nacional: #0f6b6b;
+  --color-tier-estadual: #34506b;
+
+  /* ── Metais ───────────────────────────────────────────────────────────────────────────
+     A cor do OBJETO e a cor da PALAVRA não são a mesma. O metal vivo (#c9a227 ouro) sobre o
+     papel dá 2,28:1 — reprova para texto, e é correto que reprove: ele existe como
+     preenchimento de forma (medalhão, taça). O texto usa o metal escurecido, que passa AA:
+       ouro #94600a 5,03:1 · prata #5d6670 5,50:1 · bronze #8a5a2b 5,54:1 */
+  --color-metal-ouro: #c9a227;
+  --color-metal-prata: #b8bfc7;
+  --color-metal-bronze: #c07a45;
+  --color-metal-ouro-ink: #94600a;
+  --color-metal-prata-ink: #5d6670;
+  --color-metal-bronze-ink: #8a5a2b;
+
   --font-heading: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
 }
