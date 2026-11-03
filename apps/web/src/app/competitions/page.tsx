@@ -20,6 +20,8 @@ import {
 import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import TierCard from '@/components/ficha/TierCard';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 // T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
 export async function generateMetadata(): Promise<Metadata> {
@@ -352,7 +354,10 @@ export default async function CompetitionsPage({
             ))}
           </div>
         ) : (
-          <p className="text-center text-foreground/60 py-12">Nenhuma competição encontrada.</p>
+          <EmptyState
+            title={fichaStrings[locale].states.emptyTitle}
+            body={fichaStrings[locale].states.emptyBody}
+          />
         )}
         {total > 50 ? (
           <nav

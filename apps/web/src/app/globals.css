@@ -1169,3 +1169,71 @@
     display: block !important;
   }
 }
+
+/* ── FICHA: animação de gráfico ────────────────────────────────────────────────────────────
+   Os keyframes só existem quando o movimento é PERMITIDO. Quem pede menos movimento recebe o
+   desenho final inteiro, parado — não um fade que esconde o dado. É a diferença entre "sem
+   animação" e "sem conteúdo": a primeira é aceitável, a segunda é defeito.
+
+   Cada animação repete o significado do gráfico:
+     barras crescem do eixo (scaleY de 0 a 1) — a ordem de aparecimento é a ordem de leitura;
+     linha desenha com `stroke-dashoffset` — a linha sendo desenhada É a série temporal;
+     rosca aparece em sequência — a proporção é construída, não revelada de surpresa.
+
+   Todas rodam UMA vez (`both`, sem `infinite`). Dado não fica pulsando: pulsação é enfeite e
+   compete com a leitura. Durações abaixo de 900ms, com a curva `ease-out` forte do sistema.
+   A curva que começa devagar está proibida: ela atrasa justamente o primeiro quadro, que é o
+   que o olho acompanha — e o portão `ui:audit:ci` reprova. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ficha-grow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes ficha-grow-h {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes ficha-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ficha-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .ficha-bar {
+    animation: ficha-grow 520ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .ficha-bar-h {
+    animation: ficha-grow-h 520ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    transform-origin: left center;
+  }
+  .ficha-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: ficha-draw 700ms cubic-bezier(0.77, 0, 0.175, 1) 120ms forwards;
+  }
+  .ficha-dot {
+    animation: ficha-fade-in 200ms ease-out both;
+  }
+  .ficha-arc {
+    animation: ficha-fade-in 420ms ease-out both;
+  }
+}
