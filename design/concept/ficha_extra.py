@@ -157,9 +157,17 @@ def p_ranking():
         ("14", "Inter de Milão", "Itália", "1.452", "▼1", "0", "3", "19"),
         ("15", "Ajax", "Países Baixos", "1.428", "▼3", "0", "4", "36"),
     ]
+    import ficha_metais as MT
     ry = ty + 26
     for i, d in enumerate(dados):
         table_row(i, list(d), ry, cols, strong=(i < 3))
+        # marca de metal na 1ª coluna: forma (disco cheio / anel / menor), não só cor
+        if i < 3:
+            vivo = [MT.OURO, MT.PRATA, MT.BRONZE][i]
+            esc = [MT.OURO_TXT, MT.PRATA_TXT, MT.BRONZE_TXT][i]
+            raio = [7, 6, 5][i]
+            rect(f"r/med{i}", M + 2, ry + 3, raio * 2, raio * 2, fill=vivo,
+                 cornerRadius=raio, stroke=esc, strokeWeight=1.4)
         ry += 34
 
     # Nota do critério — o que separa ranking de opinião

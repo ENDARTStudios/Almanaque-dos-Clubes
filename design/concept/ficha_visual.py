@@ -10,6 +10,8 @@ leve e editável, e cada elemento herda os tokens do sistema.
 
 import math
 
+_OURO = "#c9a227"   # metal de destaque (ver ficha_metais)
+
 from ficha import (
     add, rect, txt, num, rule, kicker, HEAD, BODY,
     INK, INK_2, INK_3, CRIMSON, CRIMSON_INK, OCHRE, BORDER, SURFACE, SURFACE_2, MUTED,
@@ -114,25 +116,54 @@ def trofeu(nome, x, y, h=64, cor=OCHRE, fundo=None):
 
 
 # ══ MEDALHA ══════════════════════════════════════════════════════════════════════════════
-def medalha(nome, x, y, d=34, cor=CRIMSON, fita=INK_3):
-    """Medalha: fita em V e disco. A ilustração nunca se apresenta como a medalha oficial."""
+def medalha(nome, x, y, d=34, cor=CRIMSON, fita=INK_3, metal=None, posicao=None):
+    """Medalha: fita em V e disco.
+
+    `metal` (ouro/prata/bronze) separa a cor do OBJETO da cor do TEXTO. O disco usa o metal
+    vivo; o anel externo usa o metal escuro, que é o que passa AA. O 1º lugar tem disco cheio,
+    o 2º anel duplo, o 3º disco menor — a forma carrega a informação mesmo em preto e branco.
+    """
+    import ficha_metais as MT
+
+    if metal or posicao:
+        vivo, escuro, _ = (MT.OURO, MT.OURO_TXT, MT.OURO_ESC)
+        if metal == "prata" or posicao == 2:
+            vivo, escuro = MT.PRATA, MT.PRATA_TXT
+        elif metal == "bronze" or posicao == 3:
+            vivo, escuro = MT.BRONZE, MT.BRONZE_TXT
+        elif metal == "ouro" or posicao == 1:
+            vivo, escuro = MT.OURO, MT.OURO_TXT
+        d = d * (1.0 if posicao in (None, 1) else 0.88)
+
     cx = x + d / 2
     vetor(f"{nome}/fita_e", [(cx - d * 0.18, y), (cx - d * 0.06, y + d * 0.42)],
           stroke=fita, strokeWeight=max(2, d / 12))
     vetor(f"{nome}/fita_d", [(cx + d * 0.18, y), (cx + d * 0.06, y + d * 0.42)],
           stroke=fita, strokeWeight=max(2, d / 12))
     add("node.create", type="ellipse", name=f"{nome}/disco", x=x, y=y + d * 0.36,
-        width=d, height=d, props={"fill": "none", "stroke": cor,
+        width=d, height=d, props={"fill": "none",
+                                  "stroke": escuro if (metal or posicao) else cor,
                                   "strokeWeight": max(1.6, d / 16)})
     add("node.create", type="ellipse", name=f"{nome}/interno", x=x + d * 0.26,
         y=y + d * 0.62, width=d * 0.48, height=d * 0.48,
-        props={"fill": cor if cor != NIGHT_OCHRE else NIGHT_OCHRE, "stroke": "none"})
+        props={"fill": vivo if (metal or posicao) else cor, "stroke": "none"})
+    # 1º lugar: anel externo extra (forma, não cor)
+    if posicao == 1 or metal == "ouro" and posicao is None:
+        add("node.create", type="ellipse", name=f"{nome}/anel", x=x - 3, y=y + d * 0.36 - 3,
+            width=d + 6, height=d + 6,
+            props={"fill": "none", "stroke": vivo, "strokeWeight": 1})
+
 
 
 # ══ GRÁFICOS ═════════════════════════════════════════════════════════════════════════════
-def barras(nome, dados, x, y, w, h, maximo=None, cor=CRIMSON, cor_base=INK_3,
+def barras(nome, dados, x, y, w, h, maximo=None, cor=None, cor_base=INK_3,
            rotulos=True, horizontal=False):
-    """Gráfico de barras. `dados` = [(rótulo, valor)]."""
+    """Gráfico de barras. `dados` = [(rótulo, valor)].
+
+    A barra em DESTAQUE é a de maior valor, não a última — e o destaque é dourado,
+    porque no sistema o ouro é a cor de campeão e de destaque. Antes a última barra
+    era a colorida por acidente de laço, o que apontava para o dado errado.
+    """
     if not dados:
         return
     topo = maximo or max(v for _, v in dados)
@@ -143,16 +174,19 @@ def barras(nome, dados, x, y, w, h, maximo=None, cor=CRIMSON, cor_base=INK_3,
             by = y + i * passo
             largura = (w - 130) * (v / topo)
             txt(f"{nome}/{i}/r", rot, x, by + 2, 110, 10, INK_2, BODY, 500)
+            destaque = (v == topo)
             rect(f"{nome}/{i}/b", x + 118, by + 4, largura, passo * 0.52,
-                 fill=cor if i == 0 else cor_base, cornerRadius=1)
+                 fill=(cor or _OURO) if destaque else cor_base, cornerRadius=1)
             num(f"{nome}/{i}/v", str(v), x + 122 + largura, by, 12, INK, 60, align="left")
     else:
         passo = w / n
         for i, (rot, v) in enumerate(dados):
             bx = x + i * passo
             altura = (h - 24) * (v / topo)
+            destaque = (v == topo)
             rect(f"{nome}/{i}/b", bx + passo * 0.16, y + h - 24 - altura,
-                 passo * 0.68, altura, fill=cor if i == n - 1 else cor_base, cornerRadius=1)
+                 passo * 0.68, altura, fill=(cor or _OURO) if destaque else cor_base,
+                 cornerRadius=1)
             if rotulos:
                 txt(f"{nome}/{i}/r", rot, bx, y + h - 18, passo, 9, INK_3, BODY, 500,
                     align="center")

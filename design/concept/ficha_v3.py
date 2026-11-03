@@ -17,6 +17,9 @@ from ficha import (
     HEAD, BODY, W, M, CONTENT,
 )
 import ficha_visual as V
+import ficha_cores as _C
+C_OURO, C_OURO_T = _C.OCHRE, _C.OCHRE
+C_PETROL, C_SLATE = _C.PETROL, _C.SLATE
 
 
 # ═════════════════════════════════════════════════════════════════════════════════════════
@@ -130,15 +133,16 @@ def v3_competicoes():
     dx = M
     for i, (nome, meta, alcance, th) in enumerate(destaques):
         w = (CONTENT - 16 * 3) / 4
-        borda = OCHRE if alcance == "Mundial" else BORDER
+        borda = C_OURO if alcance == "Mundial" else BORDER
         peso = 2 if alcance == "Mundial" else 1
         rect(f"c/d{i}", dx, dy + 22, w, 196, fill=SURFACE, cornerRadius=2, stroke=borda,
              strokeWeight=peso)
-        V.trofeu(f"c/d{i}/trof", dx + w / 2 - th * 0.33, dy + 36, th,
-                 OCHRE if alcance == "Mundial" else (CRIMSON if i < 3 else INK_3))
+        cor_trof = {"Mundial": C_OURO, "Continental": CRIMSON}.get(alcance, C_PETROL)
+        V.trofeu(f"c/d{i}/trof", dx + w / 2 - th * 0.33, dy + 36, th, cor_trof)
         txt(f"c/d{i}/n", nome, dx + 16, dy + 122, w - 32, 17, INK, HEAD, 700, lh=19)
         txt(f"c/d{i}/m", meta, dx + 16, dy + 166, w - 32, 11, INK_3, BODY)
-        txt(f"c/d{i}/a", alcance, dx + 16, dy + 186, w - 32, 10, OCHRE, BODY, 600, ls=1.2)
+        txt(f"c/d{i}/a", alcance, dx + 16, dy + 186, w - 32, 10,
+            {"Mundial": C_OURO_T, "Continental": CRIMSON}.get(alcance, C_PETROL), BODY, 600)
         dx += w + 16
 
     # MEDALHAS — o 2º pedido do item 1. Cada degrau tem sua peça.
@@ -147,14 +151,16 @@ def v3_competicoes():
     kicker("c/m/l", "Pódio da última edição · medals", M, my + 12, INK, 700)
     txt("c/m/n", "Copa do Mundo 2022", W - M - 380, my + 11, 380, 11, INK_3, BODY, 500,
         align="right")
-    podio = [("Argentina", "Campeão", CRIMSON, "3"), ("França", "Vice-campeão", OCHRE, "2"),
-             ("Croácia", "3º lugar", INK_3, "3")]
+    import ficha_metais as MT
+    podio = [("Argentina", "Campeão", MT.OURO_TXT, "3", 1),
+             ("França", "Vice-campeão", MT.PRATA_TXT, "2", 2),
+             ("Croácia", "3º lugar", MT.BRONZE_TXT, "3", 3)]
     mx = M
-    for i, (pais, titulo, cor, t) in enumerate(podio):
+    for i, (pais, titulo, cor, t, pos) in enumerate(podio):
         w = (CONTENT - 16 * 2) / 3
         rect(f"c/m{i}", mx, my + 36, w, 104, fill=SURFACE, cornerRadius=2, stroke=BORDER,
              strokeWeight=1)
-        V.medalha(f"c/m{i}/med", mx + 20, my + 52, 40, cor)
+        V.medalha(f"c/m{i}/med", mx + 20, my + 52, 40, cor, posicao=pos)
         txt(f"c/m{i}/p", pais, mx + 80, my + 54, w - 96, 18, INK, HEAD, 700)
         txt(f"c/m{i}/t", titulo, mx + 80, my + 80, w - 96, 11, cor, BODY, 600, )
         txt(f"c/m{i}/x", f"{t} títulos no total", mx + 80, my + 98, w - 96, 10, INK_3, BODY)
@@ -180,7 +186,7 @@ def v3_competicoes():
     for i, c in enumerate(linhas):
         table_row(i, ["", c[0], c[1], c[2], c[3], c[4]], ry, cols, strong=True)
         V.trofeu(f"c/i{i}/trof", M + 6, ry - 4, 22,
-                 OCHRE if c[4] == "Continental" else INK_3)
+                 C_OURO if c[4] == "Continental" else C_SLATE)
         ry += 34
 
     provenance("Competição estadual fica fora dos destaques por alcance regional, mas segue no índice por país. Troféu é ilustração do sistema, não a imagem oficial.", 1230)
@@ -219,7 +225,9 @@ def v3_lendas():
     ]
     jy = py + 28
     for i, (pos, nome, vida, feito) in enumerate(jogadores):
-        num(f"l/j{i}/p", pos, M, jy + 6, 30, NIGHT_BORDER, w=44, align="left")
+        import ficha_metais as MT
+        cor_pos = {1: MT.OURO_ESC, 2: MT.PRATA_ESC, 3: MT.BRONZE_ESC}.get(i + 1, NIGHT_BORDER)
+        num(f"l/j{i}/p", pos, M, jy + 6, 30, cor_pos, w=44, align="left")
         rect(f"l/j{i}/f", M + 54, jy, 46, 46, fill=NIGHT_SURF, cornerRadius=23,
              stroke=NIGHT_BORDER, strokeWeight=1)
         txt(f"l/j{i}/n", nome, M + 118, jy + 4, 300, 22, NIGHT_INK, HEAD, 700)
@@ -242,7 +250,8 @@ def v3_lendas():
         w = (CONTENT - 16 * 4) / 5
         rect(f"l/c{i}", cx2, cy + 34, w, 104, fill=NIGHT_SURF, cornerRadius=2,
              stroke=NIGHT_BORDER, strokeWeight=1)
-        num(f"l/c{i}/p", pos, cx2 + 14, cy + 44, 18, NIGHT_BORDER, w=30, align="left")
+        cor_pc = {1: MT.OURO_ESC, 2: MT.PRATA_ESC, 3: MT.BRONZE_ESC}.get(i + 1, NIGHT_BORDER)
+        num(f"l/c{i}/p", pos, cx2 + 14, cy + 44, 18, cor_pc, w=30, align="left")
         txt(f"l/c{i}/n", nome, cx2 + 14, cy + 68, w - 28, 15, NIGHT_INK, HEAD, 700)
         txt(f"l/c{i}/f", feito, cx2 + 14, cy + 92, w - 28, 10, NIGHT_CRIMSON, BODY, 600)
         txt(f"l/c{i}/a", f"desde {fund}", cx2 + 14, cy + 112, w - 28, 9, NIGHT_INK3, BODY)
@@ -263,15 +272,15 @@ def v3_lendas():
     V.barras("l/g2", [("ESP", 84), ("ITA", 62), ("ING", 58), ("ALE", 46), ("BRA", 34),
                       ("ARG", 28), ("FRA", 22)],
              M + 460, gy + 62, 400, 150, horizontal=True, cor=NIGHT_OCHRE,
-             cor_base=NIGHT_BORDER)
+             cor_base=_C.PETROL_ESCURO)
 
     # 3. donut de recordes por tipo
     txt("l/g3/t", "Recordes por tipo", M + 960, gy + 40, 340, 11, NIGHT_INK2, BODY, 600)
     V.donut("l/g3", [("Gols", 42, NIGHT_CRIMSON), ("Títulos", 31, NIGHT_OCHRE),
-                     ("Público", 14, NIGHT_INK3), ("Outros", 13, NIGHT_BORDER)],
+                     ("Público", 14, _C.PETROL_ESCURO), ("Outros", 13, _C.PLUM_ESCURO)],
             M + 960, gy + 62, 120, 14)
     leg = [("Gols", "42", NIGHT_CRIMSON), ("Títulos", "31", NIGHT_OCHRE),
-           ("Público", "14", NIGHT_INK3), ("Outros", "13", NIGHT_BORDER)]
+           ("Público", "14", _C.PETROL_ESCURO), ("Outros", "13", _C.PLUM_ESCURO)]
     for i, (rot, val, cor) in enumerate(leg):
         rect(f"l/g3/l{i}/b", M + 1100, gy + 74 + i * 22, 10, 10, fill=cor)
         txt(f"l/g3/l{i}/r", rot, M + 1118, gy + 72 + i * 22, 84, 10, NIGHT_INK2, BODY)
@@ -430,7 +439,7 @@ def v3_mapa():
     txt("m/area/t", "coropleto · densidade do acervo", M + 20, my + 16, 400, 11, INK_3, BODY, 500)
     # legenda de intensidade
     for i, op in enumerate([0.85, 0.6, 0.4, 0.25, 0.12]):
-        rect(f"m/leg/{i}", M + 20 + i * 26, my + 580, 22, 12, fill=CRIMSON, opacity=op)
+        rect(f"m/leg/{i}", M + 20 + i * 26, my + 580, 22, 12, fill=_C.PETROL, opacity=op)
     txt("m/leg/t", "menos", M + 20, my + 598, 60, 9, INK_3, BODY)
     txt("m/leg/t2", "mais", M + 142, my + 598, 60, 9, INK_3, BODY)
 
@@ -452,7 +461,9 @@ def v3_mapa():
             600, align="center")
         txt(f"m/e{i}/n", nome, lx + 40, ey + 1, 200, 13, INK, BODY, 600 if i == 0 else 500)
         num(f"m/e{i}/v", n, W - M - 70, ey, 14, INK_2, w=70)
-        rect(f"m/e{i}/bar", lx, ey + 22, 300 * pct / 100, 2, fill=CRIMSON if i < 3 else INK_3)
+        # mapa usa petrol, não crimson: a cor de ação da marca não deve gritar no mapa
+        rect(f"m/e{i}/bar", lx, ey + 22, 300 * pct / 100, 2,
+             fill=_C.PETROL if i < 3 else _C.SLATE)
         ey += 44
 
     # Cidades com bandeira do país
@@ -604,9 +615,11 @@ def v3_clube():
     kicker("t/l", "Troféus e medalhas", M, ty + 12, INK, 700)
     txt("t/n", "48 títulos · 3 continentes", W - M - 380, ty + 11, 380, 11, INK_3, BODY,
         500, align="right")
-    trofeus = [("Libertadores", "3", OCHRE, 44), ("Brasileiro", "8", CRIMSON, 40),
-               ("Copa do Brasil", "5", OCHRE, 36), ("Mundial", "1", OCHRE, 40),
-               ("Supercopa", "3", INK_3, 30)]
+    import ficha_metais as MT
+    # troféu é sempre ouro: é o objeto do título. O que muda é o tamanho e a quantidade.
+    trofeus = [("Libertadores", "3", MT.OURO, 44), ("Brasileiro", "8", MT.OURO, 40),
+               ("Copa do Brasil", "5", MT.OURO, 36), ("Mundial", "1", MT.OURO, 40),
+               ("Supercopa", "3", MT.OURO, 30)]
     tx = M
     for i, (nome, qtd, cor, h) in enumerate(trofeus):
         w = (CONTENT - 16 * 4) / 5
