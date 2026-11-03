@@ -12,6 +12,7 @@ import KitDiagram from '@/components/KitDiagram';
 import SocialLinks from '@/components/SocialLinks';
 import { ClubCrest } from '@/components/MediaAssets';
 import Pillar from '@/components/ficha/Pillar';
+import { Donut } from '@/components/ficha/Charts';
 import { EmptyState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 import { formatCount } from '@/lib/format';
@@ -783,6 +784,49 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         <Section title={s.statistics} testid="club-statistics">
           {/* Os quatro pilares do sistema: o resumo antes da tabela. Número em display
               (font-heading) porque aqui ele é imagem, não dado de tabela. */}
+          {/*
+            O anel V/E/D: a tabela abaixo dá os números em linha, mas a PROPORÇÃO entre
+            vitória, empate e derrota é o que se lê de imediato — e é o tipo de leitura que
+            uma tabela não faz. O resumo acessível repete os valores em texto, porque um
+            gráfico sem descrição é um retângulo colorido para o leitor de tela.
+          */}
+          <div className="mb-5 flex flex-wrap items-center gap-6">
+            <Donut
+              size={104}
+              thickness={14}
+              title={fichaStrings[locale].charts.donutLabel}
+              summary={`${s.statsWins}: ${stats.overall.wins} · ${s.statsDraws}: ${stats.overall.draws} · ${s.statsLosses}: ${stats.overall.losses}`}
+              data={[
+                { label: s.statsWins, value: stats.overall.wins, colorIndex: 2 },
+                { label: s.statsDraws, value: stats.overall.draws, colorIndex: 1 },
+                { label: s.statsLosses, value: stats.overall.losses, colorIndex: 0 },
+              ]}
+            />
+            <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-3)]"
+                />
+                {s.statsWins}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-2)]"
+                />
+                {s.statsDraws}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[color:var(--color-viz-1)]"
+                />
+                {s.statsLosses}
+              </span>
+            </div>
+          </div>
+
           <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Pillar label={s.statsPlayed} value={formatCount(stats.overall.played, locale)} />
             <Pillar label={s.statsWins} value={formatCount(stats.overall.wins, locale)} accent />

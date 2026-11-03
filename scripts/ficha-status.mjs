@@ -125,6 +125,7 @@ const estados = {
 // ── 4. fases e portões ─────────────────────────────────────────────────────────────────────
 const comTeste = componentes.filter((c) => c.testado).length;
 const semTeste = componentes.filter((c) => !c.testado);
+const semUso = componentes.filter((c) => !c.usado);
 const migradas = rotas.filter((r) => r.usaFicha).length;
 
 const fases = [
@@ -133,6 +134,17 @@ const fases = [
     nome: 'Fundação',
     pronta: componentes.length >= 8 && comTeste === componentes.length,
     detalhe: `${comTeste}/${componentes.length} componentes com teste`,
+  },
+  {
+    id: 'F0b',
+    // Componente sem uso é código morto: existe, compila, passa no teste e não serve a
+    // ninguém. O Charts e a DataTable ficaram assim por várias rodadas — construídos,
+    // testados e sem nenhuma tela consumindo.
+    nome: 'Componentes em uso',
+    pronta: semUso.length === 0,
+    detalhe:
+      `${componentes.length - semUso.length}/${componentes.length} em uso` +
+      (semUso.length ? ` (sem uso: ${semUso.map((c) => c.nome).join(', ')})` : ''),
   },
   {
     id: 'F1',
@@ -150,7 +162,12 @@ const fases = [
 
 const resultado = {
   rotas: { total: rotas.length, migradas },
-  componentes: { total: componentes.length, comTeste, semTeste: semTeste.map((c) => c.nome) },
+  componentes: {
+    total: componentes.length,
+    comTeste,
+    semTeste: semTeste.map((c) => c.nome),
+    semUso: semUso.map((c) => c.nome),
+  },
   estados,
   fases,
   bloqueios: fases.filter((f) => !f.pronta).map((f) => `${f.id} ${f.nome}: ${f.detalhe}`),

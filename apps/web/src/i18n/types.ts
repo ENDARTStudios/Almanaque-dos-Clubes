@@ -342,6 +342,11 @@ export interface Dictionary {
         all: string;
         league: string;
         cup: string;
+        /** T588 — a lista de competições virou tabela e precisava destes rótulos.
+         *  Antes eles estavam CRAVADOS em português no JSX ('Liga', 'Copa', 'Internacional'). */
+        tournament: string;
+        international: string;
+        competition: string;
         apply: string;
         /** T577 — sair do recorte atual (limpar filtros). */
         clear: string;

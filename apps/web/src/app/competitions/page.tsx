@@ -20,6 +20,7 @@ import {
 import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import TierCard from '@/components/ficha/TierCard';
+import DataTable from '@/components/ficha/DataTable';
 import { EmptyState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 
@@ -322,42 +323,52 @@ export default async function CompetitionsPage({
         }
       >
         {competitions.length ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {competitions.map((c: Competition) => (
+          /*
+            ERA uma grade de cartões idênticos — 1.932 vezes o mesmo retângulo. Dois defeitos,
+            um deles medido pela skill:
+              · "no rows of identical cards": cartão igual para tudo significa que nada é
+                destaque, e 1.932 cartões não são escaneáveis;
+              · não há como COMPARAR duas linhas: o olho não encontra a mesma coluna duas vezes.
+            A tabela resolve os dois — alinha o que é comparável e cabe muito mais por tela.
+            Os rótulos de tipo deixaram de ser literais em português no JSX ('Liga', 'Copa',
+            'Internacional') e passam pelo dicionário.
+          */
+          <DataTable
+            caption={s.todas}
+            columns={[
+              { header: dict.pages.competitions.filters.competition, align: 'left' },
+              { header: dict.pages.competitions.filters.country, align: 'left' },
+              { header: dict.pages.competitions.filters.type, align: 'left' },
+            ]}
+            rows={competitions.map((c: Competition) => [
               <Link
                 key={c.id}
                 href={`/competitions/${c.id}`}
-                className="block bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 hover:border-primary/40 cursor-pointer"
+                className="text-primary-ink hover:underline"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-ink font-heading font-bold text-sm mb-3">
-                  {c.name.slice(0, 2).toUpperCase()}
-                </div>
-                <h3 className="text-lg font-heading font-semibold text-foreground">{c.name}</h3>
-                {/* T579 (ITEM 19) — o país da competição com bandeira derivada do ISO2 e o
-                    nome por extenso no idioma do usuário. Não é clique aqui: o cartão todo
-                    já leva à competição (âncora dentro de âncora é HTML inválido). O caminho
-                    clicável para o país é o índice de países e/ou o `?country=` do filtro. */}
-                {c.country ? (
-                  <p className="mt-1 text-sm text-foreground/60">
-                    <CountryFlag code={c.country} locale={locale} />
-                  </p>
-                ) : (
-                  <p className="text-sm text-foreground/60 mt-1">Internacional</p>
-                )}
-                {c.type ? (
-                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary-ink">
-                    {c.type === 'LEAGUE'
-                      ? 'Liga'
-                      : c.type === 'CUP'
-                        ? 'Copa'
-                        : c.type === 'TOURNAMENT'
-                          ? 'Torneio'
-                          : c.type}
-                  </span>
-                ) : null}
-              </Link>
-            ))}
-          </div>
+                {c.name}
+              </Link>,
+              c.country ? (
+                <span key={`c-${c.id}`} className="flex items-center gap-2">
+                  <CountryFlag code={c.country} locale={locale} />
+                  <span className="text-ink-3">{c.country}</span>
+                </span>
+              ) : (
+                <span key={`c-${c.id}`} className="text-ink-3">
+                  {dict.pages.competitions.filters.international}
+                </span>
+              ),
+              <span key={`t-${c.id}`} className="text-ink-2">
+                {c.type === 'LEAGUE'
+                  ? dict.pages.competitions.filters.league
+                  : c.type === 'CUP'
+                    ? dict.pages.competitions.filters.cup
+                    : c.type === 'TOURNAMENT'
+                      ? dict.pages.competitions.filters.tournament
+                      : (c.type ?? '—')}
+              </span>,
+            ])}
+          />
         ) : (
           <EmptyState
             title={fichaStrings[locale].states.emptyTitle}
