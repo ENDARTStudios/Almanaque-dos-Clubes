@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
 import DashboardStatsSection from '@/components/DashboardStatsSection';
 import HeartClubSection from '@/components/HeartClubSection';
 import FavoritosPanel from '@/components/FavoritosPanel';
@@ -55,7 +55,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <PageHeading titleKey="pages.dashboard.title" subtitleKey="pages.dashboard.subtitle" />
+        <FichaHead title={t('pages.dashboard.title')} subtitle={t('pages.dashboard.subtitle')} />
 
         {/* WS-C-14 — stats do usuário + favoritos recentes + placeholder de tracking. */}
         <DashboardStatsSection />

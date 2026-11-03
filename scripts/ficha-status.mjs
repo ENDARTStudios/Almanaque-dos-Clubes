@@ -54,6 +54,18 @@ async function andar(dir, filtro) {
 const ler = (p) => readFile(p, 'utf8');
 
 // ── 1. rotas ────────────────────────────────────────────────────────────────────────────────
+// Rotas que NÃO têm o que esvaziar. Cada uma com o motivo, e o motivo aparece na saída —
+// exceção declarada é revisável; exceção silenciosa vira dívida escondida.
+const EXCECOES_VAZIO = new Map([
+  ['/compare', 'seletor de dois clubes: não há lista que possa vir sem item'],
+  [
+    '/clubs/compare',
+    'seletor de dois clubes: o estado inicial é "escolha dois", dito pelos campos',
+  ],
+  ['/dashboard', 'painel de conta com cartões fixos, não uma lista de dados'],
+  ['/apoiadores', 'busca CONTAGENS para a prova do acervo, não uma lista'],
+]);
+
 const paginas = await andar(APP, (n) => n === 'page.tsx');
 const rotas = [];
 for (const p of paginas) {
@@ -91,12 +103,17 @@ for (const p of paginas) {
   // Um DOCUMENTO estático (sobre, termos, privacidade) não tem lista nem fetch: o conteúdo é
   // fixo. Exigir EmptyState dele é exigir um estado que não existe — o critério estava errado,
   // não a página.
-  const ehDocumentoEstatico = /ContentDocument|LegalDocument/.test(tudo);
+  // Um documento estático não tem vazio. A regra é: se a página (ou o componente que ela
+  // delega) NÃO busca dado, não existe "vazio" a tratar — não há lista que possa vir sem item.
+  // Isso cobre conteúdo institucional sem abrir exceção por nome de rota, que envelheceria.
+  const buscaDado = /fetch\(|getApiBase|api\.get|useEffect/.test(tudo);
+  const ehDocumentoEstatico = /ContentDocument|LegalDocument/.test(tudo) || !buscaDado;
 
+  const rotaAtual = rel === '' ? '/' : `/${rel}`;
   rotas.push({
-    rota: rel === '' ? '/' : `/${rel}`,
+    rota: rotaAtual,
     usaFicha: /@\/components\/ficha\//.test(tudo),
-    temVazio: /EmptyState/.test(tudo) || ehDocumentoEstatico,
+    temVazio: /EmptyState/.test(tudo) || ehDocumentoEstatico || EXCECOES_VAZIO.has(rotaAtual),
     temErro:
       /ErrorState/.test(tudo) ||
       /ErrorState|SkeletonFicha|ErrorBoundary/.test(fonteErro) ||
@@ -174,7 +191,12 @@ const fases = [
 ];
 
 const resultado = {
-  rotas: { total: rotas.length, migradas },
+  rotas: {
+    total: rotas.length,
+    migradas,
+    // a lista explícita evita que eu tenha de adivinhar qual rota está faltando
+    migradasSemVazio: rotas.filter((r) => r.usaFicha && !r.temVazio).map((r) => r.rota),
+  },
   componentes: {
     total: componentes.length,
     comTeste,
@@ -209,6 +231,12 @@ if (JSON_OUT) {
   console.log('\n  FASES');
   for (const f of fases) {
     console.log(`  ${f.pronta ? '✓' : '·'} ${f.id} ${f.nome} — ${f.detalhe}`);
+  }
+
+  const usadas = rotas.filter((r) => r.usaFicha && EXCECOES_VAZIO.has(r.rota));
+  if (usadas.length) {
+    console.log('\n  EXCEÇÕES DE VAZIO (declaradas, com motivo)');
+    for (const r of usadas) console.log(`    ${r.rota} — ${EXCECOES_VAZIO.get(r.rota)}`);
   }
 
   if (resultado.bloqueios.length) {
