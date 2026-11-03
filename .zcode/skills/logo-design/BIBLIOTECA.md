@@ -10,7 +10,6 @@ São **1.432 arquivos SVG (~10 MB)** que são **marcas registradas de seus donos
 **não são cobertos pela licença MIT** — só o texto, os scripts e os dados de catálogo são.
 
 Versionar 10 MB de marcas de terceiros no repositório de um produto seria:
-
 - ruído permanente em todo clone e em todo diff;
 - uma afirmação de redistribuição que a licença original não faz.
 
@@ -31,12 +30,12 @@ O `.gitignore` já cobre `.vendor/`.
 
 ## O que deixa de funcionar sem ela
 
-| Recurso                                                                               | Sem a biblioteca                                                                                                                              |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `search_library.py`                                                                   | não consulta (o `catalog.json` vem junto da biblioteca)                                                                                       |
-| `preview_sheet.py --refs-industry`                                                    | não compara com o acervo de referência                                                                                                        |
-| `svg_audit.py`                                                                        | **funciona** — a comparação de complexidade usa a mediana do catálogo e, sem ele, o script segue auditando estrutura, cor, ângulos e detalhes |
-| `concept_sheet.py` · `render_png.py` · `export_variants.py` · `presentation_board.py` | **funcionam**                                                                                                                                 |
+| Recurso | Sem a biblioteca |
+|---|---|
+| `search_library.py` | não consulta (o `catalog.json` vem junto da biblioteca) |
+| `preview_sheet.py --refs-industry` | não compara com o acervo de referência |
+| `svg_audit.py` | **funciona** — a comparação de complexidade usa a mediana do catálogo e, sem ele, o script segue auditando estrutura, cor, ângulos e detalhes |
+| `concept_sheet.py` · `render_png.py` · `export_variants.py` · `presentation_board.py` | **funcionam** |
 
 Ou seja: perde-se a **comparação com o acervo de 1.400 marcas**; não se perde a produção nem a
 auditoria.
