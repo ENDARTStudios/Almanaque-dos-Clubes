@@ -10,6 +10,7 @@ import FichaHead from '@/components/ficha/FichaHead';
 import Pillar from '@/components/ficha/Pillar';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import SourceNote from '@/components/SourceNote';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
 
 /**
  * FICHA DO ESTÁDIO.
@@ -45,18 +46,23 @@ interface Estadio {
   sourceUrl: string | null;
 }
 
-async function getEstadio(id: string): Promise<Estadio | null> {
+/**
+ * Três resultados, não dois: `valor` = existe · `null` = a origem disse 404 · `undefined` = NÃO
+ * foi possível perguntar. Fundir os dois últimos fazia a ficha afirmar "não existe" com a API
+ * fora do ar.
+ */
+async function getEstadio(id: string): Promise<Estadio | null | undefined> {
   try {
     const base = getApiBase();
     const r = await fetch(`${base}/stadiums/${encodeURIComponent(id)}`, {
       next: { revalidate: 3600 },
     });
     if (r.status === 404) return null;
-    if (!r.ok) throw new Error(`status ${r.status}`);
+    if (!r.ok) return undefined;
     const j = (await r.json()) as { data?: Estadio };
     return j.data ?? null;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -68,7 +74,15 @@ export default async function EstadioPage({ params }: { params: Promise<{ id: st
   const f = fichaStrings[locale].states;
 
   const e = await getEstadio(id);
-  // 404 de verdade: o recurso não existe, e a página de erro do produto assume daqui
+  // NÃO foi possível perguntar ≠ o registro não existe. Só o segundo vira 404.
+  if (e === undefined)
+    return (
+      <DetailUnavailable
+        retryHref={`/estadios/${id}`}
+        backHref="/estadios"
+        backLabel={s.backToList}
+      />
+    );
   if (e === null) notFound();
 
   const atributos: Array<{ rotulo: string; valor: string }> = [

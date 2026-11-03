@@ -12,6 +12,7 @@ import { CountryFlag } from '@/components/CountryFlag';
 import { TrophyCup } from '@/components/icons';
 import CompetitionPodium from '@/components/ficha/CompetitionPodium';
 import { EmptyState } from '@/components/ficha/States';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
 import { fichaStrings } from '@/i18n/wsFicha';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
@@ -122,7 +123,10 @@ interface Overview {
 async function getCompetition(id: string) {
   try {
     const res = await fetch(`${getApiBase()}/competitions/${id}`, { cache: 'no-store' });
-    if (!res.ok) return null;
+    // 404 explícito = não existe. Qualquer outra falha = NÃO SABEMOS (undefined), e a página
+    // não pode transformar "não sabemos" em "não existe".
+    if (res.status === 404) return null;
+    if (!res.ok) return undefined;
     const json = await res.json();
     return {
       data: json.data as Competition | null,
@@ -130,7 +134,7 @@ async function getCompetition(id: string) {
       seasons: (json.seasons ?? []) as CompetitionSeasonData[],
     };
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -262,6 +266,15 @@ export default async function CompetitionDetailPage({
   const { id } = await params;
   const { tab: tabParam, season: seasonParam } = await searchParams;
   const res = await getCompetition(id);
+  // `undefined` = não conseguimos perguntar; `null`/`data` ausente = a origem disse que não há.
+  if (res === undefined)
+    return (
+      <DetailUnavailable
+        retryHref={`/competitions/${id}`}
+        backHref="/competitions"
+        backLabel="Competições"
+      />
+    );
   if (!res?.data) notFound();
   const comp = res.data;
   /* Só busca o histórico quando a aba pede: a consulta varre as partidas da competição inteira,

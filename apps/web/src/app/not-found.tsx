@@ -29,6 +29,7 @@ import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from '@/components/CommandPaletteProvider';
 import { wsC2Strings } from '@/i18n/wsC2';
 import { fichaStrings } from '@/i18n/wsFicha';
+import { wsLegendsStrings } from '@/i18n/wsLegends';
 import FichaHead from '@/components/ficha/FichaHead';
 import PuncturedBall from '@/components/ficha/PuncturedBall';
 
@@ -41,7 +42,10 @@ export default function NotFoundPage() {
   const atalhos = [
     { href: '/competitions', label: t('nav.competitions') },
     { href: '/clubs', label: t('nav.clubs') },
-    { href: '/legends', label: t('nav.legends') },
+    // NÃO existe `nav.legends` no dicionário: `t()` devolve a PRÓPRIA CHAVE quando não
+    // encontra, e a tela mostrava o literal "nav.legends" no botão. O rótulo de Lendas
+    // vive no módulo aditivo do panteão, que é de onde o Navbar o tira.
+    { href: '/legends', label: wsLegendsStrings[locale].nav.short },
   ];
 
   return (

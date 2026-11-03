@@ -10,6 +10,7 @@ import { fichaStrings } from '@/i18n/wsFicha';
 import FichaHead from '@/components/ficha/FichaHead';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import SourceNote from '@/components/SourceNote';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
 
 /**
  * FICHA DA TEMPORADA.
@@ -37,18 +38,22 @@ interface Temporada {
   status: string;
 }
 
-async function getTemporada(id: string): Promise<Temporada | null> {
+/**
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = não foi possível perguntar.
+ * Fundir os dois últimos fazia a ficha afirmar "não existe" com a API fora do ar.
+ */
+async function getTemporada(id: string): Promise<Temporada | null | undefined> {
   try {
     const base = getApiBase();
     const r = await fetch(`${base}/seasons/${encodeURIComponent(id)}`, {
       next: { revalidate: 3600 },
     });
     if (r.status === 404) return null;
-    if (!r.ok) throw new Error(`status ${r.status}`);
+    if (!r.ok) return undefined;
     const j = (await r.json()) as { data?: Temporada };
     return j.data ?? null;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -60,6 +65,15 @@ export default async function TemporadaPage({ params }: { params: Promise<{ id: 
   const f = fichaStrings[locale].states;
 
   const t = await getTemporada(id);
+  // não perguntar ≠ não existir: só o 404 real vira notFound
+  if (t === undefined)
+    return (
+      <DetailUnavailable
+        retryHref={`/temporadas/${id}`}
+        backHref="/temporadas"
+        backLabel={s.backToList}
+      />
+    );
   if (t === null) notFound();
 
   const atributos: Array<{ rotulo: string; valor: string }> = [

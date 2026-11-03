@@ -13,6 +13,7 @@ import SectionHeading from '@/components/ficha/SectionHeading';
 import { Medal } from '@/components/ficha/Metal';
 import { EmptyState } from '@/components/ficha/States';
 import SourceNote from '@/components/SourceNote';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
 
 /**
  * RANKING — a tabela de UM ranking, com pódio.
@@ -66,18 +67,21 @@ interface RankingInfo {
 
 type Resposta = { data?: RankingInfo };
 
-async function getRanking(id: string): Promise<RankingInfo | null> {
+/**
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = não foi possível perguntar.
+ */
+async function getRanking(id: string): Promise<RankingInfo | null | undefined> {
   try {
     const base = getApiBase();
     const r = await fetch(`${base}/rankings/${encodeURIComponent(id)}`, {
       next: { revalidate: 3600 },
     });
     if (r.status === 404) return null;
-    if (!r.ok) throw new Error(`status ${r.status}`);
+    if (!r.ok) return undefined;
     const j = (await r.json()) as Resposta;
     return j.data ?? null;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -103,6 +107,14 @@ export default async function RankingPage({ params }: { params: Promise<{ id: st
   const f = fichaStrings[locale].states;
 
   const [ranking, entradas] = await Promise.all([getRanking(id), getEntradas(id)]);
+  if (ranking === undefined)
+    return (
+      <DetailUnavailable
+        retryHref={`/rankings/${id}`}
+        backHref="/rankings"
+        backLabel={s.backToRankings}
+      />
+    );
   if (ranking === null) notFound();
 
   // o ranking de jogador usa playerName; o de clube, clubName — a coluna é a mesma

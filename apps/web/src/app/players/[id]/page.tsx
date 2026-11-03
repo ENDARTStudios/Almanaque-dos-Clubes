@@ -17,6 +17,7 @@ import { wIconsStrings, positionLabel } from '@/i18n/wsIcons';
 import { wt579Strings } from '@/i18n/wsT579';
 import FichaHead from '@/components/ficha/FichaHead';
 import { EmptyState } from '@/components/ficha/States';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
 import { fichaStrings } from '@/i18n/wsFicha';
 
 interface Player {
@@ -68,17 +69,21 @@ interface ProfileExtras {
   }>;
 }
 
+/**
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = não foi possível perguntar.
+ */
 async function getPlayer(
   id: string,
-): Promise<{ data: Player; profile: ProfileExtras | null } | null> {
+): Promise<{ data: Player; profile: ProfileExtras | null } | null | undefined> {
   try {
     const res = await fetch(`${getApiBase()}/players/${id}`, { cache: 'no-store' });
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    if (!res.ok) return undefined;
     const json = await res.json();
     if (!json.data) return null;
     return { data: json.data as Player, profile: (json.profile ?? null) as ProfileExtras | null };
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -103,6 +108,11 @@ export async function generateMetadata({
 export default async function PlayerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const res = await getPlayer(id);
+  // `undefined` = não conseguimos perguntar; `null` = a origem disse que não existe.
+  if (res === undefined)
+    return (
+      <DetailUnavailable retryHref={`/players/${id}`} backHref="/players" backLabel="Jogadores" />
+    );
   if (!res) notFound();
   const p = res.data;
   const profile = res.profile;
