@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -61,6 +61,9 @@ export default function Navbar() {
   const palette = wsC2Strings[locale].search.palette;
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  // o gatilho do painel: o foco precisa voltar para ELE ao fechar. Sem isso, quem navega
+  // por teclado é jogado para o topo do documento e perde o lugar.
+  const mobileToggleRef = useRef<HTMLButtonElement | null>(null);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
   const [openDesktop, setOpenDesktop] = useState<string | null>(null);
   useGsapFadeIn(ref);
@@ -70,6 +73,36 @@ export default function Navbar() {
     setMobileOpen(false);
     setMobileSub(null);
   };
+
+  /**
+   * Fecha o painel e devolve o foco ao gatilho.
+   *
+   * O padrão de disclosure do WAI-ARIA exige que o painel feche com Escape. Sem isto, quem
+   * navega por teclado abre o menu, aperta Escape e nada acontece — o painel fica aberto por
+   * cima do conteúdo, e a única saída é tabular por dentro dele até o fim.
+   *
+   * `requestAnimationFrame` porque o foco só pode voltar depois que o React removeu o painel:
+   * focar um botão enquanto o nó vizinho ainda está montado funciona, mas focar antes da
+   * desmontagem deixa o foco preso num elemento que está saindo.
+   */
+  const closeMobileAndRestoreFocus = () => {
+    closeMobile();
+    requestAnimationFrame(() => mobileToggleRef.current?.focus());
+  };
+
+  // Escape fecha o painel mobile — só registra o listener enquanto ele está aberto, para não
+  // deixar um handler de documento vivo à toa em toda página.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        closeMobileAndRestoreFocus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
 
   // Dropdowns: agrupam por RECORTE de um destino que já existe. Sem repetir destino global
   // (o Mapa saiu daqui — era duplicação com o link simples).
@@ -253,6 +286,7 @@ export default function Navbar() {
             <div className="flex min-w-0 items-center gap-2">
               <button
                 type="button"
+                ref={mobileToggleRef}
                 data-testid="nav-mobile-toggle"
                 aria-expanded={mobileOpen}
                 aria-controls="nav-panel"

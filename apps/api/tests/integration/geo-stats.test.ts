@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../../src/app.js';
 import { prisma } from '../../src/config/prisma.js';
+import { cache } from '../../src/services/cache.js';
 
 let app: FastifyInstance;
 const isPostgres = (process.env.DATABASE_URL ?? '').startsWith('postgres');
@@ -19,6 +20,7 @@ const nullClubName = `T467 NoCont Club ${Date.now()}`;
 let stateId = '';
 
 async function cleanup(): Promise<void> {
+  await cache.invalidate('clubs:geo-stats');
   await prisma.club.deleteMany({ where: { name: { in: [clubName, nullClubName] } } });
   await prisma.state.deleteMany({ where: { code: CODE } });
   await prisma.country.deleteMany({ where: { iso2: { in: [ISO, NULL_ISO] } } });
@@ -36,6 +38,19 @@ beforeAll(async () => {
       throw new Error('[R1/TEST_REQUIRE_DB] banco ausente no CI — falha, não skip');
     return;
   }
+  /*
+    ── O CACHE É A CAUSA, NÃO O FIXTURE ───────────────────────────────────────────────────
+    `/clubs/geo-stats` é servido por `cache.remember('clubs:geo-stats', TTL, …)` — chave FIXA,
+    sem relação com o dado. Este teste é autocontido (limpa antes e depois, país/estado únicos),
+    mas isso não bastava: se OUTRA suíte chamou o endpoint antes, o agregado em cache é o retrato
+    de um banco sem o fixture deste teste. A asserção `states.find(CODE).clubs === 1` então
+    encontrava `undefined`.
+
+    Sintoma que denunciou: passava SOZINHO e falhava na suíte completa, em arquivo diferente a
+    cada execução. É a mesma classe do `legends` (chave fixa + teste que cria dado).
+    Invalidar aqui obriga o endpoint a recalcular sobre o banco deste teste.
+  */
+  await cache.invalidate('clubs:geo-stats');
   await cleanup();
   const country = await prisma.country.create({
     data: { iso2: ISO, name: 'T467 Land', continent: 'EU', qid: `Q${randomUUID().slice(0, 8)}` },

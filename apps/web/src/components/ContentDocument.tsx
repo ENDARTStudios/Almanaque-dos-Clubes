@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useI18n } from '@/i18n/Provider';
 import { LOCALE_NAMES, type Locale } from '@/i18n/config';
 import { formatPrice, PLAN_CENTS, yearlyCents, type BillingCurrency } from '@/lib/pricing';
+import FichaHead from '@/components/ficha/FichaHead';
 
 export type DocNamespace =
   'sobre' | 'planos' | 'seguranca' | 'cookiePolicy' | 'ia' | 'termosAssinatura';
@@ -71,10 +72,12 @@ export default function ContentDocument({
           />
         </div>
       ) : null}
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-        {withPrices(doc.title)}
-      </h1>
-      <p className="text-foreground/70 mb-8 leading-relaxed">{withPrices(doc.intro)}</p>
+      {/* FichaHead no lugar do h1 solto: o título abre a página e o intro vira subtítulo
+          com `measure-readable` (68ch), que é a medida de linha do sistema — `mb-8` deixava a
+          linha correr até a borda do container. */}
+      <div className="mb-8">
+        <FichaHead title={withPrices(doc.title)} subtitle={withPrices(doc.intro)} />
+      </div>
       <div className="space-y-8">
         {doc.sections.map((section) => (
           <section key={section.title}>

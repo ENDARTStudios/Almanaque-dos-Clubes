@@ -1113,6 +1113,64 @@ model ReviewQueue {
   @@map("review_queue")
 }
 
+/// T603 — SISTEMA DE BOTS: histórico de execuções por bot.
+///
+/// A métrica antes/depois é o antídoto do "DONE sem dado": uma rodada pode terminar
+/// sem erro e sem trazer nada (a fonte não publica). O registro guarda o número dos
+/// dois lados, então o painel mostra "rodou" e "rendeu" como coisas diferentes.
+model BotRun {
+  id           String    @id @default(uuid())
+  /// Chave do registro (`apps/api/src/modules/bots/registry.ts`).
+  botKey       String
+  /// SUCCESS | FAILED | SKIPPED (vence a cadência? não) | TIMEOUT
+  status       String
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  durationMs   Int?
+  /// Contagem da métrica antes e depois; `delta` = after - before.
+  metricBefore Int?
+  metricAfter  Int?
+  delta        Int?
+  error        String?
+  /// "schedule" | id do usuário admin que disparou
+  triggeredBy  String?
+
+  @@index([botKey, startedAt])
+  @@index([status, startedAt])
+  @@map("bot_runs")
+}
+
+/// T602 — FILA DE INGESTÃO CONTÍNUA: o que falta ingerir, decidido pela MATRIZ DE
+/// COBERTURA (DQ-01) e consumido por job, sem aprovação a cada rodada.
+///
+/// `status`: PENDING (na fila) | RUNNING (em execução) | DONE (fonte respondeu) |
+/// FAILED (teto de tentativas ou erro definitivo). Falha TRANSITÓRIA volta a
+/// PENDING — nunca vira DONE (lição T528: marcar concluído no erro perdeu dados).
+model IngestBacklog {
+  id             String    @id @default(uuid())
+  /// Chave do registro de fontes (`apps/api/src/modules/ingest/source-registry.ts`).
+  sourceKey      String
+  /// Chave do ADAPTADOR dentro da fonte (ex.: RSSSF tem br/pl/lib/ligue1/...).
+  runnerKey      String
+  /// Rótulo da temporada como a fonte publica ("2023", "2018-19").
+  season         String
+  competitionQid String?
+  status         String    @default("PENDING")
+  /// Por que o item existe: never_ingested | missing_scores | missing_scorers.
+  reason         String
+  attempts       Int       @default(0)
+  lastError      String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // A temporada "2023" existe em várias competições: a chave inclui a competição.
+  @@unique([sourceKey, competitionQid, season])
+  @@index([status, createdAt])
+  @@map("ingest_backlog")
+}
+
 model DataSubjectRequest {
   id              String          @id @default(uuid())
   protocol        String          @unique // protocolo rastreável (dsr_…)

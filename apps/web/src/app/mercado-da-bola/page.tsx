@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
+import { EmptyState } from '@/components/ficha/States';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 
@@ -24,20 +25,28 @@ export default async function MercadoDaBolaPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading titleKey="pages.market.title" subtitleKey="pages.market.subtitle" />
+      <FichaHead title={dict.pages.market.title} subtitle={dict.pages.market.subtitle} />
 
-      <div className="mt-8 max-w-2xl space-y-4" data-testid="market-soon">
-        <p className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary-ink text-sm font-semibold">
-          {`🚧 ${m.emBreve}`}
-        </p>
-        <p className="text-foreground/80">{m.body}</p>
-        <p className="text-sm text-foreground/70">{m.bodyCta}</p>
-        <Link
-          href="/clubs"
-          className="inline-block px-5 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          {m.cta}
-        </Link>
+      <div className="mt-8 max-w-2xl" data-testid="market-soon">
+        {/*
+          ERA um selo com EMOJI (🚧) + pílula "em breve". Dois defeitos:
+            · emoji não é ícone — a skill bane, e ele quebra a tipografia do sistema;
+            · "em breve" promete uma data que não existe. A verdade é outra: não há fonte de
+              dados de mercado. O acervo não vai inventar transferência para preencher tela.
+          O EmptyState diz isso: a lacuna é declarada, com a saída para quem quer continuar.
+        */}
+        <EmptyState
+          title={m.emBreve}
+          body={m.body}
+          action={
+            <Link
+              href="/clubs"
+              className="inline-flex min-h-11 items-center rounded-lg border border-foreground bg-foreground px-5 text-sm font-semibold text-background transition-colors duration-200 hover:opacity-90"
+            >
+              {m.bodyCta}
+            </Link>
+          }
+        />
       </div>
     </div>
   );

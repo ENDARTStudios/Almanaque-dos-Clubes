@@ -21,6 +21,7 @@ import {
   enrichClubsEditorialBatch,
 } from '../modules/etl/enrich-media.service.js';
 import { enrichAllMediaBatch } from '../modules/etl/enrich-all-media.service.js';
+import { prisma } from '../config/prisma.js';
 import { pushLog } from '../lib/observability/log-buffer.js';
 import { cache } from '../services/cache.js';
 import { checkJobFailure } from '../lib/observability/alerts.js';
@@ -50,6 +51,17 @@ export const ENRICH_EDITORIAL_BATCH = 500;
 export const JOB_ENRICH_ALL_MEDIA = 'enrich-all-media' as const;
 export const ENRICH_ALL_MEDIA_CRON_PATTERN = '0 7 * * *' as const;
 export const ENRICH_ALL_MEDIA_BATCH = 500;
+// T602 — INGESTÃO CONTÍNUA: planeja a fila a partir da matriz de cobertura e
+// consome N itens por dia. É o que tira a decisão "o que ingerir agora" das mãos
+// do operador: roda sozinho, com teto, retry e back-pressure.
+export const JOB_INGEST_BACKLOG = 'ingest-backlog' as const;
+// T603 — SISTEMA DE BOTS: a cada hora roda até 2 bots VENCIDOS (cadência por bot).
+// O registro decide o que vence; aqui é só o pulso.
+export const JOB_BOTS_CYCLE = 'bots-cycle' as const;
+export const BOTS_CYCLE_CRON_PATTERN = '0 * * * *' as const;
+export const BOTS_PER_CYCLE = 2;
+export const INGEST_BACKLOG_CRON_PATTERN = '0 8 * * *' as const;
+export const INGEST_BACKLOG_ITEMS_PER_RUN = 3;
 
 const JOB_TIMEOUT_MS = 10 * 60 * 1000;
 
@@ -201,6 +213,9 @@ function record(jobName: string, status: 'success' | 'failure', durationMs: numb
  * tamanho do lote que o despacho pede).
  */
 const JOB_TIMEOUT_MS_BY_JOB: Record<string, number> = {
+  // T602 — cada item baixa e parseia uma página inteira; 3 itens por rodada.
+  [JOB_INGEST_BACKLOG]: 20 * 60 * 1000,
+  [JOB_BOTS_CYCLE]: 40 * 60 * 1000, // 2 bots × 20 min
   [JOB_ENRICH_ALL_MEDIA]: 20 * 60 * 1000,
 };
 
@@ -337,6 +352,25 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         'data-refresh: enrich-clubs-editorial ok',
       );
       pushLog({ level: 'info', job: job.name, event: 'done', data: { ...out } });
+    } else if (job.name === JOB_BOTS_CYCLE) {
+      const { runBotCycle } = await import('../modules/bots/scheduler.js');
+      const out = await runBotCycle(prisma, BOTS_PER_CYCLE);
+      pushLog({ level: 'info', job: job.name, event: 'done', data: out });
+    } else if (job.name === JOB_INGEST_BACKLOG) {
+      // T602 — plano + consumo. O plano é idempotente (UNIQUE source+season).
+      const { planAndRunBacklog, defaultRunnerDeps } =
+        await import('../modules/ingest/backlog-runner.js');
+      const out = await planAndRunBacklog(INGEST_BACKLOG_ITEMS_PER_RUN, defaultRunnerDeps(prisma));
+      logger.info(
+        { planned: out.planned, ran: out.ran, done: out.done, failed: out.failed },
+        'data-refresh: ingest-backlog ok',
+      );
+      pushLog({
+        level: out.failed > 0 ? 'warn' : 'info',
+        job: job.name,
+        event: 'done',
+        data: { ...out },
+      });
     } else if (job.name === JOB_INTEGRITY_CHECK) {
       const report = await runIntegrityCheck();
       logger.info(
@@ -474,6 +508,36 @@ export async function registerDataRefreshCron(): Promise<void> {
       },
     },
   );
+  // T602 — INGESTÃO CONTÍNUA: diário, 3 itens. Planeja a partir da matriz de
+  // cobertura e consome a fila; falha transitória volta para a fila.
+  await queues.dataRefresh.upsertJobScheduler(
+    'ingest-backlog-daily',
+    { pattern: INGEST_BACKLOG_CRON_PATTERN },
+    {
+      name: JOB_INGEST_BACKLOG,
+      data: {},
+      opts: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
+      },
+    },
+  );
+  // T603 — pulso do sistema de bots (horário; a cadência de cada bot decide).
+  await queues.dataRefresh.upsertJobScheduler(
+    'bots-cycle-hourly',
+    { pattern: BOTS_CYCLE_CRON_PATTERN },
+    {
+      name: JOB_BOTS_CYCLE,
+      data: {},
+      opts: {
+        attempts: 1,
+        removeOnComplete: { count: 24 },
+        removeOnFail: { count: 24 },
+      },
+    },
+  );
   await queues.dataRefresh.upsertJobScheduler(
     'integrity-check-weekly',
     { pattern: INTEGRITY_CRON_PATTERN },
@@ -495,6 +559,8 @@ export async function registerDataRefreshCron(): Promise<void> {
       enrichClubs: ENRICH_CLUBS_CRON_PATTERN,
       enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
       enrichClubsEditorial: ENRICH_EDITORIAL_CRON_PATTERN,
+      ingestBacklog: INGEST_BACKLOG_CRON_PATTERN,
+      botsCycle: BOTS_CYCLE_CRON_PATTERN,
       // T533 — faltava no log de boot: um cron registrado que não aparece no
       // inventário é observabilidade faltando (o job existe e roda, mas quem lê o
       // boot não sabe). Todo cron novo entra aqui.

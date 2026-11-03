@@ -115,7 +115,7 @@ export function RegisterForm() {
           <span>
             {t('auth.acceptTerms')}{' '}
             <Link href="/termos" className="auth-card__link">
-              {t('footer.terms')}
+              {t('auth.termsLink')}
             </Link>
           </span>
         </label>
@@ -129,7 +129,7 @@ export function RegisterForm() {
           <span>
             {t('auth.acceptPrivacy')}{' '}
             <Link href="/privacidade" className="auth-card__link">
-              {t('footer.privacy')}
+              {t('auth.privacyLink')}
             </Link>
           </span>
         </label>
@@ -148,7 +148,7 @@ export function RegisterForm() {
           aria-describedby="register-birthdate-help"
         />
         <p id="register-birthdate-help" className="auth-card__help">
-          No seu aniversário você ganha 1 mês de Elite 🎁
+          No seu aniversário você ganha 1 mês de Elite.
         </p>
       </div>
 

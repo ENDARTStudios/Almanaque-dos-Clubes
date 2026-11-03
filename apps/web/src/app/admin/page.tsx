@@ -4,6 +4,7 @@ import Link from 'next/link';
 import OperatorGate from '@/components/OperatorGate';
 import { useI18n } from '@/i18n/Provider';
 import { adminStrings } from '@/components/admin/strings';
+import AdminHeading from '@/components/ficha/AdminHeading';
 
 /**
  * HUB DE ADMINISTRAÇÃO — índice das ferramentas internas (T559, gate T565, T-ADMIN).
@@ -33,9 +34,7 @@ export default function AdminPage() {
   return (
     <OperatorGate>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">
-          {s.index.title}
-        </h1>
+        <AdminHeading title={s.index.title} />
         <p className="text-ink-2 mb-8">{s.index.subtitle}</p>
 
         <ul className="grid gap-4 sm:grid-cols-2">

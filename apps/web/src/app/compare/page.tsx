@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
+import { cookies } from 'next/headers';
+import { getDictionary } from '@/i18n/getDictionary';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import CompareSelector, { type CompareType } from '@/components/CompareSelector';
 
 // T440 — página pública de comparação (clube×clube / jogador×jogador).
@@ -38,9 +41,14 @@ export default async function ComparePage({
   searchParams: Promise<SearchParams>;
 }) {
   const { type, a, b } = await searchParams;
+  // o locale vem do MESMO cookie das outras páginas; o FichaHead é Server e recebe strings
+  const store = await cookies();
+  const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading titleKey="pages.compare.title" subtitleKey="pages.compare.subtitle" />
+      <FichaHead title={dict.pages.compare.title} subtitle={dict.pages.compare.subtitle} />
       <CompareSelector
         initialType={validType(type) ?? 'clubs'}
         initialA={a ?? ''}

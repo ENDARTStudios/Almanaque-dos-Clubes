@@ -9,7 +9,11 @@ import { LOCALE_COOKIE, normalizeLocale, type Locale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
-import { TrophyCup, TrophyMedal } from '@/components/icons';
+import { TrophyCup } from '@/components/icons';
+import CompetitionPodium from '@/components/ficha/CompetitionPodium';
+import { EmptyState } from '@/components/ficha/States';
+import DetailUnavailable from '@/components/ficha/DetailUnavailable';
+import { fichaStrings } from '@/i18n/wsFicha';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
@@ -119,7 +123,10 @@ interface Overview {
 async function getCompetition(id: string) {
   try {
     const res = await fetch(`${getApiBase()}/competitions/${id}`, { cache: 'no-store' });
-    if (!res.ok) return null;
+    // 404 explícito = não existe. Qualquer outra falha = NÃO SABEMOS (undefined), e a página
+    // não pode transformar "não sabemos" em "não existe".
+    if (res.status === 404) return null;
+    if (!res.ok) return undefined;
     const json = await res.json();
     return {
       data: json.data as Competition | null,
@@ -127,7 +134,7 @@ async function getCompetition(id: string) {
       seasons: (json.seasons ?? []) as CompetitionSeasonData[],
     };
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -259,6 +266,15 @@ export default async function CompetitionDetailPage({
   const { id } = await params;
   const { tab: tabParam, season: seasonParam } = await searchParams;
   const res = await getCompetition(id);
+  // `undefined` = não conseguimos perguntar; `null`/`data` ausente = a origem disse que não há.
+  if (res === undefined)
+    return (
+      <DetailUnavailable
+        retryHref={`/competitions/${id}`}
+        backHref="/competitions"
+        backLabel="Competições"
+      />
+    );
   if (!res?.data) notFound();
   const comp = res.data;
   /* Só busca o histórico quando a aba pede: a consulta varre as partidas da competição inteira,
@@ -504,9 +520,9 @@ export default async function CompetitionDetailPage({
               </table>
             </div>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="edicoes-empty">
-              {t.editionsEmpty}
-            </p>
+            <div data-testid="edicoes-empty">
+              <EmptyState title={t.editionsEmpty} body={fichaStrings[locale].states.emptyBody} />
+            </div>
           )
         ) : null}
 
@@ -530,9 +546,12 @@ export default async function CompetitionDetailPage({
               </div>
             </>
           ) : (
-            <p className="text-sm text-foreground/60" data-testid="clubes-empty">
-              {t.participantsEmpty}
-            </p>
+            <div data-testid="clubes-empty">
+              <EmptyState
+                title={t.participantsEmpty}
+                body={fichaStrings[locale].states.emptyBody}
+              />
+            </div>
           )
         ) : null}
 
@@ -606,9 +625,7 @@ export default async function CompetitionDetailPage({
                         className="rounded-xl border border-border p-4"
                         data-testid="record-biggest-win"
                       >
-                        <p className="text-xs uppercase tracking-wide text-foreground/60">
-                          {ti.biggestWin}
-                        </p>
+                        <p className="text-xs text-ink-3">{ti.biggestWin}</p>
                         <p className="mt-2 font-heading font-bold text-lg">
                           {matchHistory.records.biggestWin.homeClubName ?? '—'}{' '}
                           {matchHistory.records.biggestWin.homeScore} ×{' '}
@@ -632,9 +649,7 @@ export default async function CompetitionDetailPage({
                         className="rounded-xl border border-border p-4"
                         data-testid="record-highest-scoring"
                       >
-                        <p className="text-xs uppercase tracking-wide text-foreground/60">
-                          {ti.highestScoring}
-                        </p>
+                        <p className="text-xs text-ink-3">{ti.highestScoring}</p>
                         <p className="mt-2 font-heading font-bold text-lg">
                           {matchHistory.records.highestScoring.homeClubName ?? '—'}{' '}
                           {matchHistory.records.highestScoring.homeScore} ×{' '}
@@ -1032,71 +1047,20 @@ export default async function CompetitionDetailPage({
               <h2 id="podium-title" className="text-xl font-heading font-bold mb-3">
                 {ti.podiumTitle}
               </h2>
-              {podium?.champion ? (
-                <div className="space-y-4" data-testid="competition-podium">
-                  <article className="rounded-xl border border-secondary/40 bg-secondary/5 p-5">
-                    <div className="flex flex-wrap items-center gap-4">
-                      {comp.trophyImageUrl ? (
-                        <span className="w-16 h-16 rounded-xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={comp.trophyImageUrl}
-                            alt=""
-                            className="object-contain w-12 h-12"
-                            loading="lazy"
-                          />
-                        </span>
-                      ) : null}
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                          {ti.podiumChampion}
-                        </p>
-                        <p className="text-2xl font-heading font-bold text-foreground mt-0.5">
-                          {podium.champion.clubId ? (
-                            <Link
-                              href={`/clubs/${podium.champion.clubId}`}
-                              className="hover:text-secondary"
-                            >
-                              {podium.champion.clubName}
-                            </Link>
-                          ) : (
-                            podium.champion.clubName
-                          )}
-                        </p>
-                        {history?.lastEditionYear != null ? (
-                          <p className="text-xs text-foreground/70 mt-1">
-                            {insText(ti.lastEdition, { year: history.lastEditionYear })}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </article>
-                  {podium.runnerUp || podium.third ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {podium.runnerUp ? (
-                        <PodiumSlot
-                          club={podium.runnerUp}
-                          label={t.runnerUp}
-                          medalNote={ti.medalSilver}
-                          tone="silver"
-                        />
-                      ) : null}
-                      {podium.third ? (
-                        <PodiumSlot
-                          club={podium.third}
-                          label={ti.thirdPlace}
-                          medalNote={ti.medalBronze}
-                          tone="bronze"
-                        />
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <p className="text-sm text-foreground/70" data-testid="podium-empty">
-                  {ti.podiumEmpty}
-                </p>
-              )}
+              <CompetitionPodium
+                podium={podium ?? { champion: null, runnerUp: null, third: null }}
+                labels={{
+                  champion: ti.podiumChampion,
+                  runnerUp: t.runnerUp,
+                  third: ti.thirdPlace,
+                  empty: ti.podiumEmpty,
+                  lastEdition: (year: number) => insText(ti.lastEdition, { year }),
+                  medalSilverNote: ti.medalSilver,
+                  medalBronzeNote: ti.medalBronze,
+                }}
+                lastEditionYear={history?.lastEditionYear ?? null}
+                trophyImageUrl={comp.trophyImageUrl ?? null}
+              />
             </section>
 
             {/* HISTÓRIA — só o que o acervo sustenta; lacuna vira texto declarado. */}
@@ -1161,9 +1125,12 @@ export default async function CompetitionDetailPage({
                   ) : null}
                 </dl>
               ) : (
-                <p className="text-sm text-foreground/70" data-testid="history-empty">
-                  {ti.historyEmpty}
-                </p>
+                <div data-testid="history-empty">
+                  <EmptyState
+                    title={ti.historyEmpty}
+                    body={fichaStrings[locale].states.emptyBody}
+                  />
+                </div>
               )}
               {descriptionText ? (
                 <div className="mt-5">
@@ -1224,7 +1191,7 @@ export default async function CompetitionDetailPage({
 function Info({ label, value, extra }: { label: string; value: React.ReactNode; extra?: string }) {
   return (
     <div>
-      <p className="text-xs text-foreground/70 uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-ink-3">{label}</p>
       <p className="text-sm font-medium text-foreground mt-0.5">
         {value}
         {extra ? <span className="text-foreground/70"> · {extra}</span> : null}
@@ -1248,7 +1215,7 @@ function HistoryStat({
 }) {
   return (
     <div className="rounded-xl border border-border bg-muted p-4" data-testid="history-stat">
-      <dt className="text-xs text-foreground/70 uppercase tracking-wider">{label}</dt>
+      <dt className="text-xs text-ink-3">{label}</dt>
       <dd className="font-heading text-lg font-bold text-foreground mt-0.5">
         {value}
         {extra ? (
@@ -1256,52 +1223,5 @@ function HistoryStat({
         ) : null}
       </dd>
     </div>
-  );
-}
-
-/**
- * Slot de vice/3º do pódio — MEDALHA É ILUSTRAÇÃO AUTORAL (ícone autoral do design
- * system), nunca foto de medalha: o rótulo declara isso no próprio card. Sem clube no
- * acervo, o slot nem renderiza (chamada condicional) — não existe pódio inventado.
- */
-function PodiumSlot({
-  club,
-  label,
-  medalNote,
-  tone,
-}: {
-  club: PodiumClubDto;
-  label: string;
-  medalNote: string;
-  tone: 'silver' | 'bronze';
-}) {
-  return (
-    <article
-      className="rounded-xl border border-border bg-background p-4"
-      data-testid={tone === 'silver' ? 'podium-runner-up' : 'podium-third'}
-    >
-      <div className="flex items-center gap-3">
-        {/* Ícone decorativo (aria-hidden): quem nomeia o slot é o rótulo de texto. */}
-        <span
-          aria-hidden="true"
-          className={`shrink-0 ${tone === 'silver' ? 'text-ink-2' : 'text-secondary'}`}
-        >
-          <TrophyMedal size={28} />
-        </span>
-        <div>
-          <p className="text-xs text-foreground/70">{label}</p>
-          <p className="font-heading font-bold text-foreground">
-            {club.clubId ? (
-              <Link href={`/clubs/${club.clubId}`} className="hover:text-primary-ink">
-                {club.clubName}
-              </Link>
-            ) : (
-              club.clubName
-            )}
-          </p>
-        </div>
-      </div>
-      <p className="mt-2 text-[0.6875rem] leading-snug text-ink-3">{medalNote}</p>
-    </article>
   );
 }

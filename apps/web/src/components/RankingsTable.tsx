@@ -6,6 +6,8 @@ import { DataTable } from '@/components/ui/DataTable';
 import { CountryFlag } from '@/components/CountryFlag';
 import { countryName } from '@/lib/country-flag';
 import { useI18n } from '@/i18n/Provider';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 // T438 — Tabela de Rankings 0-100 (cursor-based, filtros ano/gênero/país).
 
@@ -369,11 +371,16 @@ export default function RankingsTable() {
       </div>
 
       {error ? (
-        <p role="alert" className="py-6 text-sm text-danger-ink">
-          Erro ao carregar rankings.
-        </p>
+        <ErrorState
+          title={fichaStrings[locale].states.errorTitle}
+          body={fichaStrings[locale].states.errorBody}
+          retryLabel={fichaStrings[locale].states.retry}
+          retryHref="/rankings"
+        />
       ) : rows.length === 0 && !loading ? (
-        <p className="py-6 text-sm text-ink-2">{t.empty}</p>
+        <div className="py-4">
+          <EmptyState title={t.empty} body={fichaStrings[locale].states.emptyBody} />
+        </div>
       ) : (
         /* As colunas são DECLARADAS (ver `ui/DataTable`), e não montadas à mão como antes.
            O ganho concreto: `numeric` aplica `.num` (Barlow Condensed + numeral tabular) e

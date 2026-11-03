@@ -139,6 +139,9 @@ export const rankingsService = {
   async getEntries(rankingId: string): Promise<{
     data: Array<
       RankingEntry & {
+        /** resolvidos no repository — o consumidor não deve fazer N+1 para descobrir o nome */
+        clubName?: string | null;
+        playerName?: string | null;
         divisionLevel?: number | null;
         divisionLabel?: string | null;
         multiplier?: number | null;

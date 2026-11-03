@@ -7,6 +7,8 @@ import { api } from '@/lib/api';
 import { CountryFlag } from '@/components/CountryFlag';
 import { countryLabel } from '@/lib/country-flag';
 import { useI18n } from '@/i18n/Provider';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * ÍNDICE DE PAÍSES — o agrupamento de `/clubs` e `/players`.
@@ -191,9 +193,12 @@ export default function CountryIndex({
       </div>
 
       {visiveis.length === 0 ? (
-        <p className="text-sm text-ink-2" data-testid="country-index-empty">
-          {t('pages.byCountry.empty')}
-        </p>
+        <div data-testid="country-index-empty">
+          <EmptyState
+            title={t('pages.byCountry.empty')}
+            body={fichaStrings[locale].states.emptyBody}
+          />
+        </div>
       ) : (
         <ul ref={listRef} className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {visiveis.map((p) => {

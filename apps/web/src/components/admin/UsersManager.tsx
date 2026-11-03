@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/Provider';
 import ConfirmDialog from './ConfirmDialog';
 import Pagination from './Pagination';
 import { adminStrings, fill } from './strings';
+import { EmptyState } from '@/components/ficha/States';
+import { fichaStrings } from '@/i18n/wsFicha';
 
 /**
  * T-ADMIN — gestão de usuários (`/admin/usuarios`).
@@ -238,9 +240,12 @@ export default function UsersManager() {
           {s.users.error}
         </p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-ink-2 py-8" data-testid="users-empty">
-          {hasFilters ? s.users.emptyFiltered : s.users.empty}
-        </p>
+        <div data-testid="users-empty">
+          <EmptyState
+            title={hasFilters ? s.users.emptyFiltered : s.users.empty}
+            body={fichaStrings[locale].states.emptyBody}
+          />
+        </div>
       ) : (
         <>
           <ul className="space-y-2" data-testid="users-list">

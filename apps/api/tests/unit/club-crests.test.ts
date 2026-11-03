@@ -34,11 +34,13 @@ describe('licencaAceita', () => {
     expect(licencaAceita('cc by-sa 3.0')).toBe(true);
   });
 
-  it('RECUSA CC BY-NC — prefixo "CC BY" não pode bastar', () => {
-    /* O erro que este teste trava: `startsWith('cc by')` aceitaria NC, que proíbe uso
-       comercial. Escudo é marca registrada; usar sob NC num produto é violação. */
-    expect(licencaAceita('CC BY-NC 4.0')).toBe(false);
-    expect(licencaAceita('CC BY-NC-SA 4.0')).toBe(false);
+  it('ACEITA CC BY-NC desde 2026-11-02 (plataforma gratuita, mantida por doações)', () => {
+    /* Mudança de modelo (D-2026-11-02): o acervo não vende acesso, dado nem anúncio.
+       A licença é gravada verbatim, então a atribuição segue auditável por arquivo.
+       Se o produto voltar a monetizar, este teste DEVE voltar a esperar false. */
+    expect(licencaAceita('CC BY-NC 4.0')).toBe(true);
+    expect(licencaAceita('CC BY-NC-SA 4.0')).toBe(true);
+    expect(licencaAceita('CC BY-NC-ND 4.0')).toBe(false); // ND continua fora
   });
 
   it('RECUSA CC BY-ND — sem derivadas não dá para recortar/redimensionar', () => {
@@ -53,8 +55,15 @@ describe('licencaAceita', () => {
     expect(licencaAceita('Fair use')).toBe(false);
   });
 
-  it('não confunde "NonCommercial" escrito por extenso', () => {
-    expect(licencaAceita('Creative Commons NonCommercial')).toBe(false);
+  it('"NonCommercial" por extenso segue a mesma régua do sufixo -NC', () => {
+    // Mesma decisão do teste acima: NC aceita (plataforma gratuita); o que NÃO
+    // pode acontecer é a grafia por extenso escapar da checagem.
+    expect(licencaAceita('Creative Commons NonCommercial')).toBe(true);
+  });
+
+  it('RECUSA licença desconhecida/restritiva — o padrão continua sendo recusar', () => {
+    expect(licencaAceita('All rights reserved')).toBe(false);
+    expect(licencaAceita('Fair use')).toBe(false);
   });
 });
 

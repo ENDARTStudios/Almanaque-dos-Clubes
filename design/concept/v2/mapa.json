@@ -1,0 +1,1222 @@
+[
+ {
+  "command": "frame.create",
+  "params": {
+   "name": "Mapa",
+   "x": 0,
+   "y": 0,
+   "width": 1440,
+   "height": 1000,
+   "props": {
+    "fill": "#faf8f5"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "top/line",
+   "x": 0,
+   "y": 60,
+   "width": 1440,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand",
+   "text": "ALMANAQUE",
+   "x": 64,
+   "y": 20,
+   "width": 260,
+   "props": {
+    "fontSize": 22,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.3
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "brand/mark",
+   "x": 196,
+   "y": 20,
+   "width": 4,
+   "height": 22,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "brand/2",
+   "text": "dos Clubes",
+   "x": 208,
+   "y": 26,
+   "width": 160,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "letterSpacing": 0.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Competições",
+   "text": "Competições",
+   "x": 420,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Clubes",
+   "text": "Clubes",
+   "x": 524,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Jogadores",
+   "text": "Jogadores",
+   "x": 620,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Rankings",
+   "text": "Rankings",
+   "x": 716,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Mapa",
+   "text": "Mapa",
+   "x": 812,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "nav/Mapa/u",
+   "x": 812,
+   "y": 46,
+   "width": 26,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Lendas",
+   "text": "Lendas",
+   "x": 908,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "nav/Comparar",
+   "text": "Comparar",
+   "x": 1004,
+   "y": 24,
+   "width": 150,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "search",
+   "x": 1076,
+   "y": 16,
+   "width": 210,
+   "height": 30,
+   "props": {
+    "fill": "#ffffff",
+    "cornerRadius": 15,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "search/t",
+   "text": "Buscar no Almanaque…",
+   "x": 1090,
+   "y": 23,
+   "width": 190,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "enter",
+   "x": 1298,
+   "y": 16,
+   "width": 78,
+   "height": 30,
+   "props": {
+    "fill": "#be123c",
+    "cornerRadius": 15
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "enter/t",
+   "text": "Entrar",
+   "x": 1314,
+   "y": 23,
+   "width": 60,
+   "props": {
+    "fontSize": 12,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#ffffff",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/k",
+   "text": "Mapa · cobertura do acervo",
+   "x": 64,
+   "y": 104,
+   "width": 700,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#6b6560",
+    "textAlign": "left",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/titulo",
+   "text": "O futebol no mapa",
+   "x": 64,
+   "y": 122,
+   "width": 700,
+   "props": {
+    "fontSize": 52,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#111111",
+    "textAlign": "left",
+    "letterSpacing": -0.5,
+    "lineHeight": 53.04
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/sub",
+   "text": "12.017 clubes distribuídos em 220 países. A intensidade é a densidade do acervo, não a população.",
+   "x": 64,
+   "y": 184,
+   "width": 640,
+   "props": {
+    "fontSize": 14,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#57534e",
+    "textAlign": "left",
+    "lineHeight": 20
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/area",
+   "x": 64,
+   "y": 240,
+   "width": 860,
+   "height": 520,
+   "props": {
+    "fill": "#f2efea",
+    "cornerRadius": 2,
+    "stroke": "#e0dad3",
+    "strokeWeight": 1
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/area/t",
+   "text": "coropleto · Europe × South America",
+   "x": 88,
+   "y": 480,
+   "width": 800,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/g/1",
+   "x": 64,
+   "y": 326,
+   "width": 860,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/g/2",
+   "x": 64,
+   "y": 412,
+   "width": 860,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/g/3",
+   "x": 64,
+   "y": 498,
+   "width": 860,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/g/4",
+   "x": 64,
+   "y": 584,
+   "width": 860,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/g/5",
+   "x": 64,
+   "y": 670,
+   "width": 860,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/l/l",
+   "text": "POR PAÍS · CLUBES",
+   "x": 964,
+   "y": 240,
+   "width": 300,
+   "props": {
+    "fontSize": 10,
+    "fontFamily": "Barlow",
+    "fontWeight": 600,
+    "fill": "#111111",
+    "letterSpacing": 2.2
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/l/n",
+   "text": "220 países",
+   "x": 996,
+   "y": 239,
+   "width": 380,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#6b6560",
+    "textAlign": "right"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/0/n",
+   "text": "Suécia",
+   "x": 964,
+   "y": 268,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/0/v",
+   "text": "903",
+   "x": 1286,
+   "y": 267,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/0/bar",
+   "x": 964,
+   "y": 288,
+   "width": 300.0,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/0/line",
+   "x": 964,
+   "y": 298,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/1/n",
+   "text": "Brasil",
+   "x": 964,
+   "y": 320,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/1/v",
+   "text": "817",
+   "x": 1286,
+   "y": 319,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/1/bar",
+   "x": 964,
+   "y": 340,
+   "width": 273.0,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/1/line",
+   "x": 964,
+   "y": 350,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/2/n",
+   "text": "Portugal",
+   "x": 964,
+   "y": 372,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/2/v",
+   "text": "593",
+   "x": 1286,
+   "y": 371,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/2/bar",
+   "x": 964,
+   "y": 392,
+   "width": 198.0,
+   "height": 2,
+   "props": {
+    "fill": "#be123c"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/2/line",
+   "x": 964,
+   "y": 402,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/3/n",
+   "text": "Austrália",
+   "x": 964,
+   "y": 424,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/3/v",
+   "text": "554",
+   "x": 1286,
+   "y": 423,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/3/bar",
+   "x": 964,
+   "y": 444,
+   "width": 186.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/3/line",
+   "x": 964,
+   "y": 454,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/4/n",
+   "text": "Turquia",
+   "x": 964,
+   "y": 476,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/4/v",
+   "text": "468",
+   "x": 1286,
+   "y": 475,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/4/bar",
+   "x": 964,
+   "y": 496,
+   "width": 156.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/4/line",
+   "x": 964,
+   "y": 506,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/5/n",
+   "text": "Grécia",
+   "x": 964,
+   "y": 528,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/5/v",
+   "text": "404",
+   "x": 1286,
+   "y": 527,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/5/bar",
+   "x": 964,
+   "y": 548,
+   "width": 135.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/5/line",
+   "x": 964,
+   "y": 558,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/6/n",
+   "text": "Reino Unido",
+   "x": 964,
+   "y": 580,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/6/v",
+   "text": "383",
+   "x": 1286,
+   "y": 579,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/6/bar",
+   "x": 964,
+   "y": 600,
+   "width": 129.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/6/line",
+   "x": 964,
+   "y": 610,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/7/n",
+   "text": "Japão",
+   "x": 964,
+   "y": 632,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/7/v",
+   "text": "359",
+   "x": 1286,
+   "y": 631,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/7/bar",
+   "x": 964,
+   "y": 652,
+   "width": 120.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/7/line",
+   "x": 964,
+   "y": 662,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/8/n",
+   "text": "Alemanha",
+   "x": 964,
+   "y": 684,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/8/v",
+   "text": "332",
+   "x": 1286,
+   "y": 683,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/8/bar",
+   "x": 964,
+   "y": 704,
+   "width": 111.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/8/line",
+   "x": 964,
+   "y": 714,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/9/n",
+   "text": "Noruega",
+   "x": 964,
+   "y": 736,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/9/v",
+   "text": "332",
+   "x": 1286,
+   "y": 735,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/9/bar",
+   "x": 964,
+   "y": 756,
+   "width": 111.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/9/line",
+   "x": 964,
+   "y": 766,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/10/n",
+   "text": "Polónia",
+   "x": 964,
+   "y": 788,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/10/v",
+   "text": "324",
+   "x": 1286,
+   "y": 787,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/10/bar",
+   "x": 964,
+   "y": 808,
+   "width": 108.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/10/line",
+   "x": 964,
+   "y": 818,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/11/n",
+   "text": "Chéquia",
+   "x": 964,
+   "y": 840,
+   "width": 200,
+   "props": {
+    "fontSize": 13,
+    "fontFamily": "Barlow",
+    "fontWeight": 500,
+    "fill": "#111111",
+    "textAlign": "left"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "mp/11/v",
+   "text": "300",
+   "x": 1286,
+   "y": 839,
+   "width": 90,
+   "props": {
+    "fontSize": 15,
+    "fontFamily": "Barlow Condensed",
+    "fontWeight": 700,
+    "fill": "#57534e",
+    "textAlign": "right",
+    "letterSpacing": -1.5
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/11/bar",
+   "x": 964,
+   "y": 860,
+   "width": 99.0,
+   "height": 2,
+   "props": {
+    "fill": "#6b6560"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "mp/11/line",
+   "x": 964,
+   "y": 870,
+   "width": 300,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "shape.rectangle",
+  "params": {
+   "name": "prov/line",
+   "x": 64,
+   "y": 800,
+   "width": 1312,
+   "height": 1,
+   "props": {
+    "fill": "#e0dad3"
+   }
+  }
+ },
+ {
+  "command": "text.create",
+  "params": {
+   "name": "prov/note",
+   "text": "Contagem pela coluna do filtro público. País sem clube no acervo não aparece — lacuna declarada, não inventada.",
+   "x": 64,
+   "y": 812,
+   "width": 1100,
+   "props": {
+    "fontSize": 11,
+    "fontFamily": "Barlow",
+    "fontWeight": 400,
+    "fill": "#6b6560",
+    "textAlign": "left"
+   }
+  }
+ }
+]
