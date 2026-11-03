@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import PageHeading from '@/components/PageHeading';
+import FichaHead from '@/components/ficha/FichaHead';
 import SearchBar from '@/components/SearchBar';
 import CountryIndex from '@/components/CountryIndex';
 import { CountryFlag } from '@/components/CountryFlag';
@@ -132,10 +132,15 @@ export default async function CompetitionsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <PageHeading
-        titleKey="pages.competitions.title"
-        subtitleKey="pages.competitions.subtitle"
-        subtitleParams={{ n: total }}
+      {/*
+        FichaHead no lugar do PageHeading: o PageHeading já era um h1 limpo (sem eyebrow), mas
+        não carregava o NÚMERO-ÂNCORA — e o acervo tem 1.932 competições, que é o dado da página.
+        O `{n}` do subtítulo é interpolado aqui porque estamos num Server Component que fala com
+        `dict` (strings cruas), não com `t()`. O placeholder existe nos três idiomas. */}
+      <FichaHead
+        title={dict.pages.competitions.title}
+        subtitle={dict.pages.competitions.subtitle.replace('{n}', String(total))}
+        anchor={String(total)}
       />
 
       {/* T577 — REORGANIZAÇÃO. O que havia antes: seis grupos de "âncoras" curadas (continental,
