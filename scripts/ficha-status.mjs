@@ -67,6 +67,10 @@ const EXCECOES_VAZIO = new Map([
   // Painéis de operação: o "vazio" deles já é expresso como ZERO no KPI ou no cartão de estado,
   // que é uma leitura melhor que uma caixa dizendo "nada aqui" num painel de trabalho.
   ['/direitos-titular', 'documento legal com formulário de requisição: não há lista'],
+  [
+    '/estadios/[id]',
+    'ficha de registro único: campo ausente mostra "—" no próprio campo, não uma caixa de vazio',
+  ],
   ['/dashboard/subscription', 'estado da assinatura em cartões — "sem plano" É o plano gratuito'],
   ['/admin', 'índice de operação: cartões de KPI, o zero já é a resposta'],
   ['/admin/metricas', 'painel de gráficos: série vazia desenha eixo, não caixa de vazio'],
