@@ -31,11 +31,11 @@ export default function SectionHeading({
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
       <Tag
         id={id}
-        className={`font-semibold text-foreground ${Tag === 'h2' ? 'text-lg' : 'text-base'}`}
+        className={`font-semibold text-foreground ${Tag === 'h2' ? 'text-[12.5px]' : 'text-[12.5px]'}`}
       >
         {children}
       </Tag>
-      {aside ? <div className="text-xs text-ink-3">{aside}</div> : null}
+      {aside ? <div className="text-[11px] text-ink-3">{aside}</div> : null}
     </div>
   );
 }

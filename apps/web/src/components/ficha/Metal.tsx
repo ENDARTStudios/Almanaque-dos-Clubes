@@ -87,16 +87,22 @@ export function Medal({ metal, place = 1, size = 40 }: MedalProps) {
 }
 
 export interface TrophyProps {
-  /** Lado em pixels. O padrão é 40 — troféu é sempre ouro, muda o tamanho. */
+  /** Lado em pixels. O padrão é 40. */
   size?: number;
   /** `dark` para a faixa escura. */
   dark?: boolean;
+  /**
+   * Cor do traço. O padrão é o ouro; páginas de dado usam a cor do DEGRAU
+   * (`--color-tier-*`) para o troféu dizer o alcance sem precisar de legenda — o
+   * conceito FICHA faz exatamente isso na faixa de destaques de /competitions.
+   */
+  color?: string;
 }
 
-export function Trophy({ size = 40, dark = false }: TrophyProps) {
+export function Trophy({ size = 40, dark = false, color }: TrophyProps) {
   const w = size * 0.66;
   const cx = size / 2;
-  const cor = dark ? 'var(--color-metal-ouro)' : 'var(--color-metal-ouro)';
+  const cor = color ?? (dark ? 'var(--color-metal-ouro)' : 'var(--color-metal-ouro)');
   const peso = Math.max(1.6, size / 26);
 
   return (
