@@ -85,21 +85,6 @@ function pentagono(lat0: number, lon0: number, raioGraus: number): Ponto[] {
   });
 }
 
-/** Pontos do couro: distribuição em espiral de Fibonacci, só o hemisfério visível. */
-function pontosDoCouro(rotacao: number, total = 320): Array<[number, number]> {
-  const saida: Array<[number, number]> = [];
-  for (let i = 0; i < total; i++) {
-    // amostragem uniforme na esfera
-    const y = 1 - (i / (total - 1)) * 2;
-    const theta = i * Math.PI * (3 - Math.sqrt(5));
-    const lat = (Math.asin(y) * 180) / Math.PI;
-    const lon = ((theta * 180) / Math.PI) % 360;
-    const p = projetar([lat, lon], rotacao);
-    if (p) saida.push(p);
-  }
-  return saida;
-}
-
 const GOMOS: Array<[number, number]> = [
   [0, 0],
   [42, -58],
@@ -168,11 +153,6 @@ export default function Globe({ size = 220, opacity = 0.5, className }: GlobePro
             />
           );
         })}
-
-        {/* couro */}
-        {pontosDoCouro(rotacao).map(([x, y], i) => (
-          <circle key={`d${i}`} cx={x} cy={y} r={0.9} fill="currentColor" opacity={0.28} />
-        ))}
 
         {/* gomos: pentágonos SOBRE a esfera, projetados e culled */}
         {GOMOS.map(([lat, lon], i) => {

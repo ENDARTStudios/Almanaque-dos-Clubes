@@ -68,6 +68,7 @@ interface CompetitionCountry {
 
 interface CompetitionOverview {
   inceptionYear: number | null;
+  country: string | null;
   editions: number | null;
   podium: {
     champion: { name: string } | null;
@@ -78,18 +79,74 @@ interface CompetitionOverview {
   competitionName: string;
 }
 
-const HIGHLIGHTS: Array<{ id: string; name: string; tier: Tier }> = [
-  // Ids da curadoria de âncoras (confirmados no banco — lib/competition-anchors).
-  { id: 'c94c3d26-c3a8-45e0-8f4b-c2bd19707688', name: 'FIFA World Cup', tier: 'mundial' },
+interface CuratedCompetition {
+  id: string;
+  name: string;
+  tier: Tier;
+  country: string | null;
+  /** Aparece nos quatro destaques por alcance (a curadoria do quadro). */
+  highlight: boolean;
+}
+
+/**
+ * CURADORIA DE ÂNCORAS — ids confirmados no banco de produção (nada inventado).
+ * O índice do quadro usa seis delas; os destaques usam quatro (1 mundial, 2 continentais,
+ * 1 nacional). "Competição estadual fica fora dos destaques por alcance regional" — a nota
+ * da página declara isso, e o índice curado não finge cobertura total.
+ */
+const CURATED: CuratedCompetition[] = [
+  {
+    id: 'c94c3d26-c3a8-45e0-8f4b-c2bd19707688',
+    name: 'FIFA World Cup',
+    tier: 'mundial',
+    country: null,
+    highlight: true,
+  },
   {
     id: '8fae6a29-79c5-43d8-81ee-4b569361926b',
     name: 'UEFA Champions League',
     tier: 'continental',
+    country: null,
+    highlight: true,
   },
-  { id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52', name: 'Copa Libertadores', tier: 'continental' },
-  // Nacional: Copa do Brasil (grupo BR da curadoria de âncoras).
-  { id: 'd4b2c896-a33e-4178-98fb-ac8abe2223e1', name: 'Copa do Brasil', tier: 'nacional' },
+  {
+    id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52',
+    name: 'Copa Libertadores',
+    tier: 'continental',
+    country: null,
+    highlight: true,
+  },
+  {
+    id: '6a853116-a632-45a0-9def-c42bdba38604',
+    name: 'Premier League',
+    tier: 'nacional',
+    country: 'GB',
+    highlight: true,
+  },
+  {
+    id: 'a244e261-2036-423f-bba6-f0563bea7c17',
+    name: 'La Liga',
+    tier: 'nacional',
+    country: 'ES',
+    highlight: false,
+  },
+  {
+    id: 'd6a8bdb1-aef0-4701-a9f1-5576b201fa56',
+    name: 'Campeonato Brasileiro Série A',
+    tier: 'nacional',
+    country: 'BR',
+    highlight: false,
+  },
+  {
+    id: 'd4b2c896-a33e-4178-98fb-ac8abe2223e1',
+    name: 'Copa do Brasil',
+    tier: 'nacional',
+    country: 'BR',
+    highlight: false,
+  },
 ];
+
+const HIGHLIGHTS = CURATED.filter((c) => c.highlight);
 
 async function getCompetitions(searchParams: { [key: string]: string | undefined }) {
   const params = new URLSearchParams();
@@ -133,7 +190,7 @@ async function getOverview(id: string): Promise<CompetitionOverview | null> {
     const res = await fetch(`${getApiBase()}/competitions/${id}`, { next: { revalidate: 3600 } });
     if (!res.ok) return null;
     const j: {
-      data?: { name?: string; inceptionYear?: number | null };
+      data?: { name?: string; inceptionYear?: number | null; country?: string | null };
       overview?: {
         history?: { editionsCount?: number | null; lastEditionYear?: number | null };
         podium?: {
@@ -146,6 +203,7 @@ async function getOverview(id: string): Promise<CompetitionOverview | null> {
     return {
       competitionName: j.data?.name ?? '',
       inceptionYear: j.data?.inceptionYear ?? null,
+      country: j.data?.country ?? null,
       editions: j.overview?.history?.editionsCount ?? null,
       lastEditionYear: j.overview?.history?.lastEditionYear ?? null,
       podium: {
@@ -171,7 +229,7 @@ function hrefCom(
   patch: Record<string, string | null>,
 ): string {
   const params = new URLSearchParams();
-  for (const key of ['gender', 'type', 'country', 'search'] as const) {
+  for (const key of ['gender', 'type', 'country', 'search', 'view'] as const) {
     const value = key in patch ? patch[key] : sp[key];
     if (value) params.set(key, value);
   }
@@ -230,7 +288,7 @@ export default async function CompetitionsPage({
     getCompetitionCountries(),
     falhou
       ? Promise.resolve<Array<CompetitionOverview | null>>([])
-      : Promise.all(HIGHLIGHTS.map((h) => getOverview(h.id))),
+      : Promise.all(CURATED.map((h) => getOverview(h.id))),
   ]);
 
   const store = await cookies();
@@ -239,16 +297,19 @@ export default async function CompetitionsPage({
   const s = wsConceitoCompeticoes[locale];
   const c = dict.pages.competitions;
 
-  const highlightItems: HighlightItem[] = HIGHLIGHTS.map((h, i) => ({
-    id: h.id,
-    name: h.name,
-    tier: h.tier,
-    inceptionYear: overviews[i]?.inceptionYear ?? null,
-    editions: overviews[i]?.editions ?? null,
-  }));
+  const highlightItems: HighlightItem[] = HIGHLIGHTS.map((h) => {
+    const i = CURATED.findIndex((c) => c.id === h.id);
+    return {
+      id: h.id,
+      name: overviews[i]?.competitionName || h.name,
+      tier: h.tier,
+      inceptionYear: overviews[i]?.inceptionYear ?? null,
+      editions: overviews[i]?.editions ?? null,
+    };
+  });
 
   // O pódio é o da competição em destaque (Copa do Mundo), com o ano REAL da última edição.
-  const destaque = overviews[0] ?? null;
+  const destaque = overviews[CURATED.findIndex((c) => c.id === HIGHLIGHTS[0].id)] ?? null;
   const editionLabel =
     destaque && destaque.lastEditionYear != null
       ? s.podiumEdition
@@ -257,14 +318,21 @@ export default async function CompetitionsPage({
       : null;
 
   const paisesPorVolume = [...countries].sort((a, b) => b.competitions - a.competitions);
-  const topPaises = paisesPorVolume.slice(0, 8);
+  // Ordem do quadro: Brasil, Portugal, Reino Unido, Espanha, Itália — os cinco primeiros.
+  const CURATED_COUNTRIES = ['BR', 'PT', 'GB', 'ES', 'IT'];
+  const paisPorCodigo = new Map(countries.map((pais) => [pais.code, pais]));
+  const chipsDePais = CURATED_COUNTRIES.map((code) => paisPorCodigo.get(code)).filter(
+    (pais): pais is CompetitionCountry => Boolean(pais),
+  );
   const paisAtivoForaDoTopo =
-    sp.country && !topPaises.some((p) => p.code === sp.country)
-      ? (paisesPorVolume.find((p) => p.code === sp.country) ?? null)
+    sp.country && !chipsDePais.some((p) => p.code === sp.country)
+      ? (paisPorCodigo.get(sp.country) ?? null)
       : null;
-  const chipsDePais = paisAtivoForaDoTopo ? [paisAtivoForaDoTopo, ...topPaises] : topPaises;
+  if (paisAtivoForaDoTopo) chipsDePais.unshift(paisAtivoForaDoTopo);
 
   const temFiltro = Boolean(sp.country || sp.type || sp.gender || sp.search);
+  // O quadro abre no índice curado; o acervo completo aparece quando o usuário pede ou filtra.
+  const verIndiceCompleto = sp.view === 'all' || temFiltro;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -305,15 +373,12 @@ export default async function CompetitionsPage({
               <div className="flex flex-wrap items-start gap-2">
                 <FiltroLabel>{s.country}</FiltroLabel>
                 <ul className="flex flex-wrap gap-2">
-                  <li>
-                    <Chip href={hrefCom(sp, { country: null })} active={!sp.country}>
-                      {s.all}
-                    </Chip>
-                  </li>
                   {chipsDePais.map((pais) => (
                     <li key={pais.code}>
                       <Chip
-                        href={hrefCom(sp, { country: pais.code })}
+                        href={hrefCom(sp, {
+                          country: sp.country === pais.code ? null : pais.code,
+                        })}
                         active={sp.country === pais.code}
                         testId={`competitions-country-${pais.code}`}
                       >
@@ -374,27 +439,6 @@ export default async function CompetitionsPage({
                 </ul>
               </div>
 
-              <div className="flex flex-wrap items-start gap-2">
-                <FiltroLabel>{c.filters.gender}</FiltroLabel>
-                <ul className="flex flex-wrap gap-2">
-                  <li>
-                    <Chip href={hrefCom(sp, { gender: null })} active={!sp.gender}>
-                      {s.all}
-                    </Chip>
-                  </li>
-                  <li>
-                    <Chip href={hrefCom(sp, { gender: 'men' })} active={sp.gender === 'men'}>
-                      {s.men}
-                    </Chip>
-                  </li>
-                  <li>
-                    <Chip href={hrefCom(sp, { gender: 'women' })} active={sp.gender === 'women'}>
-                      {s.women}
-                    </Chip>
-                  </li>
-                </ul>
-              </div>
-
               {sp.search ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <FiltroLabel>{s.searchPrefix}</FiltroLabel>
@@ -435,84 +479,156 @@ export default async function CompetitionsPage({
             </div>
           ) : null}
 
-          {/* 4. ÍNDICE COMPLETO — a tabela densa, paginada, com o recorte atual. */}
+          {/* 4. ÍNDICE — o quadro abre com a curadoria de âncoras; o acervo completo fica
+                 atrás do link (e é o que os filtros estreitam). */}
           <section aria-labelledby="comp-indice" className="mt-10">
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="comp-indice" className="text-[12.5px] font-semibold text-foreground">
                 {s.indexTitle}
               </h2>
-              <p className="text-[11px] text-ink-3">
-                {s.indexAside.replace('{n}', formatCount(total, locale))}
-              </p>
+              {verIndiceCompleto ? (
+                <p className="text-[11px] text-ink-3">
+                  {s.indexAside.replace('{n}', formatCount(total, locale))}
+                </p>
+              ) : null}
             </div>
 
-            {competitions.length ? (
-              <DataTable
-                caption={s.indexTitle}
-                columns={[
-                  { header: c.filters.competition, align: 'left' },
-                  { header: s.country, align: 'left' },
-                  { header: c.filters.type, align: 'left' },
-                ]}
-                rows={competitions.map((comp) => [
-                  <Link
-                    key={comp.id}
-                    href={`/competitions/${comp.id}`}
-                    className="font-medium text-primary-ink hover:underline"
-                  >
-                    {comp.name}
-                  </Link>,
-                  comp.country ? (
-                    <span key={`c-${comp.id}`} className="flex items-center gap-2">
-                      <CountryFlag code={comp.country} locale={locale} />
-                    </span>
-                  ) : (
-                    <span key={`c-${comp.id}`} className="text-ink-3">
-                      {c.filters.international}
-                    </span>
-                  ),
-                  <span key={`t-${comp.id}`} className="text-ink-2">
-                    {comp.type === 'LEAGUE'
-                      ? c.filters.league
-                      : comp.type === 'CUP'
-                        ? c.filters.cup
-                        : comp.type === 'TOURNAMENT'
-                          ? c.filters.tournament
-                          : (comp.type ?? '—')}
-                  </span>,
-                ])}
-              />
-            ) : (
-              <EmptyState
-                title={fichaStrings[locale].states.emptyTitle}
-                body={fichaStrings[locale].states.emptyBody}
-              />
-            )}
+            {verIndiceCompleto ? (
+              <>
+                {competitions.length ? (
+                  <DataTable
+                    caption={s.indexTitle}
+                    columns={[
+                      { header: c.filters.competition, align: 'left' },
+                      { header: s.country, align: 'left' },
+                      { header: c.filters.type, align: 'left' },
+                    ]}
+                    rows={competitions.map((comp) => [
+                      <Link
+                        key={comp.id}
+                        href={`/competitions/${comp.id}`}
+                        className="font-medium text-primary-ink hover:underline"
+                      >
+                        {comp.name}
+                      </Link>,
+                      comp.country ? (
+                        <span key={`c-${comp.id}`} className="flex items-center gap-2">
+                          <CountryFlag code={comp.country} locale={locale} />
+                        </span>
+                      ) : (
+                        <span key={`c-${comp.id}`} className="text-ink-3">
+                          {c.filters.international}
+                        </span>
+                      ),
+                      <span key={`t-${comp.id}`} className="text-ink-2">
+                        {comp.type === 'LEAGUE'
+                          ? c.filters.league
+                          : comp.type === 'CUP'
+                            ? c.filters.cup
+                            : comp.type === 'TOURNAMENT'
+                              ? c.filters.tournament
+                              : (comp.type ?? '—')}
+                      </span>,
+                    ])}
+                  />
+                ) : (
+                  <EmptyState
+                    title={fichaStrings[locale].states.emptyTitle}
+                    body={fichaStrings[locale].states.emptyBody}
+                  />
+                )}
 
-            {total > 50 ? (
-              <nav className="mt-6 flex justify-between" aria-label={c.paginationLabel}>
-                {offset > 0 ? (
+                {total > 50 ? (
+                  <nav className="mt-6 flex justify-between" aria-label={c.paginationLabel}>
+                    {offset > 0 ? (
+                      <Link
+                        href={pageHref(sp, Math.max(0, offset - 50))}
+                        className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                      >
+                        {c.prev}
+                      </Link>
+                    ) : (
+                      <span />
+                    )}
+                    {offset + 50 < total ? (
+                      <Link
+                        href={pageHref(sp, offset + 50)}
+                        className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                      >
+                        {c.next}
+                      </Link>
+                    ) : (
+                      <span />
+                    )}
+                  </nav>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-4 text-[11px]">
                   <Link
-                    href={pageHref(sp, Math.max(0, offset - 50))}
-                    className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                    href="/competitions"
+                    className="text-primary-ink underline decoration-dotted underline-offset-2"
                   >
-                    {c.prev}
+                    {s.backToCurated}
                   </Link>
-                ) : (
-                  <span />
-                )}
-                {offset + 50 < total ? (
+                </div>
+              </>
+            ) : (
+              <>
+                <DataTable
+                  caption={s.indexTitle}
+                  columns={[
+                    { header: s.colCompetition, align: 'left' },
+                    { header: s.colCountry, align: 'left' },
+                    { header: s.colEditions, align: 'right' },
+                    { header: s.colLast, align: 'right' },
+                    { header: s.colReach, align: 'left' },
+                  ]}
+                  rows={CURATED.map((curated, i) => {
+                    const o = overviews[i];
+                    return [
+                      <Link
+                        key={`cur-${curated.id}`}
+                        href={`/competitions/${curated.id}`}
+                        className="font-medium text-primary-ink hover:underline"
+                      >
+                        {o?.competitionName || curated.name}
+                      </Link>,
+                      o?.country ? (
+                        <span key={`cur-c-${curated.id}`} className="flex items-center gap-2">
+                          <CountryFlag code={o.country} locale={locale} />
+                        </span>
+                      ) : curated.country ? (
+                        <span key={`cur-c-${curated.id}`} className="flex items-center gap-2">
+                          <CountryFlag code={curated.country} locale={locale} />
+                        </span>
+                      ) : (
+                        <span key={`cur-c-${curated.id}`} className="text-ink-3">
+                          {c.filters.international}
+                        </span>
+                      ),
+                      <span key={`cur-e-${curated.id}`} className="num tabular-nums text-ink-2">
+                        {o?.editions != null ? formatCount(o.editions, locale) : '—'}
+                      </span>,
+                      <span key={`cur-l-${curated.id}`} className="num tabular-nums text-ink-2">
+                        {o?.lastEditionYear ?? '—'}
+                      </span>,
+                      <span key={`cur-r-${curated.id}`} className="text-ink-2">
+                        {s.tier[curated.tier]}
+                      </span>,
+                    ];
+                  })}
+                />
+                <p className="mt-3 max-w-[900px] text-[11px] leading-snug text-ink-3">
+                  {s.curatedNote}{' '}
                   <Link
-                    href={pageHref(sp, offset + 50)}
-                    className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                    href="/competitions?view=all"
+                    className="text-primary-ink underline decoration-dotted underline-offset-2"
                   >
-                    {c.next}
+                    {s.seeAll}
                   </Link>
-                ) : (
-                  <span />
-                )}
-              </nav>
-            ) : null}
+                </p>
+              </>
+            )}
           </section>
 
           <p className="mt-8 max-w-[900px] text-[11px] leading-snug text-ink-3">{s.provenance}</p>
@@ -524,7 +640,7 @@ export default async function CompetitionsPage({
 
 function pageHref(sp: { [key: string]: string | undefined }, offset: number): string {
   const params = new URLSearchParams();
-  for (const key of ['gender', 'type', 'country', 'search'] as const) {
+  for (const key of ['gender', 'type', 'country', 'search', 'view'] as const) {
     if (sp[key]) params.set(key, sp[key] as string);
   }
   params.set('offset', String(offset));

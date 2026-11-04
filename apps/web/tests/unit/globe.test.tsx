@@ -74,19 +74,14 @@ describe('Globe', () => {
     }
   });
 
-  it('nenhum ponto do couro sai da silhueta', () => {
+  it('o globo é só linha (sem pontos de couro), como no quadro', () => {
     const { container } = render(<Globe />);
-    // os pontos são os círculos pequenos; o contorno é o último, sem preenchimento
     const pontos = Array.from(container.querySelectorAll('circle')).filter(
       (c) => c.getAttribute('fill') === 'currentColor',
     );
-
-    expect(pontos.length).toBeGreaterThan(50);
-    for (const c of pontos) {
-      const x = Number(c.getAttribute('cx'));
-      const y = Number(c.getAttribute('cy'));
-      expect(foraDaEsfera(x, y)).toBe(false);
-    }
+    expect(pontos).toHaveLength(0);
+    // a silhueta continua lá: um círculo sem preenchimento
+    expect(container.querySelector('circle')).not.toBeNull();
   });
 
   it('nenhuma elipse tem semi-eixo NEGATIVO (o atributo é recusado e a linha some)', () => {
