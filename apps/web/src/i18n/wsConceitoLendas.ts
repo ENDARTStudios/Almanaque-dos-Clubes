@@ -44,6 +44,10 @@ export interface ConceitoLendasStrings {
     title: string;
     /** "{club}" e "{titles}" são substituídos pelo líder e pela contagem. */
     summary: string;
+    countryTitle: string;
+    countrySummary: string;
+    playersGap: string;
+    chartsLabel: string;
   };
   records: {
     heading: string;
@@ -106,6 +110,11 @@ export const conceitoLendasStrings: Record<Locale, ConceitoLendasStrings> = {
     },
     chart: {
       title: 'Títulos por clube no acervo',
+      countryTitle: 'Clubes do panteão por país',
+      countrySummary: 'Distribuição dos {count} clubes do topo pelos países de origem.',
+      playersGap:
+        'A API não publica um ranking de jogadores; a lista de líderes por competição é o que o acervo sustenta — sem nomes inventados.',
+      chartsLabel: 'O panteão em números',
       summary: '{club} lidera, com {titles} títulos.',
     },
     champions: {
@@ -168,6 +177,11 @@ export const conceitoLendasStrings: Record<Locale, ConceitoLendasStrings> = {
     },
     chart: {
       title: 'Titles per club in the archive',
+      countryTitle: 'Pantheon clubs by country',
+      countrySummary: 'Distribution of the top {count} clubs by country of origin.',
+      playersGap:
+        'The API does not publish a player ranking; the competition leaders list is what the archive supports — no invented names.',
+      chartsLabel: 'The pantheon in numbers',
       summary: '{club} leads with {titles} titles.',
     },
     champions: {
@@ -230,6 +244,11 @@ export const conceitoLendasStrings: Record<Locale, ConceitoLendasStrings> = {
     },
     chart: {
       title: 'Títulos por club en el acervo',
+      countryTitle: 'Clubes del panteón por país',
+      countrySummary: 'Distribución de los {count} clubes del top por país de origen.',
+      playersGap:
+        'La API no publica un ranking de jugadores; la lista de líderes por competición es lo que el acervo sostiene — sin nombres inventados.',
+      chartsLabel: 'El panteón en números',
       summary: '{club} lidera, con {titles} títulos.',
     },
     champions: {

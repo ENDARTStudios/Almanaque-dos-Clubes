@@ -54,44 +54,43 @@ export function Bars({ data, title, summary, height = 160, horizontal = false }:
   const max = Math.max(...data.map((d) => d.value));
 
   if (horizontal) {
-    const passo = height / data.length;
+    // Barras horizontais em HTML: o SVG com viewBox 100×height e preserveAspectRatio="none"
+    // esticava o texto (2,4 unidades viravam ~2 px de altura) e os rótulos desapareciam.
+    // Aqui o rótulo e o valor são texto normal, legíveis e selecionáveis; a barra é a mesma
+    // escala relativa (valor ÷ maior valor).
     return (
-      <svg
-        viewBox={`0 0 100 ${height}`}
-        width="100%"
-        height={height}
+      <div
         role="img"
-        focusable="false"
-        preserveAspectRatio="none"
+        aria-label={`${title}: ${summary}`}
+        className="flex w-full flex-col gap-2"
+        style={{ minHeight: height }}
+        data-testid="ficha-bars-horizontal"
       >
-        <title>{title}</title>
-        <desc>{summary}</desc>
-        {data.map((d, i) => {
-          const largura = (d.value / max) * 72;
+        {data.map((d) => {
           const destaque = d.value === max;
           return (
-            <g key={d.label}>
-              <rect
-                x={0}
-                y={i * passo + passo * 0.18}
-                width={largura}
-                height={passo * 0.56}
-                fill={destaque ? 'var(--color-metal-ouro)' : VIZ[0]}
-                className="ficha-bar-h"
-                style={{ animationDelay: `${i * 60}ms` }}
-              />
-              <text
-                x={largura + 1.5}
-                y={i * passo + passo * 0.18 + passo * 0.42}
-                fontSize={2.4}
-                fill="var(--color-ink-2)"
-              >
-                {d.label}
-              </text>
-            </g>
+            <div key={d.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="h-3 w-full bg-border/40">
+                  <div
+                    className="h-3"
+                    style={{
+                      width: `${(d.value / max) * 100}%`,
+                      backgroundColor: destaque ? 'var(--color-metal-ouro)' : 'var(--color-viz-1)',
+                    }}
+                  />
+                </div>
+                <span className="w-[38%] shrink-0 truncate text-[11px] leading-tight text-ink-2">
+                  {d.label}
+                </span>
+              </div>
+              <span className="num w-10 text-right text-[11px] tabular-nums text-ink-3">
+                {d.value}
+              </span>
+            </div>
           );
         })}
-      </svg>
+      </div>
     );
   }
 

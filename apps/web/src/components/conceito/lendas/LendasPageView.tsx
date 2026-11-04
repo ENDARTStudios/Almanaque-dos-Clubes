@@ -8,6 +8,7 @@ import {
   type ConceitoLendasStrings,
 } from '@/i18n/wsConceitoLendas';
 import { formatCount, formatDate } from '@/lib/format';
+import { countryName } from '@/lib/country-flag';
 import ChampionCards from './ChampionCards';
 import LeaderList from './LeaderList';
 import MetricBand from './MetricBand';
@@ -100,6 +101,19 @@ export default function LendasPageView({ locale, data, counts, generatedAt }: Le
   const hasRecords = recordValues.some((record) => record !== null);
   const hasAnyBlock = champions.length > 0 || leaders.length > 0 || hasRecords;
 
+  // Distribuição real dos clubes do topo por país (o quadro tem um gráfico equivalente).
+  const porPais = new Map<string, number>();
+  for (const champion of champions) {
+    const code = champion.country ?? '—';
+    porPais.set(code, (porPais.get(code) ?? 0) + 1);
+  }
+  const countryChart = [...porPais.entries()]
+    .map(([code, count]) => ({
+      label: code === '—' ? '—' : (countryName(code, locale) ?? code),
+      value: count,
+    }))
+    .sort((a, b) => b.value - a.value);
+
   return (
     <div
       data-testid="lendas-dark-surface"
@@ -127,37 +141,55 @@ export default function LendasPageView({ locale, data, counts, generatedAt }: Le
 
             {hasAnyBlock ? (
               <>
-                {leaders.length > 0 ? <LeaderList items={leaders} locale={locale} t={t} /> : null}
+                {leaders.length > 0 ? (
+                  <>
+                    <LeaderList items={leaders} locale={locale} t={t} />
+                    <p className="mt-2 max-w-[820px] text-[11px] leading-snug text-ink-3">
+                      {t.chart.playersGap}
+                    </p>
+                  </>
+                ) : null}
                 {champions.length > 0 ? (
-                  <ChampionCards items={champions} locale={locale} t={t} />
+                  <ChampionCards items={champions.slice(0, 5)} locale={locale} t={t} />
                 ) : null}
 
-                {/* O conceito tem um bloco "O panteão em números" com gráficos. O único que o
-                    payload sustenta é a distribuição de títulos por clube (top 10) — os de
-                    carreira/público não existem na API e não foram inventados. O gráfico usa o
-                    `Bars` do sistema, com título/desc acessíveis e o dado em texto ao lado. */}
+                {/* O quadro pede três gráficos. O dado sustenta DOIS (títulos por clube e
+                    distribuição por país); carreira/público não existem no payload. */}
                 {champions.length > 1 ? (
                   <section className="mt-12" aria-labelledby="lendas-chart-title">
                     <h2
                       id="lendas-chart-title"
                       className="text-[12.5px] font-semibold text-secondary"
                     >
-                      {t.chart.title}
+                      {t.chart.chartsLabel}
                     </h2>
-                    <div className="mt-4 max-w-[760px]">
-                      <Bars
-                        horizontal
-                        data={champions.slice(0, 10).map((c) => ({
-                          label: c.clubName,
-                          value: c.titles,
-                        }))}
-                        title={t.chart.title}
-                        summary={fillLendas(t.chart.summary, {
-                          club: champions[0]?.clubName ?? '—',
-                          titles: formatCount(champions[0]?.titles ?? 0, locale),
-                        })}
-                        height={220}
-                      />
+                    <div className="mt-4 grid gap-8 lg:grid-cols-2">
+                      <div className="max-w-[760px]">
+                        <Bars
+                          horizontal
+                          data={champions.slice(0, 10).map((c) => ({
+                            label: c.clubName,
+                            value: c.titles,
+                          }))}
+                          title={t.chart.title}
+                          summary={fillLendas(t.chart.summary, {
+                            club: champions[0]?.clubName ?? '—',
+                            titles: formatCount(champions[0]?.titles ?? 0, locale),
+                          })}
+                          height={240}
+                        />
+                      </div>
+                      <div className="max-w-[760px]">
+                        <Bars
+                          horizontal
+                          data={countryChart}
+                          title={t.chart.countryTitle}
+                          summary={fillLendas(t.chart.countrySummary, {
+                            count: String(champions.length),
+                          })}
+                          height={240}
+                        />
+                      </div>
                     </div>
                   </section>
                 ) : null}

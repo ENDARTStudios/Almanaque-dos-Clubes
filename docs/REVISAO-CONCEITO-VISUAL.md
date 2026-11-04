@@ -63,6 +63,18 @@ continua declarada (nunca preenchida com o número ilustrativo do PNG).
 - "Var." e "Últ. 5" não são inventados: a nota abaixo da tabela declara que a API não publica
   os dois campos.
 
+## Correções desta rodada — segunda parte
+
+### Lendas (`components/conceito/lendas/LendasPageView.tsx`, `components/ficha/Charts.tsx`)
+
+- Cartões de campeões limitados a **5**, como no quadro (era 10 em duas fileiras).
+- Declaração explícita de que a API **não publica ranking de jogadores**; a lista de líderes
+  por competição é o que o acervo sustenta.
+- Gráficos passaram a **dois painéis legíveis**: títulos por clube e clubes do topo por país.
+  O `Bars` horizontal era SVG com `preserveAspectRatio="none"` e os rótulos ficavam com ~2 px de
+  altura; agora é HTML (rótulo, barra e valor legíveis e selecionáveis).
+- O terceiro gráfico do quadro (gols por década) não existe no payload e não foi inventado.
+
 ## Pendências (próximas rodadas)
 
 - Lendas: recalcular as métricas no escopo do panteão; estrutura de três gráficos e lista de
