@@ -1,13 +1,16 @@
 'use client';
 /**
- * WS-C-14 — seção de stats do usuário (favoritos/notificações/contribuições/
- * clubes editados) + favoritos recentes + placeholder de tracking. Dados do
- * GET /dashboard (read-only, 30/min por usuário).
+ * WS-C-14 — stats do usuário + favoritos recentes + placeholder de tracking.
+ * Conceito FICHA: o bloco começa com o rótulo "Meu Almanaque", os cards densos do
+ * DashboardStats e, abaixo, os favoritos recentes. O callback `onStats` entrega o resumo
+ * para a página (número-âncora e tabela de conta) sem duplicar a chamada a GET /dashboard.
  */
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import DashboardStats from '@/components/DashboardStats';
+import DashboardStats, { type DashboardStatsData } from '@/components/DashboardStats';
 import RecentFavorites from '@/components/RecentFavorites';
+import { useI18n } from '@/i18n/Provider';
+import { wsConceitoDashboard } from '@/i18n/wsConceitoDashboard';
 
 interface DashboardData {
   user: { name: string | null; createdAt: string; roles: string[] };
@@ -27,7 +30,13 @@ interface DashboardData {
   tracking: { enabled: boolean };
 }
 
-export default function DashboardStatsSection() {
+export default function DashboardStatsSection({
+  onStats,
+}: {
+  onStats?: (stats: DashboardStatsData) => void;
+}) {
+  const { locale } = useI18n();
+  const s = wsConceitoDashboard[locale];
   const [data, setData] = useState<DashboardData | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -38,7 +47,16 @@ export default function DashboardStatsSection() {
       .then((res: unknown) => {
         const d =
           (res as unknown as { data?: DashboardData }).data ?? (res as unknown as DashboardData);
-        if (active) setData(d);
+        if (active) {
+          setData(d);
+          onStats?.({
+            totalFavorites: d.stats.totalFavorites,
+            totalNotifications: d.stats.totalNotifications,
+            totalProposals: d.stats.totalProposals,
+            ownedClubsCount: d.ownedClubs.length,
+            isAdmin: d.user.roles?.includes('admin') ?? false,
+          });
+        }
       })
       .catch(() => {
         if (active) setFailed(true);
@@ -46,45 +64,37 @@ export default function DashboardStatsSection() {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (failed || !data) return null;
 
-  const memberSince = new Date(data.user.createdAt).toLocaleDateString('pt-BR', {
-    month: 'long',
-    year: 'numeric',
-  });
-
   return (
-    <section aria-label="Seu resumo" className="mb-10" data-testid="dashboard-stats-section">
-      <h2 className="text-xl font-heading font-semibold text-foreground mb-1">
-        {data.user.name ? `Olá, ${data.user.name.split(' ')[0]}` : 'Olá'}
-        <span className="text-sm font-normal text-foreground/70 ml-2">
-          Membro desde {memberSince}
-        </span>
-      </h2>
-      <DashboardStats
-        stats={{
-          totalFavorites: data.stats.totalFavorites,
-          totalNotifications: data.stats.totalNotifications,
-          totalProposals: data.stats.totalProposals,
-          ownedClubsCount: data.ownedClubs.length,
-          isAdmin: data.user.roles?.includes('admin') ?? false,
-        }}
-      />
+    <section aria-label="Seu resumo" data-testid="dashboard-stats-section">
+      <h2 className="text-[12.5px] font-semibold text-foreground">{s.myAlmanaque}</h2>
+      <div className="mt-3">
+        <DashboardStats
+          stats={{
+            totalFavorites: data.stats.totalFavorites,
+            totalNotifications: data.stats.totalNotifications,
+            totalProposals: data.stats.totalProposals,
+            ownedClubsCount: data.ownedClubs.length,
+            isAdmin: data.user.roles?.includes('admin') ?? false,
+          }}
+        />
+      </div>
 
-      <h3 className="text-lg font-heading font-semibold text-foreground mt-6 mb-3">
-        Favoritos recentes
-      </h3>
-      <RecentFavorites items={data.recentFavorites} />
+      <h2 className="mt-8 text-[12.5px] font-semibold text-foreground">{s.recentFavorites}</h2>
+      <div className="mt-3">
+        <RecentFavorites items={data.recentFavorites} />
+      </div>
 
-      {/* WS-C-14 — tracking de pageViews/searches PREPARADO mas DESATIVADO até
-          WS-L (cookie consent). Placeholder honesto. */}
-      {!data.tracking.enabled && (
-        <p className="text-xs text-foreground/70 mt-6" data-testid="tracking-coming-soon">
-          📊 Estatísticas de exploração — em breve (requer consentimento de cookies, WS-L).
+      {/* WS-C-14 — tracking preparado mas DESATIVADO até consentimento de cookies (WS-L). */}
+      {!data.tracking.enabled ? (
+        <p className="mt-6 text-[11px] text-ink-3" data-testid="tracking-coming-soon">
+          {s.recommendations} — em breve (requer consentimento de cookies).
         </p>
-      )}
+      ) : null}
     </section>
   );
 }

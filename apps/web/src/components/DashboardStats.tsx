@@ -1,9 +1,11 @@
 'use client';
 /**
- * WS-C-14 — cards de stats do dashboard (favoritos por tipo, notificações,
- * contribuições, clubes editados). Dados do GET /dashboard.
+ * WS-C-14 — cards de stats do dashboard (favoritos por tipo + notificações).
+ * Conceito FICHA: quatro cartões densos, sem sombra, número em carmim e rótulo de 11px.
  */
 import Link from 'next/link';
+import { useI18n } from '@/i18n/Provider';
+import { wsConceitoDashboard } from '@/i18n/wsConceitoDashboard';
 
 export interface DashboardStatsData {
   totalFavorites: { club: number; player: number; competition: number };
@@ -14,52 +16,57 @@ export interface DashboardStatsData {
 }
 
 export default function DashboardStats({ stats }: { stats: DashboardStatsData }) {
-  const favTotal = stats.totalFavorites.club + stats.totalFavorites.player + stats.totalFavorites.competition;
+  const { locale } = useI18n();
+  const s = wsConceitoDashboard[locale];
   const cards = [
     {
-      title: 'Favoritos',
-      value: favTotal,
-      detail: `${stats.totalFavorites.club} clubes · ${stats.totalFavorites.player} jogadores · ${stats.totalFavorites.competition} competições`,
-      // T597 — o painel de favoritos vive NESTA página (âncora da seção);
-      // /favoritos virou redirecionamento de compatibilidade.
+      title: s.cards.clubs,
+      value: stats.totalFavorites.club,
       href: '#favoritos',
-      testid: 'dash-favorites',
+      testid: 'dash-favorites-clubs',
     },
     {
-      title: 'Notificações',
+      title: s.cards.competitions,
+      value: stats.totalFavorites.competition,
+      href: '#favoritos',
+      testid: 'dash-favorites-competitions',
+    },
+    {
+      title: s.cards.players,
+      value: stats.totalFavorites.player,
+      href: '#favoritos',
+      testid: 'dash-favorites-players',
+    },
+    {
+      title: s.cards.notifications,
       value: stats.totalNotifications.total,
-      detail: stats.totalNotifications.unread > 0 ? `${stats.totalNotifications.unread} não lida(s)` : 'Tudo lido',
+      detail:
+        stats.totalNotifications.unread > 0
+          ? `${stats.totalNotifications.unread} ${s.unread}`
+          : s.allRead,
       href: '/notifications',
       testid: 'dash-notifications',
-    },
-    {
-      title: 'Propostas enviadas',
-      value: stats.totalProposals.total,
-      detail: `${stats.totalProposals.pending} pendente(s) · ${stats.totalProposals.approved} aprovada(s)`,
-      href: '/favoritos',
-      testid: 'dash-proposals',
-    },
-    {
-      title: 'Clubes que você edita',
-      value: stats.ownedClubsCount,
-      detail: 'Como editor (Modo Clube)',
-      href: '/favoritos',
-      testid: 'dash-owned',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8" data-testid="dashboard-stats">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" data-testid="dashboard-stats">
       {cards.map((c) => (
         <Link
           key={c.title}
           href={c.href}
           data-testid={c.testid}
-          className="bg-background rounded-xl p-5 shadow-md hover:shadow-lg transition duration-200 border border-border/50 cursor-pointer"
+          className="flex min-h-[92px] flex-col justify-between rounded-[2px] border border-border bg-surface px-4 py-3 transition-colors duration-200 hover:border-foreground"
         >
-          <p className="text-3xl font-heading font-bold text-primary-ink">{c.value}</p>
-          <p className="text-sm font-medium text-foreground mt-1">{c.title}</p>
-          <p className="text-xs text-foreground/70 mt-0.5">{c.detail}</p>
+          <div>
+            <p className="text-[11px] leading-none text-ink-3">{c.title}</p>
+            <p className="num mt-2 text-[30px] leading-none font-bold text-primary-ink">
+              {c.value}
+            </p>
+          </div>
+          {c.detail ? (
+            <p className="mt-1 text-[10px] leading-tight text-ink-3">{c.detail}</p>
+          ) : null}
         </Link>
       ))}
     </div>

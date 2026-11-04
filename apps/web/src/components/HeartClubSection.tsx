@@ -71,7 +71,9 @@ export default function HeartClubSection() {
     if (termo.length < 2) return; // os resultados velhos são escondidos na RENDERIZAÇÃO
     debounce.current = setTimeout(() => {
       api
-        .get<SearchResults>(`/search/global?type=club&limit=${RESULT_LIMIT}&q=${encodeURIComponent(termo)}`)
+        .get<SearchResults>(
+          `/search/global?type=club&limit=${RESULT_LIMIT}&q=${encodeURIComponent(termo)}`,
+        )
         .then((res) => {
           setOpcoes(res.results ?? []);
           setBuscou(true);
@@ -120,10 +122,7 @@ export default function HeartClubSection() {
 
   return (
     <section aria-labelledby="heart-club-title" className="mb-10" data-testid="heart-club-section">
-      <h2
-        id="heart-club-title"
-        className="font-heading text-lg font-bold text-foreground mb-1"
-      >
+      <h2 id="heart-club-title" className="text-[12.5px] font-semibold text-foreground">
         <Heart aria-hidden="true" className="inline w-4 h-4 text-primary mr-1.5 -mt-0.5" />
         {t('pages.dashboard.heartClubTitle')}
       </h2>
@@ -137,7 +136,7 @@ export default function HeartClubSection() {
 
       {exibir ? (
         <div
-          className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface p-5"
+          className="flex flex-wrap items-center gap-4 rounded-[2px] border border-border bg-surface p-4"
           data-testid="heart-club-card"
         >
           <ClubCrest logoUrl={heartClub.logoUrl} name={heartClub.name} size={64} />
@@ -176,7 +175,10 @@ export default function HeartClubSection() {
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-surface p-5" data-testid="heart-club-picker">
+        <div
+          className="rounded-[2px] border border-border bg-surface p-4"
+          data-testid="heart-club-picker"
+        >
           <p className="text-sm text-ink-2 mb-3">{t('pages.dashboard.heartClubNone')}</p>
           <label htmlFor="heart-club-search" className="block text-sm text-foreground mb-1">
             {t('pages.dashboard.heartClubSearchLabel')}

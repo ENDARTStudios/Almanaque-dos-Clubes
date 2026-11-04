@@ -32,9 +32,14 @@ export default function FavoritosPanel() {
   ];
 
   return (
-    <section id="favoritos" aria-labelledby="favoritos-title" className="mb-10" data-testid="favoritos-section">
+    <section
+      id="favoritos"
+      aria-labelledby="favoritos-title"
+      className="mb-10"
+      data-testid="favoritos-section"
+    >
       <div className="flex items-center justify-between mb-3">
-        <h2 id="favoritos-title" className="font-heading text-lg font-bold text-foreground">
+        <h2 id="favoritos-title" className="text-[12.5px] font-semibold text-foreground">
           {t.title}
         </h2>
         <span
@@ -64,7 +69,7 @@ export default function FavoritosPanel() {
             aria-selected={tab === tb.key}
             data-testid={`favoritos-tab-${tb.key}`}
             onClick={() => setTab(tb.key)}
-            className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm rounded-[2px] transition-colors ${
               tab === tb.key
                 ? 'bg-primary text-on-primary'
                 : 'text-foreground/70 hover:bg-foreground/5'
@@ -116,7 +121,7 @@ export default function FavoritosPanel() {
                   <button
                     type="button"
                     onClick={() => void remove(f.clubId)}
-                    className="text-sm rounded-lg border border-border px-3 py-1.5 text-foreground/70 hover:border-danger-ink hover:text-danger-ink"
+                    className="text-sm rounded-[2px] border border-border px-3 py-1.5 text-foreground/70 hover:border-danger-ink hover:text-danger-ink"
                   >
                     {t.remove}
                   </button>
