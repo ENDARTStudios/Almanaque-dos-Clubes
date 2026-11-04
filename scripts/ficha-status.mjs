@@ -81,6 +81,10 @@ const EXCECOES_VAZIO = new Map([
     'ficha de registro único: campo ausente mostra "—" no próprio campo, não uma caixa de vazio',
   ],
   [
+    '/matches/[id]',
+    'ficha de registro único: placar/gols/escalação ausentes declaram "—" no próprio campo, não uma caixa de vazio',
+  ],
+  [
     '/',
     'composição de abertura: cada seção traz o próprio estado; não há um vazio único de página',
   ],
