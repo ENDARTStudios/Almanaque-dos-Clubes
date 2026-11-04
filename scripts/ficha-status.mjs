@@ -269,6 +269,9 @@ const EXCECOES_FALHA = new Set([
   '/apoiadores',
   '/admin',
   '/dashboard/subscription',
+  // Página institucional: as contagens são ilustrativas do acervo (limit=1 → total). Se a API
+  // falha, o número vira "—" no próprio campo; a página não depende do dado para existir.
+  '/sobre',
 ]);
 
 const semFalha = rotas.filter(

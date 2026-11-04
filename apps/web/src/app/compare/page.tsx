@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import CompareSelector, { type CompareType } from '@/components/CompareSelector';
+import { wsConceitoComparar } from '@/i18n/wsConceitoComparar';
 
 // T440 — página pública de comparação (clube×clube / jogador×jogador).
 
@@ -45,10 +46,16 @@ export default async function ComparePage({
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
+  const c = wsConceitoComparar[locale];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <FichaHead title={dict.pages.compare.title} subtitle={dict.pages.compare.subtitle} />
+      <FichaHead
+        title={dict.pages.compare.title}
+        subtitle={`${c.kicker} · ${c.subtitle}`}
+        anchor="2"
+        anchorLabel={c.anchorLabel}
+      />
       <CompareSelector
         initialType={validType(type) ?? 'clubs'}
         initialA={a ?? ''}

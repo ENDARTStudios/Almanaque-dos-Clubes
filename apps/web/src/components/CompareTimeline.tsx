@@ -52,25 +52,25 @@ export default function CompareTimeline({
   if (seasons.length === 0) {
     return (
       <section aria-label={t.timelineTitle}>
-        <h2 className="text-xl font-heading font-semibold mb-3">{t.timelineTitle}</h2>
-        <p className="text-sm text-foreground/70">{t.noData}</p>
+        <h2 className="text-[12.5px] font-semibold text-foreground">{t.timelineTitle}</h2>
+        <p className="mt-2 text-[11px] text-ink-3">{t.noData}</p>
       </section>
     );
   }
 
   return (
     <section aria-label={t.timelineTitle}>
-      <h2 className="text-xl font-heading font-semibold mb-3">{t.timelineTitle}</h2>
+      <h2 className="text-[12.5px] font-semibold text-foreground">{t.timelineTitle}</h2>
       <div
         role="img"
         aria-label={`${t.timelineTitle}: ${aName} vs ${bName}`}
-        className="w-full h-72 rounded-xl border border-border p-4"
+        className="mt-3 h-[220px] w-full"
       >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" {...CHART_GRID_PROPS} />
-            <XAxis dataKey="season" fontSize={12} />
-            <YAxis domain={[0, 100]} fontSize={12} />
+            <XAxis dataKey="season" fontSize={10} />
+            <YAxis domain={[0, 100]} fontSize={10} />
             <Tooltip
               contentStyle={CHART_TOOLTIP_STYLE}
               labelStyle={CHART_TOOLTIP_LABEL_STYLE}
@@ -96,7 +96,7 @@ export default function CompareTimeline({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-foreground/70">
+      <p className="mt-2 text-[11px] text-ink-3">
         {t.timelineTitle} — {aName} ({aHistory.length}) · {bName} ({bHistory.length})
       </p>
     </section>
