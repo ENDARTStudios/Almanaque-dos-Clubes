@@ -26,13 +26,19 @@ O build sai da Vercel:
 2. `vercel build --prod` roda **no runner do GitHub Actions** e gera `.vercel/output`;
 3. `vercel deploy --prebuilt --prod` sobe o artefato já construído.
 
+Os três comandos rodam na **raiz do repositório**, não dentro de `apps/web`: o projeto já tem
+Root Directory = apps/web, e rodar o CLI de dentro da pasta faz o caminho virar
+`apps/web/apps/web` (erro observado).
+
 Resultado esperado: **zero Build CPU Minutes** da Vercel para os deploys de produção; o custo
 de build vira tempo de GitHub Actions (incluído no plano do repositório). O serving da Vercel
 continua igual.
 
 Verificação feita localmente antes de mudar o workflow:
 
-    cd apps/web
+    # da RAIZ do repositório (o Root Directory do projeto é apps/web)
+    vercel link --yes --project almanaque-dos-clubes --scope end-art-studios
+    vercel pull --yes --environment=production
     vercel build --prod
     # -> "Build Completed in apps/web/.vercel/output [51s]"
 

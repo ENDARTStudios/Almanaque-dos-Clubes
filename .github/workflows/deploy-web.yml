@@ -95,14 +95,16 @@ jobs:
 
       # O token lido de VERCEL_TOKEN (job env) evita token em linha de comando.
       - name: Link do projeto Vercel
-        run: cd apps/web && npx --yes vercel@57 link --yes --project almanaque-dos-clubes --scope end-art-studios
+        run: npx --yes vercel@57 link --yes --project almanaque-dos-clubes --scope end-art-studios
 
       - name: Pull do ambiente de produção
-        run: cd apps/web && npx --yes vercel@57 pull --yes --environment=production
+        run: npx --yes vercel@57 pull --yes --environment=production
 
-      # O build acontece AQUI, no runner do GitHub, e não no Vercel Build CPU.
+      # IMPORTANTE: os comandos rodam na RAIZ do repositório. O projeto Vercel tem
+      # Root Directory = apps/web; rodar o CLI de dentro de apps/web faz ele anexar
+      # "apps/web" de novo ao caminho e falhar (verificado em 04/11/2026).
       - name: Build do artefato (prebuilt)
-        run: cd apps/web && npx --yes vercel@57 build --prod
+        run: npx --yes vercel@57 build --prod
 
       - name: Deploy do artefato prebuilt
-        run: cd apps/web && npx --yes vercel@57 deploy --prebuilt --prod --yes
+        run: npx --yes vercel@57 deploy --prebuilt --prod --yes
