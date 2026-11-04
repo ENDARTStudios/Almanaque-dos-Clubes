@@ -16,13 +16,18 @@ site e a diferença era de **composição de tela**, não de cor/fonte.
 
 ## 2. Telas nesta entrega
 
-| Tela          | Quadro do conceito    | Estado                     | Adaptação honesta (desenho → dado real)                                                                                                                                                                                                               |
-| ------------- | --------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| /             | app/home.png          | entregue (rodada anterior) | 5 totais reais; "Lendas" sem contador (a API não publica); pódio/troféu com o dado do acervo                                                                                                                                                          |
-| /competitions | app/competicoes.png   | **entregue**               | chips de país/tipo/gênero; 4 destaques com troféu na cor do alcance; pódio real da última Copa (campeão e vice; **3º não registrado = lacuna**); índice com 3 colunas — edições/última edição não existem no endpoint de lista                        |
-| /rankings     | app/rankings.png      | **entregue**               | colunas Var./Últ. 5 não existem em /rankings/entries → Títulos (baseTitles) e Base auditável (baseMatches); pesos do desenho (3·2·1) → régua publicada do acervo                                                                                      |
-| /legends      | app/lendas.png        | **entregue**               | única superfície escura; 5 métricas reais; lista densa de líderes e cartões de campeões; gráfico de títulos por clube (Bars). **Sem** "maiores jogadores" nem gráficos de carreira/público: o payload não publica isso                                |
-| /clubs/[id]   | app/clube-migrado.png | **entregue**               | identidade+escudo/licença, 4 pilares, sobre+fonte, estatística por competição, rivais, parede de honrarias, elenco, uniformes, flâmulas, hino (só quando há dado), procedência. Jogos/gols por jogador não existem na API → colunas omitidas com nota |
+| Tela             | Quadro do conceito      | Estado                     | Adaptação honesta (desenho → dado real)                                                                                                                                                                                                                                                                    |
+| ---------------- | ----------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| /                | app/home.png            | entregue (rodada anterior) | 5 totais reais; "Lendas" sem contador (a API não publica); pódio/troféu com o dado do acervo                                                                                                                                                                                                               |
+| /competitions    | app/competicoes.png     | **entregue**               | chips de país/tipo/gênero; 4 destaques com troféu na cor do alcance; pódio real da última Copa (campeão e vice; **3º não registrado = lacuna**); índice com 3 colunas — edições/última edição não existem no endpoint de lista                                                                             |
+| /rankings        | app/rankings.png        | **entregue**               | colunas Var./Últ. 5 não existem em /rankings/entries → Títulos (baseTitles) e Base auditável (baseMatches); pesos do desenho (3·2·1) → régua publicada do acervo                                                                                                                                           |
+| /legends         | app/lendas.png          | **entregue**               | única superfície escura; 5 métricas reais; lista densa de líderes e cartões de campeões; gráfico de títulos por clube (Bars). **Sem** "maiores jogadores" nem gráficos de carreira/público: o payload não publica isso                                                                                     |
+| /clubs/[id]      | app/clube-migrado.png   | **entregue**               | identidade+escudo/licença, 4 pilares, sobre+fonte, estatística por competição, rivais, parede de honrarias, elenco, uniformes, flâmulas, hino (só quando há dado), procedência. Jogos/gols por jogador não existem na API → colunas omitidas com nota                                                      |
+| /matches         | app/partidas.png        | **entregue**               | filtros em caixas + chips removíveis; lista de confrontos em linha; caixa "Estatística desta página" calculada só com placares carregados. Posse/finalizações/escanteios não existem na API → colunas omitidas e nota declara                                                                              |
+| /map             | app/mapa.png            | **entregue**               | filtros país/UF/cidade; mapa de PONTOS (a API não entrega densidade por polígono) + índice de estados/cidades com barras proporcionais ao maior da lista; legenda de densidade e lacunas declaradas. Fonte do filtro de país: /clubs/countries (ISO2, 96%)                                                 |
+| /players/[id]    | app/jogador-migrado.png | **entregue**               | identidade+retrato/licença, pilares, carreira por clube, gols por passagem (tabela), conquistas, prêmios, clubes e ficha técnica. Soma parcial vira "—"; temporadas mostram o período real, não contagem derivada                                                                                          |
+| /temporadas/[id] | app/temporada.png       | **entregue**               | métricas derivadas das partidas; competições/campeão/artilheiro; classificação catalogada ou derivada (método declarado); gráficos de gols por rodada e resultados; marcos da temporada. Público não existe por partida → omitido. Paginação de partidas por janela de data corrige perda/duplicata da API |
+| /estadios/[id]   | app/estadio.png         | **entregue**               | identidade+capacidade; moldura de imagem declara a ausência de foto licenciada; 6 métricas com "—" declarado (só capacidade existe no payload); história+Wikidata/CC0; clube mandante. Gráfico e maiores públicos omitidos (API não publica público por partida)                                           |
 
 **Sistema (global, vale para todas as telas):**
 
@@ -39,9 +44,8 @@ site e a diferença era de **composição de tela**, não de cor/fonte.
 Ainda com a composição anterior, na fila de migração (mesmo ciclo: conceito → dado real → teste →
 screenshot):
 
-/map, /search, /players/[id], /temporadas, /temporadas/[id], /estadios, /estadios/[id], /matches,
-/compare, /rankings/[id], /competitions/[id], /dashboard, /admin, /metodologia, 404 e páginas
-legais/sobre.
+/search, /compare, /rankings/[id], /competitions/[id], /matches/[id] (partida), /temporadas (índice),
+/estadios (índice), /dashboard, /admin, /metodologia, 404 e páginas legais/sobre.
 
 O conceito também tem quadros de **sistema** (fundamentos, interacao) que são documentação de
 design, não rotas.
@@ -49,10 +53,10 @@ design, não rotas.
 ## 4. Verificação desta entrega
 
     pnpm --filter web typecheck        # 0
-    pnpm --filter web test             # 388 testes / 49 arquivos
+    pnpm --filter web test             # 458 testes / 54 arquivos
     pnpm --filter web build            # OK
     pnpm run ui:audit:ci               # 0 bloqueios
-    pnpm run ficha:check               # 0 (13/13 componentes em uso e testados)
+    pnpm run ficha:check               # 0 (componentes do sistema todos em uso e testados)
 
 Screenshots de verificação em 1440 e 390; auditoria run.mjs audit sem overflow horizontal; os
 números de contraste das telas novas estão nos testes dos componentes e no run.mjs contrast da

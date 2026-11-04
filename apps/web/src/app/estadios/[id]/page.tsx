@@ -3,54 +3,36 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
+import { safeJsonLd } from '@/lib/json-ld';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { estadiosStrings } from '@/i18n/wsEstadios';
-import { fichaStrings } from '@/i18n/wsFicha';
-import FichaHead from '@/components/ficha/FichaHead';
-import Pillar from '@/components/ficha/Pillar';
-import SectionHeading from '@/components/ficha/SectionHeading';
-import SourceNote from '@/components/SourceNote';
 import DetailUnavailable from '@/components/ficha/DetailUnavailable';
+import EstadioFichaPageView from '@/components/conceito/estadio/EstadioFichaPageView';
+import type { Estadio } from '@/components/conceito/estadio/types';
 
 /**
- * FICHA DO ESTÁDIO.
+ * FICHA DO ESTÁDIO — composição do quadro `estadio` do conceito FICHA.
  *
  * ── O QUE A PÁGINA DIZ, E O QUE ELA NÃO DIZ ───────────────────────────────────────────────
- * Diz: nome, cidade, país, capacidade, piso, coordenadas e o clube mandante. São os campos que o
- * banco tem, com procedência.
+ * Diz: nome, cidade, estado, país, capacidade, piso, coordenadas, clube vinculado e a URL da
+ * fonte — exatamente o contrato de `GET /stadiums/:id`.
  *
- * NÃO diz: história, ano de inauguração, recorde de público. O `Stadium` não tem essas colunas, e
- * inventar uma seção "História" com texto genérico seria preencher a página com o que não se
- * sabe — o oposto do que o sistema de proveniência existe para garantir.
+ * NÃO diz: história, inauguração, público recorde, partidas, gols ou média. O modelo `Stadium`
+ * não tem essas colunas e a API pública não publica público por partida. Inventar uma seção
+ * "História" com texto genérico (ou uma tabela de "Maiores públicos" ilustrativa) seria
+ * preencher a página com o que não se sabe — o oposto do que o sistema de proveniência garante.
+ * A composição declara cada lacuna com "—" e nota; os blocos que dependem de série inexistente
+ * (gráfico por década, tabela de maiores públicos) não são desenhados.
  *
- * ── POR QUE PILLAR E NÃO TABELA ───────────────────────────────────────────────────────────
- * Num estádio, a capacidade é O número: ela responde sozinha "que estádio é este". Vai em
- * `Pillar` (display, grande) porque ali o número é imagem. Cidade, país e piso são atributos
- * comparáveis — vão em `<dl>`, que é a marcação correta para par chave/valor.
+ * ── TRÊS RESULTADOS, NÃO DOIS ──────────────────────────────────────────────────────────────
+ * `valor` = existe · `null` = a origem disse 404 · `undefined` = NÃO foi possível perguntar.
+ * Fundir os dois últimos fazia a ficha afirmar "não existe" com a API fora do ar.
  */
 export const metadata: Metadata = {
   title: 'Estádio · Almanaque dos Clubes',
 };
 
-interface Estadio {
-  id: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  country: string | null;
-  capacity: number | null;
-  surface: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  clubName: string | null;
-  sourceUrl: string | null;
-}
-
-/**
- * Três resultados, não dois: `valor` = existe · `null` = a origem disse 404 · `undefined` = NÃO
- * foi possível perguntar. Fundir os dois últimos fazia a ficha afirmar "não existe" com a API
- * fora do ar.
- */
+/** Três resultados, não dois — ver o comentário do bloco acima. */
 async function getEstadio(id: string): Promise<Estadio | null | undefined> {
   try {
     const base = getApiBase();
@@ -71,7 +53,6 @@ export default async function EstadioPage({ params }: { params: Promise<{ id: st
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const s = estadiosStrings[locale];
-  const f = fichaStrings[locale].states;
 
   const e = await getEstadio(id);
   // NÃO foi possível perguntar ≠ o registro não existe. Só o segundo vira 404.
@@ -85,66 +66,43 @@ export default async function EstadioPage({ params }: { params: Promise<{ id: st
     );
   if (e === null) notFound();
 
-  const atributos: Array<{ rotulo: string; valor: string }> = [
-    { rotulo: s.colCity, valor: e.city ?? '—' },
-    { rotulo: s.colCountry, valor: e.country ?? '—' },
-    { rotulo: s.surface, valor: e.surface ?? '—' },
-    {
-      rotulo: s.coordinates,
-      valor:
-        e.latitude != null && e.longitude != null
-          ? `${e.latitude.toFixed(4)}, ${e.longitude.toFixed(4)}`
-          : '—',
-    },
-  ];
+  /*
+   * JSON-LD com os campos REAIS do registro. Nada de aggregateRating, inauguração ou recorde de
+   * público: structured data também é afirmação, e afirmar o que a fonte não diz é o mesmo defeito
+   * da tela — só que ilegível para o usuário.
+   */
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'StadiumOrArena',
+    name: e.name,
+    sameAs: e.sourceUrl ?? undefined,
+    address:
+      e.city || e.state || e.country
+        ? {
+            '@type': 'PostalAddress',
+            addressLocality: e.city ?? undefined,
+            addressRegion: e.state ?? undefined,
+            addressCountry: e.country ?? undefined,
+          }
+        : undefined,
+    geo:
+      e.latitude != null && e.longitude != null
+        ? { '@type': 'GeoCoordinates', latitude: e.latitude, longitude: e.longitude }
+        : undefined,
+    maximumAttendeeCapacity: e.capacity ?? undefined,
+  };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto w-full max-w-[1200px] px-6 pt-8 pb-16 sm:px-10 lg:px-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/estadios"
-        className="mb-6 inline-block text-sm text-primary-ink underline decoration-dotted underline-offset-2"
+        className="mb-4 inline-flex min-h-6 items-center text-[13px] text-primary-ink hover:underline"
       >
         &larr; {s.backToList}
       </Link>
 
-      <FichaHead title={e.name} subtitle={e.clubName ?? s.noClub} />
-
-      {/* a capacidade é O número deste registro: display, não célula de tabela */}
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <Pillar
-          label={s.capacity}
-          value={e.capacity != null ? e.capacity.toLocaleString(locale) : '—'}
-          accent
-          note={e.capacity == null ? f.emptyBody : undefined}
-        />
-      </div>
-
-      <div className="mt-10">
-        <SectionHeading>{e.name}</SectionHeading>
-        <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-          {atributos.map((a) => (
-            <div
-              key={a.rotulo}
-              className="flex items-baseline justify-between gap-4 border-b border-border py-2"
-            >
-              <dt className="text-xs text-ink-3">{a.rotulo}</dt>
-              <dd className="text-sm text-foreground tabular-nums">{a.valor}</dd>
-            </div>
-          ))}
-          <div className="flex items-baseline justify-between gap-4 border-b border-border py-2">
-            <dt className="text-xs text-ink-3">{s.homeClub}</dt>
-            <dd className="text-sm text-foreground">{e.clubName ?? s.noClub}</dd>
-          </div>
-        </dl>
-
-        <div className="mt-6">
-          <SourceNote
-            href={e.sourceUrl}
-            label="Wikidata"
-            detail={e.sourceUrl ? undefined : s.provenance}
-          />
-        </div>
-      </div>
+      <EstadioFichaPageView locale={locale} estadio={e} />
     </div>
   );
 }
