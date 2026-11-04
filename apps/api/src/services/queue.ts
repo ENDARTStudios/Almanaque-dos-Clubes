@@ -80,6 +80,16 @@ export const queues = {
       removeOnFail: { count: 100 },
     },
   }),
+  // T-24/28 — fila dos bots autônomos. O repeat job de 4h (`round`) enfileira um
+  // job por bot; o worker processa 1 por vez (concorrência 1) porque todos batem
+  // nas mesmas fontes externas.
+  bots: new Queue('bots', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: { count: 200 },
+      removeOnFail: { count: 200 },
+    },
+  }),
 } as const;
 
 export type QueueName = keyof typeof queues;
@@ -93,7 +103,11 @@ export async function addJob(
   return queues[queue].add(name, data, opts);
 }
 
-export function createWorker(queue: QueueName, handler: (job: Job) => Promise<void>) {
+export function createWorker(
+  queue: QueueName,
+  handler: (job: Job) => Promise<void>,
+  opts: { concurrency?: number } = {},
+) {
   // Worker usa o NOME REAL da fila no Redis (`queues[queue].name`), não a chave do
   // registry — para 'dataRefresh' a chave é camelCase mas a fila é 'data-refresh'
   // (T451: worker na fila errada = jobs 'waiting' para sempre; no ranking a
@@ -103,7 +117,7 @@ export function createWorker(queue: QueueName, handler: (job: Job) => Promise<vo
     async (job) => {
       await handler(job);
     },
-    { connection },
+    { connection, concurrency: opts.concurrency },
   );
   // Fail-loud: erro de conexão do worker NÃO pode ficar silencioso (T451 —
   // worker sem consumir só foi percebido porque o job não saía de 'waiting').

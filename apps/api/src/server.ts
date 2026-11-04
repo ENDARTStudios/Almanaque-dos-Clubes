@@ -32,6 +32,13 @@ async function main() {
       await registerDataRefreshCron();
     }
 
+    // T-24/28 — BOTS AUTÔNOMOS: orquestrador de 4h (fila `bots`, 1 job por bot,
+    // concorrência 1). Opt-in via BOTS_SCHEDULER_ENABLED (default OFF).
+    if (envFlag('BOTS_SCHEDULER_ENABLED')) {
+      const { registerBotsScheduler } = await import('./jobs/bots.scheduler.js');
+      await registerBotsScheduler();
+    }
+
     // WS-C-15 — presente de aniversário (fila gamification). Opt-in via
     // BIRTHDAY_GIFT_ENABLED ('1' ou 'true' — produção usa 'true'; o mismatch
     // com o === '1' antigo deixava o cron diário SEM agendar, T493 despacho

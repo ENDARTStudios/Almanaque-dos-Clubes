@@ -12,7 +12,8 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
 import { requireOperator } from '../auth/operator.middleware.js';
 import { getBot } from '../bots/registry.js';
-import { listBotRuns, runBot, runsSummary } from '../bots/service.js';
+import { BOT_TIMEOUT_MS, listBotRuns, runsSummary } from '../bots/service.js';
+import { enqueueBotRun } from '../../jobs/bots.scheduler.js';
 
 function notFound(reply: import('fastify').FastifyReply) {
   return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Bot inexistente' } });
@@ -62,13 +63,15 @@ export const botsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     async (request, reply) => {
       const bot = getBot(request.params.id);
       if (!bot) return notFound(reply);
-      // Disparo manual roda em segundo plano: o lote pode levar minutos e a resposta
-      // HTTP não deve pendurar. O resultado aparece em /admin/bots e no histórico.
-      setImmediate(() => {
-        void runBot(bot.id, 'manual').catch(() => {
-          /* falha já registrada em bot_runs/bot_states pelo serviço */
+      // Entra na mesma fila/worker dos agendados (trigger manual); a resposta não
+      // pendura o HTTP e o resultado aparece em /admin/bots e no histórico.
+      try {
+        await enqueueBotRun(bot.id, 'manual', { deadline: Date.now() + BOT_TIMEOUT_MS });
+      } catch {
+        return reply.status(503).send({
+          error: { code: 'QUEUE_UNAVAILABLE', message: 'Fila de bots indisponível' },
         });
-      });
+      }
       return reply.status(202).send({ queued: true });
     },
   );
