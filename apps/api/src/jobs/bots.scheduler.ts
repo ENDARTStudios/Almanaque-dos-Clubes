@@ -145,5 +145,7 @@ export async function registerBotsScheduler(): Promise<void> {
 // Fallback para processos worker dedicados (mesmo padrão do data-refresh/ranking):
 // auto-registra FORA de testes e só com a flag explícita.
 if (process.env.NODE_ENV !== 'test' && isBotsSchedulerEnabled()) {
-  void registerBotsScheduler();
+  void registerBotsScheduler().catch((err) => {
+    logger.error({ err }, 'bots scheduler: falha ao registrar no boot');
+  });
 }
