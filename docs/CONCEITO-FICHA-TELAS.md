@@ -48,8 +48,8 @@ site e a diferença era de **composição de tela**, não de cor/fonte.
 Ainda com a composição anterior, na fila de migração (mesmo ciclo: conceito → dado real → teste →
 screenshot):
 
-/temporadas (índice), /estadios (índice), /dashboard (Meu Almanaque), /admin
-e páginas legais (privacidade, termos, cookies, direitos).
+/temporadas (índice), /estadios (índice), /admin e as páginas legais
+(privacidade, termos, cookies, direitos).
 
 O conceito também tem quadros de **sistema** (fundamentos, interacao) que são documentação de
 design, não rotas.
@@ -57,7 +57,7 @@ design, não rotas.
 ## 4. Verificação desta entrega
 
     pnpm --filter web typecheck        # 0
-    pnpm --filter web test             # 491 testes / 59 arquivos
+    pnpm --filter web test             # 492 testes / 60 arquivos
     pnpm --filter web build            # OK
     pnpm run ui:audit:ci               # 0 bloqueios
     pnpm run ficha:check               # 0 (componentes do sistema todos em uso e testados)
