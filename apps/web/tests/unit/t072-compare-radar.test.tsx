@@ -169,9 +169,13 @@ describe('deep-link resolve nomes (auditoria 08-10 P2)', () => {
 
     render(<CompareSelector initialType="clubs" initialA="id-a" initialB="id-b" />);
 
-    const inputA = (await screen.findByLabelText('A')) as HTMLInputElement;
-    await waitFor(() => expect(inputA.value).toBe('Clube A'));
-    const inputB = screen.getByLabelText('B') as HTMLInputElement;
-    expect(inputB.value).toBe('Clube B');
+    // Conceito FICHA: com a entidade escolhida, o seletor vira CARTÃO — o nome resolvido
+    // aparece nele, nunca o UUID bruto do deep-link.
+    const cardA = await screen.findByTestId('compare-card-a');
+    await waitFor(() => expect(cardA.textContent).toContain('Clube A'));
+    const cardB = screen.getByTestId('compare-card-b');
+    expect(cardB.textContent).toContain('Clube B');
+    expect(cardA.textContent).not.toContain('id-a');
+    expect(cardB.textContent).not.toContain('id-b');
   });
 });

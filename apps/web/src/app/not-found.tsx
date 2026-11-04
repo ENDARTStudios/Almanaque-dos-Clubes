@@ -1,93 +1,145 @@
 'use client';
 
 /**
- * 404 — a bola furada.
+ * 404 — a bola furada, no conceito FICHA.
  *
- * ── O QUE ESTAVA ERRADO ANTES ───────────────────────────────────────────────────────────────
- * A página era: seletor de idioma no TOPO (lugar onde ninguém procura idioma numa página de
- * erro), um "404" em 8xl cinza-claro, título, descrição e um único botão "voltar ao início".
+ * Estrutura do quadro: kicker "Erro 404", o número em display, o título e a frase que importa,
+ * um CAMPO de busca (abre a paleta), três cartões de saída e a bola murcha à direita.
  *
- * Dois problemas, e o segundo é o que importa:
- *   1. o número do protocolo em destaque — o usuário não pediu o código, pediu o que ele estava
- *      procurando;
- *   2. UMA saída só. Quem errou o endereço de uma competição não quer a home; quer a competição.
- *      O conceito desenhou três caminhos, e é o que esta página passa a oferecer: a busca, o
- *      índice do que ele provavelmente queria, e o caminho de volta.
- *
- * ── POR QUE A BUSCA ABRE A PALETA E NÃO NAVEGA ─────────────────────────────────────────────
- * Mesma razão da navbar: buscar é a ação central de uma enciclopédia. A paleta é a superfície
- * feita para isso e já tem foco preso e navegação por teclado — uma página de busca
- * intermediária reintroduziria a mesma dúvida ("e agora, onde digito?").
- *
- * ── A ILUSTRAÇÃO ───────────────────────────────────────────────────────────────────────────
- * `PuncturedBall` desenha uma bola murcha em vetor. Ela diz "algo que devia estar cheio está
- * vazio, e é reversível" sem escrever isso — e sem depender de banco de imagens para uma página
- * que não tem assunto fotografável.
+ * Os contadores dos cartões vêm da API (clubs/competitions/matches, limit=1 → total). Enquanto
+ * não chegam, o cartão mostra só o rótulo — nunca um número inventado. Lendas não tem contador
+ * público: o cartão dela não exibe número, e não inventamos um.
  */
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { useCommandPalette } from '@/components/CommandPaletteProvider';
 import { wsC2Strings } from '@/i18n/wsC2';
-import { fichaStrings } from '@/i18n/wsFicha';
 import { wsLegendsStrings } from '@/i18n/wsLegends';
-import FichaHead from '@/components/ficha/FichaHead';
+import { wsConceito404 } from '@/i18n/wsConceito404';
 import PuncturedBall from '@/components/ficha/PuncturedBall';
+
+interface Totais {
+  clubs?: number;
+  competitions?: number;
+}
 
 export default function NotFoundPage() {
   const { t, locale } = useI18n();
   const { open: openPalette } = useCommandPalette();
-  const f = fichaStrings[locale];
+  const c = wsConceito404[locale];
+  const f = wsC2Strings[locale].search;
+  const [totais, setTotais] = useState<Totais>({});
 
-  // As três saídas: o que o acervo tem de maior, na ordem em que alguém procura.
+  useEffect(() => {
+    let active = true;
+    const total = async (path: string): Promise<number | undefined> => {
+      try {
+        const res = await api.get<{ total?: number }>(path);
+        return typeof res.total === 'number' ? res.total : undefined;
+      } catch {
+        return undefined;
+      }
+    };
+    void Promise.all([total('/clubs?limit=1'), total('/competitions?limit=1')]).then(
+      ([clubs, competitions]) => {
+        if (active) setTotais({ clubs, competitions });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const atalhos = [
-    { href: '/competitions', label: t('nav.competitions') },
-    { href: '/clubs', label: t('nav.clubs') },
-    // NÃO existe `nav.legends` no dicionário: `t()` devolve a PRÓPRIA CHAVE quando não
-    // encontra, e a tela mostrava o literal "nav.legends" no botão. O rótulo de Lendas
-    // vive no módulo aditivo do panteão, que é de onde o Navbar o tira.
-    { href: '/legends', label: wsLegendsStrings[locale].nav.short },
+    { href: '/competitions', label: t('nav.competitions'), count: totais.competitions },
+    { href: '/clubs', label: t('nav.clubs'), count: totais.clubs },
+    {
+      href: '/legends',
+      label: wsLegendsStrings[locale].nav.short,
+      count: undefined,
+      hint: c.legendsHint,
+    },
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="grid items-center gap-10 sm:grid-cols-[1fr_auto]">
-        <div>
-          <FichaHead title={t('common.notFoundTitle')} subtitle={t('common.notFoundDesc')} />
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+      <div className="grid items-start gap-12 lg:grid-cols-[1fr_auto]">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-3 uppercase">
+            {c.kicker}
+          </p>
+          <p className="mt-4 font-heading text-[96px] leading-none font-bold text-foreground">
+            404
+          </p>
 
-          {/* Ação primária: buscar. É o que a pessoa tentava fazer quando o endereço falhou. */}
+          <h1 className="mt-6 font-heading text-[34px] leading-[1.05] font-bold text-foreground sm:text-[42px]">
+            {t('common.notFoundTitle')}
+          </h1>
+          <p className="mt-3 max-w-[540px] text-[15px] leading-[22px] text-ink-2">
+            {t('common.notFoundDesc')}
+          </p>
+
           <button
             type="button"
             onClick={() => openPalette()}
-            aria-label={wsC2Strings[locale].search.palette.open}
-            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-foreground bg-foreground px-5 text-sm font-semibold text-background transition-colors duration-200 hover:opacity-90"
+            aria-label={f.palette.open}
+            className="mt-7 flex h-12 w-full max-w-[560px] items-center justify-between gap-4 rounded-[2px] border border-foreground bg-surface px-4 text-left text-[14px] text-ink-3 transition-colors duration-200 hover:bg-surface-2"
           >
-            {wsC2Strings[locale].search.palette.open}
+            <span className="truncate">{f.placeholder}</span>
+            <span
+              aria-hidden="true"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-foreground text-background"
+            >
+              →
+            </span>
           </button>
 
-          {/* Saídas laterais: os três índices que cobrem quase tudo do acervo. */}
-          <nav aria-label={f.states.emptyTitle} className="mt-8">
-            <ul className="flex flex-wrap gap-3">
+          <nav aria-label={c.shortcutsLabel} className="mt-8">
+            <ul className="grid list-none gap-3 p-0 sm:grid-cols-3">
               {atalhos.map((a) => (
                 <li key={a.href}>
                   <Link
                     href={a.href}
-                    className="inline-flex min-h-11 items-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:border-primary/60"
+                    className="flex min-h-[86px] flex-col justify-between gap-3 rounded-[2px] bg-surface-2 px-4 py-3 transition-colors duration-200 hover:bg-border/40"
                   >
-                    {a.label}
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="min-w-0">
+                        {a.count != null ? (
+                          <span className="num block text-[26px] leading-none font-bold text-foreground">
+                            {a.count.toLocaleString(
+                              locale === 'en-us' ? 'en-US' : locale === 'es-es' ? 'es-ES' : 'pt-BR',
+                            )}
+                          </span>
+                        ) : null}
+                        <span className="mt-1 block text-[12px] font-semibold text-foreground">
+                          {a.label}
+                        </span>
+                        {a.hint ? (
+                          <span className="mt-0.5 block text-[10px] text-ink-3">{a.hint}</span>
+                        ) : null}
+                      </span>
+                      <span aria-hidden="true" className="shrink-0 text-primary-ink">
+                        →
+                      </span>
+                    </span>
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <p className="mt-8 text-xs text-ink-3">
-            {/* proveniência: a página de erro não inventa dado para preencher espaço */}
-            {t('common.backHome')} · 404
+          <p className="mt-8 max-w-[720px] border-t border-border pt-3 text-[11px] leading-snug text-ink-3">
+            {c.note}
           </p>
         </div>
 
-        <div className="flex justify-center text-foreground sm:justify-end">
-          <PuncturedBall size={200} />
+        <div className="flex flex-col items-center gap-3 lg:pt-6">
+          <div className="text-foreground">
+            <PuncturedBall size={280} />
+          </div>
+          <p className="text-[11px] text-ink-3">{c.ballCaption}</p>
         </div>
       </div>
     </div>

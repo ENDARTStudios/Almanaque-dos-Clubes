@@ -1,17 +1,24 @@
 'use client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
-import CompareMetrics from '@/components/CompareMetrics';
-import CompareRadar from '@/components/CompareRadar';
-import CompareTimeline from '@/components/CompareTimeline';
-import CompareTitles from '@/components/CompareTitles';
-import type { RadarMetricInput } from '@/lib/compare-radar';
+import { ClubCrest, PlayerPhoto } from '@/components/MediaAssets';
+import { positionLabel } from '@/i18n/wsIcons';
+import { wsConceitoComparar } from '@/i18n/wsConceitoComparar';
 import type { Dictionary } from '@/i18n/types';
+import type { RadarMetricInput } from '@/lib/compare-radar';
+import CompareTitles from '@/components/CompareTitles';
+import CompareTimeline from '@/components/CompareTimeline';
+import CompareRadar from '@/components/CompareRadar';
+import CompareRows, { type ComparacaoLinha } from '@/components/conceito/comparar/CompareRows';
+import CompareDistribution from '@/components/conceito/comparar/CompareDistribution';
 
-// T440 — Comparadores: selector com autocomplete + resultados lado-a-lado.
+// T440 — comparador com autocomplete + leitura horizontal.
+// Conceito FICHA: seletores viram CARTÕES; a comparação vira LINHAS (número grande A ·
+// métrica · número grande B) e os gráficos ficam ao lado. Deep-link (?type&a&b), exportação
+// em PDF e radar (leitura secundária) continuam funcionando.
 
 export type CompareType = 'clubs' | 'players';
 
@@ -21,11 +28,42 @@ interface SearchItem {
   sub?: string | null;
 }
 
+interface ClubSide {
+  id: string;
+  name: string;
+  country?: string | null;
+  city?: string | null;
+  foundedYear?: number | null;
+  stadium?: { capacity?: number | null } | null;
+  titles?: Record<string, number>;
+  rankingHistory?: Array<{ season: string | null; points: number | null }>;
+}
+
+interface PlayerSide {
+  id: string;
+  name: string;
+  position?: string | null;
+  country?: string | null;
+  birthDate?: string | null;
+  club?: { id: string; name: string } | null;
+}
+
 interface CompareData {
   kind: 'clubs' | 'players';
-  a: Record<string, unknown>;
-  b: Record<string, unknown>;
-  comparison: Record<string, unknown>;
+  a: ClubSide & PlayerSide;
+  b: ClubSide & PlayerSide;
+  comparison: {
+    titles?: { a: number | null; b: number | null; leader: string | null };
+    foundedYear?: { a: number | null; b: number | null; leader: string | null };
+    rankingPoints?: { a: number | null; b: number | null; leader: string | null };
+    stadiumCapacity?: { a: number | null; b: number | null; leader: string | null };
+    note?: string;
+  };
+}
+
+function leaderDe(a: number | null | undefined, b: number | null | undefined): 'a' | 'b' | null {
+  if (a == null || b == null || a === b) return null;
+  return a > b ? 'a' : 'b';
 }
 
 export default function CompareSelector({
@@ -37,8 +75,9 @@ export default function CompareSelector({
   initialA?: string;
   initialB?: string;
 }) {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const t = dict.pages.compare;
+  const c = wsConceitoComparar[locale];
   const router = useRouter();
 
   const [type, setType] = useState<CompareType>(initialType);
@@ -55,7 +94,6 @@ export default function CompareSelector({
   const [result, setResult] = useState<CompareData | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
-  // T072 — carimbo do relatório impresso (evita mismatch de hidratação: só preenche pós-mount).
   const [printedAt, setPrintedAt] = useState('');
   useEffect(() => {
     setPrintedAt(new Date().toISOString().slice(0, 10));
@@ -70,20 +108,37 @@ export default function CompareSelector({
       try {
         if (type === 'clubs') {
           const res = await api.get<{
-            data: Array<{ id: string; name: string; country: string | null }>;
+            data: Array<{ id: string; name: string; country: string | null; city?: string | null }>;
           }>(`/clubs?search=${encodeURIComponent(term)}&limit=8`);
-          setter(res.data.map((c) => ({ id: c.id, label: c.name, sub: c.country })));
+          setter(
+            res.data.map((clube) => ({
+              id: clube.id,
+              label: clube.name,
+              sub: [clube.city, clube.country].filter(Boolean).join(' · '),
+            })),
+          );
         } else {
           const res = await api.get<{
-            data: Array<{ id: string; fullName: string; position: string | null }>;
+            data: Array<{
+              id: string;
+              fullName: string;
+              position: string | null;
+              country?: string | null;
+            }>;
           }>(`/players?search=${encodeURIComponent(term)}&limit=8`);
-          setter(res.data.map((p) => ({ id: p.id, label: p.fullName, sub: p.position })));
+          setter(
+            res.data.map((p) => ({
+              id: p.id,
+              label: p.fullName,
+              sub: [positionLabel(locale, p.position), p.country].filter(Boolean).join(' · '),
+            })),
+          );
         }
       } catch {
         setter([]);
       }
     },
-    [type],
+    [type, locale],
   );
 
   useEffect(() => {
@@ -119,8 +174,7 @@ export default function CompareSelector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auditoria 08-10 (P2) — no deep-link o rótulo inicial é o id BRUTO; busca os
-  // NOMES reais para os inputs (id morto mantém o id como rótulo, sem quebrar).
+  // Auditoria 08-10 (P2) — no deep-link o rótulo inicial é o id BRUTO; busca os NOMES reais.
   useEffect(() => {
     let active = true;
     const resolve = async (id: string, set: (i: SearchItem | null) => void) => {
@@ -131,11 +185,10 @@ export default function CompareSelector({
           name?: string;
           fullName?: string;
           country?: string | null;
+          city?: string | null;
           position?: string | null;
         };
         const res = await api.get<{ data?: ItemShape }>(`/${path}/${id}`);
-        // Tolerante ao envelope: GET /:id responde { data }; versões antigas podiam
-        // responder o item direto no topo.
         const envelope = res as { data?: ItemShape } | ItemShape;
         const item: ItemShape | undefined =
           'data' in (envelope as Record<string, unknown>) && (envelope as { data?: ItemShape }).data
@@ -143,7 +196,7 @@ export default function CompareSelector({
             : (envelope as ItemShape);
         const label = item?.name ?? item?.fullName;
         if (active && label) {
-          set({ id, label, sub: item?.country ?? item?.position ?? null });
+          set({ id, label, sub: item?.city ?? item?.country ?? item?.position ?? null });
         }
       } catch {
         // deep-link com id inexistente — exibe o id, não derruba a página
@@ -157,16 +210,104 @@ export default function CompareSelector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const listClass =
-    'absolute z-20 mt-1 w-full rounded-lg border border-border bg-background shadow-lg max-h-56 overflow-auto';
-  const optClass = 'px-3 py-2 text-sm cursor-pointer hover:bg-primary/10';
+  const metaDe = (item: SearchItem | null, side: ClubSide & PlayerSide): string | null => {
+    if (type === 'clubs') {
+      const partes = [
+        side.city,
+        side.country,
+        side.foundedYear != null ? String(side.foundedYear) : null,
+      ].filter(Boolean);
+      return partes.length > 0 ? partes.join(' · ') : (item?.sub ?? null);
+    }
+    const partes = [
+      positionLabel(locale, side.position),
+      side.country,
+      side.birthDate ? side.birthDate.slice(0, 4) : null,
+    ].filter(Boolean);
+    return partes.length > 0 ? partes.join(' · ') : (item?.sub ?? null);
+  };
+
+  const linhas: ComparacaoLinha[] = result
+    ? result.kind === 'clubs'
+      ? (() => {
+          const at = result.a.titles ?? {};
+          const bt = result.b.titles ?? {};
+          const cmp = result.comparison;
+          return [
+            {
+              label: c.titlesOfficial,
+              a: at.total ?? null,
+              b: bt.total ?? null,
+              leader: cmp.titles?.leader === 'a' ? 'a' : cmp.titles?.leader === 'b' ? 'b' : null,
+            },
+            {
+              label: t.world,
+              a: at.mundial ?? 0,
+              b: bt.mundial ?? 0,
+              leader: leaderDe(at.mundial, bt.mundial),
+            },
+            {
+              label: t.continental,
+              a: at.continental ?? 0,
+              b: bt.continental ?? 0,
+              leader: leaderDe(at.continental, bt.continental),
+            },
+            {
+              label: t.national,
+              a: at.nacional ?? 0,
+              b: bt.nacional ?? 0,
+              leader: leaderDe(at.nacional, bt.nacional),
+            },
+            {
+              label: t.state,
+              a: at.estadual ?? 0,
+              b: bt.estadual ?? 0,
+              leader: leaderDe(at.estadual, bt.estadual),
+            },
+            {
+              label: t.municipal,
+              a: at.municipal ?? 0,
+              b: bt.municipal ?? 0,
+              leader: leaderDe(at.municipal, bt.municipal),
+            },
+            {
+              label: c.founded,
+              a: result.a.foundedYear ?? null,
+              b: result.b.foundedYear ?? null,
+              leader: null,
+            },
+            {
+              label: c.rankingPoints,
+              a: cmp.rankingPoints?.a ?? null,
+              b: cmp.rankingPoints?.b ?? null,
+              leader: leaderDe(cmp.rankingPoints?.a, cmp.rankingPoints?.b),
+            },
+            {
+              label: c.stadiumCapacity,
+              a: result.a.stadium?.capacity ?? null,
+              b: result.b.stadium?.capacity ?? null,
+              leader: leaderDe(result.a.stadium?.capacity, result.b.stadium?.capacity),
+            },
+          ];
+        })()
+      : [
+          { label: c.entityClub, a: result.a.club?.name ?? null, b: result.b.club?.name ?? null },
+          { label: c.country, a: result.a.country ?? null, b: result.b.country ?? null },
+          {
+            label: c.birthYear,
+            a: result.a.birthDate?.slice(0, 4) ?? null,
+            b: result.b.birthDate?.slice(0, 4) ?? null,
+          },
+        ]
+    : [];
 
   return (
     <div className="mt-8">
-      <div className="no-print flex gap-2 mb-4" role="tablist" aria-label={t.title}>
+      <div className="no-print flex flex-wrap gap-2" role="tablist" aria-label={t.title}>
         {(['clubs', 'players'] as CompareType[]).map((tp) => (
           <button
             key={tp}
+            type="button"
             role="tab"
             aria-selected={type === tp}
             onClick={() => {
@@ -175,10 +316,10 @@ export default function CompareSelector({
               setB(null);
               setResult(null);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold border ${
+            className={`inline-flex min-h-9 items-center rounded-[2px] border px-4 text-[13px] font-semibold transition-colors duration-200 ${
               type === tp
-                ? 'bg-primary text-on-primary border-primary'
-                : 'border-border text-foreground/70'
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-surface text-ink-2 hover:border-foreground hover:text-foreground'
             }`}
           >
             {tp === 'clubs' ? t.typeClubs : t.typePlayers}
@@ -186,80 +327,131 @@ export default function CompareSelector({
         ))}
       </div>
 
-      <div className="no-print grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-        {(
-          [
-            {
-              term: searchA,
-              setTerm: setSearchA,
-              sel: a,
-              setSel: setA,
-              opts: optionsA,
-              setOpts: setOptionsA,
-              ph: t.searchPlaceholderA,
-              label: 'A',
-            },
-            {
-              term: searchB,
-              setTerm: setSearchB,
-              sel: b,
-              setSel: setB,
-              opts: optionsB,
-              setOpts: setOptionsB,
-              ph: t.searchPlaceholderB,
-              label: 'B',
-            },
-          ] as const
-        ).map((f) => (
-          <div key={f.label} className="relative">
-            <label className="block text-xs text-foreground/60 mb-1" htmlFor={`cmp-${f.label}`}>
-              {f.label}
-            </label>
-            <input
-              id={`cmp-${f.label}`}
-              // `placeholder:` explícito: o navegador aplica cor E opacidade próprias ao
-              // `::placeholder`, e sem declarar as duas o "Buscar clube A…" renderiza em 3,5:1
-              // (medido pelo detector) e reprova em AA. `opacity-100` é obrigatório — sem ele a
-              // cor é multiplicada pela opacidade do user agent e não sai o valor escrito.
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-ink-2 placeholder:opacity-100"
-              placeholder={f.ph}
-              value={f.sel ? f.sel.label : f.term}
-              onChange={(e) => {
-                f.setSel(null);
-                f.setTerm(e.target.value);
-              }}
-              autoComplete="off"
-            />
-            {!f.sel && f.opts.length > 0 ? (
-              <ul className={listClass} role="listbox" aria-label={f.ph}>
-                {f.opts.map((o) => (
-                  <li key={o.id} role="option" aria-selected={false}>
-                    <button
-                      type="button"
-                      className={`${optClass} w-full text-left`}
-                      onClick={() => {
-                        f.setSel(o);
-                        f.setTerm('');
-                        f.setOpts([]);
-                      }}
-                    >
-                      {o.label}
-                      {o.sub ? <span className="text-foreground/70"> · {o.sub}</span> : null}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+      <div className="no-print mt-6 grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+        {[
+          {
+            side: 'a' as const,
+            sel: a,
+            setSel: setA,
+            term: searchA,
+            setTerm: setSearchA,
+            opts: optionsA,
+            setOpts: setOptionsA,
+            ph: t.searchPlaceholderA,
+          },
+          {
+            side: 'b' as const,
+            sel: b,
+            setSel: setB,
+            term: searchB,
+            setTerm: setSearchB,
+            opts: optionsB,
+            setOpts: setOptionsB,
+            ph: t.searchPlaceholderB,
+          },
+        ].map((f, i) => (
+          <Fragment key={f.side}>
+            {i === 1 ? (
+              <span aria-hidden="true" className="hidden text-center text-xl text-ink-3 sm:block">
+                ×
+              </span>
             ) : null}
-          </div>
+            <div className="min-w-0">
+              {f.sel ? (
+                <div
+                  className="flex items-center gap-4 rounded-[2px] border border-border bg-surface p-4"
+                  data-testid={`compare-card-${f.side}`}
+                >
+                  <span className="shrink-0">
+                    {type === 'clubs' ? (
+                      <ClubCrest logoUrl={null} name={f.sel.label} size={56} />
+                    ) : (
+                      <PlayerPhoto photoUrl={null} name={f.sel.label} position={null} size={56} />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-heading text-lg font-bold leading-tight text-foreground">
+                      {f.sel.label}
+                    </p>
+                    <p className="mt-0.5 truncate text-[11px] text-ink-3">{f.sel.sub ?? '—'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      f.setSel(null);
+                      setResult(null);
+                    }}
+                    aria-label={f.side === 'a' ? c.removeA : c.removeB}
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-ink-2 transition-colors duration-200 hover:border-foreground hover:text-foreground"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <label className="sr-only" htmlFor={`cmp-${f.side}`}>
+                    {f.ph}
+                  </label>
+                  <input
+                    id={`cmp-${f.side}`}
+                    className="h-12 w-full rounded-[2px] border border-border bg-surface px-3 text-[14px] text-foreground placeholder:text-ink-2 placeholder:opacity-100"
+                    placeholder={f.ph}
+                    value={f.term}
+                    onChange={(e) => {
+                      f.setSel(null);
+                      f.setTerm(e.target.value);
+                    }}
+                    autoComplete="off"
+                  />
+                  {f.opts.length > 0 ? (
+                    <ul
+                      className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-[2px] border border-border bg-surface"
+                      role="listbox"
+                      aria-label={f.ph}
+                    >
+                      {f.opts.map((o) => (
+                        <li key={o.id} role="option" aria-selected={false}>
+                          <button
+                            type="button"
+                            className="w-full px-3 py-2 text-left text-[13px] text-foreground hover:bg-surface-2"
+                            onClick={() => {
+                              f.setSel(o);
+                              f.setTerm('');
+                              f.setOpts([]);
+                            }}
+                          >
+                            {o.label}
+                            {o.sub ? <span className="text-ink-3"> · {o.sub}</span> : null}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </Fragment>
         ))}
+      </div>
+
+      <div className="no-print mt-4 flex flex-wrap items-center gap-3">
         <button
           type="button"
           disabled={!ready || loading}
           onClick={() => void runCompare()}
-          className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold disabled:opacity-40"
+          className="inline-flex min-h-10 items-center rounded-[2px] bg-foreground px-5 text-[13px] font-semibold text-background transition-colors duration-200 hover:bg-foreground/90 disabled:opacity-40"
         >
-          {loading ? '…' : t.compareBtn}
+          {t.compareBtn}
         </button>
+        {result ? (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-[12px] font-semibold text-foreground transition-colors duration-200 hover:border-foreground"
+          >
+            {t.exportPdf}
+          </button>
+        ) : null}
       </div>
 
       {notFound ? (
@@ -267,153 +459,118 @@ export default function CompareSelector({
           {t.noData}
         </p>
       ) : null}
-      {!ready ? <p className="mt-6 text-sm text-foreground/70">{t.selectBoth}</p> : null}
+      {!ready ? <p className="mt-4 text-[12px] text-ink-3">{t.selectBoth}</p> : null}
 
       {result ? (
-        <>
-          {/* T072 — cabeçalho só impresso + botão de exportação (print → PDF do navegador). */}
-          <div className="print-only" aria-hidden="true">
-            <p className="text-xs mb-1">
-              {dict.site.name} · {t.printTitle} · {printedAt}
-            </p>
-            <p className="text-lg font-semibold">
-              {(result.a as { name: string }).name} vs {(result.b as { name: string }).name}
-            </p>
-          </div>
-          <div className="no-print mt-8 flex justify-end">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:bg-primary/10"
-            >
-              {t.exportPdf}
-            </button>
-          </div>
-        </>
-      ) : null}
-
-      {result && result.kind === 'clubs' ? (
-        <div className="mt-8 space-y-10">
-          <CompareRadar
-            aName={(result.a as { name: string }).name}
-            bName={(result.b as { name: string }).name}
-            metrics={buildClubRadarMetrics(result, t)}
-          />
-          <CompareMetrics
-            aName={(result.a as { name: string }).name}
-            bName={(result.b as { name: string }).name}
-            rows={[
-              {
-                metric: t.titlesTotal,
-                a: (result.a as { titles: { total: number } }).titles.total,
-                b: (result.b as { titles: { total: number } }).titles.total,
-              },
-              {
-                metric: t.rankingPoints,
-                a: (result.comparison as { rankingPoints: { a: number | null } }).rankingPoints.a,
-                b: (result.comparison as { rankingPoints: { b: number | null } }).rankingPoints.b,
-              },
-              {
-                metric: t.foundedYear,
-                a: (result.a as { foundedYear: number | null }).foundedYear,
-                b: (result.b as { foundedYear: number | null }).foundedYear,
-              },
-              {
-                metric: t.stadiumCapacity,
-                a:
-                  (result.a as { stadium: { capacity: number | null } | null }).stadium?.capacity ??
-                  null,
-                b:
-                  (result.b as { stadium: { capacity: number | null } | null }).stadium?.capacity ??
-                  null,
-              },
-              {
-                metric: t.matches,
-                a: null,
-                b: null,
-                note: (result.comparison as { matches: { reason: string } }).matches.reason,
-              },
-            ]}
-          />
-          <CompareTitles
-            aName={(result.a as { name: string }).name}
-            bName={(result.b as { name: string }).name}
-            aTitles={(result.a as { titles: Record<string, number> }).titles}
-            bTitles={(result.b as { titles: Record<string, number> }).titles}
-          />
-          <CompareTimeline
-            aName={(result.a as { name: string }).name}
-            bName={(result.b as { name: string }).name}
-            aHistory={
-              (
-                result.a as {
-                  rankingHistory: Array<{ season: string | null; points: number | null }>;
-                }
-              ).rankingHistory
-            }
-            bHistory={
-              (
-                result.b as {
-                  rankingHistory: Array<{ season: string | null; points: number | null }>;
-                }
-              ).rankingHistory
-            }
-          />
-          <p className="text-xs text-foreground/70">
-            <Link href="/rankings" className="underline">
-              {dict.nav.rankings}
-            </Link>
+        <div className="print-only" aria-hidden="true">
+          <p className="text-xs mb-1">
+            {dict.site.name} · {t.printTitle} · {printedAt}
+          </p>
+          <p className="text-lg font-semibold">
+            {result.a.name} vs {result.b.name}
           </p>
         </div>
       ) : null}
 
-      {result && result.kind === 'players' ? (
-        <div className="mt-8">
-          <CompareMetrics
-            aName={(result.a as { name: string }).name}
-            bName={(result.b as { name: string }).name}
-            rows={[
-              {
-                metric: t.matches,
-                a: null,
-                b: null,
-                note: (result.comparison as { note: string }).note,
-              },
-            ]}
-          />
-        </div>
+      {result ? (
+        <>
+          <div className="mt-8 grid grid-cols-2 gap-4 border-b border-border pb-4">
+            <div className="min-w-0">
+              <p className="truncate font-heading text-lg font-bold text-foreground">
+                {result.a.name}
+              </p>
+              <p className="text-[11px] text-ink-3">{metaDe(a, result.a) ?? '—'}</p>
+            </div>
+            <div className="min-w-0 text-right">
+              <p className="truncate font-heading text-lg font-bold text-foreground">
+                {result.b.name}
+              </p>
+              <p className="text-[11px] text-ink-3">{metaDe(b, result.b) ?? '—'}</p>
+            </div>
+          </div>
+
+          <CompareRows rows={linhas} locale={locale} label={t.title} />
+
+          {result.kind === 'clubs' ? (
+            <>
+              <p className="mt-3 text-[11px] leading-snug text-ink-3">{c.noMatchData}</p>
+              <section aria-label={c.chartsTitle} className="mt-8">
+                <h2 className="text-[12.5px] font-semibold text-foreground">{c.chartsTitle}</h2>
+                <div className="mt-4 grid gap-8 lg:grid-cols-3">
+                  <CompareTitles
+                    aName={result.a.name}
+                    bName={result.b.name}
+                    aTitles={(result.a.titles ?? {}) as Record<string, number>}
+                    bTitles={(result.b.titles ?? {}) as Record<string, number>}
+                  />
+                  <CompareDistribution
+                    aName={result.a.name}
+                    bName={result.b.name}
+                    aTitles={(result.a.titles ?? {}) as Record<string, number>}
+                    bTitles={(result.b.titles ?? {}) as Record<string, number>}
+                  />
+                  <CompareTimeline
+                    aName={result.a.name}
+                    bName={result.b.name}
+                    aHistory={result.a.rankingHistory ?? []}
+                    bHistory={result.b.rankingHistory ?? []}
+                  />
+                </div>
+              </section>
+
+              <details className="mt-8 border-t border-border pt-3">
+                <summary className="cursor-pointer text-[11px] text-ink-3">{c.radarToggle}</summary>
+                <div className="mt-4">
+                  <CompareRadar
+                    aName={result.a.name}
+                    bName={result.b.name}
+                    metrics={buildClubRadarMetrics(result, t)}
+                  />
+                </div>
+              </details>
+
+              <p className="mt-6 text-[11px] leading-snug text-ink-3">
+                {c.provenance}{' '}
+                <Link
+                  href="/rankings"
+                  className="text-primary-ink underline decoration-dotted underline-offset-2"
+                >
+                  {dict.nav.rankings}
+                </Link>
+              </p>
+            </>
+          ) : (
+            <p className="mt-4 text-[11px] leading-snug text-ink-3">
+              {result.comparison.note ?? c.playerNote}
+            </p>
+          )}
+        </>
       ) : null}
     </div>
   );
 }
 
 // T072 — eixos do radar de clubes. "Anos de história" = ano corrente − fundação
-// (clube mais antigo ⇒ eixo maior). Fundação ausente/inválida ⇒ null (sai do
-// radar; nunca vira 0 plotável). Roda só pós-fetch, client-side.
+// (clube mais antigo ⇒ eixo maior). Fundação ausente/inválida ⇒ null (sai do radar; nunca 0).
 function buildClubRadarMetrics(
   result: CompareData,
   t: Dictionary['pages']['compare'],
 ): RadarMetricInput[] {
-  interface ClubSide {
-    titles: { total: number };
-    foundedYear: number | null;
-    stadium: { capacity: number | null } | null;
-  }
-  const a = result.a as unknown as ClubSide;
-  const b = result.b as unknown as ClubSide;
-  const cmp = result.comparison as { rankingPoints: { a: number | null; b: number | null } };
+  const a = result.a;
+  const b = result.b;
+  const cmp = result.comparison;
   const year = new Date().getFullYear();
-  const history = (foundedYear: number | null): number | null =>
+  const history = (foundedYear: number | null | undefined): number | null =>
     typeof foundedYear === 'number' && foundedYear > 0 && foundedYear <= year
       ? year - foundedYear
       : null;
   return [
-    { key: 'titles', label: t.titlesTotal, a: a.titles.total, b: b.titles.total },
+    { key: 'titles', label: t.titlesTotal, a: a.titles?.total ?? null, b: b.titles?.total ?? null },
     {
       key: 'ranking',
       label: t.rankingPoints,
-      a: cmp.rankingPoints.a,
-      b: cmp.rankingPoints.b,
+      a: cmp.rankingPoints?.a ?? null,
+      b: cmp.rankingPoints?.b ?? null,
     },
     { key: 'history', label: t.historyYears, a: history(a.foundedYear), b: history(b.foundedYear) },
     {

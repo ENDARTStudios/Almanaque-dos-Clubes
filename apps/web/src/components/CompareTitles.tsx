@@ -46,36 +46,36 @@ export default function CompareTitles({
   if (totalA === 0 && totalB === 0) {
     return (
       <section aria-label={t.titlesTitle}>
-        <h2 className="text-xl font-heading font-semibold mb-3">{t.titlesTitle}</h2>
-        <p className="text-sm text-foreground/70">{t.noData}</p>
+        <h2 className="text-[12.5px] font-semibold text-foreground">{t.titlesTitle}</h2>
+        <p className="mt-2 text-[11px] text-ink-3">{t.noData}</p>
       </section>
     );
   }
 
   return (
     <section aria-label={t.titlesTitle}>
-      <h2 className="text-xl font-heading font-semibold mb-3">{t.titlesTitle}</h2>
+      <h2 className="text-[12.5px] font-semibold text-foreground">{t.titlesTitle}</h2>
       <div
         role="img"
         aria-label={`${t.titlesTitle}: ${aName} (${totalA}) vs ${bName} (${totalB})`}
-        className="w-full h-72 rounded-xl border border-border p-4"
+        className="mt-3 h-[220px] w-full"
       >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-            <XAxis dataKey="hierarchy" fontSize={12} />
-            <YAxis allowDecimals={false} fontSize={12} />
+            <XAxis dataKey="hierarchy" fontSize={10} />
+            <YAxis allowDecimals={false} fontSize={10} />
             <Tooltip
               contentStyle={CHART_TOOLTIP_STYLE}
               labelStyle={CHART_TOOLTIP_LABEL_STYLE}
               itemStyle={CHART_TOOLTIP_ITEM_STYLE}
             />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-            <Bar dataKey={aName} fill={CHART_SERIES_A} radius={[4, 4, 0, 0]} />
+            <Bar dataKey={aName} fill={CHART_SERIES_A} radius={[1, 1, 0, 0]} />
             <Bar dataKey={bName} fill={CHART_SERIES_B} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-foreground/70">
+      <p className="mt-2 text-[11px] text-ink-3">
         {t.titlesTotal}: {aName} {totalA} · {bName} {totalB}
       </p>
     </section>
