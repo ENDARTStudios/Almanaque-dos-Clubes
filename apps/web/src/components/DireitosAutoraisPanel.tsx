@@ -109,19 +109,20 @@ export default function DireitosAutoraisPanel() {
   if (status === 'loading')
     return (
       <>
-        <Header s={s} />
         <p className="text-foreground/60">{s.loading}</p>
       </>
     );
   if (status !== 'authed') {
     return (
       <>
-        <Header s={s} />
         <div className="space-y-4 text-foreground/70 leading-relaxed">
           <p>
             {s.loggedIntro} <strong>{s.loggedStrong}</strong>
             {s.loggedManual}{' '}
-            <a className="text-primary-ink hover:underline" href="mailto:endart.studios+direitos@gmail.com">
+            <a
+              className="text-primary-ink hover:underline"
+              href="mailto:endart.studios+direitos@gmail.com"
+            >
               endart.studios+direitos@gmail.com
             </a>{' '}
             {s.loggedWith}
@@ -143,70 +144,147 @@ export default function DireitosAutoraisPanel() {
 
   return (
     <div className="space-y-10">
-      <Header s={s} />
       <section aria-label={s.noticeTitle} className="max-w-xl">
         <h2 className="text-xl font-heading font-semibold text-foreground mb-4">{s.noticeTitle}</h2>
         <form onSubmit={submitNotice} className="space-y-4">
           <div>
-            <label htmlFor="n-work" className="block text-sm text-foreground/70 mb-1">{s.work}</label>
-            <input id="n-work" required value={workTitle} onChange={(e) => setWorkTitle(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="n-work" className="block text-sm text-foreground/70 mb-1">
+              {s.work}
+            </label>
+            <input
+              id="n-work"
+              required
+              value={workTitle}
+              onChange={(e) => setWorkTitle(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
-            <label htmlFor="n-workurl" className="block text-sm text-foreground/70 mb-1">{s.workUrl}</label>
-            <input id="n-workurl" type="url" value={workUrl} onChange={(e) => setWorkUrl(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="n-workurl" className="block text-sm text-foreground/70 mb-1">
+              {s.workUrl}
+            </label>
+            <input
+              id="n-workurl"
+              type="url"
+              value={workUrl}
+              onChange={(e) => setWorkUrl(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
-            <label htmlFor="n-mat" className="block text-sm text-foreground/70 mb-1">{s.materialUrl}</label>
-            <input id="n-mat" type="url" required value={materialUrl} onChange={(e) => setMaterialUrl(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="n-mat" className="block text-sm text-foreground/70 mb-1">
+              {s.materialUrl}
+            </label>
+            <input
+              id="n-mat"
+              type="url"
+              required
+              value={materialUrl}
+              onChange={(e) => setMaterialUrl(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
-            <label htmlFor="n-desc" className="block text-sm text-foreground/70 mb-1">{s.description}</label>
-            <textarea id="n-desc" rows={3} required maxLength={2000} value={description} onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="n-desc" className="block text-sm text-foreground/70 mb-1">
+              {s.description}
+            </label>
+            <textarea
+              id="n-desc"
+              rows={3}
+              required
+              maxLength={2000}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <label className="flex items-start gap-2 text-sm text-foreground/80">
-            <input type="checkbox" checked={goodFaith} onChange={(e) => setGoodFaith(e.target.checked)} className="mt-0.5" />
+            <input
+              type="checkbox"
+              checked={goodFaith}
+              onChange={(e) => setGoodFaith(e.target.checked)}
+              className="mt-0.5"
+            />
             {s.goodFaith}
           </label>
           <label className="flex items-start gap-2 text-sm text-foreground/80">
-            <input type="checkbox" checked={accuracy} onChange={(e) => setAccuracy(e.target.checked)} className="mt-0.5" />
+            <input
+              type="checkbox"
+              checked={accuracy}
+              onChange={(e) => setAccuracy(e.target.checked)}
+              className="mt-0.5"
+            />
             {s.accuracy}
           </label>
           <div>
-            <label htmlFor="n-sig" className="block text-sm text-foreground/70 mb-1">{s.signature}</label>
-            <input id="n-sig" required value={signature} onChange={(e) => setSignature(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="n-sig" className="block text-sm text-foreground/70 mb-1">
+              {s.signature}
+            </label>
+            <input
+              id="n-sig"
+              required
+              value={signature}
+              onChange={(e) => setSignature(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
-          {err && <p className="text-sm text-danger-ink" role="alert">{err}</p>}
-          <button type="submit" disabled={busy || !goodFaith || !accuracy}
-            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-on-primary hover:opacity-90 disabled:opacity-50">
+          {err && (
+            <p className="text-sm text-danger-ink" role="alert">
+              {err}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={busy || !goodFaith || !accuracy}
+            className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-on-primary hover:opacity-90 disabled:opacity-50"
+          >
             {busy ? s.sending : s.submitNotice}
           </button>
         </form>
       </section>
 
       <section aria-label={s.counterTitle} className="max-w-xl">
-        <h2 className="text-xl font-heading font-semibold text-foreground mb-4">{s.counterTitle}</h2>
+        <h2 className="text-xl font-heading font-semibold text-foreground mb-4">
+          {s.counterTitle}
+        </h2>
         <form onSubmit={submitCounter} className="space-y-4">
           <div>
-            <label htmlFor="c-proto" className="block text-sm text-foreground/70 mb-1">{s.protoLabel}</label>
-            <input id="c-proto" required value={counterOf} onChange={(e) => setCounterOf(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="c-proto" className="block text-sm text-foreground/70 mb-1">
+              {s.protoLabel}
+            </label>
+            <input
+              id="c-proto"
+              required
+              value={counterOf}
+              onChange={(e) => setCounterOf(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
-            <label htmlFor="c-desc" className="block text-sm text-foreground/70 mb-1">{s.justLabel}</label>
-            <textarea id="c-desc" rows={3} required maxLength={2000} value={counterText} onChange={(e) => setCounterText(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            <label htmlFor="c-desc" className="block text-sm text-foreground/70 mb-1">
+              {s.justLabel}
+            </label>
+            <textarea
+              id="c-desc"
+              rows={3}
+              required
+              maxLength={2000}
+              value={counterText}
+              onChange={(e) => setCounterText(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
           </div>
-          <button type="submit" disabled={busy || !counterOf || counterText.length < 10}
-            className="rounded-lg border border-border px-5 py-2 text-sm text-foreground hover:border-primary disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={busy || !counterOf || counterText.length < 10}
+            className="rounded-lg border border-border px-5 py-2 text-sm text-foreground hover:border-primary disabled:opacity-50"
+          >
             {busy ? s.sending : s.submitCounter}
           </button>
         </form>
-        <p className="sr-only" aria-live="polite">{msg}</p>
+        <p className="sr-only" aria-live="polite">
+          {msg}
+        </p>
         {msg && <p className="mt-3 text-sm text-primary-ink">{msg}</p>}
       </section>
 
@@ -230,16 +308,6 @@ export default function DireitosAutoraisPanel() {
           </ul>
         )}
       </section>
-    </div>
-  );
-}
-
-/** Cabeçalho i18n (h1 + subtítulo) — renderizado uma única vez pelo painel. */
-function Header({ s }: { s: (typeof wsCopyrightStrings)['pt-br'] }) {
-  return (
-    <div className="mb-8">
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground mb-2">{s.h1}</h1>
-      <p className="text-sm text-foreground/70">{s.subtitle}</p>
     </div>
   );
 }
