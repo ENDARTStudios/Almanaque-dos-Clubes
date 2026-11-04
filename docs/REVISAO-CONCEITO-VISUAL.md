@@ -98,6 +98,18 @@ continua declarada (nunca preenchida com o número ilustrativo do PNG).
   honrarias, sem número novo.
 - Escudo, fotos e evolução continuam com **licença real ou lacuna declarada**.
 
+## Correções desta rodada — quinta parte
+
+### Mapa (`components/conceito/mapa/Filters.tsx`, `MapaFicha.tsx`, `i18n/wsConceitoMapa.ts`)
+
+- A faixa de filtros volta a ter **só os três níveis do quadro** (País, Estado/UF, Cidade).
+- O recorte de clubes femininos saiu da composição primária e foi para **"Filtros avançados"**
+  (`<details>`), preservando o `data-testid` e o comportamento.
+- A dica de interação não ocupa mais uma linha visível: virou texto **sr-only** (o mapa já tem
+  aria-label; o texto não é necessário para quem enxerga a tela).
+- Observação de adaptação: o quadro é um coropleto; a API não publica densidade por polígono,
+  então o mapa continua de pontos e a densidade vive nas barras — como já declarado na tela.
+
 ## Pendências (próximas rodadas)
 
 - Lendas: recalcular as métricas no escopo do panteão; estrutura de três gráficos e lista de
