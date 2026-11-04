@@ -76,11 +76,13 @@ afterEach(() => {
 describe('/matches — confronto na ordem certa (T579 · item 20)', () => {
   it('(a)(c) a linha lê "casa, placar casa, ×, placar visitante, visitante"', async () => {
     await renderPagina();
-    const linha = screen.getByText('SS Lazio').closest('tr');
+    const linha = screen.getByText('SS Lazio').closest('li');
     expect(linha).not.toBeNull();
-    // A ordem do DOM na célula é a do confronto — e é a ordem que o leitor de tela segue:
+    // A ordem do DOM no CONFRONTO é a do leitor de tela:
     // "SS Lazio | 0 | (× decorativo) | a | 1 | Unione Sportiva Lecce".
-    const celula = linha!.querySelector('td:nth-child(2)')!;
+    // O conceito FICHA trocou a tabela por uma lista de linhas (data · confronto · ação),
+    // mas a ordem interna do confronto — o que o T579 protege — continua a mesma.
+    const celula = linha!.querySelector('[data-testid="conceito-partida-confronto"]')!;
     expect(celula.textContent).toBe('SS Lazio0×a1Unione Sportiva Lecce');
     // O "×" visual é decorativo; a fala vem da conjunção, que existe no DOM e não na tela.
     const decorativo = [...celula.querySelectorAll('[aria-hidden="true"]')].map(
@@ -98,7 +100,7 @@ describe('/matches — confronto na ordem certa (T579 · item 20)', () => {
 
   it('(b) cada time tem escudo ao lado do nome — logo do acervo e fallback autoral', async () => {
     await renderPagina();
-    const linha = screen.getByText('SS Lazio').closest('tr')!;
+    const linha = screen.getByText('SS Lazio').closest('li')!;
     // Lazio tem logo no acervo: escudo real.
     expect(linha.querySelector('[data-testid="club-crest"]')).not.toBeNull();
     // Lecce não tem: o cartão de fallback do projeto (nunca um brasão inventado).
@@ -107,18 +109,21 @@ describe('/matches — confronto na ordem certa (T579 · item 20)', () => {
     expect(linha.querySelectorAll('[data-testid^="club-crest"]').length).toBe(2);
   });
 
-  it('(a) o placar NÃO fica mais numa coluna depois dos dois nomes', async () => {
+  it('(a) o placar NÃO fica numa coluna depois dos dois nomes', async () => {
     await renderPagina();
-    const cabecalhos = [...document.querySelectorAll('thead th')].map((n) => n.textContent?.trim());
-    expect(cabecalhos).toEqual(['Data', 'Partida', 'Competição', 'Temporada']);
+    // A composição do conceito é uma lista de linhas de confronto — não uma tabela com uma
+    // coluna "Placar" separada dos nomes. A invariante do T579 é essa ausência de coluna.
+    expect(document.querySelector('thead')).toBeNull();
+    expect(screen.getByTestId('conceito-partidas-list')).toBeTruthy();
+    expect(screen.getAllByTestId('conceito-partida-confronto').length).toBe(2);
   });
 
   it('(d) placar ausente na fonte é declarado, não virou 0', async () => {
     await renderPagina();
-    const linha = screen.getByText('AS Roma').closest('tr')!;
-    // A célula do confronto NÃO tem número nenhum: só a lacuna declarada. (`0` existe na
-    // linha inteira por causa da data "18/05/2025" — por isso a asserção é na célula.)
-    const celula = linha.querySelector('td:nth-child(2)')!;
+    const linha = screen.getByText('AS Roma').closest('li')!;
+    // O confronto NÃO tem número nenhum: só a lacuna declarada. (`0` existe na linha
+    // inteira por causa da data "18/05/2025" — por isso a asserção é no confronto.)
+    const celula = linha.querySelector('[data-testid="conceito-partida-confronto"]')!;
     expect(celula.textContent).toBe('AS Romasem placar na fonteInter Milan');
     expect(celula.textContent).not.toContain('0');
   });

@@ -57,18 +57,23 @@ export default function DataTable({
         </caption>
         <thead>
           <tr>
-            {columns.map((col, i) => (
-              <th
-                key={`${col.header}-${i}`}
-                scope="col"
-                style={col.width ? { width: `${col.width}rem` } : undefined}
-                className={`border-b border-border pb-2 text-xs font-semibold text-ink-3 ${
-                  col.align === 'right' ? 'text-right' : 'text-left'
-                }`}
-              >
-                {col.header}
-              </th>
-            ))}
+            {columns.map((col, i) => {
+              // A última coluna encosta na borda; as demais ganham respiro à direita para
+              // que um cabeçalho "#" não cole no "CLUBE" e um número não cole no texto seguinte.
+              const pad = i === columns.length - 1 ? '' : col.align === 'right' ? 'pr-4' : 'pr-3';
+              return (
+                <th
+                  key={`${col.header}-${i}`}
+                  scope="col"
+                  style={col.width ? { width: `${col.width}rem` } : undefined}
+                  className={`border-b border-border pb-2 text-xs font-semibold text-ink-3 ${pad} ${
+                    col.align === 'right' ? 'text-right' : 'text-left'
+                  }`}
+                >
+                  {col.header}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -77,10 +82,12 @@ export default function DataTable({
               {row.map((cell, ci) => {
                 const align = columns[ci]?.align === 'right' ? 'text-right' : 'text-left';
                 const strong = ri < emphasisRows;
+                const pad =
+                  ci === row.length - 1 ? '' : columns[ci]?.align === 'right' ? 'pr-4' : 'pr-3';
                 return (
                   <td
                     key={ci}
-                    className={`border-b border-border/60 py-2 ${align} ${
+                    className={`border-b border-border/60 py-2 ${pad} ${align} ${
                       strong ? 'font-semibold text-foreground' : 'text-ink-2'
                     }`}
                     style={{

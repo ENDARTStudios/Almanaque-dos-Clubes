@@ -2,53 +2,38 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
+import { formatCount } from '@/lib/format';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { wt541Strings } from '@/i18n/wsT541';
 import { wt579Strings } from '@/i18n/wsT579';
-import { ClubCrest } from '@/components/MediaAssets';
+import { wsConceitoPartidas } from '@/i18n/wsConceitoPartidas';
 import FichaHead from '@/components/ficha/FichaHead';
 import { EmptyState, ErrorState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
+import MatchList from '@/components/conceito/partidas/MatchList';
+import PageStats from '@/components/conceito/partidas/PageStats';
+import type { MatchRowData } from '@/components/conceito/partidas/types';
 
 /**
- * T541 — página pública de PARTIDAS.
+ * /matches — o quadro `partidas` do conceito FICHA.
  *
- * Por que existia um gap: o PLANO_MESTRE prometia `/matches` como página pública, mas
- * a rota não existia (404) enquanto `GET /api/v1/matches` já servia 17.265 partidas.
+ * O que muda em relação à versão anterior (tabela de quatro colunas com moldura e sombra):
+ *   · FichaHead com o total REAL de partidas e o rótulo "partidas catalogadas";
+ *   · filtros em caixas do conceito (rótulo dentro da caixa, borda de 1px, raio 2px) e os
+ *     filtros ativos como CHIPS removíveis — o estado está na URL, funciona sem JS;
+ *   · resultados como LINHAS de confronto (data/rodada · clubes e placar · ação), com a mesma
+ *     ordem de leitura do T579 (escudo · casa · placar · × · placar · visitante · escudo);
+ *   · caixa "Estatística desta página" calculada SÓ com os placares carregados — o recorte é
+ *     declarado no texto, não vendido como o acervo inteiro.
  *
- * Decisões de implementação:
- * - **Server Component com filtros em `<form method="get">`**: funciona sem JS, é
- *   acessível por teclado e não precisa de estado no cliente. O filtro é a URL.
- * - **Facets da própria API** (`/matches/facets`): os seletores só oferecem competição
- *   e temporada que TÊM partidas — nada de lista hardcoded nem filtro que devolve vazio.
- * - **i18n em módulo aditivo** (`i18n/wsT541.ts`), sem tocar dicionários globais.
- * - Empty-honesto: sem resultado, diz que não há — não preenche com nada.
- *
- * T579 (ITEM 20) — a linha da partida passou a ser um CONFRONTO legível:
- * `escudo · casa · placar casa · × · placar visitante · visitante · escudo`. Os escudos vêm
- * do `logoUrl` do próprio clube, incluído no select do repositório de partidas
- * (`modules/matches/repository.ts`) — sem ele, cada linha exigiria uma segunda chamada só
- * para buscar um campo que já existe na tabela.
+ * O QUE O DESENHO TEM E A API NÃO PUBLICA: posse, finalizações e escanteios por partida. As
+ * colunas não existem; a nota do pé declara o motivo. Placar ausente não vira 0×0.
  */
 
 interface Facet {
   id: string;
   name: string;
   count: number;
-}
-
-interface MatchRow {
-  id: string;
-  date: string;
-  round: string | null;
-  homeScore: number | null;
-  awayScore: number | null;
-  // T579 (ITEM 20) — `logoUrl` é devolvido pela API de partidas (aditivo no select do
-  // repositório): o escudo é o mesmo asset já auditado do acervo (`Club.logoUrl`).
-  homeClub: { id: string; name: string; logoUrl?: string | null } | null;
-  awayClub: { id: string; name: string; logoUrl?: string | null } | null;
-  competition: { id: string; name: string } | null;
-  season: { id: string; name: string } | null;
 }
 
 interface SearchParams {
@@ -83,6 +68,16 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
+/** Remove UM filtro da URL, preservando os outros e voltando à primeira página. */
+function hrefSem(sp: SearchParams, key: keyof SearchParams): string {
+  const q = new URLSearchParams();
+  for (const k of ['competitionId', 'seasonId', 'dateFrom', 'dateTo'] as const) {
+    if (k === key) continue;
+    if (sp[k]) q.set(k, sp[k] as string);
+  }
+  return '/matches' + (q.toString() ? `?${q.toString()}` : '');
+}
+
 export default async function MatchesPage({
   searchParams,
 }: {
@@ -92,6 +87,7 @@ export default async function MatchesPage({
   const locale = await getLocale();
   const t = wt541Strings[locale];
   const t579 = wt579Strings[locale];
+  const s = wsConceitoPartidas[locale];
   const base = getApiBase();
 
   const offset = Math.max(parseInt(sp.offset ?? '0', 10) || 0, 0);
@@ -103,12 +99,9 @@ export default async function MatchesPage({
 
   const [facets, list] = await Promise.all([
     fetchJson<{ competitions: Facet[]; seasons: Facet[] }>(`${base}/matches/facets`),
-    fetchJson<{ data: MatchRow[]; total: number }>(`${base}/matches?${query.toString()}`),
+    fetchJson<{ data: MatchRowData[]; total: number }>(`${base}/matches?${query.toString()}`),
   ]);
 
-  // `null` = a consulta FALHOU (o fetcher já devolve null). Zero resultados e falha de rede são
-  // coisas diferentes: a primeira é "não há partida para este recorte", a segunda é
-  // "não foi possível saber" — e a tela não pode apresentar a segunda como se fosse a primeira.
   const falhou = list === null;
   const rows = list?.data ?? [];
   const total = list?.total ?? 0;
@@ -125,41 +118,51 @@ export default async function MatchesPage({
     return `/matches?${q.toString()}`;
   };
 
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime())
-      ? '—'
-      : d.toLocaleDateString(
-          locale === 'en-us' ? 'en-GB' : locale === 'es-es' ? 'es-ES' : 'pt-BR',
-          {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            timeZone: 'UTC',
-          },
-        );
-  };
+  const compSelecionada = facets?.competitions?.find((c) => c.id === sp.competitionId);
+  const seasonSelecionada = facets?.seasons?.find((x) => x.id === sp.seasonId);
+  const filtrosAtivos: Array<{ key: keyof SearchParams; label: string }> = [];
+  if (compSelecionada) {
+    filtrosAtivos.push({
+      key: 'competitionId',
+      label: `${t.filters.competition}: ${compSelecionada.name}`,
+    });
+  }
+  if (seasonSelecionada) {
+    filtrosAtivos.push({
+      key: 'seasonId',
+      label: `${t.filters.season}: ${seasonSelecionada.name}`,
+    });
+  }
+  if (sp.dateFrom)
+    filtrosAtivos.push({ key: 'dateFrom', label: `${t.filters.from}: ${sp.dateFrom}` });
+  if (sp.dateTo) filtrosAtivos.push({ key: 'dateTo', label: `${t.filters.to}: ${sp.dateTo}` });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <header className="mb-6">
-        <FichaHead
-          title={t.title}
-          subtitle={t.subtitle}
-          anchor={total != null ? String(total) : undefined}
-        />
-      </header>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <FichaHead
+        title={t.title}
+        subtitle={`${s.kicker} · ${s.subtitle}`}
+        anchor={falhou || total === 0 ? undefined : formatCount(total, locale)}
+        anchorLabel={s.anchorLabel}
+      />
 
-      {/* Filtros em formulário GET: sem JS, navegável por teclado, estado na URL. */}
-      <form method="get" className="rounded-xl border border-border bg-background p-5 shadow-sm">
-        <fieldset className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 1. FILTROS — caixas do conceito; o estado mora na URL. */}
+      <form
+        method="get"
+        className="mt-8"
+        aria-label={t.filters.legend}
+        data-testid="conceito-partidas-filters"
+      >
+        <fieldset className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <legend className="sr-only">{t.filters.legend}</legend>
-          <label className="flex min-w-0 flex-col gap-1 text-sm">
-            <span className="text-foreground/60">{t.filters.competition}</span>
+          <label className="flex min-w-0 flex-col rounded-[2px] border border-border bg-surface px-3 py-2">
+            <span className="text-[10px] font-semibold leading-none text-ink-3">
+              {t.filters.competition}
+            </span>
             <select
               name="competitionId"
               defaultValue={sp.competitionId ?? ''}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+              className="mt-1 w-full border-0 bg-transparent p-0 text-[14px] text-foreground focus:outline-none"
             >
               <option value="">{t.filters.allCompetitions}</option>
               {(facets?.competitions ?? []).map((c) => (
@@ -169,58 +172,84 @@ export default async function MatchesPage({
               ))}
             </select>
           </label>
-          <label className="flex min-w-0 flex-col gap-1 text-sm">
-            <span className="text-foreground/60">{t.filters.season}</span>
+
+          <label className="flex min-w-0 flex-col rounded-[2px] border border-border bg-surface px-3 py-2">
+            <span className="text-[10px] font-semibold leading-none text-ink-3">
+              {t.filters.season}
+            </span>
             <select
               name="seasonId"
               defaultValue={sp.seasonId ?? ''}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+              className="mt-1 w-full border-0 bg-transparent p-0 text-[14px] text-foreground focus:outline-none"
             >
               <option value="">{t.filters.allSeasons}</option>
-              {(facets?.seasons ?? []).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.count})
+              {(facets?.seasons ?? []).map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name} ({x.count})
                 </option>
               ))}
             </select>
           </label>
-          <label className="flex min-w-0 flex-col gap-1 text-sm">
-            <span className="text-foreground/60">{t.filters.from}</span>
+
+          <label className="flex min-w-0 flex-col rounded-[2px] border border-border bg-surface px-3 py-2">
+            <span className="text-[10px] font-semibold leading-none text-ink-3">
+              {t.filters.from}
+            </span>
             <input
               type="date"
               name="dateFrom"
               defaultValue={sp.dateFrom ?? ''}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+              className="mt-1 w-full border-0 bg-transparent p-0 text-[14px] text-foreground focus:outline-none"
             />
           </label>
-          <label className="flex min-w-0 flex-col gap-1 text-sm">
-            <span className="text-foreground/60">{t.filters.to}</span>
+
+          <label className="flex min-w-0 flex-col rounded-[2px] border border-border bg-surface px-3 py-2">
+            <span className="text-[10px] font-semibold leading-none text-ink-3">
+              {t.filters.to}
+            </span>
             <input
               type="date"
               name="dateTo"
               defaultValue={sp.dateTo ?? ''}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+              className="mt-1 w-full border-0 bg-transparent p-0 text-[14px] text-foreground focus:outline-none"
             />
           </label>
         </fieldset>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            className="rounded-lg bg-primary px-4 py-2 font-medium text-on-primary"
+            className="inline-flex min-h-9 items-center rounded-[2px] bg-foreground px-4 text-[13px] font-semibold text-background transition-colors duration-200 hover:bg-foreground/90"
           >
             {t.filters.apply}
           </button>
-          <Link href="/matches" className="text-sm text-primary-ink underline">
-            {t.filters.clear}
-          </Link>
-          {/* Contagem só quando há contagem: com a origem fora, "0 partidas encontradas"
-              contradizia o ErrorState logo abaixo — um dizia "nada", o outro "não deu para saber". */}
-          {falhou ? null : (
-            <span className="text-sm text-foreground/60">
-              {total.toLocaleString(locale)} {t.filters.results}
-            </span>
-          )}
+          {filtrosAtivos.length > 0 ? (
+            <Link
+              href="/matches"
+              className="inline-flex min-h-9 items-center text-[11px] font-medium text-primary-ink underline decoration-dotted underline-offset-2"
+            >
+              {s.clearAll}
+            </Link>
+          ) : null}
         </div>
+
+        {filtrosAtivos.length > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-semibold leading-none text-ink-3">
+              {s.activeLabel}
+            </span>
+            {filtrosAtivos.map((f) => (
+              <Link
+                key={f.key}
+                href={hrefSem(sp, f.key)}
+                className="inline-flex min-h-7 items-center gap-2 rounded-full border border-border px-3 text-[11px] text-ink-2 transition-colors duration-200 hover:border-foreground hover:text-foreground"
+              >
+                {f.label}
+                <span aria-hidden="true">×</span>
+              </Link>
+            ))}
+          </div>
+        ) : null}
       </form>
 
       {falhou ? (
@@ -237,141 +266,60 @@ export default async function MatchesPage({
           <EmptyState title={t.filters.noResults} body={t.filters.noResultsHint} />
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-background shadow-sm">
-          <table className="w-full text-sm">
-            <caption className="sr-only">{t.title}</caption>
-            <thead className="bg-muted text-left">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium text-foreground">
-                  {t.table.date}
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-foreground">
-                  {t.table.match}
-                </th>
-                {/* T579 (ITEM 20) — a coluna "Placar" foi ABSORVIDA pela coluna "Partida".
-                    O dono pediu a frase na ordem do confronto — "SS Lazio 0 x 1 Unione
-                    Sportiva Lecce" — e essa ordem é impossível de montar com os dois placares
-                    numa célula à parte: o leitor teria de saltar para a direita no meio da
-                    frase. Placar separado do nome também é o que faz o leitor de tela dizer
-                    os nomes primeiro e os números depois, sem dizer de quem é cada número. */}
-                <th scope="col" className="px-4 py-3 font-medium text-foreground">
-                  {t.table.competition}
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-foreground">
-                  {t.table.season}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((m) => (
-                <tr key={m.id} className="border-t border-border/50">
-                  <td className="whitespace-nowrap px-4 py-3 text-foreground/60">
-                    {fmtDate(m.date)}
-                  </td>
-                  <td className="px-4 py-3 text-foreground">
-                    <Confronto
-                      match={m}
-                      joiner={t579.matches.scoreJoiner}
-                      noScore={t579.matches.noScore}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-foreground/60">{m.competition?.name ?? '—'}</td>
-                  <td className="px-4 py-3 text-foreground/60">
-                    {m.season?.name ?? '—'}
-                    {m.round ? <span className="ml-1 text-foreground/70">· {m.round}</span> : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {(hasPrev || hasNext) && (
-        <nav className="mt-6 flex items-center justify-center gap-4" aria-label={t.title}>
-          {hasPrev && (
-            <Link
-              href={pageQuery(Math.max(offset - PAGE_SIZE, 0))}
-              className="text-primary-ink underline"
-            >
-              ← {t.pagination.previous}
-            </Link>
-          )}
-          <span className="text-sm text-foreground/60">
-            {t.pagination.page} {Math.floor(offset / PAGE_SIZE) + 1}
-          </span>
-          {hasNext && (
-            <Link href={pageQuery(offset + PAGE_SIZE)} className="text-primary-ink underline">
-              {t.pagination.next} →
-            </Link>
-          )}
-        </nav>
-      )}
-
-      <p className="mt-8 text-xs text-foreground/60">{t.source}</p>
-    </div>
-  );
-}
-
-/**
- * T579 (ITEM 20) — o CONFRONTO na ordem em que se lê um resultado:
- * `escudo · time da casa · placar da casa · × · placar do visitante · time visitante · escudo`.
- *
- * A ordem visual é a ordem do DOM, e é isso que faz a leitura funcionar: um leitor de tela
- * anuncia a sequência como ela aparece. O "×" é DECORATIVO (`aria-hidden`) e quem carrega a
- * fala é a conjunção invisível (`a`/`to`) — o resultado soa "SS Lazio 0 a 1 Unione Sportiva
- * Lecce", com cada número colado no time a que pertence. Sem isso, o "×" seria lido como
- * "vezes" no meio da frase, ou — pior, no desenho antigo com placar em outra coluna — os dois
- * números chegariam longe dos nomes, sem dizer de quem são.
- *
- * Placar ausente na fonte: os dois números são uma UNIDADE. Se um dos lados falta, não existe
- * "1 × —" a inventar; a célula DECLARA a lacuna (`sem placar na fonte`) em vez de mostrar
- * zero, que é um número com cara de fato.
- *
- * Sem logo no acervo, entra o escudo genérico AUTORAL do projeto via `ClubCrest` — nunca um
- * brasão inventado (mesma regra do `PlayerPhoto`).
- */
-function Confronto({
-  match,
-  joiner,
-  noScore,
-}: {
-  match: MatchRow;
-  joiner: string;
-  noScore: string;
-}) {
-  const { homeClub, awayClub, homeScore, awayScore } = match;
-  const temPlacar = homeScore != null && awayScore != null;
-  return (
-    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-      {homeClub ? <ClubCrest logoUrl={homeClub.logoUrl} name={homeClub.name} size={26} /> : null}
-      {homeClub ? (
-        <Link href={`/clubs/${homeClub.id}`} className="text-primary-ink underline">
-          {homeClub.name}
-        </Link>
-      ) : (
-        <span className="text-foreground/70">—</span>
-      )}
-      {temPlacar ? (
         <>
-          <span className="font-heading font-bold tabular-nums">{homeScore}</span>
-          <span aria-hidden="true" className="text-foreground/60">
-            ×
-          </span>
-          <span className="sr-only">{joiner}</span>
-          <span className="font-heading font-bold tabular-nums">{awayScore}</span>
+          <div className="mt-8 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-[12.5px] font-semibold text-foreground">{s.resultsTitle}</h2>
+            <p className="text-[11px] text-ink-3">
+              {formatCount(total, locale)} {t.filters.results}
+            </p>
+          </div>
+
+          <MatchList
+            rows={rows}
+            locale={locale}
+            openLabel={s.open}
+            scoreJoiner={t579.matches.scoreJoiner}
+            noScore={t579.matches.noScore}
+            dataLabel={t.title}
+          />
+
+          <PageStats rows={rows} s={s} />
+
+          {(hasPrev || hasNext) && (
+            <nav className="mt-6 flex items-center justify-between" aria-label={t.title}>
+              {hasPrev ? (
+                <Link
+                  href={pageQuery(Math.max(offset - PAGE_SIZE, 0))}
+                  className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                >
+                  ← {t.pagination.previous}
+                </Link>
+              ) : (
+                <span />
+              )}
+              <span className="text-[11px] text-ink-3">
+                {t.pagination.page} {Math.floor(offset / PAGE_SIZE) + 1}
+              </span>
+              {hasNext ? (
+                <Link
+                  href={pageQuery(offset + PAGE_SIZE)}
+                  className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                >
+                  {t.pagination.next} →
+                </Link>
+              ) : (
+                <span />
+              )}
+            </nav>
+          )}
         </>
-      ) : (
-        <span className="text-foreground/60">{noScore}</span>
       )}
-      {awayClub ? (
-        <Link href={`/clubs/${awayClub.id}`} className="text-primary-ink underline">
-          {awayClub.name}
-        </Link>
-      ) : (
-        <span className="text-foreground/70">—</span>
-      )}
-      {awayClub ? <ClubCrest logoUrl={awayClub.logoUrl} name={awayClub.name} size={26} /> : null}
-    </span>
+
+      <div className="mt-10 space-y-1 border-t border-border pt-3">
+        <p className="max-w-[900px] text-[11px] leading-snug text-ink-3">{s.provenance}</p>
+        <p className="max-w-[900px] text-[11px] leading-snug text-ink-3">{s.noShotStats}</p>
+        <p className="max-w-[900px] text-[11px] leading-snug text-ink-3">{t.source}</p>
+      </div>
+    </div>
   );
 }
