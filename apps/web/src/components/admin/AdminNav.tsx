@@ -34,11 +34,14 @@ export default function AdminNav() {
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <nav aria-label={s.nav.label} className="border-b border-border bg-surface">
+    <nav
+      aria-label={s.nav.label}
+      className="border-b border-foreground/20 bg-foreground text-background"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <Link
           href="/dashboard"
-          className="inline-flex min-h-6 items-center gap-1.5 text-sm text-ink-2 hover:text-primary-ink transition-colors duration-200"
+          className="inline-flex min-h-6 items-center gap-1.5 text-[12px] text-background/70 transition-colors duration-200 hover:text-background"
         >
           <span aria-hidden="true">←</span>
           <span>{s.nav.back}</span>
@@ -48,17 +51,17 @@ export default function AdminNav() {
           {s.nav.areas.map((area) => {
             const current = isCurrent(area.href);
             return (
-              <li key={area.href}>
+              <li key={`${area.href}-${area.label}`}>
                 <Link
                   href={area.href}
                   aria-current={current ? 'page' : undefined}
                   data-testid={`admin-nav-${
                     area.href === '/admin' ? 'index' : area.href.split('/').slice(2).join('-')
                   }`}
-                  className={`inline-flex min-h-6 items-center rounded-lg px-2.5 py-1.5 text-sm transition-colors duration-200 ${
+                  className={`inline-flex min-h-6 items-center rounded-[2px] px-2.5 py-1.5 text-[12px] transition-colors duration-200 ${
                     current
-                      ? 'bg-muted font-semibold text-primary-ink'
-                      : 'text-ink-2 hover:bg-muted hover:text-primary-ink'
+                      ? 'bg-background/10 font-semibold text-background underline decoration-2 underline-offset-4 decoration-[var(--color-secondary)]'
+                      : 'text-background/70 hover:bg-background/10 hover:text-background'
                   }`}
                 >
                   {area.label}
