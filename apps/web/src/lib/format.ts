@@ -29,3 +29,32 @@ export function formatDate(value: string | Date, locale: Locale): string {
     year: 'numeric',
   }).format(date);
 }
+
+/**
+ * Idade relativa ("há 5 min", "5 min. ago") para timestamps operacionais.
+ *
+ * `numeric: 'always'` é intencional: `auto` responderia "anteontem" para 2 dias,
+ * o que é preciso para calendário e vago para staleness — aqui a pergunta é
+ * "quanto tempo atrás", não "que dia foi". Abaixo de 10 s usamos o modo `auto`
+ * só para ganhar o "agora"/"now" nativo do idioma. Valor inválido volta como
+ * string, igual ao `formatDate` (honesto em vez de `Invalid Date`).
+ */
+export function formatRelativeTime(value: string | Date, locale: Locale, now = Date.now()): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const tag = INTL_TAG[locale] ?? 'pt-BR';
+  const diffMs = date.getTime() - now;
+  const abs = Math.abs(diffMs);
+  if (abs < 10_000) {
+    return new Intl.RelativeTimeFormat(tag, { numeric: 'auto', style: 'short' }).format(
+      0,
+      'second',
+    );
+  }
+  const rtf = new Intl.RelativeTimeFormat(tag, { numeric: 'always', style: 'short' });
+  const sign = diffMs < 0 ? -1 : 1;
+  if (abs < 60_000) return rtf.format(sign * Math.round(abs / 1000), 'second');
+  if (abs < 3_600_000) return rtf.format(sign * Math.round(abs / 60_000), 'minute');
+  if (abs < 86_400_000) return rtf.format(sign * Math.round(abs / 3_600_000), 'hour');
+  return rtf.format(sign * Math.round(abs / 86_400_000), 'day');
+}
