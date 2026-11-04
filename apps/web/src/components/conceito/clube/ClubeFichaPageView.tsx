@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import FichaHead from '@/components/ficha/FichaHead';
 import Pillar from '@/components/ficha/Pillar';
+import { Trophy } from '@/components/ficha/Metal';
 import SectionHeading from '@/components/ficha/SectionHeading';
 import { EmptyState } from '@/components/ficha/States';
 import SourceNote from '@/components/SourceNote';
@@ -159,6 +160,80 @@ function CrestFrame({
         )}
       </figcaption>
     </figure>
+  );
+}
+
+function RankingMini({
+  ranking,
+  locale,
+}: {
+  ranking: ClubProfile['rankings']['items'][number];
+  locale: Locale;
+}) {
+  const t = conceitoClubeStrings[locale].head;
+  return (
+    <aside
+      className="w-[184px] shrink-0 rounded-[2px] border border-border bg-surface px-3 py-2"
+      data-testid="club-ranking-card"
+    >
+      <p className="text-[10px] font-semibold tracking-[0.1em] text-ink-3 uppercase">{t.ranking}</p>
+      <p className="num mt-1 text-[30px] leading-none font-bold text-primary-ink">
+        {ranking.position != null ? `${ranking.position}º` : '—'}
+      </p>
+      <p className="mt-1 text-[11px] text-ink-3">
+        {ranking.points != null
+          ? fillClube(t.rankingPoints, { points: formatCount(ranking.points, locale) })
+          : '—'}
+      </p>
+      <p className="mt-1 truncate text-[10px] text-ink-3">{ranking.rankingName}</p>
+      <Link
+        href={`/rankings/${ranking.rankingId}`}
+        className="mt-1 inline-flex min-h-6 items-center text-[10px] text-primary-ink underline decoration-dotted underline-offset-2"
+      >
+        {t.rankingLink}
+      </Link>
+    </aside>
+  );
+}
+
+function TrophyRow({ club, locale }: { club: ClubProfile; locale: Locale }) {
+  const t = conceitoClubeStrings[locale];
+  const rows = groupHonours(club.titles.items)
+    .sort((a, b) => b.titles - a.titles)
+    .slice(0, 5);
+  if (rows.length === 0) return null;
+  const total = club.titles.items.length;
+  return (
+    <section
+      className="mt-8 border-t border-border pt-5"
+      data-testid="club-trophies"
+      aria-label={t.trophies.heading}
+    >
+      <SectionHeading
+        aside={fillClube(t.trophies.aside, {
+          titles: formatCount(total, locale),
+          competitions: formatCount(groupHonours(club.titles.items).length, locale),
+        })}
+      >
+        {t.trophies.heading}
+      </SectionHeading>
+      <ul className="mt-3 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+        {rows.map((row) => (
+          <li
+            key={row.key}
+            className="flex flex-col items-center justify-between gap-2 rounded-[2px] border border-border bg-surface px-3 py-4 text-center"
+          >
+            <Trophy size={38} color="var(--color-metal-ouro)" />
+            <span className="text-[12px] font-semibold leading-tight text-foreground">
+              {row.competitionName ?? '—'}
+            </span>
+            <span className="num text-[22px] leading-none font-bold text-secondary">
+              {formatCount(row.titles, locale)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -1045,7 +1120,12 @@ export default function ClubeFichaPageView({
               </p>
             ) : null}
           </div>
-          <CrestFrame club={club} crests={crests} locale={locale} />
+          <div className="flex flex-wrap items-start justify-end gap-4">
+            {club.rankings.available && club.rankings.items[0] ? (
+              <RankingMini ranking={club.rankings.items[0]} locale={locale} />
+            ) : null}
+            <CrestFrame club={club} crests={crests} locale={locale} />
+          </div>
         </div>
       </header>
 
@@ -1069,6 +1149,8 @@ export default function ClubeFichaPageView({
           </dl>
         </section>
       ) : null}
+
+      <TrophyRow club={club} locale={locale} />
 
       <AboutSection club={club} locale={locale} />
 
