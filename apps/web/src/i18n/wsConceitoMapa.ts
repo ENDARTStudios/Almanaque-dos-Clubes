@@ -33,6 +33,7 @@ export interface ConceitoMapaStrings {
   anchorLabel: string;
   /** Rótulo acessível do grupo de filtros. */
   filtersLegend: string;
+  advancedFilters: string;
   /** Rótulo acessível da coluna de índice (estados/cidades). */
   indexAria: string;
   countryLabel: string;
@@ -114,6 +115,7 @@ export const wsConceitoMapa: Record<Locale, ConceitoMapaStrings> = {
       'A intensidade é a densidade do acervo, não a população. Os filtros cruzam país, estado (UF) e cidade; o mapa plota apenas clubes com coordenada.',
     anchorLabel: 'clubes no acervo',
     filtersLegend: 'Filtros geográficos',
+    advancedFilters: 'Filtros avançados',
     indexAria: 'Índice geográfico do acervo',
     countryLabel: 'País',
     stateLabel: 'Estado (UF)',
@@ -180,6 +182,7 @@ export const wsConceitoMapa: Record<Locale, ConceitoMapaStrings> = {
       'Intensity is the density of the archive, not of the population. The filters cross country, state (UF) and city; the map plots only clubs with a coordinate.',
     anchorLabel: 'clubs in the archive',
     filtersLegend: 'Geographic filters',
+    advancedFilters: 'Advanced filters',
     indexAria: 'Geographic index of the archive',
     countryLabel: 'Country',
     stateLabel: 'State (UF)',
@@ -246,6 +249,7 @@ export const wsConceitoMapa: Record<Locale, ConceitoMapaStrings> = {
       'La intensidad es la densidad del acervo, no la población. Los filtros cruzan país, estado (UF) y ciudad; el mapa traza solo clubes con coordenada.',
     anchorLabel: 'clubes en el acervo',
     filtersLegend: 'Filtros geográficos',
+    advancedFilters: 'Filtros avanzados',
     indexAria: 'Índice geográfico del acervo',
     countryLabel: 'País',
     stateLabel: 'Estado (UF)',

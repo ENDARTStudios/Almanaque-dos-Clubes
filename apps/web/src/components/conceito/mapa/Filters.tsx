@@ -165,22 +165,29 @@ export default function MapFilters({
         </label>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-4">
-        <label
-          className="inline-flex min-h-11 items-center gap-2 text-sm text-ink-2"
-          htmlFor="geo-women"
-        >
-          <input
-            id="geo-women"
-            type="checkbox"
-            checked={onlyWomen}
-            onChange={(e) => onWomen(e.target.checked)}
-            data-testid="geo-women-toggle"
-            className="h-6 w-6 shrink-0"
-          />
-          {womenLabel}
-        </label>
-      </div>
+      {/* O recorte de gênero não está na faixa de filtros do quadro; ele fica em um
+          disclosure para não competir com os três níveis. O teste e o data-testid continuam. */}
+      <details className="mt-2">
+        <summary className="inline-flex min-h-6 cursor-pointer items-center text-[11px] text-ink-3">
+          {s.advancedFilters}
+        </summary>
+        <div className="mt-2">
+          <label
+            className="inline-flex min-h-9 items-center gap-2 text-[12px] text-ink-2"
+            htmlFor="geo-women"
+          >
+            <input
+              id="geo-women"
+              type="checkbox"
+              checked={onlyWomen}
+              onChange={(e) => onWomen(e.target.checked)}
+              data-testid="geo-women-toggle"
+              className="h-5 w-5 shrink-0"
+            />
+            {womenLabel}
+          </label>
+        </div>
+      </details>
     </div>
   );
 }
