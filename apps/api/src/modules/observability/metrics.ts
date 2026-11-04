@@ -9,11 +9,15 @@ export interface MetricLabels {
   [k: string]: string;
 }
 
+export type MetricType = 'counter' | 'gauge';
+
 export interface MetricSample {
   name: string;
   help: string;
   value: number;
   labels: MetricLabels;
+  /** Default 'counter' (compatível com os gauges antigos criados via `set`). */
+  type?: MetricType;
 }
 
 const EMPTY: MetricLabels = {};
@@ -27,6 +31,8 @@ function labelKey(labels: MetricLabels): string {
 export interface MetricsRegistry {
   inc(name: string, labels: MetricLabels | undefined, delta?: number): void;
   set(name: string, labels: MetricLabels | undefined, value: number): void;
+  /** Gauge explícito: `# TYPE <name> gauge` no /metrics (T-24/28 bots). */
+  gauge(name: string, labels: MetricLabels | undefined, value: number): void;
   snapshot(name: string): MetricSample[];
   all(): MetricSample[];
 }
@@ -63,9 +69,19 @@ export function createMetricsRegistry(): MetricsRegistry {
       store.push({ name, help: name, value, labels: { ...lbl } });
     }
   };
+  const gauge = (name: string, labels: MetricLabels | undefined, value: number): void => {
+    const lbl = labels ?? EMPTY;
+    const existing = findEntry(store, name, lbl);
+    if (existing) {
+      existing.value = value;
+      existing.type = 'gauge';
+    } else {
+      store.push({ name, help: name, value, labels: { ...lbl }, type: 'gauge' });
+    }
+  };
   const snapshot = (name: string): MetricSample[] => store.filter((e) => e.name === name);
   const all = (): MetricSample[] => store.map((e) => ({ ...e, labels: { ...e.labels } }));
-  return { inc, set, snapshot, all };
+  return { inc, set, gauge, snapshot, all };
 }
 
 /** Escapa valor de label (labels controladas ASCII; identidade e suficiente). */
@@ -83,7 +99,7 @@ export function formatLabels(labels: MetricLabels): string {
 export function renderPrometheus(entries: MetricSample[]): string {
   const lines: string[] = [];
   for (const e of entries) {
-    lines.push('# TYPE ' + e.name + ' counter');
+    lines.push('# TYPE ' + e.name + ' ' + (e.type ?? 'counter'));
     lines.push('# HELP ' + e.name + ' ' + e.help);
     lines.push(e.name + formatLabels(e.labels) + ' ' + e.value);
   }

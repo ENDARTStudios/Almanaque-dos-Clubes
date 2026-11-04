@@ -182,8 +182,8 @@ export async function runBot(
   });
 
   metrics.inc('bots_runs_total', { status });
-  metrics.set('bots_last_run_age_seconds', { bot: bot.id }, 0);
-  metrics.set('bots_consecutive_failures', { bot: bot.id }, consecutiveFailures);
+  metrics.gauge('bots_last_run_age_seconds', { bot: bot.id }, 0);
+  metrics.gauge('bots_consecutive_failures', { bot: bot.id }, consecutiveFailures);
 
   pushLog({
     level: status === 'failed' ? 'error' : 'info',
@@ -380,6 +380,10 @@ export async function runsSummary(
   const db = opts.prisma ?? defaultPrisma;
   const now = opts.now ?? Date.now;
   const ids = BOTS.map((b) => b.id);
+  const nowMs = now();
+  // Rodada dura no máximo 10 min por bot; `running` mais velho que 1h é fantasma
+  // de processo morto (não conta como execução em andamento).
+  const runningSince = new Date(nowMs - 3600_000);
   const [states, lastRuns, running] = await Promise.all([
     db.botState.findMany({ where: { id: { in: ids } } }),
     db.botRun.findMany({
@@ -400,7 +404,7 @@ export async function runsSummary(
         message: true,
       },
     }) as Promise<RunRow[]>,
-    db.botRun.count({ where: { status: 'running' } }),
+    db.botRun.count({ where: { status: 'running', startedAt: { gte: runningSince } } }),
   ]);
 
   const stateById = new Map(states.map((s) => [s.id, s]));
@@ -410,13 +414,15 @@ export async function runsSummary(
   }
 
   let staleMs = 0;
-  const nowMs = now();
   const bots: BotMonitorItem[] = BOTS.map((bot) => {
     const state = stateById.get(bot.id);
     const last = lastByBot.get(bot.id) ?? null;
     if (state?.lastRunAt) {
-      staleMs = Math.max(staleMs, Math.max(0, nowMs - state.lastRunAt.getTime()));
+      const ageMs = Math.max(0, nowMs - state.lastRunAt.getTime());
+      staleMs = Math.max(staleMs, ageMs);
+      metrics.gauge('bots_last_run_age_seconds', { bot: bot.id }, Math.round(ageMs / 1000));
     }
+    metrics.gauge('bots_consecutive_failures', { bot: bot.id }, state?.consecutiveFailures ?? 0);
     return {
       id: bot.id,
       domain: bot.domain,
