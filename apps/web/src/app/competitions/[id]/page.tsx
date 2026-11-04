@@ -333,9 +333,15 @@ export default async function CompetitionDetailPage({
   const dissolvedYear =
     comp.dissolvedAt != null ? new Date(comp.dissolvedAt).getUTCFullYear() : null;
 
+  // O quadro abre na CLASSIFICAÇÃO (tabela.png), não na visão geral. Quando a competição tem
+  // tabela catalogada, "temporadas" é a composição primária; as outras abas continuam a um
+  // clique, com todo o conteúdo antigo preservado.
+  const temTabela = seasons.some((se) => (se.standings?.length ?? 0) > 0);
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '')
     ? (tabParam as Tab)
-    : 'visao';
+    : temTabela
+      ? 'temporadas'
+      : 'visao';
 
   /*
    * CABEÇALHO — a âncora do quadro é "38 / RODADAS · 2024-25". O 38 sai da última temporada
@@ -364,6 +370,12 @@ export default async function CompetitionDetailPage({
     ? fillCompeticao(tc.head.subtitle, { season: tabelaRecente.season })
     : tc.head.subtitleNoTable;
 
+  const seasonFoco =
+    seasons.find((se) => se.season === seasonParam) ??
+    latestSeasonWithStandings(seasons) ??
+    seasons[0] ??
+    null;
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
@@ -374,12 +386,12 @@ export default async function CompetitionDetailPage({
   const currentChampion = overview?.editions?.[0] ?? null;
 
   const tabList: Array<{ id: Tab; label: string }> = [
+    // T508 (W4) — classificação por temporada primeiro: é a composição do quadro.
+    ...(seasons.length > 0 ? [{ id: 'temporadas' as Tab, label: t.tabs.seasons }] : []),
     { id: 'visao', label: t.tabs.overview },
     { id: 'edicoes', label: t.tabs.editions },
     { id: 'clubes', label: t.tabs.clubs },
     { id: 'campeoes', label: t.tabs.topWinners },
-    // T508 (W4) — classificação por temporada (só quando há dado no acervo).
-    ...(seasons.length > 0 ? [{ id: 'temporadas' as Tab, label: t.tabs.seasons }] : []),
     // T30/T33 — só aparece se a competição TEM partidas com placar: aba vazia não é opção.
     ...(matchHistory && matchHistory.matchesUsed > 0
       ? [{ id: 'pontuacao' as Tab, label: ti.tabLabel }]
@@ -750,150 +762,127 @@ export default async function CompetitionDetailPage({
         ) : null}
 
         {tab === 'temporadas' ? (
-          <div className="space-y-10">
-            {/* T-26 — RESUMO POR EDIÇÃO: partidas/gols/artilheiro/3º quando o acervo tem.
-                Tabela só entra se ao menos uma edição tem dado — sem tabela placebo. */}
-            {seasons.some(
-              (s) =>
-                s.totalMatches != null ||
-                s.totalGoals != null ||
-                s.topScorer != null ||
-                s.third != null,
-            ) ? (
-              <div data-testid="seasons-summary">
-                <TabelaFicha
-                  columns={[
-                    { key: 'season', label: t.season, align: 'left' },
-                    { key: 'matches', label: t.matches, align: 'right' },
-                    { key: 'goals', label: t.goals, align: 'right' },
-                    { key: 'topScorer', label: t.topScorer, align: 'left' },
-                    { key: 'third', label: ti.thirdPlace, align: 'left' },
-                  ]}
-                  rows={seasons.map((se) => [
-                    <span key="season" className="font-semibold text-foreground">
+          <div className="space-y-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="text-[12.5px] font-semibold text-foreground">
+                {tc.head.temporadasTitle}
+              </h2>
+              <nav aria-label={ti.seasonPickerLabel} className="flex flex-wrap gap-1.5">
+                {seasons.map((se) => {
+                  const ativa = se.season === seasonFoco?.season;
+                  return (
+                    <Link
+                      key={se.season}
+                      href={`/competitions/${id}?tab=temporadas&season=${encodeURIComponent(se.season)}`}
+                      aria-current={ativa ? 'page' : undefined}
+                      className={`inline-flex min-h-6 items-center rounded-[2px] border px-2.5 text-[11px] font-semibold transition-colors duration-200 ${
+                        ativa
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-border text-ink-2 hover:border-foreground hover:text-foreground'
+                      }`}
+                    >
                       {se.season}
-                    </span>,
-                    <span key="matches">
-                      {se.totalMatches != null ? formatCount(se.totalMatches, locale) : '—'}
-                    </span>,
-                    <span key="goals">
-                      {se.totalGoals != null ? formatCount(se.totalGoals, locale) : '—'}
-                    </span>,
-                    <span key="top-scorer">
-                      {se.topScorer
-                        ? `${se.topScorer.name} (${formatCount(se.topScorer.goals, locale)})`
-                        : '—'}
-                    </span>,
-                    <span key="third">{se.third?.clubName ?? '—'}</span>,
-                  ])}
-                  caption={fillCompeticao(tc.tables.captionSeasonsSummary, {
-                    competition: comp.name,
-                  })}
-                  regionLabel={fillCompeticao(tc.tables.regionLabelSeasons, {
-                    competition: comp.name,
-                  })}
-                  testId="seasons-summary-table"
-                  minWidthClass="min-w-[620px]"
-                />
-                <p className="mt-2 text-[11px] leading-snug text-ink-3">{ti.metricsNote}</p>
-              </div>
-            ) : null}
-            {seasons.map((se) => (
-              <section key={se.season} data-testid={`season-${se.season}`}>
-                <SectionHeading
-                  as="h2"
-                  aside={
-                    se.topScorer
-                      ? `${t.topScorer}: ${se.topScorer.name} (${formatCount(se.topScorer.goals, locale)})`
-                      : undefined
-                  }
-                >
-                  {`${t.season} ${se.season}`}
-                </SectionHeading>
-                {se.champion || se.runnerUp || se.third || se.totalMatches || se.totalGoals ? (
-                  <p className="mb-3 text-[11px] leading-snug text-ink-2">
-                    {/* Em COPAS a posição 1 da tabela NÃO é o campeão — o título vem da final. */}
-                    {se.champion ? (
-                      <span>
-                        {t.champion}:{' '}
-                        <Link
-                          href={`/clubs/${se.champion.id}`}
-                          className="font-semibold text-primary-ink hover:underline"
-                        >
-                          {se.champion.name ?? se.champion.id}
-                        </Link>
-                      </span>
-                    ) : null}
-                    {se.runnerUp ? (
-                      <span>
-                        {se.champion ? ' · ' : ''}
-                        {t.runnerUp}:{' '}
-                        <Link
-                          href={`/clubs/${se.runnerUp.id}`}
-                          className="text-primary-ink hover:underline"
-                        >
-                          {se.runnerUp.name ?? se.runnerUp.id}
-                        </Link>
-                      </span>
-                    ) : null}
-                    {se.third ? (
-                      <span>
-                        {se.champion || se.runnerUp ? ' · ' : ''}
-                        {ti.thirdPlace}:{' '}
-                        {se.third.clubId ? (
-                          <Link
-                            href={`/clubs/${se.third.clubId}`}
-                            className="text-primary-ink hover:underline"
-                          >
-                            {se.third.clubName}
-                          </Link>
-                        ) : (
-                          se.third.clubName
-                        )}
-                      </span>
-                    ) : null}
-                    {se.totalMatches ? (
-                      <span>
-                        {se.champion || se.runnerUp ? ' · ' : ''}
-                        {t.matches}: {formatCount(se.totalMatches, locale)}
-                      </span>
-                    ) : null}
-                    {se.totalGoals ? (
-                      <span>
-                        {se.champion || se.runnerUp || se.totalMatches ? ' · ' : ''}
-                        {t.goals}: {formatCount(se.totalGoals, locale)}
-                      </span>
-                    ) : null}
-                  </p>
-                ) : null}
-                {se.standings && se.standings.length > 0 ? (
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {seasonFoco ? (
+              <section data-testid={`season-${seasonFoco.season}`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <h2 className="text-[16px] font-semibold leading-tight text-foreground">
+                    {t.season} {seasonFoco.season}
+                  </h2>
+                  {seasonFoco.topScorer ? (
+                    <p className="text-[11px] text-ink-3">
+                      {t.topScorer}: {seasonFoco.topScorer.name} (
+                      {formatCount(seasonFoco.topScorer.goals, locale)})
+                    </p>
+                  ) : null}
+                </div>
+                {seasonFoco.standings && seasonFoco.standings.length > 0 ? (
                   <TabelaClassificacao
-                    rows={normalizeStandings(se.standings)}
+                    rows={normalizeStandings(seasonFoco.standings)}
                     locale={locale}
                     competitionName={comp.name}
-                    season={se.season}
+                    season={seasonFoco.season}
                     kind="standings"
                     s={tc}
-                    testId={`competition-standings-table-${se.season}`}
+                    testId={`competition-standings-table-${seasonFoco.season}`}
                     rowTestId="competition-standings-row"
                   />
                 ) : (
-                  <div data-testid={`season-standings-empty-${se.season}`}>
+                  <div data-testid={`season-standings-empty-${seasonFoco.season}`}>
                     <EmptyState
                       title={tc.states.noStandingsTitle}
                       body={tc.states.noStandingsBody}
                     />
                   </div>
                 )}
-                {/* FONTE — rodapé da seção, abaixo da tabela de temporadas. A tabela é o
-                    dado; a origem vem depois e em `SourceNote`, com o peso único do design
-                    system. Antes era um link solto de 12px com cor própria. */}
-                <SourceNote href={se.sourceUrl ?? null} label={t.source} detail={t.wikipedia} />
+                <SourceNote
+                  href={seasonFoco.sourceUrl ?? null}
+                  label={t.source}
+                  detail={t.wikipedia}
+                />
               </section>
-            ))}
-            {/* CRITÉRIOS uma vez para todas as tabelas da aba: a ordem é a da fonte, SG é
-                aritmética e forma/zonas/desempate são lacunas declaradas — repetir isso sob
-                cada temporada seria ruído, não informação. */}
+            ) : (
+              <EmptyState title={tc.states.noStandingsTitle} body={tc.states.noStandingsBody} />
+            )}
+
+            {/* O resumo por edição não está no quadro; fica em disclosure para não competir
+                com a classificação. */}
+            {seasons.some(
+              (se) =>
+                se.totalMatches != null ||
+                se.totalGoals != null ||
+                se.topScorer != null ||
+                se.third != null,
+            ) ? (
+              <details className="border-t border-border pt-3" data-testid="seasons-summary">
+                <summary className="cursor-pointer text-[12px] font-semibold text-foreground">
+                  {tc.head.seasonSummaryToggle}
+                </summary>
+                <div className="mt-3">
+                  <TabelaFicha
+                    columns={[
+                      { key: 'season', label: t.season, align: 'left' },
+                      { key: 'matches', label: t.matches, align: 'right' },
+                      { key: 'goals', label: t.goals, align: 'right' },
+                      { key: 'topScorer', label: t.topScorer, align: 'left' },
+                      { key: 'third', label: ti.thirdPlace, align: 'left' },
+                    ]}
+                    rows={seasons.map((se) => [
+                      <span key="season" className="font-semibold text-foreground">
+                        {se.season}
+                      </span>,
+                      <span key="matches">
+                        {se.totalMatches != null ? formatCount(se.totalMatches, locale) : '—'}
+                      </span>,
+                      <span key="goals">
+                        {se.totalGoals != null ? formatCount(se.totalGoals, locale) : '—'}
+                      </span>,
+                      <span key="top-scorer">
+                        {se.topScorer
+                          ? `${se.topScorer.name} (${formatCount(se.topScorer.goals, locale)})`
+                          : '—'}
+                      </span>,
+                      <span key="third">{se.third?.clubName ?? '—'}</span>,
+                    ])}
+                    caption={fillCompeticao(tc.tables.captionSeasonsSummary, {
+                      competition: comp.name,
+                    })}
+                    regionLabel={fillCompeticao(tc.tables.regionLabelSeasons, {
+                      competition: comp.name,
+                    })}
+                    testId="seasons-summary-table"
+                    minWidthClass="min-w-[620px]"
+                  />
+                  <p className="mt-2 text-[11px] leading-snug text-ink-3">{ti.metricsNote}</p>
+                </div>
+              </details>
+            ) : null}
+
             <Criterios
               testId="competition-standings-criteria"
               title={tc.criteria.title}

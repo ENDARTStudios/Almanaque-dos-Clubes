@@ -567,17 +567,17 @@ describe('/competitions/[id] — o payload real alimenta a ficha', () => {
     // Todas as abas originais continuam existindo (Pontuação só quando há partidas).
     const tabs = screen.getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'Temporadas',
       'Visão Geral',
       'Edições',
       'Clubes',
       'Maiores Campeões',
-      'Temporadas',
     ]);
   });
 
   it('a aba Visão Geral preserva ficha técnica, pódio, história e métricas', async () => {
     mockApi();
-    const { container } = await renderPage();
+    const { container } = await renderPage({ tab: 'visao' });
 
     const overview = screen.getByTestId('competition-insights');
     expect(overview.textContent).toContain('Ficha da competição');
@@ -626,7 +626,7 @@ describe('/competitions/[id] — o payload real alimenta a ficha', () => {
 
   it('temporada sem tabela catalogada usa vazio honesto — nada derivado de partidas', async () => {
     mockApi();
-    await renderPage({ tab: 'temporadas' });
+    await renderPage({ tab: 'temporadas', season: '2024' });
 
     const empty = screen.getByTestId('season-standings-empty-2024');
     expect(empty.textContent).toContain('Classificação em catalogação');

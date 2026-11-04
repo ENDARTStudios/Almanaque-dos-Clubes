@@ -75,6 +75,18 @@ continua declarada (nunca preenchida com o número ilustrativo do PNG).
   altura; agora é HTML (rótulo, barra e valor legíveis e selecionáveis).
 - O terceiro gráfico do quadro (gols por década) não existe no payload e não foi inventado.
 
+## Correções desta rodada — terceira parte
+
+### Competição (ficha) (`app/competitions/[id]/page.tsx`, `i18n/wsConceitoCompeticao.ts`)
+
+- A rota passa a abrir na **classificação** (tabela.png), não em "Visão Geral"; "Temporadas" é a
+  primeira aba e a temporada mais recente com tabela é o foco.
+- Uma única tabela de classificação em tela, com **seletor de temporada**; o resumo por edição
+  (que não existe no quadro) foi para um `<details>`.
+- O resumo "Todas as temporadas" empilhado saiu da composição primária; o restante das abas
+  (Visão Geral, Edições, Clubes, Maiores Campeões, Pontos corridos) segue acessível.
+- Zonas e "Últ. 5" continuam declarados como lacuna, como já fazia a tabela densa.
+
 ## Pendências (próximas rodadas)
 
 - Lendas: recalcular as métricas no escopo do panteão; estrutura de três gráficos e lista de
