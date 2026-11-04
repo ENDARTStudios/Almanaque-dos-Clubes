@@ -11,6 +11,11 @@ Método: captura full-page da produção em 1440 px, pareada com o PNG do quadro
 A revisão é do **desenho**, não do dado: onde a API não publica um campo do quadro, a lacuna
 continua declarada (nunca preenchida com o número ilustrativo do PNG).
 
+## Decisão de marca
+
+Os quadros usam o wordmark "ALMANAQUE | dos Clubes"; o Operador decidiu **manter o logo-icon**
+do projeto. A divergência é consciente e não entra na fila de correção.
+
 ## Placar da revisão
 
 | Tela                 | Quadro              | Composição    | O que divergia                                                                                                                                    | Estado                 |
@@ -119,5 +124,3 @@ continua declarada (nunca preenchida com o número ilustrativo do PNG).
 - Clube: revisar os blocos que ainda vêm do layout antigo contra `clube-migrado.png`.
 - Mapa: tirar a linha de gênero da composição primária e reposicionar a legenda.
 - Partidas: chips de filtro ativo e aproximar a densidade da tabela do quadro.
-- **Marca**: os quadros usam o wordmark "ALMANAQUE | dos Clubes"; o site usa o logo-icon. Troca
-  de identidade não foi feita por decisão de marca — fica registrada como divergência consciente.
