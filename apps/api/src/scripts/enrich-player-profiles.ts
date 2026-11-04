@@ -381,293 +381,337 @@ interface PlayerRow {
   individualAwards: unknown;
 }
 
-async function main(): Promise<void> {
-  console.log(
-    `T-22.3 enrich-player-profiles (${APPLY ? 'APPLY' : 'DRY-RUN'}) · limit=${LIMIT}` +
-      `${PLAYER_IDS.length ? ` · player-ids=${PLAYER_IDS.length}` : ''}`,
-  );
-  const prisma = new PrismaClient();
-  const nowIso = () => new Date().toISOString();
+export interface PlayerProfileBatchOptions {
+  apply: boolean;
+  limit?: number;
+  playerIds?: string[];
+  prisma?: PrismaClient;
+}
 
-  // Fila: qid != null e NUNCA tentado (`profileEnrichment` ausente) — com clube primeiro,
-  // depois createdAt. Sem ORDER BY não há fila determinística (lição T448/#448).
-  let players: PlayerRow[];
-  if (PLAYER_IDS.length > 0) {
-    // Modo explícito (--player-ids): re-tenta os pedidos, ignorando o cursor.
-    players = (await prisma.player.findMany({
-      where: { id: { in: PLAYER_IDS }, qid: { not: null } },
-      select: {
-        id: true,
-        qid: true,
-        fullName: true,
-        clubId: true,
-        birthDate: true,
-        position: true,
-        nickname: true,
-        heightCm: true,
-        preferredFoot: true,
-        individualAwards: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    })) as PlayerRow[];
-    const semQid = PLAYER_IDS.length - players.length;
-    if (semQid > 0) console.log(`  ${semQid} id(s) sem qid no acervo — ignorados`);
-  } else {
-    players = (await prisma.$queryRawUnsafe(
-      // `(clubId IS NULL)` false→true coloca com-clube primeiro; `profileEnrichment
-      // IS NULL` é o cursor de tentativa (registro ausente = nunca tentado, T550).
-      `SELECT id, qid, "fullName", "clubId", "birthDate", position, nickname, "heightCm",
+export interface PlayerProfileBatchResult {
+  processed: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  semEntidade: number;
+  message: string;
+}
+
+/**
+ * Lote importável do enriquecimento de perfil (T-24/28 — bot `players`).
+ *
+ * Reusa exatamente o cursor (`profileEnrichment IS NULL`), o pacing adaptativo e
+ * as guardas de plausibilidade do CLI. `main()` abaixo só parseia argv e delega.
+ */
+export async function runPlayerProfileBatch(
+  opts: PlayerProfileBatchOptions = { apply: false },
+): Promise<PlayerProfileBatchResult> {
+  const apply = opts.apply;
+  const limit = opts.limit ?? 200;
+  const playerIds = opts.playerIds ?? [];
+  const prisma = opts.prisma ?? new PrismaClient();
+  const ownPrisma = !opts.prisma;
+  const nowIso = () => new Date().toISOString();
+  console.log(
+    `T-22.3 enrich-player-profiles (${apply ? 'APPLY' : 'DRY-RUN'}) · limit=${limit}` +
+      `${playerIds.length ? ` · player-ids=${playerIds.length}` : ''}`,
+  );
+  try {
+    // Fila: qid != null e NUNCA tentado (`profileEnrichment` ausente) — com clube primeiro,
+    // depois createdAt. Sem ORDER BY não há fila determinística (lição T448/#448).
+    let players: PlayerRow[];
+    if (playerIds.length > 0) {
+      // Modo explícito (--player-ids): re-tenta os pedidos, ignorando o cursor.
+      players = (await prisma.player.findMany({
+        where: { id: { in: playerIds }, qid: { not: null } },
+        select: {
+          id: true,
+          qid: true,
+          fullName: true,
+          clubId: true,
+          birthDate: true,
+          position: true,
+          nickname: true,
+          heightCm: true,
+          preferredFoot: true,
+          individualAwards: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      })) as PlayerRow[];
+      const semQid = playerIds.length - players.length;
+      if (semQid > 0) console.log(`  ${semQid} id(s) sem qid no acervo — ignorados`);
+    } else {
+      players = (await prisma.$queryRawUnsafe(
+        // `(clubId IS NULL)` false→true coloca com-clube primeiro; `profileEnrichment
+        // IS NULL` é o cursor de tentativa (registro ausente = nunca tentado, T550).
+        `SELECT id, qid, "fullName", "clubId", "birthDate", position, nickname, "heightCm",
               "preferredFoot", "individualAwards"
          FROM players
         WHERE qid IS NOT NULL AND "profileEnrichment" IS NULL
         ORDER BY ("clubId" IS NULL) ASC, "createdAt" ASC
-        LIMIT ${Math.max(1, LIMIT)}`,
-    )) as unknown as PlayerRow[];
-  }
-  console.log(`  fila: ${players.length} jogador(es)`);
-
-  const { entities, failedQids } = await fetchEntitiesChunked(
-    players.map((p) => p.qid),
-    'claims|labels',
-  );
-
-  // 2ª rodada: labels dos QIDs referenciados (P413/P423/P166) para mapear posição/pé/prêmio.
-  const refQids: string[] = [];
-  for (const p of players) {
-    const ent = entities.get(p.qid);
-    if (!ent?.claims) continue;
-    for (const prop of ['P413', 'P423', 'P166']) {
-      for (const st of ent.claims[prop] ?? []) {
-        const v = st.mainsnak?.datavalue?.value as { id?: unknown } | undefined;
-        if (typeof v?.id === 'string' && /^Q\d+$/.test(v.id)) refQids.push(v.id);
-      }
+        LIMIT ${Math.max(1, limit)}`,
+      )) as unknown as PlayerRow[];
     }
-  }
-  const labelEntities = (await fetchEntitiesChunked(refQids, 'labels')).entities;
-  const labelByQid = new Map<string, string>();
-  for (const [qid, ent] of labelEntities) {
-    const label = ent.labels?.en?.value ?? ent.labels?.['pt-br']?.value ?? ent.labels?.pt?.value;
-    if (label) labelByQid.set(qid, label);
-  }
+    console.log(`  fila: ${players.length} jogador(es)`);
 
-  // Cache de clube por QID (o mesmo clube repete entre jogadores).
-  const clubIdByQid = new Map<string, string | null>();
-
-  const totals = {
-    processed: 0,
-    updated: 0,
-    skipped: 0,
-    missingClub: 0,
-    kgWritten: 0,
-    errors: 0,
-    semEntidade: 0,
-  };
-
-  for (const p of players) {
-    totals.processed++;
-    const ent = entities.get(p.qid);
-    if (!ent?.claims) {
-      // Transitório (chunk no 429/timeout) ≠ QID inexistente. Transitório NÃO grava
-      // cursor — o jogador volta na próxima rodada. QID morto/redirecionado grava
-      // `missing` para não ocupar a fila para sempre (gap declarado no acervo).
-      const transient = failedQids.has(p.qid);
-      if (transient) {
-        totals.errors++;
-        console.log(
-          `  [${p.qid}] ${p.fullName}: fetch transitório falhou — retorna na próxima rodada`,
-        );
-      } else {
-        totals.semEntidade++;
-        console.log(
-          `  [${p.qid}] ${p.fullName}: sem entidade no Wikidata (QID morto/redirecionado)`,
-        );
-        if (APPLY) {
-          await prisma.player.update({
-            where: { id: p.id },
-            data: {
-              profileEnrichment: {
-                at: nowIso(),
-                status: 'missing',
-                processed: 0,
-                updated: 0,
-                skipped: 0,
-                errors: 0,
-              },
-            },
-          });
-        }
-      }
-      continue;
-    }
-
-    const data: Prisma.PlayerUpdateInput = {};
-    const log: string[] = [];
-    let skipped = 0;
-
-    // P1449 — apelido (string); só quando NULL.
-    if (p.nickname == null) {
-      const nick = ent.claims.P1449?.[0]?.mainsnak?.datavalue?.value;
-      if (typeof nick === 'string' && nick.trim()) {
-        data.nickname = nick.trim();
-        log.push(`nickname="${nick.trim()}"`);
-      } else skipped++;
-    }
-
-    // P569 — nascimento; SÓ se NULL (nunca overwrite), só com precisão de dia.
-    if (p.birthDate == null) {
-      const birth = extractBirthDate(ent);
-      if (birth) {
-        data.birthDate = birth;
-        log.push(`birthDate=${birth.toISOString().slice(0, 10)}`);
-      } else skipped++;
-    }
-
-    // P2048 — altura em cm; só se NULL.
-    if (p.heightCm == null) {
-      const cm = extractHeightCm(ent);
-      if (cm != null) {
-        data.heightCm = cm;
-        log.push(`heightCm=${cm}`);
-      } else skipped++;
-    }
-
-    // P413 — posição via label; só se NULL; não-mapeável = ignora + loga.
-    if (p.position == null) {
-      const posQid = (ent.claims.P413?.[0]?.mainsnak?.datavalue?.value as { id?: unknown })?.id;
-      const label = typeof posQid === 'string' ? labelByQid.get(posQid) : undefined;
-      const position = label ? positionFromLabel(label) : null;
-      if (position) {
-        data.position = position;
-        log.push(`position=${position} (${label})`);
-      } else {
-        if (label) console.log(`    P413 "${label}" não mapeável — ignorado (${p.qid})`);
-        skipped++;
-      }
-    }
-
-    // P423 — pé preferido via label; só se NULL.
-    if (p.preferredFoot == null) {
-      const footQid = (ent.claims.P423?.[0]?.mainsnak?.datavalue?.value as { id?: unknown })?.id;
-      const label = typeof footQid === 'string' ? labelByQid.get(footQid) : undefined;
-      const foot = label ? footFromLabel(label) : null;
-      if (foot) {
-        data.preferredFoot = foot;
-        log.push(`preferredFoot=${foot}`);
-      } else skipped++;
-    }
-
-    // P166 — prêmios individuais (merge dedup por qid+year, year desc).
-    const awards = extractAwards(ent, labelByQid);
-    let awardsAdded = 0;
-    if (awards.length > 0) {
-      const { merged, added } = mergeAwards(p.individualAwards, awards);
-      if (added > 0) {
-        data.individualAwards = merged as unknown as Prisma.InputJsonValue;
-        awardsAdded = added;
-        log.push(`individualAwards +${added} (${merged.length} total)`);
-      }
-    }
-
-    // P54 — stints → KnowledgeGraph PLAYED_FOR (clube inexistente = skip + missingClub).
-    let kgWritten = 0;
-    let kgMissingClub = 0;
-    let kgKeptForeign = 0;
-    for (const stint of extractStints(ent)) {
-      let clubId = clubIdByQid.get(stint.clubQid);
-      if (clubId === undefined) {
-        const club = await prisma.club.findFirst({
-          where: { qid: stint.clubQid, deletedAt: null },
-          select: { id: true },
-        });
-        clubId = club?.id ?? null;
-        clubIdByQid.set(stint.clubQid, clubId);
-      }
-      if (!clubId) {
-        kgMissingClub++;
-        continue; // NUNCA criar clube
-      }
-      const existing = await prisma.knowledgeGraph.findFirst({
-        where: {
-          sourceId: p.id,
-          sourceType: 'Player',
-          relation: 'PLAYED_FOR',
-          targetId: clubId,
-        },
-        select: { id: true, metadata: true },
-      });
-      const { metadata, added } = mergeStintMetadata(existing?.metadata, stint);
-      const kept = ['apps', 'goals'].filter(
-        (k) =>
-          metadata[k] != null &&
-          (stint as unknown as Record<string, unknown>)[k] != null &&
-          (existing?.metadata as Record<string, unknown> | null)?.[k] != null,
-      );
-      if (kept.length > 0) kgKeptForeign += kept.length;
-      if (!existing) {
-        if (APPLY) {
-          await prisma.knowledgeGraph.create({
-            data: {
-              sourceId: p.id,
-              sourceType: 'Player',
-              relation: 'PLAYED_FOR',
-              targetId: clubId,
-              targetType: 'Club',
-              metadata: metadata as Prisma.InputJsonValue,
-            },
-          });
-        }
-        kgWritten++;
-      } else if (added.length > 0) {
-        if (APPLY) {
-          await prisma.knowledgeGraph.update({
-            where: { id: existing.id },
-            data: { metadata: metadata as Prisma.InputJsonValue },
-          });
-        }
-        kgWritten++;
-      }
-    }
-    totals.kgWritten += kgWritten;
-    totals.missingClub += kgMissingClub;
-    if (kgMissingClub > 0) log.push(`missingClub=${kgMissingClub}`);
-    if (kgKeptForeign > 0) log.push(`apps/goals já presentes mantidos=${kgKeptForeign}`);
-
-    const fieldsWritten = Object.keys(data).length;
-    const status = fieldsWritten + kgWritten > 0 ? 'ok' : 'skipped';
-    if (fieldsWritten + kgWritten > 0) totals.updated++;
-    else totals.skipped++;
-    console.log(
-      `  [${p.qid}] ${p.fullName}: ${status}${log.length ? ` — ${log.join(' · ')}` : ''}`,
+    const { entities, failedQids } = await fetchEntitiesChunked(
+      players.map((p) => p.qid),
+      'claims|labels',
     );
 
-    if (APPLY) {
-      // Cursor por jogador (padrão mediaEnrichment T550): a tentativa fica registrada
-      // mesmo quando nada pôde ser preenchido — é o que faz a fila avançar e o
-      // re-run ser noop.
-      await prisma.player.update({
-        where: { id: p.id },
-        data: {
-          ...data,
-          profileEnrichment: {
-            at: nowIso(),
-            status,
-            processed: log.length + awardsAdded,
-            updated: fieldsWritten + kgWritten,
-            skipped,
-            errors: 0,
-          },
-        },
-      });
+    // 2ª rodada: labels dos QIDs referenciados (P413/P423/P166) para mapear posição/pé/prêmio.
+    const refQids: string[] = [];
+    for (const p of players) {
+      const ent = entities.get(p.qid);
+      if (!ent?.claims) continue;
+      for (const prop of ['P413', 'P423', 'P166']) {
+        for (const st of ent.claims[prop] ?? []) {
+          const v = st.mainsnak?.datavalue?.value as { id?: unknown } | undefined;
+          if (typeof v?.id === 'string' && /^Q\d+$/.test(v.id)) refQids.push(v.id);
+        }
+      }
     }
-  }
+    const labelEntities = (await fetchEntitiesChunked(refQids, 'labels')).entities;
+    const labelByQid = new Map<string, string>();
+    for (const [qid, ent] of labelEntities) {
+      const label = ent.labels?.en?.value ?? ent.labels?.['pt-br']?.value ?? ent.labels?.pt?.value;
+      if (label) labelByQid.set(qid, label);
+    }
 
-  console.log(
-    `\nResumo (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
-      `atualizado=${totals.updated} skipped=${totals.skipped} ` +
-      `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors} semEntidade=${totals.semEntidade}`,
-  );
-  if (!APPLY) console.log('DRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
-  await prisma.$disconnect();
+    // Cache de clube por QID (o mesmo clube repete entre jogadores).
+    const clubIdByQid = new Map<string, string | null>();
+
+    const totals = {
+      processed: 0,
+      updated: 0,
+      skipped: 0,
+      missingClub: 0,
+      kgWritten: 0,
+      errors: 0,
+      semEntidade: 0,
+    };
+
+    for (const p of players) {
+      totals.processed++;
+      const ent = entities.get(p.qid);
+      if (!ent?.claims) {
+        // Transitório (chunk no 429/timeout) ≠ QID inexistente. Transitório NÃO grava
+        // cursor — o jogador volta na próxima rodada. QID morto/redirecionado grava
+        // `missing` para não ocupar a fila para sempre (gap declarado no acervo).
+        const transient = failedQids.has(p.qid);
+        if (transient) {
+          totals.errors++;
+          console.log(
+            `  [${p.qid}] ${p.fullName}: fetch transitório falhou — retorna na próxima rodada`,
+          );
+        } else {
+          totals.semEntidade++;
+          console.log(
+            `  [${p.qid}] ${p.fullName}: sem entidade no Wikidata (QID morto/redirecionado)`,
+          );
+          if (apply) {
+            await prisma.player.update({
+              where: { id: p.id },
+              data: {
+                profileEnrichment: {
+                  at: nowIso(),
+                  status: 'missing',
+                  processed: 0,
+                  updated: 0,
+                  skipped: 0,
+                  errors: 0,
+                },
+              },
+            });
+          }
+        }
+        continue;
+      }
+
+      const data: Prisma.PlayerUpdateInput = {};
+      const log: string[] = [];
+      let skipped = 0;
+
+      // P1449 — apelido (string); só quando NULL.
+      if (p.nickname == null) {
+        const nick = ent.claims.P1449?.[0]?.mainsnak?.datavalue?.value;
+        if (typeof nick === 'string' && nick.trim()) {
+          data.nickname = nick.trim();
+          log.push(`nickname="${nick.trim()}"`);
+        } else skipped++;
+      }
+
+      // P569 — nascimento; SÓ se NULL (nunca overwrite), só com precisão de dia.
+      if (p.birthDate == null) {
+        const birth = extractBirthDate(ent);
+        if (birth) {
+          data.birthDate = birth;
+          log.push(`birthDate=${birth.toISOString().slice(0, 10)}`);
+        } else skipped++;
+      }
+
+      // P2048 — altura em cm; só se NULL.
+      if (p.heightCm == null) {
+        const cm = extractHeightCm(ent);
+        if (cm != null) {
+          data.heightCm = cm;
+          log.push(`heightCm=${cm}`);
+        } else skipped++;
+      }
+
+      // P413 — posição via label; só se NULL; não-mapeável = ignora + loga.
+      if (p.position == null) {
+        const posQid = (ent.claims.P413?.[0]?.mainsnak?.datavalue?.value as { id?: unknown })?.id;
+        const label = typeof posQid === 'string' ? labelByQid.get(posQid) : undefined;
+        const position = label ? positionFromLabel(label) : null;
+        if (position) {
+          data.position = position;
+          log.push(`position=${position} (${label})`);
+        } else {
+          if (label) console.log(`    P413 "${label}" não mapeável — ignorado (${p.qid})`);
+          skipped++;
+        }
+      }
+
+      // P423 — pé preferido via label; só se NULL.
+      if (p.preferredFoot == null) {
+        const footQid = (ent.claims.P423?.[0]?.mainsnak?.datavalue?.value as { id?: unknown })?.id;
+        const label = typeof footQid === 'string' ? labelByQid.get(footQid) : undefined;
+        const foot = label ? footFromLabel(label) : null;
+        if (foot) {
+          data.preferredFoot = foot;
+          log.push(`preferredFoot=${foot}`);
+        } else skipped++;
+      }
+
+      // P166 — prêmios individuais (merge dedup por qid+year, year desc).
+      const awards = extractAwards(ent, labelByQid);
+      let awardsAdded = 0;
+      if (awards.length > 0) {
+        const { merged, added } = mergeAwards(p.individualAwards, awards);
+        if (added > 0) {
+          data.individualAwards = merged as unknown as Prisma.InputJsonValue;
+          awardsAdded = added;
+          log.push(`individualAwards +${added} (${merged.length} total)`);
+        }
+      }
+
+      // P54 — stints → KnowledgeGraph PLAYED_FOR (clube inexistente = skip + missingClub).
+      let kgWritten = 0;
+      let kgMissingClub = 0;
+      let kgKeptForeign = 0;
+      for (const stint of extractStints(ent)) {
+        let clubId = clubIdByQid.get(stint.clubQid);
+        if (clubId === undefined) {
+          const club = await prisma.club.findFirst({
+            where: { qid: stint.clubQid, deletedAt: null },
+            select: { id: true },
+          });
+          clubId = club?.id ?? null;
+          clubIdByQid.set(stint.clubQid, clubId);
+        }
+        if (!clubId) {
+          kgMissingClub++;
+          continue; // NUNCA criar clube
+        }
+        const existing = await prisma.knowledgeGraph.findFirst({
+          where: {
+            sourceId: p.id,
+            sourceType: 'Player',
+            relation: 'PLAYED_FOR',
+            targetId: clubId,
+          },
+          select: { id: true, metadata: true },
+        });
+        const { metadata, added } = mergeStintMetadata(existing?.metadata, stint);
+        const kept = ['apps', 'goals'].filter(
+          (k) =>
+            metadata[k] != null &&
+            (stint as unknown as Record<string, unknown>)[k] != null &&
+            (existing?.metadata as Record<string, unknown> | null)?.[k] != null,
+        );
+        if (kept.length > 0) kgKeptForeign += kept.length;
+        if (!existing) {
+          if (apply) {
+            await prisma.knowledgeGraph.create({
+              data: {
+                sourceId: p.id,
+                sourceType: 'Player',
+                relation: 'PLAYED_FOR',
+                targetId: clubId,
+                targetType: 'Club',
+                metadata: metadata as Prisma.InputJsonValue,
+              },
+            });
+          }
+          kgWritten++;
+        } else if (added.length > 0) {
+          if (apply) {
+            await prisma.knowledgeGraph.update({
+              where: { id: existing.id },
+              data: { metadata: metadata as Prisma.InputJsonValue },
+            });
+          }
+          kgWritten++;
+        }
+      }
+      totals.kgWritten += kgWritten;
+      totals.missingClub += kgMissingClub;
+      if (kgMissingClub > 0) log.push(`missingClub=${kgMissingClub}`);
+      if (kgKeptForeign > 0) log.push(`apps/goals já presentes mantidos=${kgKeptForeign}`);
+
+      const fieldsWritten = Object.keys(data).length;
+      const status = fieldsWritten + kgWritten > 0 ? 'ok' : 'skipped';
+      if (fieldsWritten + kgWritten > 0) totals.updated++;
+      else totals.skipped++;
+      console.log(
+        `  [${p.qid}] ${p.fullName}: ${status}${log.length ? ` — ${log.join(' · ')}` : ''}`,
+      );
+
+      if (apply) {
+        // Cursor por jogador (padrão mediaEnrichment T550): a tentativa fica registrada
+        // mesmo quando nada pôde ser preenchido — é o que faz a fila avançar e o
+        // re-run ser noop.
+        await prisma.player.update({
+          where: { id: p.id },
+          data: {
+            ...data,
+            profileEnrichment: {
+              at: nowIso(),
+              status,
+              processed: log.length + awardsAdded,
+              updated: fieldsWritten + kgWritten,
+              skipped,
+              errors: 0,
+            },
+          },
+        });
+      }
+    }
+
+    console.log(
+      `\nResumo (${apply ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
+        `atualizado=${totals.updated} skipped=${totals.skipped} ` +
+        `stintsKG=${totals.kgWritten} missingClub=${totals.missingClub} erros=${totals.errors} semEntidade=${totals.semEntidade}`,
+    );
+    if (!apply) console.log('DRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
+    return {
+      processed: totals.processed,
+      updated: totals.updated,
+      skipped: totals.skipped,
+      errors: totals.errors,
+      semEntidade: totals.semEntidade,
+      message:
+        `perfis: ${totals.processed} processados, ${totals.updated} atualizados, ` +
+        `${totals.skipped} sem dado, ${totals.errors} erros, ${totals.semEntidade} sem entidade`,
+    };
+  } finally {
+    if (ownPrisma) await prisma.$disconnect();
+  }
+}
+
+async function main(): Promise<void> {
+  await runPlayerProfileBatch({ apply: APPLY, limit: LIMIT, playerIds: PLAYER_IDS });
 }
 
 // Guarda de invocação direta: o módulo exporta extratores puros (testados no

@@ -206,7 +206,7 @@ interface Pass1Totals {
   withoutCityState: number; // cidade sem estado no acervo (gap declarado)
 }
 
-async function pass1CityToState(prisma: PrismaClient): Promise<Pass1Totals> {
+async function pass1CityToState(prisma: PrismaClient, apply: boolean): Promise<Pass1Totals> {
   const [row] = await prisma.$queryRaw<Array<{ queue: bigint; resolvable: bigint }>>`
     SELECT
       COUNT(*)::bigint AS queue,
@@ -221,7 +221,7 @@ async function pass1CityToState(prisma: PrismaClient): Promise<Pass1Totals> {
   };
   totals.withoutCityState = totals.queue - totals.resolvable;
 
-  if (!APPLY) {
+  if (!apply) {
     console.log(
       `  passada 1 (acervo): fila=${totals.queue} resolvíveis=${totals.resolvable} ` +
         `cidade-sem-estado=${totals.withoutCityState}`,
@@ -266,7 +266,19 @@ async function loadStatesByQid(prisma: PrismaClient): Promise<Map<string, StateR
   return map;
 }
 
-async function pass2WikidataP131(prisma: PrismaClient): Promise<void> {
+interface Pass2Totals {
+  processed: number;
+  resolved: number;
+  noMatch: number;
+  crossCountry: number;
+  errors: number;
+  byHop: Record<number, number>;
+}
+
+async function pass2WikidataP131(
+  prisma: PrismaClient,
+  opts: { apply: boolean; limit: number; country: string },
+): Promise<Pass2Totals> {
   // Fila: qid != null, stateId NULL, não-deletado, do país pedido (COALESCE cobre
   // clube com country legado NULL mas countryId normalizado).
   const clubs = await prisma.$queryRaw<Array<ClubRow>>`
@@ -276,10 +288,10 @@ async function pass2WikidataP131(prisma: PrismaClient): Promise<void> {
      WHERE c.qid IS NOT NULL
        AND c."stateId" IS NULL
        AND c."deletedAt" IS NULL
-       AND COALESCE(c.country, cc.iso2) = ${COUNTRY}
+       AND COALESCE(c.country, cc.iso2) = ${opts.country}
      ORDER BY c.name ASC
-     LIMIT ${Math.max(1, LIMIT)}`;
-  console.log(`\nPassada 2 (Wikidata P131, país=${COUNTRY}) — fila: ${clubs.length}`);
+     LIMIT ${Math.max(1, opts.limit)}`;
+  console.log(`\nPassada 2 (Wikidata P131, país=${opts.country}) — fila: ${clubs.length}`);
 
   const statesByQid = await loadStatesByQid(prisma);
   console.log(`  índice states.qid: ${statesByQid.size} estado(s) com QID`);
@@ -333,7 +345,7 @@ async function pass2WikidataP131(prisma: PrismaClient): Promise<void> {
         totals.resolved++;
         if (walk.hopsUsed != null)
           totals.byHop[walk.hopsUsed] = (totals.byHop[walk.hopsUsed] ?? 0) + 1;
-        if (APPLY) {
+        if (opts.apply) {
           // Guarda de não-sobrescrita: só grava se AINDA estiver NULL.
           await prisma.club.updateMany({
             where: { id: club.id, stateId: null },
@@ -356,30 +368,71 @@ async function pass2WikidataP131(prisma: PrismaClient): Promise<void> {
   }
 
   console.log(
-    `\nResumo passada 2 (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
+    `\nResumo passada 2 (${opts.apply ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
       `resolvido=${totals.resolved} sem-match=${totals.noMatch} ` +
       `cross-country=${totals.crossCountry} erros=${totals.errors} ` +
       `saltos(1/2/3)=${totals.byHop[1] ?? 0}/${totals.byHop[2] ?? 0}/${totals.byHop[3] ?? 0}`,
   );
+  return totals;
 }
 
-async function main(): Promise<void> {
+export interface FillClubStatesBatchOptions {
+  apply: boolean;
+  limit?: number;
+  country?: string;
+  prisma?: PrismaClient;
+}
+
+export interface FillClubStatesBatchResult {
+  processed: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  message: string;
+}
+
+/**
+ * Lote importável do fill-club-states (T-24/28 — bot `geo`): passada 1 derivada do
+ * acervo + passada 2 Wikidata P131, com a mesma guarda de país e zero overwrite.
+ */
+export async function runFillClubStatesBatch(
+  opts: FillClubStatesBatchOptions = { apply: false },
+): Promise<FillClubStatesBatchResult> {
+  const apply = opts.apply;
+  const limit = opts.limit ?? 500;
+  const country = (opts.country ?? 'BR').toUpperCase();
+  const prisma = opts.prisma ?? new PrismaClient();
+  const ownPrisma = !opts.prisma;
   console.log(
-    `T-24/28 fill-club-states (${APPLY ? 'APPLY' : 'DRY-RUN'}) · país=${COUNTRY} · limit=${LIMIT}`,
+    `T-24/28 fill-club-states (${apply ? 'APPLY' : 'DRY-RUN'}) · país=${country} · limit=${limit}`,
   );
-  const prisma = new PrismaClient();
   try {
-    const p1 = await pass1CityToState(prisma);
-    await pass2WikidataP131(prisma);
-    if (!APPLY) {
+    const p1 = await pass1CityToState(prisma, apply);
+    const p2 = await pass2WikidataP131(prisma, { apply, limit, country });
+    if (!apply) {
       console.log(
         `\nDRY-RUN: nenhuma escrita foi feita (passada 1 gravaria ${p1.resolvable}). ` +
           'Use --apply para gravar.',
       );
     }
+    return {
+      processed: p2.processed,
+      updated: (apply ? p1.resolvable : 0) + p2.resolved,
+      skipped: p2.noMatch,
+      errors: p2.errors,
+      message:
+        `geo: ${p2.processed} clubes sem estado processados, ` +
+        `${(apply ? p1.resolvable : 0) + p2.resolved} resolvidos, ` +
+        `${p2.noMatch} sem correspondência (${p2.crossCountry} país divergente), ` +
+        `${p2.errors} erros de leitura`,
+    };
   } finally {
-    await prisma.$disconnect();
+    if (ownPrisma) await prisma.$disconnect();
   }
+}
+
+async function main(): Promise<void> {
+  await runFillClubStatesBatch({ apply: APPLY, limit: LIMIT, country: COUNTRY });
 }
 
 // Guarda de invocação direta: o módulo exporta extratores puros (testados no

@@ -55,11 +55,6 @@ export const ENRICH_ALL_MEDIA_BATCH = 500;
 // consome N itens por dia. É o que tira a decisão "o que ingerir agora" das mãos
 // do operador: roda sozinho, com teto, retry e back-pressure.
 export const JOB_INGEST_BACKLOG = 'ingest-backlog' as const;
-// T603 — SISTEMA DE BOTS: a cada hora roda até 2 bots VENCIDOS (cadência por bot).
-// O registro decide o que vence; aqui é só o pulso.
-export const JOB_BOTS_CYCLE = 'bots-cycle' as const;
-export const BOTS_CYCLE_CRON_PATTERN = '0 * * * *' as const;
-export const BOTS_PER_CYCLE = 2;
 export const INGEST_BACKLOG_CRON_PATTERN = '0 8 * * *' as const;
 export const INGEST_BACKLOG_ITEMS_PER_RUN = 3;
 
@@ -215,7 +210,6 @@ function record(jobName: string, status: 'success' | 'failure', durationMs: numb
 const JOB_TIMEOUT_MS_BY_JOB: Record<string, number> = {
   // T602 — cada item baixa e parseia uma página inteira; 3 itens por rodada.
   [JOB_INGEST_BACKLOG]: 20 * 60 * 1000,
-  [JOB_BOTS_CYCLE]: 40 * 60 * 1000, // 2 bots × 20 min
   [JOB_ENRICH_ALL_MEDIA]: 20 * 60 * 1000,
 };
 
@@ -352,10 +346,6 @@ export async function dataRefreshJobHandler(job: Job): Promise<void> {
         'data-refresh: enrich-clubs-editorial ok',
       );
       pushLog({ level: 'info', job: job.name, event: 'done', data: { ...out } });
-    } else if (job.name === JOB_BOTS_CYCLE) {
-      const { runBotCycle } = await import('../modules/bots/scheduler.js');
-      const out = await runBotCycle(prisma, BOTS_PER_CYCLE);
-      pushLog({ level: 'info', job: job.name, event: 'done', data: out });
     } else if (job.name === JOB_INGEST_BACKLOG) {
       // T602 — plano + consumo. O plano é idempotente (UNIQUE source+season).
       const { planAndRunBacklog, defaultRunnerDeps } =
@@ -524,20 +514,6 @@ export async function registerDataRefreshCron(): Promise<void> {
       },
     },
   );
-  // T603 — pulso do sistema de bots (horário; a cadência de cada bot decide).
-  await queues.dataRefresh.upsertJobScheduler(
-    'bots-cycle-hourly',
-    { pattern: BOTS_CYCLE_CRON_PATTERN },
-    {
-      name: JOB_BOTS_CYCLE,
-      data: {},
-      opts: {
-        attempts: 1,
-        removeOnComplete: { count: 24 },
-        removeOnFail: { count: 24 },
-      },
-    },
-  );
   await queues.dataRefresh.upsertJobScheduler(
     'integrity-check-weekly',
     { pattern: INTEGRITY_CRON_PATTERN },
@@ -560,7 +536,6 @@ export async function registerDataRefreshCron(): Promise<void> {
       enrichPlayers: ENRICH_PLAYERS_CRON_PATTERN,
       enrichClubsEditorial: ENRICH_EDITORIAL_CRON_PATTERN,
       ingestBacklog: INGEST_BACKLOG_CRON_PATTERN,
-      botsCycle: BOTS_CYCLE_CRON_PATTERN,
       // T533 — faltava no log de boot: um cron registrado que não aparece no
       // inventário é observabilidade faltando (o job existe e roda, mas quem lê o
       // boot não sabe). Todo cron novo entra aqui.

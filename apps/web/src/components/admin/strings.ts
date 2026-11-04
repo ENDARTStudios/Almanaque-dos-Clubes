@@ -150,6 +150,66 @@ export interface AdminStrings {
     prev: string;
     next: string;
   };
+  bots: {
+    title: string;
+    subtitle: string;
+    loading: string;
+    errorTitle: string;
+    error: string;
+    forbidden: string;
+    retry: string;
+    refresh: string;
+    tableLabel: string;
+    summaryTotal: string;
+    summaryOk: string;
+    summaryOkHint: string;
+    summaryFailed: string;
+    summaryRunning: string;
+    summaryRecent: string;
+    never: string;
+    emptyTitle: string;
+    emptyBody: string;
+    colBot: string;
+    colStatus: string;
+    colMetrics: string;
+    colFailures: string;
+    colLastRun: string;
+    colMessage: string;
+    colActions: string;
+    metricProcessed: string;
+    metricUpdated: string;
+    metricSkipped: string;
+    metricErrors: string;
+    failures: string;
+    noMessage: string;
+    disabled: string;
+    runNow: string;
+    queueing: string;
+    queued: string;
+    queueFailed: string;
+    history: string;
+    historyClose: string;
+    historyTitle: string;
+    historyLoading: string;
+    historyError: string;
+    historyEmpty: string;
+    colWhen: string;
+    colTrigger: string;
+    colTriggerSchedule: string;
+    colTriggerManual: string;
+    colTriggerApi: string;
+    colDuration: string;
+    colRunMetrics: string;
+    colRunMessage: string;
+    statusOk: string;
+    statusPartial: string;
+    statusFailed: string;
+    statusSkipped: string;
+    statusRunning: string;
+    statusUnknown: string;
+    botNames: Record<string, string>;
+    domains: Record<string, string>;
+  };
   lgpd: {
     title: string;
     subtitle: string;
@@ -423,6 +483,96 @@ const PT: AdminStrings = {
     prev: 'Anterior',
     next: 'Próxima',
   },
+  bots: {
+    title: 'Sistema de bots',
+    subtitle:
+      'Os 12 bots autônomos que alimentam o acervo. "Rodou" não é "rendeu": aqui aparecem o desfecho, ' +
+      'as métricas e o que cada rodada declarou. O scheduler executa a cada 4h.',
+    loading: 'Carregando o monitor de bots…',
+    errorTitle: 'Monitor de bots indisponível',
+    error: 'Não foi possível carregar o monitor. Nenhum número é exibido para não inventar estado.',
+    forbidden: 'Acesso restrito ao operador.',
+    retry: 'Tentar de novo',
+    refresh: 'Atualizar',
+    tableLabel: 'Monitor dos 12 bots',
+    summaryTotal: 'Bots',
+    summaryOk: 'Ok',
+    summaryOkHint: 'ok + parcial',
+    summaryFailed: 'Falhando',
+    summaryRunning: 'Rodando',
+    summaryRecent: 'Rodada mais recente',
+    never: 'nunca executou',
+    emptyTitle: 'Nenhuma execução ainda',
+    emptyBody:
+      'O scheduler roda a cada 4h. Use "Rodar agora" para enfileirar uma rodada manual — o ' +
+      'desfecho aparece na tabela e no histórico de cada bot.',
+    colBot: 'Bot',
+    colStatus: 'Última execução',
+    colMetrics: 'Métricas da última rodada',
+    colFailures: 'Falhas seguidas',
+    colLastRun: 'Quando',
+    colMessage: 'Mensagem',
+    colActions: 'Ações',
+    metricProcessed: 'proc.',
+    metricUpdated: 'atual.',
+    metricSkipped: 'ignor.',
+    metricErrors: 'erros',
+    failures: '{n} seguidas',
+    noMessage: 'sem mensagem',
+    disabled: 'desativado',
+    runNow: 'Rodar agora',
+    queueing: 'Enfileirando…',
+    queued: 'Na fila — a tabela atualiza em alguns segundos.',
+    queueFailed: 'Não foi possível enfileirar a rodada. A fila de bots pode estar indisponível.',
+    history: 'Histórico',
+    historyClose: 'Fechar histórico',
+    historyTitle: '{bot} — últimas 20 execuções',
+    historyLoading: 'Carregando o histórico…',
+    historyError: 'Não foi possível carregar o histórico deste bot.',
+    historyEmpty: 'Nenhuma execução registrada ainda. O scheduler roda a cada 4h.',
+    colWhen: 'Quando',
+    colTrigger: 'Gatilho',
+    colTriggerSchedule: 'agendado',
+    colTriggerManual: 'manual',
+    colTriggerApi: 'api',
+    colDuration: 'Duração',
+    colRunMetrics: 'Métricas',
+    colRunMessage: 'Mensagem',
+    statusOk: 'ok',
+    statusPartial: 'parcial',
+    statusFailed: 'falhou',
+    statusSkipped: 'ignorado',
+    statusRunning: 'rodando',
+    statusUnknown: 'sem execução',
+    botNames: {
+      players: 'Perfis de jogadores (Wikidata)',
+      clubs: 'Mídia e texto editorial dos clubes',
+      matches: 'Validações e fila de revisão de partidas',
+      geo: 'Estado/UF dos clubes (cidade + Wikidata P131)',
+      competitions: 'Descrições e bandeiras de competições/estados (Wikidata)',
+      seasons: 'Integridade de edições (campeão/vice)',
+      stadiums: 'Estádios dos clubes (Wikidata P466/P625)',
+      rankings: 'Ranking 0-100 de clubes (temporada corrente)',
+      tables: 'Classificações (standings) pendentes',
+      history: 'Arestas WON recentes (KnowledgeGraph)',
+      charts: 'Agregados de gráficos (invalidação de cache)',
+      comparison: 'Comparador H2H (validação amostral)',
+    },
+    domains: {
+      players: 'Jogadores',
+      clubs: 'Clubes',
+      matches: 'Partidas',
+      geo: 'Geografia',
+      competitions: 'Competições',
+      seasons: 'Edições',
+      stadiums: 'Estádios',
+      rankings: 'Rankings',
+      tables: 'Classificações',
+      history: 'Histórico',
+      charts: 'Gráficos',
+      comparison: 'Comparação',
+    },
+  },
   lgpd: {
     title: 'LGPD',
     subtitle: 'Prova de consentimento, exclusões agendadas e purga de dados de contas removidas.',
@@ -686,6 +836,96 @@ const EN: AdminStrings = {
     page: 'Page {page} of {total}',
     prev: 'Previous',
     next: 'Next',
+  },
+  bots: {
+    title: 'Bot system',
+    subtitle:
+      'The 12 autonomous bots that feed the archive. "Ran" is not "delivered": each row shows the ' +
+      'outcome, the metrics and what the run declared. The scheduler runs every 4h.',
+    loading: 'Loading the bot monitor…',
+    errorTitle: 'Bot monitor unavailable',
+    error: 'Could not load the monitor. No numbers are shown rather than inventing state.',
+    forbidden: 'Operator-only access.',
+    retry: 'Try again',
+    refresh: 'Refresh',
+    tableLabel: 'Monitor of the 12 bots',
+    summaryTotal: 'Bots',
+    summaryOk: 'Ok',
+    summaryOkHint: 'ok + partial',
+    summaryFailed: 'Failing',
+    summaryRunning: 'Running',
+    summaryRecent: 'Most recent run',
+    never: 'never ran',
+    emptyTitle: 'No run yet',
+    emptyBody:
+      'The scheduler runs every 4h. Use "Run now" to queue a manual run — the outcome appears ' +
+      "in the table and in each bot's history.",
+    colBot: 'Bot',
+    colStatus: 'Last run',
+    colMetrics: 'Last run metrics',
+    colFailures: 'Consecutive failures',
+    colLastRun: 'When',
+    colMessage: 'Message',
+    colActions: 'Actions',
+    metricProcessed: 'proc.',
+    metricUpdated: 'upd.',
+    metricSkipped: 'skip.',
+    metricErrors: 'errors',
+    failures: '{n} in a row',
+    noMessage: 'no message',
+    disabled: 'disabled',
+    runNow: 'Run now',
+    queueing: 'Queueing…',
+    queued: 'Queued — the table refreshes in a few seconds.',
+    queueFailed: 'Could not queue the run. The bot queue may be unavailable.',
+    history: 'History',
+    historyClose: 'Close history',
+    historyTitle: '{bot} — last 20 runs',
+    historyLoading: 'Loading history…',
+    historyError: "Could not load this bot's history.",
+    historyEmpty: 'No run recorded yet. The scheduler runs every 4h.',
+    colWhen: 'When',
+    colTrigger: 'Trigger',
+    colTriggerSchedule: 'scheduled',
+    colTriggerManual: 'manual',
+    colTriggerApi: 'api',
+    colDuration: 'Duration',
+    colRunMetrics: 'Metrics',
+    colRunMessage: 'Message',
+    statusOk: 'ok',
+    statusPartial: 'partial',
+    statusFailed: 'failed',
+    statusSkipped: 'skipped',
+    statusRunning: 'running',
+    statusUnknown: 'no run',
+    botNames: {
+      players: 'Player profiles (Wikidata)',
+      clubs: 'Club media and editorial text',
+      matches: 'Match validations and review queue',
+      geo: 'Club state/region (city + Wikidata P131)',
+      competitions: 'Competition/state descriptions and flags (Wikidata)',
+      seasons: 'Season integrity (champion/runner-up)',
+      stadiums: 'Club stadiums (Wikidata P466/P625)',
+      rankings: 'Club 0-100 ranking (current season)',
+      tables: 'Pending standings',
+      history: 'Recent WON edges (KnowledgeGraph)',
+      charts: 'Chart aggregates (cache invalidation)',
+      comparison: 'H2H comparator (sample validation)',
+    },
+    domains: {
+      players: 'Players',
+      clubs: 'Clubs',
+      matches: 'Matches',
+      geo: 'Geography',
+      competitions: 'Competitions',
+      seasons: 'Seasons',
+      stadiums: 'Stadiums',
+      rankings: 'Rankings',
+      tables: 'Standings',
+      history: 'History',
+      charts: 'Charts',
+      comparison: 'Comparison',
+    },
   },
   lgpd: {
     ...PT.lgpd,
@@ -953,6 +1193,96 @@ const ES: AdminStrings = {
     page: 'Página {page} de {total}',
     prev: 'Anterior',
     next: 'Siguiente',
+  },
+  bots: {
+    title: 'Sistema de bots',
+    subtitle:
+      'Los 12 bots autónomos que alimentan el acervo. "Ejecutó" no es "aportó": aquí aparecen el ' +
+      'desenlace, las métricas y lo que declaró cada ejecución. El scheduler corre cada 4 h.',
+    loading: 'Cargando el monitor de bots…',
+    errorTitle: 'Monitor de bots no disponible',
+    error: 'No se pudo cargar el monitor. No se muestran números para no inventar estado.',
+    forbidden: 'Acceso restringido al operador.',
+    retry: 'Reintentar',
+    refresh: 'Actualizar',
+    tableLabel: 'Monitor de los 12 bots',
+    summaryTotal: 'Bots',
+    summaryOk: 'Ok',
+    summaryOkHint: 'ok + parcial',
+    summaryFailed: 'Fallando',
+    summaryRunning: 'Ejecutando',
+    summaryRecent: 'Ejecución más reciente',
+    never: 'nunca ejecutó',
+    emptyTitle: 'Ninguna ejecución todavía',
+    emptyBody:
+      'El scheduler corre cada 4 h. Usa "Ejecutar ahora" para encolar una ejecución manual: el ' +
+      'desenlace aparece en la tabla y en el historial de cada bot.',
+    colBot: 'Bot',
+    colStatus: 'Última ejecución',
+    colMetrics: 'Métricas de la última ejecución',
+    colFailures: 'Fallos seguidos',
+    colLastRun: 'Cuándo',
+    colMessage: 'Mensaje',
+    colActions: 'Acciones',
+    metricProcessed: 'proc.',
+    metricUpdated: 'act.',
+    metricSkipped: 'omit.',
+    metricErrors: 'errores',
+    failures: '{n} seguidos',
+    noMessage: 'sin mensaje',
+    disabled: 'desactivado',
+    runNow: 'Ejecutar ahora',
+    queueing: 'Encolando…',
+    queued: 'En cola: la tabla se actualiza en unos segundos.',
+    queueFailed: 'No se pudo encolar la ejecución. La cola de bots puede no estar disponible.',
+    history: 'Historial',
+    historyClose: 'Cerrar historial',
+    historyTitle: '{bot} — últimas 20 ejecuciones',
+    historyLoading: 'Cargando el historial…',
+    historyError: 'No se pudo cargar el historial de este bot.',
+    historyEmpty: 'Ninguna ejecución registrada todavía. El scheduler corre cada 4 h.',
+    colWhen: 'Cuándo',
+    colTrigger: 'Disparador',
+    colTriggerSchedule: 'programado',
+    colTriggerManual: 'manual',
+    colTriggerApi: 'api',
+    colDuration: 'Duración',
+    colRunMetrics: 'Métricas',
+    colRunMessage: 'Mensaje',
+    statusOk: 'ok',
+    statusPartial: 'parcial',
+    statusFailed: 'falló',
+    statusSkipped: 'omitido',
+    statusRunning: 'ejecutando',
+    statusUnknown: 'sin ejecución',
+    botNames: {
+      players: 'Perfiles de jugadores (Wikidata)',
+      clubs: 'Medios y texto editorial de los clubes',
+      matches: 'Validaciones y cola de revisión de partidos',
+      geo: 'Estado/región de los clubes (ciudad + Wikidata P131)',
+      competitions: 'Descripciones y banderas de competiciones/estados (Wikidata)',
+      seasons: 'Integridad de ediciones (campeón/subcampeón)',
+      stadiums: 'Estadios de los clubes (Wikidata P466/P625)',
+      rankings: 'Ranking 0-100 de clubes (temporada actual)',
+      tables: 'Clasificaciones (standings) pendientes',
+      history: 'Aristas WON recientes (KnowledgeGraph)',
+      charts: 'Agregados de gráficos (invalidación de caché)',
+      comparison: 'Comparador H2H (validación por muestreo)',
+    },
+    domains: {
+      players: 'Jugadores',
+      clubs: 'Clubes',
+      matches: 'Partidos',
+      geo: 'Geografía',
+      competitions: 'Competiciones',
+      seasons: 'Ediciones',
+      stadiums: 'Estadios',
+      rankings: 'Rankings',
+      tables: 'Clasificaciones',
+      history: 'Historial',
+      charts: 'Gráficos',
+      comparison: 'Comparación',
+    },
   },
   lgpd: {
     ...PT.lgpd,

@@ -49,6 +49,25 @@ export function checkJobFailure(jobName: string, threshold = 3): boolean {
 }
 
 /**
+ * T-24/28 — alerta de bot por ESTADO DURÁVEL (`bot_states.consecutiveFailures`).
+ * Diferente de `checkJobFailure`, não depende do health em memória do data-refresh:
+ * o orquestrador passa a contagem que acabou de persistir.
+ */
+export function checkBotFailure(
+  botId: string,
+  consecutiveFailures: number,
+  threshold = 3,
+): boolean {
+  if (consecutiveFailures < threshold) return false;
+  raise(
+    'job_failure',
+    `bot ${botId}: ${consecutiveFailures} falhas consecutivas — ver /admin/bots`,
+    `bot:${botId}`,
+  );
+  return true;
+}
+
+/**
  * `true` quando o job está sem run há mais de `maxAgeHours`. Se o job nunca
  * rodou (lastRunAt null), não alerta ainda — estado desconhecido até o primeiro
  * ciclo agendado (o gauge em memória zera a cada redeploy).
