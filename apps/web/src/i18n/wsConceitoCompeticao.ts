@@ -18,6 +18,9 @@ import type { Locale } from './config';
  */
 export interface ConceitoCompeticaoStrings {
   head: {
+    temporadasTitle: string;
+    seasonNav: string;
+    seasonSummaryToggle: string;
     /** Primeira parte do kicker ("Competição · país"). */
     kicker: string;
     /** Rótulo do número-âncora quando há tabela catalogada. `{season}` = temporada. */
@@ -113,6 +116,9 @@ export const conceitoCompeticaoStrings: Record<Locale, ConceitoCompeticaoStrings
   'pt-br': {
     head: {
       kicker: 'Competição',
+      temporadasTitle: 'Classificação final',
+      seasonNav: 'Temporada',
+      seasonSummaryToggle: 'Resumo por edição',
       anchorRounds: 'rodadas · {season}',
       anchorEditions: 'edições no acervo',
       subtitle:
@@ -192,6 +198,9 @@ export const conceitoCompeticaoStrings: Record<Locale, ConceitoCompeticaoStrings
   'en-us': {
     head: {
       kicker: 'Competition',
+      temporadasTitle: 'Final standings',
+      seasonNav: 'Season',
+      seasonSummaryToggle: 'Season summary',
       anchorRounds: 'rounds · {season}',
       anchorEditions: 'editions in the archive',
       subtitle:
@@ -271,6 +280,9 @@ export const conceitoCompeticaoStrings: Record<Locale, ConceitoCompeticaoStrings
   'es-es': {
     head: {
       kicker: 'Competición',
+      temporadasTitle: 'Clasificación final',
+      seasonNav: 'Temporada',
+      seasonSummaryToggle: 'Resumen por temporada',
       anchorRounds: 'jornadas · {season}',
       anchorEditions: 'ediciones en el archivo',
       subtitle:
