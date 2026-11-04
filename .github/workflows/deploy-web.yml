@@ -40,6 +40,20 @@ name: Deploy Web (Vercel)
 # LIMITAÇÃO DECLARADA: isto neutraliza o deploy via GitHub Actions. Se a integração
 # NATIVA da Vercel auto-deployar produção em push para `main`, é preciso configurar
 # "Ignored Build Step"/"Ignored Paths" no projeto (Operador) — ou desativar a nativa.
+#
+# ── CUSTO DE BUILD (incidente de 04/11/2026) ─────────────────────────────────────────────
+# O projeto PRO estourou o limite de gastos em **Build CPU Minutes**. A causa era o modelo:
+# `vercel deploy --prod` enviava o código e o BUILD rodava NA VERCEL (next build + install),
+# consumindo CPU do plano a cada deploy de produção.
+#
+# ALTERNATIVA ADOTADA: construir no RUNNER DO GITHUB e publicar o artefato pronto
+# (`vercel build` + `vercel deploy --prebuilt`). O build deixa de consumir Build CPU Minutes
+# da Vercel; o GitHub Actions ganha ~1 min de job e o deploy sobe o `.vercel/output` já pronto.
+# Teste local do `vercel build --prod`: 51 s até "Build Completed".
+#
+# Se o custo de SERVING da Vercel ainda for um problema, o próximo passo é migrar o web para
+# um host de container (Railway, que já hospeda a API) — a alternativa está documentada em
+# docs/DEPLOY-WEB-CUSTOS.md. Este workflow continua sendo a opção de menor mudança.
 
 on:
   push:
@@ -67,6 +81,10 @@ jobs:
   deploy-web:
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 20
+    env:
+      VERCEL_TELEMETRY_DISABLED: '1'
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -75,8 +93,16 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Deploy to Vercel (production)
-        # Token via env (não em flag de linha de comando). O `vercel` lê VERCEL_TOKEN.
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx vercel deploy --prod --project almanaque-dos-clubes --yes
+      # O token lido de VERCEL_TOKEN (job env) evita token em linha de comando.
+      - name: Link do projeto Vercel
+        run: cd apps/web && npx --yes vercel@57 link --yes --project almanaque-dos-clubes --scope end-art-studios
+
+      - name: Pull do ambiente de produção
+        run: cd apps/web && npx --yes vercel@57 pull --yes --environment=production
+
+      # O build acontece AQUI, no runner do GitHub, e não no Vercel Build CPU.
+      - name: Build do artefato (prebuilt)
+        run: cd apps/web && npx --yes vercel@57 build --prod
+
+      - name: Deploy do artefato prebuilt
+        run: cd apps/web && npx --yes vercel@57 deploy --prebuilt --prod --yes
