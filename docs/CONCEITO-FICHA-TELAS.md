@@ -48,8 +48,8 @@ site e a diferença era de **composição de tela**, não de cor/fonte.
 Ainda com a composição anterior, na fila de migração (mesmo ciclo: conceito → dado real → teste →
 screenshot):
 
-/temporadas (índice), /estadios (índice), /dashboard (Meu Almanaque), /admin,
-/metodologia e páginas legais (privacidade, termos, cookies, direitos).
+/temporadas (índice), /estadios (índice), /dashboard (Meu Almanaque), /admin
+e páginas legais (privacidade, termos, cookies, direitos).
 
 O conceito também tem quadros de **sistema** (fundamentos, interacao) que são documentação de
 design, não rotas.
