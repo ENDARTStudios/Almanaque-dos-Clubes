@@ -7,9 +7,16 @@ import { useI18n } from '@/i18n/Provider';
 import { EmptyState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
 import { wsC2Strings } from '@/i18n/wsC2';
+import { wsConceitoBusca } from '@/i18n/wsConceitoBusca';
 
 // WS-C-2 — busca global tipada sobre GET /api/v1/search/global.
 // Homônimos vêm separados da API (identidade = QID); não colapsamos por nome.
+//
+// Conceito FICHA: a página de busca é uma LISTA AGRUPADA POR TIPO — nome, metadado e o tipo
+// (em ocre) na mesma linha. O filtro de tipo continua existindo (chips) porque a API devolve a
+// distribuição completa do termo, mas o modo padrão é "todos os grupos", como no quadro.
+// Cidade/estádio não são tipos da busca global da API: os grupos NÃO aparecem, em vez de
+// inventarmos uma seção vazia.
 
 interface GeoAttribution {
   geo: string;
@@ -39,18 +46,26 @@ interface SearchResponse {
   limitations: string[];
 }
 
-const TYPES: Array<'all' | 'club' | 'competition' | 'player'> = [
-  'all',
-  'club',
-  'competition',
-  'player',
-];
+type Tipo = SearchResult['type'];
+
+const TYPES: Array<'all' | Tipo> = ['all', 'club', 'player', 'competition'];
+/** Ordem dos grupos no quadro: clubes → jogadores → competições. */
+const GROUP_ORDER: Tipo[] = ['club', 'player', 'competition'];
+
+function hrefDoResultado(r: SearchResult): string {
+  return r.type === 'club'
+    ? `/clubs/${r.id}`
+    : r.type === 'player'
+      ? `/players/${r.id}`
+      : `/competitions/${r.id}`;
+}
 
 export default function GlobalSearch() {
   const router = useRouter();
   const params = useSearchParams();
   const { locale } = useI18n();
   const s = wsC2Strings[locale].search;
+  const c = wsConceitoBusca[locale];
 
   const initialQ = params.get('q') ?? '';
   const initialType = (params.get('type') as SearchResponse['type'] | null) ?? 'all';
@@ -58,7 +73,6 @@ export default function GlobalSearch() {
   const [type, setType] = useState<SearchResponse['type']>(
     type_valid(initialType) ? initialType : 'all',
   );
-  // T450 — filtro de gênero ('women' mostra só clubes/competições femininas).
   const [gender, setGender] = useState<'men' | 'women' | null>(
     params.get('gender') === 'women' ? 'women' : null,
   );
@@ -105,21 +119,25 @@ export default function GlobalSearch() {
     };
   }, [q, type, gender, run, router]);
 
-  const typeLabel = (t: SearchResponse['type']) =>
-    t === 'club'
-      ? s.typeClub
-      : t === 'competition'
-        ? s.typeCompetition
-        : t === 'player'
-          ? s.typePlayer
-          : s.typeAll;
+  const labelDoTipo = (t: Tipo) => c.groups[t];
+  const singular = (t: Tipo) => c.typeSingular[t];
+
+  const resultados: SearchResult[] = data?.results ?? [];
+  const grupos =
+    type === 'all'
+      ? GROUP_ORDER.filter((t) => {
+          const n = data?.counts ? data.counts[t] : resultados.filter((r) => r.type === t).length;
+          return n > 0;
+        })
+      : GROUP_ORDER.filter((t) => t === type);
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <label htmlFor="global-search-input" className="sr-only">
-        {s.placeholder}
-      </label>
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="w-full">
+      {/* 1. CAMPO — o elemento mais largo da página, como no quadro. */}
+      <div className="relative mt-2">
+        <label htmlFor="global-search-input" className="sr-only">
+          {c.title}
+        </label>
         <input
           id="global-search-input"
           type="search"
@@ -130,114 +148,128 @@ export default function GlobalSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={s.placeholder}
-          className="flex-1 px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-foreground/80 placeholder:opacity-100 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+          className="h-14 w-full rounded-[2px] border border-foreground bg-surface px-4 pr-12 text-[18px] text-foreground placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
-        <div
-          role="group"
-          aria-label={s.title}
-          className="flex gap-1 rounded-xl border border-border p-1"
-        >
-          {TYPES.map((t) => (
+        {q ? (
+          <button
+            type="button"
+            onClick={() => setQ('')}
+            aria-label={c.clear}
+            data-testid="search-clear"
+            className="absolute top-1/2 right-3 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-border text-ink-2 transition-colors duration-200 hover:border-foreground hover:text-foreground"
+          >
+            ×
+          </button>
+        ) : null}
+      </div>
+      <p className="mt-2 text-[11px] text-ink-3">{c.subtitle}</p>
+
+      {/* 2. FILTRO DE TIPO — funcionalidade preservada, em chips do conceito. */}
+      <div
+        className="mt-4 flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label={c.filterLabel}
+      >
+        {TYPES.map((t) => {
+          const ativo = type === t;
+          const n = data?.counts?.[t];
+          return (
             <button
               key={t}
               type="button"
-              aria-pressed={type === t}
+              aria-pressed={ativo}
               onClick={() => setType(t)}
               data-testid={`search-type-${t}`}
-              className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                type === t
-                  ? 'bg-primary text-on-primary'
-                  : 'text-foreground/70 hover:bg-foreground/5'
+              className={`inline-flex min-h-8 items-center gap-2 rounded-[2px] border px-3 text-[12px] leading-none transition-colors duration-200 ${
+                ativo
+                  ? 'border-foreground bg-foreground font-semibold text-background'
+                  : 'border-border bg-surface text-ink-2 hover:border-foreground hover:text-foreground'
               }`}
             >
-              {typeLabel(t)}
-              {/* T561 — a contagem ao lado do rótulo. Sem ela, o usuário filtrando por clubes
-                  não saberia que existem 33 jogadores sem CLICAR na aba — e cada clique é uma
-                  requisição. O número vem de `counts`, que é a distribuição completa do termo,
-                  independente do filtro ativo. */}
-              {data?.counts ? (
-                <span
-                  className="num ml-1.5 text-xs opacity-80"
-                  data-testid={`search-count-${t}`}
-                  aria-label={`${data.counts[t]} resultados`}
-                >
-                  {data.counts[t]}
-                </span>
-              ) : null}
+              {t === 'all' ? c.allTypes : labelDoTipo(t)}
+              {n != null ? <span className="num text-[11px] opacity-80">{n}</span> : null}
             </button>
-          ))}
-        </div>
-        {/* T450 — filtro de gênero (feminino) */}
-        <select
-          aria-label="Gênero"
-          value={gender ?? ''}
-          onChange={(e) => setGender(e.target.value === '' ? null : (e.target.value as 'women'))}
-          data-testid="search-gender"
-          className="rounded-xl border border-border px-3 py-2 text-sm bg-background"
-        >
-          <option value="">Gênero: todos</option>
-          <option value="women">Feminino</option>
-        </select>
+          );
+        })}
+        <label className="ml-1 inline-flex min-h-8 items-center gap-2 rounded-[2px] border border-border bg-surface px-2 text-[11px] text-ink-2">
+          <span className="sr-only">{c.gender}</span>
+          <select
+            aria-label={c.gender}
+            value={gender ?? ''}
+            onChange={(e) => setGender(e.target.value === '' ? null : 'women')}
+            data-testid="search-gender"
+            className="bg-transparent text-[11px] text-ink-2 focus:outline-none"
+          >
+            <option value="">
+              {c.gender}: {c.allTypes}
+            </option>
+            <option value="women">{c.women}</option>
+          </select>
+        </label>
       </div>
 
-      <div id="global-search-results" aria-live="polite" className="mt-6">
-        {state === 'loading' && <p className="text-sm text-foreground/70">{s.loading}</p>}
-        {/* `role="alert"`: o erro aparecia na tela e NÃO era anunciado — um leitor de tela só
-            descobre região viva se ela se declara. */}
+      {/* 3. RESULTADOS — agrupados por tipo, com contagem no cabeçalho de cada grupo. */}
+      <div id="global-search-results" aria-live="polite" className="mt-8">
+        {state === 'loading' && <p className="text-sm text-ink-2">{s.loading}</p>}
         {state === 'error' && (
           <p role="alert" className="text-sm text-danger-ink" data-testid="search-error">
             {s.error}
           </p>
         )}
         {state === 'idle' && null}
-        {state === 'done' && data && (
-          <>
-            <p className="text-xs text-foreground/70 mb-3">
-              {s.total.replace('{n}', String(data.pagination.total))}
-            </p>
-            {data.results.length === 0 ? (
-              <div data-testid="search-empty">
-                <EmptyState title={s.empty} body={fichaStrings[locale].states.emptyBody} />
-              </div>
-            ) : (
-              <ul className="divide-y divide-border/50">
-                {data.results.map((r) => (
-                  <li
-                    key={`${r.type}-${r.id}`}
-                    className="py-3"
-                    data-testid={`search-result-${r.type}`}
-                  >
-                    <Link
-                      href={
-                        r.type === 'club'
-                          ? `/clubs/${r.id}`
-                          : r.type === 'player'
-                            ? `/players/${r.id}`
-                            : `/competitions/${r.id}`
-                      }
-                      className="block group"
-                    >
-                      <span className="text-xs uppercase tracking-wider text-primary/80">
-                        {typeLabel(r.type)}
-                      </span>
-                      <p className="font-medium text-foreground group-hover:text-primary-ink transition-colors">
-                        {r.name}
-                      </p>
-                      <p className="text-xs text-foreground/70">
-                        {r.subtitle ?? '—'}
-                        {r.qid ? ` · ${r.qid}` : ''}
-                      </p>
-                      {r.attribution ? (
-                        <span className="text-[11px] text-foreground/70">{r.attribution.geo}</span>
-                      ) : null}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="text-xs text-foreground/70 mt-4">{s.limitations}</p>
-          </>
-        )}
+        {state === 'done' && data ? (
+          resultados.length === 0 ? (
+            <div data-testid="search-empty">
+              <EmptyState title={s.empty} body={fichaStrings[locale].states.emptyBody} />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {grupos.map((grupo) => {
+                const doGrupo = resultados.filter((r) => r.type === grupo);
+                const n = data.counts ? data.counts[grupo] : doGrupo.length;
+                if (doGrupo.length === 0) return null;
+                return (
+                  <section key={grupo} data-testid={`search-group-${grupo}`}>
+                    <h2 className="text-[12.5px] font-semibold text-foreground">
+                      {labelDoTipo(grupo)} · {n}
+                    </h2>
+                    <ul className="mt-2 list-none p-0">
+                      {doGrupo.map((r) => (
+                        <li
+                          key={`${r.type}-${r.id}`}
+                          className="border-b border-border"
+                          data-testid={`search-result-${r.type}`}
+                        >
+                          <Link
+                            href={hrefDoResultado(r)}
+                            className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-1 py-3 transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[1.2fr_1fr_auto]"
+                          >
+                            <span className="font-medium text-foreground">{r.name}</span>
+                            <span className="text-[11px] leading-tight text-ink-3">
+                              {r.subtitle ??
+                                ([r.city, r.country].filter(Boolean).join(' · ') || '—')}
+                            </span>
+                            <span className="text-[10px] font-semibold text-secondary">
+                              {singular(r.type)}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          )
+        ) : null}
+        {state === 'done' && data ? (
+          <div className="mt-8 border-t border-border pt-3">
+            <p className="text-[11px] leading-snug text-ink-3">{c.note}</p>
+            {data.limitations.length > 0 ? (
+              <p className="mt-1 text-[11px] leading-snug text-ink-3">{data.limitations[0]}</p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

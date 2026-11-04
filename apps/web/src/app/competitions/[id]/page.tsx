@@ -5,25 +5,45 @@ import { cookies } from 'next/headers';
 import { getApiBase } from '@/lib/api-base';
 import { safeJsonLd } from '@/lib/json-ld';
 import { getDictionary } from '@/i18n/getDictionary';
-import { LOCALE_COOKIE, normalizeLocale, type Locale } from '@/i18n/config';
+import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import FavoriteButton from '@/components/FavoriteButton';
 import SocialLinks from '@/components/SocialLinks';
 import { CountryFlag } from '@/components/CountryFlag';
-import { TrophyCup } from '@/components/icons';
 import CompetitionPodium from '@/components/ficha/CompetitionPodium';
+import Pillar from '@/components/ficha/Pillar';
+import SectionHeading from '@/components/ficha/SectionHeading';
 import { EmptyState } from '@/components/ficha/States';
 import DetailUnavailable from '@/components/ficha/DetailUnavailable';
+import TabelaFicha from '@/components/conceito/competicao/TabelaFicha';
+import TabelaClassificacao from '@/components/conceito/competicao/TabelaClassificacao';
+import Criterios from '@/components/conceito/competicao/Criterios';
+import CompeticaoHeader from '@/components/conceito/competicao/CompeticaoHeader';
+import Procedencia from '@/components/conceito/competicao/Procedencia';
+import {
+  latestSeasonWithStandings,
+  normalizeHistoryTable,
+  normalizeStandings,
+  roundsFromStandings,
+} from '@/components/conceito/competicao/derive';
 import { fichaStrings } from '@/i18n/wsFicha';
 import SourceNote from '@/components/SourceNote';
 import { wIconsStrings } from '@/i18n/wsIcons';
 import { wsCompetitionInsightsStrings, insText } from '@/i18n/wsCompetitionInsights';
 import { PositionChart } from '@/components/PositionChart';
 import { formatCount } from '@/lib/format';
+import { countryLabel } from '@/lib/country-flag';
+import { conceitoCompeticaoStrings, fillCompeticao } from '@/i18n/wsConceitoCompeticao';
 
 // Mapeamento do portal (Operador, 08/10 — Entrega 2): sub-abas Visão Geral |
 // Edições | Clubes | Maiores Campeões sobre o overview WON da API. Honestidade:
 // sem edições → "Edições em catalogação"; participantes = clubes com títulos
 // catalogados (a aresta PARTICIPATED_IN não existe no grafo).
+//
+// CONCEITO FICHA (quadro design/concept/app/tabela.png): o cabeçalho abre com kicker
+// ("Competição · país"), h1 display e um número-âncora; a apresentação da TABELA DE
+// CLASSIFICAÇÃO segue a tabela densa do quadro (9px de cabeçalho, zebra, número à direita com
+// numeral tabular, fio de 2px sob o cabeçalho). Todas as abas e funcionalidades anteriores
+// continuam existindo — o que mudou é a composição, não o dado.
 
 interface Competition {
   id: string;
@@ -266,7 +286,7 @@ export default async function CompetitionDetailPage({
   const { id } = await params;
   const { tab: tabParam, season: seasonParam } = await searchParams;
   const res = await getCompetition(id);
-  // `undefined` = não conseguimos perguntar; `null`/`data` ausente = a origem disse que não há.
+  // `undefined` = não conseguimos perguntar; `null`/data ausente = a origem disse que não há.
   if (res === undefined)
     return (
       <DetailUnavailable
@@ -301,6 +321,8 @@ export default async function CompetitionDetailPage({
   const ic = wIconsStrings[locale];
   // T-26 — strings dos blocos de insights (pódio/história/métricas), módulo aditivo.
   const ti = wsCompetitionInsightsStrings[locale];
+  // Conceito FICHA — strings aditivas da composição (kicker, âncora, tabela densa, critérios).
+  const tc = conceitoCompeticaoStrings[locale];
   const history = overview?.history ?? null;
   const podium = overview?.podium ?? null;
   const totals = overview?.totals ?? null;
@@ -314,6 +336,33 @@ export default async function CompetitionDetailPage({
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '')
     ? (tabParam as Tab)
     : 'visao';
+
+  /*
+   * CABEÇALHO — a âncora do quadro é "38 / RODADAS · 2024-25". O 38 sai da última temporada
+   * com tabela catalogada (maior nº de jogos por clube); sem tabela, cai para as edições
+   * catalogadas. Sem nenhuma das duas não há âncora: número não verificado não vira manchete.
+   */
+  const tabelaRecente = latestSeasonWithStandings(seasons);
+  const rodadas = tabelaRecente ? roundsFromStandings(tabelaRecente.standings) : 0;
+  const anchorValue =
+    rodadas > 0
+      ? formatCount(rodadas, locale)
+      : overview && overview.totalEditions > 0
+        ? formatCount(overview.totalEditions, locale)
+        : undefined;
+  const anchorLabel =
+    anchorValue == null
+      ? undefined
+      : rodadas > 0 && tabelaRecente
+        ? fillCompeticao(tc.head.anchorRounds, { season: tabelaRecente.season })
+        : tc.head.anchorEditions;
+  /* Kicker do conceito: "Competição · país". Sem país, o kicker fica só "Competição" e o
+     metadado "internacional" aparece no chip da identificação — sem repetir a palavra. */
+  const countryText = countryLabel(comp.country, locale);
+  const kicker = countryText ? `${tc.head.kicker} · ${countryText}` : tc.head.kicker;
+  const subtitle = tabelaRecente
+    ? fillCompeticao(tc.head.subtitle, { season: tabelaRecente.season })
+    : tc.head.subtitleNoTable;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -338,186 +387,96 @@ export default async function CompetitionDetailPage({
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Link
         href="/competitions"
-        className="text-sm text-primary-ink hover:underline mb-6 inline-block cursor-pointer"
+        className="mb-6 inline-flex min-h-6 items-center text-[12px] text-ink-3 transition-colors duration-200 hover:text-primary-ink"
       >
         &larr; {dict.pages.competitions.title}
       </Link>
 
-      {/* Cabeçalho (Visão Geral fica no cabeçalho; demais abas abaixo) */}
-      <div className="bg-background rounded-2xl p-8 shadow-md border border-border/50">
-        <div className="flex items-start gap-6">
-          {comp.trophyImageUrl ? (
-            <span
-              data-testid="competition-trophy"
-              className="w-20 h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center overflow-hidden shrink-0"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={comp.trophyImageUrl}
-                alt=""
-                className="object-contain w-16 h-16"
-                loading="lazy"
-              />
-            </span>
-          ) : (
-            <div
-              data-testid="competition-trophy-illustration"
-              className="w-20 h-20 rounded-2xl bg-primary/10 text-primary-ink flex flex-col items-center justify-center gap-0.5 shrink-0"
-              aria-hidden="true"
-            >
-              <TrophyCup size={30} />
-              <span className="font-heading font-bold text-sm leading-none">
-                {comp.name.slice(0, 2).toUpperCase()}
-              </span>
-            </div>
-          )}
-          <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
-              {comp.name}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              {comp.country ? (
-                /* T579 (ITEM 19) — o país do cabeçalho vira bandeira CLICÁVEL para a listagem
-                   daquele país, que é a navegação relacionada que já existe
-                   (`/competitions?country=IT`). Destino real, com nome acessível por extenso no
-                   idioma do usuário — não a sigla de 2 letras. */
-                <CountryFlag
-                  code={comp.country}
-                  locale={locale}
-                  basePath="/competitions"
-                  destination="competitions"
-                  className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs"
-                />
-              ) : (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-foreground/5 text-foreground/70">
-                  {t.international}
-                </span>
-              )}
-              {comp.gender === 'women' ? (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary-ink">
-                  {dict.pages.rankings.genderWomen}
-                </span>
-              ) : null}
-              {typeof comp.level === 'number' ? (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-foreground/5 text-foreground/70">
-                  {t.level} {comp.level}
-                </span>
-              ) : null}
-            </div>
-            {!comp.trophyImageUrl && (
-              <p className="text-xs text-foreground/70 mt-3" data-testid="competition-trophy-note">
-                {ic.competitionTrophy}
-              </p>
-            )}
-            <div className="mt-3">
-              <FavoriteButton
-                targetType="competition"
-                targetId={comp.id}
-                initialCount={comp.fansCount ?? undefined}
-                countLabel={t.spectators}
-              />
-            </div>
-          </div>
-        </div>
-        <SocialLinks
-          officialSite={comp.officialSite ?? null}
-          socialLinks={comp.socialLinks ?? null}
-          followersSnapshot={comp.followersSnapshot ?? null}
-        />
-        {tab === 'visao' ? (
-          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
-            {comp.country && (
-              <Info
-                label={t.country}
-                value={
-                  <CountryFlag
-                    code={comp.country}
-                    locale={locale}
-                    basePath="/competitions"
-                    destination="competitions"
-                  />
-                }
-              />
-            )}
-            {comp.type && <Info label={t.type} value={comp.type} />}
-            {currentChampion ? (
-              <Info
-                label={t.currentChampion}
-                value={
-                  <Link
-                    href={`/clubs/${currentChampion.champion.id}`}
-                    className="text-primary-ink hover:underline"
-                  >
-                    {currentChampion.champion.name}
-                  </Link>
-                }
-                extra={`${t.yearShort} ${currentChampion.year}`}
-              />
-            ) : (
-              <Info label={t.currentChampion} value={t.emCatalogacao} />
-            )}
-            {overview ? (
-              <Info label={t.totalEditions} value={String(overview.totalEditions)} />
-            ) : null}
-            {comp.qid && <Info label="Wikidata" value={comp.qid} />}
-          </dl>
-        ) : null}
-      </div>
+      {/* CABEÇALHO — kicker, h1 display, âncora de rodadas/edições, subtítulo e troféu. */}
+      <CompeticaoHeader
+        locale={locale}
+        kicker={kicker}
+        name={comp.name}
+        subtitle={subtitle}
+        anchor={anchorValue}
+        anchorLabel={anchorLabel}
+        countryCode={comp.country ?? null}
+        internationalLabel={t.international}
+        genderLabel={comp.gender === 'women' ? dict.pages.rankings.genderWomen : null}
+        levelLabel={typeof comp.level === 'number' ? `${t.level} ${comp.level}` : null}
+        trophyImageUrl={comp.trophyImageUrl ?? null}
+        trophyIllustrationNote={ic.competitionTrophy}
+        actions={
+          <FavoriteButton
+            targetType="competition"
+            targetId={comp.id}
+            initialCount={comp.fansCount ?? undefined}
+            countLabel={t.spectators}
+          />
+        }
+        social={
+          <SocialLinks
+            officialSite={comp.officialSite ?? null}
+            socialLinks={comp.socialLinks ?? null}
+            followersSnapshot={comp.followersSnapshot ?? null}
+          />
+        }
+      />
 
-      {/* Sub-abas (links server-side: ?tab=) */}
-      <div className="mt-8 flex flex-wrap gap-2" role="tablist" aria-label={t.tabsLabel}>
-        {tabList.map((tb) => (
-          <Link
-            key={tb.id}
-            href={`/competitions/${id}?tab=${tb.id}`}
-            role="tab"
-            aria-selected={tab === tb.id}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold border ${
-              tab === tb.id
-                ? 'bg-primary text-on-primary border-primary'
-                : 'border-border text-foreground/70 hover:border-primary/40'
-            }`}
-          >
-            {tb.label}
-          </Link>
-        ))}
-      </div>
+      {/* Sub-abas (links server-side: ?tab=) — todas as abas originais preservadas. */}
+      <nav className="mt-8 flex flex-wrap gap-2" role="tablist" aria-label={t.tabsLabel}>
+        {tabList.map((tb) => {
+          const active = tab === tb.id;
+          return (
+            <Link
+              key={tb.id}
+              href={`/competitions/${id}?tab=${tb.id}`}
+              role="tab"
+              aria-selected={active}
+              className={`inline-flex min-h-9 items-center rounded-[2px] border px-3 text-[13px] font-semibold transition-colors duration-200 ${
+                active
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border bg-surface text-ink-2 hover:border-foreground hover:text-foreground'
+              }`}
+            >
+              {tb.label}
+            </Link>
+          );
+        })}
+      </nav>
 
       <div className="mt-6">
         {tab === 'edicoes' ? (
           overview && overview.editions.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-foreground/5 text-left">
-                    <th scope="col" className="px-4 py-3 font-semibold">
-                      {t.year}
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-semibold">
-                      {t.champion}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overview.editions.map((e) => (
-                    <tr key={e.year} className="border-t border-border">
-                      <td className="px-4 py-3 font-semibold">{e.year}</td>
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/clubs/${e.champion.id}`}
-                          className="text-primary-ink hover:underline"
-                        >
-                          {e.champion.name}
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div data-testid="competition-editions">
+              <TabelaFicha
+                columns={[
+                  { key: 'year', label: t.year, align: 'right', width: 14 },
+                  { key: 'champion', label: t.champion, align: 'left' },
+                ]}
+                rows={overview.editions.map((e) => [
+                  <span key="year" className="font-semibold text-foreground">
+                    {String(e.year)}
+                  </span>,
+                  <Link
+                    key="champion"
+                    href={`/clubs/${e.champion.id}`}
+                    className="inline-flex min-h-6 items-center text-primary-ink hover:underline"
+                  >
+                    {e.champion.name}
+                  </Link>,
+                ])}
+                caption={fillCompeticao(tc.tables.captionEditions, { competition: comp.name })}
+                regionLabel={fillCompeticao(tc.tables.regionLabelEditions, {
+                  competition: comp.name,
+                })}
+                testId="competition-editions-table"
+                minWidthClass="min-w-[420px]"
+              />
             </div>
           ) : (
             <div data-testid="edicoes-empty">
@@ -529,16 +488,18 @@ export default async function CompetitionDetailPage({
         {tab === 'clubes' ? (
           overview && overview.participants.length > 0 ? (
             <>
-              <p className="text-xs text-foreground/70 mb-3">{t.participantsNote}</p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <p className="mb-4 text-[11px] leading-snug text-ink-3">{t.participantsNote}</p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {overview.participants.map((c) => (
                   <Link
                     key={c.id}
                     href={`/clubs/${c.id}`}
-                    className="block bg-background rounded-xl p-4 shadow-sm border border-border/50 hover:border-primary/40 transition-colors"
+                    className="block rounded-[2px] border border-border bg-surface p-4 transition-colors duration-200 hover:border-primary/60"
                   >
-                    <p className="font-heading font-semibold text-foreground">{c.name}</p>
-                    <p className="text-xs text-foreground/70 mt-1">
+                    <p className="font-heading text-[15px] font-semibold text-foreground">
+                      {c.name}
+                    </p>
+                    <p className="mt-1 text-[11px] text-ink-3">
                       {[c.city, c.country].filter(Boolean).join(', ') || '—'}
                     </p>
                   </Link>
@@ -557,34 +518,31 @@ export default async function CompetitionDetailPage({
 
         {tab === 'campeoes' ? (
           overview && overview.topWinners.length > 0 ? (
-            <ol className="space-y-2" data-testid="top-winners">
+            <ol className="divide-y divide-border border-y border-border" data-testid="top-winners">
               {overview.topWinners.map((w, i) => (
-                <li
-                  key={w.clubId}
-                  className="flex items-center gap-4 rounded-xl border border-border p-4"
-                >
-                  <span className="text-lg font-heading font-bold text-primary-ink w-8 text-center">
+                <li key={w.clubId} className="flex items-center gap-4 py-3">
+                  <span className="w-6 shrink-0 text-right font-heading text-base font-bold tabular-nums text-primary-ink">
                     {i + 1}
                   </span>
                   <Link
                     href={`/clubs/${w.clubId}`}
-                    className="flex-1 text-foreground hover:text-primary-ink"
+                    className="min-w-0 flex-1 truncate text-[13px] font-semibold text-foreground hover:text-primary-ink hover:underline"
                   >
                     {w.name}
                   </Link>
-                  <span className="text-sm font-semibold text-foreground/70">
-                    {w.titles} {t.titles}
+                  <span className="shrink-0 text-[11px] tabular-nums text-ink-3">
+                    {formatCount(w.titles, locale)} {t.titles}
                   </span>
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="text-sm text-foreground/60">{t.editionsEmpty}</p>
+            <p className="text-sm text-ink-2">{t.editionsEmpty}</p>
           )
         ) : null}
 
         {tab === 'pontuacao' ? (
-          <div className="space-y-8" data-testid="competition-points">
+          <div className="space-y-10" data-testid="competition-points">
             {matchHistory && matchHistory.matchesUsed > 0 ? (
               <>
                 {/*
@@ -592,13 +550,18 @@ export default async function CompetitionDetailPage({
                   quantas: sem isso o leitor não sabe se "3,1 gols por jogo" são 10 jogos ou 3.800.
                 */}
                 <section aria-labelledby="metrics-title">
-                  <h2 id="metrics-title" className="text-xl font-heading font-bold mb-3">
-                    {ti.metricsTitle}
-                  </h2>
-                  <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <Info label={ti.matchesUsed} value={String(matchHistory.records.matchesUsed)} />
-                    <Info label={ti.totalGoals} value={String(matchHistory.records.totalGoals)} />
-                    <Info
+                  <SectionHeading id="metrics-title">{ti.metricsTitle}</SectionHeading>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-6 border-t-2 border-foreground pt-5 sm:grid-cols-4">
+                    <Pillar
+                      label={ti.matchesUsed}
+                      value={formatCount(matchHistory.records.matchesUsed, locale)}
+                    />
+                    <Pillar
+                      label={ti.totalGoals}
+                      value={formatCount(matchHistory.records.totalGoals, locale)}
+                      accent
+                    />
+                    <Pillar
                       label={ti.goalsPerMatch}
                       value={
                         matchHistory.records.goalsPerMatch != null
@@ -606,33 +569,31 @@ export default async function CompetitionDetailPage({
                           : '—'
                       }
                     />
-                    <Info
+                    <Pillar
                       label={ti.goallessDraws}
-                      value={String(matchHistory.records.goallessDraws)}
+                      value={formatCount(matchHistory.records.goallessDraws, locale)}
                     />
-                  </dl>
+                  </div>
                 </section>
 
                 {/* T33 — RECORDES. Uma goleada e a mesma partida vista dos dois lados: o card
                     mostra o vencedor E o derrotado, em vez de repetir o jogo em dois blocos. */}
                 <section aria-labelledby="records-title">
-                  <h2 id="records-title" className="text-xl font-heading font-bold mb-3">
-                    {ti.recordsTitle}
-                  </h2>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <SectionHeading id="records-title">{ti.recordsTitle}</SectionHeading>
+                  <div className="grid gap-4 sm:grid-cols-2">
                     {matchHistory.records.biggestWin ? (
                       <div
-                        className="rounded-xl border border-border p-4"
+                        className="rounded-[2px] border border-border p-4"
                         data-testid="record-biggest-win"
                       >
-                        <p className="text-xs text-ink-3">{ti.biggestWin}</p>
-                        <p className="mt-2 font-heading font-bold text-lg">
+                        <p className="text-[11px] text-ink-3">{ti.biggestWin}</p>
+                        <p className="mt-2 font-heading text-lg font-bold text-foreground">
                           {matchHistory.records.biggestWin.homeClubName ?? '—'}{' '}
                           {matchHistory.records.biggestWin.homeScore} ×{' '}
                           {matchHistory.records.biggestWin.awayScore}{' '}
                           {matchHistory.records.biggestWin.awayClubName ?? '—'}
                         </p>
-                        <p className="mt-1 text-sm text-foreground/70">
+                        <p className="mt-1 text-[11px] leading-snug text-ink-2">
                           {ti.biggestDefeatNote.replace(
                             '{club}',
                             matchHistory.records.biggestWin.loserName ?? '—',
@@ -646,17 +607,17 @@ export default async function CompetitionDetailPage({
                     ) : null}
                     {matchHistory.records.highestScoring ? (
                       <div
-                        className="rounded-xl border border-border p-4"
+                        className="rounded-[2px] border border-border p-4"
                         data-testid="record-highest-scoring"
                       >
-                        <p className="text-xs text-ink-3">{ti.highestScoring}</p>
-                        <p className="mt-2 font-heading font-bold text-lg">
+                        <p className="text-[11px] text-ink-3">{ti.highestScoring}</p>
+                        <p className="mt-2 font-heading text-lg font-bold text-foreground">
                           {matchHistory.records.highestScoring.homeClubName ?? '—'}{' '}
                           {matchHistory.records.highestScoring.homeScore} ×{' '}
                           {matchHistory.records.highestScoring.awayScore}{' '}
                           {matchHistory.records.highestScoring.awayClubName ?? '—'}
                         </p>
-                        <p className="mt-1 text-sm text-foreground/70">
+                        <p className="mt-1 text-[11px] leading-snug text-ink-2">
                           {ti.goalsInMatch.replace(
                             '{n}',
                             String(matchHistory.records.highestScoring.goals),
@@ -670,15 +631,18 @@ export default async function CompetitionDetailPage({
 
                 {/*
                   T31 — EVOLUÇÃO RODADA A RODADA. A temporada é escolhida por link (sem
-                  JavaScript): são dez opções e um `<select>` controlado exigiria cliente só
+                  JavaScript): são dez opções e um <select> controlado exigiria cliente só
                   para navegar. O gráfico é SVG no servidor, e a tabela alternativa dentro
                   dele é a mesma informação em texto — para quem não lê o desenho e para
                   conferir o desenho contra o número.
                 */}
                 {matchHistory.seasons.length > 0 ? (
                   <section aria-labelledby="rounds-title">
-                    <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
-                      <h2 id="rounds-title" className="text-xl font-heading font-bold">
+                    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+                      <h2
+                        id="rounds-title"
+                        className="text-[12.5px] font-semibold leading-tight text-foreground"
+                      >
                         {ti.roundsTitle}
                       </h2>
                       <nav aria-label={ti.seasonPickerLabel} className="flex flex-wrap gap-1.5">
@@ -689,10 +653,10 @@ export default async function CompetitionDetailPage({
                               key={se}
                               href={`/competitions/${id}?tab=pontuacao&season=${encodeURIComponent(se)}`}
                               aria-current={ativa ? 'page' : undefined}
-                              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                              className={`inline-flex min-h-6 items-center rounded-[2px] border px-2.5 text-[11px] font-semibold transition-colors duration-200 ${
                                 ativa
-                                  ? 'border-primary bg-primary text-primary-foreground font-semibold'
-                                  : 'border-border hover:border-foreground/40'
+                                  ? 'border-foreground bg-foreground text-background'
+                                  : 'border-border text-ink-2 hover:border-foreground hover:text-foreground'
                               }`}
                             >
                               {se}
@@ -705,10 +669,10 @@ export default async function CompetitionDetailPage({
                       <PositionChart
                         rounds={seasonRounds.rounds.map((r) => ({
                           round: r.round,
-                          table: r.table.map((t) => ({
-                            clubId: t.clubId,
-                            position: t.position,
-                            clubName: t.clubName,
+                          table: r.table.map((entry) => ({
+                            clubId: entry.clubId,
+                            position: entry.position,
+                            clubName: entry.clubName,
                           })),
                         }))}
                         title={insText(ti.roundsChartTitle, { season: seasonRounds.season })}
@@ -720,114 +684,59 @@ export default async function CompetitionDetailPage({
                         totalRounds={seasonRounds.rounds.length}
                       />
                     ) : (
-                      <p className="text-sm text-foreground/70">{ti.roundsEmpty}</p>
+                      <p className="text-sm text-ink-2">{ti.roundsEmpty}</p>
                     )}
                   </section>
                 ) : null}
 
                 {/*
-                  T30 — TABELA HISTÓRICA DE PONTOS CORRIDOS. A régua de pontos vai no caption
-                  porque somar eras com réguas diferentes produz um total que nunca existiu.
+                  T30 — TABELA HISTÓRICA DE PONTOS CORRIDOS, agora na tabela densa do conceito.
+                  A régua de pontos vai no caption porque somar eras com réguas diferentes
+                  produz um total que nunca existiu.
                 */}
                 <section aria-labelledby="table-title">
-                  <h2 id="table-title" className="text-xl font-heading font-bold mb-3">
-                    {ti.tableTitle}
-                  </h2>
-                  <div className="overflow-x-auto rounded-xl border border-border">
-                    <table className="w-full text-sm">
-                      <caption className="bg-foreground/5 px-4 py-2 text-left text-xs text-foreground/70">
-                        {matchHistory.pointsRuleNote} {ti.tableScopeNote}
-                      </caption>
-                      <thead>
-                        <tr className="bg-foreground/5 text-left">
-                          <th scope="col" className="px-3 py-3 font-semibold">
-                            #
-                          </th>
-                          <th scope="col" className="px-3 py-3 font-semibold">
-                            {t.club}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colPlayed}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colWins}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colDraws}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colLosses}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colGoalsFor}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colGoalsAgainst}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colGoalDiff}
-                          </th>
-                          <th scope="col" className="px-3 py-3 text-right font-semibold">
-                            {ti.colPoints}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {matchHistory.table.map((row) => (
-                          <tr key={row.clubId} className="border-t border-border">
-                            <td className="px-3 py-2 tabular-nums text-foreground/60">
-                              {row.position}
-                            </td>
-                            <td className="px-3 py-2 font-semibold">
-                              {row.clubName ? (
-                                <Link href={`/clubs/${row.clubId}`} className="hover:underline">
-                                  {row.clubName}
-                                </Link>
-                              ) : (
-                                '—'
-                              )}
-                            </td>
-                            <td className="px-3 py-2 text-right tabular-nums">{row.played}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{row.wins}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{row.draws}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{row.losses}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{row.goalsFor}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">
-                              {row.goalsAgainst}
-                            </td>
-                            <td className="px-3 py-2 text-right tabular-nums">
-                              {row.goalDifference > 0
-                                ? `+${row.goalDifference}`
-                                : row.goalDifference}
-                            </td>
-                            <td className="px-3 py-2 text-right font-bold tabular-nums">
-                              {row.points}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <SectionHeading id="table-title">{ti.tableTitle}</SectionHeading>
+                  <TabelaClassificacao
+                    rows={normalizeHistoryTable(matchHistory.table)}
+                    locale={locale}
+                    competitionName={comp.name}
+                    kind="history"
+                    s={tc}
+                    testId="competition-history-table"
+                    rowTestId="competition-history-row"
+                  />
+                  <p className="mt-2 text-[11px] leading-snug text-ink-3">
+                    {matchHistory.pointsRuleNote} {ti.tableScopeNote}
+                  </p>
                   {matchHistory.truncated ? (
-                    <p className="mt-2 text-xs text-foreground/60">{ti.truncatedNote}</p>
+                    <p className="mt-1 text-[11px] leading-snug text-ink-3">{ti.truncatedNote}</p>
                   ) : null}
+                  <Criterios
+                    testId="competition-history-criteria"
+                    title={tc.criteria.title}
+                    items={[tc.criteria.derivedOrder, tc.tables.goalDifferenceNote]}
+                  />
                 </section>
 
                 {/* T33 — MAIORES CAMPEÕES: campeão derivado por pontos de cada temporada. */}
                 {matchHistory.champions.length > 0 ? (
                   <section aria-labelledby="champions-title">
-                    <h2 id="champions-title" className="text-xl font-heading font-bold mb-3">
-                      {ti.championsTitle}
-                    </h2>
-                    <ul className="divide-y divide-border rounded-xl border border-border">
+                    <SectionHeading id="champions-title">{ti.championsTitle}</SectionHeading>
+                    <ul className="divide-y divide-border border-y border-border">
                       {matchHistory.champions.map((c) => (
                         <li
                           key={c.season}
-                          className="flex items-center justify-between px-4 py-2 text-sm"
+                          className="flex items-center justify-between gap-3 py-2 text-[13px]"
                         >
-                          <span className="font-semibold tabular-nums">{c.season}</span>
-                          <span>{c.clubName ?? '—'}</span>
-                          <span className="tabular-nums text-foreground/60">{c.points} pts</span>
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {c.season}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-center text-ink-2">
+                            {c.clubName ?? '—'}
+                          </span>
+                          <span className="shrink-0 tabular-nums text-ink-3">
+                            {formatCount(c.points, locale)} {t.points}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -835,13 +744,13 @@ export default async function CompetitionDetailPage({
                 ) : null}
               </>
             ) : (
-              <p className="text-foreground/70">{ti.emptyState}</p>
+              <p className="text-sm text-ink-2">{ti.emptyState}</p>
             )}
           </div>
         ) : null}
 
         {tab === 'temporadas' ? (
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* T-26 — RESUMO POR EDIÇÃO: partidas/gols/artilheiro/3º quando o acervo tem.
                 Tabela só entra se ao menos uma edição tem dado — sem tabela placebo. */}
             {seasons.some(
@@ -851,70 +760,65 @@ export default async function CompetitionDetailPage({
                 s.topScorer != null ||
                 s.third != null,
             ) ? (
-              <div
-                className="overflow-x-auto rounded-xl border border-border"
-                data-testid="seasons-summary"
-              >
-                <table className="w-full text-sm">
-                  <caption className="bg-foreground/5 px-4 py-2 text-left text-xs text-foreground/70">
-                    {ti.metricsNote}
-                  </caption>
-                  <thead>
-                    <tr className="bg-foreground/5 text-left">
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        {t.season}
-                      </th>
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        {t.matches}
-                      </th>
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        {t.goals}
-                      </th>
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        {t.topScorer}
-                      </th>
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        {ti.thirdPlace}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {seasons.map((se) => (
-                      <tr key={`summary-${se.season}`} className="border-t border-border">
-                        <td className="px-4 py-3 font-semibold">{se.season}</td>
-                        <td className="px-4 py-3">{se.totalMatches ?? '—'}</td>
-                        <td className="px-4 py-3">{se.totalGoals ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          {se.topScorer ? `${se.topScorer.name} (${se.topScorer.goals})` : '—'}
-                        </td>
-                        <td className="px-4 py-3">{se.third?.clubName ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div data-testid="seasons-summary">
+                <TabelaFicha
+                  columns={[
+                    { key: 'season', label: t.season, align: 'left' },
+                    { key: 'matches', label: t.matches, align: 'right' },
+                    { key: 'goals', label: t.goals, align: 'right' },
+                    { key: 'topScorer', label: t.topScorer, align: 'left' },
+                    { key: 'third', label: ti.thirdPlace, align: 'left' },
+                  ]}
+                  rows={seasons.map((se) => [
+                    <span key="season" className="font-semibold text-foreground">
+                      {se.season}
+                    </span>,
+                    <span key="matches">
+                      {se.totalMatches != null ? formatCount(se.totalMatches, locale) : '—'}
+                    </span>,
+                    <span key="goals">
+                      {se.totalGoals != null ? formatCount(se.totalGoals, locale) : '—'}
+                    </span>,
+                    <span key="top-scorer">
+                      {se.topScorer
+                        ? `${se.topScorer.name} (${formatCount(se.topScorer.goals, locale)})`
+                        : '—'}
+                    </span>,
+                    <span key="third">{se.third?.clubName ?? '—'}</span>,
+                  ])}
+                  caption={fillCompeticao(tc.tables.captionSeasonsSummary, {
+                    competition: comp.name,
+                  })}
+                  regionLabel={fillCompeticao(tc.tables.regionLabelSeasons, {
+                    competition: comp.name,
+                  })}
+                  testId="seasons-summary-table"
+                  minWidthClass="min-w-[620px]"
+                />
+                <p className="mt-2 text-[11px] leading-snug text-ink-3">{ti.metricsNote}</p>
               </div>
             ) : null}
             {seasons.map((se) => (
               <section key={se.season} data-testid={`season-${se.season}`}>
-                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                  <h3 className="text-lg font-heading font-semibold">
-                    {t.season} {se.season}
-                  </h3>
-                  {se.topScorer ? (
-                    <p className="text-sm text-foreground/70">
-                      {t.topScorer}: <strong>{se.topScorer.name}</strong> ({se.topScorer.goals})
-                    </p>
-                  ) : null}
-                </div>
-                {se.champion || se.runnerUp || se.totalMatches || se.totalGoals ? (
-                  <p className="mb-3 text-sm text-foreground/70">
+                <SectionHeading
+                  as="h2"
+                  aside={
+                    se.topScorer
+                      ? `${t.topScorer}: ${se.topScorer.name} (${formatCount(se.topScorer.goals, locale)})`
+                      : undefined
+                  }
+                >
+                  {`${t.season} ${se.season}`}
+                </SectionHeading>
+                {se.champion || se.runnerUp || se.third || se.totalMatches || se.totalGoals ? (
+                  <p className="mb-3 text-[11px] leading-snug text-ink-2">
                     {/* Em COPAS a posição 1 da tabela NÃO é o campeão — o título vem da final. */}
                     {se.champion ? (
                       <span>
                         {t.champion}:{' '}
                         <Link
                           href={`/clubs/${se.champion.id}`}
-                          className="text-primary-ink hover:underline font-semibold"
+                          className="font-semibold text-primary-ink hover:underline"
                         >
                           {se.champion.name ?? se.champion.id}
                         </Link>
@@ -951,84 +855,35 @@ export default async function CompetitionDetailPage({
                     {se.totalMatches ? (
                       <span>
                         {se.champion || se.runnerUp ? ' · ' : ''}
-                        {t.matches}: {se.totalMatches}
+                        {t.matches}: {formatCount(se.totalMatches, locale)}
                       </span>
                     ) : null}
                     {se.totalGoals ? (
                       <span>
                         {se.champion || se.runnerUp || se.totalMatches ? ' · ' : ''}
-                        {t.goals}: {se.totalGoals}
+                        {t.goals}: {formatCount(se.totalGoals, locale)}
                       </span>
                     ) : null}
                   </p>
                 ) : null}
                 {se.standings && se.standings.length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border border-border">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-foreground/5 text-left">
-                          <th scope="col" className="px-3 py-2">
-                            {t.pos}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.club}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.played}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.won}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.drawn}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.lost}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.goalsFor}
-                          </th>
-                          <th scope="col" className="px-3 py-2">
-                            {t.goalsAgainst}
-                          </th>
-                          <th scope="col" className="px-3 py-2 font-semibold">
-                            {t.points}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {se.standings.map((row) => (
-                          <tr
-                            key={`${se.season}-${row.position}`}
-                            className="border-t border-border"
-                          >
-                            <td className="px-3 py-2 font-semibold">{row.position}</td>
-                            <td className="px-3 py-2">
-                              {row.clubId ? (
-                                <Link
-                                  href={`/clubs/${row.clubId}`}
-                                  className="text-primary-ink hover:underline"
-                                >
-                                  {row.matchedName ?? row.clubName}
-                                </Link>
-                              ) : (
-                                <span className="text-foreground/60">{row.clubName}</span>
-                              )}
-                            </td>
-                            <td className="px-3 py-2">{row.played ?? '—'}</td>
-                            <td className="px-3 py-2">{row.won ?? '—'}</td>
-                            <td className="px-3 py-2">{row.drawn ?? '—'}</td>
-                            <td className="px-3 py-2">{row.lost ?? '—'}</td>
-                            <td className="px-3 py-2">{row.goalsFor ?? '—'}</td>
-                            <td className="px-3 py-2">{row.goalsAgainst ?? '—'}</td>
-                            <td className="px-3 py-2 font-semibold">{row.points ?? '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <TabelaClassificacao
+                    rows={normalizeStandings(se.standings)}
+                    locale={locale}
+                    competitionName={comp.name}
+                    season={se.season}
+                    kind="standings"
+                    s={tc}
+                    testId={`competition-standings-table-${se.season}`}
+                    rowTestId="competition-standings-row"
+                  />
                 ) : (
-                  <p className="text-sm text-foreground/70">{t.seasonsEmpty}</p>
+                  <div data-testid={`season-standings-empty-${se.season}`}>
+                    <EmptyState
+                      title={tc.states.noStandingsTitle}
+                      body={tc.states.noStandingsBody}
+                    />
+                  </div>
                 )}
                 {/* FONTE — rodapé da seção, abaixo da tabela de temporadas. A tabela é o
                     dado; a origem vem depois e em `SourceNote`, com o peso único do design
@@ -1036,17 +891,73 @@ export default async function CompetitionDetailPage({
                 <SourceNote href={se.sourceUrl ?? null} label={t.source} detail={t.wikipedia} />
               </section>
             ))}
+            {/* CRITÉRIOS uma vez para todas as tabelas da aba: a ordem é a da fonte, SG é
+                aritmética e forma/zonas/desempate são lacunas declaradas — repetir isso sob
+                cada temporada seria ruído, não informação. */}
+            <Criterios
+              testId="competition-standings-criteria"
+              title={tc.criteria.title}
+              items={[
+                tc.criteria.sourceOrder,
+                tc.tables.goalDifferenceNote,
+                tc.tables.formGap,
+                tc.criteria.zonesGap,
+              ]}
+            />
           </div>
         ) : null}
 
         {tab === 'visao' ? (
           <div className="space-y-10" data-testid="competition-insights">
+            {/* FICHA TÉCNICA — o que a origem publica sobre o recorte. Era a lista `dl` do
+                cabeçalho antigo; desceu para a aba Visão Geral preservando os mesmos campos. */}
+            <section aria-labelledby="competition-info-title">
+              <SectionHeading id="competition-info-title">{tc.head.infoTitle}</SectionHeading>
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-border pt-4 sm:grid-cols-3">
+                {comp.country ? (
+                  <Info
+                    label={t.country}
+                    value={
+                      <CountryFlag
+                        code={comp.country}
+                        locale={locale}
+                        basePath="/competitions"
+                        destination="competitions"
+                      />
+                    }
+                  />
+                ) : null}
+                {comp.type ? <Info label={t.type} value={comp.type} /> : null}
+                {currentChampion ? (
+                  <Info
+                    label={t.currentChampion}
+                    value={
+                      <Link
+                        href={`/clubs/${currentChampion.champion.id}`}
+                        className="text-primary-ink hover:underline"
+                      >
+                        {currentChampion.champion.name}
+                      </Link>
+                    }
+                    extra={`${t.yearShort} ${currentChampion.year}`}
+                  />
+                ) : (
+                  <Info label={t.currentChampion} value={t.emCatalogacao} />
+                )}
+                {overview ? (
+                  <Info
+                    label={t.totalEditions}
+                    value={formatCount(overview.totalEditions, locale)}
+                  />
+                ) : null}
+                {comp.qid ? <Info label="Wikidata" value={comp.qid} /> : null}
+              </dl>
+            </section>
+
             {/* PÓDIO — última edição com campeão catalogado (T510). Campeão em destaque;
                 vice/3º só quando o acervo tem (copa sem 3º de liga = slot não renderiza). */}
             <section aria-labelledby="podium-title">
-              <h2 id="podium-title" className="text-xl font-heading font-bold mb-3">
-                {ti.podiumTitle}
-              </h2>
+              <SectionHeading id="podium-title">{ti.podiumTitle}</SectionHeading>
               <CompetitionPodium
                 podium={podium ?? { champion: null, runnerUp: null, third: null }}
                 labels={{
@@ -1065,13 +976,16 @@ export default async function CompetitionDetailPage({
 
             {/* HISTÓRIA — só o que o acervo sustenta; lacuna vira texto declarado. */}
             <section aria-labelledby="history-title">
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <h2 id="history-title" className="text-xl font-heading font-bold">
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <h2
+                  id="history-title"
+                  className="text-[12.5px] font-semibold leading-tight text-foreground"
+                >
                   {ti.historyTitle}
                 </h2>
                 {history?.status === 'vigente' ? (
                   <span
-                    className="text-xs px-2.5 py-1 rounded-full bg-success-surface text-success-ink font-semibold"
+                    className="inline-flex min-h-6 items-center rounded-[2px] border border-border bg-success-surface px-2 text-[11px] font-semibold leading-none text-success-ink"
                     data-testid="competition-status"
                   >
                     {ti.statusVigente}
@@ -1079,7 +993,7 @@ export default async function CompetitionDetailPage({
                 ) : null}
                 {history?.status === 'extinta' ? (
                   <span
-                    className="text-xs px-2.5 py-1 rounded-full bg-foreground/5 text-foreground/70"
+                    className="inline-flex min-h-6 items-center rounded-[2px] border border-border px-2 text-[11px] leading-none text-ink-2"
                     data-testid="competition-status"
                   >
                     {dissolvedYear != null
@@ -1089,7 +1003,7 @@ export default async function CompetitionDetailPage({
                 ) : null}
                 {history?.status === 'sem_edicao_recente' ? (
                   <span
-                    className="text-xs px-2.5 py-1 rounded-full bg-foreground/5 text-foreground/70"
+                    className="inline-flex min-h-6 items-center rounded-[2px] border border-border px-2 text-[11px] leading-none text-ink-2"
                     data-testid="competition-status"
                   >
                     {ti.statusSemEdicao}
@@ -1097,11 +1011,14 @@ export default async function CompetitionDetailPage({
                 ) : null}
               </div>
               {history && history.editionsCount > 0 ? (
-                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
                   {history.firstEditionYear != null ? (
                     <HistoryStat label={ti.firstEdition} value={String(history.firstEditionYear)} />
                   ) : null}
-                  <HistoryStat label={ti.editionsCount} value={String(history.editionsCount)} />
+                  <HistoryStat
+                    label={ti.editionsCount}
+                    value={formatCount(history.editionsCount, locale)}
+                  />
                   {history.biggestChampion ? (
                     <HistoryStat
                       label={ti.biggestChampion}
@@ -1134,8 +1051,8 @@ export default async function CompetitionDetailPage({
               )}
               {descriptionText ? (
                 <div className="mt-5">
-                  <h3 className="text-sm font-semibold text-foreground">{ti.aboutTitle}</h3>
-                  <p className="measure-readable text-sm text-foreground mt-1">{descriptionText}</p>
+                  <h3 className="text-[12.5px] font-semibold text-foreground">{ti.aboutTitle}</h3>
+                  <p className="measure-readable mt-1 text-sm text-foreground">{descriptionText}</p>
                   <SourceNote
                     href={descriptionSourceUrl}
                     label="Wikidata"
@@ -1155,54 +1072,53 @@ export default async function CompetitionDetailPage({
             {/* MÉTRICAS — totais SOMENTE das edições catalogadas (nota de escopo visível). */}
             {totals && (totals.matches != null || totals.goals != null) ? (
               <section aria-labelledby="metrics-title">
-                <h2 id="metrics-title" className="text-xl font-heading font-bold mb-3">
-                  {ti.metricsTitle}
-                </h2>
-                <div className="grid grid-cols-2 gap-4 max-w-md" data-testid="competition-totals">
+                <SectionHeading id="metrics-title">{ti.metricsTitle}</SectionHeading>
+                <div
+                  className="grid max-w-md grid-cols-2 gap-x-6 gap-y-6 border-t-2 border-foreground pt-5"
+                  data-testid="competition-totals"
+                >
                   {totals.matches != null ? (
-                    <div className="rounded-xl border border-border bg-muted p-4">
-                      <p className="font-heading text-3xl font-bold text-primary-ink">
-                        {formatCount(totals.matches, locale)}
-                      </p>
-                      <p className="text-sm text-foreground/70">{t.matches}</p>
-                    </div>
+                    <Pillar label={t.matches} value={formatCount(totals.matches, locale)} accent />
                   ) : null}
                   {totals.goals != null ? (
-                    <div className="rounded-xl border border-border bg-muted p-4">
-                      <p className="font-heading text-3xl font-bold text-primary-ink">
-                        {formatCount(totals.goals, locale)}
-                      </p>
-                      <p className="text-sm text-foreground/70">{t.goals}</p>
-                    </div>
+                    <Pillar label={t.goals} value={formatCount(totals.goals, locale)} />
                   ) : null}
                 </div>
-                <p className="text-xs text-foreground/70 mt-2">{ti.metricsNote}</p>
+                <p className="mt-2 text-[11px] leading-snug text-ink-3">{ti.metricsNote}</p>
               </section>
             ) : null}
 
-            <p className="text-xs text-foreground/70">{t.overviewHint}</p>
+            <p className="text-[11px] leading-snug text-ink-3">{t.overviewHint}</p>
           </div>
         ) : null}
       </div>
+
+      <Procedencia
+        s={tc}
+        season={tabelaRecente?.season ?? null}
+        hasDerived={Boolean(matchHistory && matchHistory.matchesUsed > 0)}
+      />
     </div>
   );
 }
 
+/** Par rótulo/valor da ficha técnica — metadado de 11px, valor em 13px. */
 function Info({ label, value, extra }: { label: string; value: React.ReactNode; extra?: string }) {
   return (
     <div>
-      <p className="text-xs text-ink-3">{label}</p>
-      <p className="text-sm font-medium text-foreground mt-0.5">
+      <dt className="text-[11px] text-ink-3">{label}</dt>
+      <dd className="mt-1 text-[13px] font-medium text-foreground">
         {value}
-        {extra ? <span className="text-foreground/70"> · {extra}</span> : null}
-      </p>
+        {extra ? <span className="text-ink-3"> · {extra}</span> : null}
+      </dd>
     </div>
   );
 }
 
 /**
- * Estatística da HISTÓRIA — mesmo molde do `Info` do cabeçalho, com valor grande.
- * Só entra quando o acervo tem o dado (chamada condicional no JSX).
+ * Estatística da HISTÓRIA — número de display, sem cartão: o conceito não empilha caixas;
+ * usa fio de 1px no topo e o número em Barlow Condensed. Só entra quando o acervo tem o dado
+ * (chamada condicional no JSX).
  */
 function HistoryStat({
   label,
@@ -1214,12 +1130,12 @@ function HistoryStat({
   extra?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-muted p-4" data-testid="history-stat">
-      <dt className="text-xs text-ink-3">{label}</dt>
-      <dd className="font-heading text-lg font-bold text-foreground mt-0.5">
+    <div className="border-t border-border pt-3" data-testid="history-stat">
+      <dt className="text-[11px] text-ink-3">{label}</dt>
+      <dd className="mt-1 font-heading text-xl font-bold leading-none text-foreground">
         {value}
         {extra ? (
-          <span className="text-sm font-semibold text-foreground/70"> · {extra}</span>
+          <span className="ml-1 text-[11px] font-semibold text-ink-3"> · {extra}</span>
         ) : null}
       </dd>
     </div>
