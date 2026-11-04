@@ -189,13 +189,13 @@ export default function HomeFicha({ totals }: { totals: HomeTotals }) {
             <div key={stat.key} className="flex flex-col">
               <dt
                 data-testid={`home-stat-label-${stat.key}`}
-                className="order-2 mt-2 text-[12.5px] leading-tight text-ink-3"
+                className="order-1 text-[10px] font-semibold leading-none tracking-[0.06em] text-ink-3 uppercase"
               >
                 {stat.label}
               </dt>
               <dd
                 data-testid={`home-stat-${stat.key}`}
-                className={`order-1 num text-2xl leading-none ${i === 0 ? 'text-primary' : 'text-foreground'}`}
+                className={`order-2 num mt-1 text-2xl leading-none ${i === 0 ? 'text-primary' : 'text-foreground'}`}
               >
                 {fmt(stat.value)}
               </dd>

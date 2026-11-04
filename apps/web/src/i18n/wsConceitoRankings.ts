@@ -70,6 +70,10 @@ export interface ConceitoRankingsStrings {
   provenanceLead: string;
   provenanceBody: string;
   provenanceLink: string;
+  exploreTitle: string;
+  exploreHint: string;
+  missingColumns: string;
+  rankingEdition: string;
 }
 
 export const wsConceitoRankings: Record<Locale, ConceitoRankingsStrings> = {
@@ -126,6 +130,11 @@ export const wsConceitoRankings: Record<Locale, ConceitoRankingsStrings> = {
     provenanceBody:
       'Baseado nas tabelas finais das ligas inglesas (RSSSF); a base de partidas e títulos de cada linha é a que o acervo tem registrada. Neste piloto a fonte não registra títulos — a coluna Títulos reflete a base, não a história do clube. A pontuação é recalculada a cada rodada e o histórico é auditável por temporada.',
     provenanceLink: 'Ver metodologia',
+    exploreTitle: 'Explorar todos os rankings',
+    exploreHint: 'Filtros por ano, tipo, competição, gênero e país.',
+    missingColumns:
+      '“Var.” e “Últ. 5” não são publicados pela API; a tabela mostra Títulos e a base auditável de partidas, que são dado real.',
+    rankingEdition: 'Recorte: {name}',
   },
   'en-us': {
     title: 'Rankings',
@@ -180,6 +189,11 @@ export const wsConceitoRankings: Record<Locale, ConceitoRankingsStrings> = {
     provenanceBody:
       'Based on the final tables of the English leagues (RSSSF); the match and title base of each row is what the archive records. In this pilot the source does not record titles — the Titles column reflects the base, not the club’s history. The score is recalculated every round and the history is auditable by season.',
     provenanceLink: 'See methodology',
+    exploreTitle: 'Explore all rankings',
+    exploreHint: 'Filters by year, type, competition, gender and country.',
+    missingColumns:
+      '“Var.” and “Last 5” are not published by the API; the table shows Titles and the auditable match base, which are real data.',
+    rankingEdition: 'Selection: {name}',
   },
   'es-es': {
     title: 'Rankings',
@@ -234,5 +248,10 @@ export const wsConceitoRankings: Record<Locale, ConceitoRankingsStrings> = {
     provenanceBody:
       'Basado en las tablas finales de las ligas inglesas (RSSSF); la base de partidos y títulos de cada fila es la que el acervo tiene registrada. En este piloto la fuente no registra títulos — la columna Títulos refleja la base, no la historia del club. La puntuación se recalcula en cada jornada y el historial es auditable por temporada.',
     provenanceLink: 'Ver metodología',
+    exploreTitle: 'Explorar todos los rankings',
+    exploreHint: 'Filtros por año, tipo, competición, género y país.',
+    missingColumns:
+      '“Var.” y “Últ. 5” no los publica la API; la tabla muestra Títulos y la base auditable de partidos, que son datos reales.',
+    rankingEdition: 'Recorte: {name}',
   },
 };

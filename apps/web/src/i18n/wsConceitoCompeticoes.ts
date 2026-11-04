@@ -40,6 +40,14 @@ export interface ConceitoCompeticoesStrings {
   /** Lacuna declarada quando a fonte não registra o 3º lugar. */
   podiumGap: string;
   indexTitle: string;
+  colCompetition: string;
+  colCountry: string;
+  colEditions: string;
+  colLast: string;
+  colReach: string;
+  seeAll: string;
+  backToCurated: string;
+  curatedNote: string;
   /** "{n} competições neste recorte". */
   indexAside: string;
   provenance: string;
@@ -70,6 +78,15 @@ export const wsConceitoCompeticoes: Record<Locale, ConceitoCompeticoesStrings> =
     podiumThird: '3º lugar',
     podiumGap: 'O 3º lugar desta edição não está registrado na fonte.',
     indexTitle: 'Índice completo',
+    colCompetition: 'Competição',
+    colCountry: 'País',
+    colEditions: 'Edições',
+    colLast: 'Última',
+    colReach: 'Alcance',
+    seeAll: 'Ver todas as competições do acervo',
+    backToCurated: 'Voltar ao índice curado',
+    curatedNote:
+      'Índice curado das competições-âncora; o acervo completo abre no link abaixo e respeita os filtros. As contagens de edições são as do acervo. Competições estaduais ficam fora dos destaques por alcance regional.',
     indexAside: '{n} competições neste recorte',
     provenance:
       'Lista paginada do acervo, servida pela API pública. Cada ficha de competição declara a fonte do dado.',
@@ -98,6 +115,15 @@ export const wsConceitoCompeticoes: Record<Locale, ConceitoCompeticoesStrings> =
     podiumThird: '3rd place',
     podiumGap: 'The 3rd place of this edition is not recorded in the source.',
     indexTitle: 'Full index',
+    colCompetition: 'Competition',
+    colCountry: 'Country',
+    colEditions: 'Editions',
+    colLast: 'Latest',
+    colReach: 'Reach',
+    seeAll: 'See every competition in the archive',
+    backToCurated: 'Back to the curated index',
+    curatedNote:
+      'Curated index of anchor competitions; the full archive opens below and respects the filters. State competitions stay out of the highlights because of regional reach.',
     indexAside: '{n} competitions in this selection',
     provenance:
       'Paginated archive list served by the public API. Each competition record declares the source of its data.',
@@ -126,6 +152,15 @@ export const wsConceitoCompeticoes: Record<Locale, ConceitoCompeticoesStrings> =
     podiumThird: '3º puesto',
     podiumGap: 'El 3º puesto de esta edición no está registrado en la fuente.',
     indexTitle: 'Índice completo',
+    colCompetition: 'Competición',
+    colCountry: 'País',
+    colEditions: 'Ediciones',
+    colLast: 'Última',
+    colReach: 'Alcance',
+    seeAll: 'Ver todas las competiciones del acervo',
+    backToCurated: 'Volver al índice curado',
+    curatedNote:
+      'Índice curado de las competiciones ancla; el acervo completo se abre abajo y respeta los filtros. Las competiciones estatales quedan fuera de los destaques por alcance regional.',
     indexAside: '{n} competiciones en este recorte',
     provenance:
       'Lista paginada del acervo servida por la API pública. Cada ficha de competición declara la fuente del dato.',

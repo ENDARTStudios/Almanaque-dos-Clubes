@@ -1,5 +1,4 @@
 import HomeFicha, { type HomeTotals } from '@/components/HomeFicha';
-import ChampionsCarousel from '@/components/ChampionsCarousel';
 import { getApiBase } from '@/lib/api-base';
 
 /**
@@ -50,14 +49,5 @@ async function getTotals(): Promise<HomeTotals> {
 
 export default async function HomePage() {
   const totals = await getTotals();
-  return (
-    <>
-      <HomeFicha totals={totals} />
-      {/* A vitrine de campeões vigentes continua na home, DEPOIS da abertura do conceito:
-          é dado auditável do Knowledge Graph, não decoração de marketing. */}
-      <div className="bg-background text-foreground">
-        <ChampionsCarousel />
-      </div>
-    </>
-  );
+  return <HomeFicha totals={totals} />;
 }
