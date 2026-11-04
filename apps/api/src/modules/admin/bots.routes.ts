@@ -1,20 +1,22 @@
 /**
- * T603 — rotas admin do SISTEMA DE BOTS.
+ * T-24/28 — rotas admin do MONITOR DE BOTS autônomos.
  *
- *   GET  /admin/bots           — cada bot, domínio, cadência, última rodada (status,
- *                                delta, duração) e quando vence.
- *   POST /admin/bots/:key/run  — dispara um bot AGORA (admin + operador).
+ *   GET  /admin/bots              — 12 bots + resumo (running/ok/failed/staleMs).
+ *   GET  /admin/bots/:id/runs     — histórico (limit 1..100, default 20).
+ *   POST /admin/bots/:id/run      — enfileira uma rodada manual (`trigger=manual`).
  *
- * A leitura mostra "rodou" e "rendeu" separados: `delta` é a prova de que o acervo
- * mudou. Bot que roda sem delta aparece como "sem ganho", não como sucesso pleno.
+ * Mesmo trio de guardas de TODA superfície interna:
+ * `[authenticate, requireRole('admin'), requireOperator]`.
  */
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { authenticate, requireRole } from '../auth/authenticate.middleware.js';
 import { requireOperator } from '../auth/operator.middleware.js';
-import { prisma } from '../../config/prisma.js';
-import { BOTS, getBot } from '../bots/registry.js';
-import { dueAt, lastRuns } from '../bots/scheduler.js';
-import { runBot } from '../bots/runner.js';
+import { getBot } from '../bots/registry.js';
+import { listBotRuns, runBot, runsSummary } from '../bots/service.js';
+
+function notFound(reply: import('fastify').FastifyReply) {
+  return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Bot inexistente' } });
+}
 
 export const botsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   const guard = { preHandler: [authenticate, requireRole('admin'), requireOperator] };
@@ -28,43 +30,29 @@ export const botsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       },
     },
     async (_request, reply) => {
-      const runs = await lastRuns(prisma);
-      const byKey = new Map(runs.map((r) => [r.botKey, r]));
-      const agora = new Date();
-      const data = BOTS.map((bot) => {
-        const last = byKey.get(bot.key);
-        const due = dueAt(bot, last);
-        return {
-          key: bot.key,
-          domain: bot.domain,
-          label: bot.label,
-          cadenceHours: bot.cadenceHours,
-          writes: bot.writes,
-          sources: bot.sources,
-          note: bot.note ?? null,
-          lastRunAt: last?.finishedAt ? last.finishedAt.toISOString() : null,
-          dueAt: due ? due.toISOString() : null,
-          isDue: due === null || due.getTime() <= agora.getTime(),
-        };
-      });
-      const ultimas = await prisma.botRun.findMany({
-        orderBy: { startedAt: 'desc' },
-        take: 40,
-        select: {
-          botKey: true,
-          status: true,
-          startedAt: true,
-          durationMs: true,
-          delta: true,
-          error: true,
-        },
-      });
-      return reply.send({ data, recentRuns: ultimas });
+      return reply.send({ data: await runsSummary() });
     },
   );
 
-  app.post<{ Params: { key: string } }>(
-    '/admin/bots/:key/run',
+  app.get<{ Params: { id: string }; Querystring: { limit?: string } }>(
+    '/admin/bots/:id/runs',
+    {
+      ...guard,
+      config: {
+        rateLimit: { max: 60, timeWindow: '1 minute', keyGenerator: (r) => r.user?.id ?? r.ip },
+      },
+    },
+    async (request, reply) => {
+      const bot = getBot(request.params.id);
+      if (!bot) return notFound(reply);
+      const parsed = Number.parseInt(request.query.limit ?? '20', 10);
+      const limit = Number.isFinite(parsed) ? parsed : 20;
+      return reply.send({ data: await listBotRuns(bot.id, limit) });
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/admin/bots/:id/run',
     {
       ...guard,
       config: {
@@ -72,20 +60,16 @@ export const botsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       },
     },
     async (request, reply) => {
-      const bot = getBot(request.params.key);
-      if (!bot) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Bot inexistente' } });
-      }
-      // Disparo manual roda em segundo plano: o script pode levar minutos e a
-      // resposta HTTP não deve pendurar. O resultado aparece em `recentRuns`.
+      const bot = getBot(request.params.id);
+      if (!bot) return notFound(reply);
+      // Disparo manual roda em segundo plano: o lote pode levar minutos e a resposta
+      // HTTP não deve pendurar. O resultado aparece em /admin/bots e no histórico.
       setImmediate(() => {
-        void runBot(prisma, bot, { apply: true, triggeredBy: request.user!.id }).catch(() => {
-          /* falha já registrada em bot_runs pelo runner */
+        void runBot(bot.id, 'manual').catch(() => {
+          /* falha já registrada em bot_runs/bot_states pelo serviço */
         });
       });
-      return reply
-        .status(202)
-        .send({ accepted: true, botKey: bot.key, message: 'Rodada em execução' });
+      return reply.status(202).send({ queued: true });
     },
   );
 };

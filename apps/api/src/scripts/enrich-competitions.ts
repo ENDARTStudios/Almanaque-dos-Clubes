@@ -191,15 +191,25 @@ interface StateRow {
   flagUrl: string | null;
 }
 
-async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
+interface EnrichTotals {
+  processed: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+}
+
+async function enrichCompetitions(
+  prisma: PrismaClient,
+  opts: { apply: boolean; limit: number; ids: string[] },
+): Promise<EnrichTotals> {
   // Fila: qid != null e NUNCA tentado (`competitionEnrichment` ausente) — com
   // temporadas catalogadas primeiro, depois nome. Sem ORDER BY não há fila
   // determinística (lição T448/#448).
   let competitions: CompetitionRow[];
-  if (IDS.length > 0) {
+  if (opts.ids.length > 0) {
     // Modo explícito (--ids): re-tenta os pedidos, ignorando o cursor.
     competitions = (await prisma.competition.findMany({
-      where: { id: { in: IDS }, qid: { not: null }, deletedAt: null },
+      where: { id: { in: opts.ids }, qid: { not: null }, deletedAt: null },
       select: {
         id: true,
         qid: true,
@@ -210,7 +220,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
       },
       orderBy: { name: 'asc' },
     })) as CompetitionRow[];
-    const semQid = IDS.length - competitions.length;
+    const semQid = opts.ids.length - competitions.length;
     if (semQid > 0) console.log(`  ${semQid} id(s) sem qid no acervo — ignorados`);
   } else {
     competitions = (await prisma.$queryRawUnsafe(
@@ -220,7 +230,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
         ORDER BY EXISTS (
               SELECT 1 FROM "CompetitionSeason" cs WHERE cs."competitionId" = c.id
             ) DESC, c.name ASC
-        LIMIT ${Math.max(1, LIMIT)}`,
+        LIMIT ${Math.max(1, opts.limit)}`,
     )) as unknown as CompetitionRow[];
   }
   console.log(`  fila (competições): ${competitions.length}`);
@@ -238,7 +248,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
     if (!ent?.claims && !ent?.descriptions) {
       totals.errors++;
       console.log(`  [${comp.qid}] ${comp.name}: entidade não obtida do Wikidata`);
-      if (APPLY) {
+      if (opts.apply) {
         await prisma.competition.update({
           where: { id: comp.id },
           data: {
@@ -300,7 +310,7 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
       `  [${comp.qid}] ${comp.name}: ${status}${log.length ? ` — ${log.join(' · ')}` : ''}`,
     );
 
-    if (APPLY) {
+    if (opts.apply) {
       // Cursor por competição (padrão profileEnrichment T-22.3): a tentativa fica
       // registrada mesmo quando nada pôde ser preenchido — é o que faz a fila
       // avançar e o re-run ser noop.
@@ -322,12 +332,16 @@ async function enrichCompetitions(prisma: PrismaClient): Promise<void> {
   }
 
   console.log(
-    `\nResumo competições (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
+    `\nResumo competições (${opts.apply ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
       `atualizado=${totals.updated} skipped=${totals.skipped} erros=${totals.errors}`,
   );
+  return totals;
 }
 
-async function enrichStates(prisma: PrismaClient): Promise<void> {
+async function enrichStates(
+  prisma: PrismaClient,
+  opts: { apply: boolean; limit: number },
+): Promise<EnrichTotals> {
   // Fila: qid != null E flagUrl NULL (State não tem cursor de tentativa — limitação
   // declarada no header; "sem bandeira" volta na próxima passada, como os troféus).
   const states = (await prisma.$queryRawUnsafe(
@@ -335,7 +349,7 @@ async function enrichStates(prisma: PrismaClient): Promise<void> {
        FROM states s
       WHERE s.qid IS NOT NULL AND s."flagUrl" IS NULL
       ORDER BY s.name ASC
-      LIMIT ${Math.max(1, LIMIT)}`,
+      LIMIT ${Math.max(1, opts.limit)}`,
   )) as unknown as StateRow[];
   console.log(`\nPassada 2 (estados) — fila: ${states.length}`);
 
@@ -370,7 +384,7 @@ async function enrichStates(prisma: PrismaClient): Promise<void> {
     const file = itemQid ? extractFlagFileFromItem(itemEntities.get(itemQid)) : null;
     if (itemQid && file) {
       const url = flagUrlFromFile(file);
-      if (APPLY) {
+      if (opts.apply) {
         // Guarda de não-sobrescrita: só grava se AINDA estiver NULL.
         await prisma.state.updateMany({
           where: { id: st.id, flagUrl: null },
@@ -391,23 +405,77 @@ async function enrichStates(prisma: PrismaClient): Promise<void> {
   }
 
   console.log(
-    `\nResumo estados (${APPLY ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
+    `\nResumo estados (${opts.apply ? 'APPLY' : 'DRY-RUN'}): processado=${totals.processed} ` +
       `atualizado=${totals.updated} skipped=${totals.skipped} erros=${totals.errors}`,
   );
+  return totals;
+}
+
+export interface EnrichCompetitionsBatchOptions {
+  apply: boolean;
+  limit?: number;
+  ids?: string[];
+  /** Roda também a passada de bandeiras dos estados (P163 → P18). */
+  states?: boolean;
+  prisma?: PrismaClient;
+}
+
+export interface EnrichCompetitionsBatchResult {
+  processed: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  message: string;
+}
+
+/**
+ * Lote importável do enrich-competitions (T-24/28 — bot `competitions`). Mantém
+ * o cursor `competitionEnrichment` e a passada de estados opcional (o bot a roda
+ * em rodadas alternadas para não gastar o orçamento toda vez).
+ */
+export async function runEnrichCompetitionsBatch(
+  opts: EnrichCompetitionsBatchOptions = { apply: false },
+): Promise<EnrichCompetitionsBatchResult> {
+  const apply = opts.apply;
+  const limit = opts.limit ?? 200;
+  const ids = opts.ids ?? [];
+  const prisma = opts.prisma ?? new PrismaClient();
+  const ownPrisma = !opts.prisma;
+  console.log(
+    `T-24/25 enrich-competitions (${apply ? 'APPLY' : 'DRY-RUN'}) · limit=${limit}` +
+      `${ids.length ? ` · ids=${ids.length}` : ''}${opts.states ? ' · states' : ''}`,
+  );
+  try {
+    const totals: EnrichTotals = { processed: 0, updated: 0, skipped: 0, errors: 0 };
+    if (ids.length > 0 || !opts.states) {
+      const out = await enrichCompetitions(prisma, { apply, limit, ids });
+      totals.processed += out.processed;
+      totals.updated += out.updated;
+      totals.skipped += out.skipped;
+      totals.errors += out.errors;
+    }
+    if (opts.states) {
+      const out = await enrichStates(prisma, { apply, limit });
+      totals.processed += out.processed;
+      totals.updated += out.updated;
+      totals.skipped += out.skipped;
+      totals.errors += out.errors;
+    }
+    if (!apply) console.log('\nDRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
+    return {
+      ...totals,
+      message:
+        `competições: ${totals.processed} processadas, ${totals.updated} atualizadas, ` +
+        `${totals.skipped} sem dado, ${totals.errors} erros` +
+        `${opts.states ? ' (inclui passada de bandeiras dos estados)' : ''}`,
+    };
+  } finally {
+    if (ownPrisma) await prisma.$disconnect();
+  }
 }
 
 async function main(): Promise<void> {
-  console.log(
-    `T-24/25 enrich-competitions (${APPLY ? 'APPLY' : 'DRY-RUN'}) · limit=${LIMIT}` +
-      `${IDS.length ? ` · ids=${IDS.length}` : ''}${STATES ? ' · --states' : ''}`,
-  );
-  const prisma = new PrismaClient();
-
-  if (!STATES) await enrichCompetitions(prisma);
-  if (STATES) await enrichStates(prisma);
-
-  if (!APPLY) console.log('\nDRY-RUN: nenhuma escrita foi feita. Use --apply para gravar.');
-  await prisma.$disconnect();
+  await runEnrichCompetitionsBatch({ apply: APPLY, limit: LIMIT, ids: IDS, states: STATES });
 }
 
 // Guarda de invocação direta: o módulo exporta extratores puros (testados no
