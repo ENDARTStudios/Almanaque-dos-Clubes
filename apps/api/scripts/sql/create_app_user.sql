@@ -9,6 +9,8 @@ END $$;
 -- USAGE no schema (roles não-superuser precisam; o default de PUBLIC não basta em PG15+).
 GRANT USAGE ON SCHEMA public TO app_user;
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "bot_states" TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "bot_runs" TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "audit_logs" TO app_user;
 -- T508 (W4) — temporadas de competição (classificação/artilheiro).
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "CompetitionSeason" TO app_user;
