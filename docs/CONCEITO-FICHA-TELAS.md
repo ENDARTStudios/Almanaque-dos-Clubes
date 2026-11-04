@@ -48,8 +48,8 @@ site e a diferença era de **composição de tela**, não de cor/fonte.
 Ainda com a composição anterior, na fila de migração (mesmo ciclo: conceito → dado real → teste →
 screenshot):
 
-/temporadas (índice), /estadios (índice) e as páginas legais
-(privacidade, termos, cookies, direitos).
+Nenhuma tela do conceito pendente. Fora do escopo do conceito: os índices /temporadas e /estadios
+(não têm quadro próprio) e /favoritos (redireciona ao Meu Almanaque por decisão do T597).
 
 O conceito também tem quadros de **sistema** (fundamentos, interacao) que são documentação de
 design, não rotas.
@@ -57,7 +57,7 @@ design, não rotas.
 ## 4. Verificação desta entrega
 
     pnpm --filter web typecheck        # 0
-    pnpm --filter web test             # 493 testes / 61 arquivos
+    pnpm --filter web test             # 494 testes / 62 arquivos
     pnpm --filter web build            # OK
     pnpm run ui:audit:ci               # 0 bloqueios
     pnpm run ficha:check               # 0 (componentes do sistema todos em uso e testados)
