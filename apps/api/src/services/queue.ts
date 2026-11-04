@@ -103,6 +103,17 @@ export async function addJob(
   return queues[queue].add(name, data, opts);
 }
 
+/**
+ * Concorrência válida para o Worker do BullMQ. BullMQ 6 LANÇA
+ * `concurrency must be a finite number greater than 0` quando a opção é
+ * `undefined` — passar `opts.concurrency` cru quebrou o boot inteiro da API
+ * (deploy 2cb47c09, 11-04: `registerDataRefreshCron` → createWorker sem opts).
+ */
+export function normalizeConcurrency(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+}
+
 export function createWorker(
   queue: QueueName,
   handler: (job: Job) => Promise<void>,
@@ -117,7 +128,7 @@ export function createWorker(
     async (job) => {
       await handler(job);
     },
-    { connection, concurrency: opts.concurrency },
+    { connection, concurrency: normalizeConcurrency(opts.concurrency) },
   );
   // Fail-loud: erro de conexão do worker NÃO pode ficar silencioso (T451 —
   // worker sem consumir só foi percebido porque o job não saía de 'waiting').
