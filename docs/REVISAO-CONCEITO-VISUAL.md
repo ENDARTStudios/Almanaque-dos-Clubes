@@ -87,6 +87,17 @@ continua declarada (nunca preenchida com o número ilustrativo do PNG).
   (Visão Geral, Edições, Clubes, Maiores Campeões, Pontos corridos) segue acessível.
 - Zonas e "Últ. 5" continuam declarados como lacuna, como já fazia a tabela densa.
 
+## Correções desta rodada — quarta parte
+
+### Clube (ficha) (`components/conceito/clube/ClubeFichaPageView.tsx`, `i18n/wsConceitoClube.ts`)
+
+- O cabeçalho ganhou o **cartão de ranking** do quadro (posição, pontos e link para o ranking)
+  quando o clube tem entrada publicada; sem ranking, o cartão não aparece.
+- Entrou a **fileira "Troféus e medalhas"** com os 5 torneios mais vencedores, troféu na cor do
+  sistema, contagem real e o total de títulos/competições ao lado — derivada da mesma parede de
+  honrarias, sem número novo.
+- Escudo, fotos e evolução continuam com **licença real ou lacuna declarada**.
+
 ## Pendências (próximas rodadas)
 
 - Lendas: recalcular as métricas no escopo do panteão; estrutura de três gráficos e lista de

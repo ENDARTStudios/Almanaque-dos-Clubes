@@ -22,6 +22,9 @@ export interface ConceitoClubeStrings {
     crestLicense: string;
     crestUnknownLicense: string;
     crestIllustration: string;
+    ranking: string;
+    rankingPoints: string;
+    rankingLink: string;
     favoriteCount: string;
   };
   pillars: {
@@ -72,6 +75,7 @@ export interface ConceitoClubeStrings {
     /** `{goalsFor}` `{goalsAgainst}` = gols do confronto. */
     goals: string;
   };
+  trophies: { heading: string; aside: string };
   honours: {
     heading: string;
     caption: string;
@@ -179,6 +183,9 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       crestLicense: 'Licença do escudo',
       crestUnknownLicense: 'Licença do escudo não catalogada',
       crestIllustration: 'Ilustração autoral — o acervo não tem escudo oficial deste clube',
+      ranking: 'Ranking',
+      rankingPoints: '{points} pts',
+      rankingLink: 'ver ranking',
       favoriteCount: 'torcedores',
     },
     pillars: {
@@ -224,6 +231,10 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       matches: '{count} jogos',
       record: '{wins} V · {draws} E · {losses} D',
       goals: '{goalsFor} pró · {goalsAgainst} contra',
+    },
+    trophies: {
+      heading: 'Troféus e medalhas',
+      aside: '{titles} títulos · {competitions} competições',
     },
     honours: {
       heading: 'Parede de honrarias',
@@ -336,6 +347,9 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       crestLicense: 'Crest license',
       crestUnknownLicense: 'Crest license not cataloged',
       crestIllustration: 'Original illustration — the archive has no official crest for this club',
+      ranking: 'Ranking',
+      rankingPoints: '{points} pts',
+      rankingLink: 'view ranking',
       favoriteCount: 'supporters',
     },
     pillars: {
@@ -381,6 +395,10 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       matches: '{count} matches',
       record: '{wins} W · {draws} D · {losses} L',
       goals: '{goalsFor} for · {goalsAgainst} against',
+    },
+    trophies: {
+      heading: 'Trophies and medals',
+      aside: '{titles} titles · {competitions} competitions',
     },
     honours: {
       heading: 'Honours wall',
@@ -493,6 +511,9 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       crestLicense: 'Licencia del escudo',
       crestUnknownLicense: 'Licencia del escudo no catalogada',
       crestIllustration: 'Ilustración original — el acervo no tiene escudo oficial de este club',
+      ranking: 'Ranking',
+      rankingPoints: '{points} pts',
+      rankingLink: 'ver ranking',
       favoriteCount: 'aficionados',
     },
     pillars: {
@@ -538,6 +559,10 @@ export const conceitoClubeStrings: Record<Locale, ConceitoClubeStrings> = {
       matches: '{count} partidos',
       record: '{wins} V · {draws} E · {losses} D',
       goals: '{goalsFor} a favor · {goalsAgainst} en contra',
+    },
+    trophies: {
+      heading: 'Trofeos y medallas',
+      aside: '{titles} títulos · {competitions} competiciones',
     },
     honours: {
       heading: 'Pared de honores',
