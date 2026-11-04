@@ -1,63 +1,75 @@
 'use client';
 
-import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import OperatorGate from '@/components/OperatorGate';
+import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/Provider';
 import { adminStrings } from '@/components/admin/strings';
-import AdminHeading from '@/components/ficha/AdminHeading';
+import { wsConceitoAdmin } from '@/i18n/wsConceitoAdmin';
+import AdminOperacao, { type AdminMetricsView } from '@/components/conceito/admin/AdminOperacao';
 
 /**
- * HUB DE ADMINISTRAÇÃO — índice das ferramentas internas (T559, gate T565, T-ADMIN).
+ * /admin — OPERAÇÃO no conceito FICHA.
  *
- * Por que esta página existe: as ferramentas internas estavam listadas DENTRO de `/dashboard`,
- * a área do usuário. O efeito era o usuário comum ver "Observabilidade — Crons, fila e alertas
- * (admin)" ao lado de "Favoritos". Além de confuso, expunha a existência de superfícies internas
- * a quem não tem acesso.
+ * O hub antigo tinha uma lista de cartões e nada do estado do acervo. O quadro pede o painel:
+ * acervo, qualidade do dado, filas e funções de administrador, com o topo escuro do segmento.
  *
- * T-ADMIN — o índice passou a cobrir TODAS as áreas internas (as oito áreas de gestão, mais
- * Observabilidade e Denúncias, que já existiam e continuam alcançáveis), consumindo o mesmo
- * catálogo que a navegação do `layout.tsx` usa (`adminStrings.nav.areas`). Uma lista só, duas
- * apresentações: evita o clássico "adicionei a página nova e esqueci de listar em um dos dois".
- *
- * Por que dentro do `OperatorGate`: o Operador pediu que a área seja restrita a ele. O gate
- * oferece a ENTRADA; a recusa de verdade vem do servidor, porque cada ferramenta chama uma API
- * que exige `requireOperator`. Nenhuma checagem no navegador protege coisa alguma.
- *
- * Por isso o `metadata` saiu daqui: uma página `'use client'` não pode exportá-lo. O
- * `robots: noindex` vive no `layout.tsx` do segmento, que é Server Component e cobre TODAS as
- * rotas do segmento.
+ * Dados: UMA chamada a GET /admin/metrics (a mesma do /admin/metricas). 403 é recusa de
+ * permissão — não "erro"; 5xx/rede é erro com retry. O gate de navegação continua no
+ * OperatorGate e a segurança real continua na API (a tela não é o portão).
  */
+type Status = 'loading' | 'ready' | 'forbidden' | 'error';
+
 export default function AdminPage() {
   const { locale } = useI18n();
-  const s = adminStrings[locale] ?? adminStrings['pt-br'];
+  const s = wsConceitoAdmin[locale];
+  const admin = adminStrings[locale] ?? adminStrings['pt-br'];
+  const [data, setData] = useState<AdminMetricsView | null>(null);
+  const [status, setStatus] = useState<Status>('loading');
+
+  const carregar = useCallback(async () => {
+    setStatus('loading');
+    try {
+      const res = await api.get<{ data: AdminMetricsView }>('/admin/metrics');
+      setData(res.data);
+      setStatus('ready');
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      setStatus(err.status === 403 || /403|FORBIDDEN/i.test(err.message) ? 'forbidden' : 'error');
+    }
+  }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(carregar);
+  }, [carregar]);
 
   return (
     <OperatorGate>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <AdminHeading title={s.index.title} />
-        <p className="text-ink-2 mb-8">{s.index.subtitle}</p>
-
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {s.nav.areas.map((area) => (
-            <li key={area.href}>
-              <Link
-                href={area.href}
-                data-testid={`admin-hub-${
-                  area.href === '/admin' ? 'index' : area.href.split('/').slice(2).join('-')
-                }`}
-                className="block h-full rounded-xl border border-border bg-surface p-5 transition-colors duration-200 hover:border-primary"
-              >
-                <span className="block font-heading text-lg font-bold text-foreground">
-                  {area.label}
-                </span>
-                <span className="mt-1 block text-sm text-ink-2">{area.desc}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Declara ONDE o acesso é decidido, para não dar a impressão de que a tela é o gate. */}
-        <p className="mt-8 text-xs text-ink-3">{s.index.accessNote}</p>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {status === 'forbidden' ? (
+          <p role="alert" className="py-10 text-sm text-danger-ink" data-testid="admin-forbidden">
+            {s.restricted}
+          </p>
+        ) : status === 'loading' && !data ? (
+          <p role="status" className="py-10 text-sm text-ink-2" data-testid="admin-loading">
+            {admin.index.checking}
+          </p>
+        ) : status === 'error' || !data ? (
+          <div className="py-10" data-testid="admin-error">
+            <p role="alert" className="text-sm text-danger-ink">
+              {s.error}
+            </p>
+            <button
+              type="button"
+              onClick={() => void carregar()}
+              className="mt-3 inline-flex min-h-9 items-center rounded-[2px] border border-border px-3 text-[12px] text-foreground hover:border-foreground"
+            >
+              {s.retry}
+            </button>
+          </div>
+        ) : (
+          <AdminOperacao data={data} s={s} locale={locale} areas={admin.nav.areas} />
+        )}
       </div>
     </OperatorGate>
   );
