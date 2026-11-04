@@ -244,7 +244,7 @@ export default function MapaFicha() {
         onWomen={setOnlyWomen}
         womenLabel={m.womenToggle}
       />
-      <p className="mt-2 max-w-[92ch] text-[11px] leading-snug text-ink-3">{m.hint}</p>
+      <p className="sr-only">{m.hint}</p>
 
       <div
         className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8"
