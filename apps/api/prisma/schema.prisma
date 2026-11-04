@@ -1113,28 +1113,61 @@ model ReviewQueue {
   @@map("review_queue")
 }
 
-/// T603 — SISTEMA DE BOTS: histórico de execuções por bot.
+/// T-24/28 — INGESTÃO AUTÔNOMA: estado durável de cada bot de domínio.
 ///
-/// A métrica antes/depois é o antídoto do "DONE sem dado": uma rodada pode terminar
-/// sem erro e sem trazer nada (a fonte não publica). O registro guarda o número dos
-/// dois lados, então o painel mostra "rodou" e "rendeu" como coisas diferentes.
+/// O estado é a fonte do monitor: o último resultado, a mensagem honesta do que
+/// foi (ou não foi) feito e quantas falhas consecutivas já acumulou. O orquestrador
+/// usa `consecutiveFailures` para alertar (>= 3) sem depender de health em memória.
+model BotState {
+  id                  String   @id /// id do bot (ex.: "players")
+  domain              String /// players|clubs|matches|geo|history|charts|seasons|stadiums|rankings|comparison|tables|competitions
+  label               String?
+  enabled             Boolean  @default(true)
+  lastRunAt           DateTime?
+  lastStatus          String? /// running|ok|partial|failed|skipped
+  consecutiveFailures Int      @default(0)
+  lastMessage         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  runs BotRun[]
+
+  @@map("bot_states")
+}
+
+/// T603 + T-24/28 — histórico de execuções por bot.
+///
+/// Aditivo em relação ao T603: `botId`/`trigger`/contadores/mensagem são o contrato
+/// novo; as colunas antigas (`botKey`, métricas antes/depois etc.) permanecem para
+/// não perder as rodadas já registradas (novas rodadas preenchem `botKey = botId`).
 model BotRun {
   id           String    @id @default(uuid())
-  /// Chave do registro (`apps/api/src/modules/bots/registry.ts`).
+  /// Bot de domínio (`BotState.id`). FK com cascade: limpar estado limpa histórico.
+  botId        String
+  bot          BotState  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  /// Chave legada T603; nas rodadas novas é igual a `botId`.
   botKey       String
-  /// SUCCESS | FAILED | SKIPPED (vence a cadência? não) | TIMEOUT
+  /// running | ok | partial | failed | skipped
   status       String
+  /// schedule | manual | api
+  trigger      String    @default("schedule")
   startedAt    DateTime  @default(now())
   finishedAt   DateTime?
+  processed    Int       @default(0)
+  updated      Int       @default(0)
+  skipped      Int       @default(0)
+  errors       Int       @default(0)
+  message      String?
+  /// Campos legados T603 (métrica antes/depois e duração do script externo).
   durationMs   Int?
-  /// Contagem da métrica antes e depois; `delta` = after - before.
   metricBefore Int?
   metricAfter  Int?
   delta        Int?
   error        String?
-  /// "schedule" | id do usuário admin que disparou
   triggeredBy  String?
 
+  @@index([botId, startedAt])
+  @@index([status])
   @@index([botKey, startedAt])
   @@index([status, startedAt])
   @@map("bot_runs")

@@ -730,3 +730,54 @@ model CopyrightNotice {
   @@index([protocol])
   @@map("copyright_notices")
 }
+
+// -----------------------------------------------------------------------------
+// T-24/28 — INGESTÃO AUTÔNOMA: estado e histórico dos bots de domínio.
+// Espelho da versão PostgreSQL (a sandbox sqlite não usa as migrations do
+// Postgres; os models existem para o client de testes e para typecheck).
+// -----------------------------------------------------------------------------
+
+model BotState {
+  id                  String    @id
+  domain              String
+  label               String?
+  enabled             Boolean   @default(true)
+  lastRunAt           DateTime?
+  lastStatus          String?
+  consecutiveFailures Int       @default(0)
+  lastMessage         String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  runs BotRun[]
+
+  @@map("bot_states")
+}
+
+model BotRun {
+  id           String    @id @default(uuid())
+  botId        String
+  bot          BotState  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  botKey       String
+  status       String
+  trigger      String    @default("schedule")
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  processed    Int       @default(0)
+  updated      Int       @default(0)
+  skipped      Int       @default(0)
+  errors       Int       @default(0)
+  message      String?
+  durationMs   Int?
+  metricBefore Int?
+  metricAfter  Int?
+  delta        Int?
+  error        String?
+  triggeredBy  String?
+
+  @@index([botId, startedAt])
+  @@index([status])
+  @@index([botKey, startedAt])
+  @@index([status, startedAt])
+  @@map("bot_runs")
+}
