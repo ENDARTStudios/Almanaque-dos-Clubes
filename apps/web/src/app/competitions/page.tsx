@@ -1,30 +1,46 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import FichaHead from '@/components/ficha/FichaHead';
-import SearchBar from '@/components/SearchBar';
-import CountryIndex from '@/components/CountryIndex';
-import { CountryFlag } from '@/components/CountryFlag';
+import { CountryFlag, FlagImage } from '@/components/CountryFlag';
+import DataTable from '@/components/ficha/DataTable';
+import { EmptyState, ErrorState } from '@/components/ficha/States';
+import CompetitionHighlights, {
+  type HighlightItem,
+  type Tier,
+} from '@/components/conceito/competicoes/Highlights';
+import ConceptPodium from '@/components/conceito/competicoes/Podium';
 import { getApiBase } from '@/lib/api-base';
+import { countryLabel } from '@/lib/country-flag';
+import { formatCount } from '@/lib/format';
 import { getDictionary } from '@/i18n/getDictionary';
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config';
 import { metadataStrings } from '@/i18n/wsMetadata';
-import {
-  CONTINENTAL_ANCHORS,
-  INTERNATIONAL_ANCHORS,
-  WOMEN_ANCHORS,
-  NATIONAL_ANCHOR_GROUPS,
-  type AnchorCompetition,
-} from '@/lib/competition-anchors';
-import { agruparPorDegrau, type DegrauId } from '@/lib/competition-tier';
-import SectionHeading from '@/components/ficha/SectionHeading';
-import TierCard from '@/components/ficha/TierCard';
-import DataTable from '@/components/ficha/DataTable';
-import { EmptyState, ErrorState } from '@/components/ficha/States';
 import { fichaStrings } from '@/i18n/wsFicha';
+import { wsConceitoCompeticoes } from '@/i18n/wsConceitoCompeticoes';
 
-// T583 — título/descrição por idioma (o locale vem do MESMO cookie lido pela página).
+/**
+ * /competitions — a ficha do acervo de competições, no conceito FICHA.
+ *
+ * O que mudou em relação à versão anterior (e por quê):
+ *   · HEADER — o número-âncora agora é formatado com o separador do idioma e tem rótulo
+ *     ("1.932 competições catalogadas"). O subtítulo funde o kicker do conceito com a frase de
+ *     abertura; a página abre pelo título, sem eyebrow.
+ *   · FILTROS — chips (país com bandeira, tipo, gênero) em vez de três selects + botão. Chip é
+ *     destino, então o filtro é um link: funciona sem JS, é indexável e o estado ativo é visível.
+ *     A lista completa de países fica num disclosure, porque são 197 e a faixa não pode virar
+ *     um paredão de chips.
+ *   · DESTAQUES — quatro alvos por alcance, com o troféu na cor do degrau e o número de edições
+ *     que o ACERVO tem (não o número histórico ilustrativo do desenho).
+ *   · PÓDIO — campeão e vice REAIS da última edição da Copa do Mundo; o 3º lugar não está na
+ *     fonte e vira lacuna declarada no cartão, nunca um nome inventado.
+ *   · ÍNDICE — a tabela densa de colunas declaradas substitui os cartões agrupados por degrau.
+ *
+ * A antiga grade de países (CountryIndex) saiu: eram 220 cartões que repetiam a filtragem por
+ * país já disponível nos chips. O caminho por país continua no filtro — completo, no disclosure.
+ */
+
 export async function generateMetadata(): Promise<Metadata> {
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
@@ -41,14 +57,39 @@ interface Competition {
   name: string;
   country?: string | null;
   type?: string | null;
+  inceptionYear?: number | null;
 }
 
-/** Entrada do índice de países (T577). */
 interface CompetitionCountry {
   code: string;
   name: string | null;
   competitions: number;
 }
+
+interface CompetitionOverview {
+  inceptionYear: number | null;
+  editions: number | null;
+  podium: {
+    champion: { name: string } | null;
+    runnerUp: { name: string } | null;
+    third: { name: string } | null;
+  };
+  lastEditionYear: number | null;
+  competitionName: string;
+}
+
+const HIGHLIGHTS: Array<{ id: string; name: string; tier: Tier }> = [
+  // Ids da curadoria de âncoras (confirmados no banco — lib/competition-anchors).
+  { id: 'c94c3d26-c3a8-45e0-8f4b-c2bd19707688', name: 'FIFA World Cup', tier: 'mundial' },
+  {
+    id: '8fae6a29-79c5-43d8-81ee-4b569361926b',
+    name: 'UEFA Champions League',
+    tier: 'continental',
+  },
+  { id: '9d50e9fa-bc31-4ea8-af77-e429f451ff52', name: 'Copa Libertadores', tier: 'continental' },
+  // Nacional: Copa do Brasil (grupo BR da curadoria de âncoras).
+  { id: 'd4b2c896-a33e-4178-98fb-ac8abe2223e1', name: 'Copa do Brasil', tier: 'nacional' },
+];
 
 async function getCompetitions(searchParams: { [key: string]: string | undefined }) {
   const params = new URLSearchParams();
@@ -62,8 +103,7 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
   try {
     const base = getApiBase();
     const res = await fetch(base + '/competitions?' + params.toString(), { cache: 'no-store' });
-    // `null` = FALHOU. Antes devolvia `{ data: [], total: 0 }` — indistinguível de "acervo
-    // vazio", e a página imprimia "Explore 0 competições" com a API fora do ar.
+    // null = FALHOU. Nunca []. Ver a distinção falha ≠ vazio no ErrorState abaixo.
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -71,19 +111,6 @@ async function getCompetitions(searchParams: { [key: string]: string | undefined
   }
 }
 
-// Mapeamento do portal (Operador, 08/10) — hierarquia geográfica com âncoras
-// CURADAS do acervo (ids/QIDs confirmados no banco de produção; regra R4).
-// T556 — a seção de Seleções/Internacionais deixou de ser vazio-honesto: o acervo TEM
-// 165 competições internacionais (Copa do Mundo, Eurocopa, Copa América...) e a âncora
-// curada passa a ser a fonte da lista.
-
-/**
- * T587 — países para o filtro de seleção.
- *
- * Vem de `/competitions/countries` (197 países, contagem real por país) e não de uma lista fixa:
- * assim a opção mostra NOME e quantidade, e um país sem acervo não aparece para ser escolhido.
- * Falha de rede devolve lista vazia — o filtro continua funcionando, só com "todos".
- */
 async function getCompetitionCountries(): Promise<CompetitionCountry[]> {
   try {
     const res = await fetch(getApiBase() + '/competitions/countries', { cache: 'no-store' });
@@ -96,14 +123,94 @@ async function getCompetitionCountries(): Promise<CompetitionCountry[]> {
   }
 }
 
-function AnchorChip({ c }: { c: AnchorCompetition }) {
+/**
+ * O resumo de uma competição curada. `overview.history.editionsCount` conta só as edições que o
+ * ACERVO tem — é o número que o cartão mostra, com a palavra "no acervo". Nada de copiar o
+ * "23 edições" do desenho.
+ */
+async function getOverview(id: string): Promise<CompetitionOverview | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/competitions/${id}`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const j: {
+      data?: { name?: string; inceptionYear?: number | null };
+      overview?: {
+        history?: { editionsCount?: number | null; lastEditionYear?: number | null };
+        podium?: {
+          champion?: { clubName?: string | null } | null;
+          runnerUp?: { clubName?: string | null } | null;
+          third?: { clubName?: string | null } | null;
+        };
+      };
+    } = await res.json();
+    return {
+      competitionName: j.data?.name ?? '',
+      inceptionYear: j.data?.inceptionYear ?? null,
+      editions: j.overview?.history?.editionsCount ?? null,
+      lastEditionYear: j.overview?.history?.lastEditionYear ?? null,
+      podium: {
+        champion: j.overview?.podium?.champion?.clubName
+          ? { name: j.overview.podium.champion.clubName }
+          : null,
+        runnerUp: j.overview?.podium?.runnerUp?.clubName
+          ? { name: j.overview.podium.runnerUp.clubName }
+          : null,
+        third: j.overview?.podium?.third?.clubName
+          ? { name: j.overview.podium.third.clubName }
+          : null,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Preserva os filtros ativos ao trocar UM deles (e reseta a paginação). */
+function hrefCom(
+  sp: { [key: string]: string | undefined },
+  patch: Record<string, string | null>,
+): string {
+  const params = new URLSearchParams();
+  for (const key of ['gender', 'type', 'country', 'search'] as const) {
+    const value = key in patch ? patch[key] : sp[key];
+    if (value) params.set(key, value);
+  }
+  return '/competitions' + (params.toString() ? `?${params.toString()}` : '');
+}
+
+function Chip({
+  href,
+  active,
+  children,
+  testId,
+}: {
+  href: string;
+  active: boolean;
+  children: ReactNode;
+  testId?: string;
+}) {
   return (
     <Link
-      href={`/competitions/${c.id}`}
-      className="inline-block px-3 py-1.5 rounded-full border border-border text-sm text-foreground/80 hover:border-primary/50 hover:text-primary-ink transition-colors"
+      href={href}
+      data-testid={testId}
+      aria-current={active ? 'true' : undefined}
+      className={`inline-flex min-h-8 items-center gap-2 rounded-[2px] border px-3 py-1 text-[12px] leading-none transition-colors duration-200 ${
+        active
+          ? 'border-foreground bg-foreground font-semibold text-background'
+          : 'border-border bg-surface text-ink-2 hover:border-foreground hover:text-foreground'
+      }`}
     >
-      {c.name}
+      {children}
     </Link>
+  );
+}
+
+/** Rótulo de um grupo de filtros (10px, caixa baixa — não é eyebrow). */
+function FiltroLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="w-16 shrink-0 pt-2 text-[10px] font-semibold leading-none text-ink-3">
+      {children}
+    </span>
   );
 }
 
@@ -114,325 +221,307 @@ export default async function CompetitionsPage({
 }) {
   const sp = await searchParams;
   const resultado = await getCompetitions(sp);
-  /*
-    FALHA ≠ VAZIO. A primeira é "não foi possível saber"; a segunda é "não há dado". Fundir as
-    duas faz a página afirmar "0 competições" quando o acervo tem 1.932 e a consulta é que não
-    voltou — foi o que o screenshot com a API fora mostrou, com um "0" gigante em vermelho.
-  */
   const falhou = resultado === null;
-  const competitions = resultado?.data ?? [];
-  const total = resultado?.total ?? 0;
-  const offset = resultado?.offset ?? 0;
-  const countries = await getCompetitionCountries();
+  const competitions: Competition[] = resultado?.data ?? [];
+  const total: number = resultado?.total ?? 0;
+  const offset: number = resultado?.offset ?? 0;
+
+  const [countries, overviews] = await Promise.all([
+    getCompetitionCountries(),
+    falhou
+      ? Promise.resolve<Array<CompetitionOverview | null>>([])
+      : Promise.all(HIGHLIGHTS.map((h) => getOverview(h.id))),
+  ]);
+
   const store = await cookies();
   const locale = normalizeLocale(store.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
-  const s = dict.pages.competitions.sections;
-  const degraus = agruparPorDegrau([
-    CONTINENTAL_ANCHORS,
-    INTERNATIONAL_ANCHORS,
-    WOMEN_ANCHORS,
-    ...NATIONAL_ANCHOR_GROUPS.map((g) => g.items),
-  ]);
+  const s = wsConceitoCompeticoes[locale];
+  const c = dict.pages.competitions;
 
-  const ROTULO_DEGRAU: Record<DegrauId, string> = {
-    mundial: s.degrauMundial,
-    continentalTop: s.degrauContinental,
-    continentalSecundaria: s.degrauContinentalSecundaria,
-    nacional: s.degrauNacional,
-  };
+  const highlightItems: HighlightItem[] = HIGHLIGHTS.map((h, i) => ({
+    id: h.id,
+    name: h.name,
+    tier: h.tier,
+    inceptionYear: overviews[i]?.inceptionYear ?? null,
+    editions: overviews[i]?.editions ?? null,
+  }));
+
+  // O pódio é o da competição em destaque (Copa do Mundo), com o ano REAL da última edição.
+  const destaque = overviews[0] ?? null;
+  const editionLabel =
+    destaque && destaque.lastEditionYear != null
+      ? s.podiumEdition
+          .replace('{name}', destaque.competitionName)
+          .replace('{year}', String(destaque.lastEditionYear))
+      : null;
+
+  const paisesPorVolume = [...countries].sort((a, b) => b.competitions - a.competitions);
+  const topPaises = paisesPorVolume.slice(0, 8);
+  const paisAtivoForaDoTopo =
+    sp.country && !topPaises.some((p) => p.code === sp.country)
+      ? (paisesPorVolume.find((p) => p.code === sp.country) ?? null)
+      : null;
+  const chipsDePais = paisAtivoForaDoTopo ? [paisAtivoForaDoTopo, ...topPaises] : topPaises;
+
+  const temFiltro = Boolean(sp.country || sp.type || sp.gender || sp.search);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/*
-        FichaHead no lugar do PageHeading: o PageHeading já era um h1 limpo (sem eyebrow), mas
-        não carregava o NÚMERO-ÂNCORA — e o acervo tem 1.932 competições, que é o dado da página.
-        O `{n}` do subtítulo é interpolado aqui porque estamos num Server Component que fala com
-        `dict` (strings cruas), não com `t()`. O placeholder existe nos três idiomas. */}
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <FichaHead
-        title={dict.pages.competitions.title}
-        subtitle={
-          /* Na falha, SEM subtítulo: o `errorBody` diz "o número que aparece abaixo é o último
-             que conseguimos verificar" — e abaixo não há número, porque a âncora também saiu.
-             O `ErrorState` logo adiante explica a falha; repetir aqui seria texto que se
-             refere a algo que a página não mostra. */
-          falhou ? undefined : dict.pages.competitions.subtitle.replace('{n}', String(total))
-        }
-        // âncora é manchete: 0 não é manchete, e com falha de rede o número seria mentira
-        anchor={falhou || total === 0 ? undefined : String(total)}
+        title={c.title}
+        subtitle={`${s.kicker} · ${s.subtitle}`}
+        anchor={falhou || total === 0 ? undefined : formatCount(total, locale)}
+        anchorLabel={s.anchorLabel}
       />
 
-      {/* T577 — REORGANIZAÇÃO. O que havia antes: seis grupos de "âncoras" curadas (continental,
-          três blocos nacionais, feminino, seleções) seguidos de um grid com TODAS as 1.932
-          competições. Isso não é organização — é uma lista de atalhos em cima de outra lista, sem
-          hierarquia, e o Operador descreveu exatamente isso: "mal planejada e confusa".
-
-          A hierarquia nova segue a ORDEM EM QUE SE DECIDE:
-            1. filtros       — estreitar por gênero/tipo/país
-            2. destaques     — as competições que as pessoas procuram por nome
-            3. países        — o eixo que o DADO sustenta (92% de cobertura, 84 países)
-            4. resultado     — a lista, com a contagem do recorte atual
-
-          O índice de países substitui os blocos nacionais curados: em vez de TRÊS países escolhidos
-          a dedo, os 84 que existem, com contagem real e busca. Os destaques continuam porque
-          "Copa do Mundo" e "Libertadores" são procuradas por nome, não por país — mas agora são uma
-          faixa rotulada, não seis seções competindo com a lista. */}
-
-      {/* 1. FILTROS — estreitam o recorte */}
-      <form
-        method="get"
-        className="mt-8 flex flex-wrap gap-3 items-end"
-        aria-label={dict.pages.competitions.filtersLabel}
-      >
-        <label className="text-xs text-foreground/60">
-          {dict.pages.competitions.filters.gender}
-          <select name="gender" defaultValue={sp.gender ?? ''} className="field block mt-1">
-            <option value="">{dict.pages.competitions.filters.all}</option>
-            <option value="men">{dict.pages.rankings.genderMen}</option>
-            <option value="women">{dict.pages.rankings.genderWomen}</option>
-          </select>
-        </label>
-        <label className="text-xs text-foreground/60">
-          {dict.pages.competitions.filters.type}
-          {/* A opção "todas" é o que a maioria quer por padrão: `type` só existe em 54% do acervo,
-              e começar filtrado por um campo incompleto esconderia metade sem dizer. */}
-          <select name="type" defaultValue={sp.type ?? ''} className="field block mt-1">
-            <option value="">{dict.pages.competitions.filters.all}</option>
-            <option value="LEAGUE">{dict.pages.competitions.filters.league}</option>
-            <option value="CUP">{dict.pages.competitions.filters.cup}</option>
-          </select>
-        </label>
-        <label className="text-xs text-foreground/60">
-          {dict.pages.competitions.filters.country}
-          {/* T587 — SELEÇÃO, não digitação. Antes era um `<input maxLength={2}>` pedindo o código
-              ISO de cabeça: o usuário tinha de saber que Portugal é `PT` e Peru é `PE`, e um erro
-              de uma letra devolvia lista vazia sem explicar. Os países vêm de
-              `/competitions/countries`, que já conta o acervo — então a opção mostra o NOME e
-              quantas competições existem ali, e não é possível escolher um país sem acervo. */}
-          <select name="country" defaultValue={sp.country ?? ''} className="field block mt-1">
-            <option value="">{s.countryAll}</option>
-            {countries.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name ?? c.code} ({c.code}) · {c.competitions}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="submit"
-          className="h-[38px] px-5 rounded-lg bg-primary text-on-primary text-sm font-semibold"
-        >
-          {dict.pages.competitions.filters.apply}
-        </button>
-        {/* Sair do recorte é uma ação explícita. Sem isto, quem filtrou por engano fica preso
-            tendo de apagar campo por campo. */}
-        {sp.country || sp.type || sp.gender || sp.search ? (
-          <Link
-            href="/competitions"
-            className="h-[38px] inline-flex items-center px-4 rounded-lg border border-border text-sm text-foreground/70 hover:border-primary/50 hover:text-primary-ink transition-colors"
-            data-testid="competitions-clear"
-          >
-            {dict.pages.competitions.filters.clear}
-          </Link>
-        ) : null}
-      </form>
-
-      {/* 2. DESTAQUES — competições de alcance, em DEGRAUS.
-          Antes eram três blocos de chips idênticos (continental, internacional, feminino) com
-          três defeitos medidos: a mesma competição aparecia em dois blocos (UEFA Champions,
-          Libertadores e AFC Elite — mesmo `id`, 25 entradas para 22 distintas); "FIFA World Cup" e
-          "Campeonato Cearense" tinham o mesmo peso; e todo chip era igual, então a seção não
-          respondia "qual importa mais?".
-
-          Agora cada degrau tem peso próprio, decrescente, e a competição aparece UMA vez:
-            MUNDIAL .............. cartão, nome em destaque, no topo
-            CONTINENTAL .......... cartão menor, borda de acento
-            CONTINENTAL · 2º ..... chip compacto
-            NACIONAL ............. chip compacto, mais apagado
-          A curadoria dos degraus vive em `lib/competition-tier.ts`, com o motivo de cada exclusão. */}
-      <section className="mt-8" aria-labelledby="comp-destaques">
-        <SectionHeading id="comp-destaques">{s.destaques}</SectionHeading>
-
-        <div className="space-y-6">
-          {degraus.map((degrau) => {
-            const rotulo = ROTULO_DEGRAU[degrau.id];
-            const ehMundial = degrau.id === 'mundial';
-            const ehContinentalTop = degrau.id === 'continentalTop';
-
-            return (
-              <div key={degrau.id} data-testid={`destaque-degrau-${degrau.id}`}>
-                <SectionHeading as="h3">{rotulo}</SectionHeading>
-
-                {ehMundial || ehContinentalTop ? (
-                  /* Dois degraus de cima: cartão. O tamanho do nome é o sinal de importância. */
-                  <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {degrau.itens.map((c) => (
-                      <li key={c.id}>
-                        <TierCard
-                          tier={degrau.id}
-                          name={c.name}
-                          meta={c.country ?? ''}
-                          tierLabel={rotulo}
-                          href={`/competitions/${c.id}`}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  /* Degraus de baixo: chip compacto. Mesmo componente, peso menor. */
-                  <ul className="flex flex-wrap gap-2">
-                    {degrau.itens.map((c) => (
-                      <li key={c.id}>
-                        <AnchorChip c={c} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-
-          {/* O futebol feminino entra pelos degraus de ALCANCE (Copa América Femenina no
-              continental, Brasileirão A1/A2 e Frauen-Bundesliga no nacional), e não numa
-              fileira à parte — que é o que fazia as seis copas estaduais parecerem do mesmo
-              tamanho que a Champions. O atalho para o recorte completo fica aqui. */}
-          <p className="text-xs text-ink-3">
-            <Link
-              href="/competitions?gender=women"
-              className="inline-flex min-h-6 items-center text-primary-ink underline decoration-dotted underline-offset-2"
-            >
-              {s.verTodasFeminino}
-            </Link>
-          </p>
-        </div>
-
-        <p className="mt-4 text-xs text-ink-3">{s.destaquesNota}</p>
-      </section>
-
-      {/* 3. PAÍSES — o eixo principal. Só aparece quando o usuário NÃO recortou ainda: filtrando
-          por um país, um índice de países ao lado da lista é ruído, não navegação. */}
-      {!sp.country && !sp.search && !sp.gender && !sp.type ? (
-        <div className="mt-10">
-          <CountryIndex
-            basePath="/competitions"
-            endpoint="/competitions/countries"
-            campo="competitions"
-            rotulo={dict.pages.competitions.filters.competitionsLabel}
-          />
-        </div>
-      ) : null}
-
-      {/* Busca + lista completa (funcionalidade existente) */}
-      <div className="mt-12 mb-6">
-        <h2 className="text-lg font-heading font-semibold mb-3">{s.todas}</h2>
-        <SearchBar
-          targetPath="/competitions"
-          searchKey="search"
-          placeholderKey="pages.competitions.title"
+      {falhou ? (
+        <ErrorState
+          title={fichaStrings[locale].states.errorTitle}
+          body={fichaStrings[locale].states.errorBody}
+          retryLabel={fichaStrings[locale].states.retry}
+          retryHref="/competitions"
         />
-      </div>
-      <Suspense
-        fallback={
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
-            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
-            <div className="h-48 bg-neutral-surface rounded-xl animate-pulse" />
-          </div>
-        }
-      >
-        {falhou ? (
-          <ErrorState
-            title={fichaStrings[locale].states.errorTitle}
-            body={fichaStrings[locale].states.errorBody}
-            retryLabel={fichaStrings[locale].states.retry}
-            retryHref="/competitions"
-          />
-        ) : competitions.length ? (
-          /*
-            ERA uma grade de cartões idênticos — 1.932 vezes o mesmo retângulo. Dois defeitos,
-            um deles medido pela skill:
-              · "no rows of identical cards": cartão igual para tudo significa que nada é
-                destaque, e 1.932 cartões não são escaneáveis;
-              · não há como COMPARAR duas linhas: o olho não encontra a mesma coluna duas vezes.
-            A tabela resolve os dois — alinha o que é comparável e cabe muito mais por tela.
-            Os rótulos de tipo deixaram de ser literais em português no JSX ('Liga', 'Copa',
-            'Internacional') e passam pelo dicionário.
-          */
-          <DataTable
-            caption={s.todas}
-            columns={[
-              { header: dict.pages.competitions.filters.competition, align: 'left' },
-              { header: dict.pages.competitions.filters.country, align: 'left' },
-              { header: dict.pages.competitions.filters.type, align: 'left' },
-            ]}
-            rows={competitions.map((c: Competition) => [
-              <Link
-                key={c.id}
-                href={`/competitions/${c.id}`}
-                className="text-primary-ink hover:underline"
-              >
-                {c.name}
-              </Link>,
-              c.country ? (
-                <span key={`c-${c.id}`} className="flex items-center gap-2">
-                  <CountryFlag code={c.country} locale={locale} />
-                  <span className="text-ink-3">{c.country}</span>
-                </span>
-              ) : (
-                <span key={`c-${c.id}`} className="text-ink-3">
-                  {dict.pages.competitions.filters.international}
-                </span>
-              ),
-              <span key={`t-${c.id}`} className="text-ink-2">
-                {c.type === 'LEAGUE'
-                  ? dict.pages.competitions.filters.league
-                  : c.type === 'CUP'
-                    ? dict.pages.competitions.filters.cup
-                    : c.type === 'TOURNAMENT'
-                      ? dict.pages.competitions.filters.tournament
-                      : (c.type ?? '—')}
-              </span>,
-            ])}
-          />
-        ) : (
-          <EmptyState
-            title={fichaStrings[locale].states.emptyTitle}
-            body={fichaStrings[locale].states.emptyBody}
-          />
-        )}
-        {total > 50 ? (
-          <nav
-            className="flex justify-between mt-6"
-            aria-label={dict.pages.competitions.paginationLabel}
-          >
-            {offset > 0 ? (
-              <Link
-                href={pageHref(sp, Math.max(0, offset - 50))}
-                className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:border-primary/40"
-              >
-                {dict.pages.competitions.prev}
-              </Link>
+      ) : (
+        <>
+          {/* 1. FILTROS — chips, estado ativo visível, sem JS. */}
+          <section aria-labelledby="comp-filtros" className="mt-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="comp-filtros" className="text-[12.5px] font-semibold text-foreground">
+                {s.filtersTitle}
+              </h2>
+              {temFiltro ? (
+                <Link
+                  href="/competitions"
+                  data-testid="competitions-clear"
+                  className="text-[11px] font-medium text-primary-ink underline decoration-dotted underline-offset-2"
+                >
+                  {s.clear}
+                </Link>
+              ) : null}
+            </div>
+
+            <div className="mt-3 space-y-2.5">
+              <div className="flex flex-wrap items-start gap-2">
+                <FiltroLabel>{s.country}</FiltroLabel>
+                <ul className="flex flex-wrap gap-2">
+                  <li>
+                    <Chip href={hrefCom(sp, { country: null })} active={!sp.country}>
+                      {s.all}
+                    </Chip>
+                  </li>
+                  {chipsDePais.map((pais) => (
+                    <li key={pais.code}>
+                      <Chip
+                        href={hrefCom(sp, { country: pais.code })}
+                        active={sp.country === pais.code}
+                        testId={`competitions-country-${pais.code}`}
+                      >
+                        <FlagImage code={pais.code} />
+                        <span>{countryLabel(pais.code, locale) ?? pais.name ?? pais.code}</span>
+                      </Chip>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {paisesPorVolume.length > 0 ? (
+                <details className="sm:pl-16">
+                  <summary className="inline-flex min-h-6 cursor-pointer items-center text-[11px] text-ink-3 hover:text-foreground">
+                    {s.seeAllCountries.replace('{n}', String(paisesPorVolume.length))}
+                  </summary>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {paisesPorVolume.map((pais) => (
+                      <li key={pais.code}>
+                        <Link
+                          href={hrefCom(sp, { country: pais.code })}
+                          className={`inline-flex min-h-6 items-center gap-1.5 rounded-[2px] px-1.5 py-0.5 text-[11px] ${
+                            sp.country === pais.code
+                              ? 'bg-foreground text-background'
+                              : 'text-ink-2 hover:text-foreground'
+                          }`}
+                        >
+                          <FlagImage code={pais.code} />
+                          <span>{countryLabel(pais.code, locale) ?? pais.name ?? pais.code}</span>
+                          <span className={sp.country === pais.code ? 'opacity-80' : 'text-ink-3'}>
+                            {pais.competitions}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+
+              <div className="flex flex-wrap items-start gap-2">
+                <FiltroLabel>{c.filters.type}</FiltroLabel>
+                <ul className="flex flex-wrap gap-2">
+                  <li>
+                    <Chip href={hrefCom(sp, { type: null })} active={!sp.type}>
+                      {s.all}
+                    </Chip>
+                  </li>
+                  <li>
+                    <Chip href={hrefCom(sp, { type: 'LEAGUE' })} active={sp.type === 'LEAGUE'}>
+                      {c.filters.league}
+                    </Chip>
+                  </li>
+                  <li>
+                    <Chip href={hrefCom(sp, { type: 'CUP' })} active={sp.type === 'CUP'}>
+                      {c.filters.cup}
+                    </Chip>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-wrap items-start gap-2">
+                <FiltroLabel>{c.filters.gender}</FiltroLabel>
+                <ul className="flex flex-wrap gap-2">
+                  <li>
+                    <Chip href={hrefCom(sp, { gender: null })} active={!sp.gender}>
+                      {s.all}
+                    </Chip>
+                  </li>
+                  <li>
+                    <Chip href={hrefCom(sp, { gender: 'men' })} active={sp.gender === 'men'}>
+                      {s.men}
+                    </Chip>
+                  </li>
+                  <li>
+                    <Chip href={hrefCom(sp, { gender: 'women' })} active={sp.gender === 'women'}>
+                      {s.women}
+                    </Chip>
+                  </li>
+                </ul>
+              </div>
+
+              {sp.search ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <FiltroLabel>{s.searchPrefix}</FiltroLabel>
+                  <span className="inline-flex min-h-8 items-center gap-2 rounded-[2px] border border-foreground bg-foreground px-3 text-[12px] text-background">
+                    {sp.search}
+                    <Link href={hrefCom(sp, { search: null })} className="underline">
+                      ×
+                    </Link>
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </section>
+
+          {/* 2. DESTAQUES — quatro alvos por alcance, com troféu na cor do degrau. */}
+          <section aria-labelledby="comp-destaques" className="mt-10">
+            <h2
+              id="comp-destaques"
+              className="text-[12.5px] font-semibold text-[color:var(--color-secondary)]"
+            >
+              {s.highlightsTitle}
+            </h2>
+            <div className="mt-3">
+              <CompetitionHighlights items={highlightItems} s={s} />
+            </div>
+          </section>
+
+          {/* 3. PÓDIO da última edição do destaque mundial. */}
+          {destaque?.podium.champion ? (
+            <div className="mt-10">
+              <ConceptPodium
+                editionLabel={editionLabel}
+                champion={destaque.podium.champion}
+                runnerUp={destaque.podium.runnerUp}
+                third={destaque.podium.third}
+                s={s}
+              />
+            </div>
+          ) : null}
+
+          {/* 4. ÍNDICE COMPLETO — a tabela densa, paginada, com o recorte atual. */}
+          <section aria-labelledby="comp-indice" className="mt-10">
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="comp-indice" className="text-[12.5px] font-semibold text-foreground">
+                {s.indexTitle}
+              </h2>
+              <p className="text-[11px] text-ink-3">
+                {s.indexAside.replace('{n}', formatCount(total, locale))}
+              </p>
+            </div>
+
+            {competitions.length ? (
+              <DataTable
+                caption={s.indexTitle}
+                columns={[
+                  { header: c.filters.competition, align: 'left' },
+                  { header: s.country, align: 'left' },
+                  { header: c.filters.type, align: 'left' },
+                ]}
+                rows={competitions.map((comp) => [
+                  <Link
+                    key={comp.id}
+                    href={`/competitions/${comp.id}`}
+                    className="font-medium text-primary-ink hover:underline"
+                  >
+                    {comp.name}
+                  </Link>,
+                  comp.country ? (
+                    <span key={`c-${comp.id}`} className="flex items-center gap-2">
+                      <CountryFlag code={comp.country} locale={locale} />
+                    </span>
+                  ) : (
+                    <span key={`c-${comp.id}`} className="text-ink-3">
+                      {c.filters.international}
+                    </span>
+                  ),
+                  <span key={`t-${comp.id}`} className="text-ink-2">
+                    {comp.type === 'LEAGUE'
+                      ? c.filters.league
+                      : comp.type === 'CUP'
+                        ? c.filters.cup
+                        : comp.type === 'TOURNAMENT'
+                          ? c.filters.tournament
+                          : (comp.type ?? '—')}
+                  </span>,
+                ])}
+              />
             ) : (
-              <span />
+              <EmptyState
+                title={fichaStrings[locale].states.emptyTitle}
+                body={fichaStrings[locale].states.emptyBody}
+              />
             )}
-            {offset + 50 < total ? (
-              <Link
-                href={pageHref(sp, offset + 50)}
-                className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:border-primary/40"
-              >
-                {dict.pages.competitions.next}
-              </Link>
-            ) : (
-              <span />
-            )}
-          </nav>
-        ) : null}
-      </Suspense>
+
+            {total > 50 ? (
+              <nav className="mt-6 flex justify-between" aria-label={c.paginationLabel}>
+                {offset > 0 ? (
+                  <Link
+                    href={pageHref(sp, Math.max(0, offset - 50))}
+                    className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                  >
+                    {c.prev}
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {offset + 50 < total ? (
+                  <Link
+                    href={pageHref(sp, offset + 50)}
+                    className="inline-flex min-h-10 items-center rounded-[2px] border border-border px-4 text-sm font-semibold hover:border-foreground"
+                  >
+                    {c.next}
+                  </Link>
+                ) : (
+                  <span />
+                )}
+              </nav>
+            ) : null}
+          </section>
+
+          <p className="mt-8 max-w-[900px] text-[11px] leading-snug text-ink-3">{s.provenance}</p>
+        </>
+      )}
     </div>
   );
 }
 
-// Paginação (Entrega 4): preserva os filtros ativos na troca de página.
 function pageHref(sp: { [key: string]: string | undefined }, offset: number): string {
   const params = new URLSearchParams();
   for (const key of ['gender', 'type', 'country', 'search'] as const) {

@@ -179,6 +179,13 @@ export default function Navbar() {
    * compara texto em vez de caminho.
    */
   const pathname = usePathname();
+  /**
+   * A exceção escura do conceito: /legends é o PANTEÃO, a única superfície escura do produto.
+   * A topbar acompanha — sem isso, a faixa preta começa abaixo de uma barra clara e a página
+   * parece dois sites colados. O logo troca para a variante de fundo escuro (o de fundo claro
+   * tem as páginas em carvão e desaparece no #12100f).
+   */
+  const temaEscuro = pathname === '/legends' || pathname.startsWith('/legends/');
   const ativo = (href: string): boolean => {
     const alvo = href.split('?')[0] ?? href;
     if (alvo === '/') return pathname === '/';
@@ -196,13 +203,16 @@ export default function Navbar() {
         {...(ativo(entry.href) ? { 'aria-current': 'page' as const } : {})}
         // T554 — `py-1`: o alvo media 20px (WCAG 2.5.8 pede ≥24). O header não cresce
         // porque o logo e os botões de ação já são mais altos que 28px.
-        className={`text-sm whitespace-nowrap py-1 transition-colors duration-200 hover:text-primary-ink ${
-          ativo(entry.href) ? 'font-bold text-primary-ink' : 'font-medium text-foreground/80'
+        className={`relative whitespace-nowrap py-1 text-[13px] transition-colors duration-200 hover:text-primary-ink ${
+          ativo(entry.href) ? 'font-semibold text-primary-ink' : 'font-medium text-foreground/80'
         }`}
         data-testid={`nav-link-${entry.href.replace(/^\//, '')}`}
         data-ativo={ativo(entry.href) ? 'true' : undefined}
       >
         {entry.label}
+        {ativo(entry.href) ? (
+          <span aria-hidden="true" className="absolute inset-x-0 -bottom-2 h-[2px] bg-primary" />
+        ) : null}
       </Link>
     ) : (
       <div key={`${entry.key}-${idx}`} className="relative">
@@ -215,9 +225,9 @@ export default function Navbar() {
              o usuário sabe que está dentro de "Clubes" mesmo tendo escolhido "Brasil" no painel.
              `aria-current="true"` (e não `"page"`) porque o pai não É a página: ele a contém. */
           {...(entry.items.some((i) => ativo(i.href)) ? { 'aria-current': 'true' as const } : {})}
-          className={`flex items-center gap-1 text-sm whitespace-nowrap py-1 transition-colors duration-200 hover:text-primary-ink ${
+          className={`relative flex items-center gap-1 whitespace-nowrap py-1 text-[13px] transition-colors duration-200 hover:text-primary-ink ${
             entry.items.some((i) => ativo(i.href))
-              ? 'font-bold text-primary-ink'
+              ? 'font-semibold text-primary-ink'
               : 'font-medium text-foreground/80'
           }`}
           data-testid={`nav-group-${entry.key}`}
@@ -227,6 +237,9 @@ export default function Navbar() {
           <span aria-hidden="true" className="text-[10px]">
             ▾
           </span>
+          {entry.items.some((i) => ativo(i.href)) ? (
+            <span aria-hidden="true" className="absolute inset-x-0 -bottom-2 h-[2px] bg-primary" />
+          ) : null}
         </button>
         {openDesktop === entry.key ? (
           <div
@@ -254,7 +267,10 @@ export default function Navbar() {
   ];
 
   return (
-    <nav ref={ref} className="fixed inset-x-0 top-0 z-50 text-foreground">
+    <nav
+      ref={ref}
+      className={`fixed inset-x-0 top-0 z-50 text-foreground ${temaEscuro ? 'theme-dark' : ''}`}
+    >
       {/* SUPERFÍCIE da barra: um container com fundo REAL que envolve o conteúdo e o painel.
           Por que assim (dois defeitos medidos, não estética):
           1. `z-index: auto` numa faixa posicionada não cria contexto de empilhamento, então o
@@ -308,7 +324,11 @@ export default function Navbar() {
                 aria-label="Almanaque dos Clubes"
               >
                 <Image
-                  src="/brand/logo-horizontal-claro.svg"
+                  src={
+                    temaEscuro
+                      ? '/brand/logo-horizontal-escuro.svg'
+                      : '/brand/logo-horizontal-claro.svg'
+                  }
                   alt=""
                   width={1171}
                   height={319}

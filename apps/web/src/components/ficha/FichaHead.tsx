@@ -60,23 +60,25 @@ export default function FichaHead({
     <header className="mb-6 flex flex-wrap items-start justify-between gap-6">
       <div className="min-w-0 flex-1">
         <h1
-          className={`font-heading text-4xl font-bold leading-[1.02] tracking-[-0.02em] sm:text-5xl lg:text-6xl ${
+          className={`font-heading text-4xl font-bold leading-[1.02] tracking-[-0.02em] sm:text-5xl lg:text-[68px] ${
             dark ? 'text-foreground' : 'text-foreground'
           }`}
         >
           {title}
         </h1>
-        {subtitle ? <p className="measure-readable mt-4 text-base text-ink-2">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="measure-readable mt-4 text-[15px] leading-[22px] text-ink-2">{subtitle}</p>
+        ) : null}
         {actions ? <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div> : null}
       </div>
 
       {mostrarAncora ? (
         <div className="shrink-0 text-right">
           {/* imagem, não dado de tabela: por isso font-heading */}
-          <div className="font-heading text-5xl font-bold leading-none tracking-[-0.03em] text-primary-ink sm:text-6xl lg:text-7xl">
+          <div className="font-heading text-5xl font-bold leading-none tracking-[-0.03em] text-primary-ink sm:text-6xl lg:text-[76px]">
             {anchor}
           </div>
-          {anchorLabel ? <div className="mt-1 text-xs text-ink-3">{anchorLabel}</div> : null}
+          {anchorLabel ? <div className="mt-1 text-[11px] text-ink-3">{anchorLabel}</div> : null}
         </div>
       ) : null}
     </header>
