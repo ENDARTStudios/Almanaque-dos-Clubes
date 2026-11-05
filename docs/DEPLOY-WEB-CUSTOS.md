@@ -3,7 +3,7 @@
 Data: 04/11/2026
 Contexto: o projeto `almanaque-dos-clubes` estourou o limite de gastos do plano PRO em
 **Build CPU Minutes** e a produção foi pausada (`DEPLOYMENT_PAUSED`, HTTP 503).
-Este documento registra a alternativa adotada e as opções seguintes.
+Este documento registra a alternativa testada, o resultado e as opções seguintes.
 
 ## O que consumia Build CPU
 
@@ -18,7 +18,7 @@ custo em Build CPU Minutes. Os filtros de path e a integração nativa desligada
 não tocam o app, mas todo merge que toca `apps/web/**` ou `packages/**` ainda construía
 remotamente.
 
-## Alternativa adotada: build no runner do GitHub + deploy prebuilt
+## Alternativa testada e revertida: build no runner do GitHub + deploy prebuilt
 
 O build sai da Vercel:
 
@@ -30,9 +30,13 @@ Os três comandos rodam na **raiz do repositório**, não dentro de `apps/web`: 
 Root Directory = apps/web, e rodar o CLI de dentro da pasta faz o caminho virar
 `apps/web/apps/web` (erro observado).
 
-Resultado esperado: **zero Build CPU Minutes** da Vercel para os deploys de produção; o custo
-de build vira tempo de GitHub Actions (incluído no plano do repositório). O serving da Vercel
-continua igual.
+Resultado medido em 04/11/2026: os deployments prebuilt ficaram **Ready**, mas as páginas
+serviram **erro de servidor** (env/runtime ausentes) e o build local no Windows gerou symlinks
+que o upload não levou (`_global-error.segments/...` ausente). Ou seja: a redução de Build CPU
+existe, mas o artefato não era confiável. O workflow foi **revertido** para o build remoto.
+
+A medição de referência: `vercel deploy --prod` remoto concluiu o build em **9–21 s**; o build
+prebuilt local levava **12–23 s**. O problema não era tempo, era correção do artefato.
 
 Verificação feita localmente antes de mudar o workflow:
 
@@ -45,6 +49,12 @@ Verificação feita localmente antes de mudar o workflow:
 O workflow agora tem `timeout-minutes: 20` e mantém os filtros de path existentes. O
 `ignoreCommand` continua como guarda caso a integração nativa seja reativada.
 
+## Token do GitHub Actions
+
+O secret `VERCEL_TOKEN` está inválido: o workflow falha em `vercel link` com
+`User not found (404)`. Enquanto o token não for rotacionado, o deploy automático não roda;
+o deploy manual com o CLI autenticado funciona.
+
 ## Ação necessária na Vercel (Operador)
 
 A pausa por limite de gastos **não é removida pelo CLI**. Para o próximo deploy rodar, é
@@ -53,7 +63,7 @@ preciso, no dashboard da Vercel:
 1. revisar/regularizar o limite de gastos do time; e
 2. reativar o projeto (unpause) quando o limite permitir.
 
-Depois disso, o primeiro `Deploy Web` já usa o caminho prebuilt e não deve consumir Build CPU.
+Depois disso, o `Deploy Web` volta a usar o build remoto. Se o custo de Build CPU continuar acima do aceitável, o caminho é o container na Railway descrito abaixo.
 
 ## Se o custo de serving ainda for problema: Railway
 

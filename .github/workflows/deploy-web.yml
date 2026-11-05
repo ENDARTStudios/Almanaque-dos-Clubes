@@ -46,14 +46,11 @@ name: Deploy Web (Vercel)
 # `vercel deploy --prod` enviava o código e o BUILD rodava NA VERCEL (next build + install),
 # consumindo CPU do plano a cada deploy de produção.
 #
-# ALTERNATIVA ADOTADA: construir no RUNNER DO GITHUB e publicar o artefato pronto
-# (`vercel build` + `vercel deploy --prebuilt`). O build deixa de consumir Build CPU Minutes
-# da Vercel; o GitHub Actions ganha ~1 min de job e o deploy sobe o `.vercel/output` já pronto.
-# Teste local do `vercel build --prod`: 51 s até "Build Completed".
-#
-# Se o custo de SERVING da Vercel ainda for um problema, o próximo passo é migrar o web para
-# um host de container (Railway, que já hospeda a API) — a alternativa está documentada em
-# docs/DEPLOY-WEB-CUSTOS.md. Este workflow continua sendo a opção de menor mudança.
+# ALTERNATIVA TESTADA E REVERTIDA: build no runner do GitHub + `vercel deploy --prebuilt`.
+# Em 04/11/2026 os deployments prebuilt ficaram "Ready" mas serviram erro de servidor
+# (env/runtime ausentes) e o build no Windows gerou symlinks que o upload não levou. O
+# resultado não era confiável; o workflow voltou ao build remoto. A opção de custo real
+# (container na Railway, que já hospeda a API) está em docs/DEPLOY-WEB-CUSTOS.md.
 
 on:
   push:
@@ -93,18 +90,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # O token lido de VERCEL_TOKEN (job env) evita token em linha de comando.
-      - name: Link do projeto Vercel
-        run: npx --yes vercel@57 link --yes --project almanaque-dos-clubes --scope end-art-studios
-
-      - name: Pull do ambiente de produção
-        run: npx --yes vercel@57 pull --yes --environment=production
-
-      # IMPORTANTE: os comandos rodam na RAIZ do repositório. O projeto Vercel tem
-      # Root Directory = apps/web; rodar o CLI de dentro de apps/web faz ele anexar
-      # "apps/web" de novo ao caminho e falhar (verificado em 04/11/2026).
-      - name: Build do artefato (prebuilt)
-        run: npx --yes vercel@57 build --prod
-
-      - name: Deploy do artefato prebuilt
-        run: npx --yes vercel@57 deploy --prebuilt --prod --yes
+      # Build remoto na Vercel (modelo que funcionou em produção).
+      # A alternativa prebuilt (build no GitHub + deploy --prebuilt) foi testada em 04/11/2026
+      # e gerou deployments com erro de servidor (env/runtime ausentes) e falhas de symlink;
+      # por isso NÃO foi adotada. Ver docs/DEPLOY-WEB-CUSTOS.md.
+      - name: Deploy to Vercel (production)
+        # Token via env (não em flag de linha de comando). O `vercel` lê VERCEL_TOKEN.
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel deploy --prod --project almanaque-dos-clubes --yes
