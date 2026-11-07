@@ -495,7 +495,11 @@ export async function deriveStandingsBatch(
      WHERE cs.standings IS NULL
         OR jsonb_typeof(cs.standings) = 'null'
         OR (jsonb_typeof(cs.standings) = 'array' AND jsonb_array_length(cs.standings) = 0)
-     ORDER BY cs."competitionId", cs.season
+     ORDER BY (EXISTS (SELECT 1 FROM matches m
+                        WHERE m."competitionId" = cs."competitionId"
+                          AND m.status = 'FINISHED'
+                          AND m."homeScore" IS NOT NULL)) DESC,
+              cs."competitionId", cs."season"
      LIMIT ${limit}
   `);
   if (edicoes.length === 0) {
