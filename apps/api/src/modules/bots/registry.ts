@@ -28,6 +28,7 @@ import {
 } from '../etl/connectors/wikidata-stadiums.connector.js';
 import { compareClubs } from '../compare/compare.service.js';
 import { cache } from '../../services/cache.js';
+import { DERIVE_BATCH_LIMIT, deriveStandingsBatch } from './standings-derive.js';
 import type { BotDefinition, BotOutcome } from './types.js';
 
 /** Normaliza contadores (todos os batches devolvem números parciais). */
@@ -268,22 +269,18 @@ const tables: BotDefinition = {
   domain: 'tables',
   label: 'Classificações (standings) pendentes',
   async run({ prisma }) {
-    const rows = await prisma.$queryRawUnsafe<Array<{ n: bigint }>>(
-      `SELECT count(*)::bigint AS n
-         FROM "CompetitionSeason"
-        WHERE standings IS NULL OR standings::text = 'null'`,
-    );
-    const semStandings = Number(rows[0]?.n ?? 0);
+    // T-24/28 — fila REAL: deriva standings das partidas do acervo onde o formato
+    // permite (liga de pontos corridos; fase de grupos identificável em copas),
+    // com proveniência por linha e zero-overwrite atômico. Copa/mata-mata sem
+    // grupos e recorte incompleto viram skip declarado — nunca tabela inventada.
+    const out = await deriveStandingsBatch(prisma, { limit: DERIVE_BATCH_LIMIT });
     return outcome({
-      status: 'skipped',
-      processed: 0,
-      updated: 0,
-      skipped: semStandings,
-      errors: 0,
-      message:
-        `classificações: ${semStandings} edição(ões) sem standings. Não existe fila de ` +
-        'standings pendentes com fonte armazenada — reingestão exige o seed por artigo ' +
-        '(seed-competition-seasons); nenhuma escrita inventada.',
+      status: out.updated > 0 ? 'ok' : 'skipped',
+      processed: out.processed,
+      updated: out.updated,
+      skipped: out.skipped,
+      errors: out.errors,
+      message: out.message,
     });
   },
 };
