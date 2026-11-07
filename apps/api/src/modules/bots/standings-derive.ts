@@ -491,7 +491,7 @@ export async function deriveStandingsBatch(
            cs.season,
            c.type             AS "competitionType"
       FROM "CompetitionSeason" cs
-      JOIN "Competition" c ON c.id = cs."competitionId"
+      JOIN competitions c ON c.id = cs."competitionId"
      WHERE cs.standings IS NULL
         OR jsonb_typeof(cs.standings) = 'null'
         OR (jsonb_typeof(cs.standings) = 'array' AND jsonb_array_length(cs.standings) = 0)
